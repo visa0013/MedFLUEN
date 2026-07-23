@@ -1838,20 +1838,25 @@ async function pushLocalStorageKeyToCloud(key, userId) {
         lecture_count: event.lectureCount || null,
         estimated_hours: event.estimatedHours || null,
       }));
-      if (rows.length > 0) {
-        await supabase.from("calendar_events").upsert(rows, { onConflict: "id" });
-      }
-    }
-  } catch {
-    // Cloud-skrivning fejlede (fx offline) - de lokale data er stadig
-    // gemt korrekt i localStorage, og forsøges synkroniseret igen ved
-    // næste ændring eller næste login.
+       if (rows.length > 0) {
+    await supabase
+      .from("calendar_events")
+      .upsert(rows, {
+        onConflict: "id",
+      });
   }
 }
+} catch (error) {
+  console.error(
+    "Kunne ikke skrive data til Supabase:",
+    error
+  );
+}
+}
 
-// Kobler skyen sammen med det eksisterende lokale storage-system: lytter
-// efter "medlearn-storage-update" for de tre synkroniserede nøgler, og
-// sender ændringen videre til Supabase i baggrunden.
+// Lytter efter ændringer i brugerens personlige cloud-data
+// og sender studieplaner og kalenderhændelser til Supabase.
+// Den fælles spørgsmålsbank håndteres separat.
 function useCloudSync(userId) {
   useEffect(() => {
     if (!userId) return;
