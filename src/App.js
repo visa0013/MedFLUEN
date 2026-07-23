@@ -1804,13 +1804,6 @@ async function pullCloudDataIntoLocalStorage(userId) {
     // hvis Supabase eller netværket er utilgængeligt.
   }
 }
-    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(eventsArray));
-    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEvents } }));
-
-  // Appen fortsætter med de data, der allerede
-  // findes i localStorage, hvis brugeren er offline.
-}
-}
 
 // Skriver den aktuelle lokale tilstand for en given STORAGE-nøgle til den
 // tilsvarende Supabase-tabel. Kaldes hver gang localStorage opdateres for
