@@ -1671,10 +1671,85 @@ function useStoredState(key, fallback) {
 }
 
 const CLOUD_SYNCED_KEYS = {
-  [STORAGE.studyPlans]: { table: "study_plans", type: "keyed_object" },
-  [STORAGE.calendarEvents]: { table: "calendar_events", type: "array_by_id" },
-  [STORAGE.importedQuestions]: { table: "imported_questions", type: "array_by_id" },
+  [STORAGE.studyPlans]: {
+    table: "study_plans",
+    type: "keyed_object",
+  },
+
+  [STORAGE.calendarEvents]: {
+    table: "calendar_events",
+    type: "array_by_id",
+  },
 };
+async function pullQuestionBankIntoLocalStorage() {
+  const { data, error } = await supabase
+    .from("question_bank")
+    .select(
+      `
+        id,
+        module_id,
+        lecture_id,
+        category,
+        content,
+        created_at
+      `
+    )
+    .eq("status", "published")
+    .order("created_at", {
+      ascending: true,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const questionsArray = (data || [])
+    .map((row) => {
+      const content =
+        row.content &&
+        typeof row.content === "object" &&
+        !Array.isArray(row.content)
+          ? row.content
+          : {};
+
+      return normalizeImportedQuestion({
+        ...content,
+
+        // Databasens kolonner er autoritative.
+        id: row.id,
+        moduleId: row.module_id,
+        lectureId: row.lecture_id,
+
+        category:
+          content.category ||
+          row.category ||
+          "Ukategoriseret",
+      });
+    })
+    .filter((question) => {
+      return (
+        question.id &&
+        question.moduleId &&
+        question.question &&
+        question.options.length >= 2
+      );
+    });
+
+  localStorage.setItem(
+    STORAGE.importedQuestions,
+    JSON.stringify(questionsArray)
+  );
+
+  window.dispatchEvent(
+    new CustomEvent("medlearn-storage-update", {
+      detail: {
+        key: STORAGE.importedQuestions,
+      },
+    })
+  );
+
+  return questionsArray;
+}
 
 // Henter alt data for den loggede-ind bruger fra Supabase, og skriver det
 // ind i localStorage under de rette STORAGE-nøgler, så alle eksisterende
@@ -1683,11 +1758,7 @@ const CLOUD_SYNCED_KEYS = {
 // event - uden at deres kode skal ændres.
 async function pullCloudDataIntoLocalStorage(userId) {
   try {
-    const { data: plans } = await supabase.from("study_plans").select("module_name, data").eq("user_id", userId);
-    const plansObject = {};
-    (plans || []).forEach((row) => { plansObject[row.module_name] = row.data; });
-    localStorage.setItem(STORAGE.studyPlans, JSON.stringify(plansObject));
-    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.studyPlans } }));
+    await pullQuestionBankIntoLocalStorage();
 
     const { data: events } = await supabase.from("calendar_events").select("*").eq("user_id", userId);
     const eventsArray = (events || []).map((row) => ({
@@ -1707,10 +1778,15 @@ async function pullCloudDataIntoLocalStorage(userId) {
     const questionsArray = (questions || []).map((row) => row.data);
     localStorage.setItem(STORAGE.importedQuestions, JSON.stringify(questionsArray));
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.importedQuestions } }));
-  } catch {
-    // Hvis hentning fra Supabase fejler (fx offline), fortsætter appen med
-    // de lokale data, der allerede ligger i localStorage.
-  }
+} catch (error) {
+  console.error(
+    "Kunne ikke hente cloud-data fra Supabase:",
+    error
+  );
+
+  // Appen fortsætter med de data, der allerede
+  // findes i localStorage, hvis brugeren er offline.
+}
 }
 
 // Skriver den aktuelle lokale tilstand for en given STORAGE-nøgle til den
@@ -1748,17 +1824,6 @@ async function pushLocalStorageKeyToCloud(key, userId) {
       if (rows.length > 0) {
         await supabase.from("calendar_events").upsert(rows, { onConflict: "id" });
       }
-    } else if (key === STORAGE.importedQuestions) {
-      const questionsArray = loadStorage(STORAGE.importedQuestions, []);
-      const rows = questionsArray.map((question) => ({
-        id: question.id,
-        user_id: userId,
-        data: question,
-      }));
-      if (rows.length > 0) {
-        await supabase.from("imported_questions").upsert(rows, { onConflict: "id" });
-      }
-    }
   } catch {
     // Cloud-skrivning fejlede (fx offline) - de lokale data er stadig
     // gemt korrekt i localStorage, og forsøges synkroniseret igen ved
