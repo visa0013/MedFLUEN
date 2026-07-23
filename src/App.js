@@ -10537,8 +10537,8 @@ function AdminPortal({ c, t, language, user, isAdmin, onClose }) {
 
 // Midlertidig kompatibilitet med den gamle adminportal.
 // Fjernes, når admin-UI'et genopbygges.
-const setUnlocked = () => {}; = useStoredState(STORAGE.adminUnlocked, false);
-  const [passcode, setPasscode] = useState("");
+const setUnlocked = () => {};
+const [passcode, setPasscode] = useState("");
   const [error, setError] = useState(false);
   const [imported, setImportedQuestions] = useStoredState(
     STORAGE.importedQuestions,
