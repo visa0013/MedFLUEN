@@ -13325,8 +13325,7 @@ function TutorialOverlay({ c, t, language, route, setRoute, onFinish }) {
   );
 }
 
-function useSupabaseSession() {
-  function useAdminAccess(session) {
+function useAdminAccess(session) {
   const [adminState, setAdminState] = useState({
     isAdmin: false,
     loading: true,
@@ -13368,7 +13367,10 @@ function useSupabaseSession() {
       if (cancelled) return;
 
       if (error) {
-        console.error("Kunne ikke kontrollere adminadgang:", error);
+        console.error(
+          "Kunne ikke kontrollere adminadgang:",
+          error
+        );
 
         setAdminState({
           isAdmin: false,
@@ -13395,14 +13397,25 @@ function useSupabaseSession() {
 
   return adminState;
 }
+
+function useSupabaseSession() {
   const [session, setSession] = useState(undefined);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
     });
-    return () => listener.subscription.unsubscribe();
+
+    const { data: listener } =
+      supabase.auth.onAuthStateChange(
+        (_event, newSession) => {
+          setSession(newSession);
+        }
+      );
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   return session;
