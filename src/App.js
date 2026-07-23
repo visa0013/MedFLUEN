@@ -1758,9 +1758,19 @@ async function pullQuestionBankIntoLocalStorage() {
 // event - uden at deres kode skal ændres.
 async function pullCloudDataIntoLocalStorage(userId) {
   try {
+    // Hent den fælles spørgsmålsbank.
     await pullQuestionBankIntoLocalStorage();
 
-    const { data: events } = await supabase.from("calendar_events").select("*").eq("user_id", userId);
+    // Hent brugerens kalenderdata.
+    const { data: events, error: eventsError } = await supabase
+      .from("calendar_events")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (eventsError) {
+      throw eventsError;
+    }
+
     const eventsArray = (events || []).map((row) => ({
       id: row.id,
       title: row.title,
@@ -1771,18 +1781,31 @@ async function pullCloudDataIntoLocalStorage(userId) {
       lectureCount: row.lecture_count,
       estimatedHours: row.estimated_hours,
     }));
+
+    localStorage.setItem(
+      STORAGE.calendarEvents,
+      JSON.stringify(eventsArray)
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("medlearn-storage-update", {
+        detail: {
+          key: STORAGE.calendarEvents,
+        },
+      })
+    );
+  } catch (error) {
+    console.error(
+      "Kunne ikke hente cloud-data fra Supabase:",
+      error
+    );
+
+    // Appen fortsætter med allerede gemte lokale data,
+    // hvis Supabase eller netværket er utilgængeligt.
+  }
+}
     localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(eventsArray));
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEvents } }));
-
-    const { data: questions } = await supabase.from("imported_questions").select("id, data").eq("user_id", userId);
-    const questionsArray = (questions || []).map((row) => row.data);
-    localStorage.setItem(STORAGE.importedQuestions, JSON.stringify(questionsArray));
-    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.importedQuestions } }));
-} catch (error) {
-  console.error(
-    "Kunne ikke hente cloud-data fra Supabase:",
-    error
-  );
 
   // Appen fortsætter med de data, der allerede
   // findes i localStorage, hvis brugeren er offline.
@@ -1791,8 +1814,9 @@ async function pullCloudDataIntoLocalStorage(userId) {
 
 // Skriver den aktuelle lokale tilstand for en given STORAGE-nøgle til den
 // tilsvarende Supabase-tabel. Kaldes hver gang localStorage opdateres for
-// en af de tre synkroniserede nøgler (studieplaner, kalenderevents,
-// importerede spørgsmål), så cloud-data altid følger med.
+// Skriver personlig brugerdata til Supabase.
+// Den fælles spørgsmålsbank håndteres separat
+// og må ikke synkroniseres som personlig brugerdata.
 async function pushLocalStorageKeyToCloud(key, userId) {
   const config = CLOUD_SYNCED_KEYS[key];
   if (!config || !userId) return;
