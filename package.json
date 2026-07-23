@@ -28,13 +28,11 @@
     "not ie <= 11",
     "not op_mini all"
   ],
-  "overrides": {
-    "ajv": "^8.17.1",
-    "ajv-keywords": "^5.1.0",
-    "ajv-formats": "^2.1.1",
-    "fork-ts-checker-webpack-plugin": {
-      ".": "^9.0.2",
-      "schema-utils": "^4.3.0"
-    }
+"overrides": {
+  "ajv": "8.20.0",
+  "ajv-keywords": "5.1.0",
+  "ajv-formats": "2.1.1",
+  "schema-utils": "4.3.3"
+}
   }
 }
