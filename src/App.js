@@ -10532,8 +10532,12 @@ function LectureMenuModal({
   );
 }
 
-function AdminPortal({ c, t, language, user, onClose }) {
-  const [unlocked, setUnlocked] = useStoredState(STORAGE.adminUnlocked, false);
+function AdminPortal({ c, t, language, user, isAdmin, onClose }) {
+  const unlocked = isAdmin;
+
+// Midlertidig kompatibilitet med den gamle adminportal.
+// Fjernes, når admin-UI'et genopbygges.
+const setUnlocked = () => {}; = useStoredState(STORAGE.adminUnlocked, false);
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState(false);
   const [imported, setImportedQuestions] = useStoredState(
@@ -10899,24 +10903,6 @@ function AdminPortal({ c, t, language, user, onClose }) {
           )}
         </div>
       )}
-
-      <button
-        type="button"
-        onClick={() => setUnlocked(false)}
-        style={{
-          width: "100%",
-          height: 40,
-          border: `1px solid ${c.borderStrong}`,
-          borderRadius: 10,
-          background: "transparent",
-          color: c.secondary,
-          fontSize: 12,
-          fontWeight: 700,
-          cursor: "pointer",
-        }}
-      >
-        {t.adminLock}
-      </button>
     </Modal>
   );
 }
@@ -12078,6 +12064,7 @@ function Sidebar({
   t,
   route,
   setRoute,
+  isAdmin,
   notesOpen,
   setNotesOpen,
   calendarOpen,
@@ -12305,14 +12292,18 @@ function Sidebar({
               direction: "inherit",
             }}
           >
-            {[
-              ["settings", "settings", t.settings],
-              ["language", "globe", t.language],
-              ["tutorial", "target", t.replayTutorial],
-              ["admin", "book", t.adminPortal],
-              ["logout", "logout", t.resetProfile],
-              ["signout", "logout", t.signOutAction],
-            ].map(([id, icon, label]) => (
+           {[
+  ["settings", "settings", t.settings],
+  ["language", "globe", t.language],
+  ["tutorial", "target", t.replayTutorial],
+
+  ...(isAdmin
+    ? [["admin", "book", t.adminPortal]]
+    : []),
+
+  ["logout", "logout", t.resetProfile],
+  ["signout", "logout", t.signOutAction],
+].map(([id, icon, label]) => (
               <button
                 type="button"
                 key={id}
@@ -13335,6 +13326,75 @@ function TutorialOverlay({ c, t, language, route, setRoute, onFinish }) {
 }
 
 function useSupabaseSession() {
+  function useAdminAccess(session) {
+  const [adminState, setAdminState] = useState({
+    isAdmin: false,
+    loading: true,
+    error: null,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkAdminAccess() {
+      if (session === undefined) {
+        setAdminState({
+          isAdmin: false,
+          loading: true,
+          error: null,
+        });
+        return;
+      }
+
+      if (!session?.user?.id) {
+        setAdminState({
+          isAdmin: false,
+          loading: false,
+          error: null,
+        });
+        return;
+      }
+
+      setAdminState((previous) => ({
+        ...previous,
+        loading: true,
+        error: null,
+      }));
+
+      const { data, error } = await supabase.rpc(
+        "current_user_is_admin"
+      );
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error("Kunne ikke kontrollere adminadgang:", error);
+
+        setAdminState({
+          isAdmin: false,
+          loading: false,
+          error,
+        });
+
+        return;
+      }
+
+      setAdminState({
+        isAdmin: data === true,
+        loading: false,
+        error: null,
+      });
+    }
+
+    checkAdminAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
+
+  return adminState;
+}
   const [session, setSession] = useState(undefined);
 
   useEffect(() => {
@@ -13512,8 +13572,15 @@ function App() {
   const [theme, setTheme] = useStoredState(STORAGE.theme, "light");
   const [language, setLanguage] = useStoredState(STORAGE.language, "da");
   const [user, setUser] = useStoredState(STORAGE.user, null);
-  const session = useSupabaseSession();
-  useCloudSync(session?.user?.id);
+ const session = useSupabaseSession();
+
+const {
+  isAdmin,
+  loading: adminLoading,
+  error: adminError,
+} = useAdminAccess(session);
+
+useCloudSync(session?.user?.id);
   const [preferences, setPreferences] = useStoredState(STORAGE.preferences, {
     questionSize: 18,
     sound: true,
@@ -13537,6 +13604,20 @@ function App() {
   const [drByteOpen, setDrByteOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [modal, setModal] = useState(null);
+  useEffect(() => {
+  if (!adminLoading && !isAdmin && modal === "admin") {
+    setModal(null);
+  }
+}, [adminLoading, isAdmin, modal]);
+
+useEffect(() => {
+  if (adminError) {
+    console.error(
+      "Adminportalen blev skjult, fordi adminstatus ikke kunne hentes.",
+      adminError
+    );
+  }
+}, [adminError]);
   const [spacedData, setSpacedData] = useStoredState(STORAGE.spacedRepetition, {});
   const [deckSettingsById] = useStoredState(STORAGE.deckSettings, { default: SM2_DEFAULT_DECK_SETTINGS });
   const deckSettingsFor = (deckId) => deckSettingsById[deckId] || deckSettingsById.default || SM2_DEFAULT_DECK_SETTINGS;
@@ -13835,17 +13916,24 @@ function App() {
         profileOpen={profileOpen}
         setProfileOpen={setProfileOpen}
         dueCount={sidebarDueCount}
+        isAdmin={isAdmin}
         onProfileAction={(action) => {
-          setProfileOpen(false);
-          if (action === "tutorial") {
-            setRoute("home");
-            setTutorialActive(true);
-          } else if (action === "signout") {
-            supabase.auth.signOut();
-          } else {
-            setModal(action);
-          }
-        }}
+  setProfileOpen(false);
+
+  if (action === "admin" && !isAdmin) {
+    setModal(null);
+    return;
+  }
+
+  if (action === "tutorial") {
+    setRoute("home");
+    setTutorialActive(true);
+  } else if (action === "signout") {
+    supabase.auth.signOut();
+  } else {
+    setModal(action);
+  }
+}}
       />
 
       {calendarOpen && (
@@ -14074,15 +14162,16 @@ function App() {
         />
       )}
 
-      {modal === "admin" && (
-        <AdminPortal
-          c={c}
-          t={t}
-          language={language}
-          user={user}
-          onClose={() => setModal(null)}
-        />
-      )}
+ {modal === "admin" && isAdmin && !adminLoading && (
+  <AdminPortal
+    c={c}
+    t={t}
+    language={language}
+    user={user}
+    isAdmin={isAdmin}
+    onClose={() => setModal(null)}
+  />
+)}
 
       {lectureMenu && (
         <LectureMenuModal
