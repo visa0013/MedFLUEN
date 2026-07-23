@@ -7170,11 +7170,131 @@ function status() {
     };
   }
 
-  if (!question && !finished) {
-    // The effect above promotes a completed queue to the summary. Avoid rendering
-    // an empty-state screen during that single reconciliation render.
-    return null;
+if (!question && !finished) {
+  const isEmptyAtStart =
+    pool.length === 0 && sessionCardPosition <= 1;
+
+  if (isEmptyAtStart) {
+    const emptyCopy = {
+      da: {
+        title:
+          sessionScope?.mode === "due"
+            ? "Ingen kort klar til repetition"
+            : "Dette dæk er tomt",
+        description:
+          sessionScope?.mode === "due"
+            ? "Der er ingen kort, som skal repeteres lige nu. Vælg “Alle spørgsmål”, hvis du vil øve nye kort."
+            : "Der er endnu ingen spørgsmål i dette dæk. Tilføj spørgsmål, før du starter en session.",
+        button: "Tilbage til dækkene",
+      },
+
+      en: {
+        title:
+          sessionScope?.mode === "due"
+            ? "No cards ready for review"
+            : "This deck is empty",
+        description:
+          sessionScope?.mode === "due"
+            ? "There are no cards ready for review right now. Select “All questions” to practise new cards."
+            : "There are no questions in this deck yet. Add questions before starting a session.",
+        button: "Back to decks",
+      },
+
+      ar: {
+        title:
+          sessionScope?.mode === "due"
+            ? "لا توجد بطاقات جاهزة للمراجعة"
+            : "هذه المجموعة فارغة",
+        description:
+          sessionScope?.mode === "due"
+            ? "لا توجد بطاقات تحتاج إلى مراجعة الآن. اختر جميع الأسئلة للتدرب على بطاقات جديدة."
+            : "لا توجد أسئلة في هذه المجموعة بعد. أضف أسئلة قبل بدء الجلسة.",
+        button: "العودة إلى المجموعات",
+      },
+    };
+
+    const copy = emptyCopy[language] || emptyCopy.da;
+
+    return (
+      <section
+        style={{
+          width: "100%",
+          maxWidth: 680,
+          margin: "40px auto",
+          padding: "48px 28px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          borderRadius: 22,
+          border: `1px solid ${c.border}`,
+          background: c.panel,
+          boxShadow: c.shadow,
+        }}
+      >
+        <div
+          style={{
+            width: 68,
+            height: 68,
+            display: "grid",
+            placeItems: "center",
+            marginBottom: 20,
+            borderRadius: 20,
+            background: c.blueSoft,
+            color: c.blue,
+          }}
+        >
+          <Icon name="clipboard" size={30} />
+        </div>
+
+        <h2
+          style={{
+            margin: 0,
+            color: c.text,
+            fontSize: 23,
+            fontWeight: 800,
+          }}
+        >
+          {copy.title}
+        </h2>
+
+        <p
+          style={{
+            maxWidth: 480,
+            margin: "12px 0 24px",
+            color: c.secondary,
+            fontSize: 14,
+            lineHeight: 1.7,
+          }}
+        >
+          {copy.description}
+        </p>
+
+        <PrimaryButton
+          onClick={() => {
+            localStorage.removeItem(STORAGE.resumeSession);
+            onExitToOverview?.();
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+            }}
+          >
+            <Icon name="left" size={16} />
+            {copy.button}
+          </span>
+        </PrimaryButton>
+      </section>
+    );
   }
+
+  // Bevar den eksisterende adfærd under overgangen
+  // fra det sidste kort til sessionsresultatet.
+  return null;
+}
 
   if (finished) {
     return isExamMode ? (
