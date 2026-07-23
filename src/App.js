@@ -1823,7 +1823,6 @@ async function pushLocalStorageKeyToCloud(key, userId) {
       }));
       if (rows.length > 0) {
         await supabase.from("calendar_events").upsert(rows, { onConflict: "id" });
-      }
   } catch {
     // Cloud-skrivning fejlede (fx offline) - de lokale data er stadig
     // gemt korrekt i localStorage, og forsøges synkroniseret igen ved
