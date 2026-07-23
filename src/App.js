@@ -4,9 +4,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "https://vuydytqlwhrblfrckpsj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1eWR5dHFsd2hyYmxmcmNrcHNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3NDQ0ODcsImV4cCI6MjEwMDMyMDQ4N30.c9wR1lFyCd-mWC5o_VYwzIxbEaEG2nD-OFKCj-IhQjg";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY =
+  process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error(
+    "Supabase-konfiguration mangler. Kontrollér miljøvariablerne i Vercel."
+  );
+}
+
+const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
 const STORAGE = {
   user: "medlearn-user",
