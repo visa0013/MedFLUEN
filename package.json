@@ -29,10 +29,12 @@
     "not op_mini all"
   ],
   "overrides": {
-    "terser-webpack-plugin": {
-      "schema-utils": {
-        "ajv": "^8.17.1",
-        "ajv-keywords": "^5.1.0"
+    "react-scripts": {
+      "terser-webpack-plugin": {
+        "schema-utils": {
+          "ajv": "^8.17.1",
+          "ajv-keywords": "^5.1.0"
+        }
       }
     }
   }
