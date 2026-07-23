@@ -11,15 +11,16 @@
     "@supabase/supabase-js": "2.110.8"
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "loader-utils": "3.2.1",
     "typescript": "5.7.2"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test --env=jsdom",
+    "start": "npx craco start",
+    "build": "npx craco build",
+    "test": "npx craco test --env=jsdom",
     "eject": "react-scripts eject"
   },
   "browserslist": [
@@ -31,12 +32,6 @@
   "overrides": {
     "ajv": "^8.17.1",
     "ajv-keywords": "^5.1.0",
-    "ajv-formats": "^2.1.1",
-    "fork-ts-checker-webpack-plugin": {
-      "schema-utils": {
-        "ajv": "^6.12.6",
-        "ajv-keywords": "^3.5.2"
-      }
-    }
+    "ajv-formats": "^2.1.1"
   }
 }
