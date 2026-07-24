@@ -2523,12 +2523,15 @@ function applyOverrides(list, overrides) {
 }
 
 function getFullQuestionBank(extraQuestions, overrides) {
-  const questionMap = new Map(
-    QUESTIONS.map((question) => [
-      question.id,
-      question,
-    ])
+  const cloudQuestions = Array.isArray(extraQuestions)
+    ? extraQuestions
+    : [];
+
+  return applyOverrides(
+    cloudQuestions,
+    overrides
   );
+}
 
   (extraQuestions || []).forEach((question) => {
     questionMap.set(question.id, question);
