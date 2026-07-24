@@ -13508,58 +13508,6 @@ function useSupabaseSession() {
 
   return session;
 }
-      if (!session?.user?.id) {
-        setAdminState({
-          isAdmin: false,
-          loading: false,
-          error: null,
-        });
-        return;
-      }
-
-      setAdminState((previous) => ({
-        ...previous,
-        loading: true,
-        error: null,
-      }));
-
-      const { data, error } = await supabase.rpc(
-        "current_user_is_admin"
-      );
-
-      if (cancelled) return;
-
-      if (error) {
-        console.error(
-          "Kunne ikke kontrollere adminadgang:",
-          error
-        );
-
-        setAdminState({
-          isAdmin: false,
-          loading: false,
-          error,
-        });
-
-        return;
-      }
-
-      setAdminState({
-        isAdmin: data === true,
-        loading: false,
-        error: null,
-      });
-    }
-
-    checkAdminAccess();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [session?.user?.id]);
-
-  return adminState;
-}
 
 function AuthScreen({ c, t, language, theme }) {
   const [mode, setMode] = useState("login");
