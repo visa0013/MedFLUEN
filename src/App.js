@@ -2523,10 +2523,21 @@ function applyOverrides(list, overrides) {
 }
 
 function getFullQuestionBank(extraQuestions, overrides) {
-  const base = extraQuestions && extraQuestions.length
-    ? [...QUESTIONS, ...extraQuestions]
-    : QUESTIONS;
-  return applyOverrides(base, overrides);
+  const questionMap = new Map(
+    QUESTIONS.map((question) => [
+      question.id,
+      question,
+    ])
+  );
+
+  (extraQuestions || []).forEach((question) => {
+    questionMap.set(question.id, question);
+  });
+
+  return applyOverrides(
+    Array.from(questionMap.values()),
+    overrides
+  );
 }
 
 function updateLocalizedField(original, language, newValue) {
@@ -10099,7 +10110,8 @@ function QuestionEditor({ c, t, language, question, moduleId, lectureId, onSave,
   const [explanation, setExplanation] = useState(
     question ? translate(question.explanation, language) : ""
   );
-
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   function updateOption(index, value) {
     setOptions((previous) => previous.map((o, i) => (i === index ? value : o)));
   }
@@ -10113,35 +10125,120 @@ function QuestionEditor({ c, t, language, question, moduleId, lectureId, onSave,
     if (correct >= options.length - 1) setCorrect(0);
   }
 
-  function save() {
-    const id = question ? question.id : `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const baseQuestion = question || {
-      id,
-      moduleId,
-      lectureId,
-      category: { da: "", en: "", ar: "" },
-      question: { da: "", en: "", ar: "" },
-      options: options.map(() => ({ da: "", en: "", ar: "" })),
-      correct: 0,
-      explanation: { da: "", en: "", ar: "" },
-    };
+async function save() {
+  if (saving) return;
 
-    const updated = {
-      ...baseQuestion,
-      id,
-      moduleId,
-      lectureId,
-      category: updateLocalizedField(baseQuestion.category, language, category),
-      question: updateLocalizedField(baseQuestion.question, language, questionText),
-      options: options.map((value, i) =>
-        updateLocalizedField(baseQuestion.options[i], language, value)
-      ),
-      correct,
-      explanation: updateLocalizedField(baseQuestion.explanation, language, explanation),
-    };
-
-    onSave(updated);
+  if (!questionText.trim()) {
+    setSaveError(
+      language === "en"
+        ? "Enter a question."
+        : language === "ar"
+          ? "أدخل نص السؤال."
+          : "Skriv en spørgsmålstekst."
+    );
+    return;
   }
+
+  if (
+    options.length < 2 ||
+    options.some((option) => !option.trim())
+  ) {
+    setSaveError(
+      language === "en"
+        ? "Enter at least two answer options."
+        : language === "ar"
+          ? "أدخل خيارين للإجابة على الأقل."
+          : "Udfyld mindst to svarmuligheder."
+    );
+    return;
+  }
+
+  const id = question
+    ? question.id
+    : `custom-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 7)}`;
+
+  const baseQuestion = question || {
+    id,
+    moduleId,
+    lectureId,
+    category: {
+      da: "",
+      en: "",
+      ar: "",
+    },
+    question: {
+      da: "",
+      en: "",
+      ar: "",
+    },
+    options: options.map(() => ({
+      da: "",
+      en: "",
+      ar: "",
+    })),
+    correct: 0,
+    explanation: {
+      da: "",
+      en: "",
+      ar: "",
+    },
+  };
+
+  const updated = {
+    ...baseQuestion,
+    id,
+    moduleId,
+    lectureId,
+    category: updateLocalizedField(
+      baseQuestion.category,
+      language,
+      category.trim()
+    ),
+    question: updateLocalizedField(
+      baseQuestion.question,
+      language,
+      questionText.trim()
+    ),
+    options: options.map((value, index) =>
+      updateLocalizedField(
+        baseQuestion.options[index],
+        language,
+        value.trim()
+      )
+    ),
+    correct,
+    explanation: updateLocalizedField(
+      baseQuestion.explanation,
+      language,
+      explanation.trim()
+    ),
+  };
+
+  setSaving(true);
+  setSaveError("");
+
+  try {
+    await onSave(updated);
+  } catch (error) {
+    console.error(
+      "QuestionEditor kunne ikke gemme:",
+      error
+    );
+
+    setSaveError(
+      error?.message ||
+        (language === "en"
+          ? "The question could not be saved."
+          : language === "ar"
+            ? "تعذر حفظ السؤال."
+            : "Spørgsmålet kunne ikke gemmes.")
+    );
+  } finally {
+    setSaving(false);
+  }
+}
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
@@ -10234,9 +10331,27 @@ function QuestionEditor({ c, t, language, question, moduleId, lectureId, onSave,
         />
       </div>
 
+      {saveError && (
+  <div
+    role="alert"
+    style={{
+      padding: "9px 11px",
+      borderRadius: 10,
+      border: `1px solid ${c.redBorder}`,
+      background: c.redSoft,
+      color: c.red,
+      fontSize: 11.5,
+      fontWeight: 700,
+      lineHeight: 1.45,
+    }}
+  >
+    {saveError}
+  </div>
+)}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 4 }}>
         <button
           type="button"
+          disabled={saving}
           onClick={onCancel}
           style={{
             height: 40, padding: "0 14px", border: `1px solid ${c.borderStrong}`, borderRadius: 10,
@@ -10245,7 +10360,18 @@ function QuestionEditor({ c, t, language, question, moduleId, lectureId, onSave,
         >
           {t.cancelEdit}
         </button>
-        <PrimaryButton onClick={save}>{t.saveQuestion}</PrimaryButton>
+<PrimaryButton
+  onClick={save}
+  disabled={saving}
+>
+  {saving
+    ? language === "en"
+      ? "Saving..."
+      : language === "ar"
+        ? "جارٍ الحفظ..."
+        : "Gemmer..."
+    : t.saveQuestion}
+</PrimaryButton>
       </div>
     </div>
   );
@@ -10319,22 +10445,55 @@ function LectureMenuModal({
     return importedQuestions.some((q) => q.id === id);
   }
 
-  function saveQuestion(updated) {
-    if (isCustomQuestion(updated.id)) {
-      setImportedQuestions((previous) =>
-        previous.map((q) => (q.id === updated.id ? updated : q))
-      );
-    } else if (QUESTIONS.some((q) => q.id === updated.id)) {
-      setQuestionOverrides((previous) => ({
-        ...previous,
-        [updated.id]: { ...(previous[updated.id] || {}), fields: updated },
-      }));
-    } else {
-      setImportedQuestions((previous) => [...previous, updated]);
-    }
-    setEditingQuestion(null);
-    setCreating(false);
+async function saveQuestion(updated) {
+  const normalizedQuestion = {
+    ...updated,
+    moduleId,
+    lectureId: lecture.id || null,
+  };
+
+  const content = {
+    category: normalizedQuestion.category,
+    question: normalizedQuestion.question,
+    options: normalizedQuestion.options,
+    correct: normalizedQuestion.correct,
+    explanation: normalizedQuestion.explanation,
+  };
+
+  const { error } = await supabase
+    .from("question_bank")
+    .upsert(
+      {
+        id: normalizedQuestion.id,
+        module_id: normalizedQuestion.moduleId,
+        lecture_id: normalizedQuestion.lectureId,
+        category:
+          translate(
+            normalizedQuestion.category,
+            "da"
+          ) || "Ukategoriseret",
+        content,
+        status: "published",
+      },
+      {
+        onConflict: "id",
+      }
+    );
+
+  if (error) {
+    console.error(
+      "Kunne ikke gemme spørgsmålet i Supabase:",
+      error
+    );
+
+    throw error;
   }
+
+  await pullQuestionBankIntoLocalStorage();
+
+  setEditingQuestion(null);
+  setCreating(false);
+}
 
   function deleteQuestion(id) {
     if (isCustomQuestion(id)) {
