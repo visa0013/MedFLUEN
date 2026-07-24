@@ -10628,10 +10628,16 @@ function AdminPortal({ c, t, language, user, isAdmin, onClose }) {
 const setUnlocked = () => {};
 const [passcode, setPasscode] = useState("");
   const [error, setError] = useState(false);
-  const [imported, setImportedQuestions] = useStoredState(
-    STORAGE.importedQuestions,
-    []
-  );
+const [imported] = useStoredState(
+  STORAGE.importedQuestions,
+  []
+);
+
+const [deletingQuestionId, setDeletingQuestionId] =
+  useState(null);
+
+const [deleteStatus, setDeleteStatus] =
+  useState(null);
   const [flagged, setFlagged] = useStoredState(STORAGE.flaggedQuestions, []);
   const [adminTab, setAdminTab] = useState("import");
 
@@ -10644,9 +10650,82 @@ const [passcode, setPasscode] = useState("");
     }
   }
 
-  function removeQuestion(id) {
-    setImportedQuestions((previous) => previous.filter((q) => q.id !== id));
+async function removeQuestion(id) {
+  if (deletingQuestionId) return;
+
+  const question = imported.find(
+    (item) => item.id === id
+  );
+
+  const questionText = question
+    ? translate(question.question, language)
+    : "";
+
+  const confirmed = window.confirm(
+    `${t.confirmDeleteQuestion}${
+      questionText
+        ? `\n\n${questionText.slice(0, 180)}`
+        : ""
+    }`
+  );
+
+  if (!confirmed) return;
+
+  setDeletingQuestionId(id);
+  setDeleteStatus(null);
+
+  try {
+    const { data, error } = await supabase
+      .from("question_bank")
+      .update({
+        status: "archived",
+      })
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id) {
+      throw new Error(
+        "Spørgsmålet blev ikke ændret. Kontrollér din adminadgang."
+      );
+    }
+
+    // Genindlæs alle publicerede spørgsmål.
+    await pullQuestionBankIntoLocalStorage();
+
+    setDeleteStatus({
+      type: "success",
+      message:
+        language === "en"
+          ? "The question was removed."
+          : language === "ar"
+            ? "تمت إزالة السؤال."
+            : "Spørgsmålet blev fjernet.",
+    });
+  } catch (error) {
+    console.error(
+      "Kunne ikke arkivere spørgsmålet:",
+      error
+    );
+
+    setDeleteStatus({
+      type: "error",
+      message:
+        error?.message ||
+        (language === "en"
+          ? "The question could not be removed."
+          : language === "ar"
+            ? "تعذرت إزالة السؤال."
+            : "Spørgsmålet kunne ikke fjernes."),
+    });
+  } finally {
+    setDeletingQuestionId(null);
   }
+}
 
   function resolveFlag(id) {
     setFlagged((previous) =>
@@ -10797,7 +10876,33 @@ const [passcode, setPasscode] = useState("");
             <div style={{ color: c.text, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
               {t.adminImportedList} ({imported.length})
             </div>
-
+            {deleteStatus && (
+  <div
+    role="status"
+    style={{
+      marginBottom: 10,
+      padding: "9px 11px",
+      borderRadius: 10,
+      border: `1px solid ${
+        deleteStatus.type === "success"
+          ? c.greenBorder
+          : c.redBorder
+      }`,
+      background:
+        deleteStatus.type === "success"
+          ? c.greenSoft
+          : c.redSoft,
+      color:
+        deleteStatus.type === "success"
+          ? c.green
+          : c.red,
+      fontSize: 11.5,
+      fontWeight: 700,
+    }}
+  >
+    {deleteStatus.message}
+  </div>
+)}
             {imported.length === 0 ? (
               <p style={{ color: c.muted, fontSize: 12 }}>{t.adminNoImported}</p>
             ) : (
@@ -10830,19 +10935,38 @@ const [passcode, setPasscode] = useState("");
                     </span>
                     <button
                       type="button"
-                      onClick={() => removeQuestion(question.id)}
-                      style={{
-                        border: 0,
-                        background: "transparent",
-                        color: c.red,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {t.adminDelete}
-                    </button>
+<button
+  type="button"
+  disabled={Boolean(deletingQuestionId)}
+  onClick={() => removeQuestion(question.id)}
+  style={{
+    border: 0,
+    background: "transparent",
+    color:
+      deletingQuestionId === question.id
+        ? c.muted
+        : c.red,
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: deletingQuestionId
+      ? "not-allowed"
+      : "pointer",
+    opacity:
+      deletingQuestionId &&
+      deletingQuestionId !== question.id
+        ? 0.45
+        : 1,
+    flexShrink: 0,
+  }}
+>
+  {deletingQuestionId === question.id
+    ? language === "en"
+      ? "Removing..."
+      : language === "ar"
+        ? "جارٍ الحذف..."
+        : "Fjerner..."
+    : t.adminDelete}
+</button>
                   </div>
                 ))}
               </div>
