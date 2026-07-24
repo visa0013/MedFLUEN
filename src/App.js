@@ -13508,26 +13508,6 @@ function useSupabaseSession() {
 
   return session;
 }
-function useAdminAccess(session) {
-  const [adminState, setAdminState] = useState({
-    isAdmin: false,
-    loading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function checkAdminAccess() {
-      if (session === undefined) {
-        setAdminState({
-          isAdmin: false,
-          loading: true,
-          error: null,
-        });
-        return;
-      }
-
       if (!session?.user?.id) {
         setAdminState({
           isAdmin: false,
