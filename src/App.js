@@ -3125,7 +3125,7 @@ function DrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion
 
   // Recomputed on every render so the empty-state count always reflects the
   // latest imported/edited questions, matching what sendMessage will scan.
-  const questionBank = getFullQuestionBank(importedQuestions, questionOverrides);
+  const questionBank = getFullQuestionBank(importedQuestions);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -9401,7 +9401,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
   const todaysEvents = calendarEvents
     .filter((event) => event.date === todayIso)
     .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
-  const allQuestionsForDash = getFullQuestionBank(importedQuestions, questionOverrides);
+  const allQuestionsForDash = getFullQuestionBank(importedQuestions);
   const moduleQuestions = allQuestionsForDash.filter((q) => q.moduleId === currentModule);
   const questionCount = moduleQuestions.length > 0 ? moduleQuestions.length : allQuestionsForDash.length;
   const scopedQuestions = moduleQuestions.length > 0 ? moduleQuestions : allQuestionsForDash;
@@ -10384,7 +10384,7 @@ function LectureMenuModal({
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState(null);
 
-  const allQuestions = getFullQuestionBank(importedQuestions, questionOverrides);
+  const allQuestions = getFullQuestionBank(importedQuestions);
   const lectureQuestions = lecture.id
     ? allQuestions.filter((q) => q.moduleId === moduleId && q.lectureId === lecture.id)
     : allQuestions.filter((q) => q.moduleId === moduleId);
@@ -13064,8 +13064,8 @@ function buildAdviceTip({ copy, user, spacedData, importedQuestions, streakData,
   if (!user) return null;
   const todayIso = todayIsoKey();
   const streak = computeStreak(streakData.days || []);
-  const allQ = getFullQuestionBank(importedQuestions, questionOverrides).filter((q) => q.moduleId === user.module);
-  const scoped = allQ.length ? allQ : getFullQuestionBank(importedQuestions, questionOverrides);
+  const allQ = getFullQuestionBank(importedQuestions).filter((q) => q.moduleId === user.module);
+  const scoped = allQ.length ? allQ : getFullQuestionBank(importedQuestions);
   const dueCount = scoped.filter((q) => spacedData[q.id] && isDue(spacedData[q.id])).length;
   const newCount = scoped.filter((q) => !spacedData[q.id]).length;
   const lastAccuracy = history.length ? history[history.length - 1].score || 0 : null;
@@ -13095,7 +13095,7 @@ function buildAdviceTip({ copy, user, spacedData, importedQuestions, streakData,
    Bruger getFullQuestionBank, som allerede inkluderer importerede/nye spørgsmål
    og gemte overrides, så nye tilføjelser automatisk kan indgå i faktaene. */
 function buildModuleFact({ copy, user, importedQuestions, language }) {
-  const bank = getFullQuestionBank(importedQuestions, questionOverrides).filter(
+  const bank = getFullQuestionBank(importedQuestions).filter(
     (q) => q.moduleId === user.module
   );
   if (!bank.length) return copy.factNone;
@@ -13107,7 +13107,7 @@ function buildModuleFact({ copy, user, importedQuestions, language }) {
 
 /* ---------- Genererer en plan-anbefaling baseret på due/nye spørgsmål og studieplan ---------- */
 function buildPlanRecommendation({ copy, user, spacedData, importedQuestions, studyPlans }) {
-  const bank = getFullQuestionBank(importedQuestions, questionOverrides).filter(
+  const bank = getFullQuestionBank(importedQuestions).filter(
     (q) => q.moduleId === user.module
   );
   const due = bank.filter((q) => spacedData[q.id] && isDue(spacedData[q.id])).length;
@@ -13183,7 +13183,7 @@ function useMascotEngine({ user, language, spacedData, importedQuestions, questi
         if (plan) {
           const lectures = MODULE_LECTURES ? MODULE_LECTURES[user.module] || [] : [];
           const pendingLectures = lectures.filter((l) => !(plan.doneLectureIds || []).includes(l.id));
-          const allQ = getFullQuestionBank(importedQuestions, questionOverrides).filter((q) => q.moduleId === user.module);
+          const allQ = getFullQuestionBank(importedQuestions).filter((q) => q.moduleId === user.module);
           const dueToday = allQ.filter((q) => spacedData[q.id] && isDue(spacedData[q.id])).length;
           const goalCount = plan.mode === "questions" ? Math.max(1, dueToday) : Math.max(1, pendingLectures.length > 0 ? 1 : 0);
           const isExceptionDayToday = (plan.excludedDates || []).includes(todayIso);
@@ -14267,7 +14267,7 @@ useEffect(() => {
     );
   }
 
-  const sidebarFullBank = getFullQuestionBank(importedQuestions, questionOverrides);
+  const sidebarFullBank = getFullQuestionBank(importedQuestions);
   const sidebarModuleQuestions = user?.module
     ? sidebarFullBank.filter((q) => q.moduleId === user.module)
     : sidebarFullBank;
