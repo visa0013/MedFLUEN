@@ -10553,7 +10553,6 @@ onClick={() => {
 
   <button
     type="button"
-    onClick={() => toggleBuried(question.id)}
                     onClick={() => toggleBuried(question.id)}
                     style={{
                       display: "inline-flex", alignItems: "center", gap: 5, border: 0, background: "transparent",
