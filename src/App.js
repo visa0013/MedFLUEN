@@ -10933,8 +10933,6 @@ async function removeQuestion(id) {
                     >
                       {translate(question.question, language)}
                     </span>
-                    <button
-                      type="button"
 <button
   type="button"
   disabled={Boolean(deletingQuestionId)}
