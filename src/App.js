@@ -10385,34 +10385,28 @@ function LectureMenuModal({
       </header>
       <p style={{ color: c.secondary, fontSize: 12, marginBottom: 16 }}>{lecture.title}</p>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-{isAdmin && (
-  <button
-    type="button"
-    onClick={() => setCreating(true)}
-    style={{
-      flex: 1,
-      minHeight: 40,
-      borderRadius: 10,
-      border: `1px dashed ${c.borderStrong}`,
-      background: "transparent",
-      color: c.blue,
-      fontSize: 12,
-      fontWeight: 700,
-      cursor: "pointer",
-    }}
-  >
-    + {t.addNewQuestion}
-  </button>
-)}
-          style={{
-            flex: 1, minHeight: 40, borderRadius: 10, border: `1px dashed ${c.borderStrong}`,
-            background: "transparent", color: c.blue, fontSize: 12, fontWeight: 700, cursor: "pointer",
-          }}
-        >
-          + {t.addNewQuestion}
-        </button>
-        {!confirmingReset ? (
+ <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+  {isAdmin && (
+    <button
+      type="button"
+      onClick={() => setCreating(true)}
+      style={{
+        flex: 1,
+        minHeight: 40,
+        borderRadius: 10,
+        border: `1px dashed ${c.borderStrong}`,
+        background: "transparent",
+        color: c.blue,
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: "pointer",
+      }}
+    >
+      + {t.addNewQuestion}
+    </button>
+  )}
+
+  {!confirmingReset ? (
           <button
             type="button"
             onClick={() => setConfirmingReset(true)}
@@ -10492,104 +10486,74 @@ onClick={() => {
                     {statusLabel}
                   </span>
                 </div>
-                <div style={{ display: "flex", gap: 12 }}>
-{isAdmin && (
-  <>
-    <button
-      type="button"
-      onClick={() =>
-        setEditingQuestion(question)
-      }
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        border: 0,
-        background: "transparent",
-        color: c.blue,
-        fontSize: 11,
-        fontWeight: 700,
-        cursor: "pointer",
-        padding: 0,
-      }}
-    >
-      <Icon name="edit" size={13} />
-      {t.editQuestion}
-    </button>
-
-    {confirmingDeleteId === question.id ? (
+<div style={{ display: "flex", gap: 12 }}>
+  {isAdmin && (
+    <>
       <button
         type="button"
-        onClick={() =>
-          deleteQuestion(question.id)
-        }
-        style={{
-          border: 0,
-          background: "transparent",
-          color: c.red,
-          fontSize: 11,
-          fontWeight: 800,
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        {t.resetConfirm}?
-      </button>
-    ) : (
-      <button
-        type="button"
-        onClick={() =>
-          setConfirmingDeleteId(question.id)
-        }
+        onClick={() => setEditingQuestion(question)}
         style={{
           display: "inline-flex",
           alignItems: "center",
           gap: 5,
           border: 0,
           background: "transparent",
-          color: c.red,
+          color: c.blue,
           fontSize: 11,
           fontWeight: 700,
           cursor: "pointer",
           padding: 0,
         }}
       >
-        <Icon name="trash" size={13} />
-        {t.deleteQuestion}
+        <Icon name="edit" size={13} />
+        {t.editQuestion}
       </button>
-    )}
-  </>
-)}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 5, border: 0, background: "transparent",
-                      color: c.blue, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0,
-                    }}
-                  >
-                    <Icon name="edit" size={13} /> {t.editQuestion}
-                  </button>
-                  {confirmingDeleteId === question.id ? (
-                    <button
-                      type="button"
-                      onClick={() => deleteQuestion(question.id)}
-                      style={{ border: 0, background: "transparent", color: c.red, fontSize: 11, fontWeight: 800, cursor: "pointer", padding: 0 }}
-                    >
-                      {t.resetConfirm}?
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                       onClick={() => setConfirmingDeleteId(question.id)}
-                       style={{
-                        display: "inline-flex", alignItems: "center", gap: 5, border: 0, background: "transparent",
-                        color: c.red, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0,
-                      }}
-                    >
-                      <Icon name="trash" size={13} /> {t.deleteQuestion}
-                    </button>
-                  )}
 
-                  <button
-                    type="button"
+      {confirmingDeleteId === question.id ? (
+        <button
+          type="button"
+          onClick={() => deleteQuestion(question.id)}
+          style={{
+            border: 0,
+            background: "transparent",
+            color: c.red,
+            fontSize: 11,
+            fontWeight: 800,
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          {t.resetConfirm}?
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() =>
+            setConfirmingDeleteId(question.id)
+          }
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+            border: 0,
+            background: "transparent",
+            color: c.red,
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          <Icon name="trash" size={13} />
+          {t.deleteQuestion}
+        </button>
+      )}
+    </>
+  )}
+
+  <button
+    type="button"
+    onClick={() => toggleBuried(question.id)}
                     onClick={() => toggleBuried(question.id)}
                     style={{
                       display: "inline-flex", alignItems: "center", gap: 5, border: 0, background: "transparent",
