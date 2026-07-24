@@ -10628,7 +10628,7 @@ function AdminPortal({ c, t, language, user, isAdmin, onClose }) {
 const setUnlocked = () => {};
 const [passcode, setPasscode] = useState("");
   const [error, setError] = useState(false);
-  const [imported, setImportedQuestions] = useStoredState(
+  const [imported] = useStoredState(
     STORAGE.importedQuestions,
     []
   );
@@ -11021,6 +11021,7 @@ function ImportQuestionsModal({ c, t, language, user, onClose, embedded = false 
   const [fileName, setFileName] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef(null);
   const [imported, setImportedQuestions] = useStoredState(
     STORAGE.importedQuestions,
@@ -11134,15 +11135,101 @@ function ImportQuestionsModal({ c, t, language, user, onClose, embedded = false 
     setPreview(result);
   }
 
-  function confirmImport() {
-    if (!preview || preview.candidates.length === 0) return;
-    const toImport = preview.candidates.filter((candidate) => !candidate.excluded);
-    setImportedQuestions((previous) => [...previous, ...toImport.map((candidate) => candidate.normalized)]);
-    setStatus({ type: "success", message: t.importSuccess(toImport.length) });
+async function confirmImport() {
+  if (
+    isImporting ||
+    !preview ||
+    preview.candidates.length === 0
+  ) {
+    return;
+  }
+
+  const toImport = preview.candidates.filter(
+    (candidate) => !candidate.excluded
+  );
+
+  if (toImport.length === 0) {
+    setStatus({
+      type: "error",
+      message: t.importEmpty,
+    });
+    return;
+  }
+
+  if (!moduleId) {
+    const message =
+      language === "en"
+        ? "Choose a module before importing."
+        : language === "ar"
+          ? "اختر الوحدة قبل الاستيراد."
+          : "Vælg et modul, før du importerer.";
+
+    setStatus({
+      type: "error",
+      message,
+    });
+
+    return;
+  }
+
+  setIsImporting(true);
+  setStatus(null);
+
+  try {
+    const questions = toImport.map((candidate) => ({
+      ...candidate.normalized,
+      moduleId,
+      lectureId: lectureId || null,
+    }));
+
+    const { data, error } = await supabase.rpc(
+      "admin_import_questions",
+      {
+        p_questions: questions,
+        p_module_id: moduleId,
+        p_lecture_id: lectureId || null,
+        p_filename: fileName || null,
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    // Hent den opdaterede fælles spørgsmålsbank.
+    await pullQuestionBankIntoLocalStorage();
+
+    const importedCount =
+      Number(data?.importedCount) || toImport.length;
+
+    setStatus({
+      type: "success",
+      message: t.importSuccess(importedCount),
+    });
+
     setPreview(null);
     setText("");
     setFileName(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  } catch (error) {
+    console.error(
+      "Kunne ikke importere spørgsmål til Supabase:",
+      error
+    );
+
+    setStatus({
+      type: "error",
+      message:
+        error?.message ||
+        t.importError,
+    });
+  } finally {
+    setIsImporting(false);
   }
+}
 
   function toggleCandidateExcluded(fingerprint, candidateIndex) {
     setPreview((prev) => ({
@@ -11427,13 +11514,36 @@ function ImportQuestionsModal({ c, t, language, user, onClose, embedded = false 
             {t.importCancel}
           </IconButton>
         )}
-        {preview && preview.candidates.length > 0 ? (
-          <PrimaryButton onClick={confirmImport}>
-            {t.importConfirmButton(preview.candidates.filter((c2) => !c2.excluded).length)}
-          </PrimaryButton>
-        ) : (
-          <PrimaryButton onClick={handleImport}>{t.importButton}</PrimaryButton>
+{preview && preview.candidates.length > 0 ? (
+  <PrimaryButton
+    onClick={confirmImport}
+    disabled={
+      isImporting ||
+      preview.candidates.filter(
+        (candidate) => !candidate.excluded
+      ).length === 0
+    }
+  >
+    {isImporting
+      ? language === "en"
+        ? "Importing..."
+        : language === "ar"
+          ? "جارٍ الاستيراد..."
+          : "Importerer..."
+      : t.importConfirmButton(
+          preview.candidates.filter(
+            (candidate) => !candidate.excluded
+          ).length
         )}
+  </PrimaryButton>
+) : (
+  <PrimaryButton
+    onClick={handleImport}
+    disabled={isImporting}
+  >
+    {t.importButton}
+  </PrimaryButton>
+)}
       </div>
     </>
   );
