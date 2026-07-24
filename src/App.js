@@ -10255,6 +10255,7 @@ function LectureMenuModal({
   c,
   t,
   language,
+  isAdmin,
   lecture,
   moduleId,
   spacedData,
@@ -10271,38 +10272,6 @@ function LectureMenuModal({
   const [creating, setCreating] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState(null);
-  const [unlocked, setUnlocked] = useStoredState(STORAGE.adminUnlocked, false);
-  const [gateOpen, setGateOpen] = useState(false);
-  const [gatePasscode, setGatePasscode] = useState("");
-  const [gateError, setGateError] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null);
-
-  function withAdmin(action) {
-    return () => {
-      if (unlocked) {
-        action();
-      } else {
-        setPendingAction(() => action);
-        setGatePasscode("");
-        setGateError(false);
-        setGateOpen(true);
-      }
-    };
-  }
-
-  function unlockGate() {
-    if (simpleHash(gatePasscode.trim()) === ADMIN_PASSCODE_HASH) {
-      setUnlocked(true);
-      setGateOpen(false);
-      setGateError(false);
-      if (pendingAction) {
-        pendingAction();
-        setPendingAction(null);
-      }
-    } else {
-      setGateError(true);
-    }
-  }
 
   const allQuestions = getFullQuestionBank(importedQuestions, questionOverrides);
   const lectureQuestions = lecture.id
@@ -10379,60 +10348,8 @@ function LectureMenuModal({
     setConfirmingDeleteId(null);
   }
 
-  if (gateOpen) {
-    return (
-      <Modal c={c} onClose={() => setGateOpen(false)}>
-        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div style={{ color: c.text, fontWeight: 750, fontSize: 15 }}>
-            {t.adminGateTitle}
-          </div>
-          <IconButton c={c} title={t.close} onClick={() => setGateOpen(false)}>
-            <Icon name="close" size={17} />
-          </IconButton>
-        </header>
-
-        <p style={{ color: c.secondary, fontSize: 12, lineHeight: 1.55, marginBottom: 16 }}>
-          {t.adminGateDescription}
-        </p>
-
-        <input
-          type="password"
-          value={gatePasscode}
-          onChange={(event) => {
-            setGatePasscode(event.target.value);
-            setGateError(false);
-          }}
-          onKeyDown={(event) => event.key === "Enter" && unlockGate()}
-          placeholder={t.adminPasscodePlaceholder}
-          autoFocus
-          style={{
-            width: "100%",
-            height: 44,
-            padding: "0 12px",
-            borderRadius: 12,
-            border: `1px solid ${gateError ? c.red : c.border}`,
-            background: c.soft,
-            color: c.text,
-            fontSize: 14,
-            marginBottom: 12,
-          }}
-        />
-
-        {gateError && (
-          <div style={{ color: c.red, fontSize: 12, fontWeight: 650, marginBottom: 12 }}>
-            {t.adminWrongCode}
-          </div>
-        )}
-
-        <PrimaryButton onClick={unlockGate} style={{ width: "100%" }}>
-          {t.adminUnlock}
-        </PrimaryButton>
-      </Modal>
-    );
-  }
-
-  if (creating || editingQuestion) {
-    return (
+   if ((creating || editingQuestion) && isAdmin) {
+      return (
       <Modal c={c} onClose={() => { setCreating(false); setEditingQuestion(null); }}>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div style={{ color: c.text, fontWeight: 750, fontSize: 15 }}>
@@ -10469,9 +10386,25 @@ function LectureMenuModal({
       <p style={{ color: c.secondary, fontSize: 12, marginBottom: 16 }}>{lecture.title}</p>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <button
-          type="button"
-          onClick={withAdmin(() => setCreating(true))}
+{isAdmin && (
+  <button
+    type="button"
+    onClick={() => setCreating(true)}
+    style={{
+      flex: 1,
+      minHeight: 40,
+      borderRadius: 10,
+      border: `1px dashed ${c.borderStrong}`,
+      background: "transparent",
+      color: c.blue,
+      fontSize: 12,
+      fontWeight: 700,
+      cursor: "pointer",
+    }}
+  >
+    + {t.addNewQuestion}
+  </button>
+)}
           style={{
             flex: 1, minHeight: 40, borderRadius: 10, border: `1px dashed ${c.borderStrong}`,
             background: "transparent", color: c.blue, fontSize: 12, fontWeight: 700, cursor: "pointer",
@@ -10482,7 +10415,7 @@ function LectureMenuModal({
         {!confirmingReset ? (
           <button
             type="button"
-            onClick={withAdmin(() => setConfirmingReset(true))}
+            onClick={() => setConfirmingReset(true)}
             disabled={lectureQuestions.length === 0}
             style={{
               minHeight: 40, padding: "0 14px", borderRadius: 10, border: `1px solid ${c.border}`,
@@ -10509,9 +10442,15 @@ function LectureMenuModal({
 
       <button
         type="button"
-        onClick={withAdmin(() => {
-          if (window.confirm("Nulstil progress for alle MCQ’er? Alle kortplaner og reviewhistorik slettes.")) resetAllProgress();
-        })}
+onClick={() => {
+  if (
+    window.confirm(
+      "Nulstil progress for alle MCQ’er? Alle kortplaner og reviewhistorik slettes."
+    )
+  ) {
+    resetAllProgress();
+  }
+}}
         style={{
           width: "100%", minHeight: 38, marginTop: -8, marginBottom: 16, padding: "0 12px", borderRadius: 10,
           border: `1px solid ${c.border}`, background: "transparent", color: c.secondary, fontSize: 11, fontWeight: 700, cursor: "pointer",
@@ -10554,9 +10493,73 @@ function LectureMenuModal({
                   </span>
                 </div>
                 <div style={{ display: "flex", gap: 12 }}>
-                  <button
-                    type="button"
-                    onClick={withAdmin(() => setEditingQuestion(question))}
+{isAdmin && (
+  <>
+    <button
+      type="button"
+      onClick={() =>
+        setEditingQuestion(question)
+      }
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        border: 0,
+        background: "transparent",
+        color: c.blue,
+        fontSize: 11,
+        fontWeight: 700,
+        cursor: "pointer",
+        padding: 0,
+      }}
+    >
+      <Icon name="edit" size={13} />
+      {t.editQuestion}
+    </button>
+
+    {confirmingDeleteId === question.id ? (
+      <button
+        type="button"
+        onClick={() =>
+          deleteQuestion(question.id)
+        }
+        style={{
+          border: 0,
+          background: "transparent",
+          color: c.red,
+          fontSize: 11,
+          fontWeight: 800,
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        {t.resetConfirm}?
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={() =>
+          setConfirmingDeleteId(question.id)
+        }
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 5,
+          border: 0,
+          background: "transparent",
+          color: c.red,
+          fontSize: 11,
+          fontWeight: 700,
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        <Icon name="trash" size={13} />
+        {t.deleteQuestion}
+      </button>
+    )}
+  </>
+)}
                     style={{
                       display: "inline-flex", alignItems: "center", gap: 5, border: 0, background: "transparent",
                       color: c.blue, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0,
@@ -10575,8 +10578,8 @@ function LectureMenuModal({
                   ) : (
                     <button
                       type="button"
-                      onClick={withAdmin(() => setConfirmingDeleteId(question.id))}
-                      style={{
+                       onClick={() => setConfirmingDeleteId(question.id)}
+                       style={{
                         display: "inline-flex", alignItems: "center", gap: 5, border: 0, background: "transparent",
                         color: c.red, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0,
                       }}
@@ -14525,6 +14528,7 @@ useEffect(() => {
           c={c}
           t={t}
           language={language}
+          isAdmin={isAdmin}
           lecture={lectureMenu.lecture}
           moduleId={lectureMenu.moduleId}
           spacedData={spacedData}
