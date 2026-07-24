@@ -10387,9 +10387,7 @@ function LectureMenuModal({
   spacedData,
   setSpacedData,
   importedQuestions,
-  setImportedQuestions,
   questionOverrides,
-  setQuestionOverrides,
   buriedCards,
   setBuriedCards,
   onClose,
@@ -10495,17 +10493,66 @@ async function saveQuestion(updated) {
   setCreating(false);
 }
 
-  function deleteQuestion(id) {
-    if (isCustomQuestion(id)) {
-      setImportedQuestions((previous) => previous.filter((q) => q.id !== id));
-    } else {
-      setQuestionOverrides((previous) => ({
-        ...previous,
-        [id]: { ...(previous[id] || {}), deleted: true },
-      }));
-    }
+async function deleteQuestion(id) {
+  // De oprindelige hardcodede QUESTIONS findes endnu ikke
+  // nødvendigvis som rækker i Supabase.
+  if (!isCustomQuestion(id)) {
     setConfirmingDeleteId(null);
+
+    window.alert(
+      language === "en"
+        ? "This built-in question must be migrated to Supabase before it can be removed."
+        : language === "ar"
+          ? "يجب نقل هذا السؤال المدمج إلى Supabase قبل حذفه."
+          : "Dette indbyggede spørgsmål skal først flyttes til Supabase, før det kan slettes."
+    );
+
+    return;
   }
+
+  setConfirmingDeleteId(null);
+
+  try {
+    const { data, error } = await supabase
+      .from("question_bank")
+      .update({
+        status: "archived",
+      })
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id) {
+      throw new Error(
+        language === "en"
+          ? "The question was not found in Supabase."
+          : language === "ar"
+            ? "لم يتم العثور على السؤال في Supabase."
+            : "Spørgsmålet blev ikke fundet i Supabase."
+      );
+    }
+
+    await pullQuestionBankIntoLocalStorage();
+  } catch (error) {
+    console.error(
+      "Kunne ikke arkivere spørgsmålet:",
+      error
+    );
+
+    window.alert(
+      error?.message ||
+        (language === "en"
+          ? "The question could not be removed."
+          : language === "ar"
+            ? "تعذر حذف السؤال."
+            : "Spørgsmålet kunne ikke slettes.")
+    );
+  }
+}
 
    if ((creating || editingQuestion) && isAdmin) {
       return (
