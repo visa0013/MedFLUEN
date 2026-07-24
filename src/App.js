@@ -2515,22 +2515,10 @@ function SM2AnswerFooter({
   );
 }
 
-function applyOverrides(list, overrides) {
-  if (!overrides) return list;
-  return list
-    .filter((q) => !(overrides[q.id] && overrides[q.id].deleted))
-    .map((q) => (overrides[q.id] && overrides[q.id].fields ? { ...q, ...overrides[q.id].fields } : q));
-}
-
-function getFullQuestionBank(extraQuestions, overrides) {
-  const cloudQuestions = Array.isArray(extraQuestions)
+function getFullQuestionBank(extraQuestions) {
+  return Array.isArray(extraQuestions)
     ? extraQuestions
     : [];
-
-  return applyOverrides(
-    cloudQuestions,
-    overrides
-  );
 }
 
 function updateLocalizedField(original, language, newValue) {
@@ -2632,8 +2620,15 @@ function sm2NextDueQuestionIndex(pool, spacedData, answered, currentIndex, nowMs
   return unseen >= 0 ? unseen : null;
 }
 
-function buildQuestionPool(scope, spacedData, extraQuestions, overrides, buried) {
-  const allQuestions = getFullQuestionBank(extraQuestions, overrides).filter(
+function buildQuestionPool(
+  scope,
+  spacedData,
+  extraQuestions,
+  buried
+) {
+  const allQuestions = getFullQuestionBank(
+    extraQuestions
+  ).filter(
     (q) => !(buried && buried[q.id])
   );
   if (!scope) return allQuestions;
@@ -3121,7 +3116,7 @@ async function callDrByteAI({ apiKey, model, userQuestion, matches, language, co
   return { text: text.trim(), usedWebSearch };
 }
 
-function DrByteChat({ c, t, language, importedQuestions, questionOverrides, onClose, onOpenQuestion }) {
+function DrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion }) {
   const [messages, setMessages] = useStoredState("medlearn-drbyte-chat", []);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -3144,7 +3139,7 @@ function DrByteChat({ c, t, language, importedQuestions, questionOverrides, onCl
 
     // Rebuild the full question bank at send-time (not on mount) so freshly
     // imported or admin-edited questions are always included in the scan.
-    const currentBank = getFullQuestionBank(importedQuestions, questionOverrides);
+    const currentBank = getFullQuestionBank(importedQuestions);
 
     const userMessage = { id: `u-${Date.now()}`, role: "user", text: trimmed };
     setMessages((previous) => [...previous, userMessage]);
@@ -6474,7 +6469,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
   );
 }
 
-function SessionSetup({ c, t, language, user, spacedData, importedQuestions, questionOverrides, onStart, onCancel, onOpenLectureMenu, onResetAllProgress }) {
+function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onStart, onCancel, onOpenLectureMenu, onResetAllProgress }) {
   const [groupFilter, setGroupFilter] = useState(null);
   const [lectureFilter, setLectureFilter] = useState(null);
   const [mode, setMode] = useState("all");
@@ -6498,7 +6493,7 @@ function SessionSetup({ c, t, language, user, spacedData, importedQuestions, que
     return { due, fresh, total: questions.length };
   }
 
-  const allQuestionsPool = getFullQuestionBank(importedQuestions, questionOverrides);
+  const allQuestionsPool = getFullQuestionBank(importedQuestions);
   const moduleQuestions = allQuestionsPool.filter((q) => q.moduleId === user.module);
   const allStats = countStats(moduleQuestions);
 
@@ -10380,7 +10375,6 @@ function LectureMenuModal({
   spacedData,
   setSpacedData,
   importedQuestions,
-  questionOverrides,
   buriedCards,
   setBuriedCards,
   onClose,
@@ -10489,19 +10483,6 @@ async function saveQuestion(updated) {
 async function deleteQuestion(id) {
   // De oprindelige hardcodede QUESTIONS findes endnu ikke
   // nødvendigvis som rækker i Supabase.
-  if (!isCustomQuestion(id)) {
-    setConfirmingDeleteId(null);
-
-    window.alert(
-      language === "en"
-        ? "This built-in question must be migrated to Supabase before it can be removed."
-        : language === "ar"
-          ? "يجب نقل هذا السؤال المدمج إلى Supabase قبل حذفه."
-          : "Dette indbyggede spørgsmål skal først flyttes til Supabase, før det kan slettes."
-    );
-
-    return;
-  }
 
   setConfirmingDeleteId(null);
 
@@ -13079,7 +13060,7 @@ function MascotAvatar({ size = 72, mood = "default" }) {
 }
 
 /* ---------- Genererer et kontekstuelt råd baseret på eksisterende data ---------- */
-function buildAdviceTip({ copy, user, spacedData, importedQuestions, questionOverrides, streakData, history, pomodoroLog, studyPlans }) {
+function buildAdviceTip({ copy, user, spacedData, importedQuestions, streakData, history, pomodoroLog, studyPlans }) {
   if (!user) return null;
   const todayIso = todayIsoKey();
   const streak = computeStreak(streakData.days || []);
@@ -13113,7 +13094,7 @@ function buildAdviceTip({ copy, user, spacedData, importedQuestions, questionOve
 /* ---------- Genererer et fakta trukket fra MCQ-databasen for det aktive modul ----------
    Bruger getFullQuestionBank, som allerede inkluderer importerede/nye spørgsmål
    og gemte overrides, så nye tilføjelser automatisk kan indgå i faktaene. */
-function buildModuleFact({ copy, user, importedQuestions, questionOverrides, language }) {
+function buildModuleFact({ copy, user, importedQuestions, language }) {
   const bank = getFullQuestionBank(importedQuestions, questionOverrides).filter(
     (q) => q.moduleId === user.module
   );
@@ -13125,7 +13106,7 @@ function buildModuleFact({ copy, user, importedQuestions, questionOverrides, lan
 }
 
 /* ---------- Genererer en plan-anbefaling baseret på due/nye spørgsmål og studieplan ---------- */
-function buildPlanRecommendation({ copy, user, spacedData, importedQuestions, questionOverrides, studyPlans }) {
+function buildPlanRecommendation({ copy, user, spacedData, importedQuestions, studyPlans }) {
   const bank = getFullQuestionBank(importedQuestions, questionOverrides).filter(
     (q) => q.moduleId === user.module
   );
@@ -13261,7 +13242,6 @@ function useMascotEngine({ user, language, spacedData, importedQuestions, questi
       user,
       spacedData,
       importedQuestions,
-      questionOverrides,
       streakData,
       history,
       pomodoroLog,
@@ -13283,13 +13263,12 @@ function useMascotEngine({ user, language, spacedData, importedQuestions, questi
    morgen-check-in) eller — hvis ingen findes — genererer et råd på
    stedet baseret på eksisterende data (forfaldne spørgsmål, streak,
    seneste nøjagtighed, studieplan, pomodoro-brug i dag osv.). */
-function MascotAssistant({ c, user, language, tutorialActive, spacedData, importedQuestions, questionOverrides, onNavigate, hidden = false }) {
+function MascotAssistant({ c, user, language, tutorialActive, spacedData, importedQuestions, onNavigate, hidden = false }) {
   const { currentTip, dismissCurrent, requestAdvice } = useMascotEngine({
     user,
     language,
     spacedData,
     importedQuestions,
-    questionOverrides,
   });
   const [studyPlans] = useStoredState(STORAGE.studyPlans, {});
   const copy = MASCOT_COPY[language] || MASCOT_COPY.da;
@@ -13315,7 +13294,7 @@ function MascotAssistant({ c, user, language, tutorialActive, spacedData, import
       timersRef.current.push(setTimeout(() => showIntroStage(2), 4200));
     } else if (stage === 2) {
       setActiveMessage({
-        text: buildModuleFact({ copy: introCopy, user, importedQuestions, questionOverrides, language }),
+        text: buildModuleFact({ copy: introCopy, user, importedQuestions, language }),
         mood: "default",
         showActions: false,
         fromQueue: false,
@@ -13323,7 +13302,7 @@ function MascotAssistant({ c, user, language, tutorialActive, spacedData, import
       timersRef.current.push(setTimeout(() => showIntroStage(3), 4200));
     } else if (stage === 3) {
       setActiveMessage({
-        text: buildPlanRecommendation({ copy: introCopy, user, spacedData, importedQuestions, questionOverrides, studyPlans }),
+        text: buildPlanRecommendation({ copy: introCopy, user, spacedData, importedQuestions, studyPlans }),
         mood: "alert",
         showActions: true,
         fromQueue: false,
@@ -14504,7 +14483,6 @@ useEffect(() => {
                 spacedData={spacedData}
                 onResetAllProgress={setSpacedData}
                 importedQuestions={importedQuestions}
-                questionOverrides={questionOverrides}
                 onNavigate={(target, options) => {
                   if (target === "mcq") {
                     setSessionScope(
@@ -14553,7 +14531,7 @@ useEffect(() => {
                     language={language}
                     questionSize={preferences.questionSize}
                     user={user}
-                    questionPool={buildQuestionPool(sessionScope, spacedData, importedQuestions, questionOverrides, buriedCards)}
+                    questionPool={buildQuestionPool(sessionScope, spacedData, importedQuestions, buriedCards)}
                     sessionScope={sessionScope}
                     buriedCards={buriedCards}
                     setBuriedCards={setBuriedCards}
@@ -14588,7 +14566,6 @@ useEffect(() => {
                     spacedData={spacedData}
                     onResetAllProgress={setSpacedData}
                     importedQuestions={importedQuestions}
-                    questionOverrides={questionOverrides}
                     onStart={(scope) => setSessionScope(scope)}
                     onCancel={() => setRoute("home")}
                     onOpenLectureMenu={(lecture, moduleId) => setLectureMenu({ lecture, moduleId })}
@@ -14633,7 +14610,6 @@ useEffect(() => {
                 t={t}
                 language={language}
                 importedQuestions={importedQuestions}
-                questionOverrides={questionOverrides}
                 onClose={() => setDrByteOpen(false)}
                 onOpenQuestion={(question) => {
                   setDrByteOpen(false);
@@ -14696,9 +14672,6 @@ useEffect(() => {
           spacedData={spacedData}
           setSpacedData={setSpacedData}
           importedQuestions={importedQuestions}
-          setImportedQuestions={setImportedQuestions}
-          questionOverrides={questionOverrides}
-          setQuestionOverrides={setQuestionOverrides}
           buriedCards={buriedCards}
           setBuriedCards={setBuriedCards}
           onClose={() => setLectureMenu(null)}
@@ -14790,7 +14763,6 @@ useEffect(() => {
           tutorialActive={tutorialActive}
           spacedData={spacedData}
           importedQuestions={importedQuestions}
-          questionOverrides={questionOverrides}
           onNavigate={setRoute}
           hidden={drByteOpen}
         />
