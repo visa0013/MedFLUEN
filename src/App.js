@@ -2533,16 +2533,6 @@ function getFullQuestionBank(extraQuestions, overrides) {
   );
 }
 
-  (extraQuestions || []).forEach((question) => {
-    questionMap.set(question.id, question);
-  });
-
-  return applyOverrides(
-    Array.from(questionMap.values()),
-    overrides
-  );
-}
-
 function updateLocalizedField(original, language, newValue) {
   const base = original || { da: "", en: "", ar: "" };
   return { ...base, [language]: newValue };
