@@ -10757,8 +10757,12 @@ const [deletingQuestionId, setDeletingQuestionId] =
 
 const [deleteStatus, setDeleteStatus] =
   useState(null);
-  const [flagged, setFlagged] = useStoredState(STORAGE.flaggedQuestions, []);
-  const [adminTab, setAdminTab] = useState("import");
+  const [flagged, setFlagged] = useState([]);
+  const [flagsLoading, setFlagsLoading] = useState(true);
+  const [flagsError, setFlagsError] = useState("");
+
+const [adminTab, setAdminTab] =
+  useState("import");
 
   function tryUnlock() {
     if (simpleHash(passcode.trim()) === ADMIN_PASSCODE_HASH) {
@@ -10846,17 +10850,92 @@ async function removeQuestion(id) {
   }
 }
 
-  function resolveFlag(id) {
-    setFlagged((previous) =>
-      previous.map((item) => (item.id === id ? { ...item, status: "resolved" } : item))
-    );
+  useEffect(() => {
+  if (!unlocked) return undefined;
+
+  let cancelled = false;
+
+  async function loadFlags() {
+    setFlagsLoading(true);
+    setFlagsError("");
+
+    try {
+      const { data, error } =
+        await supabase.rpc(
+          "admin_list_question_flags"
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      if (cancelled) return;
+
+      const normalizedFlags = (
+        Array.isArray(data) ? data : []
+      ).map((item) => ({
+        id: item.id,
+        questionId: item.question_id,
+
+        questionText:
+          translate(
+            item.question_snapshot?.question,
+            language
+          ) ||
+          item.question_id ||
+          "—",
+
+        userName:
+          item.reporter_email ||
+          item.user_id ||
+          "—",
+
+        reason: item.reason || "",
+
+        timestamp: item.created_at
+          ? new Date(
+              item.created_at
+            ).getTime()
+          : 0,
+
+        status: item.status || "open",
+
+        resolutionNote:
+          item.resolution_note || "",
+      }));
+
+      setFlagged(normalizedFlags);
+    } catch (error) {
+      console.error(
+        "Kunne ikke hente flags:",
+        error
+      );
+
+      if (!cancelled) {
+        setFlagsError(
+          error?.message ||
+            "Flaggede spørgsmål kunne ikke hentes."
+        );
+
+        setFlagged([]);
+      }
+    } finally {
+      if (!cancelled) {
+        setFlagsLoading(false);
+      }
+    }
   }
 
-  function dismissFlag(id) {
-    setFlagged((previous) => previous.filter((item) => item.id !== id));
-  }
+  loadFlags();
 
-  const openFlags = flagged.filter((item) => item.status !== "resolved");
+  return () => {
+    cancelled = true;
+  };
+}, [unlocked, language]);
+
+const openFlags = flagged.filter(
+  (item) => item.status === "open"
+);
 
   if (!unlocked) {
     return (
@@ -11096,9 +11175,44 @@ async function removeQuestion(id) {
             {t.adminTabFlagged} ({flagged.length} {t.adminFlaggedCount})
           </div>
 
-          {flagged.length === 0 ? (
-            <p style={{ color: c.muted, fontSize: 12 }}>{t.adminNoFlagged}</p>
-          ) : (
+          {flagsLoading ? (
+  <p
+    style={{
+      color: c.muted,
+      fontSize: 12,
+    }}
+  >
+    {language === "en"
+      ? "Loading flagged questions..."
+      : language === "ar"
+        ? "جارٍ تحميل الأسئلة المعلّمة..."
+        : "Henter flaggede spørgsmål..."}
+  </p>
+) : flagsError ? (
+  <div
+    role="alert"
+    style={{
+      padding: "10px 12px",
+      borderRadius: 10,
+      background: c.redSoft,
+      border: `1px solid ${c.redBorder}`,
+      color: c.red,
+      fontSize: 12,
+      lineHeight: 1.5,
+    }}
+  >
+    {flagsError}
+  </div>
+) : flagged.length === 0 ? (
+  <p
+    style={{
+      color: c.muted,
+      fontSize: 12,
+    }}
+  >
+    {t.adminNoFlagged}
+  </p>
+) : (
             <div style={{ display: "grid", gap: 10, maxHeight: 440, overflowY: "auto" }}>
               {[...flagged]
                 .sort((a, b) => b.timestamp - a.timestamp)
@@ -11187,54 +11301,6 @@ async function removeQuestion(id) {
                       <span style={{ color: c.muted, fontWeight: 700 }}>{t.adminFlaggedReason}: </span>
                       {item.reason}
                     </div>
-
-                    {item.status !== "resolved" && (
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button
-                          type="button"
-                          onClick={() => resolveFlag(item.id)}
-                          style={{
-                            flex: 1,
-                            height: 34,
-                            border: 0,
-                            borderRadius: 8,
-                            background: c.greenSoft,
-                            color: c.green,
-                            fontSize: 11.5,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                          }}
-                        >
-                          {t.adminFlaggedResolve}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => dismissFlag(item.id)}
-                          style={{
-                            flex: 1,
-                            height: 34,
-                            border: `1px solid ${c.borderStrong}`,
-                            borderRadius: 8,
-                            background: "transparent",
-                            color: c.secondary,
-                            fontSize: 11.5,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                          }}
-                        >
-                          {t.adminFlaggedDismiss}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-      )}
-    </Modal>
-  );
-}
 
 function parseDelimited(rawText) {
   const firstLine = rawText.split(/\r?\n/)[0] || "";
