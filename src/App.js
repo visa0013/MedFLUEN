@@ -10798,8 +10798,36 @@ const [
 const [adminTab, setAdminTab] =
   useState("overview");
 
-  const [questionSearch, setQuestionSearch] =
+ const [questionSearch, setQuestionSearch] =
   useState("");
+
+const [
+  questionModuleFilter,
+  setQuestionModuleFilter,
+] = useState("all");
+
+const adminModuleOptions = Array.from(
+  new Set(
+    imported
+      .map(
+        (question) => question.moduleId
+      )
+      .filter(Boolean)
+  )
+).sort((first, second) =>
+  String(first).localeCompare(
+    String(second),
+    language === "da"
+      ? "da-DK"
+      : language === "ar"
+        ? "ar"
+        : "en-GB",
+    {
+      numeric: true,
+      sensitivity: "base",
+    }
+  )
+);
 
 const normalizedQuestionSearch =
   questionSearch
@@ -10814,6 +10842,14 @@ const normalizedQuestionSearch =
 
 const filteredAdminQuestions =
   imported.filter((question) => {
+    if (
+      questionModuleFilter !== "all" &&
+      question.moduleId !==
+        questionModuleFilter
+    ) {
+      return false;
+    }
+
     if (!normalizedQuestionSearch) {
       return true;
     }
@@ -11721,17 +11757,78 @@ const activeAdminSection =
         fontWeight: 650,
       }}
     >
-      {questionSearch.trim()
-        ? `${filteredAdminQuestions.length} / ${imported.length}`
-        : imported.length}
+      {questionSearch.trim() ||
+questionModuleFilter !== "all"
+  ? `${filteredAdminQuestions.length} / ${imported.length}`
+  : imported.length}
     </div>
   </div>
+
+  <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    flexWrap: "wrap",
+    gap: 8,
+    flex: "1 1 460px",
+  }}
+>
+  <select
+    value={questionModuleFilter}
+    onChange={(event) =>
+      setQuestionModuleFilter(
+        event.target.value
+      )
+    }
+    aria-label={
+      language === "en"
+        ? "Filter by module"
+        : language === "ar"
+          ? "تصفية حسب الوحدة"
+          : "Filtrér efter modul"
+    }
+    style={{
+      minWidth: 150,
+      minHeight: 40,
+      padding: "0 34px 0 12px",
+      borderRadius: 11,
+      border: `1px solid ${c.borderStrong}`,
+      outline: "none",
+      background: c.panel,
+      color: c.text,
+      fontSize: 12,
+      fontFamily: "inherit",
+      cursor: "pointer",
+    }}
+  >
+    <option value="all">
+      {language === "en"
+        ? "All modules"
+        : language === "ar"
+          ? "جميع الوحدات"
+          : "Alle moduler"}
+    </option>
+
+    {adminModuleOptions.map(
+      (moduleId) => (
+        <option
+          key={moduleId}
+          value={moduleId}
+        >
+          {moduleId}
+        </option>
+      )
+    )}
+  </select>
 
   <input
     type="search"
     value={questionSearch}
     onChange={(event) =>
-      setQuestionSearch(event.target.value)
+      setQuestionSearch(
+        event.target.value
+      )
     }
     aria-label={
       language === "en"
@@ -11742,13 +11839,14 @@ const activeAdminSection =
     }
     placeholder={
       language === "en"
-        ? "Search question, category or module..."
+        ? "Search question or category..."
         : language === "ar"
-          ? "ابحث عن سؤال أو فئة أو وحدة..."
-          : "Søg efter spørgsmål, kategori eller modul..."
+          ? "ابحث عن سؤال أو فئة..."
+          : "Søg efter spørgsmål eller kategori..."
     }
     style={{
       width: "min(360px, 100%)",
+      flex: "1 1 240px",
       minHeight: 40,
       padding: "0 13px",
       borderRadius: 11,
@@ -11760,6 +11858,7 @@ const activeAdminSection =
       fontFamily: "inherit",
     }}
   />
+</div>
 </div>
             {deleteStatus && (
   <div
@@ -11797,12 +11896,12 @@ const activeAdminSection =
     }}
   >
     {imported.length === 0
-      ? t.adminNoImported
-      : language === "en"
-        ? "No questions match your search."
-        : language === "ar"
-          ? "لا توجد أسئلة تطابق بحثك."
-          : "Ingen spørgsmål matcher din søgning."}
+  ? t.adminNoImported
+  : language === "en"
+    ? "No questions match the selected filters."
+    : language === "ar"
+      ? "لا توجد أسئلة تطابق عوامل التصفية المحددة."
+      : "Ingen spørgsmål matcher de valgte filtre."}
   </p>
             ) : (
               <div style={{ display: "grid", gap: 8, maxHeight: 220, overflowY: "auto" }}>
