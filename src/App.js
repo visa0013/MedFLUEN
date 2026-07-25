@@ -10767,6 +10767,26 @@ const [flagActionId, setFlagActionId] =
 const [flagActionError, setFlagActionError] =
   useState("");
 
+const [
+  archivedQuestions,
+  setArchivedQuestions,
+] = useState([]);
+
+const [archiveLoading, setArchiveLoading] =
+  useState(true);
+
+const [archiveError, setArchiveError] =
+  useState("");
+
+const [archiveActionId, setArchiveActionId] =
+  useState(null);
+
+const [archiveStatus, setArchiveStatus] =
+  useState(null);
+
+const [archiveSearch, setArchiveSearch] =
+  useState("");
+
   const [dashboardStats, setDashboardStats] =
   useState({
     totalQuestions: 0,
@@ -10986,6 +11006,49 @@ const filteredAdminQuestions =
     );
   });
 
+const normalizedArchiveSearch =
+  archiveSearch
+    .trim()
+    .toLocaleLowerCase(
+      adminFilterLocale
+    );
+
+const filteredArchivedQuestions =
+  archivedQuestions.filter(
+    (question) => {
+      if (!normalizedArchiveSearch) {
+        return true;
+      }
+
+      const searchableText = [
+        translate(
+          question.question,
+          language
+        ),
+        translate(
+          question.category,
+          language
+        ),
+        translate(
+          question.explanation,
+          language
+        ),
+        question.moduleId,
+        question.lectureId,
+        question.id,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase(
+          adminFilterLocale
+        );
+
+      return searchableText.includes(
+        normalizedArchiveSearch
+      );
+    }
+  );
+
   function tryUnlock() {
     if (simpleHash(passcode.trim()) === ADMIN_PASSCODE_HASH) {
       setUnlocked(true);
@@ -11176,6 +11239,117 @@ function openAdminQuestionCreator() {
   setAdminCreateModule(initialModule);
   setAdminCreateLecture(initialLecture);
   setCreatingAdminQuestion(true);
+}
+
+useEffect(() => {
+  if (!unlocked) return undefined;
+
+  let cancelled = false;
+
+  async function restoreArchivedQuestion(id) {
+  if (archiveActionId) return;
+
+  const question =
+    archivedQuestions.find(
+      (item) => item.id === id
+    );
+
+  const questionText = question
+    ? translate(
+        question.question,
+        language
+      )
+    : "";
+
+  const confirmed = window.confirm(
+    `${
+      language === "en"
+        ? "Restore this question?"
+        : language === "ar"
+          ? "هل تريد استعادة هذا السؤال؟"
+          : "Vil du gendanne dette spørgsmål?"
+    }${
+      questionText
+        ? `\n\n${questionText.slice(
+            0,
+            180
+          )}`
+        : ""
+    }`
+  );
+
+  if (!confirmed) return;
+
+  setArchiveActionId(id);
+  setArchiveStatus(null);
+  setArchiveError("");
+
+  try {
+    const { data, error } =
+      await supabase
+        .from("question_bank")
+        .update({
+          status: "published",
+        })
+        .eq("id", id)
+        .select("id")
+        .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id) {
+      throw new Error(
+        language === "en"
+          ? "The question was not restored. Check your administrator access."
+          : language === "ar"
+            ? "لم تتم استعادة السؤال. تحقق من صلاحيات المسؤول."
+            : "Spørgsmålet blev ikke gendannet. Kontrollér din adminadgang."
+      );
+    }
+
+    await pullQuestionBankIntoLocalStorage();
+
+    setArchivedQuestions(
+      (previous) =>
+        previous.filter(
+          (item) => item.id !== id
+        )
+    );
+
+    setArchiveStatus({
+      type: "success",
+      message:
+        language === "en"
+          ? "The question was restored."
+          : language === "ar"
+            ? "تمت استعادة السؤال."
+            : "Spørgsmålet blev gendannet.",
+    });
+
+    setDashboardRefreshKey(
+      (value) => value + 1
+    );
+  } catch (error) {
+    console.error(
+      "Kunne ikke gendanne spørgsmålet:",
+      error
+    );
+
+    setArchiveStatus({
+      type: "error",
+      message:
+        error?.message ||
+        (language === "en"
+          ? "The question could not be restored."
+          : language === "ar"
+            ? "تعذرت استعادة السؤال."
+            : "Spørgsmålet kunne ikke gendannes."),
+    });
+  } finally {
+    setArchiveActionId(null);
+  }
 }
 
 async function createAdminQuestion(updated) {
@@ -11542,6 +11716,7 @@ const adminSections = [
         : language === "ar"
           ? "الحالة والنشاط والإجراءات السريعة."
           : "Status, aktivitet og hurtige handlinger.",
+            badge: archivedQuestions.length,
   },
   {
     key: "questions",
@@ -13389,6 +13564,443 @@ color:
 )}
                                     </div>
                 ))}
+            </div>
+          )}
+                </div>
+      ) : adminTab === "archive" ? (
+        <div
+          style={{
+            marginBottom: 18,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent:
+                "space-between",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  color: c.text,
+                  fontSize: 14,
+                  fontWeight: 800,
+                }}
+              >
+                {language === "en"
+                  ? "Archived questions"
+                  : language === "ar"
+                    ? "الأسئلة المؤرشفة"
+                    : "Arkiverede spørgsmål"}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 3,
+                  color: c.muted,
+                  fontSize: 10.5,
+                  fontWeight: 650,
+                }}
+              >
+                {archiveSearch.trim()
+                  ? `${filteredArchivedQuestions.length} / ${archivedQuestions.length}`
+                  : archivedQuestions.length}
+              </div>
+            </div>
+
+            <input
+              type="search"
+              value={archiveSearch}
+              onChange={(event) => {
+                setArchiveSearch(
+                  event.target.value
+                );
+                setArchiveStatus(null);
+              }}
+              aria-label={
+                language === "en"
+                  ? "Search archive"
+                  : language === "ar"
+                    ? "البحث في الأرشيف"
+                    : "Søg i arkivet"
+              }
+              placeholder={
+                language === "en"
+                  ? "Search archived questions..."
+                  : language === "ar"
+                    ? "ابحث في الأسئلة المؤرشفة..."
+                    : "Søg i arkiverede spørgsmål..."
+              }
+              style={{
+                width:
+                  "min(360px, 100%)",
+                minHeight: 40,
+                padding: "0 13px",
+                borderRadius: 11,
+                border: `1px solid ${c.borderStrong}`,
+                outline: "none",
+                background: c.panel,
+                color: c.text,
+                fontSize: 12,
+                fontFamily: "inherit",
+              }}
+            />
+          </div>
+
+          {archiveStatus && (
+            <div
+              role={
+                archiveStatus.type ===
+                "error"
+                  ? "alert"
+                  : "status"
+              }
+              style={{
+                marginBottom: 12,
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: `1px solid ${
+                  archiveStatus.type ===
+                  "success"
+                    ? c.greenBorder
+                    : c.redBorder
+                }`,
+                background:
+                  archiveStatus.type ===
+                  "success"
+                    ? c.greenSoft
+                    : c.redSoft,
+                color:
+                  archiveStatus.type ===
+                  "success"
+                    ? c.green
+                    : c.red,
+                fontSize: 11.5,
+                fontWeight: 700,
+              }}
+            >
+              {archiveStatus.message}
+            </div>
+          )}
+
+          {archiveLoading ? (
+            <div
+              style={{
+                padding: 22,
+                color: c.muted,
+                fontSize: 12,
+                textAlign: "center",
+              }}
+            >
+              {language === "en"
+                ? "Loading archive..."
+                : language === "ar"
+                  ? "جارٍ تحميل الأرشيف..."
+                  : "Henter arkivet..."}
+            </div>
+          ) : archiveError ? (
+            <div
+              role="alert"
+              style={{
+                padding: "11px 13px",
+                borderRadius: 11,
+                background: c.redSoft,
+                border: `1px solid ${c.redBorder}`,
+                color: c.red,
+                fontSize: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              {archiveError}
+            </div>
+          ) : filteredArchivedQuestions
+              .length === 0 ? (
+            <div
+              style={{
+                minHeight: 230,
+                display: "grid",
+                placeItems: "center",
+                padding: 28,
+                borderRadius: 16,
+                background: c.panel,
+                border: `1px dashed ${c.borderStrong}`,
+                textAlign: "center",
+              }}
+            >
+              <div>
+                <div
+                  aria-hidden="true"
+                  style={{
+                    width: 50,
+                    height: 50,
+                    display: "grid",
+                    placeItems: "center",
+                    margin: "0 auto 13px",
+                    borderRadius: 15,
+                    background: c.soft,
+                    color: c.muted,
+                    fontSize: 22,
+                  }}
+                >
+                  ⌫
+                </div>
+
+                <div
+                  style={{
+                    color: c.text,
+                    fontSize: 14,
+                    fontWeight: 800,
+                  }}
+                >
+                  {archivedQuestions.length ===
+                  0
+                    ? language === "en"
+                      ? "The archive is empty"
+                      : language === "ar"
+                        ? "الأرشيف فارغ"
+                        : "Arkivet er tomt"
+                    : language === "en"
+                      ? "No matching questions"
+                      : language === "ar"
+                        ? "لا توجد أسئلة مطابقة"
+                        : "Ingen matchende spørgsmål"}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 7,
+                    color: c.muted,
+                    fontSize: 11.5,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {archivedQuestions.length ===
+                  0
+                    ? language === "en"
+                      ? "Questions removed from the question bank will appear here."
+                      : language === "ar"
+                        ? "ستظهر هنا الأسئلة التي تمت إزالتها من بنك الأسئلة."
+                        : "Spørgsmål, der fjernes fra Spørgsmålsbanken, vises her."
+                    : language === "en"
+                      ? "Try another search."
+                      : language === "ar"
+                        ? "جرّب بحثًا آخر."
+                        : "Prøv en anden søgning."}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gap: 10,
+              }}
+            >
+              {filteredArchivedQuestions.map(
+                (question) => {
+                  const categoryLabel =
+                    translate(
+                      question.category,
+                      language
+                    );
+
+                  return (
+                    <div
+                      key={question.id}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "minmax(0, 1fr) auto",
+                        alignItems:
+                          "center",
+                        gap: 16,
+                        padding: "14px 15px",
+                        borderRadius: 13,
+                        background: c.panel,
+                        border: `1px solid ${c.border}`,
+                        boxShadow: c.shadow,
+                      }}
+                    >
+                      <div
+                        style={{
+                          minWidth: 0,
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: c.text,
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {translate(
+                            question.question,
+                            language
+                          ) ||
+                            (language === "en"
+                              ? "Question without text"
+                              : language === "ar"
+                                ? "سؤال بدون نص"
+                                : "Spørgsmål uden tekst")}
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems:
+                              "center",
+                            flexWrap: "wrap",
+                            gap: 6,
+                            marginTop: 9,
+                          }}
+                        >
+                          <span
+                            style={{
+                              padding:
+                                "3px 7px",
+                              borderRadius: 99,
+                              background:
+                                c.blueSoft,
+                              color: c.blue,
+                              fontSize: 9.5,
+                              fontWeight: 750,
+                            }}
+                          >
+                            {question.moduleId ||
+                              "—"}
+                          </span>
+
+                          <span
+                            title={getAdminLectureLabel(
+                              question.lectureId,
+                              question.moduleId
+                            )}
+                            style={{
+                              maxWidth: 300,
+                              padding:
+                                "3px 7px",
+                              borderRadius: 99,
+                              background: c.soft,
+                              border: `1px solid ${c.border}`,
+                              color: c.secondary,
+                              fontSize: 9.5,
+                              fontWeight: 700,
+                              overflow: "hidden",
+                              textOverflow:
+                                "ellipsis",
+                              whiteSpace:
+                                "nowrap",
+                            }}
+                          >
+                            {getAdminLectureLabel(
+                              question.lectureId,
+                              question.moduleId
+                            )}
+                          </span>
+
+                          {categoryLabel && (
+                            <span
+                              style={{
+                                padding:
+                                  "3px 7px",
+                                borderRadius: 99,
+                                background: c.soft,
+                                border: `1px solid ${c.border}`,
+                                color: c.muted,
+                                fontSize: 9.5,
+                                fontWeight: 650,
+                              }}
+                            >
+                              {categoryLabel}
+                            </span>
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 7,
+                            color: c.muted,
+                            fontSize: 9.5,
+                            fontFamily:
+                              "monospace",
+                          }}
+                        >
+                          {question.id}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={Boolean(
+                          archiveActionId
+                        )}
+                        onClick={() =>
+                          restoreArchivedQuestion(
+                            question.id
+                          )
+                        }
+                        style={{
+                          minHeight: 38,
+                          display:
+                            "inline-flex",
+                          alignItems:
+                            "center",
+                          justifyContent:
+                            "center",
+                          gap: 6,
+                          padding:
+                            "0 12px",
+                          borderRadius: 10,
+                          border: `1px solid ${c.greenBorder}`,
+                          background:
+                            c.greenSoft,
+                          color: c.green,
+                          fontSize: 11,
+                          fontWeight: 800,
+                          fontFamily:
+                            "inherit",
+                          cursor:
+                            archiveActionId
+                              ? "not-allowed"
+                              : "pointer",
+                          opacity:
+                            archiveActionId &&
+                            archiveActionId !==
+                              question.id
+                              ? 0.45
+                              : 1,
+                          whiteSpace:
+                            "nowrap",
+                        }}
+                      >
+                        <Icon
+                          name="reset"
+                          size={13}
+                        />
+
+                        {archiveActionId ===
+                        question.id
+                          ? language === "en"
+                            ? "Restoring..."
+                            : language === "ar"
+                              ? "جارٍ الاستعادة..."
+                              : "Gendanner..."
+                          : language === "en"
+                            ? "Restore"
+                            : language === "ar"
+                              ? "استعادة"
+                              : "Gendan"}
+                      </button>
+                    </div>
+                  );
+                }
+              )}
             </div>
           )}
         </div>
