@@ -10806,6 +10806,18 @@ const [
   setQuestionModuleFilter,
 ] = useState("all");
 
+const [
+  questionLectureFilter,
+  setQuestionLectureFilter,
+] = useState("all");
+
+const adminFilterLocale =
+  language === "da"
+    ? "da-DK"
+    : language === "ar"
+      ? "ar"
+      : "en-GB";
+
 const adminModuleOptions = Array.from(
   new Set(
     imported
@@ -10817,17 +10829,112 @@ const adminModuleOptions = Array.from(
 ).sort((first, second) =>
   String(first).localeCompare(
     String(second),
-    language === "da"
-      ? "da-DK"
-      : language === "ar"
-        ? "ar"
-        : "en-GB",
+    adminFilterLocale,
     {
       numeric: true,
       sensitivity: "base",
     }
   )
 );
+
+const adminLectureOptions =
+  questionModuleFilter === "all"
+    ? []
+    : Array.from(
+        new Set(
+          imported
+            .filter(
+              (question) =>
+                question.moduleId ===
+                questionModuleFilter
+            )
+            .map(
+              (question) =>
+                question.lectureId
+            )
+            .filter(Boolean)
+        )
+      ).sort((first, second) =>
+        String(first).localeCompare(
+          String(second),
+          adminFilterLocale,
+          {
+            numeric: true,
+            sensitivity: "base",
+          }
+        )
+      );
+
+function getAdminLectureLabel(lectureId) {
+  const lecture = (
+    MODULE_LECTURES[
+      questionModuleFilter
+    ] || []
+  ).find(
+    (item) => item.id === lectureId
+  );
+
+  return lecture?.title
+    ? `${lectureId} · ${lecture.title}`
+    : lectureId;
+}
+
+const normalizedQuestionSearch =
+  questionSearch
+    .trim()
+    .toLocaleLowerCase(
+      adminFilterLocale
+    );
+
+const filteredAdminQuestions =
+  imported.filter((question) => {
+    if (
+      questionModuleFilter !== "all" &&
+      question.moduleId !==
+        questionModuleFilter
+    ) {
+      return false;
+    }
+
+    if (
+      questionLectureFilter !== "all" &&
+      question.lectureId !==
+        questionLectureFilter
+    ) {
+      return false;
+    }
+
+    if (!normalizedQuestionSearch) {
+      return true;
+    }
+
+    const searchableText = [
+      translate(
+        question.question,
+        language
+      ),
+      translate(
+        question.category,
+        language
+      ),
+      translate(
+        question.explanation,
+        language
+      ),
+      question.moduleId,
+      question.lectureId,
+      question.id,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase(
+        adminFilterLocale
+      );
+
+    return searchableText.includes(
+      normalizedQuestionSearch
+    );
+  });
 
 const normalizedQuestionSearch =
   questionSearch
@@ -11758,106 +11865,177 @@ const activeAdminSection =
       }}
     >
       {questionSearch.trim() ||
-questionModuleFilter !== "all"
+questionModuleFilter !== "all" ||
+questionLectureFilter !== "all"
   ? `${filteredAdminQuestions.length} / ${imported.length}`
   : imported.length}
     </div>
   </div>
 
   <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    flexWrap: "wrap",
-    gap: 8,
-    flex: "1 1 460px",
-  }}
->
-  <select
-    value={questionModuleFilter}
-    onChange={(event) =>
-      setQuestionModuleFilter(
-        event.target.value
-      )
-    }
-    aria-label={
-      language === "en"
-        ? "Filter by module"
-        : language === "ar"
-          ? "تصفية حسب الوحدة"
-          : "Filtrér efter modul"
-    }
     style={{
-      minWidth: 150,
-      minHeight: 40,
-      padding: "0 34px 0 12px",
-      borderRadius: 11,
-      border: `1px solid ${c.borderStrong}`,
-      outline: "none",
-      background: c.panel,
-      color: c.text,
-      fontSize: 12,
-      fontFamily: "inherit",
-      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      flexWrap: "wrap",
+      gap: 8,
+      flex: "1 1 620px",
     }}
   >
-    <option value="all">
-      {language === "en"
-        ? "All modules"
-        : language === "ar"
-          ? "جميع الوحدات"
-          : "Alle moduler"}
-    </option>
+    <select
+      value={questionModuleFilter}
+      onChange={(event) => {
+        setQuestionModuleFilter(
+          event.target.value
+        );
+        setQuestionLectureFilter(
+          "all"
+        );
+      }}
+      aria-label={
+        language === "en"
+          ? "Filter by module"
+          : language === "ar"
+            ? "تصفية حسب الوحدة"
+            : "Filtrér efter modul"
+      }
+      style={{
+        minWidth: 150,
+        minHeight: 40,
+        padding: "0 34px 0 12px",
+        borderRadius: 11,
+        border: `1px solid ${c.borderStrong}`,
+        outline: "none",
+        background: c.panel,
+        color: c.text,
+        fontSize: 12,
+        fontFamily: "inherit",
+        cursor: "pointer",
+      }}
+    >
+      <option value="all">
+        {language === "en"
+          ? "All modules"
+          : language === "ar"
+            ? "جميع الوحدات"
+            : "Alle moduler"}
+      </option>
 
-    {adminModuleOptions.map(
-      (moduleId) => (
-        <option
-          key={moduleId}
-          value={moduleId}
-        >
-          {moduleId}
-        </option>
-      )
-    )}
-  </select>
+      {adminModuleOptions.map(
+        (moduleId) => (
+          <option
+            key={moduleId}
+            value={moduleId}
+          >
+            {moduleId}
+          </option>
+        )
+      )}
+    </select>
 
-  <input
-    type="search"
-    value={questionSearch}
-    onChange={(event) =>
-      setQuestionSearch(
-        event.target.value
-      )
-    }
-    aria-label={
-      language === "en"
-        ? "Search questions"
-        : language === "ar"
-          ? "البحث في الأسئلة"
-          : "Søg i spørgsmål"
-    }
-    placeholder={
-      language === "en"
-        ? "Search question or category..."
-        : language === "ar"
-          ? "ابحث عن سؤال أو فئة..."
-          : "Søg efter spørgsmål eller kategori..."
-    }
-    style={{
-      width: "min(360px, 100%)",
-      flex: "1 1 240px",
-      minHeight: 40,
-      padding: "0 13px",
-      borderRadius: 11,
-      border: `1px solid ${c.borderStrong}`,
-      outline: "none",
-      background: c.panel,
-      color: c.text,
-      fontSize: 12,
-      fontFamily: "inherit",
-    }}
-  />
+    <select
+      value={questionLectureFilter}
+      disabled={
+        questionModuleFilter === "all"
+      }
+      onChange={(event) =>
+        setQuestionLectureFilter(
+          event.target.value
+        )
+      }
+      aria-label={
+        language === "en"
+          ? "Filter by lecture"
+          : language === "ar"
+            ? "تصفية حسب المحاضرة"
+            : "Filtrér efter forelæsning"
+      }
+      style={{
+        minWidth: 190,
+        maxWidth: 280,
+        minHeight: 40,
+        padding: "0 34px 0 12px",
+        borderRadius: 11,
+        border: `1px solid ${c.borderStrong}`,
+        outline: "none",
+        background: c.panel,
+        color: c.text,
+        fontSize: 12,
+        fontFamily: "inherit",
+        cursor:
+          questionModuleFilter === "all"
+            ? "not-allowed"
+            : "pointer",
+        opacity:
+          questionModuleFilter === "all"
+            ? 0.55
+            : 1,
+      }}
+    >
+      <option value="all">
+        {questionModuleFilter === "all"
+          ? language === "en"
+            ? "Choose a module first"
+            : language === "ar"
+              ? "اختر الوحدة أولاً"
+              : "Vælg først et modul"
+          : language === "en"
+            ? "All lectures"
+            : language === "ar"
+              ? "جميع المحاضرات"
+              : "Alle forelæsninger"}
+      </option>
+
+      {adminLectureOptions.map(
+        (lectureId) => (
+          <option
+            key={lectureId}
+            value={lectureId}
+          >
+            {getAdminLectureLabel(
+              lectureId
+            )}
+          </option>
+        )
+      )}
+    </select>
+
+    <input
+      type="search"
+      value={questionSearch}
+      onChange={(event) =>
+        setQuestionSearch(
+          event.target.value
+        )
+      }
+      aria-label={
+        language === "en"
+          ? "Search questions"
+          : language === "ar"
+            ? "البحث في الأسئلة"
+            : "Søg i spørgsmål"
+      }
+      placeholder={
+        language === "en"
+          ? "Search question or category..."
+          : language === "ar"
+            ? "ابحث عن سؤال أو فئة..."
+            : "Søg efter spørgsmål eller kategori..."
+      }
+      style={{
+        width: "min(360px, 100%)",
+        flex: "1 1 240px",
+        minHeight: 40,
+        padding: "0 13px",
+        borderRadius: 11,
+        border: `1px solid ${c.borderStrong}`,
+        outline: "none",
+        background: c.panel,
+        color: c.text,
+        fontSize: 12,
+        fontFamily: "inherit",
+      }}
+    />
 </div>
 </div>
             {deleteStatus && (
