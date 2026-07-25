@@ -10981,7 +10981,71 @@ async function removeQuestion(id) {
         ? `\n\n${questionText.slice(0, 180)}`
         : ""
     }`
-    async function saveAdminQuestion(updated) {
+  );
+
+  if (!confirmed) return;
+
+  setDeletingQuestionId(id);
+  setDeleteStatus(null);
+  setQuestionEditStatus(null);
+
+  try {
+    const { data, error } = await supabase
+      .from("question_bank")
+      .update({
+        status: "archived",
+      })
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id) {
+      throw new Error(
+        "Spørgsmålet blev ikke ændret. Kontrollér din adminadgang."
+      );
+    }
+
+    await pullQuestionBankIntoLocalStorage();
+
+    setDeleteStatus({
+      type: "success",
+      message:
+        language === "en"
+          ? "The question was removed."
+          : language === "ar"
+            ? "تمت إزالة السؤال."
+            : "Spørgsmålet blev fjernet.",
+    });
+
+    setDashboardRefreshKey(
+      (value) => value + 1
+    );
+  } catch (error) {
+    console.error(
+      "Kunne ikke arkivere spørgsmålet:",
+      error
+    );
+
+    setDeleteStatus({
+      type: "error",
+      message:
+        error?.message ||
+        (language === "en"
+          ? "The question could not be removed."
+          : language === "ar"
+            ? "تعذرت إزالة السؤال."
+            : "Spørgsmålet kunne ikke fjernes."),
+    });
+  } finally {
+    setDeletingQuestionId(null);
+  }
+}
+
+async function saveAdminQuestion(updated) {
   const normalizedQuestion = {
     ...updated,
     moduleId:
@@ -11051,67 +11115,7 @@ async function removeQuestion(id) {
     (value) => value + 1
   );
 }
-  );
-
-  if (!confirmed) return;
-
-  setDeletingQuestionId(id);
-  setDeleteStatus(null);
-  setQuestionEditStatus(null);
   
-  try {
-    const { data, error } = await supabase
-      .from("question_bank")
-      .update({
-        status: "archived",
-      })
-      .eq("id", id)
-      .select("id")
-      .maybeSingle();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data?.id) {
-      throw new Error(
-        "Spørgsmålet blev ikke ændret. Kontrollér din adminadgang."
-      );
-    }
-
-    // Genindlæs alle publicerede spørgsmål.
-    await pullQuestionBankIntoLocalStorage();
-
-    setDeleteStatus({
-      type: "success",
-      message:
-        language === "en"
-          ? "The question was removed."
-          : language === "ar"
-            ? "تمت إزالة السؤال."
-            : "Spørgsmålet blev fjernet.",
-    });
-  } catch (error) {
-    console.error(
-      "Kunne ikke arkivere spørgsmålet:",
-      error
-    );
-
-    setDeleteStatus({
-      type: "error",
-      message:
-        error?.message ||
-        (language === "en"
-          ? "The question could not be removed."
-          : language === "ar"
-            ? "تعذرت إزالة السؤال."
-            : "Spørgsmålet kunne ikke fjernes."),
-    });
-  } finally {
-    setDeletingQuestionId(null);
-  }
-}
-
   useEffect(() => {
   if (!unlocked) return undefined;
 
