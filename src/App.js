@@ -12266,7 +12266,7 @@ color:
   },
 ].map((card) => (
               <div
-                key={card.label}
+                key={card.key}
                 style={{
                   padding: 18,
                   borderRadius: 16,
@@ -12296,7 +12296,15 @@ color:
                       "tabular-nums",
                   }}
                 >
-                  {card.value}
+                  {dashboardLoading
+  ? "—"
+  : card.value.toLocaleString(
+      language === "en"
+        ? "en-GB"
+        : language === "ar"
+          ? "ar"
+          : "da-DK"
+    )}
                 </div>
 
                 <div
