@@ -11085,22 +11085,182 @@ const openFlags = flagged.filter(
   }
 
   return (
-    <Modal c={c} onClose={onClose} size="large">
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-label={t.adminPanelTitle}
+    dir={language === "ar" ? "rtl" : "ltr"}
+    style={{
+      position: "fixed",
+      top: 0,
+      bottom: 0,
+      insetInlineStart: 74,
+      insetInlineEnd: 0,
+      zIndex: 1001,
+      overflow: "hidden",
+      background: c.page,
+    }}
+  >
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <header
         style={{
+          minHeight: 76,
+          flexShrink: 0,
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 16,
+          justifyContent: "space-between",
+          gap: 16,
+          padding:
+            "14px clamp(16px, 3vw, 32px)",
+          background: c.panel,
+          borderBottom: `1px solid ${c.border}`,
+          boxShadow: `0 1px 0 ${c.border}`,
         }}
       >
-        <div style={{ color: c.text, fontWeight: 750, fontSize: 15 }}>
-          {t.adminPanelTitle}
+        <div
+          style={{
+            minWidth: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 13,
+          }}
+        >
+          <div
+            aria-hidden="true"
+            style={{
+              width: 42,
+              height: 42,
+              flexShrink: 0,
+              display: "grid",
+              placeItems: "center",
+              borderRadius: 13,
+              background: c.blueSoft,
+              border: `1px solid ${c.blueBorder}`,
+              color: c.blue,
+            }}
+          >
+            <Icon
+              name="clipboard"
+              size={20}
+            />
+          </div>
+
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                color: c.text,
+                fontSize: 18,
+                fontWeight: 800,
+                lineHeight: 1.25,
+              }}
+            >
+              {t.adminPanelTitle}
+            </div>
+
+            <div
+              style={{
+                marginTop: 3,
+                color: c.secondary,
+                fontSize: 11.5,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {language === "en"
+                ? "Manage questions, imports and reported content"
+                : language === "ar"
+                  ? "إدارة الأسئلة وعمليات الاستيراد والمحتوى المبلّغ عنه"
+                  : "Administrér spørgsmål, importer og rapporteret indhold"}
+            </div>
+          </div>
         </div>
-        <IconButton c={c} title={t.close} onClick={onClose}>
-          <Icon name="close" size={17} />
-        </IconButton>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              minHeight: 32,
+              padding: "0 11px",
+              borderRadius: 99,
+              background: c.greenSoft,
+              border: `1px solid ${c.green}33`,
+              color: c.green,
+              fontSize: 11,
+              fontWeight: 800,
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: c.green,
+              }}
+            />
+
+            {language === "en"
+              ? "Administrator"
+              : language === "ar"
+                ? "مسؤول"
+                : "Administrator"}
+          </div>
+
+          <IconButton
+            c={c}
+            title={t.close}
+            onClick={onClose}
+            style={{
+              width: 40,
+              height: 40,
+              border: `1px solid ${c.border}`,
+              background: c.soft,
+              color: c.secondary,
+            }}
+          >
+            <Icon
+              name="close"
+              size={18}
+            />
+          </IconButton>
+        </div>
       </header>
+
+      <main
+        style={{
+          minHeight: 0,
+          flex: 1,
+          overflowY: "auto",
+          overscrollBehavior: "contain",
+          padding:
+            "clamp(18px, 3vw, 36px)",
+        }}
+      >
+        <div
+          style={{
+            width: "min(1180px, 100%)",
+            margin: "0 auto",
+          }}
+        >
 
       <div
         style={{
@@ -11515,7 +11675,10 @@ color:
           )}
         </div>
       )}
-    </Modal>
+          </div>
+    </main>
+  </div>
+</div>
   );
 }
 
