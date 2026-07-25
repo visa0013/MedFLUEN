@@ -11648,9 +11648,7 @@ const activeAdminSection =
     </Modal>
   );
 }
-
-return (
-  
+ 
   return (
   <div
     role="dialog"
