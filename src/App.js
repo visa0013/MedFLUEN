@@ -11301,6 +11301,15 @@ const openFlags = flagged.filter(
                       <span style={{ color: c.muted, fontWeight: 700 }}>{t.adminFlaggedReason}: </span>
                       {item.reason}
                     </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+}
 
 function parseDelimited(rawText) {
   const firstLine = rawText.split(/\r?\n/)[0] || "";
