@@ -11549,10 +11549,16 @@ async function restoreArchivedQuestion(id) {
             ? "تعذرت استعادة السؤال."
             : "Spørgsmålet kunne ikke gendannes."),
     });
-  } finally {
+    } finally {
     setArchiveActionId(null);
   }
 }
+
+useEffect(() => {
+  if (!unlocked) return undefined;
+
+  let cancelled = false;
+
   async function loadFlags() {
     setFlagsLoading(true);
     setFlagsError("");
