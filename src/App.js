@@ -10798,6 +10798,58 @@ const [
 const [adminTab, setAdminTab] =
   useState("overview");
 
+  const [questionSearch, setQuestionSearch] =
+  useState("");
+
+const normalizedQuestionSearch =
+  questionSearch
+    .trim()
+    .toLocaleLowerCase(
+      language === "da"
+        ? "da-DK"
+        : language === "ar"
+          ? "ar"
+          : "en-GB"
+    );
+
+const filteredAdminQuestions =
+  imported.filter((question) => {
+    if (!normalizedQuestionSearch) {
+      return true;
+    }
+
+    const searchableText = [
+      translate(
+        question.question,
+        language
+      ),
+      translate(
+        question.category,
+        language
+      ),
+      translate(
+        question.explanation,
+        language
+      ),
+      question.moduleId,
+      question.lectureId,
+      question.id,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase(
+        language === "da"
+          ? "da-DK"
+          : language === "ar"
+            ? "ar"
+            : "en-GB"
+      );
+
+    return searchableText.includes(
+      normalizedQuestionSearch
+    );
+  });
+
   function tryUnlock() {
     if (simpleHash(passcode.trim()) === ADMIN_PASSCODE_HASH) {
       setUnlocked(true);
@@ -11636,9 +11688,79 @@ const activeAdminSection =
               marginBottom: 16,
             }}
           >
-            <div style={{ color: c.text, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
-              {t.adminImportedList} ({imported.length})
-            </div>
+            <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 14,
+  }}
+>
+  <div>
+    <div
+      style={{
+        color: c.text,
+        fontWeight: 800,
+        fontSize: 14,
+      }}
+    >
+      {language === "en"
+        ? "Questions"
+        : language === "ar"
+          ? "الأسئلة"
+          : "Spørgsmål"}
+    </div>
+
+    <div
+      style={{
+        marginTop: 3,
+        color: c.muted,
+        fontSize: 10.5,
+        fontWeight: 650,
+      }}
+    >
+      {questionSearch.trim()
+        ? `${filteredAdminQuestions.length} / ${imported.length}`
+        : imported.length}
+    </div>
+  </div>
+
+  <input
+    type="search"
+    value={questionSearch}
+    onChange={(event) =>
+      setQuestionSearch(event.target.value)
+    }
+    aria-label={
+      language === "en"
+        ? "Search questions"
+        : language === "ar"
+          ? "البحث في الأسئلة"
+          : "Søg i spørgsmål"
+    }
+    placeholder={
+      language === "en"
+        ? "Search question, category or module..."
+        : language === "ar"
+          ? "ابحث عن سؤال أو فئة أو وحدة..."
+          : "Søg efter spørgsmål, kategori eller modul..."
+    }
+    style={{
+      width: "min(360px, 100%)",
+      minHeight: 40,
+      padding: "0 13px",
+      borderRadius: 11,
+      border: `1px solid ${c.borderStrong}`,
+      outline: "none",
+      background: c.panel,
+      color: c.text,
+      fontSize: 12,
+      fontFamily: "inherit",
+    }}
+  />
+</div>
             {deleteStatus && (
   <div
     role="status"
@@ -11666,11 +11788,25 @@ const activeAdminSection =
     {deleteStatus.message}
   </div>
 )}
-            {imported.length === 0 ? (
-              <p style={{ color: c.muted, fontSize: 12 }}>{t.adminNoImported}</p>
+            {filteredAdminQuestions.length === 0 ? (
+  <p
+    style={{
+      color: c.muted,
+      fontSize: 12,
+      lineHeight: 1.5,
+    }}
+  >
+    {imported.length === 0
+      ? t.adminNoImported
+      : language === "en"
+        ? "No questions match your search."
+        : language === "ar"
+          ? "لا توجد أسئلة تطابق بحثك."
+          : "Ingen spørgsmål matcher din søgning."}
+  </p>
             ) : (
               <div style={{ display: "grid", gap: 8, maxHeight: 220, overflowY: "auto" }}>
-                {imported.map((question) => (
+                {filteredAdminQuestions.map((question) => (
                   <div
                     key={question.id}
                     style={{
@@ -11735,21 +11871,6 @@ const activeAdminSection =
           </div>
       ) : adminTab === "flagged" ? (
         <div style={{ marginBottom: 16 }}>
-          <div
-  style={{
-    color: c.text,
-    fontWeight: 800,
-    fontSize: 14,
-    marginBottom: 10,
-  }}
->
-  {language === "en"
-    ? `Questions (${imported.length})`
-    : language === "ar"
-      ? `الأسئلة (${imported.length})`
-      : `Spørgsmål (${imported.length})`}
-</div>
-
           {flagActionError && (
   <div
     role="alert"
