@@ -10837,6 +10837,12 @@ const [
 ] = useState("");
 
 const adminFilterLocale =
+  language === "da"
+    ? "da-DK"
+    : language === "ar"
+      ? "ar"
+      : "en-GB";
+
 const adminCreationModuleOptions =
   Object.keys(MODULE_LECTURES).sort(
     (first, second) =>
@@ -10852,11 +10858,6 @@ const adminCreationModuleOptions =
 
 const adminCreationLectureOptions =
   MODULE_LECTURES[adminCreateModule] || [];
-  language === "da"
-    ? "da-DK"
-    : language === "ar"
-      ? "ar"
-      : "en-GB";
 
 const adminModuleOptions = Array.from(
   new Set(
