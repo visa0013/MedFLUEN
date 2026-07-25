@@ -33,7 +33,6 @@ const STORAGE = {
   deckSettings: "medlearn-deck-settings",
   importedQuestions: "medlearn-imported-questions",
   adminUnlocked: "medlearn-admin-unlocked",
-  questionOverrides: "medlearn-question-overrides",
   buriedCards: "medlearn-buried-cards",
   calendarEvents: "medlearn-calendar-events",
   streak: "medlearn-streak",
@@ -9322,7 +9321,7 @@ function StudyPlan({ c, language, user, setUser }) {
 }
 
 
-function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuestions, questionOverrides }) {
+function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuestions }) {
   const [studyPlans, setPlansGlobal] = useStoredState(STORAGE.studyPlans, {});
   const [checklist, setChecklist] = useStoredState(STORAGE.dailyChecklist, {});
   const activePlan = studyPlans[user.module];
@@ -13124,7 +13123,7 @@ function buildPlanRecommendation({ copy, user, spacedData, importedQuestions, st
   return copy.planAllGood;
 }
 
-function useMascotEngine({ user, language, spacedData, importedQuestions, questionOverrides }) {
+function useMascotEngine({ user, language, spacedData, importedQuestions, }) {
   const [mascotState, setMascotState] = useStoredState(STORAGE.mascotState, {
     records: { bestStreak: 0, bestAccuracy: 0, totalQuestionsSeen: 0, bestPomodoroDay: 0 },
     lastCheckinDate: null,
@@ -14113,7 +14112,6 @@ useEffect(() => {
   const [deckSettingsById] = useStoredState(STORAGE.deckSettings, { default: SM2_DEFAULT_DECK_SETTINGS });
   const deckSettingsFor = (deckId) => deckSettingsById[deckId] || deckSettingsById.default || SM2_DEFAULT_DECK_SETTINGS;
   const [importedQuestions, setImportedQuestions] = useStoredState(STORAGE.importedQuestions, []);
-  const [questionOverrides, setQuestionOverrides] = useStoredState(STORAGE.questionOverrides, {});
   const [buriedCards, setBuriedCards] = useStoredState(STORAGE.buriedCards, {});
   const [sessionScope, setSessionScope] = useState(null);
   const [lectureMenu, setLectureMenu] = useState(null);
