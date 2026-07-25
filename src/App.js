@@ -11629,8 +11629,6 @@ const activeAdminSection =
     />
   </div>
 ) : adminTab === "questions" ? (
-  <div
-
           <div
             style={{
               borderTop: `1px solid ${c.border}`,
