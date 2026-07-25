@@ -11618,17 +11618,18 @@ const activeAdminSection =
 </section>
 
       {adminTab === "import" ? (
-        <>
-          <div style={{ marginBottom: 20 }}>
-            <ImportQuestionsModal
-              c={c}
-              t={t}
-              language={language}
-              user={user}
-              embedded
-              onClose={() => {}}
-            />
-          </div>
+  <div style={{ marginBottom: 20 }}>
+    <ImportQuestionsModal
+      c={c}
+      t={t}
+      language={language}
+      user={user}
+      embedded
+      onClose={() => {}}
+    />
+  </div>
+) : adminTab === "questions" ? (
+  <div
 
           <div
             style={{
@@ -11734,12 +11735,22 @@ const activeAdminSection =
               </div>
             )}
           </div>
-                </>
       ) : adminTab === "flagged" ? (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ color: c.text, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
-            {t.adminTabFlagged} ({flagged.length} {t.adminFlaggedCount})
-          </div>
+          <div
+  style={{
+    color: c.text,
+    fontWeight: 800,
+    fontSize: 14,
+    marginBottom: 10,
+  }}
+>
+  {language === "en"
+    ? `Questions (${imported.length})`
+    : language === "ar"
+      ? `الأسئلة (${imported.length})`
+      : `Spørgsmål (${imported.length})`}
+</div>
 
           {flagActionError && (
   <div
