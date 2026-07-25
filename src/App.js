@@ -10760,6 +10760,12 @@ const [deleteStatus, setDeleteStatus] =
   const [flagged, setFlagged] = useState([]);
   const [flagsLoading, setFlagsLoading] = useState(true);
   const [flagsError, setFlagsError] = useState("");
+  
+const [flagActionId, setFlagActionId] =
+  useState(null);
+
+const [flagActionError, setFlagActionError] =
+  useState("");
 
 const [adminTab, setAdminTab] =
   useState("import");
@@ -10932,6 +10938,88 @@ async function removeQuestion(id) {
     cancelled = true;
   };
 }, [unlocked, language]);
+
+async function updateFlagStatus(
+  flagId,
+  nextStatus
+) {
+  if (flagActionId) return;
+
+  const isDismiss =
+    nextStatus === "dismissed";
+
+  const confirmed = window.confirm(
+    isDismiss
+      ? language === "en"
+        ? "Dismiss this flag?"
+        : language === "ar"
+          ? "هل تريد رفض هذا البلاغ؟"
+          : "Vil du afvise dette flag?"
+      : language === "en"
+        ? "Mark this flag as resolved?"
+        : language === "ar"
+          ? "هل تريد تحديد هذا البلاغ كمحلول؟"
+          : "Vil du markere dette flag som løst?"
+  );
+
+  if (!confirmed) return;
+
+  setFlagActionId(flagId);
+  setFlagActionError("");
+
+  try {
+    const { data, error } =
+      await supabase.rpc(
+        "admin_update_question_flag",
+        {
+          p_flag_id: flagId,
+          p_status: nextStatus,
+          p_resolution_note: null,
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    const updatedFlag =
+      Array.isArray(data) && data.length > 0
+        ? data[0]
+        : null;
+
+    setFlagged((previous) =>
+      previous.map((item) =>
+        item.id === flagId
+          ? {
+              ...item,
+              status:
+                updatedFlag?.status ||
+                nextStatus,
+              resolutionNote:
+                updatedFlag?.resolution_note ||
+                "",
+            }
+          : item
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Kunne ikke opdatere flag:",
+      error
+    );
+
+    setFlagActionError(
+      error?.message ||
+        (language === "en"
+          ? "The flag could not be updated."
+          : language === "ar"
+            ? "تعذر تحديث البلاغ."
+            : "Flaget kunne ikke opdateres.")
+    );
+  } finally {
+    setFlagActionId(null);
+  }
+}
 
 const openFlags = flagged.filter(
   (item) => item.status === "open"
@@ -11175,6 +11263,25 @@ const openFlags = flagged.filter(
             {t.adminTabFlagged} ({flagged.length} {t.adminFlaggedCount})
           </div>
 
+          {flagActionError && (
+  <div
+    role="alert"
+    style={{
+      marginBottom: 10,
+      padding: "9px 11px",
+      borderRadius: 10,
+      background: c.redSoft,
+      border: `1px solid ${c.redBorder}`,
+      color: c.red,
+      fontSize: 11.5,
+      lineHeight: 1.5,
+      fontWeight: 650,
+    }}
+  >
+    {flagActionError}
+  </div>
+)}
+
           {flagsLoading ? (
   <p
     style={{
@@ -11250,14 +11357,33 @@ const openFlags = flagged.filter(
                           flexShrink: 0,
                           padding: "3px 8px",
                           borderRadius: 99,
-                          background: item.status === "resolved" ? c.greenSoft : c.redSoft,
-                          color: item.status === "resolved" ? c.green : c.red,
+                          background:
+  item.status === "resolved"
+    ? c.greenSoft
+    : item.status === "dismissed"
+      ? c.panel
+      : c.redSoft,
+
+color:
+  item.status === "resolved"
+    ? c.green
+    : item.status === "dismissed"
+      ? c.secondary
+      : c.red,
                           fontSize: 10,
                           fontWeight: 800,
                           textTransform: "uppercase",
                         }}
                       >
-                        {item.status === "resolved" ? t.adminFlaggedResolved : t.adminFlaggedOpen}
+                        {item.status === "resolved"
+  ? t.adminFlaggedResolved
+  : item.status === "dismissed"
+    ? language === "en"
+      ? "Dismissed"
+      : language === "ar"
+        ? "مرفوض"
+        : "Afvist"
+    : t.adminFlaggedOpen}
                       </span>
                     </div>
 
@@ -11301,6 +11427,88 @@ const openFlags = flagged.filter(
                       <span style={{ color: c.muted, fontWeight: 700 }}>{t.adminFlaggedReason}: </span>
                       {item.reason}
                     </div>
+                    {item.status === "open" && (
+  <div
+    style={{
+      display: "flex",
+      gap: 8,
+    }}
+  >
+    <button
+      type="button"
+      disabled={Boolean(flagActionId)}
+      onClick={() =>
+        updateFlagStatus(
+          item.id,
+          "resolved"
+        )
+      }
+      style={{
+        flex: 1,
+        height: 34,
+        border: 0,
+        borderRadius: 8,
+        background: c.greenSoft,
+        color: c.green,
+        fontSize: 11.5,
+        fontWeight: 700,
+        cursor: flagActionId
+          ? "not-allowed"
+          : "pointer",
+        opacity:
+          flagActionId &&
+          flagActionId !== item.id
+            ? 0.45
+            : 1,
+      }}
+    >
+      {flagActionId === item.id
+        ? language === "en"
+          ? "Saving..."
+          : language === "ar"
+            ? "جارٍ الحفظ..."
+            : "Gemmer..."
+        : t.adminFlaggedResolve}
+    </button>
+
+    <button
+      type="button"
+      disabled={Boolean(flagActionId)}
+      onClick={() =>
+        updateFlagStatus(
+          item.id,
+          "dismissed"
+        )
+      }
+      style={{
+        flex: 1,
+        height: 34,
+        border: `1px solid ${c.borderStrong}`,
+        borderRadius: 8,
+        background: "transparent",
+        color: c.secondary,
+        fontSize: 11.5,
+        fontWeight: 700,
+        cursor: flagActionId
+          ? "not-allowed"
+          : "pointer",
+        opacity:
+          flagActionId &&
+          flagActionId !== item.id
+            ? 0.45
+            : 1,
+      }}
+    >
+      {flagActionId === item.id
+        ? language === "en"
+          ? "Saving..."
+          : language === "ar"
+            ? "جارٍ الحفظ..."
+            : "Gemmer..."
+        : t.adminFlaggedDismiss}
+    </button>
+  </div>
+)}
                   </div>
                 ))}
             </div>
