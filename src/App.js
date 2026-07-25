@@ -10767,6 +10767,34 @@ const [flagActionId, setFlagActionId] =
 const [flagActionError, setFlagActionError] =
   useState("");
 
+  const [dashboardStats, setDashboardStats] =
+  useState({
+    totalQuestions: 0,
+    publishedQuestions: 0,
+    draftQuestions: 0,
+    moduleCount: 0,
+    lectureCount: 0,
+    openFlags: 0,
+    completedImports: 0,
+    lastImportAt: null,
+  });
+
+const [dashboardLoading, setDashboardLoading] =
+  useState(true);
+
+const [dashboardError, setDashboardError] =
+  useState("");
+
+const [
+  dashboardUpdatedAt,
+  setDashboardUpdatedAt,
+] = useState(null);
+
+const [
+  dashboardRefreshKey,
+  setDashboardRefreshKey,
+] = useState(0);
+
 const [adminTab, setAdminTab] =
   useState("overview");
 
@@ -11020,6 +11048,92 @@ async function updateFlagStatus(
     setFlagActionId(null);
   }
 }
+
+useEffect(() => {
+  if (!unlocked) return undefined;
+
+  let cancelled = false;
+
+  async function loadDashboardStats() {
+    setDashboardLoading(true);
+    setDashboardError("");
+
+    try {
+      const { data, error } =
+        await supabase.rpc(
+          "admin_dashboard_stats"
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      if (cancelled) return;
+
+      const stats = Array.isArray(data)
+        ? data[0] || {}
+        : data || {};
+
+      setDashboardStats({
+        totalQuestions: Number(
+          stats.totalQuestions || 0
+        ),
+        publishedQuestions: Number(
+          stats.publishedQuestions || 0
+        ),
+        draftQuestions: Number(
+          stats.draftQuestions || 0
+        ),
+        moduleCount: Number(
+          stats.moduleCount || 0
+        ),
+        lectureCount: Number(
+          stats.lectureCount || 0
+        ),
+        openFlags: Number(
+          stats.openFlags || 0
+        ),
+        completedImports: Number(
+          stats.completedImports || 0
+        ),
+        lastImportAt:
+          stats.lastImportAt || null,
+      });
+
+      setDashboardUpdatedAt(Date.now());
+    } catch (error) {
+      console.error(
+        "Kunne ikke hente adminstatistik:",
+        error
+      );
+
+      if (!cancelled) {
+        setDashboardError(
+          error?.message ||
+            (language === "en"
+              ? "Dashboard statistics could not be loaded."
+              : language === "ar"
+                ? "تعذر تحميل إحصائيات لوحة الإدارة."
+                : "Adminstatistik kunne ikke hentes.")
+        );
+      }
+    } finally {
+      if (!cancelled) {
+        setDashboardLoading(false);
+      }
+    }
+  }
+
+  loadDashboardStats();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  unlocked,
+  dashboardRefreshKey,
+  language,
+]);
 
 const openFlags = flagged.filter(
   (item) => item.status === "open"
@@ -11880,6 +11994,130 @@ color:
         </div>
       ) : adminTab === "overview" ? (
         <>
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 16,
+    padding: "12px 14px",
+    borderRadius: 14,
+    background: c.soft,
+    border: `1px solid ${c.border}`,
+  }}
+>
+  <div>
+    <div
+      style={{
+        color: c.text,
+        fontSize: 12,
+        fontWeight: 800,
+      }}
+    >
+      {language === "en"
+        ? "Live database statistics"
+        : language === "ar"
+          ? "إحصائيات قاعدة البيانات المباشرة"
+          : "Live databasestatistik"}
+    </div>
+
+    <div
+      style={{
+        marginTop: 4,
+        color: c.muted,
+        fontSize: 10.5,
+        lineHeight: 1.4,
+      }}
+    >
+      {dashboardUpdatedAt
+        ? `${
+            language === "en"
+              ? "Updated"
+              : language === "ar"
+                ? "آخر تحديث"
+                : "Opdateret"
+          }: ${new Date(
+            dashboardUpdatedAt
+          ).toLocaleTimeString(
+            language === "en"
+              ? "en-GB"
+              : language === "ar"
+                ? "ar"
+                : "da-DK",
+            {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            }
+          )}`
+        : language === "en"
+          ? "Waiting for data"
+          : language === "ar"
+            ? "في انتظار البيانات"
+            : "Afventer data"}
+    </div>
+  </div>
+
+  <button
+    type="button"
+    disabled={dashboardLoading}
+    onClick={() =>
+      setDashboardRefreshKey(
+        (previous) => previous + 1
+      )
+    }
+    style={{
+      minHeight: 36,
+      padding: "0 13px",
+      borderRadius: 10,
+      border: `1px solid ${c.borderStrong}`,
+      background: c.panel,
+      color: c.text,
+      fontSize: 11.5,
+      fontWeight: 800,
+      cursor: dashboardLoading
+        ? "not-allowed"
+        : "pointer",
+      opacity: dashboardLoading
+        ? 0.6
+        : 1,
+    }}
+  >
+    {dashboardLoading
+      ? language === "en"
+        ? "Updating..."
+        : language === "ar"
+          ? "جارٍ التحديث..."
+          : "Opdaterer..."
+      : language === "en"
+        ? "Refresh"
+        : language === "ar"
+          ? "تحديث"
+          : "Opdatér"}
+  </button>
+</div>
+
+{dashboardError && (
+  <div
+    role="alert"
+    style={{
+      marginBottom: 16,
+      padding: "11px 13px",
+      borderRadius: 12,
+      background: c.redSoft,
+      border: `1px solid ${c.redBorder}`,
+      color: c.red,
+      fontSize: 11.5,
+      lineHeight: 1.5,
+      fontWeight: 650,
+    }}
+  >
+    {dashboardError}
+  </div>
+)}
+        
           <div
             style={{
               display: "grid",
@@ -11890,52 +12128,143 @@ color:
             }}
           >
             {[
-              {
-                label:
-                  language === "en"
-                    ? "Published questions"
-                    : language === "ar"
-                      ? "الأسئلة المنشورة"
-                      : "Publicerede spørgsmål",
-                value: imported.length,
-                detail:
-                  language === "en"
-                    ? "Available in the question bank"
-                    : language === "ar"
-                      ? "متاحة في بنك الأسئلة"
-                      : "Tilgængelige i spørgsmålsbanken",
-              },
-              {
-                label:
-                  language === "en"
-                    ? "Open flags"
-                    : language === "ar"
-                      ? "البلاغات المفتوحة"
-                      : "Åbne flags",
-                value: openFlags.length,
-                detail:
-                  language === "en"
-                    ? "Require review"
-                    : language === "ar"
-                      ? "تحتاج إلى مراجعة"
-                      : "Kræver behandling",
-              },
-              {
-                label:
-                  language === "en"
-                    ? "All reports"
-                    : language === "ar"
-                      ? "جميع البلاغات"
-                      : "Alle rapporter",
-                value: flagged.length,
-                detail:
-                  language === "en"
-                    ? "Open, resolved and dismissed"
-                    : language === "ar"
-                      ? "مفتوحة ومحسومة ومرفوضة"
-                      : "Åbne, løste og afviste",
-              },
-            ].map((card) => (
+  {
+    key: "total",
+    label:
+      language === "en"
+        ? "Active questions"
+        : language === "ar"
+          ? "الأسئلة النشطة"
+          : "Aktive spørgsmål",
+    value: dashboardStats.totalQuestions,
+    detail:
+      language === "en"
+        ? "Published and draft questions"
+        : language === "ar"
+          ? "الأسئلة المنشورة والمسودات"
+          : "Publicerede spørgsmål og kladder",
+  },
+  {
+    key: "published",
+    label:
+      language === "en"
+        ? "Published questions"
+        : language === "ar"
+          ? "الأسئلة المنشورة"
+          : "Publicerede spørgsmål",
+    value:
+      dashboardStats.publishedQuestions,
+    detail:
+      language === "en"
+        ? "Available to students"
+        : language === "ar"
+          ? "متاحة للطلاب"
+          : "Tilgængelige for studerende",
+  },
+  {
+    key: "drafts",
+    label:
+      language === "en"
+        ? "Draft questions"
+        : language === "ar"
+          ? "مسودات الأسئلة"
+          : "Kladder",
+    value: dashboardStats.draftQuestions,
+    detail:
+      language === "en"
+        ? "Not published yet"
+        : language === "ar"
+          ? "لم يتم نشرها بعد"
+          : "Endnu ikke publiceret",
+  },
+  {
+    key: "modules",
+    label:
+      language === "en"
+        ? "Modules"
+        : language === "ar"
+          ? "الوحدات"
+          : "Moduler",
+    value: dashboardStats.moduleCount,
+    detail:
+      language === "en"
+        ? "Modules with active questions"
+        : language === "ar"
+          ? "وحدات تحتوي على أسئلة نشطة"
+          : "Moduler med aktive spørgsmål",
+  },
+  {
+    key: "lectures",
+    label:
+      language === "en"
+        ? "Lectures"
+        : language === "ar"
+          ? "المحاضرات"
+          : "Forelæsninger",
+    value: dashboardStats.lectureCount,
+    detail:
+      language === "en"
+        ? "Lectures linked to questions"
+        : language === "ar"
+          ? "محاضرات مرتبطة بالأسئلة"
+          : "Forelæsninger med spørgsmål",
+  },
+  {
+    key: "flags",
+    label:
+      language === "en"
+        ? "Open flags"
+        : language === "ar"
+          ? "البلاغات المفتوحة"
+          : "Åbne flags",
+    value: dashboardStats.openFlags,
+    detail:
+      language === "en"
+        ? "Require administrative review"
+        : language === "ar"
+          ? "تحتاج إلى مراجعة إدارية"
+          : "Kræver administrativ behandling",
+  },
+  {
+    key: "imports",
+    label:
+      language === "en"
+        ? "Completed imports"
+        : language === "ar"
+          ? "عمليات الاستيراد المكتملة"
+          : "Gennemførte importer",
+    value:
+      dashboardStats.completedImports,
+    detail: dashboardStats.lastImportAt
+      ? `${
+          language === "en"
+            ? "Latest"
+            : language === "ar"
+              ? "الأحدث"
+              : "Seneste"
+        }: ${new Date(
+          dashboardStats.lastImportAt
+        ).toLocaleString(
+          language === "en"
+            ? "en-GB"
+            : language === "ar"
+              ? "ar"
+              : "da-DK",
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        )}`
+      : language === "en"
+        ? "No completed imports"
+        : language === "ar"
+          ? "لا توجد عمليات استيراد مكتملة"
+          : "Ingen gennemførte importer",
+  },
+].map((card) => (
               <div
                 key={card.label}
                 style={{
