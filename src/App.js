@@ -4182,11 +4182,10 @@ function PrimaryButton({ children, onClick, disabled = false, style = {} }) {
   );
 }
 
-function Loader({ c, t, leaving, theme, moduleId }) {
-  const facts = (moduleId ? QUESTIONS.filter((q) => q.moduleId === moduleId) : QUESTIONS)
-    .map((q) => translate(q.explanation, "da"))
-    .filter(Boolean);
-  const [fact] = useState(() => facts[Math.floor(Math.random() * Math.max(1, facts.length))] || "Regelmæssig aktiv genkaldelse styrker langtidshukommelsen.");
+function Loader({ c, t, leaving, theme }) {
+  const [fact] = useState(
+    "Regelmæssig aktiv genkaldelse styrker langtidshukommelsen."
+  );
 
   return (
     <div
@@ -6784,7 +6783,11 @@ function MCQ({
   // (finishSession's guard checked a live pool.length that had already changed), and the
   // "review questions" button on the stats screen searched a pool that no longer contained
   // the just-answered questions, so review() silently found nothing to jump to.
-  const initialPoolRef = useRef(Array.isArray(questionPool) ? questionPool : QUESTIONS);
+  const initialPoolRef = useRef(
+  Array.isArray(questionPool)
+    ? questionPool
+    : []
+  );
   const pool = initialPoolRef.current;
   const [history, setHistory] = useStoredState(STORAGE.quizHistory, []);
   const [savedSession, setSavedSession] = useState(false);
@@ -8095,6 +8098,7 @@ if (!question && !finished) {
 
 function Insights({ c, t, language, user }) {
   const [history] = useStoredState(STORAGE.quizHistory, []);
+  const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
   const [pomodoroMinutesLog] = useStoredState(STORAGE.pomodoroMinutesLog, {});
@@ -8371,8 +8375,10 @@ function Insights({ c, t, language, user }) {
   const depthGroupOptions = Array.from(new Set(lecturesInModule.map((l) => l.group).filter(Boolean)));
 
   const categoryToGroups = {};
-  QUESTIONS.forEach((q) => {
-    if (q.moduleId !== currentModule) return;
+getFullQuestionBank(
+  importedQuestions
+).forEach((q) => {
+  if (q.moduleId !== currentModule) return;
     const groupName = q.lectureId ? lectureGroupById[q.lectureId] : null;
     if (!groupName) return;
     const categoryName = translate(q.category, language);
@@ -8893,6 +8899,7 @@ function WorkloadVisualizer({ c, copy, hoursPerDay, estimatedMinutes, capacityMi
 
 function StudyPlan({ c, language, user, setUser }) {
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
+  const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const existing = plans[user.module];
   const [step, setStep] = useState(existing ? 9 : 1);
   const [level, setLevel] = useState(user.level || "Kandidat");
@@ -8940,7 +8947,13 @@ function StudyPlan({ c, language, user, setUser }) {
   const days = exam ? Math.max(0, Math.ceil((exam - today) / 86400000)) : 0;
   const pending = lectures.filter((item) => !done.includes(item.id));
   const lectureUnits = mode === "lectures" ? pending.flatMap((item) => Array.from({ length: item.parts || 1 }, (_, i) => ({ ...item, part: (item.parts || 1) > 1 ? i + 1 : null }))) : [];
-  const questionTotal = QUESTIONS.length;
+  const questionTotal =
+  getFullQuestionBank(
+    importedQuestions
+  ).filter(
+    (question) =>
+      question.moduleId === moduleName
+  ).length;
   const activeDays = Math.max(1, days);
   const dayDateKeys = Array.from({ length: activeDays }, (_, i) => { const d = new Date(today); d.setDate(d.getDate() + i); return dateKey(d.getFullYear(), d.getMonth(), d.getDate()); });
   const isExcludedDay = (dayIndex) => excludedDates.includes(dayDateKeys[dayIndex] || "");
@@ -11165,8 +11178,14 @@ function ImportQuestionsModal({ c, t, language, user, onClose, embedded = false 
 
   const lectures = MODULE_LECTURES[moduleId] || [];
   const existingFingerprints = new Set(
-    [...QUESTIONS, ...imported].map((q) => questionFingerprint(q.question?.[language] || q.question?.da || q.question))
-  );
+  imported.map((q) =>
+    questionFingerprint(
+      q.question?.[language] ||
+        q.question?.da ||
+        q.question
+    )
+  )
+);
 
   function normalizeCandidate(item, rowLabel) {
     const questionText = item.question || item.text || item.front || "";
