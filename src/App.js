@@ -11241,12 +11241,214 @@ function openAdminQuestionCreator() {
   setCreatingAdminQuestion(true);
 }
 
+async function createAdminQuestion(updated) {
+  if (
+    !adminCreateModule ||
+    !adminCreateLecture
+  ) {
+    throw new Error(
+      language === "en"
+        ? "Choose a module and lecture."
+        : language === "ar"
+          ? "اختر الوحدة والمحاضرة."
+          : "Vælg et modul og en forelæsning."
+    );
+  }
+
+  const createdModuleId =
+    adminCreateModule;
+
+  const createdLectureId =
+    adminCreateLecture;
+
+  const normalizedQuestion = {
+    ...updated,
+    moduleId: createdModuleId,
+    lectureId: createdLectureId,
+  };
+
+  const content = {
+    category:
+      normalizedQuestion.category,
+    question:
+      normalizedQuestion.question,
+    options: normalizedQuestion.options,
+    correct: normalizedQuestion.correct,
+    explanation:
+      normalizedQuestion.explanation,
+  };
+
+  const { error } = await supabase
+    .from("question_bank")
+    .upsert(
+      {
+        id: normalizedQuestion.id,
+        module_id: createdModuleId,
+        lecture_id: createdLectureId,
+        category:
+          translate(
+            normalizedQuestion.category,
+            "da"
+          ) || "Ukategoriseret",
+        content,
+        status: "published",
+      },
+      {
+        onConflict: "id",
+      }
+    );
+
+  if (error) {
+    console.error(
+      "Kunne ikke oprette adminspørgsmålet:",
+      error
+    );
+
+    throw error;
+  }
+
+  await pullQuestionBankIntoLocalStorage();
+
+  setCreatingAdminQuestion(false);
+  setQuestionSearch("");
+
+  setQuestionModuleFilter(
+    createdModuleId
+  );
+
+  setQuestionLectureFilter(
+    createdLectureId
+  );
+
+  setQuestionEditStatus({
+    type: "success",
+    message:
+      language === "en"
+        ? "The question was created."
+        : language === "ar"
+          ? "تم إنشاء السؤال."
+          : "Spørgsmålet blev oprettet.",
+  });
+
+  setDashboardRefreshKey(
+    (value) => value + 1
+  );
+}
+
 useEffect(() => {
   if (!unlocked) return undefined;
 
   let cancelled = false;
 
-  async function restoreArchivedQuestion(id) {
+  async function loadArchivedQuestions() {
+    setArchiveLoading(true);
+    setArchiveError("");
+
+    try {
+      const { data, error } =
+        await supabase
+          .from("question_bank")
+          .select(
+            `
+              id,
+              module_id,
+              lecture_id,
+              category,
+              content,
+              created_at
+            `
+          )
+          .eq("status", "archived")
+          .order("created_at", {
+            ascending: false,
+          });
+
+      if (error) {
+        throw error;
+      }
+
+      if (cancelled) return;
+
+      const normalizedQuestions = (
+        data || []
+      ).map((item) => {
+        const content =
+          item.content &&
+          typeof item.content ===
+            "object" &&
+          !Array.isArray(item.content)
+            ? item.content
+            : {};
+
+        return {
+          id: item.id,
+          moduleId:
+            item.module_id || "",
+          lectureId:
+            item.lecture_id || null,
+          category:
+            content.category ||
+            item.category ||
+            "",
+          question:
+            content.question || "",
+          options: Array.isArray(
+            content.options
+          )
+            ? content.options
+            : [],
+          correct: Number.isInteger(
+            content.correct
+          )
+            ? content.correct
+            : 0,
+          explanation:
+            content.explanation || "",
+          createdAt:
+            item.created_at || null,
+        };
+      });
+
+      setArchivedQuestions(
+        normalizedQuestions
+      );
+    } catch (error) {
+      console.error(
+        "Kunne ikke hente arkiverede spørgsmål:",
+        error
+      );
+
+      if (!cancelled) {
+        setArchiveError(
+          error?.message ||
+            (language === "en"
+              ? "Archived questions could not be loaded."
+              : language === "ar"
+                ? "تعذر تحميل الأسئلة المؤرشفة."
+                : "Arkiverede spørgsmål kunne ikke hentes.")
+        );
+
+        setArchivedQuestions([]);
+      }
+    } finally {
+      if (!cancelled) {
+        setArchiveLoading(false);
+      }
+    }
+  }
+
+  loadArchivedQuestions();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  unlocked,
+  dashboardRefreshKey,
+  language,
+]);
+
+async function restoreArchivedQuestion(id) {
   if (archiveActionId) return;
 
   const question =
@@ -11351,106 +11553,6 @@ useEffect(() => {
     setArchiveActionId(null);
   }
 }
-
-async function createAdminQuestion(updated) {
-  if (
-    !adminCreateModule ||
-    !adminCreateLecture
-  ) {
-    throw new Error(
-      language === "en"
-        ? "Choose a module and lecture."
-        : language === "ar"
-          ? "اختر الوحدة والمحاضرة."
-          : "Vælg et modul og en forelæsning."
-    );
-  }
-
-  const createdModuleId =
-    adminCreateModule;
-
-  const createdLectureId =
-    adminCreateLecture;
-
-  const normalizedQuestion = {
-    ...updated,
-    moduleId: createdModuleId,
-    lectureId: createdLectureId,
-  };
-
-  const content = {
-    category:
-      normalizedQuestion.category,
-    question:
-      normalizedQuestion.question,
-    options: normalizedQuestion.options,
-    correct: normalizedQuestion.correct,
-    explanation:
-      normalizedQuestion.explanation,
-  };
-
-  const { error } = await supabase
-    .from("question_bank")
-    .upsert(
-      {
-        id: normalizedQuestion.id,
-        module_id: createdModuleId,
-        lecture_id: createdLectureId,
-        category:
-          translate(
-            normalizedQuestion.category,
-            "da"
-          ) || "Ukategoriseret",
-        content,
-        status: "published",
-      },
-      {
-        onConflict: "id",
-      }
-    );
-
-  if (error) {
-    console.error(
-      "Kunne ikke oprette adminspørgsmålet:",
-      error
-    );
-
-    throw error;
-  }
-
-  await pullQuestionBankIntoLocalStorage();
-
-  setCreatingAdminQuestion(false);
-  setQuestionSearch("");
-
-  setQuestionModuleFilter(
-    createdModuleId
-  );
-
-  setQuestionLectureFilter(
-    createdLectureId
-  );
-
-  setQuestionEditStatus({
-    type: "success",
-    message:
-      language === "en"
-        ? "The question was created."
-        : language === "ar"
-          ? "تم إنشاء السؤال."
-          : "Spørgsmålet blev oprettet.",
-  });
-
-  setDashboardRefreshKey(
-    (value) => value + 1
-  );
-}
-
-useEffect(() => {
-  if (!unlocked) return undefined;
-
-  let cancelled = false;
-
   async function loadFlags() {
     setFlagsLoading(true);
     setFlagsError("");
@@ -11716,7 +11818,6 @@ const adminSections = [
         : language === "ar"
           ? "الحالة والنشاط والإجراءات السريعة."
           : "Status, aktivitet og hurtige handlinger.",
-            badge: archivedQuestions.length,
   },
   {
     key: "questions",
@@ -11769,6 +11870,7 @@ const adminSections = [
         : language === "ar"
           ? "عرض الأسئلة المؤرشفة واستعادتها."
           : "Se og gendan arkiverede spørgsmål.",
+        badge: archivedQuestions.length,
   },
   {
     key: "importHistory",
