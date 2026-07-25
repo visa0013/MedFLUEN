@@ -11272,6 +11272,9 @@ async function createAdminQuestion(updated) {
   );
 }
 
+useEffect(() => {
+  if (!unlocked) return undefined;
+
   let cancelled = false;
 
   async function loadFlags() {
