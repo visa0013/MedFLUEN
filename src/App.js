@@ -10768,7 +10768,7 @@ const [flagActionError, setFlagActionError] =
   useState("");
 
 const [adminTab, setAdminTab] =
-  useState("import");
+  useState("overview");
 
   function tryUnlock() {
     if (simpleHash(passcode.trim()) === ADMIN_PASSCODE_HASH) {
@@ -11025,6 +11025,111 @@ const openFlags = flagged.filter(
   (item) => item.status === "open"
 );
 
+const adminSections = [
+  {
+    key: "overview",
+    label:
+      language === "en"
+        ? "Overview"
+        : language === "ar"
+          ? "نظرة عامة"
+          : "Overblik",
+    description:
+      language === "en"
+        ? "Status, activity and quick actions."
+        : language === "ar"
+          ? "الحالة والنشاط والإجراءات السريعة."
+          : "Status, aktivitet og hurtige handlinger.",
+  },
+  {
+    key: "questions",
+    label:
+      language === "en"
+        ? "Question bank"
+        : language === "ar"
+          ? "بنك الأسئلة"
+          : "Spørgsmålsbank",
+    description:
+      language === "en"
+        ? "Search, filter and manage published questions."
+        : language === "ar"
+          ? "البحث عن الأسئلة المنشورة وتصفيتها وإدارتها."
+          : "Søg, filtrér og administrér publicerede spørgsmål.",
+    badge: imported.length,
+  },
+  {
+    key: "import",
+    label: t.adminTabImport,
+    description:
+      language === "en"
+        ? "Validate and import new questions."
+        : language === "ar"
+          ? "التحقق من الأسئلة الجديدة واستيرادها."
+          : "Validér og importér nye spørgsmål.",
+  },
+  {
+    key: "flagged",
+    label: t.adminTabFlagged,
+    description:
+      language === "en"
+        ? "Review reports submitted by users."
+        : language === "ar"
+          ? "مراجعة البلاغات المقدمة من المستخدمين."
+          : "Behandl rapporter indsendt af brugere.",
+    badge: openFlags.length,
+  },
+  {
+    key: "archive",
+    label:
+      language === "en"
+        ? "Archive"
+        : language === "ar"
+          ? "الأرشيف"
+          : "Arkiv",
+    description:
+      language === "en"
+        ? "View and restore archived questions."
+        : language === "ar"
+          ? "عرض الأسئلة المؤرشفة واستعادتها."
+          : "Se og gendan arkiverede spørgsmål.",
+  },
+  {
+    key: "importHistory",
+    label:
+      language === "en"
+        ? "Import history"
+        : language === "ar"
+          ? "سجل الاستيراد"
+          : "Importhistorik",
+    description:
+      language === "en"
+        ? "Review previous imports and their results."
+        : language === "ar"
+          ? "مراجعة عمليات الاستيراد السابقة ونتائجها."
+          : "Gennemgå tidligere importer og deres resultater.",
+  },
+  {
+    key: "audit",
+    label:
+      language === "en"
+        ? "Activity log"
+        : language === "ar"
+          ? "سجل النشاط"
+          : "Aktivitetslog",
+    description:
+      language === "en"
+        ? "See administrative changes and actions."
+        : language === "ar"
+          ? "عرض التغييرات والإجراءات الإدارية."
+          : "Se administrative ændringer og handlinger.",
+  },
+];
+
+const activeAdminSection =
+  adminSections.find(
+    (section) => section.key === adminTab
+  ) || adminSections[0];
+
   if (!unlocked) {
     return (
       <Modal c={c} onClose={onClose}>
@@ -11262,42 +11367,141 @@ const openFlags = flagged.filter(
           }}
         >
 
-      <div
+<nav
+  aria-label={
+    language === "en"
+      ? "Admin navigation"
+      : language === "ar"
+        ? "تنقل الإدارة"
+        : "Adminnavigation"
+  }
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(145px, 1fr))",
+    gap: 8,
+    marginBottom: 22,
+    padding: 6,
+    borderRadius: 16,
+    background: c.soft,
+    border: `1px solid ${c.border}`,
+  }}
+>
+  {adminSections.map((section) => {
+    const active =
+      adminTab === section.key;
+
+    return (
+      <button
+        key={section.key}
+        type="button"
+        aria-current={
+          active ? "page" : undefined
+        }
+        onClick={() =>
+          setAdminTab(section.key)
+        }
         style={{
+          minWidth: 0,
+          minHeight: 46,
           display: "flex",
-          gap: 6,
-          padding: 4,
-          borderRadius: 12,
-          background: c.soft,
-          marginBottom: 18,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          padding: "9px 11px",
+          borderRadius: 11,
+          border: active
+            ? `1px solid ${c.blueBorder}`
+            : "1px solid transparent",
+          background: active
+            ? c.panel
+            : "transparent",
+          color: active
+            ? c.text
+            : c.secondary,
+          boxShadow: active
+            ? c.shadow
+            : "none",
+          fontSize: 12,
+          fontWeight: active ? 800 : 700,
+          cursor: "pointer",
+          transition:
+            "background 160ms ease, border-color 160ms ease, color 160ms ease",
         }}
       >
-        {[
-          ["import", t.adminTabImport],
-          ["flagged", `${t.adminTabFlagged}${openFlags.length > 0 ? ` (${openFlags.length})` : ""}`],
-        ].map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setAdminTab(key)}
+        <span
+          style={{
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {section.label}
+        </span>
+
+        {Number(section.badge) > 0 && (
+          <span
             style={{
-              flex: 1,
-              height: 38,
-              border: 0,
-              borderRadius: 9,
-              background: adminTab === key ? c.panel : "transparent",
-              color: adminTab === key ? c.text : c.secondary,
-              fontSize: 12.5,
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: adminTab === key ? c.shadow : "none",
-              transition: "background 160ms ease",
+              minWidth: 22,
+              height: 22,
+              padding: "0 6px",
+              display: "inline-grid",
+              placeItems: "center",
+              borderRadius: 99,
+              background:
+                section.key === "flagged"
+                  ? c.redSoft
+                  : c.blueSoft,
+              color:
+                section.key === "flagged"
+                  ? c.red
+                  : c.blue,
+              fontSize: 10,
+              fontWeight: 850,
+              flexShrink: 0,
             }}
           >
-            {label}
-          </button>
-        ))}
-      </div>
+            {section.badge}
+          </span>
+        )}
+      </button>
+    );
+  })}
+</nav>
+
+<section
+  style={{
+    marginBottom: 22,
+    padding: "18px 20px",
+    borderRadius: 16,
+    background: c.panel,
+    border: `1px solid ${c.border}`,
+    boxShadow: c.shadow,
+  }}
+>
+  <div
+    style={{
+      color: c.text,
+      fontSize: 20,
+      lineHeight: 1.25,
+      fontWeight: 850,
+    }}
+  >
+    {activeAdminSection.label}
+  </div>
+
+  <div
+    style={{
+      marginTop: 6,
+      color: c.secondary,
+      fontSize: 12.5,
+      lineHeight: 1.55,
+    }}
+  >
+    {activeAdminSection.description}
+  </div>
+</section>
 
       {adminTab === "import" ? (
         <>
@@ -11416,8 +11620,8 @@ const openFlags = flagged.filter(
               </div>
             )}
           </div>
-        </>
-      ) : (
+                </>
+      ) : adminTab === "flagged" ? (
         <div style={{ marginBottom: 16 }}>
           <div style={{ color: c.text, fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
             {t.adminTabFlagged} ({flagged.length} {t.adminFlaggedCount})
@@ -11669,11 +11873,276 @@ color:
     </button>
   </div>
 )}
-                  </div>
+                                    </div>
                 ))}
             </div>
           )}
         </div>
+      ) : adminTab === "overview" ? (
+        <>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(190px, 1fr))",
+              gap: 12,
+              marginBottom: 18,
+            }}
+          >
+            {[
+              {
+                label:
+                  language === "en"
+                    ? "Published questions"
+                    : language === "ar"
+                      ? "الأسئلة المنشورة"
+                      : "Publicerede spørgsmål",
+                value: imported.length,
+                detail:
+                  language === "en"
+                    ? "Available in the question bank"
+                    : language === "ar"
+                      ? "متاحة في بنك الأسئلة"
+                      : "Tilgængelige i spørgsmålsbanken",
+              },
+              {
+                label:
+                  language === "en"
+                    ? "Open flags"
+                    : language === "ar"
+                      ? "البلاغات المفتوحة"
+                      : "Åbne flags",
+                value: openFlags.length,
+                detail:
+                  language === "en"
+                    ? "Require review"
+                    : language === "ar"
+                      ? "تحتاج إلى مراجعة"
+                      : "Kræver behandling",
+              },
+              {
+                label:
+                  language === "en"
+                    ? "All reports"
+                    : language === "ar"
+                      ? "جميع البلاغات"
+                      : "Alle rapporter",
+                value: flagged.length,
+                detail:
+                  language === "en"
+                    ? "Open, resolved and dismissed"
+                    : language === "ar"
+                      ? "مفتوحة ومحسومة ومرفوضة"
+                      : "Åbne, løste og afviste",
+              },
+            ].map((card) => (
+              <div
+                key={card.label}
+                style={{
+                  padding: 18,
+                  borderRadius: 16,
+                  background: c.panel,
+                  border: `1px solid ${c.border}`,
+                  boxShadow: c.shadow,
+                }}
+              >
+                <div
+                  style={{
+                    color: c.secondary,
+                    fontSize: 11.5,
+                    fontWeight: 750,
+                  }}
+                >
+                  {card.label}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 10,
+                    color: c.text,
+                    fontSize: 30,
+                    lineHeight: 1,
+                    fontWeight: 900,
+                    fontVariantNumeric:
+                      "tabular-nums",
+                  }}
+                >
+                  {card.value}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 9,
+                    color: c.muted,
+                    fontSize: 11,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {card.detail}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              padding: 20,
+              borderRadius: 16,
+              background: c.panel,
+              border: `1px solid ${c.border}`,
+              boxShadow: c.shadow,
+            }}
+          >
+            <div
+              style={{
+                color: c.text,
+                fontSize: 14,
+                fontWeight: 800,
+                marginBottom: 6,
+              }}
+            >
+              {language === "en"
+                ? "Quick actions"
+                : language === "ar"
+                  ? "إجراءات سريعة"
+                  : "Hurtige handlinger"}
+            </div>
+
+            <div
+              style={{
+                color: c.secondary,
+                fontSize: 12,
+                lineHeight: 1.5,
+                marginBottom: 16,
+              }}
+            >
+              {language === "en"
+                ? "Go directly to the most frequently used administrative tasks."
+                : language === "ar"
+                  ? "انتقل مباشرة إلى أكثر المهام الإدارية استخدامًا."
+                  : "Gå direkte til de mest anvendte administrative opgaver."}
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 10,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  setAdminTab("import")
+                }
+                style={{
+                  minHeight: 40,
+                  padding: "0 15px",
+                  borderRadius: 10,
+                  border: 0,
+                  background: c.blue,
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                {language === "en"
+                  ? "Import questions"
+                  : language === "ar"
+                    ? "استيراد الأسئلة"
+                    : "Importér spørgsmål"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setAdminTab("flagged")
+                }
+                style={{
+                  minHeight: 40,
+                  padding: "0 15px",
+                  borderRadius: 10,
+                  border: `1px solid ${c.borderStrong}`,
+                  background: c.soft,
+                  color: c.text,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                {language === "en"
+                  ? "Review flags"
+                  : language === "ar"
+                    ? "مراجعة البلاغات"
+                    : "Behandl flags"}
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div
+          style={{
+            minHeight: 260,
+            display: "grid",
+            placeItems: "center",
+            padding: 28,
+            borderRadius: 18,
+            background: c.panel,
+            border: `1px dashed ${c.borderStrong}`,
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "min(440px, 100%)",
+            }}
+          >
+            <div
+              aria-hidden="true"
+              style={{
+                width: 52,
+                height: 52,
+                display: "grid",
+                placeItems: "center",
+                margin: "0 auto 14px",
+                borderRadius: 16,
+                background: c.blueSoft,
+                color: c.blue,
+                fontSize: 22,
+                fontWeight: 900,
+              }}
+            >
+              +
+            </div>
+
+            <div
+              style={{
+                color: c.text,
+                fontSize: 16,
+                fontWeight: 850,
+              }}
+            >
+              {activeAdminSection.label}
+            </div>
+
+            <div
+              style={{
+                marginTop: 8,
+                color: c.secondary,
+                fontSize: 12.5,
+                lineHeight: 1.6,
+              }}
+            >
+              {language === "en"
+                ? "This section is ready in the new navigation and will be connected to Supabase in the next development steps."
+                : language === "ar"
+                  ? "هذا القسم جاهز في التنقل الجديد وسيتم ربطه بـ Supabase في خطوات التطوير التالية."
+                  : "Sektionen er klar i den nye navigation og forbindes til Supabase i de næste udviklingstrin."}
+            </div>
+          </div>
+        </div>
+      )}
       )}
           </div>
     </main>
