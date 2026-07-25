@@ -10811,6 +10811,16 @@ const [
   setQuestionLectureFilter,
 ] = useState("all");
 
+const [
+  editingAdminQuestion,
+  setEditingAdminQuestion,
+] = useState(null);
+
+const [
+  questionEditStatus,
+  setQuestionEditStatus,
+] = useState(null);
+
 const adminFilterLocale =
   language === "da"
     ? "da-DK"
@@ -10865,11 +10875,20 @@ const adminLectureOptions =
         )
       );
 
-function getAdminLectureLabel(lectureId) {
+function getAdminLectureLabel(
+  lectureId,
+  moduleId = questionModuleFilter
+) {
+  if (!lectureId) {
+    return language === "en"
+      ? "No lecture"
+      : language === "ar"
+        ? "بدون محاضرة"
+        : "Ingen forelæsning";
+  }
+
   const lecture = (
-    MODULE_LECTURES[
-      questionModuleFilter
-    ] || []
+    MODULE_LECTURES[moduleId] || []
   ).find(
     (item) => item.id === lectureId
   );
@@ -10962,13 +10981,84 @@ async function removeQuestion(id) {
         ? `\n\n${questionText.slice(0, 180)}`
         : ""
     }`
+    async function saveAdminQuestion(updated) {
+  const normalizedQuestion = {
+    ...updated,
+    moduleId:
+      editingAdminQuestion?.moduleId ||
+      updated.moduleId,
+    lectureId:
+      editingAdminQuestion?.lectureId ??
+      updated.lectureId ??
+      null,
+  };
+
+  const content = {
+    category: normalizedQuestion.category,
+    question: normalizedQuestion.question,
+    options: normalizedQuestion.options,
+    correct: normalizedQuestion.correct,
+    explanation:
+      normalizedQuestion.explanation,
+  };
+
+  const { error } = await supabase
+    .from("question_bank")
+    .upsert(
+      {
+        id: normalizedQuestion.id,
+        module_id:
+          normalizedQuestion.moduleId,
+        lecture_id:
+          normalizedQuestion.lectureId,
+        category:
+          translate(
+            normalizedQuestion.category,
+            "da"
+          ) || "Ukategoriseret",
+        content,
+        status: "published",
+      },
+      {
+        onConflict: "id",
+      }
+    );
+
+  if (error) {
+    console.error(
+      "Kunne ikke gemme adminredigeringen:",
+      error
+    );
+
+    throw error;
+  }
+
+  await pullQuestionBankIntoLocalStorage();
+
+  setEditingAdminQuestion(null);
+
+  setQuestionEditStatus({
+    type: "success",
+    message:
+      language === "en"
+        ? "The question was updated."
+        : language === "ar"
+          ? "تم تحديث السؤال."
+          : "Spørgsmålet blev opdateret.",
+  });
+
+  setDashboardRefreshKey(
+    (value) => value + 1
+  );
+}
   );
 
   if (!confirmed) return;
 
   setDeletingQuestionId(id);
   setDeleteStatus(null);
-
+  setQuestionEditStatus(null);
+  
   try {
     const { data, error } = await supabase
       .from("question_bank")
@@ -11441,6 +11531,126 @@ const activeAdminSection =
     );
   }
 
+  if (editingAdminQuestion) {
+  return (
+    <Modal
+      c={c}
+      onClose={() =>
+        setEditingAdminQuestion(null)
+      }
+    >
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          marginBottom: 14,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              color: c.text,
+              fontSize: 16,
+              fontWeight: 800,
+            }}
+          >
+            {t.editQuestion}
+          </div>
+
+          <div
+            style={{
+              marginTop: 4,
+              color: c.muted,
+              fontSize: 10.5,
+              fontWeight: 650,
+            }}
+          >
+            {editingAdminQuestion.id}
+          </div>
+        </div>
+
+        <IconButton
+          c={c}
+          title={t.close}
+          onClick={() =>
+            setEditingAdminQuestion(null)
+          }
+        >
+          <Icon
+            name="close"
+            size={17}
+          />
+        </IconButton>
+      </header>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 7,
+          marginBottom: 16,
+        }}
+      >
+        <span
+          style={{
+            padding: "5px 9px",
+            borderRadius: 99,
+            background: c.blueSoft,
+            border: `1px solid ${c.blueBorder}`,
+            color: c.blue,
+            fontSize: 10.5,
+            fontWeight: 750,
+          }}
+        >
+          {editingAdminQuestion.moduleId}
+        </span>
+
+        <span
+          style={{
+            maxWidth: "100%",
+            padding: "5px 9px",
+            borderRadius: 99,
+            background: c.soft,
+            border: `1px solid ${c.border}`,
+            color: c.secondary,
+            fontSize: 10.5,
+            fontWeight: 700,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {getAdminLectureLabel(
+            editingAdminQuestion.lectureId,
+            editingAdminQuestion.moduleId
+          )}
+        </span>
+      </div>
+
+      <QuestionEditor
+        c={c}
+        t={t}
+        language={language}
+        question={editingAdminQuestion}
+        moduleId={
+          editingAdminQuestion.moduleId
+        }
+        lectureId={
+          editingAdminQuestion.lectureId
+        }
+        onSave={saveAdminQuestion}
+        onCancel={() =>
+          setEditingAdminQuestion(null)
+        }
+      />
+    </Modal>
+  );
+}
+
+return (
+  
   return (
   <div
     role="dialog"
@@ -11981,6 +12191,23 @@ questionLectureFilter !== "all"
     />
 </div>
 </div>
+{questionEditStatus && (
+  <div
+    role="status"
+    style={{
+      marginBottom: 10,
+      padding: "9px 11px",
+      borderRadius: 10,
+      border: `1px solid ${c.greenBorder}`,
+      background: c.greenSoft,
+      color: c.green,
+      fontSize: 11.5,
+      fontWeight: 700,
+    }}
+  >
+    {questionEditStatus.message}
+  </div>
+)}
             {deleteStatus && (
   <div
     role="status"
@@ -12025,67 +12252,219 @@ questionLectureFilter !== "all"
       : "Ingen spørgsmål matcher de valgte filtre."}
   </p>
             ) : (
-              <div style={{ display: "grid", gap: 8, maxHeight: 220, overflowY: "auto" }}>
-                {filteredAdminQuestions.map((question) => (
-                  <div
-                    key={question.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      padding: "9px 11px",
-                      borderRadius: 10,
-                      background: c.soft,
-                      border: `1px solid ${c.border}`,
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: c.text,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {translate(question.question, language)}
-                    </span>
-<button
-  type="button"
-  disabled={Boolean(deletingQuestionId)}
-  onClick={() => removeQuestion(question.id)}
+              <div
   style={{
-    border: 0,
-    background: "transparent",
-    color:
-      deletingQuestionId === question.id
-        ? c.muted
-        : c.red,
-    fontSize: 11,
-    fontWeight: 700,
-    cursor: deletingQuestionId
-      ? "not-allowed"
-      : "pointer",
-    opacity:
-      deletingQuestionId &&
-      deletingQuestionId !== question.id
-        ? 0.45
-        : 1,
-    flexShrink: 0,
+    display: "grid",
+    gap: 10,
+    maxHeight: "min(58vh, 640px)",
+    overflowY: "auto",
+    paddingInlineEnd: 4,
   }}
 >
-  {deletingQuestionId === question.id
-    ? language === "en"
-      ? "Removing..."
-      : language === "ar"
-        ? "جارٍ الحذف..."
-        : "Fjerner..."
-    : t.adminDelete}
-</button>
-                  </div>
-                ))}
+                {filteredAdminQuestions.map(
+  (question) => {
+    const categoryLabel = translate(
+      question.category,
+      language
+    );
+
+    return (
+      <div
+        key={question.id}
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "minmax(0, 1fr) auto",
+          alignItems: "center",
+          gap: 14,
+          padding: "12px 13px",
+          borderRadius: 12,
+          background: c.soft,
+          border: `1px solid ${c.border}`,
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              color: c.text,
+              fontSize: 12.5,
+              fontWeight: 650,
+              lineHeight: 1.45,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {translate(
+              question.question,
+              language
+            )}
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 6,
+              marginTop: 8,
+            }}
+          >
+            <span
+              style={{
+                padding: "3px 7px",
+                borderRadius: 99,
+                background: c.blueSoft,
+                color: c.blue,
+                fontSize: 9.5,
+                fontWeight: 750,
+              }}
+            >
+              {question.moduleId || "—"}
+            </span>
+
+            <span
+              title={getAdminLectureLabel(
+                question.lectureId,
+                question.moduleId
+              )}
+              style={{
+                maxWidth: 260,
+                padding: "3px 7px",
+                borderRadius: 99,
+                background: c.panel,
+                border: `1px solid ${c.border}`,
+                color: c.secondary,
+                fontSize: 9.5,
+                fontWeight: 700,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {getAdminLectureLabel(
+                question.lectureId,
+                question.moduleId
+              )}
+            </span>
+
+            {categoryLabel && (
+              <span
+                style={{
+                  padding: "3px 7px",
+                  borderRadius: 99,
+                  background: c.panel,
+                  border: `1px solid ${c.border}`,
+                  color: c.muted,
+                  fontSize: 9.5,
+                  fontWeight: 650,
+                }}
+              >
+                {categoryLabel}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 11,
+            flexShrink: 0,
+          }}
+        >
+          <button
+            type="button"
+            disabled={Boolean(
+              deletingQuestionId
+            )}
+            onClick={() => {
+              setDeleteStatus(null);
+              setQuestionEditStatus(null);
+              setEditingAdminQuestion(
+                question
+              );
+            }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              border: 0,
+              background: "transparent",
+              color: c.blue,
+              fontSize: 11,
+              fontWeight: 750,
+              cursor: deletingQuestionId
+                ? "not-allowed"
+                : "pointer",
+              opacity: deletingQuestionId
+                ? 0.45
+                : 1,
+              padding: 0,
+            }}
+          >
+            <Icon
+              name="edit"
+              size={13}
+            />
+
+            {t.editQuestion}
+          </button>
+
+          <button
+            type="button"
+            disabled={Boolean(
+              deletingQuestionId
+            )}
+            onClick={() =>
+              removeQuestion(question.id)
+            }
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              border: 0,
+              background: "transparent",
+              color:
+                deletingQuestionId ===
+                question.id
+                  ? c.muted
+                  : c.red,
+              fontSize: 11,
+              fontWeight: 750,
+              cursor: deletingQuestionId
+                ? "not-allowed"
+                : "pointer",
+              opacity:
+                deletingQuestionId &&
+                deletingQuestionId !==
+                  question.id
+                  ? 0.45
+                  : 1,
+              padding: 0,
+            }}
+          >
+            <Icon
+              name="trash"
+              size={13}
+            />
+
+            {deletingQuestionId ===
+            question.id
+              ? language === "en"
+                ? "Removing..."
+                : language === "ar"
+                  ? "جارٍ الحذف..."
+                  : "Fjerner..."
+              : t.adminDelete}
+          </button>
+        </div>
+      </div>
+    );
+  }
+)}
               </div>
             )}
           </div>
