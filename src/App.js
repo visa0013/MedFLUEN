@@ -10821,7 +10821,37 @@ const [
   setQuestionEditStatus,
 ] = useState(null);
 
+const [
+  creatingAdminQuestion,
+  setCreatingAdminQuestion,
+] = useState(false);
+
+const [
+  adminCreateModule,
+  setAdminCreateModule,
+] = useState("");
+
+const [
+  adminCreateLecture,
+  setAdminCreateLecture,
+] = useState("");
+
 const adminFilterLocale =
+const adminCreationModuleOptions =
+  Object.keys(MODULE_LECTURES).sort(
+    (first, second) =>
+      String(first).localeCompare(
+        String(second),
+        adminFilterLocale,
+        {
+          numeric: true,
+          sensitivity: "base",
+        }
+      )
+  );
+
+const adminCreationLectureOptions =
+  MODULE_LECTURES[adminCreateModule] || [];
   language === "da"
     ? "da-DK"
     : language === "ar"
@@ -11056,6 +11086,131 @@ async function saveAdminQuestion(updated) {
       updated.lectureId ??
       null,
   };
+
+  function openAdminQuestionCreator() {
+  const initialModule =
+    questionModuleFilter !== "all"
+      ? questionModuleFilter
+      : adminCreationModuleOptions[0] ||
+        "";
+
+  const initialLectures =
+    MODULE_LECTURES[initialModule] || [];
+
+  const filteredLectureIsValid =
+    questionLectureFilter !== "all" &&
+    initialLectures.some(
+      (lecture) =>
+        lecture.id ===
+        questionLectureFilter
+    );
+
+  const initialLecture =
+    filteredLectureIsValid
+      ? questionLectureFilter
+      : initialLectures[0]?.id || "";
+
+  setDeleteStatus(null);
+  setQuestionEditStatus(null);
+
+  setAdminCreateModule(initialModule);
+  setAdminCreateLecture(initialLecture);
+  setCreatingAdminQuestion(true);
+}
+
+async function createAdminQuestion(updated) {
+  if (
+    !adminCreateModule ||
+    !adminCreateLecture
+  ) {
+    throw new Error(
+      language === "en"
+        ? "Choose a module and lecture."
+        : language === "ar"
+          ? "اختر الوحدة والمحاضرة."
+          : "Vælg et modul og en forelæsning."
+    );
+  }
+
+  const createdModuleId =
+    adminCreateModule;
+
+  const createdLectureId =
+    adminCreateLecture;
+
+  const normalizedQuestion = {
+    ...updated,
+    moduleId: createdModuleId,
+    lectureId: createdLectureId,
+  };
+
+  const content = {
+    category:
+      normalizedQuestion.category,
+    question:
+      normalizedQuestion.question,
+    options: normalizedQuestion.options,
+    correct: normalizedQuestion.correct,
+    explanation:
+      normalizedQuestion.explanation,
+  };
+
+  const { error } = await supabase
+    .from("question_bank")
+    .upsert(
+      {
+        id: normalizedQuestion.id,
+        module_id: createdModuleId,
+        lecture_id: createdLectureId,
+        category:
+          translate(
+            normalizedQuestion.category,
+            "da"
+          ) || "Ukategoriseret",
+        content,
+        status: "published",
+      },
+      {
+        onConflict: "id",
+      }
+    );
+
+  if (error) {
+    console.error(
+      "Kunne ikke oprette adminspørgsmålet:",
+      error
+    );
+
+    throw error;
+  }
+
+  await pullQuestionBankIntoLocalStorage();
+
+  setCreatingAdminQuestion(false);
+  setQuestionSearch("");
+
+  setQuestionModuleFilter(
+    createdModuleId
+  );
+
+  setQuestionLectureFilter(
+    createdLectureId
+  );
+
+  setQuestionEditStatus({
+    type: "success",
+    message:
+      language === "en"
+        ? "The question was created."
+        : language === "ar"
+          ? "تم إنشاء السؤال."
+          : "Spørgsmålet blev oprettet.",
+  });
+
+  setDashboardRefreshKey(
+    (value) => value + 1
+  );
+}
 
   const content = {
     category: normalizedQuestion.category,
@@ -11534,6 +11689,266 @@ const activeAdminSection =
       </Modal>
     );
   }
+if (creatingAdminQuestion) {
+  return (
+    <Modal
+      c={c}
+      onClose={() =>
+        setCreatingAdminQuestion(false)
+      }
+    >
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent:
+            "space-between",
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              color: c.text,
+              fontSize: 16,
+              fontWeight: 800,
+            }}
+          >
+            {t.newQuestionTitle}
+          </div>
+
+          <div
+            style={{
+              marginTop: 4,
+              color: c.muted,
+              fontSize: 11,
+              lineHeight: 1.45,
+            }}
+          >
+            {language === "en"
+              ? "Choose where the question belongs."
+              : language === "ar"
+                ? "اختر الوحدة والمحاضرة التي ينتمي إليها السؤال."
+                : "Vælg hvilket modul og hvilken forelæsning spørgsmålet tilhører."}
+          </div>
+        </div>
+
+        <IconButton
+          c={c}
+          title={t.close}
+          onClick={() =>
+            setCreatingAdminQuestion(
+              false
+            )
+          }
+        >
+          <Icon
+            name="close"
+            size={17}
+          />
+        </IconButton>
+      </header>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(210px, 1fr))",
+          gap: 10,
+          padding: 12,
+          marginBottom: 16,
+          borderRadius: 12,
+          background: c.soft,
+          border: `1px solid ${c.border}`,
+        }}
+      >
+        <div>
+          <label
+            style={{
+              display: "block",
+              marginBottom: 5,
+              color: c.secondary,
+              fontSize: 10.5,
+              fontWeight: 750,
+            }}
+          >
+            {language === "en"
+              ? "Module"
+              : language === "ar"
+                ? "الوحدة"
+                : "Modul"}
+          </label>
+
+          <select
+            value={adminCreateModule}
+            onChange={(event) => {
+              const nextModule =
+                event.target.value;
+
+              const nextLectures =
+                MODULE_LECTURES[
+                  nextModule
+                ] || [];
+
+              setAdminCreateModule(
+                nextModule
+              );
+
+              setAdminCreateLecture(
+                nextLectures[0]?.id || ""
+              );
+            }}
+            style={{
+              width: "100%",
+              minHeight: 40,
+              padding:
+                "0 34px 0 11px",
+              borderRadius: 10,
+              border: `1px solid ${c.borderStrong}`,
+              outline: "none",
+              background: c.panel,
+              color: c.text,
+              fontSize: 12,
+              fontFamily: "inherit",
+              cursor: "pointer",
+            }}
+          >
+            {adminCreationModuleOptions.map(
+              (moduleId) => (
+                <option
+                  key={moduleId}
+                  value={moduleId}
+                >
+                  {moduleId}
+                </option>
+              )
+            )}
+          </select>
+        </div>
+
+        <div>
+          <label
+            style={{
+              display: "block",
+              marginBottom: 5,
+              color: c.secondary,
+              fontSize: 10.5,
+              fontWeight: 750,
+            }}
+          >
+            {language === "en"
+              ? "Lecture"
+              : language === "ar"
+                ? "المحاضرة"
+                : "Forelæsning"}
+          </label>
+
+          <select
+            value={adminCreateLecture}
+            disabled={
+              adminCreationLectureOptions
+                .length === 0
+            }
+            onChange={(event) =>
+              setAdminCreateLecture(
+                event.target.value
+              )
+            }
+            style={{
+              width: "100%",
+              minHeight: 40,
+              padding:
+                "0 34px 0 11px",
+              borderRadius: 10,
+              border: `1px solid ${c.borderStrong}`,
+              outline: "none",
+              background: c.panel,
+              color: c.text,
+              fontSize: 12,
+              fontFamily: "inherit",
+              cursor:
+                adminCreationLectureOptions
+                  .length === 0
+                  ? "not-allowed"
+                  : "pointer",
+              opacity:
+                adminCreationLectureOptions
+                  .length === 0
+                  ? 0.55
+                  : 1,
+            }}
+          >
+            {adminCreationLectureOptions
+              .length === 0 ? (
+              <option value="">
+                {language === "en"
+                  ? "No lectures available"
+                  : language === "ar"
+                    ? "لا توجد محاضرات"
+                    : "Ingen forelæsninger"}
+              </option>
+            ) : (
+              adminCreationLectureOptions.map(
+                (lecture) => (
+                  <option
+                    key={lecture.id}
+                    value={lecture.id}
+                  >
+                    {lecture.id}
+                    {" · "}
+                    {lecture.title}
+                  </option>
+                )
+              )
+            )}
+          </select>
+        </div>
+      </div>
+
+      {adminCreateModule &&
+      adminCreateLecture ? (
+        <QuestionEditor
+          key={`${adminCreateModule}-${adminCreateLecture}`}
+          c={c}
+          t={t}
+          language={language}
+          question={null}
+          moduleId={adminCreateModule}
+          lectureId={
+            adminCreateLecture
+          }
+          onSave={
+            createAdminQuestion
+          }
+          onCancel={() =>
+            setCreatingAdminQuestion(
+              false
+            )
+          }
+        />
+      ) : (
+        <div
+          style={{
+            padding: 18,
+            borderRadius: 12,
+            background: c.soft,
+            border: `1px dashed ${c.borderStrong}`,
+            color: c.muted,
+            fontSize: 12,
+            textAlign: "center",
+          }}
+        >
+          {language === "en"
+            ? "Choose a module and lecture to continue."
+            : language === "ar"
+              ? "اختر الوحدة والمحاضرة للمتابعة."
+              : "Vælg et modul og en forelæsning for at fortsætte."}
+        </div>
+      )}
+    </Modal>
+  );
+}
 
   if (editingAdminQuestion) {
   return (
@@ -12037,6 +12452,40 @@ questionLectureFilter !== "all"
       flex: "1 1 620px",
     }}
   >
+    <button
+  type="button"
+  onClick={openAdminQuestionCreator}
+  style={{
+    minHeight: 40,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: "0 13px",
+    borderRadius: 11,
+    border: `1px solid ${c.blueBorder}`,
+    background: c.blueSoft,
+    color: c.blue,
+    fontSize: 11.5,
+    fontWeight: 800,
+    fontFamily: "inherit",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  }}
+>
+  <span
+    aria-hidden="true"
+    style={{
+      fontSize: 17,
+      lineHeight: 1,
+      fontWeight: 500,
+    }}
+  >
+    +
+  </span>
+
+  {t.addNewQuestion}
+</button>
     <select
       value={questionModuleFilter}
       onChange={(event) => {
