@@ -11088,7 +11088,66 @@ async function saveAdminQuestion(updated) {
       null,
   };
 
-  function openAdminQuestionCreator() {
+  const content = {
+    category: normalizedQuestion.category,
+    question: normalizedQuestion.question,
+    options: normalizedQuestion.options,
+    correct: normalizedQuestion.correct,
+    explanation:
+      normalizedQuestion.explanation,
+  };
+
+  const { error } = await supabase
+    .from("question_bank")
+    .upsert(
+      {
+        id: normalizedQuestion.id,
+        module_id:
+          normalizedQuestion.moduleId,
+        lecture_id:
+          normalizedQuestion.lectureId,
+        category:
+          translate(
+            normalizedQuestion.category,
+            "da"
+          ) || "Ukategoriseret",
+        content,
+        status: "published",
+      },
+      {
+        onConflict: "id",
+      }
+    );
+
+  if (error) {
+    console.error(
+      "Kunne ikke gemme adminredigeringen:",
+      error
+    );
+
+    throw error;
+  }
+
+  await pullQuestionBankIntoLocalStorage();
+
+  setEditingAdminQuestion(null);
+
+  setQuestionEditStatus({
+    type: "success",
+    message:
+      language === "en"
+        ? "The question was updated."
+        : language === "ar"
+          ? "تم تحديث السؤال."
+          : "Spørgsmålet blev opdateret.",
+  });
+
+  setDashboardRefreshKey(
+    (value) => value + 1
+  );
+}
+
+function openAdminQuestionCreator() {
   const initialModule =
     questionModuleFilter !== "all"
       ? questionModuleFilter
@@ -11212,68 +11271,6 @@ async function createAdminQuestion(updated) {
     (value) => value + 1
   );
 }
-
-  const content = {
-    category: normalizedQuestion.category,
-    question: normalizedQuestion.question,
-    options: normalizedQuestion.options,
-    correct: normalizedQuestion.correct,
-    explanation:
-      normalizedQuestion.explanation,
-  };
-
-  const { error } = await supabase
-    .from("question_bank")
-    .upsert(
-      {
-        id: normalizedQuestion.id,
-        module_id:
-          normalizedQuestion.moduleId,
-        lecture_id:
-          normalizedQuestion.lectureId,
-        category:
-          translate(
-            normalizedQuestion.category,
-            "da"
-          ) || "Ukategoriseret",
-        content,
-        status: "published",
-      },
-      {
-        onConflict: "id",
-      }
-    );
-
-  if (error) {
-    console.error(
-      "Kunne ikke gemme adminredigeringen:",
-      error
-    );
-
-    throw error;
-  }
-
-  await pullQuestionBankIntoLocalStorage();
-
-  setEditingAdminQuestion(null);
-
-  setQuestionEditStatus({
-    type: "success",
-    message:
-      language === "en"
-        ? "The question was updated."
-        : language === "ar"
-          ? "تم تحديث السؤال."
-          : "Spørgsmålet blev opdateret.",
-  });
-
-  setDashboardRefreshKey(
-    (value) => value + 1
-  );
-}
-  
-  useEffect(() => {
-  if (!unlocked) return undefined;
 
   let cancelled = false;
 
