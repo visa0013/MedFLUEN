@@ -10936,63 +10936,6 @@ const filteredAdminQuestions =
     );
   });
 
-const normalizedQuestionSearch =
-  questionSearch
-    .trim()
-    .toLocaleLowerCase(
-      language === "da"
-        ? "da-DK"
-        : language === "ar"
-          ? "ar"
-          : "en-GB"
-    );
-
-const filteredAdminQuestions =
-  imported.filter((question) => {
-    if (
-      questionModuleFilter !== "all" &&
-      question.moduleId !==
-        questionModuleFilter
-    ) {
-      return false;
-    }
-
-    if (!normalizedQuestionSearch) {
-      return true;
-    }
-
-    const searchableText = [
-      translate(
-        question.question,
-        language
-      ),
-      translate(
-        question.category,
-        language
-      ),
-      translate(
-        question.explanation,
-        language
-      ),
-      question.moduleId,
-      question.lectureId,
-      question.id,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLocaleLowerCase(
-        language === "da"
-          ? "da-DK"
-          : language === "ar"
-            ? "ar"
-            : "en-GB"
-      );
-
-    return searchableText.includes(
-      normalizedQuestionSearch
-    );
-  });
-
   function tryUnlock() {
     if (simpleHash(passcode.trim()) === ADMIN_PASSCODE_HASH) {
       setUnlocked(true);
