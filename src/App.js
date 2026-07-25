@@ -43,7 +43,6 @@ const STORAGE = {
   mascotState: "medlearn-mascot-state",
   dailyChecklist: "medlearn-daily-checklist",
   quickAccessOrder: "medlearn-quickaccess-order",
-  flaggedQuestions: "medlearn-flagged-questions",
   aiSettings: "medlearn-ai-settings",
 };
 
@@ -6769,7 +6768,8 @@ function MCQ({
   const [cardMenuNotice, setCardMenuNotice] = useState(null);
   const [flagModalOpen, setFlagModalOpen] = useState(false);
   const [flagReason, setFlagReason] = useState("");
-  const [flaggedQuestions, setFlaggedQuestions] = useStoredState(STORAGE.flaggedQuestions, []);
+  const [flagSubmitting, setFlagSubmitting] = useState(false);
+  const [flaggedQuestionIds, setFlaggedQuestionIds] = useState([]);
   // An empty array means every card in this scope is scheduled for a future day.
   // Only an omitted prop may use the global fallback bank.
   //
@@ -7417,27 +7417,94 @@ if (!question && !finished) {
   const cardState = spacedData && spacedData[question.id];
   const isNewCard = !cardState;
 
-  const alreadyFlaggedByUser = flaggedQuestions.some(
-    (item) => item.questionId === question.id && item.userName === (user?.name || "")
-  );
+  const alreadyFlaggedByUser =
+  flaggedQuestionIds.includes(question.id);
 
-  function submitFlag() {
-    if (!flagReason.trim()) return;
-    setFlaggedQuestions((previous) => [
-      ...previous,
+async function submitFlag() {
+  const trimmedReason = flagReason.trim();
+
+  if (
+    trimmedReason.length < 3 ||
+    flagSubmitting
+  ) {
+    return;
+  }
+
+  setFlagSubmitting(true);
+
+  try {
+    const { error } = await supabase.rpc(
+      "submit_question_flag",
       {
-        id: `${question.id}-${Date.now()}`,
-        questionId: question.id,
-        questionText: translate(question.question, language),
-        userName: user?.name || "",
-        reason: flagReason.trim(),
-        timestamp: Date.now(),
-        status: "open",
-      },
-    ]);
+        p_question_id: question.id,
+        p_reason: trimmedReason,
+        p_question_snapshot: {
+          id: question.id,
+          moduleId: question.moduleId || null,
+          lectureId: question.lectureId || null,
+          category: question.category || null,
+          question: question.question || null,
+          options: Array.isArray(question.options)
+            ? question.options
+            : [],
+          correct: question.correct,
+          explanation:
+            question.explanation || null,
+        },
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    setFlaggedQuestionIds((previous) =>
+      previous.includes(question.id)
+        ? previous
+        : [...previous, question.id]
+    );
+
     setFlagReason("");
     setFlagModalOpen(false);
+
+    window.alert(t.flagQuestionSuccess);
+  } catch (error) {
+    const errorMessage =
+      error?.message ||
+      "Flaget kunne ikke sendes.";
+
+    const isDuplicate =
+      errorMessage
+        .toLowerCase()
+        .includes("allerede et åbent flag") ||
+      errorMessage
+        .toLowerCase()
+        .includes("already");
+
+    if (isDuplicate) {
+      setFlaggedQuestionIds((previous) =>
+        previous.includes(question.id)
+          ? previous
+          : [...previous, question.id]
+      );
+
+      setFlagModalOpen(false);
+
+      window.alert(
+        t.flagQuestionAlreadyFlagged
+      );
+    } else {
+      console.error(
+        "Kunne ikke indsende flag:",
+        error
+      );
+
+      window.alert(errorMessage);
+    }
+  } finally {
+    setFlagSubmitting(false);
   }
+}
 
   return (
     <section
@@ -8007,8 +8074,13 @@ if (!question && !finished) {
 
           <div style={{ display: "flex", gap: 10 }}>
             <button
-              type="button"
-              onClick={() => setFlagModalOpen(false)}
+  type="button"
+  disabled={flagSubmitting}
+  onClick={() => {
+    if (!flagSubmitting) {
+      setFlagModalOpen(false);
+    }
+  }}
               style={{
                 flex: 1,
                 height: 42,
@@ -8023,9 +8095,30 @@ if (!question && !finished) {
             >
               {t.flagQuestionCancel}
             </button>
-            <PrimaryButton onClick={submitFlag} style={{ flex: 1 }} disabled={!flagReason.trim()}>
-              {t.flagQuestionSubmit}
-            </PrimaryButton>
+<PrimaryButton
+  onClick={submitFlag}
+  style={{
+    flex: 1,
+    opacity:
+      flagReason.trim().length < 3 ||
+      flagSubmitting
+        ? 0.6
+        : 1,
+    opacity: flagSubmitting ? 0.6 : 1,
+  }}
+  disabled={
+    flagReason.trim().length < 3 ||
+    flagSubmitting
+  }
+>
+  {flagSubmitting
+    ? language === "en"
+      ? "Sending..."
+      : language === "ar"
+        ? "جارٍ الإرسال..."
+        : "Sender..."
+    : t.flagQuestionSubmit}
+</PrimaryButton>
           </div>
         </Modal>
       )}
