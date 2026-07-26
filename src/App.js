@@ -23399,30 +23399,21 @@ function SettingsModal({
 
       
       </div>
-<div style={{ maxWidth: 480, margin: "0 auto" }}>
-        <PrimaryButton
-  onClick={onClose}
+<div
   style={{
-    width: "100%",
+    maxWidth: 480,
+    margin: "0 auto",
   }}
 >
-  {t.done}
-</PrimaryButton>
-          style={{
-            width: "100%",
-            height: 43,
-            border: 0,
-            borderRadius: 12,
-            background: "linear-gradient(135deg,#1665ea,#4b93ff)",
-            color: "#fff",
-            fontWeight: 750,
-            cursor: "pointer",
-            boxShadow: "0 10px 24px rgba(22,101,234,.28)",
-          }}
-        >
-          {t.done}
-        </button>
-      </div>
+  <PrimaryButton
+    onClick={onClose}
+    style={{
+      width: "100%",
+    }}
+  >
+    {t.done}
+  </PrimaryButton>
+</div>
     </Modal>
   );
 }
