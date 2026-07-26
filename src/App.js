@@ -1065,11 +1065,28 @@ const LIGHT = {
   redSoft: "#fff0f1",
   redBorder: "#f6bfc4",
   purple: "#7a63f0",
-  purpleSoft: "#f1eeff",
-  shadow: "0 14px 38px rgba(23,35,58,.09)",
-  shadowLg: "0 24px 60px rgba(23,35,58,.14)",
-  overlay: "rgba(13,20,34,.42)",
-  ring: "rgba(22,101,234,.16)",
+purpleSoft: "#f1eeff",
+
+surfaceHighlight:
+  "rgba(255,255,255,.82)",
+
+shadowSm:
+  "0 7px 22px rgba(23,35,58,.065)",
+
+shadow:
+  "0 14px 38px rgba(23,35,58,.09)",
+
+shadowHover:
+  "0 21px 54px rgba(23,35,58,.135)",
+
+shadowLg:
+  "0 24px 60px rgba(23,35,58,.14)",
+
+overlay:
+  "rgba(13,20,34,.42)",
+
+ring:
+  "rgba(22,101,234,.16)",
 };
 
 const DARK = {
@@ -1093,11 +1110,29 @@ const DARK = {
   redSoft: "rgba(255,123,133,.14)",
   redBorder: "rgba(255,123,133,.35)",
   purple: "#b0a2ff",
-  purpleSoft: "rgba(176,162,255,.14)",
-  shadow: "0 18px 48px rgba(0,0,0,.34)",
-  shadowLg: "0 28px 70px rgba(0,0,0,.44)",
-  overlay: "rgba(0,0,0,.68)",
-  ring: "rgba(90,168,255,.22)",
+purpleSoft:
+  "rgba(176,162,255,.14)",
+
+surfaceHighlight:
+  "rgba(255,255,255,.055)",
+
+shadowSm:
+  "0 8px 24px rgba(0,0,0,.24)",
+
+shadow:
+  "0 18px 48px rgba(0,0,0,.34)",
+
+shadowHover:
+  "0 23px 58px rgba(0,0,0,.48)",
+
+shadowLg:
+  "0 28px 70px rgba(0,0,0,.44)",
+
+overlay:
+  "rgba(0,0,0,.68)",
+
+ring:
+  "rgba(90,168,255,.22)",
 };
 
 /* ------------------------------------------------------------------------
@@ -3631,7 +3666,7 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
   return <svg {...props}>{icons[name]}</svg>;
 }
 
-function GlobalStyles() {
+function GlobalStyles({ c }) {  
   return (
     <style>{`
       /* --------------------------------------------------------------
@@ -3641,41 +3676,199 @@ function GlobalStyles() {
          farve-tokens (c.blue/c.blueGradient osv.) og arver automatisk lys/
          mørkt tema uden separate CSS-overrides.
          -------------------------------------------------------------- */
+:root {
+  --ui-page:
+    ${c.page};
+
+  --ui-panel:
+    ${c.panel};
+
+  --ui-panel-alt:
+    ${c.panelAlt};
+
+  --ui-soft:
+    ${c.soft};
+
+  --ui-border:
+    ${c.border};
+
+  --ui-border-strong:
+    ${c.borderStrong};
+
+  --ui-text:
+    ${c.text};
+
+  --ui-secondary:
+    ${c.secondary};
+
+  --ui-muted:
+    ${c.muted};
+
+  --ui-blue:
+    ${c.blue};
+
+  --ui-blue-soft:
+    ${c.blueSoft};
+
+  --ui-blue-border:
+    ${c.blueBorder};
+
+  --ui-blue-gradient:
+    ${c.blueGradient};
+
+  --ui-green:
+    ${c.green};
+
+  --ui-green-soft:
+    ${c.greenSoft};
+
+  --ui-green-border:
+    ${c.greenBorder};
+
+  --ui-red:
+    ${c.red};
+
+  --ui-red-soft:
+    ${c.redSoft};
+
+  --ui-red-border:
+    ${c.redBorder};
+
+  --ui-ring:
+    ${c.ring};
+
+  --ui-shadow-sm:
+    ${c.shadowSm};
+
+  --ui-shadow:
+    ${c.shadow};
+
+  --ui-shadow-hover:
+    ${c.shadowHover};
+
+  --ui-shadow-lg:
+    ${c.shadowLg};
+
+  --ui-overlay:
+    ${c.overlay};
+
+  --ui-surface-highlight:
+    ${c.surfaceHighlight};
+
+  --ui-ease:
+    cubic-bezier(.16, 1, .3, 1);
+}
+         
       .sx-app-dark-container {
         color-scheme: dark;
       }
 
-      * { box-sizing: border-box; }
-      html, body, #root { min-height: 100%; margin: 0; }
-      @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap");
-      body {
-        font-family: "Manrope", ui-sans-serif, system-ui, -apple-system,
-          BlinkMacSystemFont, "Segoe UI", sans-serif;
-        -webkit-font-smoothing: antialiased;
-        letter-spacing: -0.01em;
-      }
-      button, input, textarea, select { font: inherit; }
-      button { -webkit-tap-highlight-color: transparent; }
+      * {
+  box-sizing: border-box;
+}
 
-      button:not(:disabled):hover {
-        filter: brightness(1.03);
-      }
-      button:not(:disabled):active {
-        transform: scale(.97);
-      }
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
 
-      button:focus-visible,
-      input:focus-visible,
-      textarea:focus-visible,
-      select:focus-visible {
-        outline: 2px solid #55a7ff;
-        outline-offset: 2px;
-        border-radius: 6px;
-      }
+html {
+  background:
+    var(--ui-page);
+}
 
-      input, textarea, select {
-        transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
-      }
+body {
+  margin: 0;
+  background:
+    var(--ui-page);
+  color:
+    var(--ui-text);
+  font-family:
+    "Manrope",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing:
+    antialiased;
+  -moz-osx-font-smoothing:
+    grayscale;
+  text-rendering:
+    optimizeLegibility;
+  letter-spacing:
+    -.01em;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+button:not(:disabled):hover {
+  filter:
+    brightness(1.02);
+}
+
+button:not(:disabled):active {
+  filter:
+    brightness(.99);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px
+    var(--ui-ring);
+}
+
+input,
+textarea,
+select {
+  color:
+    var(--ui-text);
+  caret-color:
+    var(--ui-blue);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color:
+    var(--ui-muted);
+  opacity: .9;
+}
+
+::selection {
+  background:
+    var(--ui-blue-soft);
+  color:
+    var(--ui-text);
+}
 
       ::-webkit-scrollbar { width: 8px; height: 8px; }
       ::-webkit-scrollbar-track { background: transparent; }
@@ -3693,6 +3886,401 @@ function GlobalStyles() {
       .app-surface {
         transition: background 220ms ease, border-color 220ms ease;
       }
+
+/* ============================================================
+   MEDFLUEN UI FOUNDATION
+   Fælles kort, knapper, statusfelter og modaler.
+   ============================================================ */
+
+.ui-card {
+  position: relative;
+  isolation: isolate;
+  border-radius: 22px;
+  box-shadow:
+    var(--ui-shadow);
+  transition:
+    transform 190ms var(--ui-ease),
+    box-shadow 190ms ease,
+    border-color 190ms ease,
+    background 190ms ease;
+}
+
+.ui-card::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0
+    var(--ui-surface-highlight);
+}
+
+.ui-card--subtle {
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.ui-card--interactive {
+  will-change:
+    transform;
+}
+
+.ui-card--interactive:hover {
+  transform:
+    translateY(-2px);
+  border-color:
+    var(--ui-border-strong)
+    !important;
+  box-shadow:
+    var(--ui-shadow-hover)
+    !important;
+}
+
+.ui-card--interactive:active {
+  transform:
+    translateY(-1px)
+    scale(.997)
+    !important;
+}
+
+.ui-card-button {
+  width: 100%;
+  text-align: start;
+}
+
+.ui-callout {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 180ms var(--ui-ease),
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.ui-callout::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius:
+    0 99px 99px 0;
+  background:
+    var(--ui-blue);
+  opacity: .75;
+}
+
+.ui-list-row {
+  outline: none;
+  transition:
+    transform 170ms var(--ui-ease),
+    border-color 170ms ease,
+    background 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.ui-list-row:hover {
+  transform:
+    translateY(-1px);
+  border-color:
+    var(--ui-border-strong)
+    !important;
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.ui-list-row:active {
+  transform:
+    translateY(0)
+    scale(.997);
+}
+
+.ui-status-pill {
+  box-shadow:
+    inset 0 1px 0
+    var(--ui-surface-highlight);
+  transition:
+    transform 160ms var(--ui-ease),
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.ui-status-pill:hover {
+  transform:
+    translateY(-1px);
+}
+
+.ui-button {
+  position: relative;
+  isolation: isolate;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding:
+    0 17px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -.005em;
+  line-height: 1;
+  white-space: nowrap;
+  outline: none;
+  transition:
+    transform 160ms var(--ui-ease),
+    background 170ms ease,
+    border-color 170ms ease,
+    color 170ms ease,
+    box-shadow 170ms ease,
+    filter 170ms ease;
+}
+
+.ui-button:not(:disabled):hover {
+  transform:
+    translateY(-1px);
+}
+
+.ui-button:not(:disabled):active {
+  transform:
+    translateY(0)
+    scale(.985);
+}
+
+.ui-button:focus-visible {
+  box-shadow:
+    0 0 0 3px
+    var(--ui-ring);
+}
+
+.ui-button--primary {
+  border:
+    1px solid
+    transparent;
+  background:
+    var(--ui-blue-gradient);
+  color:
+    #fff;
+  box-shadow:
+    0 9px 22px
+    rgba(22,101,234,.24);
+}
+
+.ui-button--primary:not(:disabled):hover {
+  box-shadow:
+    0 13px 29px
+    rgba(22,101,234,.31);
+}
+
+.ui-button--secondary {
+  border:
+    1px solid
+    var(--ui-border-strong);
+  background:
+    var(--ui-panel);
+  color:
+    var(--ui-text);
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.ui-button--secondary:not(:disabled):hover {
+  border-color:
+    var(--ui-blue-border);
+  color:
+    var(--ui-blue);
+  box-shadow:
+    var(--ui-shadow);
+}
+
+.ui-button--ghost {
+  border:
+    1px solid
+    transparent;
+  background:
+    transparent;
+  color:
+    var(--ui-secondary);
+  box-shadow:
+    none;
+}
+
+.ui-button--ghost:not(:disabled):hover {
+  border-color:
+    var(--ui-border);
+  background:
+    var(--ui-soft);
+  color:
+    var(--ui-text);
+}
+
+.ui-button--danger {
+  border:
+    1px solid
+    var(--ui-red-border);
+  background:
+    var(--ui-red);
+  color:
+    #fff;
+  box-shadow:
+    0 8px 20px
+    rgba(224,69,79,.20);
+}
+
+.ui-icon-button {
+  outline: none;
+  transition:
+    transform 150ms var(--ui-ease),
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.ui-icon-button:not(:disabled):hover {
+  transform:
+    translateY(-1px);
+  border-color:
+    var(--ui-border)
+    !important;
+  background:
+    var(--ui-soft)
+    !important;
+}
+
+.ui-icon-button[
+  data-active="true"
+]:not(:disabled):hover {
+  border-color:
+    var(--ui-blue-border)
+    !important;
+  background:
+    var(--ui-blue-soft)
+    !important;
+  color:
+    var(--ui-blue)
+    !important;
+}
+
+.ui-icon-button:not(:disabled):active {
+  transform:
+    translateY(0)
+    scale(.94);
+}
+
+.ui-icon-button:focus-visible {
+  box-shadow:
+    0 0 0 3px
+    var(--ui-ring);
+}
+
+.ui-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content:
+    space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.ui-section-title {
+  margin: 0;
+  color:
+    var(--ui-text);
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: -.018em;
+  line-height: 1.25;
+}
+
+.ui-section-description {
+  margin-top: 4px;
+  color:
+    var(--ui-muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.ui-empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 130px;
+  padding: 22px;
+  border:
+    1px dashed
+    var(--ui-border-strong);
+  border-radius: 17px;
+  background:
+    var(--ui-soft);
+  color:
+    var(--ui-secondary);
+  text-align: center;
+}
+
+.ui-divider {
+  height: 1px;
+  border: 0;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--ui-border-strong),
+      transparent
+    );
+}
+
+.ui-modal-backdrop {
+  animation:
+    uiBackdropIn
+    170ms
+    ease
+    both;
+}
+
+.ui-modal-surface {
+  border-color:
+    var(--ui-border)
+    !important;
+  box-shadow:
+    var(--ui-shadow-lg)
+    !important;
+  animation:
+    uiModalIn
+    220ms
+    var(--ui-ease)
+    both;
+}
+
+@keyframes uiBackdropIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes uiModalIn {
+  from {
+    opacity: 0;
+    transform:
+      translateY(10px)
+      scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
 
       @keyframes fadeUp {
         from { opacity: 0; transform: translateY(14px) scale(.99); }
@@ -4258,9 +4846,20 @@ function GlobalStyles() {
   .topbar-quick-control,
   .topbar-module-btn,
   .pomodoro-preset,
-  .pomodoro-control-button {
-    animation: none !important;
-    transition-duration: 0ms !important;
+  .pomodoro-control-button,
+  .ui-card,
+  .ui-card--interactive,
+  .ui-callout,
+  .ui-list-row,
+  .ui-status-pill,
+  .ui-button,
+  .ui-icon-button,
+  .ui-modal-backdrop,
+  .ui-modal-surface {
+    animation:
+      none !important;
+    transition-duration:
+      0ms !important;
   }
 }
 
@@ -4713,29 +5312,65 @@ function IconButton({
   children,
   onClick,
   title,
+  ariaLabel,
   active = false,
   disabled = false,
+  type = "button",
+  className = "",
   style = {},
 }) {
   return (
     <button
-      type="button"
+      type={type}
       title={title}
+      aria-label={
+        ariaLabel ||
+        title
+      }
+      aria-pressed={
+        active
+          ? true
+          : undefined
+      }
+      data-active={
+        active
+          ? "true"
+          : "false"
+      }
       disabled={disabled}
       onClick={onClick}
+      className={[
+        "ui-icon-button",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       style={{
         width: 38,
         height: 38,
         display: "inline-flex",
         alignItems: "center",
-        justifyContent: "center",
-        border: `1px solid ${active ? c.blueBorder : "transparent"}`,
+        justifyContent:
+          "center",
+        padding: 0,
+        border: `1px solid ${
+          active
+            ? c.blueBorder
+            : "transparent"
+        }`,
         borderRadius: 12,
-        background: active ? c.blueSoft : "transparent",
-        color: active ? c.blue : c.secondary,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.38 : 1,
-        transition: "background 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease",
+        background: active
+          ? c.blueSoft
+          : "transparent",
+        color: active
+          ? c.blue
+          : c.secondary,
+        cursor: disabled
+          ? "not-allowed"
+          : "pointer",
+        opacity: disabled
+          ? .38
+          : 1,
         ...style,
       }}
     >
@@ -4744,26 +5379,77 @@ function IconButton({
   );
 }
 
-function PrimaryButton({ children, onClick, disabled = false, style = {} }) {
+function PrimaryButton({
+  children,
+  onClick,
+  disabled = false,
+  type = "button",
+  title,
+  className = "",
+  style = {},
+}) {
   return (
     <button
-      type="button"
+      type={type}
+      title={title}
       disabled={disabled}
       onClick={onClick}
+      className={[
+        "ui-button",
+        "ui-button--primary",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       style={{
         minHeight: 44,
         padding: "0 20px",
-        border: 0,
         borderRadius: 13,
-        background: "linear-gradient(135deg,#1665ea,#4b93ff)",
-        color: "#fff",
-        boxShadow: disabled ? "none" : "0 10px 24px rgba(22,101,234,.28)",
-        fontSize: 14,
-        fontWeight: 700,
-        letterSpacing: 0.1,
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.38 : 1,
-        transition: "transform 140ms ease, box-shadow 140ms ease, filter 140ms ease",
+        fontSize: 13px,
+        fontWeight: 800,
+        cursor: disabled
+          ? "not-allowed"
+          : "pointer",
+        opacity: disabled
+          ? .42
+          : 1,
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SecondaryButton({
+  children,
+  onClick,
+  disabled = false,
+  type = "button",
+  title,
+  className = "",
+  style = {},
+}) {
+  return (
+    <button
+      type={type}
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      className={[
+        "ui-button",
+        "ui-button--secondary",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={{
+        cursor: disabled
+          ? "not-allowed"
+          : "pointer",
+        opacity: disabled
+          ? .42
+          : 1,
         ...style,
       }}
     >
@@ -11878,7 +12564,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
             [newCount, x.newQuestions, c.green, c.greenSoft],
             [questionCount, x.total, c.text, c.soft],
           ].map(([value, label, color, background]) => (
-            <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 99, background, border: `1px solid ${color}22` }}>
+            <span key={label} className="ui-status-pill" style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 99, background, border: `1px solid ${color}22` }}>
               <span style={{ color, fontSize: 14, fontWeight: 800 }}>{value}</span>
               <span style={{ color: c.secondary, fontSize: 11, fontWeight: 700 }}>{label}</span>
             </span>
@@ -11920,6 +12606,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
         <section>
           <button
             type="button"
+            className="ui-callout ui-card--interactive"
             onClick={() => onNavigate("mcq")}
             style={{ width: "100%", textAlign: "start", cursor: "pointer", padding: "16px 20px", borderRadius: 18, background: c.blueSoft, border: `1px solid ${c.blueBorder}`, display: "flex", alignItems: "center", gap: 14 }}
           >
@@ -11993,6 +12680,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
               >
                 <button
                   type="button"
+                  className="ui-card ui-card--interactive ui-card-button"
                   data-tour={id === "mcq" ? "mcq-card" : id === "insights" ? "insights-card" : undefined}
                   disabled={!enabled || reorderingActions}
                   onClick={() => enabled && !reorderingActions && onNavigate(id)}
@@ -12031,10 +12719,11 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
       <section>
         <button
           type="button"
+          className="ui-card-button"
           onClick={() => onNavigate("study-plan")}
           style={{ width: "100%", textAlign: "start", cursor: "pointer", padding: 0, border: 0, background: "transparent" }}
         >
-          <div style={{ padding: "22px clamp(20px, 3vw, 28px)", borderRadius: 24, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+          <div className="ui-card ui-card--interactive" style={{ padding: "22px clamp(20px, 3vw, 28px)", borderRadius: 24, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
             <span style={{ width: 52, height: 52, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 16, background: c.blueGradient, color: "#fff", boxShadow: `0 10px 22px ${c.blue}33` }}>
               <Icon name="clock" size={22} />
             </span>
@@ -12062,7 +12751,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
       </section>
 
       <section>
-        <div style={{ padding: "26px clamp(22px, 3vw, 32px)", borderRadius: 26, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
+        <div className="ui-card" style={{ padding: "26px clamp(22px, 3vw, 32px)", borderRadius: 26, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
             <span style={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: 14, background: c.blueGradient, color: "#fff", boxShadow: `0 10px 22px ${c.blue}33` }}>
               <Icon name="calendar" size={20} />
@@ -12092,6 +12781,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
                   <button
                     key={event.id}
                     type="button"
+                    className="ui-list-row"
                     onClick={() => setEditingPlanEvent(event)}
                     style={{
                       display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
@@ -12332,7 +13022,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
         return (
           <>
             <section>
-              <div style={{ padding: "22px clamp(20px, 3vw, 28px)", borderRadius: 24, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
+              <div className="ui-card" style={{ padding: "22px clamp(20px, 3vw, 28px)", borderRadius: 24, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 16 }}>
                   <span style={{ width: 36, height: 36, display: "grid", placeItems: "center", borderRadius: 12, background: c.soft, color: c.secondary }}>
                     <Icon name="chart" size={17} />
@@ -22844,8 +23534,10 @@ function Modal({ c, children, onClose, size = "default" }) {
   };
   return (
     <div
-      onMouseDown={onClose}
-      style={{
+  role="presentation"
+  onMouseDown={onClose}
+  className="ui-modal-backdrop"
+  style={{
         position: "fixed",
         inset: 0,
         // zIndex skal ligge over kalenderens fuldskærmswrapper (zIndex: 999),
@@ -22861,8 +23553,12 @@ function Modal({ c, children, onClose, size = "default" }) {
       }}
     >
       <div
-        className="fade-up"
-        onMouseDown={(event) => event.stopPropagation()}
+  role="dialog"
+  aria-modal="true"
+  className="ui-modal-surface"
+  onMouseDown={(event) =>
+    event.stopPropagation()
+  }
         style={{
           width: widthBySize[size] || widthBySize.default,
           maxHeight: maxHeightBySize[size] || maxHeightBySize.default,
@@ -24252,7 +24948,7 @@ useEffect(() => {
   if (session === undefined) {
     return (
       <>
-        <GlobalStyles />
+        <GlobalStyles c={c} />
         <Loader c={c} t={t} leaving={false} theme={theme} moduleId={user?.module} />
       </>
     );
@@ -24261,7 +24957,7 @@ useEffect(() => {
   if (!session) {
     return (
       <>
-        <GlobalStyles />
+        <GlobalStyles c={c} />
         <AuthScreen c={c} t={t} language={language} theme={theme} />
       </>
     );
@@ -24270,7 +24966,7 @@ useEffect(() => {
   if (stage === "loading") {
     return (
       <>
-        <GlobalStyles />
+        <GlobalStyles c={c} />
         <Loader c={c} t={t} leaving={leaving} theme={theme} moduleId={user?.module} />
       </>
     );
@@ -24279,7 +24975,7 @@ useEffect(() => {
   if (stage === "onboarding" || !user) {
     return (
       <>
-        <GlobalStyles />
+        <GlobalStyles c={c} />
         <Onboarding
           c={c}
           t={t}
@@ -24317,7 +25013,7 @@ useEffect(() => {
         position: "relative",
       }}
     >
-      <GlobalStyles />
+      <GlobalStyles c={c} />
       {theme === "light" && <div className="app-blue-hue" aria-hidden="true" />}
       {theme === "dark" && <div className="app-blue-hue-dark" aria-hidden="true" />}
 
@@ -24530,6 +25226,7 @@ useEffect(() => {
                 <button
                   type="button"
                   onClick={() => {
+                    className="ui-button ui-button--ghost"
                     setSessionScope(null);
                     setRoute("home");
                   }}
@@ -24537,10 +25234,7 @@ useEffect(() => {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 4,
-                    marginBottom: 19,
-                    padding: 0,
-                    border: 0,
-                    background: "transparent",
+                    marginBottom: 20,
                     color: c.secondary,
                     fontSize: 13,
                     fontWeight: 700,
