@@ -16309,178 +16309,206 @@ const allDoneToday =
         return (
   <>
     <section className="dashboard-progress-area">
-      <div className="dashboard-progress-grid">
-  {[
-    [
-      studyPlanDashCopy.lectureProgress,
-      doneCount,
-      totalLectureCount,
-    ],
-    [
-      studyPlanDashCopy.examSetProgress,
-      examSetDoneCount,
-      examSetTotalCount,
-    ],
-  ].map(
-    ([
-      label,
-      completed,
-      total,
-    ]) => {
-      const percentage =
-        total > 0
-          ? Math.round(
-              (
-                completed /
-                total
-              ) * 100
-            )
-          : 0;
+  <div className="ui-card dashboard-section-card">
+    <DashboardSectionHeader
+      kicker={
+        language === "en"
+          ? "Progress"
+          : language === "ar"
+            ? "التقدم"
+            : "Fremdrift"
+      }
+      title={
+        studyPlanDashCopy.progressTitle
+      }
+      description={
+        language === "en"
+          ? "See how much of your active study plan you have completed."
+          : language === "ar"
+            ? "شاهد مقدار ما أكملته من خطة الدراسة النشطة."
+            : "Se, hvor meget af din aktive studieplan du har gennemført."
+      }
+    />
 
-      const isComplete =
-        total > 0 &&
-        completed >= total;
+    <div className="dashboard-progress-grid">
+      {[
+        [
+          studyPlanDashCopy.lectureProgress,
+          doneCount,
+          totalLectureCount,
+        ],
+        [
+          studyPlanDashCopy.examSetProgress,
+          examSetDoneCount,
+          examSetTotalCount,
+        ],
+      ].map(
+        ([
+          label,
+          completed,
+          total,
+        ]) => {
+          const percentage =
+            total > 0
+              ? Math.round(
+                  (
+                    completed /
+                    total
+                  ) * 100
+                )
+              : 0;
 
-      const statusLabel =
-        isComplete
-          ? language === "en"
-            ? "Complete"
-            : language === "ar"
-              ? "مكتمل"
-              : "Gennemført"
-          : percentage > 0
-            ? language === "en"
-              ? "In progress"
-              : language === "ar"
-                ? "قيد التنفيذ"
-                : "I gang"
-            : language === "en"
-              ? "Not started"
-              : language === "ar"
-                ? "لم يبدأ"
-                : "Ikke startet";
+          const isComplete =
+            total > 0 &&
+            completed >= total;
 
-      return (
-        <div
-          key={label}
-          className="dashboard-progress-card"
-          data-complete={
+          const statusLabel =
             isComplete
-              ? "true"
-              : "false"
-          }
-        >
-          <div className="dashboard-progress-head">
-            <div>
-              <div className="dashboard-progress-label">
-                {label}
-              </div>
+              ? language === "en"
+                ? "Complete"
+                : language === "ar"
+                  ? "مكتمل"
+                  : "Gennemført"
+              : percentage > 0
+                ? language === "en"
+                  ? "In progress"
+                  : language === "ar"
+                    ? "قيد التنفيذ"
+                    : "I gang"
+                : language === "en"
+                  ? "Not started"
+                  : language === "ar"
+                    ? "لم يبدأ"
+                    : "Ikke startet";
 
-              <div
-                className="dashboard-progress-status"
-                data-complete={
-                  isComplete
-                    ? "true"
-                    : "false"
-                }
-              >
-                {statusLabel}
-              </div>
-            </div>
-
-            <div className="dashboard-progress-percent">
-              {percentage}%
-            </div>
-          </div>
-
-          <div className="dashboard-progress-numbers">
-            <strong>
-              {completed}
-            </strong>
-
-            <span>
-              {" "}/ {total}
-            </span>
-          </div>
-
-          <div
-            className="dashboard-progress-track"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={
-              percentage
-            }
-            aria-label={`${label}: ${percentage}%`}
-          >
+          return (
             <div
-              className="dashboard-progress-fill"
+              key={label}
+              className="dashboard-progress-card"
               data-complete={
                 isComplete
                   ? "true"
                   : "false"
               }
-              style={{
-                width:
-                  `${percentage}%`,
-              }}
-            />
-          </div>
+            >
+              <div className="dashboard-progress-head">
+                <div>
+                  <div className="dashboard-progress-label">
+                    {label}
+                  </div>
+
+                  <div
+                    className="dashboard-progress-status"
+                    data-complete={
+                      isComplete
+                        ? "true"
+                        : "false"
+                    }
+                  >
+                    {statusLabel}
+                  </div>
+                </div>
+
+                <div className="dashboard-progress-percent">
+                  {percentage}%
+                </div>
+              </div>
+
+              <div className="dashboard-progress-numbers">
+                <strong>
+                  {completed}
+                </strong>
+
+                <span>
+                  {" "}/ {total}
+                </span>
+              </div>
+
+              <div
+                className="dashboard-progress-track"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={
+                  percentage
+                }
+                aria-label={`${label}: ${percentage}%`}
+              >
+                <div
+                  className="dashboard-progress-fill"
+                  data-complete={
+                    isComplete
+                      ? "true"
+                      : "false"
+                  }
+                  style={{
+                    width:
+                      `${percentage}%`,
+                  }}
+                />
+              </div>
+            </div>
+          );
+        }
+      )}
+    </div>
+
+    {isBehind && (
+      <div
+        style={{
+          marginTop: 16,
+          padding: "14px 16px",
+          borderRadius: 14,
+          background: c.redSoft,
+          border:
+            `1px solid ${c.redBorder}`,
+        }}
+      >
+        <div
+          style={{
+            marginBottom: 4,
+            color: c.red,
+            fontSize: 13,
+            fontWeight: 850,
+          }}
+        >
+          {
+            studyPlanDashCopy.catchUpTitle
+          }
         </div>
-      );
-    }
-  )}
-</div>
 
-        {isBehind && (
-          <div
-            style={{
-              marginTop: 16,
-              padding: "14px 16px",
-              borderRadius: 14,
-              background: c.redSoft,
-              border: `1px solid ${c.redBorder}`,
-            }}
-          >
-            <div
-              style={{
-                marginBottom: 4,
-                color: c.red,
-                fontSize: 13,
-                fontWeight: 850,
-              }}
-            >
-              {studyPlanDashCopy.catchUpTitle}
-            </div>
+        <div
+          style={{
+            marginBottom: 10,
+            color: c.secondary,
+            fontSize: 12,
+            lineHeight: 1.55,
+          }}
+        >
+          {
+            studyPlanDashCopy.catchUpText
+          }
+        </div>
 
-            <div
-              style={{
-                marginBottom: 10,
-                color: c.secondary,
-                fontSize: 12,
-                lineHeight: 1.55,
-              }}
-            >
-              {studyPlanDashCopy.catchUpText}
-            </div>
-
-            <button
-              type="button"
-              className="ui-button ui-button--danger"
-              onClick={handleCatchUp}
-              style={{
-                minHeight: 36,
-                padding: "0 14px",
-                borderRadius: 10,
-                fontSize: 11.5,
-              }}
-            >
-              {studyPlanDashCopy.catchUpButton}
-            </button>
-          </div>
-        )}
+        <button
+          type="button"
+          className="ui-button ui-button--danger"
+          onClick={handleCatchUp}
+          style={{
+            minHeight: 36,
+            padding: "0 14px",
+            borderRadius: 10,
+            fontSize: 11.5,
+          }}
+        >
+          {
+            studyPlanDashCopy.catchUpButton
+          }
+        </button>
       </div>
-    </section>
+    )}
+  </div>
+</section>
 
     <section className="dashboard-checklist-area">
       <div className="ui-card dashboard-section-card">
