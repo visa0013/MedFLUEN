@@ -5050,20 +5050,436 @@ select.ui-control {
   grid-column: 1 / -1;
 }
 
-.dashboard-quick-area,
-.dashboard-today-area {
+.dashboard-quick-area {
+  grid-column: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-quick-area .dashboard-quick-grid {
+  flex: 1;
+  grid-auto-rows: 1fr;
+}
+
+.dashboard-plan-area {
+  grid-column: 2;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.dashboard-progress-area {
   grid-column: 1;
 }
 
-.dashboard-plan-area,
-.dashboard-progress-area,
-.dashboard-checklist-area,
-.dashboard-badges-area {
+.dashboard-checklist-area {
   grid-column: 2;
+}
+
+.dashboard-badges-area {
+  grid-column: 1 / -1;
 }
 
 .dashboard-resume-area {
   margin-top: -2px;
+}
+
+/* ============================================================
+   INTEGRERET STUDIEPLANSMODUL
+   ============================================================ */
+
+.dashboard-plan-module {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow: hidden;
+}
+
+.dashboard-plan-module::before {
+  content: "";
+  position: absolute;
+  top: -90px;
+  inset-inline-end: -85px;
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle,
+      color-mix(
+        in srgb,
+        var(--ui-blue) 14%,
+        transparent
+      ),
+      transparent 72%
+    );
+  pointer-events: none;
+}
+
+.dashboard-plan-module-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dashboard-plan-module-heading {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dashboard-plan-module-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--ui-blue),
+      color-mix(
+        in srgb,
+        var(--ui-blue) 72%,
+        #8bb8ff
+      )
+    );
+  color: #fff;
+  box-shadow:
+    0 11px 25px
+    rgba(22,101,234,.24);
+}
+
+.dashboard-plan-countdown {
+  min-width: 54px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  padding: 8px 9px;
+  border:
+    1px solid
+    var(--ui-blue-border);
+  border-radius: 13px;
+  background:
+    var(--ui-blue-soft);
+  color:
+    var(--ui-blue);
+  box-shadow:
+    inset 0 1px 0
+    var(--ui-surface-highlight);
+}
+
+.dashboard-plan-countdown-value {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.dashboard-plan-countdown-label {
+  margin-top: 4px;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.dashboard-plan-summary {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+  align-items: end;
+  gap: 14px;
+  padding: 12px 13px;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 15px;
+  background:
+    var(--ui-soft);
+}
+
+.dashboard-plan-summary-label {
+  color:
+    var(--ui-muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.dashboard-plan-summary-value {
+  margin-top: 4px;
+  color:
+    var(--ui-text);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.dashboard-plan-progress-copy {
+  color:
+    var(--ui-blue);
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.dashboard-plan-progress-track {
+  position: relative;
+  z-index: 1;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    var(--ui-border);
+}
+
+.dashboard-plan-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      var(--ui-blue),
+      #70a9ff
+    );
+  box-shadow:
+    0 0 14px
+    rgba(22,101,234,.26);
+  transition:
+    width 320ms
+    var(--ui-ease);
+}
+
+.dashboard-plan-callout {
+  position: relative;
+  z-index: 1;
+  padding: 11px 12px;
+  border:
+    1px solid
+    var(--ui-blue-border);
+  border-radius: 13px;
+  background:
+    var(--ui-blue-soft);
+  color:
+    var(--ui-secondary);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.dashboard-plan-divider {
+  position: relative;
+  z-index: 1;
+  height: 1px;
+  background:
+    var(--ui-border);
+}
+
+.dashboard-plan-block {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-plan-subheading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dashboard-plan-subheading-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color:
+    var(--ui-text);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.dashboard-plan-subheading-meta {
+  color:
+    var(--ui-muted);
+  font-size: 9.5px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.dashboard-plan-event-list,
+.dashboard-plan-lecture-list {
+  display: grid;
+  gap: 6px;
+}
+
+.dashboard-plan-event-row {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 12px;
+  color:
+    var(--ui-text);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ui-ease),
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.dashboard-plan-event-row:hover {
+  transform:
+    translateY(-1px);
+  border-color:
+    var(--ui-border-strong);
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.dashboard-plan-event-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 99px;
+}
+
+.dashboard-plan-event-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.dashboard-plan-event-title {
+  overflow: hidden;
+  color:
+    var(--ui-text);
+  font-size: 10.5px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-plan-event-time {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.dashboard-plan-more-events {
+  padding-inline: 3px;
+  color:
+    var(--ui-blue);
+  font-size: 9.5px;
+  font-weight: 750;
+}
+
+.dashboard-plan-lecture-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 9px;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 12px;
+  background:
+    var(--ui-soft);
+}
+
+.dashboard-plan-lecture-index {
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 9px;
+  background:
+    var(--ui-panel);
+  color:
+    var(--ui-blue);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.dashboard-plan-lecture-index[data-complete="true"] {
+  border-color:
+    var(--ui-green-border);
+  background:
+    var(--ui-green-soft);
+  color:
+    var(--ui-green);
+}
+
+.dashboard-plan-lecture-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.dashboard-plan-lecture-id {
+  color:
+    var(--ui-blue);
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.dashboard-plan-lecture-title {
+  margin-top: 2px;
+  overflow: hidden;
+  color:
+    var(--ui-text);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-plan-complete-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color:
+    var(--ui-green);
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.dashboard-plan-actions {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+  gap: 9px;
+  margin-top: auto;
+  padding-top: 2px;
 }
 
 @media (max-width: 1160px) {
@@ -5074,7 +5490,6 @@ select.ui-control {
   .dashboard-hero-area,
   .dashboard-resume-area,
   .dashboard-quick-area,
-  .dashboard-today-area,
   .dashboard-plan-area,
   .dashboard-progress-area,
   .dashboard-checklist-area,
@@ -5082,10 +5497,14 @@ select.ui-control {
     grid-column: 1;
   }
 
-  .dashboard-hero-grid {
-    grid-template-columns: 1fr;
+  .dashboard-quick-area {
+    display: block;
   }
-}
+
+  .dashboard-plan-module {
+    height: auto;
+    min-height: 0;
+  }
 
   .dashboard-hero-grid {
     grid-template-columns: 1fr;
@@ -5121,6 +5540,19 @@ select.ui-control {
   .dashboard-section-card {
     padding: 18px;
     border-radius: 18px;
+  }
+
+  .dashboard-plan-summary {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .dashboard-plan-progress-copy {
+    white-space: normal;
+  }
+
+  .dashboard-plan-actions {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -13523,8 +13955,17 @@ function StudyPlan({ c, language, user, setUser }) {
   </>;
 }
 
+function Dashboard({
+  c,
+  t,
+  user,
+  onNavigate,
+  onOpenCalendar,
+  language,
+  spacedData,
+  importedQuestions,
+}) {
 
-function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuestions }) {
   const [studyPlans, setPlansGlobal] = useStoredState(STORAGE.studyPlans, {});
   const [checklist, setChecklist] = useStoredState(STORAGE.dailyChecklist, {});
   const activePlan = studyPlans[user.module];
@@ -13601,8 +14042,104 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
   const todayDate = new Date();
   const todayIso = dateKey(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
   const todaysEvents = calendarEvents
-    .filter((event) => event.date === todayIso)
-    .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+  .filter(
+    (event) =>
+      event.date === todayIso
+  )
+  .sort((a, b) =>
+    (a.time || "").localeCompare(
+      b.time || ""
+    )
+  );
+
+const planModuleLectures =
+  MODULE_LECTURES[currentModule] || [];
+
+const planDoneLectureIds =
+  activePlan?.doneLectureIds || [];
+
+const planCompletedLectureCount =
+  planModuleLectures.filter(
+    (lecture) =>
+      planDoneLectureIds.includes(
+        lecture.id
+      )
+  ).length;
+
+const planProgressPercent =
+  planModuleLectures.length > 0
+    ? Math.round(
+        (
+          planCompletedLectureCount /
+          planModuleLectures.length
+        ) * 100
+      )
+    : 0;
+
+const planPendingLectures =
+  planModuleLectures.filter(
+    (lecture) =>
+      !planDoneLectureIds.includes(
+        lecture.id
+      )
+  );
+
+const planLectureOverview =
+  activePlan &&
+  planPendingLectures.length === 0
+    ? planModuleLectures.slice(-3)
+    : (
+        activePlan
+          ? planPendingLectures
+          : planModuleLectures
+      ).slice(0, 3);
+
+const planTodayStart =
+  new Date(todayDate);
+
+planTodayStart.setHours(
+  0,
+  0,
+  0,
+  0
+);
+
+const planDaysRemaining =
+  activePlan?.examDate
+    ? Math.max(
+        0,
+        Math.ceil(
+          (
+            new Date(
+              `${activePlan.examDate}T00:00:00`
+            ) -
+            planTodayStart
+          ) /
+            86400000
+        )
+      )
+    : null;
+
+const matchingTodayPlanEvents =
+  todaysEvents.filter(
+    (event) =>
+      !event.planModuleId ||
+      event.planModuleId ===
+        currentModule
+  );
+
+const todayPlanEvents =
+  matchingTodayPlanEvents.slice(
+    0,
+    2
+  );
+
+const hiddenTodayPlanEventCount =
+  Math.max(
+    0,
+    matchingTodayPlanEvents.length -
+      todayPlanEvents.length
+  );
   const allQuestionsForDash = getFullQuestionBank(importedQuestions);
   const moduleQuestions = allQuestionsForDash.filter((q) => q.moduleId === currentModule);
   const questionCount = moduleQuestions.length > 0 ? moduleQuestions.length : allQuestionsForDash.length;
@@ -13702,7 +14239,155 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
     ar: { progressTitle: "تقدم خطة الدراسة", lectureProgress: "المحاضرات", examSetProgress: "مجموعة الامتحان", catchUpTitle: "أنت متأخر عن خطتك", catchUpText: "تقدمك الفعلي متأخر عن الجدول الزمني. هل تريد إعادة توزيع المحتوى المتبقي على الأيام المتبقية؟", catchUpButton: "إلحق الآن", checklistTitle: "مهام اليوم", checklistEmpty: "لا يوجد شيء مخطط لليوم", readMoreToday: "هل تريد المزيد اليوم؟ أضف المحاضرة التالية" },
   })[language] || {};
 
-  return (
+const integratedPlanCopy = ({
+  da: {
+    kicker:
+      "Plan, kalender og lektioner",
+    title:
+      "Studieplan",
+    activeDescription:
+      "Din plan, dagens studieblokke og næste lektioner samlet ét sted.",
+    emptyDescription:
+      "Opret en studieplan, og få den automatisk koblet til kalenderen.",
+    days:
+      "dage",
+    today:
+      "Dagens studieplan",
+    lessons:
+      "Lektionsoverblik",
+    completed:
+      "gennemført",
+    noToday:
+      "Ingen studieblokke planlagt i dag",
+    noLessons:
+      "Ingen lektioner tilknyttet modulet endnu",
+    openPlan:
+      "Åbn studieplan",
+    openCalendar:
+      "Åbn kalender",
+    lecturePlan:
+      "Forelæsningsplan",
+    examPlan:
+      "Eksamenssæt",
+    hoursPerDay:
+      "t/dag",
+    allComplete:
+      "Alle lektioner er gennemført",
+    moreEvents: (count) =>
+      `+${count} flere i kalenderen`,
+  },
+
+  en: {
+    kicker:
+      "Plan, calendar and lectures",
+    title:
+      "Study plan",
+    activeDescription:
+      "Your plan, today's study blocks and upcoming lectures in one place.",
+    emptyDescription:
+      "Create a study plan and connect it automatically to your calendar.",
+    days:
+      "days",
+    today:
+      "Today's study plan",
+    lessons:
+      "Lecture overview",
+    completed:
+      "completed",
+    noToday:
+      "No study blocks scheduled today",
+    noLessons:
+      "No lectures linked to this module yet",
+    openPlan:
+      "Open study plan",
+    openCalendar:
+      "Open calendar",
+    lecturePlan:
+      "Lecture plan",
+    examPlan:
+      "Exam set",
+    hoursPerDay:
+      "hrs/day",
+    allComplete:
+      "All lectures are completed",
+    moreEvents: (count) =>
+      `+${count} more in the calendar`,
+  },
+
+  ar: {
+    kicker:
+      "الخطة والتقويم والمحاضرات",
+    title:
+      "خطة الدراسة",
+    activeDescription:
+      "خطتك وجلسات اليوم والمحاضرات القادمة في مكان واحد.",
+    emptyDescription:
+      "أنشئ خطة دراسة واربطها تلقائيًا بالتقويم.",
+    days:
+      "أيام",
+    today:
+      "خطة اليوم",
+    lessons:
+      "نظرة عامة على المحاضرات",
+    completed:
+      "مكتمل",
+    noToday:
+      "لا توجد جلسات دراسة مخططة اليوم",
+    noLessons:
+      "لا توجد محاضرات مرتبطة بهذه الوحدة",
+    openPlan:
+      "افتح خطة الدراسة",
+    openCalendar:
+      "افتح التقويم",
+    lecturePlan:
+      "خطة المحاضرات",
+    examPlan:
+      "مجموعة الامتحان",
+    hoursPerDay:
+      "ساعة/يوم",
+    allComplete:
+      "تم إكمال جميع المحاضرات",
+    moreEvents: (count) =>
+      `+${count} أحداث أخرى في التقويم`,
+  },
+})[language] || {
+  kicker:
+    "Plan, kalender og lektioner",
+  title:
+    "Studieplan",
+  activeDescription:
+    "Din plan, dagens studieblokke og næste lektioner samlet ét sted.",
+  emptyDescription:
+    "Opret en studieplan, og få den automatisk koblet til kalenderen.",
+  days:
+    "dage",
+  today:
+    "Dagens studieplan",
+  lessons:
+    "Lektionsoverblik",
+  completed:
+    "gennemført",
+  noToday:
+    "Ingen studieblokke planlagt i dag",
+  noLessons:
+    "Ingen lektioner tilknyttet modulet endnu",
+  openPlan:
+    "Åbn studieplan",
+  openCalendar:
+    "Åbn kalender",
+  lecturePlan:
+    "Forelæsningsplan",
+  examPlan:
+    "Eksamenssæt",
+  hoursPerDay:
+    "t/dag",
+  allComplete:
+    "Alle lektioner er gennemført",
+  moreEvents: (count) =>
+    `+${count} flere i kalenderen`,
+};
+
+return (
     <div className="fade-up dashboard-shell">
       <section className="dashboard-hero-area dashboard-hero ui-card">
   <div className="dashboard-hero-grid">
@@ -14095,301 +14780,393 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
         </div>
       </section>
 
-      <section className="dashboard-plan-area">
-        <button
-          type="button"
-          className="ui-card-button"
-          onClick={() => onNavigate("study-plan")}
-          style={{ width: "100%", textAlign: "start", cursor: "pointer", padding: 0, border: 0, background: "transparent" }}
-        >
-          <div className="ui-card ui-card--interactive dashboard-section-card">
-  <div
-    style={{
-      display: "flex",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
-      gap: 12,
-    }}
-  >
-    <span
-      style={{
-        width: 44,
-        height: 44,
-        flexShrink: 0,
-        display: "grid",
-        placeItems: "center",
-        borderRadius: 14,
-        background: c.blueGradient,
-        color: "#fff",
-        boxShadow:
-          `0 10px 22px ${c.blue}33`,
-      }}
-    >
-      <Icon
-        name="calendar"
-        size={19}
-      />
-    </span>
-
-    {activePlan?.examDate && (
-      <div
-        style={{
-          minWidth: 54,
-          display: "grid",
-          placeItems: "center",
-          padding: "8px 10px",
-          borderRadius: 12,
-          background: c.blueSoft,
-          border:
-            `1px solid ${c.blueBorder}`,
-        }}
-      >
-        <span
-          style={{
-            color: c.blue,
-            fontSize: 20,
-            fontWeight: 900,
-            lineHeight: 1,
-          }}
-        >
-          {Math.max(
-            0,
-            Math.ceil(
-              (
-                new Date(
-                  `${activePlan.examDate}T00:00:00`
-                ) -
-                new Date()
-              ) /
-                86400000
-            )
-          )}
-        </span>
-
-        <span
-          style={{
-            marginTop: 4,
-            color: c.blue,
-            fontSize: 8.5,
-            fontWeight: 850,
-            letterSpacing: ".06em",
-            textTransform: "uppercase",
-          }}
-        >
-          {language === "en"
-            ? "days"
-            : language === "ar"
-              ? "أيام"
-              : "dage"}
-        </span>
-      </div>
-    )}
-  </div>
-
-  <div
-    style={{
-      marginTop: 16,
-      color: c.text,
-      fontSize: 16,
-      fontWeight: 850,
-      lineHeight: 1.3,
-    }}
-  >
-    {x.plan}
-  </div>
-
-  <div
-    style={{
-      marginTop: 6,
-      color: c.secondary,
-      fontSize: 11,
-      fontWeight: 650,
-      lineHeight: 1.6,
-    }}
-  >
-    {activePlan
-      ? `${activePlan.mode === "lectures"
-          ? language === "en"
-            ? "Lecture plan"
-            : language === "ar"
-              ? "خطة المحاضرات"
-              : "Forelæsningsplan"
-          : language === "en"
-            ? "Exam set"
-            : language === "ar"
-              ? "مجموعة الامتحان"
-              : "Eksamenssæt"} · ${activePlan.hoursPerDay || 2} ${
-  language === "en"
-    ? "hrs/day"
-    : language === "ar"
-      ? "ساعة/يوم"
-      : "t/dag"
-}`
-      : language === "en"
-        ? "Create a structured plan towards your next exam."
-        : language === "ar"
-          ? "أنشئ خطة منظمة حتى موعد امتحانك القادم."
-          : "Opret en struktureret plan frem mod din næste eksamen."}
-  </div>
-
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 10,
-      marginTop: 17,
-      paddingTop: 14,
-      borderTop:
-        `1px solid ${c.border}`,
-      color: c.blue,
-      fontSize: 11,
-      fontWeight: 800,
-    }}
-  >
-    <span>
-      {language === "en"
-        ? "Open study plan"
-        : language === "ar"
-          ? "افتح خطة الدراسة"
-          : "Åbn studieplan"}
-    </span>
-
-    <Icon
-      name="right"
-      size={15}
-    />
-  </div>
-</div>
-        </button>
-      </section>
-
-     <section className="dashboard-today-area">
-  <div className="ui-card dashboard-section-card">
-    <DashboardSectionHeader
-      kicker={
-        language === "en"
-          ? "Today"
-          : language === "ar"
-            ? "اليوم"
-            : "I dag"
-      }
-      title={
-        language === "en"
-          ? "Today's study plan"
-          : language === "ar"
-            ? "خطة الدراسة لليوم"
-            : "Dagens studieplan"
-      }
-      description={
-        language === "en"
-          ? "Your scheduled learning blocks, ready to begin."
-          : language === "ar"
-            ? "جلسات التعلم المجدولة لليوم، جاهزة للبدء."
-            : "Dine planlagte studieblokke for i dag, klar til at blive startet."
-      }
-    />
-
-    {todaysEvents.length === 0 ? (
-      <EmptyState
-        symbol={
+     <section className="dashboard-plan-area">
+  <div className="ui-card dashboard-section-card dashboard-plan-module">
+    <div className="dashboard-plan-module-header">
+      <div className="dashboard-plan-module-heading">
+        <span className="dashboard-plan-module-icon">
           <Icon
             name="calendar"
-            size={18}
+            size={19}
           />
-        }
-        title={x.emptyPlan}
-        description={x.planHint}
-      />
-    ) : (
-      <div
-        className="dashboard-event-list"
-        style={{
-          maxHeight: 360,
-          overflowY: "auto",
-          paddingInlineEnd: 2,
-        }}
-      >
-        {todaysEvents.map((event) => {
-          const palette =
-            event.type === "exam"
-              ? [c.red, c.redSoft]
-              : event.type === "review"
-                ? [c.green, c.greenSoft]
-                : event.type === "study"
-                  ? [c.blue, c.blueSoft]
-                  : [c.secondary, c.soft];
+        </span>
 
-          return (
-            <button
-              key={event.id}
-              type="button"
-              className="ui-list-row dashboard-event-row"
-              onClick={() =>
-                setEditingPlanEvent(event)
+        <div>
+          <div className="dashboard-section-kicker">
+            {integratedPlanCopy.kicker}
+          </div>
+
+          <div className="dashboard-section-title">
+            {integratedPlanCopy.title}
+          </div>
+
+          <div className="dashboard-section-description">
+            {activePlan
+              ? integratedPlanCopy.activeDescription
+              : integratedPlanCopy.emptyDescription}
+          </div>
+        </div>
+      </div>
+
+      {planDaysRemaining !== null && (
+        <div className="dashboard-plan-countdown">
+          <span className="dashboard-plan-countdown-value">
+            {planDaysRemaining}
+          </span>
+
+          <span className="dashboard-plan-countdown-label">
+            {integratedPlanCopy.days}
+          </span>
+        </div>
+      )}
+    </div>
+
+    {activePlan ? (
+      <>
+        <div className="dashboard-plan-summary">
+          <div>
+            <div className="dashboard-plan-summary-label">
+              {activePlan.mode ===
+              "lectures"
+                ? integratedPlanCopy.lecturePlan
+                : integratedPlanCopy.examPlan}
+            </div>
+
+            <div className="dashboard-plan-summary-value">
+              {activePlan.hoursPerDay ||
+                2}{" "}
+              {
+                integratedPlanCopy.hoursPerDay
               }
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "14px 16px",
-                borderRadius: 14,
-                background: palette[1],
-                border: `1px solid ${c.border}`,
-                color: c.text,
-                textAlign: "start",
-                cursor: "pointer",
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 8,
-                  height: 8,
-                  flexShrink: 0,
-                  borderRadius: 99,
-                  background: palette[0],
-                }}
-              />
+            </div>
+          </div>
 
-              <span
-                style={{
-                  minWidth: 0,
-                  flex: 1,
-                  color: c.text,
-                  fontSize: 13.5,
-                  fontWeight: 650,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {event.title}
-              </span>
+          <div className="dashboard-plan-progress-copy">
+            {planCompletedLectureCount}/
+            {planModuleLectures.length}{" "}
+            {integratedPlanCopy.completed}
+          </div>
+        </div>
 
-              {event.time && (
-                <span
-                  style={{
-                    flexShrink: 0,
-                    color: palette[0],
-                    fontSize: 12,
-                    fontWeight: 750,
-                  }}
-                >
-                  {event.time}
-                </span>
-              )}
-
-              <Icon
-                name="right"
-                size={14}
-              />
-            </button>
-          );
-        })}
+        <div
+          className="dashboard-plan-progress-track"
+          aria-label={`${planProgressPercent}%`}
+        >
+          <div
+            className="dashboard-plan-progress-fill"
+            style={{
+              width: `${planProgressPercent}%`,
+            }}
+          />
+        </div>
+      </>
+    ) : (
+      <div className="dashboard-plan-callout">
+        {
+          integratedPlanCopy.emptyDescription
+        }
       </div>
     )}
+
+    <div className="dashboard-plan-divider" />
+
+    <div className="dashboard-plan-block">
+      <div className="dashboard-plan-subheading">
+        <div className="dashboard-plan-subheading-title">
+          <Icon
+            name="clock"
+            size={14}
+          />
+
+          <span>
+            {integratedPlanCopy.today}
+          </span>
+        </div>
+
+        <IconButton
+          c={c}
+          title={
+            integratedPlanCopy.openCalendar
+          }
+          onClick={onOpenCalendar}
+        >
+          <Icon
+            name="calendar"
+            size={14}
+          />
+        </IconButton>
+      </div>
+
+      {todayPlanEvents.length === 0 ? (
+        <div className="dashboard-plan-callout">
+          {integratedPlanCopy.noToday}
+        </div>
+      ) : (
+        <div className="dashboard-plan-event-list">
+          {todayPlanEvents.map(
+            (event) => {
+              const palette =
+                event.type === "exam"
+                  ? [
+                      c.red,
+                      c.redSoft,
+                    ]
+                  : event.type ===
+                      "review"
+                    ? [
+                        c.green,
+                        c.greenSoft,
+                      ]
+                    : event.type ===
+                        "study"
+                      ? [
+                          c.blue,
+                          c.blueSoft,
+                        ]
+                      : [
+                          c.secondary,
+                          c.soft,
+                        ];
+
+              return (
+                <button
+                  key={event.id}
+                  type="button"
+                  className="dashboard-plan-event-row"
+                  onClick={() =>
+                    setEditingPlanEvent(
+                      event
+                    )
+                  }
+                  style={{
+                    background:
+                      palette[1],
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="dashboard-plan-event-dot"
+                    style={{
+                      background:
+                        palette[0],
+                    }}
+                  />
+
+                  <span className="dashboard-plan-event-copy">
+                    <span className="dashboard-plan-event-title">
+                      {event.title}
+                    </span>
+                  </span>
+
+                  {event.time && (
+                    <span
+                      className="dashboard-plan-event-time"
+                      style={{
+                        color:
+                          palette[0],
+                      }}
+                    >
+                      {event.time}
+                    </span>
+                  )}
+
+                  <Icon
+                    name="right"
+                    size={13}
+                  />
+                </button>
+              );
+            }
+          )}
+
+          {hiddenTodayPlanEventCount >
+            0 && (
+            <button
+              type="button"
+              className="ui-button ui-button--ghost dashboard-plan-more-events"
+              onClick={onOpenCalendar}
+              style={{
+                justifySelf:
+                  "start",
+                minHeight: 28,
+                padding: "0 6px",
+              }}
+            >
+              {integratedPlanCopy.moreEvents(
+                hiddenTodayPlanEventCount
+              )}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+
+    <div className="dashboard-plan-block">
+      <div className="dashboard-plan-subheading">
+        <div className="dashboard-plan-subheading-title">
+          <Icon
+            name="book"
+            size={14}
+          />
+
+          <span>
+            {integratedPlanCopy.lessons}
+          </span>
+        </div>
+
+        {planModuleLectures.length >
+          0 && (
+          <span className="dashboard-plan-subheading-meta">
+            {planCompletedLectureCount}/
+            {planModuleLectures.length}
+          </span>
+        )}
+      </div>
+
+      {planModuleLectures.length ===
+      0 ? (
+        <div className="dashboard-plan-callout">
+          {integratedPlanCopy.noLessons}
+        </div>
+      ) : (
+        <div className="dashboard-plan-lecture-list">
+          {planLectureOverview.map(
+            (lecture, index) => {
+              const isComplete =
+                planDoneLectureIds.includes(
+                  lecture.id
+                );
+
+              return (
+                <div
+                  key={lecture.id}
+                  className="dashboard-plan-lecture-row"
+                >
+                  <span
+                    className="dashboard-plan-lecture-index"
+                    data-complete={
+                      isComplete
+                        ? "true"
+                        : "false"
+                    }
+                  >
+                    {isComplete ? (
+                      <Icon
+                        name="check"
+                        size={12}
+                      />
+                    ) : (
+                      index + 1
+                    )}
+                  </span>
+
+                  <div className="dashboard-plan-lecture-copy">
+                    <div className="dashboard-plan-lecture-id">
+                      {lecture.id}
+                    </div>
+
+                    <div
+                      className="dashboard-plan-lecture-title"
+                      title={
+                        lecture.title
+                      }
+                    >
+                      {lecture.title}
+                    </div>
+                  </div>
+
+                  {isComplete && (
+                    <span className="dashboard-plan-complete-note">
+                      <Icon
+                        name="check"
+                        size={12}
+                      />
+                    </span>
+                  )}
+                </div>
+              );
+            }
+          )}
+
+          {activePlan &&
+            planPendingLectures.length ===
+              0 && (
+              <div className="dashboard-plan-complete-note">
+                <Icon
+                  name="check"
+                  size={13}
+                />
+
+                <span>
+                  {
+                    integratedPlanCopy.allComplete
+                  }
+                </span>
+              </div>
+            )}
+        </div>
+      )}
+    </div>
+
+    <div className="dashboard-plan-actions">
+      <PrimaryButton
+        onClick={() =>
+          onNavigate("study-plan")
+        }
+        style={{
+          width: "100%",
+        }}
+      >
+        <span
+          style={{
+            display:
+              "inline-flex",
+            alignItems:
+              "center",
+            justifyContent:
+              "center",
+            gap: 7,
+          }}
+        >
+          <Icon
+            name="calendar"
+            size={14}
+          />
+
+          {
+            integratedPlanCopy.openPlan
+          }
+        </span>
+      </PrimaryButton>
+
+      <SecondaryButton
+        onClick={onOpenCalendar}
+        style={{
+          width: "100%",
+        }}
+      >
+        <span
+          style={{
+            display:
+              "inline-flex",
+            alignItems:
+              "center",
+            justifyContent:
+              "center",
+            gap: 7,
+          }}
+        >
+          <Icon
+            name="calendar"
+            size={14}
+          />
+
+          {
+            integratedPlanCopy.openCalendar
+          }
+        </span>
+      </SecondaryButton>
+    </div>
   </div>
 </section>
 
@@ -27206,7 +27983,14 @@ useEffect(() => {
                 spacedData={spacedData}
                 onResetAllProgress={setSpacedData}
                 importedQuestions={importedQuestions}
-                onNavigate={(target, options) => {
+onOpenCalendar={() => {
+  setCalendarClosing(false);
+  setCalendarOpen(true);
+  setNotesOpen(false);
+  setDrByteOpen(false);
+  setProfileOpen(false);
+}}
+onNavigate={(target, options) => {
                   if (target === "mcq") {
                     setSessionScope(
                       options && options.contentType
