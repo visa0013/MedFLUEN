@@ -3989,32 +3989,280 @@ function GlobalStyles() {
     inset 0 0 0 2px
     rgba(22,101,234,.16);
 }
-      .app-topbar button[data-tour="pomodoro"] {
-        transition: background 180ms ease, border-color 180ms ease, transform 140ms ease;
-      }
-      .app-topbar button[data-tour="pomodoro"]:hover {
-        transform: translateY(-1px);
-      }
-      .app-topbar button[data-tour="pomodoro"]:active {
-        transform: scale(.98);
-      }
-      .clock-gradient-text {
-        background: linear-gradient(100deg, #1665ea, #4b93ff, #7ab8ff, #4b93ff, #1665ea);
-        background-size: 300% 100%;
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        animation: clockGradientFlow 6s ease-in-out infinite, clockPulse 2s ease-in-out infinite;
-        display: inline-block;
-      }
-      @keyframes clockGradientFlow {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-      }
-      @keyframes clockPulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: .92; transform: scale(1.015); }
-      }
+      .topbar-shell {
+  isolation: isolate;
+  box-shadow:
+    0 1px 0 rgba(80, 100, 130, .025),
+    0 10px 30px rgba(25, 55, 95, .025);
+}
+
+.topbar-page-context {
+  min-width: 0;
+}
+
+.topbar-page-icon {
+  transition:
+    transform 180ms cubic-bezier(.16, 1, .3, 1),
+    box-shadow 180ms ease;
+}
+
+.topbar-page-context:hover
+.topbar-page-icon {
+  transform:
+    translateY(-1px)
+    rotate(-1deg);
+  box-shadow:
+    0 8px 18px rgba(22, 101, 234, .15);
+}
+
+.topbar-center {
+  position: relative;
+}
+
+.topbar-pomodoro-trigger {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  outline: none;
+  transition:
+    transform 160ms cubic-bezier(.16, 1, .3, 1),
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.topbar-pomodoro-trigger:hover {
+  transform: translateY(-1px);
+}
+
+.topbar-pomodoro-trigger:active {
+  transform: translateY(0) scale(.985);
+}
+
+.topbar-pomodoro-trigger:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(22, 101, 234, .18),
+    0 10px 25px rgba(22, 101, 234, .12);
+}
+
+.topbar-pomodoro-trigger[
+  data-active="true"
+] {
+  box-shadow:
+    0 8px 24px rgba(22, 101, 234, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+
+.topbar-pomodoro-icon {
+  transition:
+    transform 180ms cubic-bezier(.16, 1, .3, 1),
+    box-shadow 180ms ease;
+}
+
+.topbar-pomodoro-trigger:hover
+.topbar-pomodoro-icon {
+  transform: scale(1.045);
+}
+
+.topbar-pomodoro-trigger[
+  data-running="true"
+]
+.topbar-pomodoro-icon {
+  animation:
+    topbarFocusPulse
+    2.4s
+    ease-in-out
+    infinite;
+}
+
+@keyframes topbarFocusPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 5px 13px
+      rgba(22, 101, 234, .10);
+  }
+
+  50% {
+    box-shadow:
+      0 7px 20px
+      rgba(22, 101, 234, .23);
+  }
+}
+
+.topbar-pomodoro-progress {
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  height: 3px;
+  border-radius: 0 99px 99px 0;
+  transition:
+    width 1s linear,
+    background 180ms ease;
+}
+
+.topbar-quick-control {
+  outline: none;
+  transition:
+    transform 140ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.topbar-quick-control:hover {
+  transform: translateY(-1px);
+}
+
+.topbar-quick-control:active {
+  transform: scale(.94);
+}
+
+.topbar-quick-control:focus-visible {
+  box-shadow:
+    0 0 0 3px
+    rgba(22, 101, 234, .16);
+}
+
+.topbar-module-btn {
+  outline: none;
+  transition:
+    transform 160ms cubic-bezier(.16, 1, .3, 1),
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.topbar-module-btn:hover {
+  transform: translateY(-1px);
+}
+
+.topbar-module-btn:active {
+  transform: scale(.98);
+}
+
+.topbar-module-btn:focus-visible {
+  box-shadow:
+    0 0 0 3px
+    rgba(22, 101, 234, .16);
+}
+
+.topbar-module-menu {
+  transform-origin: top right;
+  animation:
+    topbarPopoverFade
+    180ms
+    ease
+    both;
+}
+
+.pomodoro-popover {
+  animation:
+    topbarPopoverFade
+    180ms
+    ease
+    both;
+}
+
+@keyframes topbarPopoverFade {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.pomodoro-preset {
+  outline: none;
+  transition:
+    transform 150ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.pomodoro-preset:hover {
+  transform: translateY(-2px);
+}
+
+.pomodoro-preset:active {
+  transform: translateY(0) scale(.98);
+}
+
+.pomodoro-preset:focus-visible {
+  box-shadow:
+    0 0 0 3px
+    rgba(22, 101, 234, .16);
+}
+
+.pomodoro-duration-card {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.pomodoro-duration-card:focus-within {
+  border-color:
+    rgba(22, 101, 234, .45) !important;
+  box-shadow:
+    0 0 0 3px
+    rgba(22, 101, 234, .10);
+  transform: translateY(-1px);
+}
+
+.pomodoro-number-input {
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.pomodoro-number-input::-webkit-inner-spin-button,
+.pomodoro-number-input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.pomodoro-control-button {
+  outline: none;
+  transition:
+    transform 150ms ease,
+    filter 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.pomodoro-control-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.025);
+}
+
+.pomodoro-control-button:active {
+  transform: translateY(0) scale(.985);
+}
+
+.pomodoro-control-button:focus-visible {
+  box-shadow:
+    0 0 0 3px
+    rgba(22, 101, 234, .16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar-pomodoro-icon,
+  .topbar-pomodoro-trigger,
+  .topbar-page-icon,
+  .topbar-quick-control,
+  .topbar-module-btn,
+  .pomodoro-preset,
+  .pomodoro-control-button {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+}
 
 
 
@@ -4329,6 +4577,132 @@ function GlobalStyles() {
   .sidebar-profile-menu {
     left: 50px !important;
   }
+
+.topbar-shell {
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto !important;
+  gap: 8px !important;
+  padding:
+    0 10px !important;
+}
+
+.topbar-page-context {
+  display: none !important;
+}
+
+.topbar-center {
+  justify-self:
+    start !important;
+  min-width: 0;
+}
+
+.topbar-pomodoro-trigger {
+  min-width:
+    0 !important;
+  max-width:
+    calc(100vw - 138px);
+  padding:
+    7px 9px !important;
+  gap:
+    8px !important;
+}
+
+.topbar-pomodoro-icon {
+  width:
+    34px !important;
+  height:
+    34px !important;
+  border-radius:
+    11px !important;
+}
+
+.topbar-pomodoro-date,
+.topbar-session-count {
+  display:
+    none !important;
+}
+
+.topbar-pomodoro-time {
+  font-size:
+    18px !important;
+}
+
+.topbar-pomodoro-status {
+  max-width:
+    105px;
+  overflow:
+    hidden;
+  text-overflow:
+    ellipsis;
+  white-space:
+    nowrap;
+}
+
+.topbar-module-copy,
+.topbar-module-arrow {
+  display:
+    none !important;
+}
+
+.topbar-module-btn {
+  width:
+    40px !important;
+  height:
+    40px !important;
+  padding:
+    0 !important;
+  justify-content:
+    center !important;
+}
+
+.topbar-module-menu {
+  position:
+    fixed !important;
+  top:
+    78px !important;
+  left:
+    68px !important;
+  right:
+    10px !important;
+  width:
+    auto !important;
+  max-height:
+    calc(100vh - 92px);
+  overflow-y:
+    auto;
+}
+
+.pomodoro-popover {
+  position:
+    fixed !important;
+  top:
+    78px !important;
+  left:
+    68px !important;
+  right:
+    10px !important;
+  width:
+    auto !important;
+  max-height:
+    calc(100vh - 92px);
+  overflow-y:
+    auto;
+  transform:
+    none !important;
+}
+
+.pomodoro-duration-grid {
+  grid-template-columns:
+    1fr !important;
+}
+
+.pomodoro-stats-grid {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr))
+    !important;
+}
+  
 }
     `}</style>
   );
@@ -4762,163 +5136,1170 @@ function Onboarding({ c, t, language, theme, onComplete }) {
   );
 }
 
+function ModuleSwitcher({
+  c,
+  t,
+  language,
+  user,
+  setUser,
+}) {
+  const [open, setOpen] =
+    useState(false);
 
-function ModuleSwitcher({ c, language, user, setUser }) {
-  const [open, setOpen] = useState(false);
-  const levels = ["Bachelor", "Kandidat"];
-  const modules = MODULES[language]?.[user.level] || MODULES.da[user.level] || [];
-  const selectLevel = (level) => {
-    const firstModule = (MODULES[language]?.[level] || MODULES.da[level] || [""])[0];
-    setUser((current) => ({ ...current, level, module:firstModule }));
+  const rootRef =
+    useRef(null);
+
+  const levels = [
+    "Bachelor",
+    "Kandidat",
+  ];
+
+  const activeLevel =
+    user?.level ||
+    levels[0];
+
+  const moduleSource =
+    MODULES[language] ||
+    MODULES.da;
+
+  const modules =
+    moduleSource?.[activeLevel] ||
+    MODULES.da?.[activeLevel] ||
+    [];
+
+  const currentModule = String(
+    user?.module || ""
+  );
+
+  const moduleLabel =
+    currentModule
+      ? currentModule.replace(
+          /^[A-Z]\d+\s*/,
+          ""
+        )
+      : language === "en"
+        ? "Choose module"
+        : language === "ar"
+          ? "اختر الوحدة"
+          : "Vælg modul";
+
+  const copy = {
+    da: {
+      chooseModule:
+        "Vælg modul",
+      level:
+        "Studieniveau",
+      modules:
+        "Moduler",
+    },
+
+    en: {
+      chooseModule:
+        "Choose module",
+      level:
+        "Study level",
+      modules:
+        "Modules",
+    },
+
+    ar: {
+      chooseModule:
+        "اختر الوحدة",
+      level:
+        "المستوى الدراسي",
+      modules:
+        "الوحدات",
+    },
+  }[language] || {
+    chooseModule:
+      "Vælg modul",
+    level:
+      "Studieniveau",
+    modules:
+      "Moduler",
   };
-  const selectModule = (module) => {
-    setUser((current) => ({ ...current, module }));
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    function handlePointerDown(
+      event
+    ) {
+      if (
+        rootRef.current &&
+        !rootRef.current.contains(
+          event.target
+        )
+      ) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handlePointerDown
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handlePointerDown
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+    };
+  }, [open]);
+
+  function selectLevel(level) {
+    const nextModules =
+      MODULES[language]?.[level] ||
+      MODULES.da?.[level] ||
+      [];
+
+    setUser((current) => ({
+      ...current,
+      level,
+      module:
+        nextModules.includes(
+          current?.module
+        )
+          ? current.module
+          : nextModules[0] || "",
+    }));
+  }
+
+  function selectModule(module) {
+    setUser((current) => ({
+      ...current,
+      module,
+    }));
+
     setOpen(false);
-  };
-  const moduleLabel = user.module ? user.module.replace(/^[A-Z]\d+\s*/, "") : "Vælg modul";
-  return <div style={{ position:"absolute", insetInlineEnd:18, top:0, height:"100%", display:"flex", alignItems:"center", zIndex:40 }}>
-    <button type="button" onClick={()=>setOpen((value)=>!value)} aria-expanded={open} style={{ display:"flex",alignItems:"center",gap:8,height:38,maxWidth:240,padding:"0 10px",border:`1px solid ${open?c.blueBorder:c.border}`,borderRadius:11,background:open?c.blueSoft:c.soft,color:open?c.blue:c.secondary,cursor:"pointer",textAlign:"start" }}>
-      <Icon name="book" size={16}/><span className="desktop-only" style={{ overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:11,fontWeight:800 }}>{moduleLabel}</span><span style={{ fontSize:11,transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform 180ms ease" }}>⌄</span>
-    </button>
-    <div style={{ position:"absolute",top:62,insetInlineEnd:0,width:290,padding:10,borderRadius:16,border:`1px solid ${c.border}`,background:c.panel,boxShadow:c.shadow,opacity:open?1:0,transform:open?"translateY(0) scale(1)":"translateY(-12px) scale(.98)",transformOrigin:"top right",pointerEvents:open?"auto":"none",transition:"opacity 180ms ease, transform 220ms cubic-bezier(.16,1,.3,1)",direction:"ltr" }}>
-      <div style={{ padding:"3px 5px 9px",color:c.muted,fontSize:9,fontWeight:850,letterSpacing:".08em",textTransform:"uppercase" }}>{language==="da"?"Studieniveau":"Study level"}</div>
-      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:11 }}>{levels.map((level)=><button key={level} type="button" onClick={()=>selectLevel(level)} style={{ height:34,border:`1px solid ${user.level===level?c.blueBorder:c.border}`,borderRadius:9,background:user.level===level?c.blueSoft:c.soft,color:user.level===level?c.blue:c.secondary,fontSize:11,fontWeight:800,cursor:"pointer" }}>{level}</button>)}</div>
-      <div style={{ padding:"3px 5px 8px",borderTop:`1px solid ${c.border}`,color:c.muted,fontSize:9,fontWeight:850,letterSpacing:".08em",textTransform:"uppercase" }}>{language==="da"?"Modul":"Module"}</div>
-      <div style={{ display:"grid",gap:3,maxHeight:265,overflowY:"auto",paddingInlineEnd:2 }}>{modules.map((module)=><button key={module} type="button" onClick={()=>selectModule(module)} style={{ width:"100%",display:"flex",alignItems:"center",padding:"9px 10px",border:0,borderRadius:9,background:user.module===module?c.blueSoft:"transparent",color:user.module===module?c.blue:c.text,textAlign:"left",fontSize:11,fontWeight:user.module===module?800:650,lineHeight:1.35,cursor:"pointer" }}>{module}</button>)}</div>
-    </div>
-  </div>;
-}
-
-
-function PomodoroRing({ c, accent, size = 46, progress = 0, isBreak = false }) {
-  const radius = 42;
-  const circumference = 2 * Math.PI * radius;
-  const clamped = Math.max(0, Math.min(100, progress));
-  const offset = circumference - (clamped / 100) * circumference;
-  const headAngle = (clamped / 100) * 360 - 90;
-  const headX = 50 + radius * Math.cos((headAngle * Math.PI) / 180);
-  const headY = 50 + radius * Math.sin((headAngle * Math.PI) / 180);
+  }
 
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" style={{ flexShrink: 0, overflow: "visible" }}>
-      <circle cx="50" cy="50" r={radius} fill="none" stroke={c.border} strokeWidth="7" />
-      <circle
-        cx="50"
-        cy="50"
-        r={radius}
-        fill="none"
-        stroke={accent}
-        strokeWidth="7"
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        transform="rotate(-90 50 50)"
-        style={{ transition: "stroke-dashoffset 1s linear" }}
-      />
-      {clamped > 0.5 && <circle cx={headX} cy={headY} r="5.5" fill={accent} />}
-      <foreignObject x="34" y="34" width="32" height="32">
-        <div style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", color: accent }}>
-          <Icon name={isBreak ? "coffee" : "bolt"} size={16} stroke={2.2} />
+    <div
+      ref={rootRef}
+      style={{
+        position: "relative",
+        justifySelf: "end",
+        zIndex: 45,
+      }}
+    >
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`${t.currentModule}: ${moduleLabel}`}
+        onClick={() =>
+          setOpen(
+            (value) => !value
+          )
+        }
+        className="topbar-module-btn"
+        style={{
+          minWidth: 176,
+          height: 42,
+          display: "flex",
+          alignItems: "center",
+          gap: 9,
+          padding: "0 10px",
+          borderRadius: 13,
+          border: `1px solid ${
+            open
+              ? c.blueBorder
+              : c.border
+          }`,
+          background: open
+            ? c.blueSoft
+            : c.soft,
+          color: open
+            ? c.blue
+            : c.text,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          textAlign: "start",
+        }}
+      >
+        <span
+          style={{
+            width: 29,
+            height: 29,
+            flexShrink: 0,
+            display: "grid",
+            placeItems: "center",
+            borderRadius: 9,
+            background: open
+              ? c.panel
+              : c.blueSoft,
+            color: c.blue,
+          }}
+        >
+          <Icon
+            name="book"
+            size={15}
+          />
+        </span>
+
+        <span
+          className="topbar-module-copy"
+          style={{
+            minWidth: 0,
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <span
+            style={{
+              color: c.muted,
+              fontSize: 8.5,
+              fontWeight: 800,
+              letterSpacing: ".07em",
+              lineHeight: 1.1,
+              textTransform: "uppercase",
+            }}
+          >
+            {t.currentModule}
+          </span>
+
+          <span
+            title={moduleLabel}
+            style={{
+              maxWidth: 130,
+              marginTop: 3,
+              color: open
+                ? c.blue
+                : c.text,
+              fontSize: 10.5,
+              fontWeight: 800,
+              lineHeight: 1.15,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {moduleLabel}
+          </span>
+        </span>
+
+        <span
+          aria-hidden="true"
+          className="topbar-module-arrow"
+          style={{
+            color: open
+              ? c.blue
+              : c.muted,
+            fontSize: 13,
+            lineHeight: 1,
+            transform: open
+              ? "rotate(180deg)"
+              : "rotate(0deg)",
+            transition:
+              "transform 180ms ease",
+          }}
+        >
+          ⌄
+        </span>
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="topbar-module-menu"
+          dir={
+            language === "ar"
+              ? "rtl"
+              : "ltr"
+          }
+          style={{
+            position: "absolute",
+            top: "calc(100% + 11px)",
+            insetInlineEnd: 0,
+            width: 310,
+            padding: 10,
+            borderRadius: 18,
+            background: c.panel,
+            border: `1px solid ${c.border}`,
+            boxShadow: c.shadowLg,
+          }}
+        >
+          <div
+            style={{
+              padding: "9px 10px 11px",
+              marginBottom: 7,
+              borderBottom: `1px solid ${c.border}`,
+            }}
+          >
+            <div
+              style={{
+                color: c.text,
+                fontSize: 12.5,
+                fontWeight: 850,
+              }}
+            >
+              {copy.chooseModule}
+            </div>
+
+            <div
+              style={{
+                marginTop: 3,
+                color: c.muted,
+                fontSize: 10,
+                fontWeight: 650,
+              }}
+            >
+              {activeLevel}
+            </div>
+          </div>
+
+          <div
+            style={{
+              color: c.muted,
+              fontSize: 8.5,
+              fontWeight: 850,
+              letterSpacing: ".08em",
+              textTransform: "uppercase",
+              padding: "3px 5px 7px",
+            }}
+          >
+            {copy.level}
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "1fr 1fr",
+              gap: 6,
+              marginBottom: 11,
+            }}
+          >
+            {levels.map((level) => {
+              const selected =
+                activeLevel === level;
+
+              return (
+                <button
+                  type="button"
+                  key={level}
+                  onClick={() =>
+                    selectLevel(level)
+                  }
+                  style={{
+                    minHeight: 36,
+                    padding: "0 10px",
+                    borderRadius: 10,
+                    border: `1px solid ${
+                      selected
+                        ? c.blueBorder
+                        : c.border
+                    }`,
+                    background: selected
+                      ? c.blueSoft
+                      : c.soft,
+                    color: selected
+                      ? c.blue
+                      : c.secondary,
+                    fontFamily:
+                      "inherit",
+                    fontSize: 10.5,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  }}
+                >
+                  {level}
+                </button>
+              );
+            })}
+          </div>
+
+          <div
+            style={{
+              color: c.muted,
+              fontSize: 8.5,
+              fontWeight: 850,
+              letterSpacing: ".08em",
+              textTransform: "uppercase",
+              padding: "3px 5px 7px",
+            }}
+          >
+            {copy.modules}
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gap: 3,
+              maxHeight: 280,
+              overflowY: "auto",
+              paddingInlineEnd: 2,
+            }}
+          >
+            {modules.map((module) => {
+              const selected =
+                currentModule === module;
+
+              const moduleCode =
+                module.match(
+                  /^[A-Z]\d+/
+                )?.[0] || "•";
+
+              const cleanLabel =
+                module.replace(
+                  /^[A-Z]\d+\s*/,
+                  ""
+                );
+
+              return (
+                <button
+                  type="button"
+                  role="menuitem"
+                  key={module}
+                  onClick={() =>
+                    selectModule(module)
+                  }
+                  style={{
+                    width: "100%",
+                    minHeight: 43,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 9,
+                    padding: "6px 8px",
+                    border: `1px solid ${
+                      selected
+                        ? c.blueBorder
+                        : "transparent"
+                    }`,
+                    borderRadius: 11,
+                    background: selected
+                      ? c.blueSoft
+                      : "transparent",
+                    color: selected
+                      ? c.blue
+                      : c.text,
+                    textAlign: "start",
+                    fontFamily:
+                      "inherit",
+                    cursor: "pointer",
+                  }}
+                >
+                  <span
+                    style={{
+                      minWidth: 35,
+                      height: 27,
+                      display: "grid",
+                      placeItems: "center",
+                      borderRadius: 8,
+                      background: selected
+                        ? c.panel
+                        : c.soft,
+                      color: selected
+                        ? c.blue
+                        : c.secondary,
+                      fontSize: 9,
+                      fontWeight: 900,
+                    }}
+                  >
+                    {moduleCode}
+                  </span>
+
+                  <span
+                    style={{
+                      minWidth: 0,
+                      flex: 1,
+                      fontSize: 10.5,
+                      fontWeight: selected
+                        ? 800
+                        : 650,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {cleanLabel}
+                  </span>
+
+                  {selected && (
+                    <Icon
+                      name="check"
+                      size={14}
+                      stroke={3}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </foreignObject>
-    </svg>
+      )}
+    </div>
   );
 }
 
-function Timer({ c, t, language, user, setUser }) {
-  const [settings, setSettings] = useStoredState(STORAGE.timer, {
-    focus: 25,
-    pause: 5,
-    sessions: 0,
-  });
+function Timer({
+  c,
+  t,
+  language,
+  user,
+  setUser,
+  route,
+}) {
+  const [
+    settings,
+    setSettings,
+  ] = useStoredState(
+    STORAGE.timer,
+    {
+      focus: 25,
+      pause: 5,
+      sessions: 0,
+    }
+  );
 
-  const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState("idle");
-  const [running, setRunning] = useState(false);
-  const [seconds, setSeconds] = useState(settings.focus * 60);
-  const [clock, setClock] = useState("");
-  const [clockDate, setClockDate] = useState("");
-  const [clockTick, setClockTick] = useState(() => new Date());
-  const [pomodoroLog, setPomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
-  const [pomodoroMinutesLog, setPomodoroMinutesLog] = useStoredState(STORAGE.pomodoroMinutesLog, {});
-  const todayKeyStr = (() => { const d = new Date(); return dateKey(d.getFullYear(), d.getMonth(), d.getDate()); })();
-  const todayPomodoroCount = pomodoroLog[todayKeyStr] || 0;
+  const [open, setOpen] =
+    useState(false);
 
-  const active = mode !== "idle";
-  const isBreak = mode === "break";
-  const minutes = isBreak ? settings.pause : settings.focus;
-  const totalSeconds = minutes * 60;
-  const progress = active ? ((totalSeconds - seconds) / totalSeconds) * 100 : 0;
-  const accent = isBreak ? c.green : c.blue;
+  const [mode, setMode] =
+    useState("idle");
+
+  const [running, setRunning] =
+    useState(false);
+
+  const [seconds, setSeconds] =
+    useState(
+      settings.focus * 60
+    );
+
+  const [clock, setClock] =
+    useState("");
+
+  const [
+    clockDate,
+    setClockDate,
+  ] = useState("");
+
+  const [
+    pomodoroLog,
+    setPomodoroLog,
+  ] = useStoredState(
+    STORAGE.pomodoroLog,
+    {}
+  );
+
+  const [
+    pomodoroMinutesLog,
+    setPomodoroMinutesLog,
+  ] = useStoredState(
+    STORAGE.pomodoroMinutesLog,
+    {}
+  );
+
+  const triggerRef =
+    useRef(null);
+
+  const popoverRef =
+    useRef(null);
+
+  const copy = {
+    da: {
+      homeSubtitle:
+        "Dit studieoverblik",
+      mcqSubtitle:
+        "Træn og repetér",
+      insightsTitle:
+        "Indsigter",
+      insightsSubtitle:
+        "Se din udvikling",
+      planTitle:
+        "Studieplan",
+      planSubtitle:
+        "Planlæg frem mod eksamen",
+      timerTitle:
+        "Fokustimer",
+      timerDescription:
+        "Vælg en rolig fokusblok og en passende pause.",
+      startFocus:
+        "Start fokussession",
+      openTimer:
+        "Åbn fokustimer",
+      closeTimer:
+        "Luk fokustimer",
+      quickPresets:
+        "Hurtigt valg",
+      customSession:
+        "Tilpas session",
+      focusLength:
+        "Fokuslængde",
+      breakLength:
+        "Pauselængde",
+      todaySessions:
+        "I dag",
+      todayMinutes:
+        "Fokusminutter",
+      totalSessions:
+        "I alt",
+      completed:
+        "gennemført",
+      running:
+        "Kører",
+      paused:
+        "På pause",
+      activeFocus:
+        "Fokussession",
+      activeBreak:
+        "Pause",
+      progress:
+        "Sessionens fremgang",
+      sessionsShort:
+        "sessioner",
+      resetDescription:
+        "Afslut den aktuelle session og nulstil timeren.",
+    },
+
+    en: {
+      homeSubtitle:
+        "Your study overview",
+      mcqSubtitle:
+        "Practice and review",
+      insightsTitle:
+        "Insights",
+      insightsSubtitle:
+        "View your progress",
+      planTitle:
+        "Study plan",
+      planSubtitle:
+        "Plan towards your exam",
+      timerTitle:
+        "Focus timer",
+      timerDescription:
+        "Choose a calm focus block and a suitable break.",
+      startFocus:
+        "Start focus session",
+      openTimer:
+        "Open focus timer",
+      closeTimer:
+        "Close focus timer",
+      quickPresets:
+        "Quick selection",
+      customSession:
+        "Custom session",
+      focusLength:
+        "Focus length",
+      breakLength:
+        "Break length",
+      todaySessions:
+        "Today",
+      todayMinutes:
+        "Focus minutes",
+      totalSessions:
+        "Total",
+      completed:
+        "completed",
+      running:
+        "Running",
+      paused:
+        "Paused",
+      activeFocus:
+        "Focus session",
+      activeBreak:
+        "Break",
+      progress:
+        "Session progress",
+      sessionsShort:
+        "sessions",
+      resetDescription:
+        "End the current session and reset the timer.",
+    },
+
+    ar: {
+      homeSubtitle:
+        "نظرة عامة على دراستك",
+      mcqSubtitle:
+        "تدرّب وراجع",
+      insightsTitle:
+        "الإحصاءات",
+      insightsSubtitle:
+        "اطّلع على تقدمك",
+      planTitle:
+        "خطة الدراسة",
+      planSubtitle:
+        "خطط حتى موعد الامتحان",
+      timerTitle:
+        "مؤقت التركيز",
+      timerDescription:
+        "اختر فترة تركيز هادئة واستراحة مناسبة.",
+      startFocus:
+        "ابدأ جلسة التركيز",
+      openTimer:
+        "افتح مؤقت التركيز",
+      closeTimer:
+        "أغلق مؤقت التركيز",
+      quickPresets:
+        "اختيار سريع",
+      customSession:
+        "جلسة مخصصة",
+      focusLength:
+        "مدة التركيز",
+      breakLength:
+        "مدة الاستراحة",
+      todaySessions:
+        "اليوم",
+      todayMinutes:
+        "دقائق التركيز",
+      totalSessions:
+        "الإجمالي",
+      completed:
+        "مكتمل",
+      running:
+        "قيد التشغيل",
+      paused:
+        "متوقف مؤقتًا",
+      activeFocus:
+        "جلسة تركيز",
+      activeBreak:
+        "استراحة",
+      progress:
+        "تقدم الجلسة",
+      sessionsShort:
+        "جلسات",
+      resetDescription:
+        "إنهاء الجلسة الحالية وإعادة ضبط المؤقت.",
+    },
+  }[language] || {
+    homeSubtitle:
+      "Dit studieoverblik",
+    mcqSubtitle:
+      "Træn og repetér",
+    insightsTitle:
+      "Indsigter",
+    insightsSubtitle:
+      "Se din udvikling",
+    planTitle:
+      "Studieplan",
+    planSubtitle:
+      "Planlæg frem mod eksamen",
+    timerTitle:
+      "Fokustimer",
+    timerDescription:
+      "Vælg en rolig fokusblok og en passende pause.",
+    startFocus:
+      "Start fokussession",
+    openTimer:
+      "Åbn fokustimer",
+    closeTimer:
+      "Luk fokustimer",
+    quickPresets:
+      "Hurtigt valg",
+    customSession:
+      "Tilpas session",
+    focusLength:
+      "Fokuslængde",
+    breakLength:
+      "Pauselængde",
+    todaySessions:
+      "I dag",
+    todayMinutes:
+      "Fokusminutter",
+    totalSessions:
+      "I alt",
+    completed:
+      "gennemført",
+    running:
+      "Kører",
+    paused:
+      "På pause",
+    activeFocus:
+      "Fokussession",
+    activeBreak:
+      "Pause",
+    progress:
+      "Sessionens fremgang",
+    sessionsShort:
+      "sessioner",
+    resetDescription:
+      "Afslut den aktuelle session og nulstil timeren.",
+  };
+
+  const locale =
+    language === "da"
+      ? "da-DK"
+      : language === "ar"
+        ? "ar"
+        : "en-GB";
+
+  const todayKeyStr = (() => {
+    const date = new Date();
+
+    return dateKey(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+  })();
+
+  const todayPomodoroCount =
+    pomodoroLog[todayKeyStr] ||
+    0;
+
+  const todayFocusMinutes =
+    pomodoroMinutesLog[
+      todayKeyStr
+    ] || 0;
+
+  const active =
+    mode !== "idle";
+
+  const isBreak =
+    mode === "break";
+
+  const minutes =
+    isBreak
+      ? settings.pause
+      : settings.focus;
+
+  const totalSeconds =
+    Math.max(
+      1,
+      minutes * 60
+    );
+
+  const progress = active
+    ? Math.max(
+        0,
+        Math.min(
+          100,
+          (
+            (totalSeconds -
+              seconds) /
+            totalSeconds
+          ) * 100
+        )
+      )
+    : 0;
+
+  const accent =
+    isBreak
+      ? c.green
+      : c.blue;
+
+  const accentSoft =
+    isBreak
+      ? c.greenSoft
+      : c.blueSoft;
+
+  const accentBorder =
+    isBreak
+      ? c.greenBorder
+      : c.blueBorder;
+
+  const activeLabel =
+    isBreak
+      ? copy.activeBreak
+      : copy.activeFocus;
+
+  const runningLabel =
+    running
+      ? copy.running
+      : copy.paused;
+
+  const routeData =
+    route === "mcq"
+      ? {
+          title:
+            t.clinicalMcq,
+          subtitle:
+            copy.mcqSubtitle,
+          icon:
+            "clipboard",
+        }
+      : route === "insights"
+        ? {
+            title:
+              copy.insightsTitle,
+            subtitle:
+              copy.insightsSubtitle,
+            icon:
+              "chart",
+          }
+        : route ===
+            "study-plan"
+          ? {
+              title:
+                copy.planTitle,
+              subtitle:
+                copy.planSubtitle,
+              icon:
+                "calendar",
+            }
+          : {
+              title:
+                t.home,
+              subtitle:
+                copy.homeSubtitle,
+              icon:
+                "home",
+            };
 
   useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
+    function updateClock() {
+      const now =
+        new Date();
+
       setClock(
-        now.toLocaleTimeString(undefined, {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        })
+        now.toLocaleTimeString(
+          locale,
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }
+        )
       );
+
       setClockDate(
-        now.toLocaleDateString(undefined, {
-          weekday: "short",
-          day: "2-digit",
-          month: "short",
-        })
+        now.toLocaleDateString(
+          locale,
+          {
+            weekday: "short",
+            day: "2-digit",
+            month: "short",
+          }
+        )
       );
-      setClockTick(now);
-    };
+    }
 
     updateClock();
-    const interval = setInterval(updateClock, 1000);
-    return () => clearInterval(interval);
-  }, []);
+
+    const interval =
+      window.setInterval(
+        updateClock,
+        1000
+      );
+
+    return () =>
+      window.clearInterval(
+        interval
+      );
+  }, [locale]);
 
   useEffect(() => {
-    if (!running) return undefined;
+    if (!running) {
+      return undefined;
+    }
 
-    const interval = setInterval(() => {
-      setSeconds((value) => Math.max(0, value - 1));
-    }, 1000);
+    const interval =
+      window.setInterval(() => {
+        setSeconds((value) =>
+          Math.max(
+            0,
+            value - 1
+          )
+        );
+      }, 1000);
 
-    return () => clearInterval(interval);
+    return () =>
+      window.clearInterval(
+        interval
+      );
   }, [running]);
 
   useEffect(() => {
-    if (!running || seconds !== 0) return;
+    if (
+      !running ||
+      seconds !== 0
+    ) {
+      return;
+    }
 
     if (mode === "focus") {
       setSettings((current) => ({
         ...current,
-        sessions: current.sessions + 1,
+        sessions:
+          current.sessions + 1,
       }));
+
       logPomodoroCompletion();
       recordStudyActivity();
+
       setMode("break");
-      setSeconds(settings.pause * 60);
+
+      setSeconds(
+        settings.pause * 60
+      );
     } else {
       setMode("idle");
       setRunning(false);
-      setSeconds(settings.focus * 60);
+
+      setSeconds(
+        settings.focus * 60
+      );
     }
-  }, [seconds, running, mode, settings.focus, settings.pause, setSettings]);
+  }, [
+    seconds,
+    running,
+    mode,
+    settings.focus,
+    settings.pause,
+    setSettings,
+  ]);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    function handlePointerDown(
+      event
+    ) {
+      const clickedTrigger =
+        triggerRef.current?.contains(
+          event.target
+        );
+
+      const clickedPopover =
+        popoverRef.current?.contains(
+          event.target
+        );
+
+      if (
+        !clickedTrigger &&
+        !clickedPopover
+      ) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handlePointerDown
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handlePointerDown
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+    };
+  }, [open]);
 
   function logPomodoroCompletion() {
-    setPomodoroLog((current) => ({ ...current, [todayKeyStr]: (current[todayKeyStr] || 0) + 1 }));
-    setPomodoroMinutesLog((current) => ({ ...current, [todayKeyStr]: (current[todayKeyStr] || 0) + settings.focus }));
+    setPomodoroLog(
+      (current) => ({
+        ...current,
+        [todayKeyStr]:
+          (
+            current[
+              todayKeyStr
+            ] || 0
+          ) + 1,
+      })
+    );
+
+    setPomodoroMinutesLog(
+      (current) => ({
+        ...current,
+        [todayKeyStr]:
+          (
+            current[
+              todayKeyStr
+            ] || 0
+          ) +
+          settings.focus,
+      })
+    );
   }
 
   function formatTime(value) {
-    const min = Math.floor(value / 60);
-    const sec = value % 60;
-    return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+    const minuteValue =
+      Math.floor(
+        value / 60
+      );
+
+    const secondValue =
+      value % 60;
+
+    return `${String(
+      minuteValue
+    ).padStart(
+      2,
+      "0"
+    )}:${String(
+      secondValue
+    ).padStart(
+      2,
+      "0"
+    )}`;
+  }
+
+  function updateDuration(
+    key,
+    rawValue,
+    maximum
+  ) {
+    const value =
+      Math.max(
+        1,
+        Math.min(
+          maximum,
+          Number(rawValue) || 1
+        )
+      );
+
+    setSettings(
+      (current) => ({
+        ...current,
+        [key]: value,
+      })
+    );
+
+    if (
+      key === "focus" &&
+      mode === "idle"
+    ) {
+      setSeconds(
+        value * 60
+      );
+    }
   }
 
   function startTimer() {
     setMode("focus");
-    setSeconds(settings.focus * 60);
+
+    setSeconds(
+      settings.focus * 60
+    );
+
     setRunning(true);
     setOpen(false);
   }
@@ -4926,301 +6307,1113 @@ function Timer({ c, t, language, user, setUser }) {
   function resetTimer() {
     setMode("idle");
     setRunning(false);
-    setSeconds(settings.focus * 60);
+
+    setSeconds(
+      settings.focus * 60
+    );
+
+    setOpen(false);
   }
 
+  const statistics = [
+    {
+      label:
+        copy.todaySessions,
+      value:
+        todayPomodoroCount,
+      icon:
+        "check",
+    },
+    {
+      label:
+        copy.todayMinutes,
+      value:
+        todayFocusMinutes,
+      icon:
+        "clock",
+    },
+    {
+      label:
+        copy.totalSessions,
+      value:
+        settings.sessions,
+      icon:
+        "bolt",
+    },
+  ];
+
   return (
-    <header className="app-surface app-topbar"
+    <header
+      className="app-surface app-topbar topbar-shell"
+      dir={
+        language === "ar"
+          ? "rtl"
+          : "ltr"
+      }
       style={{
         position: "relative",
         height: 70,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
         flexShrink: 0,
+        display: "grid",
+        gridTemplateColumns:
+          "minmax(0, 1fr) auto minmax(0, 1fr)",
+        alignItems: "center",
+        gap: 14,
+        padding: "0 18px",
         background: c.panel,
         borderBottom: `1px solid ${c.border}`,
       }}
     >
-      <button
-        type="button"
-        data-tour="pomodoro"
-        onClick={() => setOpen((value) => !value)}
-        aria-label={t.focusTimer}
+      <div
+        className="topbar-page-context"
         style={{
-          minWidth: 200,
+          minWidth: 0,
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          gap: 12,
-          padding: "8px 20px",
-          border: `1px solid ${active ? c.blueBorder : "transparent"}`,
-          borderRadius: 18,
-          background: active ? c.blueSoft : "transparent",
-          color: c.text,
-          cursor: "pointer",
-          direction: "ltr",
-          transition: "background 180ms ease, border-color 180ms ease",
+          gap: 10,
+          justifySelf: "start",
         }}
       >
-        {active && (
-          <PomodoroRing c={c} accent={accent} size={40} progress={progress} isBreak={isBreak} />
-        )}
+        <span
+          aria-hidden="true"
+          className="topbar-page-icon"
+          style={{
+            width: 36,
+            height: 36,
+            flexShrink: 0,
+            display: "grid",
+            placeItems: "center",
+            borderRadius: 12,
+            background: c.blueSoft,
+            border: `1px solid ${c.blueBorder}`,
+            color: c.blue,
+          }}
+        >
+          <Icon
+            name={routeData.icon}
+            size={16}
+          />
+        </span>
 
-        <span style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          {active ? (
+        <span
+          style={{
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <span
+            style={{
+              color: c.text,
+              fontSize: 12,
+              fontWeight: 850,
+              lineHeight: 1.15,
+            }}
+          >
+            {routeData.title}
+          </span>
+
+          <span
+            style={{
+              maxWidth: 220,
+              marginTop: 3,
+              color: c.muted,
+              fontSize: 9.5,
+              fontWeight: 650,
+              lineHeight: 1.2,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {routeData.subtitle}
+          </span>
+        </span>
+      </div>
+
+      <div
+        className="topbar-center"
+        style={{
+          justifySelf: "center",
+          display: "flex",
+          alignItems: "center",
+          gap: 7,
+          direction: "ltr",
+        }}
+      >
+        <button
+          ref={triggerRef}
+          type="button"
+          data-tour="pomodoro"
+          data-active={
+            active
+              ? "true"
+              : "false"
+          }
+          data-running={
+            running
+              ? "true"
+              : "false"
+          }
+          aria-label={
+            open
+              ? copy.closeTimer
+              : copy.openTimer
+          }
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          onClick={() =>
+            setOpen(
+              (value) => !value
+            )
+          }
+          className="topbar-pomodoro-trigger"
+          style={{
+            minWidth: active
+              ? 244
+              : 220,
+            minHeight: 48,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "6px 11px",
+            borderRadius: 15,
+            border: `1px solid ${
+              active
+                ? accentBorder
+                : c.border
+            }`,
+            background: active
+              ? accentSoft
+              : c.soft,
+            color: c.text,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "start",
+          }}
+        >
+          <span
+            aria-hidden="true"
+            className="topbar-pomodoro-icon"
+            style={{
+              width: 36,
+              height: 36,
+              flexShrink: 0,
+              display: "grid",
+              placeItems: "center",
+              borderRadius: 11,
+              background: active
+                ? c.panel
+                : c.blueSoft,
+              border: `1px solid ${
+                active
+                  ? accentBorder
+                  : c.blueBorder
+              }`,
+              color: active
+                ? accent
+                : c.blue,
+            }}
+          >
+            <Icon
+              name={
+                isBreak
+                  ? "coffee"
+                  : active
+                    ? "bolt"
+                    : "clock"
+              }
+              size={16}
+            />
+          </span>
+
+          <span
+            style={{
+              minWidth: 0,
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <span
+              className="topbar-pomodoro-time"
               style={{
-                display: "block",
-                color: accent,
-                fontFamily: '"Space Mono", "SFMono-Regular", Consolas, monospace',
-                fontSize: 25,
-                fontWeight: 700,
-                letterSpacing: ".02em",
-                lineHeight: 1.05,
-                fontVariantNumeric: "tabular-nums",
-                textAlign: "center",
-              }}
-            >
-              {formatTime(seconds)}
-            </span>
-          ) : (
-            <span
-              className="clock-gradient-text"
-              style={{
-                display: "block",
-                fontFamily: '"Space Mono", "SFMono-Regular", Consolas, monospace',
-                fontSize: 28,
+                color: active
+                  ? accent
+                  : c.text,
+                fontFamily:
+                  '"Space Mono", "SFMono-Regular", Consolas, monospace',
+                fontSize: active
+                  ? 20
+                  : 19,
                 fontWeight: 750,
-                letterSpacing: ".01em",
-                lineHeight: 1.05,
-                fontVariantNumeric: "tabular-nums",
-                textAlign: "center",
+                letterSpacing: ".015em",
+                lineHeight: 1,
+                fontVariantNumeric:
+                  "tabular-nums",
               }}
             >
-              {clock}
+              {active
+                ? formatTime(seconds)
+                : clock}
+            </span>
+
+            <span
+              className="topbar-pomodoro-status"
+              style={{
+                marginTop: 4,
+                color: active
+                  ? accent
+                  : c.muted,
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: ".055em",
+                lineHeight: 1,
+                textTransform: "uppercase",
+              }}
+            >
+              {active
+                ? `${activeLabel} · ${runningLabel}`
+                : t.startFocus}
+            </span>
+          </span>
+
+          {!active && (
+            <span
+              className="topbar-pomodoro-date"
+              style={{
+                paddingInlineStart: 10,
+                borderInlineStart: `1px solid ${c.border}`,
+                color: c.muted,
+                fontSize: 9.5,
+                fontWeight: 700,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {clockDate}
             </span>
           )}
 
-          <span
+          {active && (
+            <span
+              className="topbar-session-count"
+              style={{
+                minWidth: 30,
+                height: 27,
+                display: "grid",
+                placeItems: "center",
+                padding: "0 7px",
+                borderRadius: 9,
+                background: c.panel,
+                color: accent,
+                fontSize: 9.5,
+                fontWeight: 900,
+              }}
+            >
+              {todayPomodoroCount}
+            </span>
+          )}
+
+          {active && (
+            <span
+              aria-hidden="true"
+              className="topbar-pomodoro-progress"
+              style={{
+                width: `${progress}%`,
+                background: accent,
+              }}
+            />
+          )}
+        </button>
+
+        {active && (
+          <>
+            <button
+              type="button"
+              title={
+                running
+                  ? t.pause
+                  : t.resume
+              }
+              aria-label={
+                running
+                  ? t.pause
+                  : t.resume
+              }
+              onClick={() =>
+                setRunning(
+                  (value) => !value
+                )
+              }
+              className="topbar-quick-control"
+              style={{
+                width: 38,
+                height: 38,
+                display: "grid",
+                placeItems: "center",
+                padding: 0,
+                borderRadius: 12,
+                border: `1px solid ${accentBorder}`,
+                background: accentSoft,
+                color: accent,
+                cursor: "pointer",
+              }}
+            >
+              <Icon
+                name={
+                  running
+                    ? "pause"
+                    : "play"
+                }
+                size={15}
+              />
+            </button>
+
+            <button
+              type="button"
+              title={t.resetTimer}
+              aria-label={
+                t.resetTimer
+              }
+              onClick={resetTimer}
+              className="topbar-quick-control"
+              style={{
+                width: 38,
+                height: 38,
+                display: "grid",
+                placeItems: "center",
+                padding: 0,
+                borderRadius: 12,
+                border: `1px solid ${c.border}`,
+                background: c.soft,
+                color: c.secondary,
+                cursor: "pointer",
+              }}
+            >
+              <Icon
+                name="reset"
+                size={15}
+              />
+            </button>
+          </>
+        )}
+
+        {open && (
+          <section
+            ref={popoverRef}
+            role="dialog"
+            aria-label={
+              copy.timerTitle
+            }
+            className="pomodoro-popover"
             style={{
-              display: "block",
-              marginTop: 4,
-              color: active ? accent : c.muted,
-              fontFamily: '"Manrope", ui-sans-serif, system-ui, sans-serif',
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: ".08em",
-              textTransform: "uppercase",
-              textAlign: "center",
+              position: "absolute",
+              zIndex: 80,
+              top: "calc(100% + 11px)",
+              left: "50%",
+              width:
+                "min(520px, calc(100vw - 112px))",
+              padding: 17,
+              borderRadius: 21,
+              background: c.panel,
+              border: `1px solid ${c.border}`,
+              boxShadow: c.shadowLg,
+              transform:
+                "translateX(-50%)",
+              direction:
+                language === "ar"
+                  ? "rtl"
+                  : "ltr",
             }}
           >
-            {active ? (isBreak ? t.break : t.focus) : clockDate}
-          </span>
-        </span>
-      </button>
-
-      {active && (
-        <div
-          style={{
-            position: "absolute",
-            insetInlineEnd: 260,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <span
-            className="desktop-only"
-            style={{ color: c.muted, fontSize: 12 }}
-          >
-            {settings.sessions} {t.sessions}
-          </span>
-
-          <IconButton
-            c={c}
-            title={running ? t.pause : t.resume}
-            onClick={() => setRunning((value) => !value)}
-          >
-            <Icon name={running ? "pause" : "play"} size={16} />
-          </IconButton>
-
-          <IconButton c={c} title={t.resetTimer} onClick={resetTimer}>
-            <Icon name="reset" size={16} />
-          </IconButton>
-        </div>
-      )}
-
-      {active && (
-        <div
-          style={{
-            position: "absolute",
-            insetInlineStart: 0,
-            bottom: 0,
-            width: `${Math.max(0, Math.min(100, progress))}%`,
-            height: 3,
-            background: accent,
-            transition: "width 1s linear",
-          }}
-        />
-      )}
-
-      {open && !active && (
-        <section
-          className="fade-up"
-          style={{
-            position: "absolute",
-            zIndex: 30,
-            top: 80,
-            width: "min(520px, calc(100vw - 28px))",
-            padding: 16,
-            borderRadius: 20,
-            background: c.panel,
-            border: `1px solid ${c.border}`,
-            boxShadow: c.shadow,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 15,
-            }}
-          >
-            <div>
-              <div style={{ color: c.text, fontWeight: 750, fontSize: 14 }}>
-                {t.focus}
-              </div>
-              <div style={{ color: c.secondary, fontSize: 12, marginTop: 3 }}>
-                {t.chooseSession}
-              </div>
-            </div>
-
-            <IconButton c={c} title={t.close} onClick={() => setOpen(false)}>
-              <Icon name="close" size={17} />
-            </IconButton>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-              marginBottom: 12,
-            }}
-          >
-            {[
-              [t.focus, "focus", 90],
-              [t.break, "pause", 30],
-            ].map(([label, key, max]) => (
-              <label
-                key={key}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 12,
+                marginBottom: 15,
+              }}
+            >
+              <div
                 style={{
-                  padding: 13,
-                  borderRadius: 15,
-                  background: c.soft,
-                  border: `1px solid ${c.border}`,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 11,
                 }}
               >
                 <span
-                  style={{ color: c.secondary, fontSize: 12, fontWeight: 650 }}
-                >
-                  {label}
-                </span>
-
-                <span
+                  aria-hidden="true"
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    marginTop: 6,
+                    width: 38,
+                    height: 38,
+                    flexShrink: 0,
+                    display: "grid",
+                    placeItems: "center",
+                    borderRadius: 12,
+                    background: active
+                      ? accentSoft
+                      : c.blueSoft,
+                    border: `1px solid ${
+                      active
+                        ? accentBorder
+                        : c.blueBorder
+                    }`,
+                    color: active
+                      ? accent
+                      : c.blue,
                   }}
                 >
-                  <input
-                    type="number"
-                    min="1"
-                    max={max}
-                    value={settings[key]}
-                    onChange={(event) => {
-                      const value = Math.max(
-                        1,
-                        Math.min(max, Number(event.target.value) || 1)
-                      );
-
-                      setSettings((previous) => ({
-                        ...previous,
-                        [key]: value,
-                      }));
-
-                      if (key === "focus" && mode === "idle") {
-                        setSeconds(value * 60);
-                      }
-                    }}
-                    style={{
-                      width: "100%",
-                      border: 0,
-                      outline: 0,
-                      background: "transparent",
-                      color: c.text,
-                      fontSize: 22,
-                      fontWeight: 750,
-                    }}
+                  <Icon
+                    name={
+                      isBreak
+                        ? "coffee"
+                        : active
+                          ? "bolt"
+                          : "clock"
+                    }
+                    size={17}
                   />
-                  <span style={{ color: c.muted, fontSize: 13 }}>
-                    {t.minutes}
-                  </span>
                 </span>
-              </label>
-            ))}
-          </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4,1fr)",
-              gap: 7,
-              marginBottom: 13,
-            }}
-          >
-            {[15, 25, 45, 60].map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => {
-                  setSettings((previous) => ({ ...previous, focus: value }));
-                  setSeconds(value * 60);
-                }}
+                <div>
+                  <div
+                    style={{
+                      color: c.text,
+                      fontSize: 14,
+                      fontWeight: 850,
+                    }}
+                  >
+                    {active
+                      ? activeLabel
+                      : copy.timerTitle}
+                  </div>
+
+                  <div
+                    style={{
+                      maxWidth: 340,
+                      marginTop: 4,
+                      color: c.secondary,
+                      fontSize: 10.5,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {active
+                      ? `${runningLabel} · ${Math.round(
+                          progress
+                        )}% ${copy.completed}`
+                      : copy.timerDescription}
+                  </div>
+                </div>
+              </div>
+
+              <IconButton
+                c={c}
+                title={t.close}
+                onClick={() =>
+                  setOpen(false)
+                }
                 style={{
-                  minHeight: 34,
-                  borderRadius: 10,
-                  border: `1px solid ${
-                    settings.focus === value ? c.blueBorder : c.border
-                  }`,
-                  color: settings.focus === value ? c.blue : c.secondary,
-                  background: settings.focus === value ? c.blueSoft : c.soft,
-                  fontWeight: 700,
-                  fontSize: 12,
-                  cursor: "pointer",
+                  width: 34,
+                  height: 34,
+                  flexShrink: 0,
+                  border: `1px solid ${c.border}`,
+                  background: c.soft,
                 }}
               >
-                {value} {t.minutes}
-              </button>
-            ))}
-          </div>
+                <Icon
+                  name="close"
+                  size={15}
+                />
+              </IconButton>
+            </div>
 
-          <PrimaryButton onClick={startTimer} style={{ width: "100%" }}>
-            <span
-              style={{ display: "inline-flex", alignItems: "center", gap: 7 }}
-            >
-              <Icon name="play" size={15} />
-              {t.startFocus}
-            </span>
-          </PrimaryButton>
-        </section>
-      )}
+            {active ? (
+              <>
+                <div
+                  style={{
+                    padding: 18,
+                    borderRadius: 17,
+                    background: accentSoft,
+                    border: `1px solid ${accentBorder}`,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 7,
+                        color: accent,
+                        fontSize: 10,
+                        fontWeight: 850,
+                        letterSpacing: ".07em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 7,
+                          height: 7,
+                          borderRadius: 99,
+                          background: accent,
+                          boxShadow: running
+                            ? `0 0 0 5px ${accent}18`
+                            : "none",
+                        }}
+                      />
 
-      <ModuleSwitcher c={c} language={language} user={user} setUser={setUser} />
+                      {runningLabel}
+                    </div>
+
+                    <div
+                      style={{
+                        color: accent,
+                        fontSize: 10,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {Math.round(
+                        progress
+                      )}
+                      %
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 17,
+                      color: accent,
+                      fontFamily:
+                        '"Space Mono", "SFMono-Regular", Consolas, monospace',
+                      fontSize:
+                        "clamp(38px, 8vw, 54px)",
+                      fontWeight: 750,
+                      letterSpacing: "-.035em",
+                      lineHeight: 1,
+                      textAlign: "center",
+                      fontVariantNumeric:
+                        "tabular-nums",
+                    }}
+                  >
+                    {formatTime(
+                      seconds
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      height: 7,
+                      marginTop: 18,
+                      overflow: "hidden",
+                      borderRadius: 99,
+                      background: c.panel,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${progress}%`,
+                        height: "100%",
+                        borderRadius: 99,
+                        background: accent,
+                        transition:
+                          "width 1s linear",
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      marginTop: 8,
+                      color: c.secondary,
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span>
+                      {copy.progress}
+                    </span>
+
+                    <span>
+                      {minutes}
+                      {" "}
+                      {t.minutes}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "1fr 1fr",
+                    gap: 9,
+                    marginTop: 12,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRunning(
+                        (value) =>
+                          !value
+                      )
+                    }
+                    className="pomodoro-control-button"
+                    style={{
+                      minHeight: 44,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "0 15px",
+                      border: 0,
+                      borderRadius: 12,
+                      background: accent,
+                      color: "#fff",
+                      boxShadow: `0 9px 20px ${accent}30`,
+                      fontFamily:
+                        "inherit",
+                      fontSize: 11.5,
+                      fontWeight: 850,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Icon
+                      name={
+                        running
+                          ? "pause"
+                          : "play"
+                      }
+                      size={15}
+                    />
+
+                    {running
+                      ? t.pause
+                      : t.resume}
+                  </button>
+
+                  <button
+                    type="button"
+                    title={
+                      copy.resetDescription
+                    }
+                    onClick={
+                      resetTimer
+                    }
+                    className="pomodoro-control-button"
+                    style={{
+                      minHeight: 44,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "0 15px",
+                      borderRadius: 12,
+                      border: `1px solid ${c.borderStrong}`,
+                      background: c.soft,
+                      color: c.secondary,
+                      fontFamily:
+                        "inherit",
+                      fontSize: 11.5,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Icon
+                      name="reset"
+                      size={15}
+                    />
+
+                    {t.resetTimer}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div
+                  className="pomodoro-stats-grid"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(3, minmax(0, 1fr))",
+                    gap: 8,
+                    marginBottom: 15,
+                  }}
+                >
+                  {statistics.map(
+                    (stat) => (
+                      <div
+                        key={
+                          stat.label
+                        }
+                        style={{
+                          minWidth: 0,
+                          padding:
+                            "10px 11px",
+                          borderRadius: 13,
+                          background: c.soft,
+                          border: `1px solid ${c.border}`,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 6,
+                            color: c.muted,
+                          }}
+                        >
+                          <span
+                            style={{
+                              minWidth: 0,
+                              fontSize: 8.5,
+                              fontWeight: 800,
+                              letterSpacing: ".045em",
+                              textTransform: "uppercase",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {stat.label}
+                          </span>
+
+                          <Icon
+                            name={
+                              stat.icon
+                            }
+                            size={12}
+                          />
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 6,
+                            color: c.text,
+                            fontSize: 18,
+                            fontWeight: 900,
+                            lineHeight: 1,
+                          }}
+                        >
+                          {stat.value}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    marginBottom: 8,
+                    color: c.muted,
+                    fontSize: 8.5,
+                    fontWeight: 850,
+                    letterSpacing: ".08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {copy.quickPresets}
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(4, 1fr)",
+                    gap: 7,
+                    marginBottom: 15,
+                  }}
+                >
+                  {[15, 25, 45, 60].map(
+                    (value) => {
+                      const selected =
+                        settings.focus ===
+                        value;
+
+                      return (
+                        <button
+                          type="button"
+                          key={value}
+                          onClick={() =>
+                            updateDuration(
+                              "focus",
+                              value,
+                              90
+                            )
+                          }
+                          className="pomodoro-preset"
+                          style={{
+                            minHeight: 53,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 3,
+                            padding: "5px 7px",
+                            borderRadius: 12,
+                            border: `1px solid ${
+                              selected
+                                ? c.blueBorder
+                                : c.border
+                            }`,
+                            background: selected
+                              ? c.blueSoft
+                              : c.soft,
+                            color: selected
+                              ? c.blue
+                              : c.secondary,
+                            fontFamily:
+                              "inherit",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 15,
+                              fontWeight: 900,
+                              lineHeight: 1,
+                            }}
+                          >
+                            {value}
+                          </span>
+
+                          <span
+                            style={{
+                              fontSize: 8.5,
+                              fontWeight: 750,
+                            }}
+                          >
+                            {t.minutes}
+                          </span>
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    marginBottom: 8,
+                    color: c.muted,
+                    fontSize: 8.5,
+                    fontWeight: 850,
+                    letterSpacing: ".08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {copy.customSession}
+                </div>
+
+                <div
+                  className="pomodoro-duration-grid"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "1fr 1fr",
+                    gap: 9,
+                    marginBottom: 14,
+                  }}
+                >
+                  {[
+                    {
+                      label:
+                        copy.focusLength,
+                      key:
+                        "focus",
+                      maximum:
+                        90,
+                      icon:
+                        "bolt",
+                      color:
+                        c.blue,
+                      soft:
+                        c.blueSoft,
+                      border:
+                        c.blueBorder,
+                    },
+                    {
+                      label:
+                        copy.breakLength,
+                      key:
+                        "pause",
+                      maximum:
+                        30,
+                      icon:
+                        "coffee",
+                      color:
+                        c.green,
+                      soft:
+                        c.greenSoft,
+                      border:
+                        c.greenBorder,
+                    },
+                  ].map((field) => (
+                    <label
+                      key={field.key}
+                      className="pomodoro-duration-card"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 11,
+                        padding: "11px 12px",
+                        borderRadius: 14,
+                        background: c.soft,
+                        border: `1px solid ${c.border}`,
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 34,
+                          height: 34,
+                          flexShrink: 0,
+                          display: "grid",
+                          placeItems: "center",
+                          borderRadius: 10,
+                          background:
+                            field.soft,
+                          border: `1px solid ${field.border}`,
+                          color:
+                            field.color,
+                        }}
+                      >
+                        <Icon
+                          name={
+                            field.icon
+                          }
+                          size={15}
+                        />
+                      </span>
+
+                      <span
+                        style={{
+                          minWidth: 0,
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: c.secondary,
+                            fontSize: 9.5,
+                            fontWeight: 750,
+                          }}
+                        >
+                          {field.label}
+                        </span>
+
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "baseline",
+                            gap: 5,
+                            marginTop: 3,
+                          }}
+                        >
+                          <input
+                            type="number"
+                            min="1"
+                            max={
+                              field.maximum
+                            }
+                            value={
+                              settings[
+                                field.key
+                              ]
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateDuration(
+                                field.key,
+                                event
+                                  .target
+                                  .value,
+                                field.maximum
+                              )
+                            }
+                            className="pomodoro-number-input"
+                            style={{
+                              width: 58,
+                              padding: 0,
+                              border: 0,
+                              background: "transparent",
+                              color: c.text,
+                              fontFamily:
+                                "inherit",
+                              fontSize: 18,
+                              fontWeight: 900,
+                              lineHeight: 1,
+                            }}
+                          />
+
+                          <span
+                            style={{
+                              color: c.muted,
+                              fontSize: 9.5,
+                              fontWeight: 700,
+                            }}
+                          >
+                            {t.minutes}
+                          </span>
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+
+                <PrimaryButton
+                  onClick={startTimer}
+                  style={{
+                    width: "100%",
+                    minHeight: 46,
+                    borderRadius: 13,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Icon
+                      name="play"
+                      size={15}
+                    />
+
+                    {copy.startFocus}
+                  </span>
+                </PrimaryButton>
+              </>
+            )}
+          </section>
+        )}
+      </div>
+
+      <ModuleSwitcher
+        c={c}
+        t={t}
+        language={language}
+        user={user}
+        setUser={setUser}
+      />
     </header>
   );
 }
@@ -22292,7 +24485,7 @@ useEffect(() => {
           flexDirection: "column",
         }}
       >
-        <Timer c={c} t={t} language={language} user={user} setUser={setUser} />
+        <Timer c={c} t={t} language={language} user={user} setUser={setUser} route={route} />
 
         <div className="app-main-area"
           style={{
