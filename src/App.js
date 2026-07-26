@@ -25224,13 +25224,13 @@ useEffect(() => {
             ) : (
               <>
                 <button
-                  type="button"
-                  onClick={() => {
-                    className="ui-button ui-button--ghost"
-                    setSessionScope(null);
-                    setRoute("home");
-                  }}
-                  style={{
+  type="button"
+  className="ui-button ui-button--ghost"
+  onClick={() => {
+    setSessionScope(null);
+    setRoute("home");
+  }}
+  style={{
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 4,
