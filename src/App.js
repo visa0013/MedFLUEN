@@ -10787,6 +10787,26 @@ const [archiveStatus, setArchiveStatus] =
 const [archiveSearch, setArchiveSearch] =
   useState("");
 
+  const [
+  importHistory,
+  setImportHistory,
+] = useState([]);
+
+const [
+  importHistoryLoading,
+  setImportHistoryLoading,
+] = useState(true);
+
+const [
+  importHistoryError,
+  setImportHistoryError,
+] = useState("");
+
+const [
+  importHistorySearch,
+  setImportHistorySearch,
+] = useState("");
+
   const [dashboardStats, setDashboardStats] =
   useState({
     totalQuestions: 0,
@@ -11048,6 +11068,39 @@ const filteredArchivedQuestions =
       );
     }
   );
+
+const normalizedImportHistorySearch =
+  importHistorySearch
+    .trim()
+    .toLocaleLowerCase(
+      adminFilterLocale
+    );
+
+const filteredImportHistory =
+  importHistory.filter((item) => {
+    if (!normalizedImportHistorySearch) {
+      return true;
+    }
+
+    const searchableText = [
+      item.filename,
+      item.format,
+      item.moduleId,
+      item.lectureId,
+      item.status,
+      item.errorMessage,
+      item.id,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase(
+        adminFilterLocale
+      );
+
+    return searchableText.includes(
+      normalizedImportHistorySearch
+    );
+  });
 
   function tryUnlock() {
     if (simpleHash(passcode.trim()) === ADMIN_PASSCODE_HASH) {
@@ -11438,6 +11491,101 @@ useEffect(() => {
   }
 
   loadArchivedQuestions();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  unlocked,
+  dashboardRefreshKey,
+  language,
+]);
+
+useEffect(() => {
+  if (!unlocked) return undefined;
+
+  let cancelled = false;
+
+  async function loadImportHistory() {
+    setImportHistoryLoading(true);
+    setImportHistoryError("");
+
+    try {
+      const { data, error } =
+        await supabase.rpc(
+          "admin_list_import_history",
+          {
+            p_limit: 200,
+          }
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      if (cancelled) return;
+
+      const normalizedHistory = (
+        Array.isArray(data) ? data : []
+      ).map((item) => ({
+        id: item.id,
+        status:
+          item.status || "completed",
+        format: item.format || "",
+        filename: item.filename || "",
+        moduleId:
+          item.module_id || "",
+        lectureId:
+          item.lecture_id || null,
+        totalCount: Number(
+          item.total_count || 0
+        ),
+        importedCount: Number(
+          item.imported_count || 0
+        ),
+        skippedCount: Number(
+          item.skipped_count || 0
+        ),
+        issueCount: Number(
+          item.issue_count || 0
+        ),
+        errorMessage:
+          item.error_message || "",
+        createdBy:
+          item.created_by || null,
+        createdAt:
+          item.created_at || null,
+      }));
+
+      setImportHistory(
+        normalizedHistory
+      );
+    } catch (error) {
+      console.error(
+        "Kunne ikke hente importhistorikken:",
+        error
+      );
+
+      if (!cancelled) {
+        setImportHistory([]);
+
+        setImportHistoryError(
+          error?.message ||
+            (language === "en"
+              ? "The import history could not be loaded."
+              : language === "ar"
+                ? "تعذر تحميل سجل الاستيراد."
+                : "Importhistorikken kunne ikke hentes.")
+        );
+      }
+    } finally {
+      if (!cancelled) {
+        setImportHistoryLoading(false);
+      }
+    }
+  }
+
+  loadImportHistory();
 
   return () => {
     cancelled = true;
@@ -11892,6 +12040,7 @@ const adminSections = [
         : language === "ar"
           ? "مراجعة عمليات الاستيراد السابقة ونتائجها."
           : "Gennemgå tidligere importer og deres resultater.",
+          badge: importHistory.length,
   },
   {
     key: "audit",
@@ -12888,13 +13037,18 @@ if (creatingAdminQuestion) {
       {adminTab === "import" ? (
   <div style={{ marginBottom: 20 }}>
     <ImportQuestionsModal
-      c={c}
-      t={t}
-      language={language}
-      user={user}
-      embedded
-      onClose={() => {}}
-    />
+  c={c}
+  t={t}
+  language={language}
+  user={user}
+  embedded
+  onClose={() => {}}
+  onImportRecorded={() =>
+    setDashboardRefreshKey(
+      (previous) => previous + 1
+    )
+  }
+/>
   </div>
 ) : adminTab === "questions" ? (
           <div
@@ -14111,6 +14265,599 @@ color:
               )}
             </div>
           )}
+                </div>
+      ) : adminTab === "importHistory" ? (
+        <div
+          style={{
+            marginBottom: 20,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent:
+                "space-between",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  color: c.text,
+                  fontSize: 14,
+                  fontWeight: 800,
+                }}
+              >
+                {language === "en"
+                  ? "Recorded imports"
+                  : language === "ar"
+                    ? "عمليات الاستيراد المسجلة"
+                    : "Registrerede importer"}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 3,
+                  color: c.muted,
+                  fontSize: 10.5,
+                  fontWeight: 650,
+                }}
+              >
+                {importHistorySearch.trim()
+                  ? `${filteredImportHistory.length} / ${importHistory.length}`
+                  : importHistory.length}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 8,
+              }}
+            >
+              <input
+                type="search"
+                value={importHistorySearch}
+                onChange={(event) =>
+                  setImportHistorySearch(
+                    event.target.value
+                  )
+                }
+                aria-label={
+                  language === "en"
+                    ? "Search import history"
+                    : language === "ar"
+                      ? "البحث في سجل الاستيراد"
+                      : "Søg i importhistorikken"
+                }
+                placeholder={
+                  language === "en"
+                    ? "Search filename, module or status..."
+                    : language === "ar"
+                      ? "ابحث عن ملف أو وحدة أو حالة..."
+                      : "Søg efter fil, modul eller status..."
+                }
+                style={{
+                  width:
+                    "min(360px, 100%)",
+                  minHeight: 40,
+                  padding: "0 13px",
+                  borderRadius: 11,
+                  border: `1px solid ${c.borderStrong}`,
+                  outline: "none",
+                  background: c.panel,
+                  color: c.text,
+                  fontSize: 12,
+                  fontFamily: "inherit",
+                }}
+              />
+
+              <button
+                type="button"
+                disabled={
+                  importHistoryLoading
+                }
+                onClick={() =>
+                  setDashboardRefreshKey(
+                    (previous) =>
+                      previous + 1
+                  )
+                }
+                style={{
+                  minHeight: 40,
+                  padding: "0 13px",
+                  borderRadius: 11,
+                  border: `1px solid ${c.borderStrong}`,
+                  background: c.soft,
+                  color: c.text,
+                  fontSize: 11.5,
+                  fontWeight: 800,
+                  fontFamily: "inherit",
+                  cursor:
+                    importHistoryLoading
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity:
+                    importHistoryLoading
+                      ? 0.6
+                      : 1,
+                }}
+              >
+                {importHistoryLoading
+                  ? language === "en"
+                    ? "Updating..."
+                    : language === "ar"
+                      ? "جارٍ التحديث..."
+                      : "Opdaterer..."
+                  : language === "en"
+                    ? "Refresh"
+                    : language === "ar"
+                      ? "تحديث"
+                      : "Opdatér"}
+              </button>
+            </div>
+          </div>
+
+          {importHistoryLoading ? (
+            <div
+              style={{
+                minHeight: 220,
+                display: "grid",
+                placeItems: "center",
+                padding: 24,
+                borderRadius: 16,
+                background: c.panel,
+                border: `1px solid ${c.border}`,
+                color: c.muted,
+                fontSize: 12,
+              }}
+            >
+              {language === "en"
+                ? "Loading import history..."
+                : language === "ar"
+                  ? "جارٍ تحميل سجل الاستيراد..."
+                  : "Henter importhistorikken..."}
+            </div>
+          ) : importHistoryError ? (
+            <div
+              role="alert"
+              style={{
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: c.redSoft,
+                border: `1px solid ${c.redBorder}`,
+                color: c.red,
+                fontSize: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              {importHistoryError}
+            </div>
+          ) : filteredImportHistory
+              .length === 0 ? (
+            <div
+              style={{
+                minHeight: 240,
+                display: "grid",
+                placeItems: "center",
+                padding: 28,
+                borderRadius: 16,
+                background: c.panel,
+                border: `1px dashed ${c.borderStrong}`,
+                textAlign: "center",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    width: 50,
+                    height: 50,
+                    display: "grid",
+                    placeItems: "center",
+                    margin:
+                      "0 auto 13px",
+                    borderRadius: 15,
+                    background: c.soft,
+                    color: c.muted,
+                    fontSize: 21,
+                  }}
+                  aria-hidden="true"
+                >
+                  ↥
+                </div>
+
+                <div
+                  style={{
+                    color: c.text,
+                    fontSize: 14,
+                    fontWeight: 800,
+                  }}
+                >
+                  {importHistory.length === 0
+                    ? language === "en"
+                      ? "No imports recorded yet"
+                      : language === "ar"
+                        ? "لم يتم تسجيل أي عمليات استيراد بعد"
+                        : "Ingen importer registreret endnu"
+                    : language === "en"
+                      ? "No matching imports"
+                      : language === "ar"
+                        ? "لا توجد عمليات استيراد مطابقة"
+                        : "Ingen matchende importer"}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 7,
+                    color: c.muted,
+                    fontSize: 11.5,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {importHistory.length === 0
+                    ? language === "en"
+                      ? "New import attempts will appear here."
+                      : language === "ar"
+                        ? "ستظهر محاولات الاستيراد الجديدة هنا."
+                        : "Nye importforsøg vises her."
+                    : language === "en"
+                      ? "Try another search."
+                      : language === "ar"
+                        ? "جرّب بحثًا آخر."
+                        : "Prøv en anden søgning."}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gap: 11,
+              }}
+            >
+              {filteredImportHistory.map(
+                (item) => {
+                  const completed =
+                    item.status ===
+                    "completed";
+
+                  const sourceLabel =
+                    item.filename ||
+                    (item.format ===
+                    "csv"
+                      ? "CSV / TSV"
+                      : "JSON");
+
+                  return (
+                    <article
+                      key={item.id}
+                      style={{
+                        padding: "15px 16px",
+                        borderRadius: 14,
+                        background: c.panel,
+                        border: `1px solid ${c.border}`,
+                        boxShadow: c.shadow,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems:
+                            "flex-start",
+                          justifyContent:
+                            "space-between",
+                          flexWrap: "wrap",
+                          gap: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            minWidth: 0,
+                            flex: "1 1 280px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems:
+                                "center",
+                              flexWrap: "wrap",
+                              gap: 8,
+                            }}
+                          >
+                            <span
+                              style={{
+                                padding:
+                                  "4px 8px",
+                                borderRadius: 99,
+                                background:
+                                  completed
+                                    ? c.greenSoft
+                                    : c.redSoft,
+                                border: `1px solid ${
+                                  completed
+                                    ? c.greenBorder
+                                    : c.redBorder
+                                }`,
+                                color:
+                                  completed
+                                    ? c.green
+                                    : c.red,
+                                fontSize: 10,
+                                fontWeight: 850,
+                              }}
+                            >
+                              {completed
+                                ? language ===
+                                  "en"
+                                  ? "Completed"
+                                  : language ===
+                                      "ar"
+                                    ? "مكتمل"
+                                    : "Gennemført"
+                                : language ===
+                                    "en"
+                                  ? "Failed"
+                                  : language ===
+                                      "ar"
+                                    ? "فشل"
+                                    : "Mislykket"}
+                            </span>
+
+                            <div
+                              title={sourceLabel}
+                              style={{
+                                minWidth: 0,
+                                color: c.text,
+                                fontSize: 13,
+                                fontWeight: 800,
+                                overflow:
+                                  "hidden",
+                                textOverflow:
+                                  "ellipsis",
+                                whiteSpace:
+                                  "nowrap",
+                              }}
+                            >
+                              {sourceLabel}
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems:
+                                "center",
+                              flexWrap: "wrap",
+                              gap: 6,
+                              marginTop: 9,
+                            }}
+                          >
+                            <span
+                              style={{
+                                padding:
+                                  "3px 7px",
+                                borderRadius: 99,
+                                background:
+                                  c.blueSoft,
+                                color: c.blue,
+                                fontSize: 9.5,
+                                fontWeight: 750,
+                              }}
+                            >
+                              {item.moduleId ||
+                                "—"}
+                            </span>
+
+                            {item.lectureId && (
+                              <span
+                                title={getAdminLectureLabel(
+                                  item.lectureId,
+                                  item.moduleId
+                                )}
+                                style={{
+                                  maxWidth: 320,
+                                  padding:
+                                    "3px 7px",
+                                  borderRadius: 99,
+                                  background:
+                                    c.soft,
+                                  border: `1px solid ${c.border}`,
+                                  color:
+                                    c.secondary,
+                                  fontSize: 9.5,
+                                  fontWeight: 700,
+                                  overflow:
+                                    "hidden",
+                                  textOverflow:
+                                    "ellipsis",
+                                  whiteSpace:
+                                    "nowrap",
+                                }}
+                              >
+                                {getAdminLectureLabel(
+                                  item.lectureId,
+                                  item.moduleId
+                                )}
+                              </span>
+                            )}
+
+                            {item.format && (
+                              <span
+                                style={{
+                                  padding:
+                                    "3px 7px",
+                                  borderRadius: 99,
+                                  background:
+                                    c.soft,
+                                  border: `1px solid ${c.border}`,
+                                  color: c.muted,
+                                  fontSize: 9.5,
+                                  fontWeight: 750,
+                                  textTransform:
+                                    "uppercase",
+                                }}
+                              >
+                                {item.format}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            color: c.muted,
+                            fontSize: 10.5,
+                            fontWeight: 650,
+                            whiteSpace:
+                              "nowrap",
+                          }}
+                        >
+                          {item.createdAt
+                            ? new Date(
+                                item.createdAt
+                              ).toLocaleString(
+                                adminFilterLocale,
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute:
+                                    "2-digit",
+                                }
+                              )
+                            : "—"}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns:
+                            "repeat(auto-fit, minmax(120px, 1fr))",
+                          gap: 8,
+                          marginTop: 14,
+                        }}
+                      >
+                        {[
+                          {
+                            label:
+                              language ===
+                              "en"
+                                ? "Found"
+                                : language ===
+                                    "ar"
+                                  ? "تم العثور"
+                                  : "Fundet",
+                            value:
+                              item.totalCount,
+                          },
+                          {
+                            label:
+                              language ===
+                              "en"
+                                ? "Imported"
+                                : language ===
+                                    "ar"
+                                  ? "تم الاستيراد"
+                                  : "Importeret",
+                            value:
+                              item.importedCount,
+                          },
+                          {
+                            label:
+                              language ===
+                              "en"
+                                ? "Skipped"
+                                : language ===
+                                    "ar"
+                                  ? "تم التخطي"
+                                  : "Sprunget over",
+                            value:
+                              item.skippedCount,
+                          },
+                          {
+                            label:
+                              language ===
+                              "en"
+                                ? "Issues"
+                                : language ===
+                                    "ar"
+                                  ? "مشكلات"
+                                  : "Problemer",
+                            value:
+                              item.issueCount,
+                          },
+                        ].map((stat) => (
+                          <div
+                            key={stat.label}
+                            style={{
+                              padding:
+                                "9px 10px",
+                              borderRadius: 10,
+                              background:
+                                c.soft,
+                              border: `1px solid ${c.border}`,
+                            }}
+                          >
+                            <div
+                              style={{
+                                color:
+                                  c.muted,
+                                fontSize: 9.5,
+                                fontWeight: 700,
+                              }}
+                            >
+                              {stat.label}
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 4,
+                                color: c.text,
+                                fontSize: 16,
+                                fontWeight: 850,
+                              }}
+                            >
+                              {stat.value}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {item.errorMessage && (
+                        <div
+                          role="alert"
+                          style={{
+                            marginTop: 12,
+                            padding:
+                              "10px 11px",
+                            borderRadius: 10,
+                            background:
+                              c.redSoft,
+                            border: `1px solid ${c.redBorder}`,
+                            color: c.red,
+                            fontSize: 11,
+                            lineHeight: 1.5,
+                            overflowWrap:
+                              "anywhere",
+                          }}
+                        >
+                          {item.errorMessage}
+                        </div>
+                      )}
+                    </article>
+                  );
+                }
+              )}
+            </div>
+          )}
         </div>
       ) : adminTab === "overview" ? (
         <>
@@ -14624,7 +15371,15 @@ function questionFingerprint(rawQuestionText) {
   return String(rawQuestionText || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function ImportQuestionsModal({ c, t, language, user, onClose, embedded = false }) {
+function ImportQuestionsModal({
+  c,
+  t,
+  language,
+  user,
+  onClose,
+  embedded = false,
+  onImportRecorded = null,
+}) {
   const [format, setFormat] = useState("json");
   const [text, setText] = useState("");
   const [moduleId, setModuleId] = useState(user?.module || "");
@@ -14753,6 +15508,49 @@ function ImportQuestionsModal({ c, t, language, user, onClose, embedded = false 
     setPreview(result);
   }
 
+async function recordImportHistory({
+  historyStatus,
+  importedCount = 0,
+  errorMessage = null,
+}) {
+  const candidateCount =
+    preview?.candidates?.length || 0;
+
+  const issueCount =
+    preview?.errors?.length || 0;
+
+  const skippedCount =
+    preview?.candidates?.filter(
+      (candidate) => candidate.excluded
+    ).length || 0;
+
+  const totalCount =
+    candidateCount + issueCount;
+
+  const { error } = await supabase.rpc(
+    "admin_record_import_history",
+    {
+      p_status: historyStatus,
+      p_format: format || null,
+      p_filename: fileName || null,
+      p_module_id: moduleId || null,
+      p_lecture_id:
+        lectureId || null,
+      p_total_count: totalCount,
+      p_imported_count:
+        importedCount,
+      p_skipped_count: skippedCount,
+      p_issue_count: issueCount,
+      p_error_message:
+        errorMessage || null,
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+}  
+  
 async function confirmImport() {
   if (
     isImporting ||
@@ -14818,9 +15616,30 @@ async function confirmImport() {
     await pullQuestionBankIntoLocalStorage();
 
     const importedCount =
-      Number(data?.importedCount) || toImport.length;
+  Number(data?.importedCount) ||
+  toImport.length;
 
-    setStatus({
+try {
+  await recordImportHistory({
+    historyStatus: "completed",
+    importedCount,
+    errorMessage: null,
+  });
+} catch (historyError) {
+  console.error(
+    "Importen lykkedes, men historikken kunne ikke gemmes:",
+    historyError
+  );
+}
+
+if (
+  typeof onImportRecorded ===
+  "function"
+) {
+  onImportRecorded();
+}
+
+setStatus({
       type: "success",
       message: t.importSuccess(importedCount),
     });
@@ -14833,17 +15652,40 @@ async function confirmImport() {
       fileInputRef.current.value = "";
     }
   } catch (error) {
-    console.error(
-      "Kunne ikke importere spørgsmål til Supabase:",
-      error
-    );
+  console.error(
+    "Kunne ikke importere spørgsmål til Supabase:",
+    error
+  );
 
-    setStatus({
-      type: "error",
-      message:
-        error?.message ||
-        t.importError,
+  const importErrorMessage =
+    error?.message || t.importError;
+
+  try {
+    await recordImportHistory({
+      historyStatus: "failed",
+      importedCount: 0,
+      errorMessage:
+        importErrorMessage,
     });
+  } catch (historyError) {
+    console.error(
+      "Den mislykkede import kunne ikke registreres:",
+      historyError
+    );
+  }
+
+  if (
+    typeof onImportRecorded ===
+    "function"
+  ) {
+    onImportRecorded();
+  }
+
+  setStatus({
+    type: "error",
+    message:
+      importErrorMessage,
+  });
   } finally {
     setIsImporting(false);
   }
