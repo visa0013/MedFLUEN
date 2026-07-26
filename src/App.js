@@ -12286,6 +12286,138 @@ const openFlags = flagged.filter(
   (item) => item.status === "open"
 );
 
+const sevenDaysInMilliseconds =
+  7 * 24 * 60 * 60 * 1000;
+
+const recentFailedImports =
+  importHistory.filter((item) => {
+    if (item.status !== "failed") {
+      return false;
+    }
+
+    const createdTimestamp =
+      new Date(item.createdAt).getTime();
+
+    if (
+      !Number.isFinite(
+        createdTimestamp
+      )
+    ) {
+      return false;
+    }
+
+    return (
+      Date.now() -
+        createdTimestamp <=
+      sevenDaysInMilliseconds
+    );
+  });
+
+const questionsWithoutLecture =
+  imported.filter((question) => {
+    return !String(
+      question.lectureId || ""
+    ).trim();
+  });
+
+const adminWarnings = [
+  {
+    key: "openFlags",
+    count: openFlags.length,
+    level: "danger",
+    symbol: "!",
+    title:
+      language === "en"
+        ? "Open question flags"
+        : language === "ar"
+          ? "بلاغات الأسئلة المفتوحة"
+          : "Åbne spørgsmålsflags",
+    description:
+      language === "en"
+        ? "Users have reported questions that require administrative review."
+        : language === "ar"
+          ? "أبلغ المستخدمون عن أسئلة تحتاج إلى مراجعة إدارية."
+          : "Brugere har rapporteret spørgsmål, som kræver administrativ behandling.",
+    actionLabel:
+      language === "en"
+        ? "Review flags"
+        : language === "ar"
+          ? "مراجعة البلاغات"
+          : "Behandl flags",
+    onOpen: () =>
+      setAdminTab("flagged"),
+  },
+  {
+    key: "failedImports",
+    count:
+      recentFailedImports.length,
+    level: "danger",
+    symbol: "↥",
+    title:
+      language === "en"
+        ? "Recent failed imports"
+        : language === "ar"
+          ? "عمليات استيراد فاشلة حديثة"
+          : "Nyligt mislykkede importer",
+    description:
+      language === "en"
+        ? "One or more imports have failed during the past seven days."
+        : language === "ar"
+          ? "فشلت عملية استيراد واحدة أو أكثر خلال الأيام السبعة الماضية."
+          : "En eller flere importer er mislykkedes inden for de seneste syv dage.",
+    actionLabel:
+      language === "en"
+        ? "View import history"
+        : language === "ar"
+          ? "عرض سجل الاستيراد"
+          : "Se importhistorik",
+    onOpen: () =>
+      setAdminTab("importHistory"),
+  },
+  {
+    key: "missingLectures",
+    count:
+      questionsWithoutLecture.length,
+    level: "info",
+    symbol: "?",
+    title:
+      language === "en"
+        ? "Questions without a lecture"
+        : language === "ar"
+          ? "أسئلة بدون محاضرة"
+          : "Spørgsmål uden forelæsning",
+    description:
+      language === "en"
+        ? "Published questions without a lecture may not appear in the intended lecture deck."
+        : language === "ar"
+          ? "قد لا تظهر الأسئلة المنشورة بدون محاضرة في المجموعة المقصودة."
+          : "Publicerede spørgsmål uden forelæsning vises muligvis ikke i den tilsigtede forelæsningsbunke.",
+    actionLabel:
+      language === "en"
+        ? "Open question bank"
+        : language === "ar"
+          ? "فتح بنك الأسئلة"
+          : "Åbn Spørgsmålsbanken",
+    onOpen: () => {
+      setQuestionSearch("");
+      setQuestionModuleFilter("all");
+      setQuestionLectureFilter(
+        "all"
+      );
+      setAdminTab("questions");
+    },
+  },
+].filter(
+  (warning) => warning.count > 0
+);
+
+const adminWarningCount =
+  adminWarnings.reduce(
+    (total, warning) =>
+      total + warning.count,
+    0
+  );
+
 const activityActionLabels = {
   question_created:
     language === "en"
@@ -12359,6 +12491,7 @@ const adminSections = [
         : language === "ar"
           ? "الحالة والنشاط والإجراءات السريعة."
           : "Status, aktivitet og hurtige handlinger.",
+          badge: adminWarningCount,
   },
   {
     key: "questions",
@@ -13369,13 +13502,15 @@ if (creatingAdminQuestion) {
               placeItems: "center",
               borderRadius: 99,
               background:
-                section.key === "flagged"
-                  ? c.redSoft
-                  : c.blueSoft,
-              color:
-                section.key === "flagged"
-                  ? c.red
-                  : c.blue,
+  section.key === "flagged" ||
+  section.key === "overview"
+    ? c.redSoft
+    : c.blueSoft,
+color:
+  section.key === "flagged" ||
+  section.key === "overview"
+    ? c.red
+    : c.blue,
               fontSize: 10,
               fontWeight: 850,
               flexShrink: 0,
@@ -15993,7 +16128,339 @@ color:
     {dashboardError}
   </div>
 )}
-        
+
+  <section
+  style={{
+    marginBottom: 18,
+    padding: 20,
+    borderRadius: 16,
+    background: c.panel,
+    border: `1px solid ${c.border}`,
+    boxShadow: c.shadow,
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "flex-start",
+      justifyContent:
+        "space-between",
+      flexWrap: "wrap",
+      gap: 12,
+      marginBottom: 15,
+    }}
+  >
+    <div>
+      <div
+        style={{
+          color: c.text,
+          fontSize: 14,
+          fontWeight: 800,
+        }}
+      >
+        {language === "en"
+          ? "Requires attention"
+          : language === "ar"
+            ? "يتطلب الانتباه"
+            : "Kræver opmærksomhed"}
+      </div>
+
+      <div
+        style={{
+          marginTop: 5,
+          color: c.secondary,
+          fontSize: 11.5,
+          lineHeight: 1.5,
+        }}
+      >
+        {language === "en"
+          ? "Issues that may require an administrator."
+          : language === "ar"
+            ? "مشكلات قد تتطلب تدخل المسؤول."
+            : "Forhold, som muligvis kræver en administrators handling."}
+      </div>
+    </div>
+
+    {!flagsLoading &&
+      !importHistoryLoading &&
+      adminWarningCount > 0 && (
+        <span
+          style={{
+            minHeight: 30,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent:
+              "center",
+            padding: "0 10px",
+            borderRadius: 99,
+            background: c.redSoft,
+            border: `1px solid ${c.redBorder}`,
+            color: c.red,
+            fontSize: 10.5,
+            fontWeight: 850,
+          }}
+        >
+          {adminWarningCount}
+          {" "}
+          {language === "en"
+            ? "issues"
+            : language === "ar"
+              ? "مشكلات"
+              : "forhold"}
+        </span>
+      )}
+  </div>
+
+  {flagsLoading ||
+  importHistoryLoading ? (
+    <div
+      style={{
+        minHeight: 120,
+        display: "grid",
+        placeItems: "center",
+        borderRadius: 12,
+        background: c.soft,
+        border: `1px solid ${c.border}`,
+        color: c.muted,
+        fontSize: 11.5,
+      }}
+    >
+      {language === "en"
+        ? "Checking administrative warnings..."
+        : language === "ar"
+          ? "جارٍ التحقق من التنبيهات الإدارية..."
+          : "Kontrollerer administrative advarsler..."}
+    </div>
+  ) : adminWarnings.length === 0 ? (
+    <div
+      style={{
+        minHeight: 110,
+        display: "flex",
+        alignItems: "center",
+        gap: 13,
+        padding: "16px 17px",
+        borderRadius: 12,
+        background: c.greenSoft,
+        border: `1px solid ${c.greenBorder}`,
+      }}
+    >
+      <div
+        aria-hidden="true"
+        style={{
+          width: 42,
+          height: 42,
+          flexShrink: 0,
+          display: "grid",
+          placeItems: "center",
+          borderRadius: 13,
+          background: c.panel,
+          color: c.green,
+          fontSize: 19,
+          fontWeight: 900,
+        }}
+      >
+        ✓
+      </div>
+
+      <div>
+        <div
+          style={{
+            color: c.green,
+            fontSize: 12.5,
+            fontWeight: 850,
+          }}
+        >
+          {language === "en"
+            ? "Everything looks good"
+            : language === "ar"
+              ? "كل شيء يبدو جيدًا"
+              : "Alt ser godt ud"}
+        </div>
+
+        <div
+          style={{
+            marginTop: 5,
+            color: c.secondary,
+            fontSize: 10.5,
+            lineHeight: 1.5,
+          }}
+        >
+          {language === "en"
+            ? "There are currently no administrative warnings."
+            : language === "ar"
+              ? "لا توجد حاليًا أي تنبيهات إدارية."
+              : "Der er i øjeblikket ingen administrative advarsler."}
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns:
+          "repeat(auto-fit, minmax(250px, 1fr))",
+        gap: 10,
+      }}
+    >
+      {adminWarnings.map(
+        (warning) => {
+          const isDanger =
+            warning.level ===
+            "danger";
+
+          return (
+            <article
+              key={warning.key}
+              style={{
+                minWidth: 0,
+                display: "flex",
+                flexDirection:
+                  "column",
+                padding: 15,
+                borderRadius: 13,
+                background: isDanger
+                  ? c.redSoft
+                  : c.blueSoft,
+                border: `1px solid ${
+                  isDanger
+                    ? c.redBorder
+                    : c.blueBorder
+                }`,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems:
+                    "flex-start",
+                  gap: 11,
+                }}
+              >
+                <div
+                  aria-hidden="true"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    flexShrink: 0,
+                    display: "grid",
+                    placeItems:
+                      "center",
+                    borderRadius: 12,
+                    background:
+                      c.panel,
+                    color: isDanger
+                      ? c.red
+                      : c.blue,
+                    fontSize: 17,
+                    fontWeight: 900,
+                  }}
+                >
+                  {warning.symbol}
+                </div>
+
+                <div
+                  style={{
+                    minWidth: 0,
+                    flex: 1,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems:
+                        "center",
+                      flexWrap: "wrap",
+                      gap: 7,
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: c.text,
+                        fontSize: 12,
+                        fontWeight: 850,
+                      }}
+                    >
+                      {warning.title}
+                    </div>
+
+                    <span
+                      style={{
+                        minWidth: 24,
+                        height: 24,
+                        display:
+                          "inline-grid",
+                        placeItems:
+                          "center",
+                        padding:
+                          "0 6px",
+                        borderRadius: 99,
+                        background:
+                          c.panel,
+                        color: isDanger
+                          ? c.red
+                          : c.blue,
+                        fontSize: 10,
+                        fontWeight: 900,
+                      }}
+                    >
+                      {warning.count}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 7,
+                      color:
+                        c.secondary,
+                      fontSize: 10.5,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {
+                      warning.description
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={
+                  warning.onOpen
+                }
+                style={{
+                  alignSelf:
+                    "flex-start",
+                  minHeight: 34,
+                  marginTop: 14,
+                  padding: "0 11px",
+                  borderRadius: 9,
+                  border: `1px solid ${
+                    isDanger
+                      ? c.redBorder
+                      : c.blueBorder
+                  }`,
+                  background: c.panel,
+                  color: isDanger
+                    ? c.red
+                    : c.blue,
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  fontFamily:
+                    "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                {warning.actionLabel}
+              </button>
+            </article>
+          );
+        }
+      )}
+    </div>
+  )}
+</section>
+    
           <div
             style={{
               display: "grid",
@@ -16692,6 +17159,57 @@ color:
                     : "Behandl flags"}
               </button>
             </div>
+
+                <button
+  type="button"
+  onClick={() =>
+    setAdminTab("archive")
+  }
+  style={{
+    minHeight: 40,
+    padding: "0 15px",
+    borderRadius: 10,
+    border: `1px solid ${c.borderStrong}`,
+    background: c.soft,
+    color: c.text,
+    fontSize: 12,
+    fontWeight: 800,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  }}
+>
+  {language === "en"
+    ? "Archive"
+    : language === "ar"
+      ? "الأرشيف"
+      : "Arkiv"}
+</button>
+
+<button
+  type="button"
+  onClick={() =>
+    setAdminTab("importHistory")
+  }
+  style={{
+    minHeight: 40,
+    padding: "0 15px",
+    borderRadius: 10,
+    border: `1px solid ${c.borderStrong}`,
+    background: c.soft,
+    color: c.text,
+    fontSize: 12,
+    fontWeight: 800,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  }}
+>
+  {language === "en"
+    ? "Import history"
+    : language === "ar"
+      ? "سجل الاستيراد"
+      : "Importhistorik"}
+</button>
+            
                 <button
   type="button"
   onClick={() =>
