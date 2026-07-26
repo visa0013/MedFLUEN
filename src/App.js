@@ -19638,29 +19638,34 @@ questionLectureFilter !== "all"
       }}
     >
       <div>
-        <div className="dashboard-quick-title">
-  {title}
-</div>
+  <div
+    style={{
+      color: c.text,
+      fontSize: 14,
+      fontWeight: 800,
+    }}
+  >
+    {language === "en"
+      ? "Questions with data-quality issues"
+      : language === "ar"
+        ? "الأسئلة التي تحتوي على مشكلات في جودة البيانات"
+        : "Spørgsmål med datakvalitetsproblemer"}
+  </div>
 
-<div className="dashboard-quick-description">
-  {actionDescriptions[id]}
+  <div
+    style={{
+      marginTop: 3,
+      color: c.muted,
+      fontSize: 10.5,
+      fontWeight: 650,
+    }}
+  >
+    {qualitySearch.trim() ||
+    qualitySeverityFilter !== "all"
+      ? `${filteredQuestionQualityRows.length} / ${questionQualityRows.length}`
+      : questionQualityRows.length}
+  </div>
 </div>
-
-        <div
-          style={{
-            marginTop: 3,
-            color: c.muted,
-            fontSize: 10.5,
-            fontWeight: 650,
-          }}
-        >
-          {qualitySearch.trim() ||
-          qualitySeverityFilter !==
-            "all"
-            ? `${filteredQuestionQualityRows.length} / ${questionQualityRows.length}`
-            : questionQualityRows.length}
-        </div>
-      </div>
 
       <div
         style={{
