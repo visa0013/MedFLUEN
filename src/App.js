@@ -5482,6 +5482,523 @@ select.ui-control {
   padding-top: 2px;
 }
 
+/* ============================================================
+   DASHBOARD 1.3B-2 – INTELLIGENT STATUS & INTERACTION POLISH
+   ============================================================ */
+
+.dashboard-focus-heading-row {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.dashboard-focus-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border:
+    1px solid
+    var(--ui-blue-border);
+  border-radius: 12px;
+  background:
+    var(--ui-panel);
+  color:
+    var(--ui-blue);
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.dashboard-focus-card[data-tone="review"] {
+  border-color:
+    var(--ui-red-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in srgb,
+        var(--ui-red-soft) 76%,
+        var(--ui-panel) 24%
+      ),
+      var(--ui-panel)
+    );
+  box-shadow:
+    0 16px 36px
+    rgba(220,38,38,.09);
+}
+
+.dashboard-focus-card[data-tone="review"]
+.dashboard-focus-kicker,
+.dashboard-focus-card[data-tone="review"]
+.dashboard-focus-icon,
+.dashboard-focus-card[data-tone="review"]
+.dashboard-focus-badge {
+  border-color:
+    var(--ui-red-border);
+  color:
+    var(--ui-red);
+}
+
+.dashboard-focus-card[data-tone="review"]
+.dashboard-focus-icon {
+  background:
+    var(--ui-red-soft);
+}
+
+.dashboard-focus-card[data-tone="today"] {
+  border-color:
+    var(--ui-green-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in srgb,
+        var(--ui-green-soft) 76%,
+        var(--ui-panel) 24%
+      ),
+      var(--ui-panel)
+    );
+  box-shadow:
+    0 16px 36px
+    rgba(16,148,93,.09);
+}
+
+.dashboard-focus-card[data-tone="today"]
+.dashboard-focus-kicker,
+.dashboard-focus-card[data-tone="today"]
+.dashboard-focus-icon,
+.dashboard-focus-card[data-tone="today"]
+.dashboard-focus-badge {
+  border-color:
+    var(--ui-green-border);
+  color:
+    var(--ui-green);
+}
+
+.dashboard-focus-card[data-tone="today"]
+.dashboard-focus-icon {
+  background:
+    var(--ui-green-soft);
+}
+
+.dashboard-focus-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dashboard-focus-meta-item {
+  min-height: 27px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding:
+    0 8px;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 999px;
+  background:
+    color-mix(
+      in srgb,
+      var(--ui-panel) 82%,
+      transparent
+    );
+  color:
+    var(--ui-secondary);
+  font-size: 9.5px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.dashboard-focus-badge {
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-metric-button {
+  appearance: none;
+  width: 100%;
+  color: inherit;
+  text-align: start;
+  outline: none;
+  cursor: pointer;
+  transition:
+    transform 170ms var(--ui-ease),
+    border-color 170ms ease,
+    background 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.dashboard-metric-button:hover {
+  transform:
+    translateY(-2px);
+  border-color:
+    var(--ui-border-strong);
+  box-shadow:
+    var(--ui-shadow-hover);
+}
+
+.dashboard-metric-button:active {
+  transform:
+    translateY(0)
+    scale(.99);
+}
+
+.dashboard-metric-button:focus-visible {
+  border-color:
+    var(--ui-blue);
+  box-shadow:
+    0 0 0 3px
+    var(--ui-ring),
+    var(--ui-shadow-hover);
+}
+
+.dashboard-metric-button[data-emphasis="true"] {
+  border-color:
+    var(--ui-blue-border);
+  background:
+    linear-gradient(
+      180deg,
+      var(--ui-blue-soft),
+      var(--ui-panel)
+    );
+}
+
+.dashboard-progress-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dashboard-progress-card {
+  position: relative;
+  overflow: hidden;
+  padding: 15px 16px;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 16px;
+  background:
+    var(--ui-soft);
+  box-shadow:
+    inset 0 1px 0
+    var(--ui-surface-highlight);
+}
+
+.dashboard-progress-card[data-complete="true"] {
+  border-color:
+    var(--ui-green-border);
+  background:
+    linear-gradient(
+      180deg,
+      var(--ui-green-soft),
+      var(--ui-panel)
+    );
+}
+
+.dashboard-progress-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dashboard-progress-label {
+  color:
+    var(--ui-text);
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.dashboard-progress-status {
+  margin-top: 3px;
+  color:
+    var(--ui-muted);
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.dashboard-progress-status[data-complete="true"] {
+  color:
+    var(--ui-green);
+}
+
+.dashboard-progress-percent {
+  color:
+    var(--ui-blue);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.dashboard-progress-card[data-complete="true"]
+.dashboard-progress-percent {
+  color:
+    var(--ui-green);
+}
+
+.dashboard-progress-numbers {
+  margin-top: 13px;
+  color:
+    var(--ui-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.dashboard-progress-numbers strong {
+  color:
+    var(--ui-text);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.dashboard-progress-track {
+  height: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+  border-radius: 999px;
+  background:
+    var(--ui-border);
+}
+
+.dashboard-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      var(--ui-blue),
+      #70a9ff
+    );
+  box-shadow:
+    0 0 12px
+    rgba(22,101,234,.20);
+  transition:
+    width 320ms
+    var(--ui-ease);
+}
+
+.dashboard-progress-fill[data-complete="true"] {
+  background:
+    linear-gradient(
+      90deg,
+      var(--ui-green),
+      color-mix(
+        in srgb,
+        var(--ui-green) 60%,
+        #ffffff
+      )
+    );
+  box-shadow:
+    0 0 12px
+    rgba(16,148,93,.20);
+}
+
+.dashboard-plan-progress-copy[data-complete="true"] {
+  color:
+    var(--ui-green);
+}
+
+.dashboard-plan-progress-track[data-complete="true"]
+.dashboard-plan-progress-fill {
+  background:
+    linear-gradient(
+      90deg,
+      var(--ui-green),
+      color-mix(
+        in srgb,
+        var(--ui-green) 62%,
+        #ffffff
+      )
+    );
+  box-shadow:
+    0 0 14px
+    rgba(16,148,93,.23);
+}
+
+.dashboard-checklist-count {
+  min-height: 29px;
+  display: inline-flex;
+  align-items: center;
+  padding:
+    0 10px;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 999px;
+  background:
+    var(--ui-soft);
+  color:
+    var(--ui-secondary);
+  font-size: 10px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.dashboard-checklist-count[data-complete="true"] {
+  border-color:
+    var(--ui-green-border);
+  background:
+    var(--ui-green-soft);
+  color:
+    var(--ui-green);
+}
+
+.dashboard-checklist-list {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-checklist-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding:
+    11px 12px;
+  border:
+    1px solid
+    var(--ui-border-strong);
+  border-radius: 13px;
+  background:
+    var(--ui-panel);
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ui-ease),
+    background 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.dashboard-checklist-row:hover {
+  transform:
+    translateY(-1px);
+  border-color:
+    var(--ui-blue-border);
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.dashboard-checklist-row:focus-within {
+  border-color:
+    var(--ui-blue);
+  box-shadow:
+    0 0 0 3px
+    var(--ui-ring);
+}
+
+.dashboard-checklist-row[data-complete="true"] {
+  border-color:
+    var(--ui-green-border);
+  background:
+    var(--ui-green-soft);
+}
+
+.dashboard-checklist-input {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  margin: 0;
+  accent-color:
+    var(--ui-green);
+  cursor: pointer;
+}
+
+.dashboard-checklist-copy {
+  min-width: 0;
+  flex: 1;
+  color:
+    var(--ui-text);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.dashboard-checklist-row[data-complete="true"]
+.dashboard-checklist-copy {
+  color:
+    var(--ui-secondary);
+  text-decoration:
+    line-through;
+}
+
+.dashboard-checklist-done-icon {
+  flex-shrink: 0;
+  color:
+    var(--ui-green);
+}
+
+.dashboard-complete-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 11px;
+  padding:
+    12px 13px;
+  border:
+    1px solid
+    var(--ui-green-border);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      var(--ui-green-soft),
+      var(--ui-panel)
+    );
+}
+
+.dashboard-complete-banner-icon {
+  width: 29px;
+  height: 29px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background:
+    var(--ui-panel);
+  color:
+    var(--ui-green);
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.dashboard-complete-banner-title {
+  color:
+    var(--ui-green);
+  font-size: 11.5px;
+  font-weight: 850;
+}
+
+.dashboard-complete-banner-description {
+  margin-top: 3px;
+  color:
+    var(--ui-secondary);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.dashboard-plan-event-row:focus-visible,
+.dashboard-quick-card:focus-visible {
+  outline: none;
+  border-color:
+    var(--ui-blue);
+  box-shadow:
+    0 0 0 3px
+    var(--ui-ring),
+    var(--ui-shadow-sm);
+}
+
 @media (max-width: 1160px) {
   .dashboard-shell {
     grid-template-columns: 1fr;
@@ -5526,8 +6043,46 @@ select.ui-control {
   }
 
   .dashboard-hero-metrics {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.dashboard-metric-card {
+  padding:
+    10px 9px;
+  border-radius: 13px;
+}
+
+.dashboard-metric-value {
+  font-size: 20px;
+}
+
+.dashboard-metric-label {
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+.dashboard-focus-heading-row {
+  align-items: flex-start;
+}
+
+.dashboard-focus-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.dashboard-focus-badge {
+  min-width: 31px;
+  height: 31px;
+  padding:
+    0 7px;
+}
+
+.dashboard-progress-grid {
+  grid-template-columns: 1fr;
+}
 
   .dashboard-focus-actions {
     grid-template-columns: 1fr;
@@ -6148,9 +6703,14 @@ select.ui-control {
   .dashboard-hero,
   .dashboard-focus-card,
   .dashboard-metric-card,
+  .dashboard-metric-button,
   .dashboard-section-card,
   .dashboard-quick-card,
   .dashboard-event-row,
+  .dashboard-plan-event-row,
+  .dashboard-progress-card,
+  .dashboard-progress-fill,
+  .dashboard-checklist-row,
   .pomodoro-preset,
   .pomodoro-control-button,
   .ui-card,
@@ -14274,120 +14834,369 @@ const integratedPlanCopy = ({
     allComplete:
       "Alle lektioner er gennemført",
     moreEvents: (count) =>
-      `+${count} flere i kalenderen`,
+    `+${count} flere i kalenderen`,
+};
+
+const recommendationCopyByLanguage = {
+  da: {
+    kicker:
+      "Anbefalet næste skridt",
+
+    resumeTitle:
+      "Fortsæt din igangværende session",
+    resumeDescription: (count) =>
+      `${count} svar er allerede gemt. Fortsæt præcis, hvor du stoppede.`,
+    resumeAction:
+      "Fortsæt session",
+
+    reviewTitle:
+      "Prioritér dagens repetition",
+    reviewDescription: (count) =>
+      `${count} spørgsmål er klar til repetition og bør gennemgås først.`,
+    reviewAction:
+      "Start repetition",
+
+    todayTitle:
+      "Fortsæt med dagens studieplan",
+    todayDescription: (count) =>
+      count === 1
+        ? "Du har én planlagt studieblok i kalenderen i dag."
+        : `Du har ${count} planlagte studieblokke i kalenderen i dag.`,
+    todayAction:
+      "Se dagens plan",
+
+    createPlanTitle:
+      "Opret din første studieplan",
+    createPlanDescription:
+      "Saml lektioner, eksamensdato og kalenderblokke i én struktureret plan.",
+    createPlanAction:
+      "Opret studieplan",
+
+    newTitle:
+      "Start med nye MCQ’er",
+    newDescription: (count) =>
+      `${count} nye spørgsmål er klar i dit nuværende modul.`,
+    newAction:
+      "Start nye MCQ’er",
+
+    planTitle:
+      "Fortsæt din studieplan",
+    planDescription: (percent) =>
+      `Du har gennemført ${percent}% af modulets lektioner.`,
+    planCompleteTitle:
+      "Studieplanen er ajour",
+    planCompleteDescription:
+      "Alle registrerede lektioner er gennemført. Se kalenderen eller planlæg næste skridt.",
+    planAction:
+      "Åbn studieplan",
+
+    calendarAction:
+      "Åbn kalender",
+    insightsAction:
+      "Se indsigter",
+    newBadge:
+      "Ny",
   },
 
   en: {
     kicker:
-      "Plan, calendar and lectures",
-    title:
-      "Study plan",
-    activeDescription:
-      "Your plan, today's study blocks and upcoming lectures in one place.",
-    emptyDescription:
-      "Create a study plan and connect it automatically to your calendar.",
-    days:
-      "days",
-    today:
-      "Today's study plan",
-    lessons:
-      "Lecture overview",
-    completed:
-      "completed",
-    noToday:
-      "No study blocks scheduled today",
-    noLessons:
-      "No lectures linked to this module yet",
-    openPlan:
+      "Recommended next step",
+
+    resumeTitle:
+      "Continue your active session",
+    resumeDescription: (count) =>
+      `${count} answers are already saved. Continue exactly where you stopped.`,
+    resumeAction:
+      "Continue session",
+
+    reviewTitle:
+      "Prioritize today's review",
+    reviewDescription: (count) =>
+      `${count} questions are ready for review and should be handled first.`,
+    reviewAction:
+      "Start review",
+
+    todayTitle:
+      "Continue today's study plan",
+    todayDescription: (count) =>
+      count === 1
+        ? "You have one scheduled study block in the calendar today."
+        : `You have ${count} scheduled study blocks in the calendar today.`,
+    todayAction:
+      "View today's plan",
+
+    createPlanTitle:
+      "Create your first study plan",
+    createPlanDescription:
+      "Bring lectures, your exam date and calendar blocks into one structured plan.",
+    createPlanAction:
+      "Create study plan",
+
+    newTitle:
+      "Start with new MCQs",
+    newDescription: (count) =>
+      `${count} new questions are ready in your current module.`,
+    newAction:
+      "Start new MCQs",
+
+    planTitle:
+      "Continue your study plan",
+    planDescription: (percent) =>
+      `You have completed ${percent}% of the module's lectures.`,
+    planCompleteTitle:
+      "Your study plan is up to date",
+    planCompleteDescription:
+      "All registered lectures are complete. Open the calendar or plan your next step.",
+    planAction:
       "Open study plan",
-    openCalendar:
+
+    calendarAction:
       "Open calendar",
-    lecturePlan:
-      "Lecture plan",
-    examPlan:
-      "Exam set",
-    hoursPerDay:
-      "hrs/day",
-    allComplete:
-      "All lectures are completed",
-    moreEvents: (count) =>
-      `+${count} more in the calendar`,
+    insightsAction:
+      "View insights",
+    newBadge:
+      "New",
   },
 
   ar: {
     kicker:
-      "الخطة والتقويم والمحاضرات",
-    title:
-      "خطة الدراسة",
-    activeDescription:
-      "خطتك وجلسات اليوم والمحاضرات القادمة في مكان واحد.",
-    emptyDescription:
-      "أنشئ خطة دراسة واربطها تلقائيًا بالتقويم.",
-    days:
-      "أيام",
-    today:
-      "خطة اليوم",
-    lessons:
-      "نظرة عامة على المحاضرات",
-    completed:
-      "مكتمل",
-    noToday:
-      "لا توجد جلسات دراسة مخططة اليوم",
-    noLessons:
-      "لا توجد محاضرات مرتبطة بهذه الوحدة",
-    openPlan:
+      "الخطوة التالية المقترحة",
+
+    resumeTitle:
+      "تابع جلستك الحالية",
+    resumeDescription: (count) =>
+      `تم حفظ ${count} إجابة. تابع من حيث توقفت.`,
+    resumeAction:
+      "تابع الجلسة",
+
+    reviewTitle:
+      "أعطِ الأولوية لمراجعة اليوم",
+    reviewDescription: (count) =>
+      `${count} سؤالًا جاهزًا للمراجعة ويجب البدء بها أولًا.`,
+    reviewAction:
+      "ابدأ المراجعة",
+
+    todayTitle:
+      "تابع خطة اليوم",
+    todayDescription: (count) =>
+      `لديك ${count} جلسات دراسية مجدولة في تقويم اليوم.`,
+    todayAction:
+      "اعرض خطة اليوم",
+
+    createPlanTitle:
+      "أنشئ أول خطة دراسية",
+    createPlanDescription:
+      "اجمع المحاضرات وموعد الامتحان وجلسات التقويم في خطة منظمة.",
+    createPlanAction:
+      "أنشئ خطة",
+
+    newTitle:
+      "ابدأ بالأسئلة الجديدة",
+    newDescription: (count) =>
+      `${count} سؤالًا جديدًا جاهزًا في وحدتك الحالية.`,
+    newAction:
+      "ابدأ الأسئلة الجديدة",
+
+    planTitle:
+      "تابع خطة الدراسة",
+    planDescription: (percent) =>
+      `أكملت ${percent}% من محاضرات الوحدة.`,
+    planCompleteTitle:
+      "خطة الدراسة محدثة",
+    planCompleteDescription:
+      "تم إكمال جميع المحاضرات المسجلة. افتح التقويم أو خطط للخطوة التالية.",
+    planAction:
       "افتح خطة الدراسة",
-    openCalendar:
+
+    calendarAction:
       "افتح التقويم",
-    lecturePlan:
-      "خطة المحاضرات",
-    examPlan:
-      "مجموعة الامتحان",
-    hoursPerDay:
-      "ساعة/يوم",
-    allComplete:
-      "تم إكمال جميع المحاضرات",
-    moreEvents: (count) =>
-      `+${count} أحداث أخرى في التقويم`,
+    insightsAction:
+      "اعرض الإحصاءات",
+    newBadge:
+      "جديد",
   },
-})[language] || {
-  kicker:
-    "Plan, kalender og lektioner",
-  title:
-    "Studieplan",
-  activeDescription:
-    "Din plan, dagens studieblokke og næste lektioner samlet ét sted.",
-  emptyDescription:
-    "Opret en studieplan, og få den automatisk koblet til kalenderen.",
-  days:
-    "dage",
-  today:
-    "Dagens studieplan",
-  lessons:
-    "Lektionsoverblik",
-  completed:
-    "gennemført",
-  noToday:
-    "Ingen studieblokke planlagt i dag",
-  noLessons:
-    "Ingen lektioner tilknyttet modulet endnu",
-  openPlan:
-    "Åbn studieplan",
-  openCalendar:
-    "Åbn kalender",
-  lecturePlan:
-    "Forelæsningsplan",
-  examPlan:
-    "Eksamenssæt",
-  hoursPerDay:
-    "t/dag",
-  allComplete:
-    "Alle lektioner er gennemført",
-  moreEvents: (count) =>
-    `+${count} flere i kalenderen`,
 };
 
+const recommendationCopy =
+  recommendationCopyByLanguage[language] ||
+  recommendationCopyByLanguage.da;
+
+const resumeAnsweredCount =
+  Object.keys(
+    resumeRaw?.answers || {}
+  ).length;
+
+const recommendationKey =
+  hasResumableSession
+    ? "resume"
+    : reviewCount > 0
+      ? "review"
+      : matchingTodayPlanEvents.length >
+          0
+        ? "today"
+        : !activePlan
+          ? "createPlan"
+          : newCount > 0
+            ? "new"
+            : "plan";
+
+const recommendationByKey = {
+  resume: {
+    tone:
+      "resume",
+    icon:
+      "right",
+    badge:
+      resumeAnsweredCount,
+    title:
+      recommendationCopy.resumeTitle,
+    description:
+      recommendationCopy.resumeDescription(
+        resumeAnsweredCount
+      ),
+    primaryLabel:
+      recommendationCopy.resumeAction,
+    secondaryLabel:
+      recommendationCopy.insightsAction,
+    primaryAction: () =>
+      onNavigate("mcq"),
+    secondaryAction: () =>
+      onNavigate("insights"),
+  },
+
+  review: {
+    tone:
+      "review",
+    icon:
+      "cards",
+    badge:
+      reviewCount > 99
+        ? "99+"
+        : reviewCount,
+    title:
+      recommendationCopy.reviewTitle,
+    description:
+      recommendationCopy.reviewDescription(
+        reviewCount
+      ),
+    primaryLabel:
+      recommendationCopy.reviewAction,
+    secondaryLabel:
+      recommendationCopy.insightsAction,
+    primaryAction: () =>
+      onNavigate("mcq"),
+    secondaryAction: () =>
+      onNavigate("insights"),
+  },
+
+  today: {
+    tone:
+      "today",
+    icon:
+      "calendar",
+    badge:
+      matchingTodayPlanEvents.length,
+    title:
+      recommendationCopy.todayTitle,
+    description:
+      recommendationCopy.todayDescription(
+        matchingTodayPlanEvents.length
+      ),
+    primaryLabel:
+      recommendationCopy.todayAction,
+    secondaryLabel:
+      recommendationCopy.planAction,
+    primaryAction:
+      onOpenCalendar,
+    secondaryAction: () =>
+      onNavigate("study-plan"),
+  },
+
+  createPlan: {
+    tone:
+      "plan",
+    icon:
+      "calendar",
+    badge:
+      recommendationCopy.newBadge,
+    title:
+      recommendationCopy.createPlanTitle,
+    description:
+      recommendationCopy.createPlanDescription,
+    primaryLabel:
+      recommendationCopy.createPlanAction,
+    secondaryLabel:
+      recommendationCopy.calendarAction,
+    primaryAction: () =>
+      onNavigate("study-plan"),
+    secondaryAction:
+      onOpenCalendar,
+  },
+
+  new: {
+    tone:
+      "new",
+    icon:
+      "clipboard",
+    badge:
+      newCount > 99
+        ? "99+"
+        : newCount,
+    title:
+      recommendationCopy.newTitle,
+    description:
+      recommendationCopy.newDescription(
+        newCount
+      ),
+    primaryLabel:
+      recommendationCopy.newAction,
+    secondaryLabel:
+      recommendationCopy.insightsAction,
+    primaryAction: () =>
+      onNavigate("mcq"),
+    secondaryAction: () =>
+      onNavigate("insights"),
+  },
+
+  plan: {
+    tone:
+      planProgressPercent === 100
+        ? "today"
+        : "plan",
+    icon:
+      planProgressPercent === 100
+        ? "check"
+        : "book",
+    badge:
+      `${planProgressPercent}%`,
+    title:
+      planProgressPercent === 100
+        ? recommendationCopy.planCompleteTitle
+        : recommendationCopy.planTitle,
+    description:
+      planProgressPercent === 100
+        ? recommendationCopy.planCompleteDescription
+        : recommendationCopy.planDescription(
+            planProgressPercent
+          ),
+    primaryLabel:
+      recommendationCopy.planAction,
+    secondaryLabel:
+      recommendationCopy.calendarAction,
+    primaryAction: () =>
+      onNavigate("study-plan"),
+    secondaryAction:
+      onOpenCalendar,
+  },
+};
+
+const dashboardRecommendation =
+  recommendationByKey[
+    recommendationKey
+  ];
+
 return (
+  
     <div className="fade-up dashboard-shell">
       <section className="dashboard-hero-area dashboard-hero ui-card">
   <div className="dashboard-hero-grid">
@@ -14420,218 +15229,192 @@ return (
       </div>
 
       <div className="dashboard-hero-metrics">
-        <div className="dashboard-metric-card">
-          <div className="dashboard-metric-value">
-            {reviewCount}
-          </div>
+  <button
+    type="button"
+    className="dashboard-metric-card dashboard-metric-button"
+    data-emphasis={
+      reviewCount > 0
+        ? "true"
+        : "false"
+    }
+    onClick={() =>
+      onNavigate("mcq")
+    }
+    aria-label={`${reviewCount} ${x.review}`}
+  >
+    <div className="dashboard-metric-value">
+      {reviewCount}
+    </div>
 
-          <div className="dashboard-metric-label">
-            {x.review}
-          </div>
-        </div>
+    <div className="dashboard-metric-label">
+      {x.review}
+    </div>
+  </button>
 
-        <div className="dashboard-metric-card">
-          <div className="dashboard-metric-value">
-            {newCount}
-          </div>
+  <button
+    type="button"
+    className="dashboard-metric-card dashboard-metric-button"
+    onClick={() =>
+      onNavigate("mcq")
+    }
+    aria-label={`${newCount} ${x.newQuestions}`}
+  >
+    <div className="dashboard-metric-value">
+      {newCount}
+    </div>
 
-          <div className="dashboard-metric-label">
-            {x.newQuestions}
-          </div>
-        </div>
+    <div className="dashboard-metric-label">
+      {x.newQuestions}
+    </div>
+  </button>
 
-        <div className="dashboard-metric-card">
-          <div className="dashboard-metric-value">
-            {questionCount}
-          </div>
+  <button
+    type="button"
+    className="dashboard-metric-card dashboard-metric-button"
+    onClick={() =>
+      onNavigate("mcq")
+    }
+    aria-label={`${questionCount} ${x.total}`}
+  >
+    <div className="dashboard-metric-value">
+      {questionCount}
+    </div>
 
-          <div className="dashboard-metric-label">
-            {x.total}
-          </div>
-        </div>
-      </div>
+    <div className="dashboard-metric-label">
+      {x.total}
+    </div>
+  </button>
+</div>
     </div>
 
     <div className="dashboard-hero-cta">
-      <div className="dashboard-focus-card">
-        <div className="dashboard-focus-top">
-          <div>
-            <div className="dashboard-focus-kicker">
-              {language === "en"
-                ? "Recommended next step"
-                : language === "ar"
-                  ? "الخطوة التالية المقترحة"
-                  : "Anbefalet næste skridt"}
-            </div>
+    <div
+  className="dashboard-focus-card"
+  data-tone={
+    dashboardRecommendation.tone
+  }
+>
+  <div className="dashboard-focus-top">
+    <div className="dashboard-focus-heading-row">
+      <span className="dashboard-focus-icon">
+        <Icon
+          name={
+            dashboardRecommendation.icon
+          }
+          size={17}
+        />
+      </span>
 
-            <div className="dashboard-focus-title">
-              {reviewCount > 0
-                ? language === "en"
-                  ? "Continue your review"
-                  : language === "ar"
-                    ? "تابع المراجعة"
-                    : "Fortsæt din repetition"
-                : language === "en"
-                  ? "Plan your next study block"
-                  : language === "ar"
-                    ? "خطط لجلسة الدراسة التالية"
-                    : "Planlæg din næste studieblok"}
-            </div>
-
-            <div className="dashboard-focus-description">
-              {reviewCount > 0
-                ? language === "en"
-                  ? `${reviewCount} questions are ready for review. Start with the material that needs your attention now.`
-                  : language === "ar"
-                    ? `${reviewCount} سؤالاً جاهزًا للمراجعة. ابدأ بالمحتوى الذي يحتاج إلى انتباهك الآن.`
-                    : `${reviewCount} spørgsmål er klar til repetition. Start med det materiale, der kræver din opmærksomhed nu.`
-                : language === "en"
-                  ? "Nothing urgent is due right now. Use your study plan to stay ahead."
-                  : language === "ar"
-                    ? "لا توجد مراجعات عاجلة الآن. استخدم خطة الدراسة للبقاء متقدمًا."
-                    : "Der er ikke noget akut til repetition. Brug studieplanen til at holde dig foran."}
-            </div>
-          </div>
-
-          <div className="dashboard-focus-badge">
-            {reviewCount > 99
-              ? "99+"
-              : reviewCount}
-          </div>
+      <div>
+        <div className="dashboard-focus-kicker">
+          {recommendationCopy.kicker}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-            color: c.secondary,
-            fontSize: 10.5,
-            fontWeight: 700,
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-            }}
-          >
-            <Icon
-              name="flame"
-              size={14}
-            />
-
-            {streak.current}{" "}
-            {dashCopy.days}
-          </span>
-
-          <span
-            style={{
-              width: 3,
-              height: 3,
-              borderRadius: 99,
-              background: c.muted,
-            }}
-          />
-
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-            }}
-          >
-            <Icon
-              name="clock"
-              size={14}
-            />
-
-            {todayPomodoros}{" "}
-            {dashCopy.pomodoros}
-          </span>
+        <div className="dashboard-focus-title">
+          {dashboardRecommendation.title}
         </div>
 
-        <div className="dashboard-focus-actions">
-          <PrimaryButton
-            onClick={() =>
-              onNavigate(
-                reviewCount > 0
-                  ? "mcq"
-                  : "study-plan"
-              )
-            }
-            style={{
-              width: "100%",
-            }}
-          >
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              <Icon
-                name={
-                  reviewCount > 0
-                    ? "cards"
-                    : "calendar"
-                }
-                size={15}
-              />
-
-              {reviewCount > 0
-                ? language === "en"
-                  ? "Start review"
-                  : language === "ar"
-                    ? "ابدأ المراجعة"
-                    : "Start repetition"
-                : language === "en"
-                  ? "Open study plan"
-                  : language === "ar"
-                    ? "افتح خطة الدراسة"
-                    : "Åbn studieplan"}
-            </span>
-          </PrimaryButton>
-
-          <SecondaryButton
-            onClick={() =>
-              onNavigate("insights")
-            }
-            style={{
-              minWidth: 116,
-            }}
-          >
-            {x.insights}
-          </SecondaryButton>
+        <div className="dashboard-focus-description">
+          {
+            dashboardRecommendation.description
+          }
         </div>
       </div>
     </div>
+
+    <div className="dashboard-focus-badge">
+      {dashboardRecommendation.badge}
+    </div>
+  </div>
+
+  <div className="dashboard-focus-meta">
+    <span className="dashboard-focus-meta-item">
+      <Icon
+        name="flame"
+        size={13}
+      />
+
+      <span>
+        {streak.current}{" "}
+        {dashCopy.days}
+      </span>
+    </span>
+
+    <span className="dashboard-focus-meta-item">
+      <Icon
+        name="clock"
+        size={13}
+      />
+
+      <span>
+        {todayPomodoros}{" "}
+        {dashCopy.pomodoros}
+      </span>
+    </span>
+
+    {activePlan && (
+      <span className="dashboard-focus-meta-item">
+        <Icon
+          name="chart"
+          size={13}
+        />
+
+        <span>
+          {planProgressPercent}%{" "}
+          {x.plan.toLowerCase()}
+        </span>
+      </span>
+    )}
+  </div>
+
+  <div className="dashboard-focus-actions">
+    <PrimaryButton
+      onClick={
+        dashboardRecommendation.primaryAction
+      }
+      style={{
+        width: "100%",
+      }}
+    >
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+        }}
+      >
+        <Icon
+          name={
+            dashboardRecommendation.icon
+          }
+          size={15}
+        />
+
+        {
+          dashboardRecommendation.primaryLabel
+        }
+      </span>
+    </PrimaryButton>
+
+    <SecondaryButton
+      onClick={
+        dashboardRecommendation.secondaryAction
+      }
+      style={{
+        minWidth: 116,
+      }}
+    >
+      {
+        dashboardRecommendation.secondaryLabel
+      }
+    </SecondaryButton>
+  </div>
+</div> 
+    </div>
   </div>
 </section>
-
-      {hasResumableSession && (
-        <section className="dashboard-resume-area">
-          <button
-            type="button"
-            className="ui-callout ui-card--interactive"
-            onClick={() => onNavigate("mcq")}
-            style={{ width: "100%", textAlign: "start", cursor: "pointer", padding: "16px 20px", borderRadius: 18, background: c.blueSoft, border: `1px solid ${c.blueBorder}`, display: "flex", alignItems: "center", gap: 14 }}
-          >
-            <span style={{ width: 38, height: 38, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 12, background: c.panel, color: c.blue }}>
-              <Icon name="right" size={17} />
-            </span>
-            <div style={{ flex: 1 }}>
-              <div style={{ color: c.blue, fontSize: 13, fontWeight: 800 }}>{dashCopy.resume}</div>
-              <div style={{ marginTop: 2, color: c.secondary, fontSize: 11 }}>{dashCopy.resumeText}</div>
-            </div>
-          </button>
-        </section>
-      )}
-
+ 
       <section className="dashboard-quick-area">
         <DashboardSectionHeader
   kicker={
@@ -14841,7 +15624,14 @@ return (
             </div>
           </div>
 
-          <div className="dashboard-plan-progress-copy">
+          <div
+  className="dashboard-plan-progress-copy"
+  data-complete={
+    planProgressPercent === 100
+      ? "true"
+      : "false"
+  }
+>
             {planCompletedLectureCount}/
             {planModuleLectures.length}{" "}
             {integratedPlanCopy.completed}
@@ -14849,16 +15639,27 @@ return (
         </div>
 
         <div
-          className="dashboard-plan-progress-track"
-          aria-label={`${planProgressPercent}%`}
-        >
-          <div
-            className="dashboard-plan-progress-fill"
-            style={{
-              width: `${planProgressPercent}%`,
-            }}
-          />
-        </div>
+  className="dashboard-plan-progress-track"
+  data-complete={
+    planProgressPercent === 100
+      ? "true"
+      : "false"
+  }
+  role="progressbar"
+  aria-valuemin={0}
+  aria-valuemax={100}
+  aria-valuenow={
+    planProgressPercent
+  }
+  aria-label={`${planProgressPercent}%`}
+>
+  <div
+    className="dashboard-plan-progress-fill"
+    style={{
+      width: `${planProgressPercent}%`,
+    }}
+  />
+</div>
       </>
     ) : (
       <div className="dashboard-plan-callout">
@@ -15357,7 +16158,18 @@ return (
           });
         };
 
-        const allDoneToday = checklistItems.length > 0 && checklistItems.every((item) => Boolean(todayChecklist[item.id]));
+        const completedTodayCount =
+  checklistItems.filter(
+    (item) =>
+      Boolean(
+        todayChecklist[item.id]
+      )
+  ).length;
+
+const allDoneToday =
+  checklistItems.length > 0 &&
+  completedTodayCount ===
+    checklistItems.length;
 
         const usedLectureIds = new Set([
           ...(activePlan.doneLectureIds || []),
@@ -15387,126 +16199,128 @@ return (
         return (
   <>
     <section className="dashboard-progress-area">
-      <div className="ui-card dashboard-section-card">
-        <DashboardSectionHeader
-          kicker={
-            language === "en"
-              ? "Progress"
-              : language === "ar"
-                ? "التقدم"
-                : "Fremdrift"
-          }
-          title={studyPlanDashCopy.progressTitle}
-          description={
-            language === "en"
-              ? "See how much of your active study plan you have completed."
-              : language === "ar"
-                ? "شاهد مقدار ما أكملته من خطة الدراسة النشطة."
-                : "Se, hvor meget af din aktive studieplan du har gennemført."
-          }
-        />
+      <div className="dashboard-progress-grid">
+  {[
+    [
+      studyPlanDashCopy.lectureProgress,
+      doneCount,
+      totalLectureCount,
+    ],
+    [
+      studyPlanDashCopy.examSetProgress,
+      examSetDoneCount,
+      examSetTotalCount,
+    ],
+  ].map(
+    ([
+      label,
+      completed,
+      total,
+    ]) => {
+      const percentage =
+        total > 0
+          ? Math.round(
+              (
+                completed /
+                total
+              ) * 100
+            )
+          : 0;
 
+      const isComplete =
+        total > 0 &&
+        completed >= total;
+
+      const statusLabel =
+        isComplete
+          ? language === "en"
+            ? "Complete"
+            : language === "ar"
+              ? "مكتمل"
+              : "Gennemført"
+          : percentage > 0
+            ? language === "en"
+              ? "In progress"
+              : language === "ar"
+                ? "قيد التنفيذ"
+                : "I gang"
+            : language === "en"
+              ? "Not started"
+              : language === "ar"
+                ? "لم يبدأ"
+                : "Ikke startet";
+
+      return (
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 12,
-          }}
+          key={label}
+          className="dashboard-progress-card"
+          data-complete={
+            isComplete
+              ? "true"
+              : "false"
+          }
         >
-          {[
-            [
-              studyPlanDashCopy.lectureProgress,
-              doneCount,
-              totalLectureCount,
-              c.blue,
-            ],
-            [
-              studyPlanDashCopy.examSetProgress,
-              examSetDoneCount,
-              examSetTotalCount,
-              c.blue,
-            ],
-          ].map(
-            ([
-              label,
-              completed,
-              total,
-              color,
-            ]) => {
-              const percentage =
-                total > 0
-                  ? Math.round(
-                      (completed / total) *
-                        100
-                    )
-                  : 0;
+          <div className="dashboard-progress-head">
+            <div>
+              <div className="dashboard-progress-label">
+                {label}
+              </div>
 
-              return (
-                <div
-                  key={label}
-                  style={{
-                    padding: "14px 16px",
-                    borderRadius: 14,
-                    background: c.soft,
-                    border: `1px solid ${c.border}`,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent:
-                        "space-between",
-                      gap: 10,
-                      marginBottom: 8,
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: c.secondary,
-                        fontSize: 11,
-                        fontWeight: 750,
-                      }}
-                    >
-                      {label}
-                    </span>
+              <div
+                className="dashboard-progress-status"
+                data-complete={
+                  isComplete
+                    ? "true"
+                    : "false"
+                }
+              >
+                {statusLabel}
+              </div>
+            </div>
 
-                    <span
-                      style={{
-                        color,
-                        fontSize: 11,
-                        fontWeight: 850,
-                      }}
-                    >
-                      {completed}/{total}
-                    </span>
-                  </div>
+            <div className="dashboard-progress-percent">
+              {percentage}%
+            </div>
+          </div>
 
-                  <div
-                    style={{
-                      height: 8,
-                      overflow: "hidden",
-                      borderRadius: 99,
-                      background: c.border,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${percentage}%`,
-                        height: "100%",
-                        borderRadius: 99,
-                        background: color,
-                        transition:
-                          "width 300ms ease",
-                      }}
-                    />
-                  </div>
-                </div>
-              );
+          <div className="dashboard-progress-numbers">
+            <strong>
+              {completed}
+            </strong>
+
+            <span>
+              {" "}/ {total}
+            </span>
+          </div>
+
+          <div
+            className="dashboard-progress-track"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={
+              percentage
             }
-          )}
+            aria-label={`${label}: ${percentage}%`}
+          >
+            <div
+              className="dashboard-progress-fill"
+              data-complete={
+                isComplete
+                  ? "true"
+                  : "false"
+              }
+              style={{
+                width:
+                  `${percentage}%`,
+              }}
+            />
+          </div>
         </div>
+      );
+    }
+  )}
+</div>
 
         {isBehind && (
           <div
@@ -15561,109 +16375,128 @@ return (
     <section className="dashboard-checklist-area">
       <div className="ui-card dashboard-section-card">
         <DashboardSectionHeader
-          kicker={
-            language === "en"
-              ? "Tasks"
-              : language === "ar"
-                ? "المهام"
-                : "Opgaver"
-          }
-          title={
-            studyPlanDashCopy.checklistTitle
-          }
-          description={
-            language === "en"
-              ? "Complete the concrete actions that move today's study plan forward."
-              : language === "ar"
-                ? "أكمل الخطوات المحددة التي تدفع خطة اليوم إلى الأمام."
-                : "Gennemfør de konkrete handlinger, der flytter dagens studieplan fremad."
-          }
-        />
+  kicker={
+    language === "en"
+      ? "Tasks"
+      : language === "ar"
+        ? "المهام"
+        : "Opgaver"
+  }
+  title={
+    studyPlanDashCopy.checklistTitle
+  }
+  description={
+    language === "en"
+      ? "Complete the concrete actions that move today's study plan forward."
+      : language === "ar"
+        ? "أكمل الخطوات المحددة التي تدفع خطة اليوم إلى الأمام."
+        : "Gennemfør de konkrete handlinger, der flytter dagens studieplan fremad."
+  }
+  action={
+    checklistItems.length > 0 ? (
+      <span
+        className="dashboard-checklist-count"
+        data-complete={
+          allDoneToday
+            ? "true"
+            : "false"
+        }
+      >
+        {completedTodayCount}/
+        {checklistItems.length}
+      </span>
+    ) : null
+  }
+/>
 
-        {checklistItems.length === 0 ? (
-          <EmptyState
-            compact
-            symbol={
-              <Icon
-                name="check"
-                size={16}
-              />
-            }
-            title={
-              studyPlanDashCopy.checklistEmpty
+        {allDoneToday && (
+  <div className="dashboard-complete-banner">
+    <span className="dashboard-complete-banner-icon">
+      <Icon
+        name="check"
+        size={15}
+      />
+    </span>
+
+    <div>
+      <div className="dashboard-complete-banner-title">
+        {language === "en"
+          ? "Today's plan is complete"
+          : language === "ar"
+            ? "اكتملت خطة اليوم"
+            : "Dagens plan er gennemført"}
+      </div>
+
+      <div className="dashboard-complete-banner-description">
+        {language === "en"
+          ? "All planned tasks are complete. You can stop here or add the next lecture."
+          : language === "ar"
+            ? "تم إكمال جميع المهام المخططة. يمكنك التوقف أو إضافة المحاضرة التالية."
+            : "Alle planlagte opgaver er gennemført. Du kan stoppe her eller tilføje næste forelæsning."}
+      </div>
+    </div>
+  </div>
+)}
+
+{checklistItems.length === 0 ? (
+  <EmptyState
+    compact
+    symbol={
+      <Icon
+        name="check"
+        size={16}
+      />
+    }
+    title={
+      studyPlanDashCopy.checklistEmpty
+    }
+  />
+) : (
+  <div className="dashboard-checklist-list">
+    {checklistItems.map((item) => {
+      const isDone =
+        Boolean(
+          todayChecklist[item.id]
+        );
+
+      return (
+        <label
+          key={item.id}
+          className="dashboard-checklist-row"
+          data-complete={
+            isDone
+              ? "true"
+              : "false"
+          }
+        >
+          <input
+            type="checkbox"
+            className="dashboard-checklist-input"
+            checked={isDone}
+            onChange={() =>
+              toggleChecklistItem(
+                item.id
+              )
             }
           />
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gap: 8,
-            }}
-          >
-            {checklistItems.map((item) => {
-              const isDone = Boolean(
-                todayChecklist[item.id]
-              );
 
-              return (
-                <label
-                  key={item.id}
-                  className="ui-list-row"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 12px",
-                    borderRadius: 12,
-                    background: isDone
-                      ? c.soft
-                      : c.panel,
-                    border: `1px solid ${
-                      isDone
-                        ? c.border
-                        : c.borderStrong
-                    }`,
-                    cursor: "pointer",
-                    opacity: isDone
-                      ? 0.55
-                      : 1,
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isDone}
-                    onChange={() =>
-                      toggleChecklistItem(
-                        item.id
-                      )
-                    }
-                    style={{
-                      accentColor: c.blue,
-                    }}
-                  />
+          <span className="dashboard-checklist-copy">
+            {item.label}
+          </span>
 
-                  <span
-                    style={{
-                      minWidth: 0,
-                      flex: 1,
-                      color: isDone
-                        ? c.muted
-                        : c.text,
-                      fontSize: 12,
-                      fontWeight: 650,
-                      lineHeight: 1.45,
-                      textDecoration: isDone
-                        ? "line-through"
-                        : "none",
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        )}
+          {isDone && (
+            <span className="dashboard-checklist-done-icon">
+              <Icon
+                name="check"
+                size={14}
+              />
+            </span>
+          )}
+        </label>
+      );
+    })}
+  </div>
+)}
 
         {allDoneToday &&
           nextExtraLecture && (
