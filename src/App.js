@@ -10877,6 +10877,16 @@ const [
 ] = useState("all");
 
 const [
+  qualitySearch,
+  setQualitySearch,
+] = useState("");
+
+const [
+  qualitySeverityFilter,
+  setQualitySeverityFilter,
+] = useState("all");
+
+const [
   editingAdminQuestion,
   setEditingAdminQuestion,
 ] = useState(null);
@@ -11048,6 +11058,431 @@ const filteredAdminQuestions =
 
     return searchableText.includes(
       normalizedQuestionSearch
+    );
+  });
+
+function getAnyLocalizedText(value) {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
+    return "";
+  }
+
+  return String(
+    value.da ||
+      value.en ||
+      value.ar ||
+      ""
+  ).trim();
+}
+
+function hasAnyLocalizedText(value) {
+  return Boolean(
+    getAnyLocalizedText(value)
+  );
+}
+
+const qualityIssueDefinitions = {
+  missingQuestion: {
+    severity: "danger",
+    label:
+      language === "en"
+        ? "Missing question text"
+        : language === "ar"
+          ? "نص السؤال مفقود"
+          : "Spørgsmålstekst mangler",
+    description:
+      language === "en"
+        ? "The question has no usable text."
+        : language === "ar"
+          ? "لا يحتوي السؤال على نص صالح."
+          : "Spørgsmålet har ingen anvendelig tekst.",
+  },
+
+  tooFewOptions: {
+    severity: "danger",
+    label:
+      language === "en"
+        ? "Too few answer options"
+        : language === "ar"
+          ? "خيارات إجابة غير كافية"
+          : "For få svarmuligheder",
+    description:
+      language === "en"
+        ? "At least two completed answer options are required."
+        : language === "ar"
+          ? "يلزم وجود خيارين مكتملين على الأقل."
+          : "Der skal være mindst to udfyldte svarmuligheder.",
+  },
+
+  blankOption: {
+    severity: "danger",
+    label:
+      language === "en"
+        ? "Empty answer option"
+        : language === "ar"
+          ? "خيار إجابة فارغ"
+          : "Tom svarmulighed",
+    description:
+      language === "en"
+        ? "One or more answer options are empty."
+        : language === "ar"
+          ? "خيار واحد أو أكثر من خيارات الإجابة فارغ."
+          : "En eller flere svarmuligheder er tomme.",
+  },
+
+  invalidCorrect: {
+    severity: "danger",
+    label:
+      language === "en"
+        ? "Invalid correct answer"
+        : language === "ar"
+          ? "الإجابة الصحيحة غير صالحة"
+          : "Ugyldigt korrekt svar",
+    description:
+      language === "en"
+        ? "The correct-answer index does not point to a completed option."
+        : language === "ar"
+          ? "فهرس الإجابة الصحيحة لا يشير إلى خيار مكتمل."
+          : "Indekset for det korrekte svar peger ikke på en udfyldt svarmulighed.",
+  },
+
+  unknownModule: {
+    severity: "danger",
+    label:
+      language === "en"
+        ? "Unknown module"
+        : language === "ar"
+          ? "وحدة غير معروفة"
+          : "Ukendt modul",
+    description:
+      language === "en"
+        ? "The module ID does not exist in MODULE_LECTURES."
+        : language === "ar"
+          ? "معرف الوحدة غير موجود في قائمة الوحدات."
+          : "Modul-ID’et findes ikke i MODULE_LECTURES.",
+  },
+
+  unknownLecture: {
+    severity: "danger",
+    label:
+      language === "en"
+        ? "Unknown lecture"
+        : language === "ar"
+          ? "محاضرة غير معروفة"
+          : "Ukendt forelæsning",
+    description:
+      language === "en"
+        ? "The lecture ID does not belong to the selected module."
+        : language === "ar"
+          ? "معرف المحاضرة لا ينتمي إلى الوحدة المحددة."
+          : "Forelæsnings-ID’et hører ikke til det valgte modul.",
+  },
+
+  missingModule: {
+    severity: "warning",
+    label:
+      language === "en"
+        ? "Missing module"
+        : language === "ar"
+          ? "الوحدة مفقودة"
+          : "Modul mangler",
+    description:
+      language === "en"
+        ? "The question is not assigned to a module."
+        : language === "ar"
+          ? "السؤال غير مرتبط بوحدة."
+          : "Spørgsmålet er ikke tilknyttet et modul.",
+  },
+
+  missingLecture: {
+    severity: "warning",
+    label:
+      language === "en"
+        ? "Missing lecture"
+        : language === "ar"
+          ? "المحاضرة مفقودة"
+          : "Forelæsning mangler",
+    description:
+      language === "en"
+        ? "The question may not appear in the intended lecture deck."
+        : language === "ar"
+          ? "قد لا يظهر السؤال في مجموعة المحاضرة المقصودة."
+          : "Spørgsmålet vises muligvis ikke i den tilsigtede forelæsningsbunke.",
+  },
+
+  missingExplanation: {
+    severity: "warning",
+    label:
+      language === "en"
+        ? "Missing explanation"
+        : language === "ar"
+          ? "الشرح مفقود"
+          : "Forklaring mangler",
+    description:
+      language === "en"
+        ? "Students will not receive an explanation after answering."
+        : language === "ar"
+          ? "لن يحصل الطلاب على شرح بعد الإجابة."
+          : "De studerende får ingen forklaring efter besvarelsen.",
+  },
+
+  missingCategory: {
+    severity: "warning",
+    label:
+      language === "en"
+        ? "Missing category"
+        : language === "ar"
+          ? "الفئة مفقودة"
+          : "Kategori mangler",
+    description:
+      language === "en"
+        ? "The question cannot be grouped clearly by topic."
+        : language === "ar"
+          ? "لا يمكن تصنيف السؤال بوضوح حسب الموضوع."
+          : "Spørgsmålet kan ikke grupperes tydeligt efter emne.",
+  },
+
+  duplicateOptions: {
+    severity: "warning",
+    label:
+      language === "en"
+        ? "Duplicate answer options"
+        : language === "ar"
+          ? "خيارات إجابة مكررة"
+          : "Dublerede svarmuligheder",
+    description:
+      language === "en"
+        ? "Two or more answer options contain the same text."
+        : language === "ar"
+          ? "يحتوي خياران أو أكثر على النص نفسه."
+          : "To eller flere svarmuligheder har samme tekst.",
+  },
+};
+
+function getQuestionQualityIssues(
+  question
+) {
+  const issueKeys = [];
+
+  if (
+    !hasAnyLocalizedText(
+      question.question
+    )
+  ) {
+    issueKeys.push("missingQuestion");
+  }
+
+  const options = Array.isArray(
+    question.options
+  )
+    ? question.options
+    : [];
+
+  const completedOptions =
+    options.filter(
+      hasAnyLocalizedText
+    );
+
+  if (completedOptions.length < 2) {
+    issueKeys.push("tooFewOptions");
+  }
+
+  if (
+    options.some(
+      (option) =>
+        !hasAnyLocalizedText(option)
+    )
+  ) {
+    issueKeys.push("blankOption");
+  }
+
+  const hasCorrectValue =
+    question.correct !== null &&
+    question.correct !== undefined &&
+    question.correct !== "";
+
+  const correctIndex = Number(
+    question.correct
+  );
+
+  if (
+    !hasCorrectValue ||
+    !Number.isInteger(correctIndex) ||
+    correctIndex < 0 ||
+    correctIndex >= options.length ||
+    !hasAnyLocalizedText(
+      options[correctIndex]
+    )
+  ) {
+    issueKeys.push("invalidCorrect");
+  }
+
+  const optionFingerprints =
+    completedOptions.map((option) =>
+      getAnyLocalizedText(option)
+        .toLocaleLowerCase(
+          adminFilterLocale
+        )
+        .replace(/\s+/g, " ")
+    );
+
+  if (
+    new Set(optionFingerprints).size !==
+    optionFingerprints.length
+  ) {
+    issueKeys.push(
+      "duplicateOptions"
+    );
+  }
+
+  if (
+    !hasAnyLocalizedText(
+      question.explanation
+    )
+  ) {
+    issueKeys.push(
+      "missingExplanation"
+    );
+  }
+
+  if (
+    !hasAnyLocalizedText(
+      question.category
+    )
+  ) {
+    issueKeys.push("missingCategory");
+  }
+
+  const moduleId = String(
+    question.moduleId || ""
+  ).trim();
+
+  const lectureId = String(
+    question.lectureId || ""
+  ).trim();
+
+  const moduleExists =
+    Boolean(moduleId) &&
+    Object.prototype.hasOwnProperty.call(
+      MODULE_LECTURES,
+      moduleId
+    );
+
+  if (!moduleId) {
+    issueKeys.push("missingModule");
+  } else if (!moduleExists) {
+    issueKeys.push("unknownModule");
+  }
+
+  if (!lectureId) {
+    issueKeys.push("missingLecture");
+  } else if (
+    moduleExists &&
+    !(
+      MODULE_LECTURES[moduleId] || []
+    ).some(
+      (lecture) =>
+        lecture.id === lectureId
+    )
+  ) {
+    issueKeys.push("unknownLecture");
+  }
+
+  return issueKeys.map((key) => ({
+    key,
+    ...qualityIssueDefinitions[key],
+  }));
+}
+
+const questionQualityRows =
+  imported
+    .map((question) => ({
+      question,
+      issues:
+        getQuestionQualityIssues(
+          question
+        ),
+    }))
+    .filter(
+      (row) => row.issues.length > 0
+    );
+
+const qualityIssueCount =
+  questionQualityRows.reduce(
+    (total, row) =>
+      total + row.issues.length,
+    0
+  );
+
+const criticalQualityQuestionCount =
+  questionQualityRows.filter((row) =>
+    row.issues.some(
+      (issue) =>
+        issue.severity === "danger"
+    )
+  ).length;
+
+const warningQualityQuestionCount =
+  questionQualityRows.filter((row) =>
+    row.issues.some(
+      (issue) =>
+        issue.severity === "warning"
+    )
+  ).length;
+
+const normalizedQualitySearch =
+  qualitySearch
+    .trim()
+    .toLocaleLowerCase(
+      adminFilterLocale
+    );
+
+const filteredQuestionQualityRows =
+  questionQualityRows.filter((row) => {
+    if (
+      qualitySeverityFilter !==
+        "all" &&
+      !row.issues.some(
+        (issue) =>
+          issue.severity ===
+          qualitySeverityFilter
+      )
+    ) {
+      return false;
+    }
+
+    if (!normalizedQualitySearch) {
+      return true;
+    }
+
+    const searchableText = [
+      row.question.id,
+      row.question.moduleId,
+      row.question.lectureId,
+      getAnyLocalizedText(
+        row.question.question
+      ),
+      getAnyLocalizedText(
+        row.question.category
+      ),
+      ...row.issues.map(
+        (issue) => issue.label
+      ),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase(
+        adminFilterLocale
+      );
+
+    return searchableText.includes(
+      normalizedQualitySearch
     );
   });
 
@@ -12313,13 +12748,6 @@ const recentFailedImports =
     );
   });
 
-const questionsWithoutLecture =
-  imported.filter((question) => {
-    return !String(
-      question.lectureId || ""
-    ).trim();
-  });
-
 const adminWarnings = [
   {
     key: "openFlags",
@@ -12374,39 +12802,36 @@ const adminWarnings = [
     onOpen: () =>
       setAdminTab("importHistory"),
   },
-  {
-    key: "missingLectures",
-    count:
-      questionsWithoutLecture.length,
-    level: "info",
-    symbol: "?",
-    title:
-      language === "en"
-        ? "Questions without a lecture"
-        : language === "ar"
-          ? "أسئلة بدون محاضرة"
-          : "Spørgsmål uden forelæsning",
-    description:
-      language === "en"
-        ? "Published questions without a lecture may not appear in the intended lecture deck."
-        : language === "ar"
-          ? "قد لا تظهر الأسئلة المنشورة بدون محاضرة في المجموعة المقصودة."
-          : "Publicerede spørgsmål uden forelæsning vises muligvis ikke i den tilsigtede forelæsningsbunke.",
-    actionLabel:
-      language === "en"
-        ? "Open question bank"
-        : language === "ar"
-          ? "فتح بنك الأسئلة"
-          : "Åbn Spørgsmålsbanken",
-    onOpen: () => {
-      setQuestionSearch("");
-      setQuestionModuleFilter("all");
-      setQuestionLectureFilter(
-        "all"
-      );
-      setAdminTab("questions");
-    },
-  },
+ {
+  key: "dataQuality",
+  count:
+    questionQualityRows.length,
+  level:
+    criticalQualityQuestionCount > 0
+      ? "danger"
+      : "info",
+  symbol: "≠",
+  title:
+    language === "en"
+      ? "Question data-quality issues"
+      : language === "ar"
+        ? "مشكلات جودة بيانات الأسئلة"
+        : "Datakvalitetsproblemer",
+  description:
+    language === "en"
+      ? "Published questions contain missing, invalid or inconsistent information."
+      : language === "ar"
+        ? "تحتوي الأسئلة المنشورة على معلومات مفقودة أو غير صالحة أو غير متسقة."
+        : "Publicerede spørgsmål indeholder manglende, ugyldige eller inkonsistente oplysninger.",
+  actionLabel:
+    language === "en"
+      ? "Review data quality"
+      : language === "ar"
+        ? "مراجعة جودة البيانات"
+        : "Gennemgå datakvalitet",
+  onOpen: () =>
+    setAdminTab("quality"),
+},
 ].filter(
   (warning) => warning.count > 0
 );
@@ -12509,6 +12934,25 @@ const adminSections = [
           : "Søg, filtrér og administrér publicerede spørgsmål.",
     badge: imported.length,
   },
+
+{
+  key: "quality",
+  label:
+    language === "en"
+      ? "Data quality"
+      : language === "ar"
+        ? "جودة البيانات"
+        : "Datakvalitet",
+  description:
+    language === "en"
+      ? "Find and correct invalid or incomplete questions."
+      : language === "ar"
+        ? "العثور على الأسئلة غير الصالحة أو غير المكتملة وتصحيحها."
+        : "Find og ret ugyldige eller ufuldstændige spørgsmål.",
+  badge:
+    questionQualityRows.length,
+},
+  
   {
     key: "import",
     label: t.adminTabImport,
@@ -13503,12 +13947,14 @@ if (creatingAdminQuestion) {
               borderRadius: 99,
               background:
   section.key === "flagged" ||
-  section.key === "overview"
+  section.key === "overview" ||
+  section.key === "quality"
     ? c.redSoft
     : c.blueSoft,
 color:
   section.key === "flagged" ||
-  section.key === "overview"
+  section.key === "overview" ||
+  section.key === "quality"
     ? c.red
     : c.blue,
               fontSize: 10,
@@ -14099,7 +14545,622 @@ questionLectureFilter !== "all"
               </div>
             )}
           </div>
-      ) : adminTab === "flagged" ? (
+      ) : adminTab === "quality" ? (
+  <div
+    style={{
+      marginBottom: 20,
+    }}
+  >
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns:
+          "repeat(auto-fit, minmax(180px, 1fr))",
+        gap: 10,
+        marginBottom: 15,
+      }}
+    >
+      {[
+        {
+          label:
+            language === "en"
+              ? "Affected questions"
+              : language === "ar"
+                ? "الأسئلة المتأثرة"
+                : "Berørte spørgsmål",
+          value:
+            questionQualityRows.length,
+          tone: "blue",
+        },
+        {
+          label:
+            language === "en"
+              ? "Critical questions"
+              : language === "ar"
+                ? "الأسئلة الحرجة"
+                : "Kritiske spørgsmål",
+          value:
+            criticalQualityQuestionCount,
+          tone: "red",
+        },
+        {
+          label:
+            language === "en"
+              ? "Questions with warnings"
+              : language === "ar"
+                ? "أسئلة مع تحذيرات"
+                : "Spørgsmål med advarsler",
+          value:
+            warningQualityQuestionCount,
+          tone: "orange",
+        },
+        {
+          label:
+            language === "en"
+              ? "Total issues"
+              : language === "ar"
+                ? "إجمالي المشكلات"
+                : "Problemer i alt",
+          value: qualityIssueCount,
+          tone: "blue",
+        },
+      ].map((stat) => {
+        const isRed =
+          stat.tone === "red";
+
+        const background =
+          isRed
+            ? c.redSoft
+            : c.blueSoft;
+
+        const border =
+          isRed
+            ? c.redBorder
+            : c.blueBorder;
+
+        const color =
+          isRed ? c.red : c.blue;
+
+        return (
+          <div
+            key={stat.label}
+            style={{
+              padding: "13px 14px",
+              borderRadius: 13,
+              background,
+              border: `1px solid ${border}`,
+            }}
+          >
+            <div
+              style={{
+                color: c.secondary,
+                fontSize: 10,
+                fontWeight: 750,
+              }}
+            >
+              {stat.label}
+            </div>
+
+            <div
+              style={{
+                marginTop: 5,
+                color,
+                fontSize: 22,
+                fontWeight: 900,
+              }}
+            >
+              {stat.value}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent:
+          "space-between",
+        flexWrap: "wrap",
+        gap: 12,
+        marginBottom: 14,
+      }}
+    >
+      <div>
+        <div
+          style={{
+            color: c.text,
+            fontSize: 14,
+            fontWeight: 800,
+          }}
+        >
+          {language === "en"
+            ? "Questions requiring review"
+            : language === "ar"
+              ? "أسئلة تحتاج إلى مراجعة"
+              : "Spørgsmål, der kræver gennemgang"}
+        </div>
+
+        <div
+          style={{
+            marginTop: 3,
+            color: c.muted,
+            fontSize: 10.5,
+            fontWeight: 650,
+          }}
+        >
+          {qualitySearch.trim() ||
+          qualitySeverityFilter !==
+            "all"
+            ? `${filteredQuestionQualityRows.length} / ${questionQualityRows.length}`
+            : questionQualityRows.length}
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent:
+            "flex-end",
+          flexWrap: "wrap",
+          gap: 8,
+        }}
+      >
+        <select
+          value={qualitySeverityFilter}
+          onChange={(event) =>
+            setQualitySeverityFilter(
+              event.target.value
+            )
+          }
+          aria-label={
+            language === "en"
+              ? "Filter by severity"
+              : language === "ar"
+                ? "التصفية حسب الخطورة"
+                : "Filtrér efter alvor"
+          }
+          style={{
+            minWidth: 155,
+            minHeight: 40,
+            padding:
+              "0 34px 0 11px",
+            borderRadius: 11,
+            border: `1px solid ${c.borderStrong}`,
+            background: c.panel,
+            color: c.text,
+            fontSize: 12,
+            fontFamily: "inherit",
+            cursor: "pointer",
+          }}
+        >
+          <option value="all">
+            {language === "en"
+              ? "All issues"
+              : language === "ar"
+                ? "كل المشكلات"
+                : "Alle problemer"}
+          </option>
+
+          <option value="danger">
+            {language === "en"
+              ? "Critical only"
+              : language === "ar"
+                ? "الحرجة فقط"
+                : "Kun kritiske"}
+          </option>
+
+          <option value="warning">
+            {language === "en"
+              ? "Warnings only"
+              : language === "ar"
+                ? "التحذيرات فقط"
+                : "Kun advarsler"}
+          </option>
+        </select>
+
+        <input
+          type="search"
+          value={qualitySearch}
+          onChange={(event) =>
+            setQualitySearch(
+              event.target.value
+            )
+          }
+          aria-label={
+            language === "en"
+              ? "Search data-quality issues"
+              : language === "ar"
+                ? "البحث في مشكلات جودة البيانات"
+                : "Søg i datakvalitetsproblemer"
+          }
+          placeholder={
+            language === "en"
+              ? "Search question, module or issue..."
+              : language === "ar"
+                ? "ابحث عن سؤال أو وحدة أو مشكلة..."
+                : "Søg efter spørgsmål, modul eller problem..."
+          }
+          style={{
+            width:
+              "min(360px, 100%)",
+            minHeight: 40,
+            padding: "0 13px",
+            borderRadius: 11,
+            border: `1px solid ${c.borderStrong}`,
+            outline: "none",
+            background: c.panel,
+            color: c.text,
+            fontSize: 12,
+            fontFamily: "inherit",
+          }}
+        />
+      </div>
+    </div>
+
+    {questionQualityRows.length ===
+    0 ? (
+      <div
+        style={{
+          minHeight: 240,
+          display: "grid",
+          placeItems: "center",
+          padding: 28,
+          borderRadius: 16,
+          background: c.greenSoft,
+          border: `1px solid ${c.greenBorder}`,
+          textAlign: "center",
+        }}
+      >
+        <div>
+          <div
+            aria-hidden="true"
+            style={{
+              width: 52,
+              height: 52,
+              display: "grid",
+              placeItems: "center",
+              margin:
+                "0 auto 13px",
+              borderRadius: 16,
+              background: c.panel,
+              color: c.green,
+              fontSize: 22,
+              fontWeight: 900,
+            }}
+          >
+            ✓
+          </div>
+
+          <div
+            style={{
+              color: c.green,
+              fontSize: 14,
+              fontWeight: 850,
+            }}
+          >
+            {language === "en"
+              ? "No data-quality issues found"
+              : language === "ar"
+                ? "لم يتم العثور على مشكلات في جودة البيانات"
+                : "Ingen datakvalitetsproblemer fundet"}
+          </div>
+
+          <div
+            style={{
+              marginTop: 7,
+              color: c.secondary,
+              fontSize: 11.5,
+              lineHeight: 1.5,
+            }}
+          >
+            {language === "en"
+              ? "All published questions pass the current checks."
+              : language === "ar"
+                ? "جميع الأسئلة المنشورة اجتازت الفحوصات الحالية."
+                : "Alle publicerede spørgsmål består de nuværende kontroller."}
+          </div>
+        </div>
+      </div>
+    ) : filteredQuestionQualityRows
+        .length === 0 ? (
+      <div
+        style={{
+          minHeight: 200,
+          display: "grid",
+          placeItems: "center",
+          padding: 24,
+          borderRadius: 16,
+          background: c.panel,
+          border: `1px dashed ${c.borderStrong}`,
+          color: c.muted,
+          fontSize: 12,
+          textAlign: "center",
+        }}
+      >
+        {language === "en"
+          ? "No questions match the selected filters."
+          : language === "ar"
+            ? "لا توجد أسئلة تطابق عوامل التصفية المحددة."
+            : "Ingen spørgsmål matcher de valgte filtre."}
+      </div>
+    ) : (
+      <div
+        style={{
+          display: "grid",
+          gap: 11,
+        }}
+      >
+        {filteredQuestionQualityRows.map(
+          ({ question, issues }) => {
+            const hasCriticalIssue =
+              issues.some(
+                (issue) =>
+                  issue.severity ===
+                  "danger"
+              );
+
+            return (
+              <article
+                key={question.id}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "minmax(0, 1fr) auto",
+                  alignItems:
+                    "flex-start",
+                  gap: 16,
+                  padding: "15px 16px",
+                  borderRadius: 14,
+                  background: c.panel,
+                  border: `1px solid ${
+                    hasCriticalIssue
+                      ? c.redBorder
+                      : c.blueBorder
+                  }`,
+                  boxShadow: c.shadow,
+                }}
+              >
+                <div
+                  style={{
+                    minWidth: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: c.text,
+                      fontSize: 12.5,
+                      fontWeight: 800,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {getAnyLocalizedText(
+                      question.question
+                    ) ||
+                      (language === "en"
+                        ? "Question without text"
+                        : language === "ar"
+                          ? "سؤال بدون نص"
+                          : "Spørgsmål uden tekst")}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems:
+                        "center",
+                      flexWrap: "wrap",
+                      gap: 6,
+                      marginTop: 9,
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding:
+                          "3px 7px",
+                        borderRadius: 99,
+                        background:
+                          c.blueSoft,
+                        color: c.blue,
+                        fontSize: 9.5,
+                        fontWeight: 750,
+                      }}
+                    >
+                      {question.moduleId ||
+                        "—"}
+                    </span>
+
+                    <span
+                      style={{
+                        maxWidth: 300,
+                        padding:
+                          "3px 7px",
+                        borderRadius: 99,
+                        background: c.soft,
+                        border: `1px solid ${c.border}`,
+                        color:
+                          c.secondary,
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        overflow: "hidden",
+                        textOverflow:
+                          "ellipsis",
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
+                      {getAdminLectureLabel(
+                        question.lectureId,
+                        question.moduleId
+                      )}
+                    </span>
+
+                    <span
+                      style={{
+                        padding:
+                          "3px 7px",
+                        borderRadius: 99,
+                        background:
+                          hasCriticalIssue
+                            ? c.redSoft
+                            : c.blueSoft,
+                        color:
+                          hasCriticalIssue
+                            ? c.red
+                            : c.blue,
+                        fontSize: 9.5,
+                        fontWeight: 850,
+                      }}
+                    >
+                      {issues.length}
+                      {" "}
+                      {language === "en"
+                        ? issues.length ===
+                          1
+                          ? "issue"
+                          : "issues"
+                        : language === "ar"
+                          ? "مشكلات"
+                          : issues.length ===
+                              1
+                            ? "problem"
+                            : "problemer"}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: 7,
+                      marginTop: 12,
+                    }}
+                  >
+                    {issues.map(
+                      (issue) => {
+                        const danger =
+                          issue.severity ===
+                          "danger";
+
+                        return (
+                          <div
+                            key={
+                              issue.key
+                            }
+                            style={{
+                              padding:
+                                "9px 10px",
+                              borderRadius: 10,
+                              background:
+                                danger
+                                  ? c.redSoft
+                                  : c.blueSoft,
+                              border: `1px solid ${
+                                danger
+                                  ? c.redBorder
+                                  : c.blueBorder
+                              }`,
+                            }}
+                          >
+                            <div
+                              style={{
+                                color:
+                                  danger
+                                    ? c.red
+                                    : c.blue,
+                                fontSize: 10.5,
+                                fontWeight: 850,
+                              }}
+                            >
+                              {
+                                issue.label
+                              }
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 3,
+                                color:
+                                  c.secondary,
+                                fontSize: 10,
+                                lineHeight: 1.45,
+                              }}
+                            >
+                              {
+                                issue.description
+                              }
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 9,
+                      color: c.muted,
+                      fontSize: 9,
+                      fontFamily:
+                        "monospace",
+                    }}
+                  >
+                    {question.id}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteStatus(null);
+                    setQuestionEditStatus(
+                      null
+                    );
+
+                    setEditingAdminQuestion(
+                      question
+                    );
+                  }}
+                  style={{
+                    minHeight: 38,
+                    display:
+                      "inline-flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    gap: 6,
+                    padding: "0 12px",
+                    borderRadius: 10,
+                    border: `1px solid ${c.blueBorder}`,
+                    background:
+                      c.blueSoft,
+                    color: c.blue,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    fontFamily:
+                      "inherit",
+                    cursor: "pointer",
+                    whiteSpace:
+                      "nowrap",
+                  }}
+                >
+                  <Icon
+                    name="edit"
+                    size={13}
+                  />
+
+                  {t.editQuestion}
+                </button>
+              </article>
+            );
+          }
+        )}
+      </div>
+    )}
+  </div>
+) : adminTab === "flagged" ? (
         <div style={{ marginBottom: 16 }}>
           {flagActionError && (
   <div
@@ -17259,6 +18320,31 @@ color:
       ? "سجل النشاط"
       : "Aktivitetslog"}
 </button>
+  <button
+  type="button"
+  onClick={() =>
+    setAdminTab("quality")
+  }
+  style={{
+    minHeight: 40,
+    padding: "0 15px",
+    borderRadius: 10,
+    border: `1px solid ${c.borderStrong}`,
+    background: c.soft,
+    color: c.text,
+    fontSize: 12,
+    fontWeight: 800,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  }}
+>
+  {language === "en"
+    ? "Data quality"
+    : language === "ar"
+      ? "جودة البيانات"
+      : "Datakvalitet"}
+</button>
+  
           </div>
         </>
       ) : (
