@@ -1,5 +1,5 @@
 "use client";
-
+ 
 // Kræver: npm install @supabase/supabase-js
 import React, { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
