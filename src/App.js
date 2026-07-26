@@ -4639,6 +4639,485 @@ select.ui-control {
     both;
 }
 
+/* ============================================================
+   DASHBOARD – HOME HIERARCHY & PREMIUM POLISH
+   ============================================================ */
+
+.dashboard-shell {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.45fr)
+    minmax(320px, .92fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.dashboard-main,
+.dashboard-side {
+  display: grid;
+  gap: 18px;
+}
+
+.dashboard-hero {
+  position: relative;
+  overflow: hidden;
+  padding:
+    26px clamp(22px, 3vw, 32px);
+  border:
+    1px solid var(--ui-border);
+  border-radius: 26px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ui-panel) 78%, #ffffff 22%),
+      var(--ui-panel)
+    );
+  box-shadow:
+    var(--ui-shadow);
+}
+
+.dashboard-hero::before {
+  content: "";
+  position: absolute;
+  inset: auto -70px -90px auto;
+  width: 230px;
+  height: 230px;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--ui-blue) 18%, transparent),
+      transparent 70%
+    );
+  pointer-events: none;
+  filter: blur(10px);
+}
+
+.dashboard-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 var(--ui-surface-highlight);
+}
+
+.dashboard-hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.3fr)
+    minmax(260px, .9fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.dashboard-hero-copy {
+  min-width: 0;
+}
+
+.dashboard-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--ui-blue-soft);
+  border: 1px solid var(--ui-blue-border);
+  color: var(--ui-blue);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 var(--ui-surface-highlight);
+}
+
+.dashboard-hero-title {
+  margin: 14px 0 0;
+  color: var(--ui-text);
+  font-size: clamp(26px, 4.2vw, 34px);
+  font-weight: 900;
+  letter-spacing: -.04em;
+  line-height: 1.02;
+}
+
+.dashboard-hero-subtitle {
+  max-width: 630px;
+  margin-top: 10px;
+  color: var(--ui-secondary);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.7;
+}
+
+.dashboard-hero-metrics {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.dashboard-metric-card {
+  position: relative;
+  padding: 12px 13px;
+  border-radius: 16px;
+  border: 1px solid var(--ui-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ui-panel) 84%, #ffffff 16%),
+      var(--ui-soft)
+    );
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.dashboard-metric-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 var(--ui-surface-highlight);
+}
+
+.dashboard-metric-value {
+  color: var(--ui-text);
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.dashboard-metric-label {
+  margin-top: 5px;
+  color: var(--ui-secondary);
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.dashboard-hero-cta {
+  height: 100%;
+  display: grid;
+  align-content: stretch;
+}
+
+.dashboard-focus-card {
+  position: relative;
+  height: 100%;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid var(--ui-blue-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ui-blue-soft) 70%, var(--ui-panel) 30%),
+      var(--ui-panel)
+    );
+  box-shadow:
+    0 16px 36px rgba(22,101,234,.11);
+}
+
+.dashboard-focus-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+.dashboard-focus-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dashboard-focus-kicker {
+  color: var(--ui-blue);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.dashboard-focus-title {
+  margin-top: 6px;
+  color: var(--ui-text);
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.dashboard-focus-description {
+  margin-top: 5px;
+  color: var(--ui-secondary);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.dashboard-focus-badge {
+  min-width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: var(--ui-panel);
+  border: 1px solid var(--ui-blue-border);
+  color: var(--ui-blue);
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.dashboard-focus-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 9px;
+  margin-top: auto;
+}
+
+.dashboard-section-card {
+  padding:
+    22px clamp(20px, 3vw, 28px);
+  border:
+    1px solid var(--ui-border);
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ui-panel) 88%, #ffffff 12%),
+      var(--ui-panel)
+    );
+  box-shadow:
+    var(--ui-shadow);
+}
+
+.dashboard-section-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 var(--ui-surface-highlight);
+}
+
+.dashboard-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dashboard-section-kicker {
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.dashboard-section-title {
+  margin-top: 4px;
+  color: var(--ui-text);
+  font-size: 16px;
+  font-weight: 850;
+  letter-spacing: -.02em;
+  line-height: 1.25;
+}
+
+.dashboard-section-description {
+  margin-top: 5px;
+  color: var(--ui-secondary);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.dashboard-quick-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dashboard-quick-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid var(--ui-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ui-panel) 86%, #ffffff 14%),
+      var(--ui-panel)
+    );
+}
+
+.dashboard-quick-card::before {
+  content: "";
+  position: absolute;
+  inset: auto -40px -45px auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--ui-blue) 16%, transparent),
+      transparent 72%
+    );
+  pointer-events: none;
+}
+
+.dashboard-quick-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: var(--ui-blue-soft);
+  border: 1px solid var(--ui-blue-border);
+  color: var(--ui-blue);
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.dashboard-quick-title {
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.dashboard-quick-description {
+  margin-top: 7px;
+  color: var(--ui-secondary);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.dashboard-event-list {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-event-row {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 15px;
+  border-radius: 16px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-soft);
+}
+
+.dashboard-event-row::after {
+  content: "";
+  position: absolute;
+  inset-block: 9px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 0 99px 99px 0;
+  background: var(--ui-blue);
+  opacity: .85;
+}
+
+.dashboard-side-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.dashboard-hero-area,
+.dashboard-resume-area {
+  grid-column: 1 / -1;
+}
+
+.dashboard-quick-area,
+.dashboard-today-area {
+  grid-column: 1;
+}
+
+.dashboard-plan-area,
+.dashboard-progress-area,
+.dashboard-checklist-area,
+.dashboard-badges-area {
+  grid-column: 2;
+}
+
+.dashboard-resume-area {
+  margin-top: -2px;
+}
+
+@media (max-width: 1160px) {
+  .dashboard-shell {
+  .dashboard-hero-area,
+  .dashboard-resume-area,
+  .dashboard-quick-area,
+  .dashboard-today-area,
+  .dashboard-plan-area,
+  .dashboard-progress-area,
+  .dashboard-checklist-area,
+  .dashboard-badges-area {
+  grid-column: 1;
+}
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-hero {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .dashboard-hero-title {
+    font-size: 26px;
+  }
+
+  .dashboard-hero-subtitle {
+    font-size: 12px;
+  }
+
+  .dashboard-hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-focus-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-quick-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-section-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+}
+
 @keyframes uiBackdropIn {
   from {
     opacity: 0;
@@ -5228,6 +5707,12 @@ select.ui-control {
   .topbar-page-icon,
   .topbar-quick-control,
   .topbar-module-btn,
+  .dashboard-hero,
+  .dashboard-focus-card,
+  .dashboard-metric-card,
+  .dashboard-section-card,
+  .dashboard-quick-card,
+  .dashboard-event-row,
   .pomodoro-preset,
   .pomodoro-control-button,
   .ui-card,
@@ -6026,6 +6511,37 @@ function EmptyState({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function DashboardSectionHeader({
+  kicker,
+  title,
+  description,
+  action = null,
+}) {
+  return (
+    <div className="dashboard-section-heading">
+      <div>
+        {kicker && (
+          <div className="dashboard-section-kicker">
+            {kicker}
+          </div>
+        )}
+
+        <div className="dashboard-section-title">
+          {title}
+        </div>
+
+        {description && (
+          <div className="dashboard-section-description">
+            {description}
+          </div>
+        )}
+      </div>
+
+      {action}
     </div>
   );
 }
@@ -12424,7 +12940,7 @@ getFullQuestionBank(
                   </div>
                 );
               })()}
-
+               
               <div style={{ display: "grid", gap: 18 }}>
                 {filteredDepthTopics
                   .slice()
@@ -13095,6 +13611,26 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
     repeat: ["repeat", "cards", x.repetition, c.blue, false],
     insights: ["insights", "chart", x.insights, c.green, true],
   };
+  const actionDescriptions = {
+  da: {
+    mcq: "Gennemgå hele spørgsmålsbanken og vælg din studietilstand.",
+    repeat: "Arbejd målrettet med de spørgsmål, der er klar til repetition.",
+    insights: "Se din udvikling, aktivitet og resultater over tid.",
+  },
+
+  en: {
+    mcq: "Explore the full question bank and choose your study mode.",
+    repeat: "Work specifically with questions that are ready for review.",
+    insights: "View your progress, activity and results over time.",
+  },
+
+  ar: {
+    mcq: "استعرض بنك الأسئلة بالكامل واختر وضع الدراسة.",
+    repeat: "اعمل بشكل مركز على الأسئلة الجاهزة للمراجعة.",
+    insights: "شاهد تقدمك ونشاطك ونتائجك بمرور الوقت.",
+  },
+}[language] || {};
+  
   const defaultActionOrder = ["mcq", "repeat", "insights"];
   const [quickAccessOrder, setQuickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, defaultActionOrder);
   const [reorderingActions, setReorderingActions] = useState(false);
@@ -13161,60 +13697,233 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
   })[language] || {};
 
   return (
-    <div className="fade-up" style={{ width: "min(880px, 100%)", margin: "0 auto", display: "grid", gap: 16 }}>
-      <section style={{ padding: "14px 0 7px" }}>
-        <div style={{ color: c.secondary, fontSize: 14, fontWeight: 650, marginBottom: 8 }}>
-          {greeting[language] || greeting.da}
-        </div>
-        <h1 style={{ margin: 0, color: c.text, fontSize: "clamp(32px, 4vw, 45px)", letterSpacing: "-.045em", lineHeight: 1.06, fontWeight: 800 }}>
-          {user.name}
-        </h1>
-        <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
-          {[
-            [reviewCount, x.review, c.blue, c.blueSoft],
-            [newCount, x.newQuestions, c.green, c.greenSoft],
-            [questionCount, x.total, c.text, c.soft],
-          ].map(([value, label, color, background]) => (
-            <span key={label} className="ui-status-pill" style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 99, background, border: `1px solid ${color}22` }}>
-              <span style={{ color, fontSize: 14, fontWeight: 800 }}>{value}</span>
-              <span style={{ color: c.secondary, fontSize: 11, fontWeight: 700 }}>{label}</span>
-            </span>
-          ))}
+    <div className="fade-up dashboard-shell">
+      <section className="dashboard-hero-area dashboard-hero ui-card">
+  <div className="dashboard-hero-grid">
+    <div className="dashboard-hero-copy">
+      <div className="dashboard-hero-eyebrow">
+        <span aria-hidden="true">
+          ✦
+        </span>
 
-          {streak.current > 0 && (() => {
-            const tiers = [1, 5, 10, 50, 100];
-            const tierIndex = tiers.reduce((acc, threshold, i) => (streak.current >= threshold ? i : acc), 0);
-            const pillHeight = 30;
-            const glowStrength = 0.25 + tierIndex * 0.18;
-            const flameColor = "#ff8a00";
-            return (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, height: pillHeight }}>
-                <span
-                  className={tierIndex >= 2 ? "flame-icon flame-icon-strong" : "flame-icon"}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: pillHeight,
-                    height: pillHeight,
-                    color: flameColor,
-                    filter: `drop-shadow(0 0 ${4 + tierIndex * 3}px rgba(255,138,0,${glowStrength}))`,
-                  }}
-                >
-                  <Icon name="flame" size={pillHeight} />
-                </span>
-                <span style={{ display: "inline-flex", alignItems: "baseline", gap: 5 }}>
-                  <span style={{ color: flameColor, fontSize: 14, fontWeight: 800 }}>{streak.current}</span>
-                  <span style={{ color: flameColor, fontSize: 11, fontWeight: 700 }}>{dashCopy.streak}</span>
-                </span>
-              </span>
-            );
-          })()}
+        <span>
+          {greeting[language] ||
+            greeting.da}
+        </span>
+      </div>
+
+      <h1 className="dashboard-hero-title">
+        {language === "en"
+          ? `Welcome back, ${user?.name || "student"}`
+          : language === "ar"
+            ? `مرحبًا بعودتك، ${user?.name || "طالب"}`
+            : `Velkommen tilbage, ${user?.name || "studerende"}`}
+      </h1>
+
+      <div className="dashboard-hero-subtitle">
+        {language === "en"
+          ? "Your study space is organized around what matters most today: review, focus and steady progress."
+          : language === "ar"
+            ? "مساحة دراستك مرتبة حول أهم ما تحتاجه اليوم: المراجعة والتركيز والتقدم المستمر."
+            : "Dit studierum er bygget op omkring det vigtigste i dag: repetition, fokus og stabil fremdrift."}
+      </div>
+
+      <div className="dashboard-hero-metrics">
+        <div className="dashboard-metric-card">
+          <div className="dashboard-metric-value">
+            {reviewCount}
+          </div>
+
+          <div className="dashboard-metric-label">
+            {x.review}
+          </div>
         </div>
-      </section>
+
+        <div className="dashboard-metric-card">
+          <div className="dashboard-metric-value">
+            {newCount}
+          </div>
+
+          <div className="dashboard-metric-label">
+            {x.newQuestions}
+          </div>
+        </div>
+
+        <div className="dashboard-metric-card">
+          <div className="dashboard-metric-value">
+            {questionCount}
+          </div>
+
+          <div className="dashboard-metric-label">
+            {x.total}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="dashboard-hero-cta">
+      <div className="dashboard-focus-card">
+        <div className="dashboard-focus-top">
+          <div>
+            <div className="dashboard-focus-kicker">
+              {language === "en"
+                ? "Recommended next step"
+                : language === "ar"
+                  ? "الخطوة التالية المقترحة"
+                  : "Anbefalet næste skridt"}
+            </div>
+
+            <div className="dashboard-focus-title">
+              {reviewCount > 0
+                ? language === "en"
+                  ? "Continue your review"
+                  : language === "ar"
+                    ? "تابع المراجعة"
+                    : "Fortsæt din repetition"
+                : language === "en"
+                  ? "Plan your next study block"
+                  : language === "ar"
+                    ? "خطط لجلسة الدراسة التالية"
+                    : "Planlæg din næste studieblok"}
+            </div>
+
+            <div className="dashboard-focus-description">
+              {reviewCount > 0
+                ? language === "en"
+                  ? `${reviewCount} questions are ready for review. Start with the material that needs your attention now.`
+                  : language === "ar"
+                    ? `${reviewCount} سؤالاً جاهزًا للمراجعة. ابدأ بالمحتوى الذي يحتاج إلى انتباهك الآن.`
+                    : `${reviewCount} spørgsmål er klar til repetition. Start med det materiale, der kræver din opmærksomhed nu.`
+                : language === "en"
+                  ? "Nothing urgent is due right now. Use your study plan to stay ahead."
+                  : language === "ar"
+                    ? "لا توجد مراجعات عاجلة الآن. استخدم خطة الدراسة للبقاء متقدمًا."
+                    : "Der er ikke noget akut til repetition. Brug studieplanen til at holde dig foran."}
+            </div>
+          </div>
+
+          <div className="dashboard-focus-badge">
+            {reviewCount > 99
+              ? "99+"
+              : reviewCount}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+            color: c.secondary,
+            fontSize: 10.5,
+            fontWeight: 700,
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            <Icon
+              name="flame"
+              size={14}
+            />
+
+            {streak.current}{" "}
+            {dashCopy.days}
+          </span>
+
+          <span
+            style={{
+              width: 3,
+              height: 3,
+              borderRadius: 99,
+              background: c.muted,
+            }}
+          />
+
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            <Icon
+              name="clock"
+              size={14}
+            />
+
+            {todayPomodoros}{" "}
+            {dashCopy.pomodoros}
+          </span>
+        </div>
+
+        <div className="dashboard-focus-actions">
+          <PrimaryButton
+            onClick={() =>
+              onNavigate(
+                reviewCount > 0
+                  ? "mcq"
+                  : "study-plan"
+              )
+            }
+            style={{
+              width: "100%",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              <Icon
+                name={
+                  reviewCount > 0
+                    ? "cards"
+                    : "calendar"
+                }
+                size={15}
+              />
+
+              {reviewCount > 0
+                ? language === "en"
+                  ? "Start review"
+                  : language === "ar"
+                    ? "ابدأ المراجعة"
+                    : "Start repetition"
+                : language === "en"
+                  ? "Open study plan"
+                  : language === "ar"
+                    ? "افتح خطة الدراسة"
+                    : "Åbn studieplan"}
+            </span>
+          </PrimaryButton>
+
+          <SecondaryButton
+            onClick={() =>
+              onNavigate("insights")
+            }
+            style={{
+              minWidth: 116,
+            }}
+          >
+            {x.insights}
+          </SecondaryButton>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       {hasResumableSession && (
-        <section>
+        <section className="dashboard-resume-area">
           <button
             type="button"
             className="ui-callout ui-card--interactive"
@@ -13232,33 +13941,53 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
         </section>
       )}
 
-      <section>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 10 }}>
-          <h2 style={{ margin: 0, color: c.text, fontSize: 15, fontWeight: 800 }}>{x.quickAccess}</h2>
-          <button
-            type="button"
-            title={reorderingActions ? t.doneReorder : t.editOrder}
-            onClick={() => setReorderingActions((value) => !value)}
-            style={{
-              width: 30,
-              height: 30,
-              flexShrink: 0,
-              display: "grid",
-              placeItems: "center",
-              borderRadius: 9,
-              border: `1px solid ${reorderingActions ? c.blueBorder : c.border}`,
-              background: reorderingActions ? c.blueSoft : "transparent",
-              color: reorderingActions ? c.blue : c.muted,
-              cursor: "pointer",
-            }}
-          >
-            <Icon name="edit" size={14} />
-          </button>
-        </div>
+      <section className="dashboard-quick-area">
+        <DashboardSectionHeader
+  kicker={
+    language === "en"
+      ? "Quick access"
+      : language === "ar"
+        ? "وصول سريع"
+        : "Hurtig adgang"
+  }
+  title={x.quickAccess}
+  description={
+    language === "en"
+      ? "Jump directly into the part of your study flow that matters now."
+      : language === "ar"
+        ? "انتقل مباشرة إلى الجزء الذي تحتاجه الآن من مسار دراستك."
+        : "Gå direkte til den del af dit studieflow, du har brug for nu."
+  }
+  action={
+    <IconButton
+      c={c}
+      title={
+        reorderingActions
+          ? t.doneReorder
+          : t.editOrder
+      }
+      active={reorderingActions}
+      onClick={() =>
+        setReorderingActions(
+          (value) => !value
+        )
+      }
+    >
+      <Icon
+        name={
+          reorderingActions
+            ? "check"
+            : "edit"
+        }
+        size={15}
+      />
+    </IconButton>
+  }
+/>
         {reorderingActions && (
           <div style={{ marginBottom: 10, color: c.muted, fontSize: 11, fontWeight: 650 }}>{t.reorderHint}</div>
         )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+        <div className="dashboard-quick-grid">
           {actions.map(([id, icon, title, color, enabled], index) => {
             const isDragOver = reorderingActions && actionDragOverId === id;
             return (
@@ -13291,7 +14020,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
               >
                 <button
                   type="button"
-                  className="ui-card ui-card--interactive ui-card-button"
+                  className="ui-card ui-card--interactive ui-card-button dashboard-quick-card"
                   data-tour={id === "mcq" ? "mcq-card" : id === "insights" ? "insights-card" : undefined}
                   disabled={!enabled || reorderingActions}
                   onClick={() => enabled && !reorderingActions && onNavigate(id)}
@@ -13311,7 +14040,14 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
                     position: "relative",
                   }}
                 >
-                  <span style={{ width: 36, height: 36, display: "grid", placeItems: "center", borderRadius: 12, background: `${color}18`, color }}>
+                 <span
+  className="dashboard-quick-icon"
+  style={{
+    background: `${color}18`,
+    borderColor: `${color}28`,
+    color,
+  }}
+>
                     <Icon name={icon} size={17} />
                   </span>
                   <div style={{ color: c.text, fontSize: 13, fontWeight: 800 }}>{title}</div>
@@ -13327,43 +14063,194 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
         </div>
       </section>
 
-      <section>
+      <section className="dashboard-plan-area">
         <button
           type="button"
           className="ui-card-button"
           onClick={() => onNavigate("study-plan")}
           style={{ width: "100%", textAlign: "start", cursor: "pointer", padding: 0, border: 0, background: "transparent" }}
         >
-          <div className="ui-card ui-card--interactive" style={{ padding: "22px clamp(20px, 3vw, 28px)", borderRadius: 24, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-            <span style={{ width: 52, height: 52, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 16, background: c.blueGradient, color: "#fff", boxShadow: `0 10px 22px ${c.blue}33` }}>
-              <Icon name="clock" size={22} />
-            </span>
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ color: c.text, fontSize: 15, fontWeight: 800 }}>{x.plan}</div>
-              <div style={{ marginTop: 4, color: c.secondary, fontSize: 12 }}>
-                {activePlan
-                  ? `${activePlan.mode === "lectures" ? "Studieplan" : "Eksamenssæt"} \u00b7 ${activePlan.hoursPerDay || 2} t/dag \u00b7 ${activePlan.examDate || ""}`
-                  : x.focusText}
-              </div>
-            </div>
-            {activePlan && activePlan.examDate && (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 16px", borderRadius: 14, background: c.blueSoft, border: `1px solid ${c.blueBorder}` }}>
-                <span style={{ color: c.blue, fontSize: 20, fontWeight: 800, lineHeight: 1 }}>
-                  {Math.max(0, Math.ceil((new Date(`${activePlan.examDate}T00:00:00`) - new Date()) / 86400000))}
-                </span>
-                <span style={{ color: c.blue, fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>dage</span>
-              </div>
-            )}
-            <span style={{ color: c.muted, flexShrink: 0 }}>
-              <Icon name="right" size={18} />
-            </span>
-          </div>
+          <div className="ui-card ui-card--interactive dashboard-section-card">
+  <div
+    style={{
+      display: "flex",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: 12,
+    }}
+  >
+    <span
+      style={{
+        width: 44,
+        height: 44,
+        flexShrink: 0,
+        display: "grid",
+        placeItems: "center",
+        borderRadius: 14,
+        background: c.blueGradient,
+        color: "#fff",
+        boxShadow:
+          `0 10px 22px ${c.blue}33`,
+      }}
+    >
+      <Icon
+        name="calendar"
+        size={19}
+      />
+    </span>
+
+    {activePlan?.examDate && (
+      <div
+        style={{
+          minWidth: 54,
+          display: "grid",
+          placeItems: "center",
+          padding: "8px 10px",
+          borderRadius: 12,
+          background: c.blueSoft,
+          border:
+            `1px solid ${c.blueBorder}`,
+        }}
+      >
+        <span
+          style={{
+            color: c.blue,
+            fontSize: 20,
+            fontWeight: 900,
+            lineHeight: 1,
+          }}
+        >
+          {Math.max(
+            0,
+            Math.ceil(
+              (
+                new Date(
+                  `${activePlan.examDate}T00:00:00`
+                ) -
+                new Date()
+              ) /
+                86400000
+            )
+          )}
+        </span>
+
+        <span
+          style={{
+            marginTop: 4,
+            color: c.blue,
+            fontSize: 8.5,
+            fontWeight: 850,
+            letterSpacing: ".06em",
+            textTransform: "uppercase",
+          }}
+        >
+          {language === "en"
+            ? "days"
+            : language === "ar"
+              ? "أيام"
+              : "dage"}
+        </span>
+      </div>
+    )}
+  </div>
+
+  <div
+    style={{
+      marginTop: 16,
+      color: c.text,
+      fontSize: 16,
+      fontWeight: 850,
+      lineHeight: 1.3,
+    }}
+  >
+    {x.plan}
+  </div>
+
+  <div
+    style={{
+      marginTop: 6,
+      color: c.secondary,
+      fontSize: 11,
+      fontWeight: 650,
+      lineHeight: 1.6,
+    }}
+  >
+    {activePlan
+      ? `${activePlan.mode === "lectures"
+          ? language === "en"
+            ? "Lecture plan"
+            : language === "ar"
+              ? "خطة المحاضرات"
+              : "Forelæsningsplan"
+          : language === "en"
+            ? "Exam set"
+            : language === "ar"
+              ? "مجموعة الامتحان"
+              : "Eksamenssæt"} · ${activePlan.hoursPerDay || 2} t/dag`
+      : language === "en"
+        ? "Create a structured plan towards your next exam."
+        : language === "ar"
+          ? "أنشئ خطة منظمة حتى موعد امتحانك القادم."
+          : "Opret en struktureret plan frem mod din næste eksamen."}
+  </div>
+
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+      marginTop: 17,
+      paddingTop: 14,
+      borderTop:
+        `1px solid ${c.border}`,
+      color: c.blue,
+      fontSize: 11,
+      fontWeight: 800,
+    }}
+  >
+    <span>
+      {language === "en"
+        ? "Open study plan"
+        : language === "ar"
+          ? "افتح خطة الدراسة"
+          : "Åbn studieplan"}
+    </span>
+
+    <Icon
+      name="right"
+      size={15}
+    />
+  </div>
+</div>
         </button>
       </section>
 
-      <section>
-        <div className="ui-card" style={{ padding: "26px clamp(22px, 3vw, 32px)", borderRadius: 26, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+      <section className="dashboard-progress-area">
+        <div className="ui-card dashboard-section-card">{{ padding: "26px clamp(22px, 3vw, 32px)", borderRadius: 26, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
+          <DashboardSectionHeader
+  kicker={
+    language === "en"
+      ? "Today"
+      : language === "ar"
+        ? "اليوم"
+        : "I dag"
+  }
+  title={
+    language === "en"
+      ? "Today's study plan"
+      : language === "ar"
+        ? "خطة الدراسة لليوم"
+        : "Dagens studieplan"
+  }
+  description={
+    language === "en"
+      ? "Your scheduled learning blocks, ready to begin."
+      : language === "ar"
+        ? "جلسات التعلم المجدولة لليوم، جاهزة للبدء."
+        : "Dine planlagte studieblokke for i dag, klar til at blive startet."
+  }
+/>
             <span style={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: 14, background: c.blueGradient, color: "#fff", boxShadow: `0 10px 22px ${c.blue}33` }}>
               <Icon name="calendar" size={20} />
             </span>
@@ -13374,14 +14261,25 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
           </div>
 
           {todaysEvents.length === 0 ? (
-            <div style={{ display: "grid", placeItems: "center", minHeight: 140, padding: 20, borderRadius: 18, border: `1px dashed ${c.borderStrong}`, background: c.soft, textAlign: "center" }}>
-              <div>
-                <div style={{ color: c.secondary, fontSize: 13, fontWeight: 750 }}>{x.emptyPlan}</div>
-                <div style={{ marginTop: 6, color: c.muted, fontSize: 12 }}>{x.planHint}</div>
-              </div>
-            </div>
+            <EmptyState
+  symbol={
+    <Icon
+      name="calendar"
+      size={18}
+    />
+  }
+  title={x.emptyPlan}
+  description={x.planHint}
+/>
           ) : (
-            <div style={{ display: "grid", gap: 10, maxHeight: 360, overflowY: "auto", paddingRight: 2 }}>
+            <div
+  className="dashboard-event-list"
+  style={{
+    maxHeight: 360,
+    overflowY: "auto",
+    paddingInlineEnd: 2,
+  }}
+>
               {todaysEvents.map((event) => {
                 const palette =
                   event.type === "exam" ? [c.red, c.redSoft] :
@@ -13392,7 +14290,7 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
                   <button
                     key={event.id}
                     type="button"
-                    className="ui-list-row"
+                    className="ui-list-row dashboard-event-row"
                     onClick={() => setEditingPlanEvent(event)}
                     style={{
                       display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
@@ -13632,8 +14530,8 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
         };
         return (
           <>
-            <section>
-              <div className="ui-card" style={{ padding: "22px clamp(20px, 3vw, 28px)", borderRadius: 24, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
+            <section className="dashboard-today-area">
+            <div className="ui-card dashboard-section-card">
                 <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 16 }}>
                   <span style={{ width: 36, height: 36, display: "grid", placeItems: "center", borderRadius: 12, background: c.soft, color: c.secondary }}>
                     <Icon name="chart" size={17} />
@@ -18379,19 +19277,13 @@ questionLectureFilter !== "all"
       }}
     >
       <div>
-        <div
-          style={{
-            color: c.text,
-            fontSize: 14,
-            fontWeight: 800,
-          }}
-        >
-          {language === "en"
-            ? "Questions requiring review"
-            : language === "ar"
-              ? "أسئلة تحتاج إلى مراجعة"
-              : "Spørgsmål, der kræver gennemgang"}
-        </div>
+        <div className="dashboard-quick-title">
+  {title}
+</div>
+
+<div className="dashboard-quick-description">
+  {actionDescriptions[id]}
+</div>
 
         <div
           style={{
