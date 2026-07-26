@@ -16197,6 +16197,407 @@ color:
             ))}
           </div>
 
+  <section
+  style={{
+    padding: 20,
+    marginBottom: 18,
+    borderRadius: 16,
+    background: c.panel,
+    border: `1px solid ${c.border}`,
+    boxShadow: c.shadow,
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: 12,
+      marginBottom: 16,
+    }}
+  >
+    <div>
+      <div
+        style={{
+          color: c.text,
+          fontSize: 14,
+          fontWeight: 800,
+        }}
+      >
+        {language === "en"
+          ? "Recent activity"
+          : language === "ar"
+            ? "النشاط الأخير"
+            : "Seneste aktiviteter"}
+      </div>
+
+      <div
+        style={{
+          marginTop: 5,
+          color: c.secondary,
+          fontSize: 11.5,
+          lineHeight: 1.5,
+        }}
+      >
+        {language === "en"
+          ? "The latest administrative changes and actions."
+          : language === "ar"
+            ? "أحدث التغييرات والإجراءات الإدارية."
+            : "De nyeste administrative ændringer og handlinger."}
+      </div>
+    </div>
+
+    <button
+      type="button"
+      onClick={() =>
+        setAdminTab("audit")
+      }
+      style={{
+        minHeight: 36,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        padding: "0 12px",
+        borderRadius: 10,
+        border: `1px solid ${c.borderStrong}`,
+        background: c.soft,
+        color: c.text,
+        fontSize: 11,
+        fontWeight: 800,
+        fontFamily: "inherit",
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {language === "en"
+        ? "View full log"
+        : language === "ar"
+          ? "عرض السجل الكامل"
+          : "Se hele loggen"}
+
+      <span
+        aria-hidden="true"
+        style={{
+          fontSize: 14,
+          lineHeight: 1,
+        }}
+      >
+        {language === "ar" ? "←" : "→"}
+      </span>
+    </button>
+  </div>
+
+  {activityLoading ? (
+    <div
+      style={{
+        minHeight: 150,
+        display: "grid",
+        placeItems: "center",
+        borderRadius: 12,
+        background: c.soft,
+        border: `1px solid ${c.border}`,
+        color: c.muted,
+        fontSize: 11.5,
+      }}
+    >
+      {language === "en"
+        ? "Loading recent activity..."
+        : language === "ar"
+          ? "جارٍ تحميل النشاط الأخير..."
+          : "Henter seneste aktiviteter..."}
+    </div>
+  ) : activityError ? (
+    <div
+      role="alert"
+      style={{
+        padding: "11px 13px",
+        borderRadius: 11,
+        background: c.redSoft,
+        border: `1px solid ${c.redBorder}`,
+        color: c.red,
+        fontSize: 11.5,
+        lineHeight: 1.5,
+      }}
+    >
+      {activityError}
+    </div>
+  ) : activityLog.length === 0 ? (
+    <div
+      style={{
+        minHeight: 150,
+        display: "grid",
+        placeItems: "center",
+        padding: 22,
+        borderRadius: 12,
+        background: c.soft,
+        border: `1px dashed ${c.borderStrong}`,
+        textAlign: "center",
+      }}
+    >
+      <div>
+        <div
+          aria-hidden="true"
+          style={{
+            width: 42,
+            height: 42,
+            display: "grid",
+            placeItems: "center",
+            margin: "0 auto 11px",
+            borderRadius: 13,
+            background: c.panel,
+            border: `1px solid ${c.border}`,
+            color: c.muted,
+            fontSize: 18,
+            fontWeight: 800,
+          }}
+        >
+          ≡
+        </div>
+
+        <div
+          style={{
+            color: c.text,
+            fontSize: 12.5,
+            fontWeight: 800,
+          }}
+        >
+          {language === "en"
+            ? "No activity recorded yet"
+            : language === "ar"
+              ? "لم يتم تسجيل أي نشاط بعد"
+              : "Ingen aktiviteter registreret endnu"}
+        </div>
+
+        <div
+          style={{
+            marginTop: 6,
+            color: c.muted,
+            fontSize: 10.5,
+            lineHeight: 1.5,
+          }}
+        >
+          {language === "en"
+            ? "New administrative actions will appear here."
+            : language === "ar"
+              ? "ستظهر الإجراءات الإدارية الجديدة هنا."
+              : "Nye administrative handlinger vises her."}
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div
+      style={{
+        display: "grid",
+        gap: 8,
+      }}
+    >
+      {activityLog
+        .slice(0, 6)
+        .map((item) => {
+          const failed =
+            item.action ===
+              "import_failed" ||
+            item.action ===
+              "question_archived" ||
+            item.action ===
+              "flag_dismissed";
+
+          const successful =
+            item.action ===
+              "question_created" ||
+            item.action ===
+              "question_restored" ||
+            item.action ===
+              "import_completed" ||
+            item.action ===
+              "flag_resolved";
+
+          const symbol =
+            item.action ===
+            "question_created"
+              ? "+"
+              : item.action ===
+                  "question_updated"
+                ? "✎"
+                : item.action ===
+                    "question_archived"
+                  ? "⌫"
+                  : item.action ===
+                      "question_restored"
+                    ? "↺"
+                    : item.entityType ===
+                        "import"
+                      ? "↥"
+                      : item.action ===
+                          "flag_resolved"
+                        ? "✓"
+                        : "×";
+
+          return (
+            <article
+              key={item.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "36px minmax(0, 1fr) auto",
+                alignItems: "center",
+                gap: 11,
+                padding: "10px 11px",
+                borderRadius: 11,
+                background: c.soft,
+                border: `1px solid ${c.border}`,
+              }}
+            >
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 36,
+                  height: 36,
+                  display: "grid",
+                  placeItems: "center",
+                  borderRadius: 11,
+                  background: failed
+                    ? c.redSoft
+                    : successful
+                      ? c.greenSoft
+                      : c.blueSoft,
+                  border: `1px solid ${
+                    failed
+                      ? c.redBorder
+                      : successful
+                        ? c.greenBorder
+                        : c.blueBorder
+                  }`,
+                  color: failed
+                    ? c.red
+                    : successful
+                      ? c.green
+                      : c.blue,
+                  fontSize: 15,
+                  fontWeight: 850,
+                }}
+              >
+                {symbol}
+              </div>
+
+              <div
+                style={{
+                  minWidth: 0,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 6,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: c.text,
+                      fontSize: 11.5,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {activityActionLabels[
+                      item.action
+                    ] || item.action}
+                  </div>
+
+                  {item.moduleId && (
+                    <span
+                      style={{
+                        padding: "2px 6px",
+                        borderRadius: 99,
+                        background: c.blueSoft,
+                        color: c.blue,
+                        fontSize: 8.5,
+                        fontWeight: 750,
+                      }}
+                    >
+                      {item.moduleId}
+                    </span>
+                  )}
+                </div>
+
+                <div
+                  title={
+                    item.title ||
+                    item.entityId ||
+                    ""
+                  }
+                  style={{
+                    marginTop: 4,
+                    color: c.secondary,
+                    fontSize: 10.5,
+                    lineHeight: 1.4,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item.title ||
+                    item.entityId ||
+                    "—"}
+                </div>
+
+                <div
+                  title={
+                    item.actorEmail ||
+                    item.createdBy ||
+                    ""
+                  }
+                  style={{
+                    marginTop: 3,
+                    color: c.muted,
+                    fontSize: 9,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item.actorEmail ||
+                    (language === "en"
+                      ? "Administrator"
+                      : language === "ar"
+                        ? "المسؤول"
+                        : "Administrator")}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  color: c.muted,
+                  fontSize: 9.5,
+                  lineHeight: 1.4,
+                  textAlign: "end",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.createdAt
+                  ? new Date(
+                      item.createdAt
+                    ).toLocaleString(
+                      adminFilterLocale,
+                      {
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }
+                    )
+                  : "—"}
+              </div>
+            </article>
+          );
+        })}
+    </div>
+  )}
+</section>
+              
           <div
             style={{
               padding: 20,
@@ -16291,6 +16692,55 @@ color:
                     : "Behandl flags"}
               </button>
             </div>
+                <button
+  type="button"
+  onClick={() =>
+    setAdminTab("questions")
+  }
+  style={{
+    minHeight: 40,
+    padding: "0 15px",
+    borderRadius: 10,
+    border: `1px solid ${c.borderStrong}`,
+    background: c.soft,
+    color: c.text,
+    fontSize: 12,
+    fontWeight: 800,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  }}
+>
+  {language === "en"
+    ? "Question bank"
+    : language === "ar"
+      ? "بنك الأسئلة"
+      : "Spørgsmålsbank"}
+</button>
+
+<button
+  type="button"
+  onClick={() =>
+    setAdminTab("audit")
+  }
+  style={{
+    minHeight: 40,
+    padding: "0 15px",
+    borderRadius: 10,
+    border: `1px solid ${c.borderStrong}`,
+    background: c.soft,
+    color: c.text,
+    fontSize: 12,
+    fontWeight: 800,
+    fontFamily: "inherit",
+    cursor: "pointer",
+  }}
+>
+  {language === "en"
+    ? "Activity log"
+    : language === "ar"
+      ? "سجل النشاط"
+      : "Aktivitetslog"}
+</button>
           </div>
         </>
       ) : (
