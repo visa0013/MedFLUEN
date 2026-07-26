@@ -5068,6 +5068,9 @@ select.ui-control {
 
 @media (max-width: 1160px) {
   .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
   .dashboard-hero-area,
   .dashboard-resume-area,
   .dashboard-quick-area,
@@ -5076,10 +5079,13 @@ select.ui-control {
   .dashboard-progress-area,
   .dashboard-checklist-area,
   .dashboard-badges-area {
-  grid-column: 1;
-}
+    grid-column: 1;
+  }
+
+  .dashboard-hero-grid {
     grid-template-columns: 1fr;
   }
+}
 
   .dashboard-hero-grid {
     grid-template-columns: 1fr;
@@ -14048,14 +14054,40 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
     color,
   }}
 >
-                    <Icon name={icon} size={17} />
-                  </span>
-                  <div style={{ color: c.text, fontSize: 13, fontWeight: 800 }}>{title}</div>
-                  {!enabled && !reorderingActions && (
-                    <span style={{ position: "absolute", top: 14, insetInlineEnd: 14, color: c.muted, fontSize: 9, fontWeight: 800, textTransform: "uppercase" }}>
-                      {x.coming}
-                    </span>
-                  )}
+  <Icon
+    name={icon}
+    size={17}
+  />
+</span>
+
+<div className="dashboard-quick-title">
+  {title}
+</div>
+
+<div className="dashboard-quick-description">
+  {actionDescriptions[id]}
+</div>
+
+{!enabled && !reorderingActions && (
+  <span
+    style={{
+      position: "absolute",
+      top: 14,
+      insetInlineEnd: 14,
+      padding: "4px 7px",
+      borderRadius: 999,
+      background: c.soft,
+      border: `1px solid ${c.border}`,
+      color: c.muted,
+      fontSize: 8.5,
+      fontWeight: 850,
+      letterSpacing: ".06em",
+      textTransform: "uppercase",
+    }}
+  >
+    {x.coming}
+  </span>
+)}
                 </button>
               </div>
             );
@@ -14186,7 +14218,13 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
             ? "Exam set"
             : language === "ar"
               ? "مجموعة الامتحان"
-              : "Eksamenssæt"} · ${activePlan.hoursPerDay || 2} t/dag`
+              : "Eksamenssæt"} · ${activePlan.hoursPerDay || 2} ${
+  language === "en"
+    ? "hrs/day"
+    : language === "ar"
+      ? "ساعة/يوم"
+      : "t/dag"
+}`
       : language === "en"
         ? "Create a structured plan towards your next exam."
         : language === "ar"
@@ -14226,93 +14264,134 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
         </button>
       </section>
 
-      <section className="dashboard-progress-area">
-        <div className="ui-card dashboard-section-card">{{ padding: "26px clamp(22px, 3vw, 32px)", borderRadius: 26, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
-          <DashboardSectionHeader
-  kicker={
-    language === "en"
-      ? "Today"
-      : language === "ar"
-        ? "اليوم"
-        : "I dag"
-  }
-  title={
-    language === "en"
-      ? "Today's study plan"
-      : language === "ar"
-        ? "خطة الدراسة لليوم"
-        : "Dagens studieplan"
-  }
-  description={
-    language === "en"
-      ? "Your scheduled learning blocks, ready to begin."
-      : language === "ar"
-        ? "جلسات التعلم المجدولة لليوم، جاهزة للبدء."
-        : "Dine planlagte studieblokke for i dag, klar til at blive startet."
-  }
-/>
-            <span style={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: 14, background: c.blueGradient, color: "#fff", boxShadow: `0 10px 22px ${c.blue}33` }}>
-              <Icon name="calendar" size={20} />
-            </span>
-            <div>
-              <div style={{ color: c.text, fontSize: 18, fontWeight: 800 }}>{x.todaysPlanExpandedTitle}</div>
-              <div style={{ marginTop: 2, color: c.muted, fontSize: 12 }}>{x.planText}</div>
-            </div>
-          </div>
-
-          {todaysEvents.length === 0 ? (
-            <EmptyState
-  symbol={
-    <Icon
-      name="calendar"
-      size={18}
+     <section className="dashboard-today-area">
+  <div className="ui-card dashboard-section-card">
+    <DashboardSectionHeader
+      kicker={
+        language === "en"
+          ? "Today"
+          : language === "ar"
+            ? "اليوم"
+            : "I dag"
+      }
+      title={
+        language === "en"
+          ? "Today's study plan"
+          : language === "ar"
+            ? "خطة الدراسة لليوم"
+            : "Dagens studieplan"
+      }
+      description={
+        language === "en"
+          ? "Your scheduled learning blocks, ready to begin."
+          : language === "ar"
+            ? "جلسات التعلم المجدولة لليوم، جاهزة للبدء."
+            : "Dine planlagte studieblokke for i dag, klar til at blive startet."
+      }
     />
-  }
-  title={x.emptyPlan}
-  description={x.planHint}
-/>
-          ) : (
-            <div
-  className="dashboard-event-list"
-  style={{
-    maxHeight: 360,
-    overflowY: "auto",
-    paddingInlineEnd: 2,
-  }}
->
-              {todaysEvents.map((event) => {
-                const palette =
-                  event.type === "exam" ? [c.red, c.redSoft] :
-                  event.type === "review" ? [c.green, c.greenSoft] :
-                  event.type === "study" ? [c.blue, c.blueSoft] :
-                  [c.secondary, c.soft];
-                return (
-                  <button
-                    key={event.id}
-                    type="button"
-                    className="ui-list-row dashboard-event-row"
-                    onClick={() => setEditingPlanEvent(event)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
-                      borderRadius: 14, background: palette[1], border: `1px solid ${c.border}`,
-                      cursor: "pointer", textAlign: "start", width: "100%",
-                    }}
-                  >
-                    <span style={{ width: 8, height: 8, borderRadius: 99, background: palette[0], flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontSize: 13.5, fontWeight: 650, color: c.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {event.title}
-                    </span>
-                    {event.time && (
-                      <span style={{ fontSize: 12, fontWeight: 750, color: palette[0], flexShrink: 0 }}>{event.time}</span>
-                    )}
-                    <Icon name="right" size={14} />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
+
+    {todaysEvents.length === 0 ? (
+      <EmptyState
+        symbol={
+          <Icon
+            name="calendar"
+            size={18}
+          />
+        }
+        title={x.emptyPlan}
+        description={x.planHint}
+      />
+    ) : (
+      <div
+        className="dashboard-event-list"
+        style={{
+          maxHeight: 360,
+          overflowY: "auto",
+          paddingInlineEnd: 2,
+        }}
+      >
+        {todaysEvents.map((event) => {
+          const palette =
+            event.type === "exam"
+              ? [c.red, c.redSoft]
+              : event.type === "review"
+                ? [c.green, c.greenSoft]
+                : event.type === "study"
+                  ? [c.blue, c.blueSoft]
+                  : [c.secondary, c.soft];
+
+          return (
+            <button
+              key={event.id}
+              type="button"
+              className="ui-list-row dashboard-event-row"
+              onClick={() =>
+                setEditingPlanEvent(event)
+              }
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "14px 16px",
+                borderRadius: 14,
+                background: palette[1],
+                border: `1px solid ${c.border}`,
+                color: c.text,
+                textAlign: "start",
+                cursor: "pointer",
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 8,
+                  height: 8,
+                  flexShrink: 0,
+                  borderRadius: 99,
+                  background: palette[0],
+                }}
+              />
+
+              <span
+                style={{
+                  minWidth: 0,
+                  flex: 1,
+                  color: c.text,
+                  fontSize: 13.5,
+                  fontWeight: 650,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {event.title}
+              </span>
+
+              {event.time && (
+                <span
+                  style={{
+                    flexShrink: 0,
+                    color: palette[0],
+                    fontSize: 12,
+                    fontWeight: 750,
+                  }}
+                >
+                  {event.time}
+                </span>
+              )}
+
+              <Icon
+                name="right"
+                size={14}
+              />
+            </button>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</section>
 
       {editingPlanEvent && (
         <Modal c={c} onClose={() => setEditingPlanEvent(null)}>
@@ -14529,126 +14608,408 @@ function Dashboard({ c, t, user, onNavigate, language, spacedData, importedQuest
           });
         };
         return (
-          <>
-            <section className="dashboard-today-area">
-            <div className="ui-card dashboard-section-card">
-                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 16 }}>
-                  <span style={{ width: 36, height: 36, display: "grid", placeItems: "center", borderRadius: 12, background: c.soft, color: c.secondary }}>
-                    <Icon name="chart" size={17} />
-                  </span>
-                  <div style={{ color: c.text, fontSize: 15, fontWeight: 800 }}>{studyPlanDashCopy.progressTitle}</div>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
-                  {[[studyPlanDashCopy.lectureProgress, doneCount, totalLectureCount, c.blue, c.blueSoft], [studyPlanDashCopy.examSetProgress, examSetDoneCount, examSetTotalCount, c.blue, c.blueSoft]].map(([label, done2, total2, color, bg]) => {
-                    const pct = total2 > 0 ? Math.round((done2 / total2) * 100) : 0;
-                    return (
-                      <div key={label} style={{ padding: "14px 16px", borderRadius: 14, background: c.soft, border: `1px solid ${c.border}` }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                          <span style={{ fontSize: 11, fontWeight: 750, color: c.secondary }}>{label}</span>
-                          <span style={{ fontSize: 11, fontWeight: 800, color }}>{done2}/{total2}</span>
-                        </div>
-                        <div style={{ height: 8, borderRadius: 99, background: c.border, overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 99, transition: "width .3s" }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+  <>
+    <section className="dashboard-progress-area">
+      <div className="ui-card dashboard-section-card">
+        <DashboardSectionHeader
+          kicker={
+            language === "en"
+              ? "Progress"
+              : language === "ar"
+                ? "التقدم"
+                : "Fremdrift"
+          }
+          title={studyPlanDashCopy.progressTitle}
+          description={
+            language === "en"
+              ? "See how much of your active study plan you have completed."
+              : language === "ar"
+                ? "شاهد مقدار ما أكملته من خطة الدراسة النشطة."
+                : "Se, hvor meget af din aktive studieplan du har gennemført."
+          }
+        />
 
-                {isBehind && (
-                  <div style={{ marginTop: 16, padding: "14px 16px", borderRadius: 14, background: c.redSoft, border: `1px solid ${c.redBorder}` }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: c.red, marginBottom: 4 }}>{studyPlanDashCopy.catchUpTitle}</div>
-                    <div style={{ fontSize: 12, color: c.secondary, lineHeight: 1.55, marginBottom: 10 }}>{studyPlanDashCopy.catchUpText}</div>
-                    <button type="button" onClick={handleCatchUp} style={{ height: 36, padding: "0 14px", borderRadius: 9, border: "none", background: c.red, color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{studyPlanDashCopy.catchUpButton}</button>
-                  </div>
-                )}
-              </div>
-            </section>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+          }}
+        >
+          {[
+            [
+              studyPlanDashCopy.lectureProgress,
+              doneCount,
+              totalLectureCount,
+              c.blue,
+            ],
+            [
+              studyPlanDashCopy.examSetProgress,
+              examSetDoneCount,
+              examSetTotalCount,
+              c.blue,
+            ],
+          ].map(
+            ([
+              label,
+              completed,
+              total,
+              color,
+            ]) => {
+              const percentage =
+                total > 0
+                  ? Math.round(
+                      (completed / total) *
+                        100
+                    )
+                  : 0;
 
-            <section>
-              <div style={{ padding: "22px clamp(20px, 3vw, 28px)", borderRadius: 24, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 16 }}>
-                  <span style={{ width: 36, height: 36, display: "grid", placeItems: "center", borderRadius: 12, background: c.soft, color: c.secondary }}>
-                    <Icon name="check" size={17} />
-                  </span>
-                  <div style={{ color: c.text, fontSize: 15, fontWeight: 800 }}>{studyPlanDashCopy.checklistTitle}</div>
-                </div>
-                {checklistItems.length === 0 ? (
-                  <div style={{ padding: 16, borderRadius: 14, border: `1px dashed ${c.borderStrong}`, background: c.soft, textAlign: "center", color: c.secondary, fontSize: 12, fontWeight: 650 }}>
-                    {studyPlanDashCopy.checklistEmpty}
-                  </div>
-                ) : (
-                  <div style={{ display: "grid", gap: 8 }}>
-                    {checklistItems.map((item) => {
-                      const isDone = Boolean(todayChecklist[item.id]);
-                      return (
-                        <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: isDone ? c.soft : c.panel, border: `1px solid ${isDone ? c.border : c.borderStrong}`, cursor: "pointer", opacity: isDone ? 0.55 : 1, transition: "opacity 200ms ease, background 200ms ease" }}>
-                          <input type="checkbox" checked={isDone} onChange={() => toggleChecklistItem(item.id)} style={{ accentColor: c.muted }} />
-                          <span style={{ flex: 1, fontSize: 12, fontWeight: 650, color: isDone ? c.muted : c.text, textDecoration: isDone ? "line-through" : "none" }}>{item.label}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {allDoneToday && nextExtraLecture && (
-                  <button
-                    type="button"
-                    onClick={addExtraToday}
-                    style={{
-                      marginTop: 12, width: "100%", height: 42, borderRadius: 12,
-                      border: `1px dashed ${c.blueBorder}`, background: c.blueSoft, color: c.blue,
-                      fontSize: 12, fontWeight: 800, cursor: "pointer",
-                    }}
-                  >
-                    {studyPlanDashCopy.readMoreToday}
-                  </button>
-                )}
-
-              </div>
-            </section>
-          </>
-        );
-      })()}
-
-      <section>
-        <div style={{ padding: "22px clamp(20px, 3vw, 28px)", borderRadius: 24, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadow }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <span style={{ width: 36, height: 36, display: "grid", placeItems: "center", borderRadius: 12, background: c.soft, color: c.secondary }}>
-                <Icon name="star" size={17} />
-              </span>
-              <div style={{ color: c.text, fontSize: 15, fontWeight: 800 }}>{dashCopy.badges}</div>
-            </div>
-            <span style={{ color: c.muted, fontSize: 11, fontWeight: 700 }}>{earnedBadges.length}/{BADGE_DEFINITIONS.length}</span>
-          </div>
-
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {BADGE_DEFINITIONS.map((badge) => {
-              const earned = earnedBadges.some((b) => b.id === badge.id);
               return (
-                <span
-                  key={badge.id}
-                  title={badge.label[language] || badge.label.da}
+                <div
+                  key={label}
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 7,
-                    padding: "8px 13px",
-                    borderRadius: 99,
-                    background: earned ? c.greenSoft : c.soft,
-                    border: `1px solid ${earned ? c.greenBorder : c.border}`,
-                    opacity: earned ? 1 : 0.55,
+                    padding: "14px 16px",
+                    borderRadius: 14,
+                    background: c.soft,
+                    border: `1px solid ${c.border}`,
                   }}
                 >
-                  <Icon name={badge.icon} size={14} />
-                  <span style={{ color: earned ? c.green : c.muted, fontSize: 11, fontWeight: 750 }}>{badge.label[language] || badge.label.da}</span>
-                </span>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent:
+                        "space-between",
+                      gap: 10,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: c.secondary,
+                        fontSize: 11,
+                        fontWeight: 750,
+                      }}
+                    >
+                      {label}
+                    </span>
+
+                    <span
+                      style={{
+                        color,
+                        fontSize: 11,
+                        fontWeight: 850,
+                      }}
+                    >
+                      {completed}/{total}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      height: 8,
+                      overflow: "hidden",
+                      borderRadius: 99,
+                      background: c.border,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${percentage}%`,
+                        height: "100%",
+                        borderRadius: 99,
+                        background: color,
+                        transition:
+                          "width 300ms ease",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            }
+          )}
+        </div>
+
+        {isBehind && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: "14px 16px",
+              borderRadius: 14,
+              background: c.redSoft,
+              border: `1px solid ${c.redBorder}`,
+            }}
+          >
+            <div
+              style={{
+                marginBottom: 4,
+                color: c.red,
+                fontSize: 13,
+                fontWeight: 850,
+              }}
+            >
+              {studyPlanDashCopy.catchUpTitle}
+            </div>
+
+            <div
+              style={{
+                marginBottom: 10,
+                color: c.secondary,
+                fontSize: 12,
+                lineHeight: 1.55,
+              }}
+            >
+              {studyPlanDashCopy.catchUpText}
+            </div>
+
+            <button
+              type="button"
+              className="ui-button ui-button--danger"
+              onClick={handleCatchUp}
+              style={{
+                minHeight: 36,
+                padding: "0 14px",
+                borderRadius: 10,
+                fontSize: 11.5,
+              }}
+            >
+              {studyPlanDashCopy.catchUpButton}
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <section className="dashboard-checklist-area">
+      <div className="ui-card dashboard-section-card">
+        <DashboardSectionHeader
+          kicker={
+            language === "en"
+              ? "Tasks"
+              : language === "ar"
+                ? "المهام"
+                : "Opgaver"
+          }
+          title={
+            studyPlanDashCopy.checklistTitle
+          }
+          description={
+            language === "en"
+              ? "Complete the concrete actions that move today's study plan forward."
+              : language === "ar"
+                ? "أكمل الخطوات المحددة التي تدفع خطة اليوم إلى الأمام."
+                : "Gennemfør de konkrete handlinger, der flytter dagens studieplan fremad."
+          }
+        />
+
+        {checklistItems.length === 0 ? (
+          <EmptyState
+            compact
+            symbol={
+              <Icon
+                name="check"
+                size={16}
+              />
+            }
+            title={
+              studyPlanDashCopy.checklistEmpty
+            }
+          />
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gap: 8,
+            }}
+          >
+            {checklistItems.map((item) => {
+              const isDone = Boolean(
+                todayChecklist[item.id]
+              );
+
+              return (
+                <label
+                  key={item.id}
+                  className="ui-list-row"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    background: isDone
+                      ? c.soft
+                      : c.panel,
+                    border: `1px solid ${
+                      isDone
+                        ? c.border
+                        : c.borderStrong
+                    }`,
+                    cursor: "pointer",
+                    opacity: isDone
+                      ? 0.55
+                      : 1,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isDone}
+                    onChange={() =>
+                      toggleChecklistItem(
+                        item.id
+                      )
+                    }
+                    style={{
+                      accentColor: c.blue,
+                    }}
+                  />
+
+                  <span
+                    style={{
+                      minWidth: 0,
+                      flex: 1,
+                      color: isDone
+                        ? c.muted
+                        : c.text,
+                      fontSize: 12,
+                      fontWeight: 650,
+                      lineHeight: 1.45,
+                      textDecoration: isDone
+                        ? "line-through"
+                        : "none",
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </label>
               );
             })}
           </div>
-        </div>
-      </section>
+        )}
+
+        {allDoneToday &&
+          nextExtraLecture && (
+            <button
+              type="button"
+              className="ui-button ui-button--secondary"
+              onClick={addExtraToday}
+              style={{
+                width: "100%",
+                minHeight: 42,
+                marginTop: 12,
+                borderStyle: "dashed",
+                color: c.blue,
+              }}
+            >
+              {
+                studyPlanDashCopy.readMoreToday
+              }
+            </button>
+          )}
+      </div>
+    </section>
+  </>
+);
+      })()}
+
+      <section className="dashboard-badges-area">
+  <div className="ui-card dashboard-section-card">
+    <DashboardSectionHeader
+      kicker={
+        language === "en"
+          ? "Achievements"
+          : language === "ar"
+            ? "الإنجازات"
+            : "Resultater"
+      }
+      title={dashCopy.badges}
+      description={
+        language === "en"
+          ? "Milestones earned through consistency and completed study activity."
+          : language === "ar"
+            ? "إنجازات تحصل عليها من خلال الاستمرارية والنشاط الدراسي."
+            : "Milepæle, du optjener gennem kontinuitet og gennemført studieaktivitet."
+      }
+      action={
+        <span
+          style={{
+            color: c.muted,
+            fontSize: 11,
+            fontWeight: 750,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {earnedBadges.length}/
+          {BADGE_DEFINITIONS.length}
+        </span>
+      }
+    />
+
+    <div
+      style={{
+        display: "flex",
+        gap: 10,
+        flexWrap: "wrap",
+      }}
+    >
+      {BADGE_DEFINITIONS.map((badge) => {
+        const earned =
+          earnedBadges.some(
+            (earnedBadge) =>
+              earnedBadge.id === badge.id
+          );
+
+        return (
+          <span
+            key={badge.id}
+            className="ui-status-pill"
+            title={
+              badge.label[language] ||
+              badge.label.da
+            }
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "8px 13px",
+              borderRadius: 99,
+              background: earned
+                ? c.greenSoft
+                : c.soft,
+              border: `1px solid ${
+                earned
+                  ? c.greenBorder
+                  : c.border
+              }`,
+              opacity: earned
+                ? 1
+                : 0.55,
+            }}
+          >
+            <Icon
+              name={badge.icon}
+              size={14}
+            />
+
+            <span
+              style={{
+                color: earned
+                  ? c.green
+                  : c.muted,
+                fontSize: 11,
+                fontWeight: 750,
+              }}
+            >
+              {badge.label[language] ||
+                badge.label.da}
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  </div>
+</section>
     </div>
   );
 }
