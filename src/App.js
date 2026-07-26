@@ -3761,41 +3761,234 @@ function GlobalStyles() {
       }
 
       .sidebar-nav-btn {
-        transition: background 180ms ease, color 180ms ease, transform 140ms ease;
-      }
-      .sidebar-nav-btn:hover {
-        background: rgba(120,150,255,.10) !important;
-        transform: translateY(-1px);
-      }
-      .sidebar-nav-btn:active {
-        transform: scale(.94);
-      }
-      .sidebar-active-dot {
-        animation: sidebarDotIn 220ms cubic-bezier(.16,1,.3,1) both;
-      }
-      @keyframes sidebarDotIn {
-        from { opacity: 0; transform: translateY(-50%) scaleY(.3); }
-        to { opacity: 1; transform: translateY(-50%) scaleY(1); }
-      }
-      .sidebar-logo {
-        transition: transform 220ms cubic-bezier(.16,1,.3,1);
-      }
-      .sidebar-logo:hover {
-        transform: scale(1.06) rotate(-2deg);
-      }
-      .sidebar-profile-btn {
-        transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
-      }
-      .sidebar-profile-btn:hover {
-        transform: translateY(-1px);
-      }
-      .sidebar-menu-item {
-        transition: background 140ms ease, padding-inline-start 140ms ease;
-      }
-      .sidebar-menu-item:hover {
-        background: rgba(120,150,255,.10);
-        padding-inline-start: 13px;
-      }
+  isolation: isolate;
+  outline: none;
+  overflow: visible;
+  transition:
+    transform 160ms cubic-bezier(.16,1,.3,1),
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.sidebar-nav-btn:hover {
+  transform: translateY(-1px);
+}
+
+.sidebar-nav-btn:active {
+  transform: translateY(0) scale(.95);
+}
+
+.sidebar-nav-btn[data-active="true"] {
+  box-shadow:
+    0 8px 22px rgba(22,101,234,.14),
+    inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.sidebar-nav-btn:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(22,101,234,.20),
+    0 8px 22px rgba(22,101,234,.12);
+}
+
+.sidebar-nav-icon {
+  display: grid;
+  place-items: center;
+  transition:
+    transform 180ms cubic-bezier(.16,1,.3,1),
+    opacity 180ms ease;
+}
+
+.sidebar-nav-btn:hover .sidebar-nav-icon {
+  transform: scale(1.07);
+}
+
+.sidebar-nav-btn:active .sidebar-nav-icon {
+  transform: scale(.96);
+}
+
+.sidebar-tooltip {
+  position: absolute;
+  z-index: 1200;
+  inset-inline-start: 58px;
+  top: 50%;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 11px;
+  border-radius: 10px;
+  background: rgba(18,27,45,.96);
+  color: #fff;
+  box-shadow:
+    0 10px 28px rgba(10,20,40,.20),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .01em;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform:
+    translateY(-50%)
+    translateX(-6px);
+  transition:
+    opacity 150ms ease,
+    transform 180ms cubic-bezier(.16,1,.3,1);
+}
+
+.sidebar-tooltip::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  transform:
+    translateY(-50%)
+    rotate(45deg);
+}
+
+.sidebar-nav-btn:hover .sidebar-tooltip,
+.sidebar-nav-btn:focus-visible .sidebar-tooltip {
+  opacity: 1;
+  transform:
+    translateY(-50%)
+    translateX(0);
+}
+
+.sidebar-active-dot {
+  animation:
+    sidebarDotIn
+    220ms
+    cubic-bezier(.16,1,.3,1)
+    both;
+}
+
+@keyframes sidebarDotIn {
+  from {
+    opacity: 0;
+    transform:
+      translateY(-50%)
+      scaleY(.3);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(-50%)
+      scaleY(1);
+  }
+}
+
+.sidebar-nav-group {
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.sidebar-logo {
+  outline: none;
+  transition:
+    transform 220ms cubic-bezier(.16,1,.3,1),
+    box-shadow 220ms ease,
+    filter 220ms ease;
+}
+
+.sidebar-logo:hover {
+  transform:
+    translateY(-1px)
+    scale(1.045)
+    rotate(-1.5deg);
+  filter: saturate(1.08);
+}
+
+.sidebar-logo:active {
+  transform: scale(.96);
+}
+
+.sidebar-logo:focus-visible {
+  box-shadow:
+    0 0 0 4px rgba(22,101,234,.18),
+    0 12px 28px rgba(22,101,234,.30) !important;
+}
+
+.sidebar-profile-btn {
+  outline: none;
+  transition:
+    transform 160ms cubic-bezier(.16,1,.3,1),
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.sidebar-profile-btn:hover {
+  transform: translateY(-1px);
+}
+
+.sidebar-profile-btn:active {
+  transform: scale(.95);
+}
+
+.sidebar-profile-btn:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(22,101,234,.20);
+}
+
+.sidebar-profile-menu {
+  transform-origin:
+    bottom left;
+  animation:
+    sidebarMenuIn
+    200ms
+    cubic-bezier(.16,1,.3,1)
+    both;
+}
+
+@keyframes sidebarMenuIn {
+  from {
+    opacity: 0;
+    transform:
+      translateY(7px)
+      scale(.97);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+.sidebar-menu-item {
+  outline: none;
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.sidebar-menu-item:hover {
+  background:
+    rgba(120,150,255,.10) !important;
+  transform: translateX(2px);
+}
+
+.sidebar-menu-item:active {
+  transform: translateX(1px) scale(.985);
+}
+
+.sidebar-menu-item:focus-visible {
+  background:
+    rgba(120,150,255,.12) !important;
+  box-shadow:
+    inset 0 0 0 2px
+    rgba(22,101,234,.16);
+}
       .app-topbar button[data-tour="pomodoro"] {
         transition: background 180ms ease, border-color 180ms ease, transform 140ms ease;
       }
@@ -4108,11 +4301,35 @@ function GlobalStyles() {
       }
 
       @media (max-width: 760px) {
-        .app-sidebar { width: 58px !important; }
-        .content-padding { padding: 22px !important; }
-        .notes-open { width: min(calc(100vw - 58px), 390px) !important; }
-        .desktop-only { display: none !important; }
-      }
+  .app-sidebar {
+    width: 58px !important;
+    padding-block: 14px !important;
+  }
+
+  .content-padding {
+    padding: 22px !important;
+  }
+
+  .notes-open {
+    width:
+      min(
+        calc(100vw - 58px),
+        390px
+      ) !important;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .sidebar-tooltip {
+    display: none !important;
+  }
+
+  .sidebar-profile-menu {
+    left: 50px !important;
+  }
+}
     `}</style>
   );
 }
@@ -19783,6 +20000,8 @@ function LanguageModal({ c, t, language, setLanguage, onClose }) {
 function Sidebar({
   c,
   t,
+  language,
+  user,
   route,
   setRoute,
   isAdmin,
@@ -19798,74 +20017,210 @@ function Sidebar({
   onProfileAction,
   dueCount = 0,
 }) {
-  function NavButton({ icon, title, active, onClick, badge }) {
+  const displayName = String(
+    user?.name ||
+      t.profile ||
+      "MedFLUEN"
+  ).trim();
+
+  const userInitial =
+    displayName
+      .slice(0, 1)
+      .toUpperCase() || "M";
+
+  const moduleLabel = String(
+    user?.module || ""
+  ).trim();
+
+  const menuDirection =
+    language === "ar"
+      ? "rtl"
+      : "ltr";
+
+  function closeUtilityPanels() {
+    setNotesOpen(false);
+    setCalendarOpen(false);
+    setDrByteOpen(false);
+    setProfileOpen(false);
+  }
+
+  function openRoute(nextRoute) {
+    setRoute(nextRoute);
+    closeUtilityPanels();
+  }
+
+  function NavButton({
+    icon,
+    title,
+    active,
+    onClick,
+    badge = 0,
+    isRoute = false,
+  }) {
     return (
       <button
         type="button"
         title={title}
+        aria-label={title}
+        aria-current={
+          isRoute && active
+            ? "page"
+            : undefined
+        }
+        aria-pressed={
+          !isRoute
+            ? Boolean(active)
+            : undefined
+        }
+        data-active={
+          active ? "true" : "false"
+        }
         onClick={onClick}
         className="sidebar-nav-btn"
         style={{
           position: "relative",
-          width: 44,
-          height: 44,
+          width: 48,
+          height: 48,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          border: 0,
-          borderRadius: 13,
-          background: active ? c.blueSoft : "transparent",
-          color: active ? c.blue : c.secondary,
+          border: `1px solid ${
+            active
+              ? c.blueBorder
+              : "transparent"
+          }`,
+          borderRadius: 15,
+          background: active
+            ? c.blueSoft
+            : "transparent",
+          color: active
+            ? c.blue
+            : c.secondary,
           cursor: "pointer",
         }}
       >
-        <Icon name={icon} size={19} />
+        <span
+          className="sidebar-nav-icon"
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+          }}
+        >
+          <Icon
+            name={icon}
+            size={19}
+            stroke={active ? 2.35 : 2.1}
+          />
+        </span>
+
         {active && (
           <span
+            aria-hidden="true"
             className="sidebar-active-dot"
             style={{
               position: "absolute",
-              insetInlineStart: -13,
+              insetInlineStart: -9,
               top: "50%",
-              transform: "translateY(-50%)",
               width: 3,
-              height: 18,
+              height: 21,
               borderRadius: 99,
               background: c.blue,
+              boxShadow:
+                "0 0 12px rgba(22,101,234,.40)",
+              transform:
+                "translateY(-50%)",
             }}
           />
         )}
+
         {badge > 0 && (
           <span
+            aria-label={`${badge}`}
             style={{
               position: "absolute",
-              top: -3,
-              insetInlineEnd: -3,
-              minWidth: 16,
-              height: 16,
-              padding: "0 3px",
+              top: -4,
+              insetInlineEnd: -4,
+              minWidth: 18,
+              height: 18,
+              display: "grid",
+              placeItems: "center",
+              padding: "0 4px",
               borderRadius: 99,
               background: c.red,
               color: "#fff",
-              fontSize: 9,
-              fontWeight: 800,
-              display: "grid",
-              placeItems: "center",
               border: `2px solid ${c.panel}`,
+              boxShadow:
+                "0 4px 10px rgba(210,50,70,.22)",
+              fontSize: 9,
+              fontWeight: 900,
               lineHeight: 1,
             }}
           >
-            {badge > 9 ? "9+" : badge}
+            {badge > 99
+              ? "99+"
+              : badge}
           </span>
         )}
+
+        <span
+          aria-hidden="true"
+          className="sidebar-tooltip"
+        >
+          {title}
+        </span>
       </button>
     );
   }
+
+  const profileActions = [
+    [
+      "settings",
+      "settings",
+      t.settings,
+    ],
+    [
+      "language",
+      "globe",
+      t.language,
+    ],
+    [
+      "tutorial",
+      "target",
+      t.replayTutorial,
+    ],
+    ...(isAdmin
+      ? [
+          [
+            "admin",
+            "book",
+            t.adminPortal,
+          ],
+        ]
+      : []),
+    [
+      "logout",
+      "logout",
+      t.resetProfile,
+    ],
+    [
+      "signout",
+      "logout",
+      t.signOutAction,
+    ],
+  ];
 
   return (
     <aside
       data-tour="sidebar"
       className="app-sidebar app-surface"
+      aria-label={
+        language === "en"
+          ? "Primary navigation"
+          : language === "ar"
+            ? "التنقل الرئيسي"
+            : "Primær navigation"
+      }
       style={{
         width: 74,
         height: "100%",
@@ -19873,40 +20228,80 @@ function Sidebar({
         flexDirection: "column",
         alignItems: "center",
         flexShrink: 0,
-        padding: "20px 0",
+        padding: "18px 0",
         background: c.panel,
         borderInlineEnd: `1px solid ${c.border}`,
+        boxShadow:
+          "8px 0 28px rgba(22,50,90,.025)",
         direction: "ltr",
       }}
     >
-      {/* Det blå hovedlogo er bevaret */}
-      <div
-        title="MedLearn"
+      <button
+        type="button"
+        title="MedFLUEN"
+        aria-label={
+          language === "en"
+            ? "Go to home"
+            : language === "ar"
+              ? "الانتقال إلى الصفحة الرئيسية"
+              : "Gå til Hjem"
+        }
+        onClick={() =>
+          openRoute("home")
+        }
         className="sidebar-logo"
         style={{
-          width: 42,
-          height: 42,
+          position: "relative",
+          width: 44,
+          height: 44,
           display: "grid",
           placeItems: "center",
-          marginBottom: 26,
-          borderRadius: 14,
-          background: "linear-gradient(135deg,#1665ea,#5aa8ff)",
+          flexShrink: 0,
+          marginBottom: 22,
+          padding: 0,
+          border: 0,
+          borderRadius: 15,
+          background:
+            "linear-gradient(135deg,#1665ea 0%,#3788f5 52%,#72b8ff 100%)",
           color: "#fff",
-          boxShadow: "0 10px 22px rgba(22,101,234,.32)",
+          boxShadow:
+            "0 12px 26px rgba(22,101,234,.30)",
+          cursor: "pointer",
         }}
       >
-        <Icon name="logo" size={21} />
-      </div>
+        <Icon
+          name="logo"
+          size={22}
+          stroke={2.2}
+        />
+      </button>
 
-      <div style={{ display: "grid", gap: 6, position: "relative" }}>
+      <nav
+        aria-label={
+          language === "en"
+            ? "Main pages"
+            : language === "ar"
+              ? "الصفحات الرئيسية"
+              : "Hovedsider"
+        }
+        className="sidebar-nav-group"
+        style={{
+          display: "grid",
+          gap: 4,
+          padding: 4,
+          borderRadius: 19,
+          background: c.soft,
+          border: `1px solid ${c.border}`,
+        }}
+      >
         <NavButton
           icon="home"
           title={t.home}
           active={route === "home"}
-          onClick={() => {
-            setRoute("home");
-            setProfileOpen(false);
-          }}
+          isRoute
+          onClick={() =>
+            openRoute("home")
+          }
         />
 
         <NavButton
@@ -19914,29 +20309,56 @@ function Sidebar({
           title={t.clinicalMcq}
           active={route === "mcq"}
           badge={dueCount}
-          onClick={() => {
-            setRoute("mcq");
-            setProfileOpen(false);
-          }}
+          isRoute
+          onClick={() =>
+            openRoute("mcq")
+          }
         />
-      </div>
+      </nav>
 
       <div
+        aria-hidden="true"
         style={{
           width: 28,
           height: 1,
-          background: c.borderStrong,
-          margin: "18px 0",
+          margin: "16px 0",
+          background:
+            `linear-gradient(
+              90deg,
+              transparent,
+              ${c.borderStrong},
+              transparent
+            )`,
         }}
       />
 
-      <div style={{ display: "grid", gap: 6 }}>
+      <nav
+        aria-label={
+          language === "en"
+            ? "Study tools"
+            : language === "ar"
+              ? "أدوات الدراسة"
+              : "Studieværktøjer"
+        }
+        className="sidebar-nav-group"
+        style={{
+          display: "grid",
+          gap: 4,
+          padding: 4,
+          borderRadius: 19,
+          background: c.soft,
+          border: `1px solid ${c.border}`,
+        }}
+      >
         <NavButton
           icon="notebook"
           title={t.notebook}
           active={notesOpen}
           onClick={() => {
-            setNotesOpen((value) => !value);
+            const nextOpen =
+              !notesOpen;
+
+            setNotesOpen(nextOpen);
             setCalendarOpen(false);
             setDrByteOpen(false);
             setProfileOpen(false);
@@ -19950,12 +20372,13 @@ function Sidebar({
           onClick={() => {
             if (calendarOpen) {
               onCloseCalendar();
-            } else {
-              setCalendarOpen(true);
-              setNotesOpen(false);
-              setDrByteOpen(false);
-              setProfileOpen(false);
+              return;
             }
+
+            setCalendarOpen(true);
+            setNotesOpen(false);
+            setDrByteOpen(false);
+            setProfileOpen(false);
           }}
         />
 
@@ -19964,92 +20387,251 @@ function Sidebar({
           title={t.drByte}
           active={drByteOpen}
           onClick={() => {
-            setDrByteOpen((value) => !value);
+            const nextOpen =
+              !drByteOpen;
+
+            setDrByteOpen(nextOpen);
             setNotesOpen(false);
             setCalendarOpen(false);
             setProfileOpen(false);
           }}
         />
-      </div>
+      </nav>
 
-      <div style={{ position: "relative", marginTop: "auto" }}>
+      <div
+        style={{
+          position: "relative",
+          marginTop: "auto",
+        }}
+      >
         <button
           type="button"
           title={t.profile}
-          onClick={() => setProfileOpen((value) => !value)}
+          aria-label={t.profile}
+          aria-expanded={profileOpen}
+          aria-haspopup="menu"
+          onClick={() =>
+            setProfileOpen(
+              (value) => !value
+            )
+          }
           className="sidebar-profile-btn"
           style={{
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             display: "grid",
             placeItems: "center",
-            borderRadius: "50%",
-            border: `1px solid ${profileOpen ? c.blueBorder : c.border}`,
-            background: profileOpen ? c.blueSoft : c.soft,
-            color: profileOpen ? c.blue : c.secondary,
+            padding: 0,
+            borderRadius: 14,
+            border: `1px solid ${
+              profileOpen
+                ? c.blueBorder
+                : c.border
+            }`,
+            background: profileOpen
+              ? c.blueSoft
+              : c.soft,
+            color: profileOpen
+              ? c.blue
+              : c.text,
+            boxShadow: profileOpen
+              ? "0 8px 20px rgba(22,101,234,.13)"
+              : "none",
+            fontSize: 13,
+            fontWeight: 900,
             cursor: "pointer",
           }}
         >
-          <Icon name="user" size={18} />
+          {userInitial}
         </button>
 
         {profileOpen && (
           <div
-            className="fade-up"
+            role="menu"
+            className="sidebar-profile-menu"
             style={{
               position: "absolute",
-              // Skal ligge over kalenderens fuldskærmswrapper (zIndex: 999) og
-              // ligestillet med Modal (zIndex: 1000), så profilmenuen altid
-              // er klikbar og synlig foran kalenderen, uanset visningstilstand.
-              zIndex: 1000,
-              left: 60,
+              zIndex: 1100,
+              left: 62,
               bottom: 0,
-              width: 220,
+              width: 248,
               padding: 8,
-              borderRadius: 18,
+              borderRadius: 19,
               background: c.panel,
               border: `1px solid ${c.border}`,
               boxShadow: c.shadowLg,
-              direction: "inherit",
+              direction: menuDirection,
             }}
           >
-           {[
-  ["settings", "settings", t.settings],
-  ["language", "globe", t.language],
-  ["tutorial", "target", t.replayTutorial],
-
-  ...(isAdmin
-    ? [["admin", "book", t.adminPortal]]
-    : []),
-
-  ["logout", "logout", t.resetProfile],
-  ["signout", "logout", t.signOutAction],
-].map(([id, icon, label]) => (
-              <button
-                type="button"
-                key={id}
-                onClick={() => onProfileAction(id)}
-                className="sidebar-menu-item"
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 11,
+                marginBottom: 7,
+                padding: "10px 10px 12px",
+                borderRadius: 13,
+                background: c.soft,
+                border: `1px solid ${c.border}`,
+              }}
+            >
+              <div
+                aria-hidden="true"
                 style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 11,
-                  padding: "11px 10px",
-                  border: 0,
-                  borderRadius: 11,
-                  color: id === "logout" || id === "signout" ? c.red : c.text,
-                  background: "transparent",
-                  textAlign: "left",
+                  width: 38,
+                  height: 38,
+                  flexShrink: 0,
+                  display: "grid",
+                  placeItems: "center",
+                  borderRadius: 12,
+                  background:
+                    "linear-gradient(135deg,#1665ea,#62adff)",
+                  color: "#fff",
+                  boxShadow:
+                    "0 7px 16px rgba(22,101,234,.22)",
                   fontSize: 13,
-                  fontWeight: 650,
-                  cursor: "pointer",
+                  fontWeight: 900,
                 }}
               >
-                <Icon name={icon} size={16} />
-                {label}
-              </button>
-            ))}
+                {userInitial}
+              </div>
+
+              <div
+                style={{
+                  minWidth: 0,
+                }}
+              >
+                <div
+                  title={displayName}
+                  style={{
+                    color: c.text,
+                    fontSize: 12.5,
+                    fontWeight: 850,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {displayName}
+                </div>
+
+                <div
+                  title={moduleLabel}
+                  style={{
+                    marginTop: 3,
+                    color: c.muted,
+                    fontSize: 10,
+                    fontWeight: 650,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {moduleLabel
+                    ? `${t.currentModule}: ${moduleLabel}`
+                    : t.profile}
+                </div>
+              </div>
+            </div>
+
+            {profileActions.map(
+              ([
+                id,
+                icon,
+                label,
+              ]) => {
+                const destructive =
+                  id === "logout" ||
+                  id === "signout";
+
+                return (
+                  <React.Fragment
+                    key={id}
+                  >
+                    {id === "logout" && (
+                      <div
+                        aria-hidden="true"
+                        style={{
+                          height: 1,
+                          margin: "6px 7px",
+                          background:
+                            c.border,
+                        }}
+                      />
+                    )}
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() =>
+                        onProfileAction(
+                          id
+                        )
+                      }
+                      className="sidebar-menu-item"
+                      style={{
+                        width: "100%",
+                        minHeight: 40,
+                        display: "flex",
+                        alignItems:
+                          "center",
+                        gap: 11,
+                        padding:
+                          "0 10px",
+                        border: 0,
+                        borderRadius: 11,
+                        background:
+                          "transparent",
+                        color: destructive
+                          ? c.red
+                          : c.text,
+                        textAlign:
+                          "start",
+                        fontSize: 12,
+                        fontWeight:
+                          destructive
+                            ? 750
+                            : 650,
+                        fontFamily:
+                          "inherit",
+                        cursor:
+                          "pointer",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 28,
+                          height: 28,
+                          flexShrink: 0,
+                          display:
+                            "grid",
+                          placeItems:
+                            "center",
+                          borderRadius: 9,
+                          background:
+                            destructive
+                              ? c.redSoft
+                              : c.soft,
+                          color:
+                            destructive
+                              ? c.red
+                              : c.secondary,
+                        }}
+                      >
+                        <Icon
+                          name={icon}
+                          size={15}
+                        />
+                      </span>
+
+                      <span>
+                        {label}
+                      </span>
+                    </button>
+                  </React.Fragment>
+                );
+              }
+            )}
           </div>
         )}
       </div>
@@ -21649,6 +22231,8 @@ useEffect(() => {
       <Sidebar
         c={c}
         t={t}
+        language={language}
+        user={user}
         route={route}
         setRoute={setRoute}
         notesOpen={notesOpen}
