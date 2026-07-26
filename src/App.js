@@ -5405,7 +5405,7 @@ function PrimaryButton({
         minHeight: 44,
         padding: "0 20px",
         borderRadius: 13,
-        fontSize: 13px,
+        fontSize: 13,
         fontWeight: 800,
         cursor: disabled
           ? "not-allowed"
