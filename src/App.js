@@ -14834,6 +14834,116 @@ const integratedPlanCopy = ({
     allComplete:
       "Alle lektioner er gennemført",
     moreEvents: (count) =>
+      `+${count} flere i kalenderen`,
+  },
+
+  en: {
+    kicker:
+      "Plan, calendar and lectures",
+    title:
+      "Study plan",
+    activeDescription:
+      "Your plan, today's study blocks and upcoming lectures in one place.",
+    emptyDescription:
+      "Create a study plan and connect it automatically to your calendar.",
+    days:
+      "days",
+    today:
+      "Today's study plan",
+    lessons:
+      "Lecture overview",
+    completed:
+      "completed",
+    noToday:
+      "No study blocks scheduled today",
+    noLessons:
+      "No lectures linked to this module yet",
+    openPlan:
+      "Open study plan",
+    openCalendar:
+      "Open calendar",
+    lecturePlan:
+      "Lecture plan",
+    examPlan:
+      "Exam set",
+    hoursPerDay:
+      "hrs/day",
+    allComplete:
+      "All lectures are completed",
+    moreEvents: (count) =>
+      `+${count} more in the calendar`,
+  },
+
+  ar: {
+    kicker:
+      "الخطة والتقويم والمحاضرات",
+    title:
+      "خطة الدراسة",
+    activeDescription:
+      "خطتك وجلسات اليوم والمحاضرات القادمة في مكان واحد.",
+    emptyDescription:
+      "أنشئ خطة دراسة واربطها تلقائيًا بالتقويم.",
+    days:
+      "أيام",
+    today:
+      "خطة اليوم",
+    lessons:
+      "نظرة عامة على المحاضرات",
+    completed:
+      "مكتمل",
+    noToday:
+      "لا توجد جلسات دراسة مخططة اليوم",
+    noLessons:
+      "لا توجد محاضرات مرتبطة بهذه الوحدة",
+    openPlan:
+      "افتح خطة الدراسة",
+    openCalendar:
+      "افتح التقويم",
+    lecturePlan:
+      "خطة المحاضرات",
+    examPlan:
+      "مجموعة الامتحان",
+    hoursPerDay:
+      "ساعة/يوم",
+    allComplete:
+      "تم إكمال جميع المحاضرات",
+    moreEvents: (count) =>
+      `+${count} أحداث أخرى في التقويم`,
+  },
+})[language] || {
+  kicker:
+    "Plan, kalender og lektioner",
+  title:
+    "Studieplan",
+  activeDescription:
+    "Din plan, dagens studieblokke og næste lektioner samlet ét sted.",
+  emptyDescription:
+    "Opret en studieplan, og få den automatisk koblet til kalenderen.",
+  days:
+    "dage",
+  today:
+    "Dagens studieplan",
+  lessons:
+    "Lektionsoverblik",
+  completed:
+    "gennemført",
+  noToday:
+    "Ingen studieblokke planlagt i dag",
+  noLessons:
+    "Ingen lektioner tilknyttet modulet endnu",
+  openPlan:
+    "Åbn studieplan",
+  openCalendar:
+    "Åbn kalender",
+  lecturePlan:
+    "Forelæsningsplan",
+  examPlan:
+    "Eksamenssæt",
+  hoursPerDay:
+    "t/dag",
+  allComplete:
+    "Alle lektioner er gennemført",
+  moreEvents: (count) =>
     `+${count} flere i kalenderen`,
 };
 
