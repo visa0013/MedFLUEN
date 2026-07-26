@@ -10807,6 +10807,31 @@ const [
   setImportHistorySearch,
 ] = useState("");
 
+const [
+  activityLog,
+  setActivityLog,
+] = useState([]);
+
+const [
+  activityLoading,
+  setActivityLoading,
+] = useState(true);
+
+const [
+  activityError,
+  setActivityError,
+] = useState("");
+
+const [
+  activitySearch,
+  setActivitySearch,
+] = useState("");
+
+const [
+  activityTypeFilter,
+  setActivityTypeFilter,
+] = useState("all");
+
   const [dashboardStats, setDashboardStats] =
   useState({
     totalQuestions: 0,
@@ -11102,6 +11127,49 @@ const filteredImportHistory =
     );
   });
 
+const normalizedActivitySearch =
+  activitySearch
+    .trim()
+    .toLocaleLowerCase(
+      adminFilterLocale
+    );
+
+const filteredActivityLog =
+  activityLog.filter((item) => {
+    if (
+      activityTypeFilter !== "all" &&
+      item.entityType !==
+        activityTypeFilter
+    ) {
+      return false;
+    }
+
+    if (!normalizedActivitySearch) {
+      return true;
+    }
+
+    const searchableText = [
+      item.action,
+      item.entityType,
+      item.entityId,
+      item.title,
+      item.moduleId,
+      item.lectureId,
+      item.actorEmail,
+      item.createdBy,
+      item.details?.errorMessage,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLocaleLowerCase(
+        adminFilterLocale
+      );
+
+    return searchableText.includes(
+      normalizedActivitySearch
+    );
+  });
+
   function tryUnlock() {
     if (simpleHash(passcode.trim()) === ADMIN_PASSCODE_HASH) {
       setUnlocked(true);
@@ -11110,6 +11178,51 @@ const filteredImportHistory =
       setError(true);
     }
   }
+
+async function recordAdminActivity({
+  action,
+  entityType,
+  entityId = null,
+  title = null,
+  moduleId = null,
+  lectureId = null,
+  details = {},
+}) {
+  try {
+    const { error } = await supabase.rpc(
+      "admin_record_activity",
+      {
+        p_action: action,
+        p_entity_type: entityType,
+        p_entity_id:
+          entityId || null,
+        p_title: title || null,
+        p_module_id:
+          moduleId || null,
+        p_lecture_id:
+          lectureId || null,
+        p_details:
+          details &&
+          typeof details === "object"
+            ? details
+            : {},
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Kunne ikke registrere adminaktiviteten:",
+      error
+    );
+
+    return false;
+  }
+}
 
 async function removeQuestion(id) {
   if (deletingQuestionId) return;
@@ -11157,6 +11270,26 @@ async function removeQuestion(id) {
     }
 
     await pullQuestionBankIntoLocalStorage();
+
+await recordAdminActivity({
+  action: "question_archived",
+  entityType: "question",
+  entityId: id,
+  title:
+    translate(
+      question?.question,
+      "da"
+    ) ||
+    questionText ||
+    id,
+  moduleId:
+    question?.moduleId || null,
+  lectureId:
+    question?.lectureId || null,
+  details: {
+    questionId: id,
+  },
+});
 
     setDeleteStatus({
       type: "success",
@@ -11245,6 +11378,34 @@ async function saveAdminQuestion(updated) {
   }
 
   await pullQuestionBankIntoLocalStorage();
+
+await recordAdminActivity({
+  action: "question_updated",
+  entityType: "question",
+  entityId:
+    normalizedQuestion.id,
+  title:
+    translate(
+      normalizedQuestion.question,
+      "da"
+    ) ||
+    translate(
+      normalizedQuestion.question,
+      language
+    ) ||
+    normalizedQuestion.id,
+  moduleId:
+    normalizedQuestion.moduleId,
+  lectureId:
+    normalizedQuestion.lectureId,
+  details: {
+    category:
+      translate(
+        normalizedQuestion.category,
+        "da"
+      ) || null,
+  },
+});
 
   setEditingAdminQuestion(null);
 
@@ -11361,6 +11522,32 @@ async function createAdminQuestion(updated) {
   }
 
   await pullQuestionBankIntoLocalStorage();
+
+  await recordAdminActivity({
+  action: "question_created",
+  entityType: "question",
+  entityId:
+    normalizedQuestion.id,
+  title:
+    translate(
+      normalizedQuestion.question,
+      "da"
+    ) ||
+    translate(
+      normalizedQuestion.question,
+      language
+    ) ||
+    normalizedQuestion.id,
+  moduleId: createdModuleId,
+  lectureId: createdLectureId,
+  details: {
+    category:
+      translate(
+        normalizedQuestion.category,
+        "da"
+      ) || null,
+  },
+});
 
   setCreatingAdminQuestion(false);
   setQuestionSearch("");
@@ -11596,6 +11783,98 @@ useEffect(() => {
   language,
 ]);
 
+useEffect(() => {
+  if (!unlocked) return undefined;
+
+  let cancelled = false;
+
+  async function loadActivityLog() {
+    setActivityLoading(true);
+    setActivityError("");
+
+    try {
+      const { data, error } =
+        await supabase.rpc(
+          "admin_list_activity_log",
+          {
+            p_limit: 500,
+          }
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      if (cancelled) return;
+
+      const normalizedActivities = (
+        Array.isArray(data) ? data : []
+      ).map((item) => ({
+        id: item.id,
+        action: item.action || "",
+        entityType:
+          item.entity_type || "",
+        entityId:
+          item.entity_id || "",
+        title: item.title || "",
+        moduleId:
+          item.module_id || "",
+        lectureId:
+          item.lecture_id || null,
+        details:
+          item.details &&
+          typeof item.details ===
+            "object" &&
+          !Array.isArray(item.details)
+            ? item.details
+            : {},
+        createdBy:
+          item.created_by || null,
+        actorEmail:
+          item.actor_email || "",
+        createdAt:
+          item.created_at || null,
+      }));
+
+      setActivityLog(
+        normalizedActivities
+      );
+    } catch (error) {
+      console.error(
+        "Kunne ikke hente aktivitetsloggen:",
+        error
+      );
+
+      if (!cancelled) {
+        setActivityLog([]);
+
+        setActivityError(
+          error?.message ||
+            (language === "en"
+              ? "The activity log could not be loaded."
+              : language === "ar"
+                ? "تعذر تحميل سجل النشاط."
+                : "Aktivitetsloggen kunne ikke hentes.")
+        );
+      }
+    } finally {
+      if (!cancelled) {
+        setActivityLoading(false);
+      }
+    }
+  }
+
+  loadActivityLog();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  unlocked,
+  dashboardRefreshKey,
+  language,
+]);
+
 async function restoreArchivedQuestion(id) {
   if (archiveActionId) return;
 
@@ -11660,6 +11939,26 @@ async function restoreArchivedQuestion(id) {
     }
 
     await pullQuestionBankIntoLocalStorage();
+
+    await recordAdminActivity({
+  action: "question_restored",
+  entityType: "question",
+  entityId: id,
+  title:
+    translate(
+      question?.question,
+      "da"
+    ) ||
+    questionText ||
+    id,
+  moduleId:
+    question?.moduleId || null,
+  lectureId:
+    question?.lectureId || null,
+  details: {
+    questionId: id,
+  },
+});
 
     setArchivedQuestions(
       (previous) =>
@@ -11794,6 +12093,11 @@ async function updateFlagStatus(
   const isDismiss =
     nextStatus === "dismissed";
 
+  const selectedFlag =
+  flagged.find(
+    (item) => item.id === flagId
+  );
+
   const confirmed = window.confirm(
     isDismiss
       ? language === "en"
@@ -11848,6 +12152,31 @@ async function updateFlagStatus(
           : item
       )
     );
+
+  await recordAdminActivity({
+  action: isDismiss
+    ? "flag_dismissed"
+    : "flag_resolved",
+  entityType: "flag",
+  entityId: flagId,
+  title:
+    selectedFlag?.questionText ||
+    selectedFlag?.questionId ||
+    flagId,
+  moduleId: null,
+  lectureId: null,
+  details: {
+    questionId:
+      selectedFlag?.questionId ||
+      null,
+    nextStatus,
+  },
+});
+
+setDashboardRefreshKey(
+  (value) => value + 1
+);
+    
   } catch (error) {
     console.error(
       "Kunne ikke opdatere flag:",
@@ -11957,6 +12286,64 @@ const openFlags = flagged.filter(
   (item) => item.status === "open"
 );
 
+const activityActionLabels = {
+  question_created:
+    language === "en"
+      ? "Question created"
+      : language === "ar"
+        ? "تم إنشاء السؤال"
+        : "Spørgsmål oprettet",
+
+  question_updated:
+    language === "en"
+      ? "Question updated"
+      : language === "ar"
+        ? "تم تحديث السؤال"
+        : "Spørgsmål redigeret",
+
+  question_archived:
+    language === "en"
+      ? "Question archived"
+      : language === "ar"
+        ? "تمت أرشفة السؤال"
+        : "Spørgsmål arkiveret",
+
+  question_restored:
+    language === "en"
+      ? "Question restored"
+      : language === "ar"
+        ? "تمت استعادة السؤال"
+        : "Spørgsmål gendannet",
+
+  import_completed:
+    language === "en"
+      ? "Import completed"
+      : language === "ar"
+        ? "اكتمل الاستيراد"
+        : "Import gennemført",
+
+  import_failed:
+    language === "en"
+      ? "Import failed"
+      : language === "ar"
+        ? "فشل الاستيراد"
+        : "Import mislykkedes",
+
+  flag_resolved:
+    language === "en"
+      ? "Flag resolved"
+      : language === "ar"
+        ? "تم حل البلاغ"
+        : "Flag markeret som løst",
+
+  flag_dismissed:
+    language === "en"
+      ? "Flag dismissed"
+      : language === "ar"
+        ? "تم رفض البلاغ"
+        : "Flag afvist",
+};
+
 const adminSections = [
   {
     key: "overview",
@@ -12056,6 +12443,7 @@ const adminSections = [
         : language === "ar"
           ? "عرض التغييرات والإجراءات الإدارية."
           : "Se administrative ændringer og handlinger.",
+    badge: activityLog.length,
   },
 ];
 
@@ -14852,6 +15240,627 @@ color:
                           {item.errorMessage}
                         </div>
                       )}
+                    </article>
+                  );
+                }
+              )}
+            </div>
+          )}
+                </div>
+      ) : adminTab === "audit" ? (
+        <div
+          style={{
+            marginBottom: 20,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent:
+                "space-between",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 15,
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  color: c.text,
+                  fontSize: 14,
+                  fontWeight: 800,
+                }}
+              >
+                {language === "en"
+                  ? "Administrative activity"
+                  : language === "ar"
+                    ? "النشاط الإداري"
+                    : "Administrative handlinger"}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 3,
+                  color: c.muted,
+                  fontSize: 10.5,
+                  fontWeight: 650,
+                }}
+              >
+                {activitySearch.trim() ||
+                activityTypeFilter !== "all"
+                  ? `${filteredActivityLog.length} / ${activityLog.length}`
+                  : activityLog.length}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 8,
+              }}
+            >
+              <select
+                value={activityTypeFilter}
+                onChange={(event) =>
+                  setActivityTypeFilter(
+                    event.target.value
+                  )
+                }
+                aria-label={
+                  language === "en"
+                    ? "Filter activity type"
+                    : language === "ar"
+                      ? "تصفية نوع النشاط"
+                      : "Filtrér aktivitetstype"
+                }
+                style={{
+                  minWidth: 150,
+                  minHeight: 40,
+                  padding:
+                    "0 34px 0 11px",
+                  borderRadius: 11,
+                  border: `1px solid ${c.borderStrong}`,
+                  background: c.panel,
+                  color: c.text,
+                  fontSize: 12,
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                <option value="all">
+                  {language === "en"
+                    ? "All activity"
+                    : language === "ar"
+                      ? "كل الأنشطة"
+                      : "Alle handlinger"}
+                </option>
+
+                <option value="question">
+                  {language === "en"
+                    ? "Questions"
+                    : language === "ar"
+                      ? "الأسئلة"
+                      : "Spørgsmål"}
+                </option>
+
+                <option value="import">
+                  {language === "en"
+                    ? "Imports"
+                    : language === "ar"
+                      ? "عمليات الاستيراد"
+                      : "Importer"}
+                </option>
+
+                <option value="flag">
+                  {language === "en"
+                    ? "Flags"
+                    : language === "ar"
+                      ? "البلاغات"
+                      : "Flags"}
+                </option>
+              </select>
+
+              <input
+                type="search"
+                value={activitySearch}
+                onChange={(event) =>
+                  setActivitySearch(
+                    event.target.value
+                  )
+                }
+                placeholder={
+                  language === "en"
+                    ? "Search activity..."
+                    : language === "ar"
+                      ? "البحث في النشاط..."
+                      : "Søg i aktiviteter..."
+                }
+                aria-label={
+                  language === "en"
+                    ? "Search activity log"
+                    : language === "ar"
+                      ? "البحث في سجل النشاط"
+                      : "Søg i aktivitetsloggen"
+                }
+                style={{
+                  width:
+                    "min(330px, 100%)",
+                  minHeight: 40,
+                  padding: "0 13px",
+                  borderRadius: 11,
+                  border: `1px solid ${c.borderStrong}`,
+                  outline: "none",
+                  background: c.panel,
+                  color: c.text,
+                  fontSize: 12,
+                  fontFamily: "inherit",
+                }}
+              />
+
+              <button
+                type="button"
+                disabled={activityLoading}
+                onClick={() =>
+                  setDashboardRefreshKey(
+                    (previous) =>
+                      previous + 1
+                  )
+                }
+                style={{
+                  minHeight: 40,
+                  padding: "0 13px",
+                  borderRadius: 11,
+                  border: `1px solid ${c.borderStrong}`,
+                  background: c.soft,
+                  color: c.text,
+                  fontSize: 11.5,
+                  fontWeight: 800,
+                  fontFamily: "inherit",
+                  cursor: activityLoading
+                    ? "not-allowed"
+                    : "pointer",
+                  opacity: activityLoading
+                    ? 0.6
+                    : 1,
+                }}
+              >
+                {activityLoading
+                  ? language === "en"
+                    ? "Updating..."
+                    : language === "ar"
+                      ? "جارٍ التحديث..."
+                      : "Opdaterer..."
+                  : language === "en"
+                    ? "Refresh"
+                    : language === "ar"
+                      ? "تحديث"
+                      : "Opdatér"}
+              </button>
+            </div>
+          </div>
+
+          {activityLoading ? (
+            <div
+              style={{
+                minHeight: 230,
+                display: "grid",
+                placeItems: "center",
+                borderRadius: 16,
+                background: c.panel,
+                border: `1px solid ${c.border}`,
+                color: c.muted,
+                fontSize: 12,
+              }}
+            >
+              {language === "en"
+                ? "Loading activity log..."
+                : language === "ar"
+                  ? "جارٍ تحميل سجل النشاط..."
+                  : "Henter aktivitetsloggen..."}
+            </div>
+          ) : activityError ? (
+            <div
+              role="alert"
+              style={{
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: c.redSoft,
+                border: `1px solid ${c.redBorder}`,
+                color: c.red,
+                fontSize: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              {activityError}
+            </div>
+          ) : filteredActivityLog.length ===
+            0 ? (
+            <div
+              style={{
+                minHeight: 240,
+                display: "grid",
+                placeItems: "center",
+                padding: 28,
+                borderRadius: 16,
+                background: c.panel,
+                border: `1px dashed ${c.borderStrong}`,
+                textAlign: "center",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    width: 50,
+                    height: 50,
+                    display: "grid",
+                    placeItems: "center",
+                    margin: "0 auto 13px",
+                    borderRadius: 15,
+                    background: c.soft,
+                    color: c.muted,
+                    fontSize: 21,
+                  }}
+                >
+                  ≡
+                </div>
+
+                <div
+                  style={{
+                    color: c.text,
+                    fontSize: 14,
+                    fontWeight: 800,
+                  }}
+                >
+                  {activityLog.length === 0
+                    ? language === "en"
+                      ? "No activity recorded yet"
+                      : language === "ar"
+                        ? "لم يتم تسجيل أي نشاط بعد"
+                        : "Ingen aktiviteter registreret endnu"
+                    : language === "en"
+                      ? "No matching activity"
+                      : language === "ar"
+                        ? "لا يوجد نشاط مطابق"
+                        : "Ingen matchende aktiviteter"}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gap: 10,
+              }}
+            >
+              {filteredActivityLog.map(
+                (item) => {
+                  const failed =
+                    item.action ===
+                      "import_failed" ||
+                    item.action ===
+                      "question_archived" ||
+                    item.action ===
+                      "flag_dismissed";
+
+                  const successful =
+                    item.action ===
+                      "question_created" ||
+                    item.action ===
+                      "question_restored" ||
+                    item.action ===
+                      "import_completed" ||
+                    item.action ===
+                      "flag_resolved";
+
+                  const symbol =
+                    item.action ===
+                    "question_created"
+                      ? "+"
+                      : item.action ===
+                          "question_updated"
+                        ? "✎"
+                        : item.action ===
+                            "question_archived"
+                          ? "⌫"
+                          : item.action ===
+                              "question_restored"
+                            ? "↺"
+                            : item.entityType ===
+                                "import"
+                              ? "↥"
+                              : item.action ===
+                                  "flag_resolved"
+                                ? "✓"
+                                : "×";
+
+                  return (
+                    <article
+                      key={item.id}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "42px minmax(0, 1fr) auto",
+                        alignItems:
+                          "flex-start",
+                        gap: 13,
+                        padding: "14px 15px",
+                        borderRadius: 14,
+                        background: c.panel,
+                        border: `1px solid ${c.border}`,
+                        boxShadow: c.shadow,
+                      }}
+                    >
+                      <div
+                        aria-hidden="true"
+                        style={{
+                          width: 42,
+                          height: 42,
+                          display: "grid",
+                          placeItems: "center",
+                          borderRadius: 13,
+                          background: failed
+                            ? c.redSoft
+                            : successful
+                              ? c.greenSoft
+                              : c.blueSoft,
+                          border: `1px solid ${
+                            failed
+                              ? c.redBorder
+                              : successful
+                                ? c.greenBorder
+                                : c.blueBorder
+                          }`,
+                          color: failed
+                            ? c.red
+                            : successful
+                              ? c.green
+                              : c.blue,
+                          fontSize: 18,
+                          fontWeight: 850,
+                        }}
+                      >
+                        {symbol}
+                      </div>
+
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems:
+                              "center",
+                            flexWrap: "wrap",
+                            gap: 7,
+                          }}
+                        >
+                          <div
+                            style={{
+                              color: c.text,
+                              fontSize: 12.5,
+                              fontWeight: 850,
+                            }}
+                          >
+                            {activityActionLabels[
+                              item.action
+                            ] || item.action}
+                          </div>
+
+                          <span
+                            style={{
+                              padding:
+                                "3px 7px",
+                              borderRadius: 99,
+                              background: c.soft,
+                              border: `1px solid ${c.border}`,
+                              color: c.muted,
+                              fontSize: 9.5,
+                              fontWeight: 750,
+                            }}
+                          >
+                            {item.entityType ===
+                            "question"
+                              ? language ===
+                                "en"
+                                ? "Question"
+                                : language ===
+                                    "ar"
+                                  ? "سؤال"
+                                  : "Spørgsmål"
+                              : item.entityType ===
+                                  "import"
+                                ? language ===
+                                  "en"
+                                  ? "Import"
+                                  : language ===
+                                      "ar"
+                                    ? "استيراد"
+                                    : "Import"
+                                : "Flag"}
+                          </span>
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 6,
+                            color: c.secondary,
+                            fontSize: 11.5,
+                            lineHeight: 1.5,
+                            overflowWrap:
+                              "anywhere",
+                          }}
+                        >
+                          {item.title ||
+                            item.entityId ||
+                            "—"}
+                        </div>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems:
+                              "center",
+                            flexWrap: "wrap",
+                            gap: 6,
+                            marginTop: 9,
+                          }}
+                        >
+                          {item.moduleId && (
+                            <span
+                              style={{
+                                padding:
+                                  "3px 7px",
+                                borderRadius: 99,
+                                background:
+                                  c.blueSoft,
+                                color: c.blue,
+                                fontSize: 9.5,
+                                fontWeight: 750,
+                              }}
+                            >
+                              {item.moduleId}
+                            </span>
+                          )}
+
+                          {item.lectureId && (
+                            <span
+                              title={getAdminLectureLabel(
+                                item.lectureId,
+                                item.moduleId
+                              )}
+                              style={{
+                                maxWidth: 300,
+                                padding:
+                                  "3px 7px",
+                                borderRadius: 99,
+                                background: c.soft,
+                                border: `1px solid ${c.border}`,
+                                color:
+                                  c.secondary,
+                                fontSize: 9.5,
+                                fontWeight: 700,
+                                overflow:
+                                  "hidden",
+                                textOverflow:
+                                  "ellipsis",
+                                whiteSpace:
+                                  "nowrap",
+                              }}
+                            >
+                              {getAdminLectureLabel(
+                                item.lectureId,
+                                item.moduleId
+                              )}
+                            </span>
+                          )}
+                        </div>
+
+                        {item.entityType ===
+                          "import" && (
+                          <div
+                            style={{
+                              marginTop: 9,
+                              color: c.muted,
+                              fontSize: 10.5,
+                              lineHeight: 1.45,
+                            }}
+                          >
+                            {language === "en"
+                              ? "Imported"
+                              : language === "ar"
+                                ? "تم الاستيراد"
+                                : "Importeret"}
+                            {": "}
+                            {Number(
+                              item.details
+                                ?.importedCount ||
+                                0
+                            )}
+                            {" / "}
+                            {Number(
+                              item.details
+                                ?.totalCount ||
+                                0
+                            )}
+                          </div>
+                        )}
+
+                        {item.details
+                          ?.errorMessage && (
+                          <div
+                            style={{
+                              marginTop: 9,
+                              padding:
+                                "8px 10px",
+                              borderRadius: 9,
+                              background:
+                                c.redSoft,
+                              border: `1px solid ${c.redBorder}`,
+                              color: c.red,
+                              fontSize: 10.5,
+                              lineHeight: 1.45,
+                              overflowWrap:
+                                "anywhere",
+                            }}
+                          >
+                            {
+                              item.details
+                                .errorMessage
+                            }
+                          </div>
+                        )}
+                      </div>
+
+                      <div
+                        style={{
+                          color: c.muted,
+                          fontSize: 10,
+                          lineHeight: 1.5,
+                          textAlign: "end",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        <div>
+                          {item.createdAt
+                            ? new Date(
+                                item.createdAt
+                              ).toLocaleString(
+                                adminFilterLocale,
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute:
+                                    "2-digit",
+                                }
+                              )
+                            : "—"}
+                        </div>
+
+                        <div
+                          title={
+                            item.actorEmail ||
+                            item.createdBy ||
+                            ""
+                          }
+                          style={{
+                            maxWidth: 180,
+                            marginTop: 5,
+                            overflow: "hidden",
+                            textOverflow:
+                              "ellipsis",
+                          }}
+                        >
+                          {item.actorEmail ||
+                            (language === "en"
+                              ? "Administrator"
+                              : language === "ar"
+                                ? "المسؤول"
+                                : "Administrator")}
+                        </div>
+                      </div>
                     </article>
                   );
                 }
