@@ -4206,11 +4206,319 @@ textarea::placeholder {
   line-height: 1.5;
 }
 
+/* ============================================================
+   FORMULARER, FEEDBACK OG TOMME TILSTANDE
+   ============================================================ */
+
+.ui-field {
+  display: grid;
+  gap: 6px;
+}
+
+.ui-field-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color:
+    var(--ui-secondary);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.ui-field-required {
+  color:
+    var(--ui-red);
+  font-weight: 900;
+}
+
+.ui-field-hint {
+  color:
+    var(--ui-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.ui-field-error {
+  color:
+    var(--ui-red);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.ui-control {
+  width: 100%;
+  min-height: 44px;
+  padding:
+    0 13px;
+  border:
+    1px solid
+    var(--ui-border-strong);
+  border-radius: 12px;
+  background:
+    var(--ui-soft);
+  color:
+    var(--ui-text);
+  box-shadow:
+    inset 0 1px 0
+    var(--ui-surface-highlight);
+  outline: none;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  transition:
+    background 170ms ease,
+    border-color 170ms ease,
+    box-shadow 170ms ease,
+    transform 170ms var(--ui-ease);
+}
+
+.ui-control:hover:not(:disabled) {
+  border-color:
+    var(--ui-border-strong)
+    !important;
+  background:
+    var(--ui-panel)
+    !important;
+}
+
+.ui-control:focus {
+  border-color:
+    var(--ui-blue)
+    !important;
+  background:
+    var(--ui-panel)
+    !important;
+  box-shadow:
+    0 0 0 3px
+    var(--ui-ring),
+    inset 0 1px 0
+    var(--ui-surface-highlight)
+    !important;
+}
+
+.ui-control[aria-invalid="true"] {
+  border-color:
+    var(--ui-red)
+    !important;
+  background:
+    var(--ui-red-soft)
+    !important;
+}
+
+.ui-control[aria-invalid="true"]:focus {
+  box-shadow:
+    0 0 0 3px
+    color-mix(
+      in srgb,
+      var(--ui-red) 18%,
+      transparent
+    )
+    !important;
+}
+
+.ui-control:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.ui-control--compact {
+  min-height: 40px;
+  padding:
+    0 12px;
+  border-radius: 11px;
+  font-size: 12.5px;
+}
+
+textarea.ui-control {
+  min-height: 100px;
+  padding:
+    11px 13px;
+  resize: vertical;
+}
+
+select.ui-control {
+  padding-inline-end:
+    36px;
+  cursor: pointer;
+}
+
+.ui-choice-card {
+  position: relative;
+  outline: none;
+  transition:
+    transform 170ms var(--ui-ease),
+    background 170ms ease,
+    border-color 170ms ease,
+    color 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.ui-choice-card:hover {
+  transform:
+    translateY(-2px);
+  border-color:
+    var(--ui-border-strong)
+    !important;
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.ui-choice-card:active {
+  transform:
+    translateY(0)
+    scale(.99);
+}
+
+.ui-choice-card:focus-visible {
+  box-shadow:
+    0 0 0 3px
+    var(--ui-ring);
+}
+
+.ui-choice-card[data-selected="true"] {
+  border-color:
+    var(--ui-blue-border)
+    !important;
+  background:
+    var(--ui-blue-soft)
+    !important;
+  color:
+    var(--ui-blue)
+    !important;
+  box-shadow:
+    0 10px 26px
+    rgba(22,101,234,.12);
+}
+
+.ui-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding:
+    11px 12px;
+  border:
+    1px solid;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1.5;
+  animation:
+    uiFeedbackIn
+    180ms
+    var(--ui-ease)
+    both;
+}
+
+.ui-feedback-icon {
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background:
+    var(--ui-panel);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.ui-feedback-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.ui-feedback-title {
+  margin-bottom: 2px;
+  font-weight: 850;
+}
+
+.ui-feedback[data-tone="error"] {
+  border-color:
+    var(--ui-red-border);
+  background:
+    var(--ui-red-soft);
+  color:
+    var(--ui-red);
+}
+
+.ui-feedback[data-tone="success"] {
+  border-color:
+    var(--ui-green-border);
+  background:
+    var(--ui-green-soft);
+  color:
+    var(--ui-green);
+}
+
+.ui-feedback[data-tone="info"] {
+  border-color:
+    var(--ui-blue-border);
+  background:
+    var(--ui-blue-soft);
+  color:
+    var(--ui-blue);
+}
+
+.ui-loading-state {
+  min-height: 110px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 15px;
+  background:
+    var(--ui-soft);
+  color:
+    var(--ui-secondary);
+  text-align: center;
+}
+
+.ui-loading-state[data-compact="true"] {
+  min-height: 72px;
+  padding: 14px;
+}
+
+.ui-loading-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.ui-loading-spinner {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border:
+    2px solid
+    var(--ui-blue-border);
+  border-top-color:
+    var(--ui-blue);
+  border-radius: 50%;
+  animation:
+    uiSpinner
+    .75s
+    linear
+    infinite;
+}
+
+.ui-loading-spinner--small {
+  width: 14px;
+  height: 14px;
+}
+
 .ui-empty-state {
   display: grid;
   place-items: center;
-  min-height: 130px;
-  padding: 22px;
+  min-height: 150px;
+  padding: 24px;
   border:
     1px dashed
     var(--ui-border-strong);
@@ -4220,6 +4528,81 @@ textarea::placeholder {
   color:
     var(--ui-secondary);
   text-align: center;
+}
+
+.ui-empty-state[data-compact="true"] {
+  min-height: 90px;
+  padding: 15px;
+  border-radius: 13px;
+}
+
+.ui-empty-state-content {
+  max-width: 360px;
+}
+
+.ui-empty-state-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  margin:
+    0 auto 11px;
+  border:
+    1px solid
+    var(--ui-border);
+  border-radius: 13px;
+  background:
+    var(--ui-panel);
+  color:
+    var(--ui-blue);
+  box-shadow:
+    var(--ui-shadow-sm);
+}
+
+.ui-empty-state[data-compact="true"]
+.ui-empty-state-icon {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.ui-empty-state-title {
+  color:
+    var(--ui-text);
+  font-size: 12.5px;
+  font-weight: 850;
+  line-height: 1.4;
+}
+
+.ui-empty-state-description {
+  margin-top: 5px;
+  color:
+    var(--ui-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+@keyframes uiSpinner {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+@keyframes uiFeedbackIn {
+  from {
+    opacity: 0;
+    transform:
+      translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0);
+  }
 }
 
 .ui-divider {
@@ -4855,6 +5238,11 @@ textarea::placeholder {
   .ui-button,
   .ui-icon-button,
   .ui-modal-backdrop,
+  .ui-control,
+  .ui-choice-card,
+  .ui-feedback,
+  .ui-loading-spinner,
+  .ui-empty-state,
   .ui-modal-surface {
     animation:
       none !important;
@@ -5458,6 +5846,190 @@ function SecondaryButton({
   );
 }
 
+function FormField({
+  label,
+  hint,
+  error,
+  required = false,
+  htmlFor,
+  children,
+  style = {},
+}) {
+  return (
+    <div
+      className="ui-field"
+      style={style}
+    >
+      {label && (
+        <label
+          htmlFor={htmlFor}
+          className="ui-field-label"
+        >
+          <span>{label}</span>
+
+          {required && (
+            <span
+              aria-hidden="true"
+              className="ui-field-required"
+            >
+              *
+            </span>
+          )}
+        </label>
+      )}
+
+      {children}
+
+      {error ? (
+        <div
+          role="alert"
+          className="ui-field-error"
+        >
+          {error}
+        </div>
+      ) : hint ? (
+        <div className="ui-field-hint">
+          {hint}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function FeedbackBanner({
+  tone = "info",
+  title,
+  children,
+  action,
+  className = "",
+  style = {},
+}) {
+  const symbol =
+    tone === "success"
+      ? "✓"
+      : tone === "error"
+        ? "!"
+        : "i";
+
+  return (
+    <div
+      role={
+        tone === "error"
+          ? "alert"
+          : "status"
+      }
+      data-tone={tone}
+      className={[
+        "ui-feedback",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      style={style}
+    >
+      <span
+        aria-hidden="true"
+        className="ui-feedback-icon"
+      >
+        {symbol}
+      </span>
+
+      <div className="ui-feedback-content">
+        {title && (
+          <div className="ui-feedback-title">
+            {title}
+          </div>
+        )}
+
+        <div>{children}</div>
+      </div>
+
+      {action}
+    </div>
+  );
+}
+
+function LoadingState({
+  label,
+  compact = false,
+  style = {},
+}) {
+  return (
+    <div
+      aria-live="polite"
+      aria-busy="true"
+      data-compact={
+        compact
+          ? "true"
+          : "false"
+      }
+      className="ui-loading-state"
+      style={style}
+    >
+      <div className="ui-loading-content">
+        <span
+          aria-hidden="true"
+          className="ui-loading-spinner"
+        />
+
+        <span>{label}</span>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({
+  symbol,
+  title,
+  description,
+  action,
+  compact = false,
+  style = {},
+}) {
+  return (
+    <div
+      data-compact={
+        compact
+          ? "true"
+          : "false"
+      }
+      className="ui-empty-state"
+      style={style}
+    >
+      <div className="ui-empty-state-content">
+        {symbol && (
+          <div
+            aria-hidden="true"
+            className="ui-empty-state-icon"
+          >
+            {symbol}
+          </div>
+        )}
+
+        <div className="ui-empty-state-title">
+          {title}
+        </div>
+
+        {description && (
+          <div className="ui-empty-state-description">
+            {description}
+          </div>
+        )}
+
+        {action && (
+          <div
+            style={{
+              marginTop: 12,
+            }}
+          >
+            {action}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Loader({ c, t, leaving, theme }) {
   const [fact] = useState(
     "Regelmæssig aktiv genkaldelse styrker langtidshukommelsen."
@@ -5553,7 +6125,7 @@ function Onboarding({ c, t, language, theme, onComplete }) {
       <span className={`onboarding-orb two${theme === "dark" ? " dark" : ""}`} />
       <span className={`onboarding-orb three${theme === "dark" ? " dark" : ""}`} />
       <section
-        className="fade-up"
+       className="fade-up ui-card"
         style={{
           position: "relative",
           zIndex: 1,
@@ -5609,25 +6181,28 @@ function Onboarding({ c, t, language, theme, onComplete }) {
             </h1>
 
             <input
-              autoFocus
-              value={name}
-              placeholder={t.namePlaceholder}
-              onChange={(event) => setName(event.target.value)}
-              onKeyDown={(event) => event.key === "Enter" && next()}
-              style={{
-                width: "100%",
-                height: 52,
-                marginBottom: 16,
-                padding: "0 15px",
-                borderRadius: 14,
-                border: `1px solid ${
-                  name.trim() ? c.blueBorder : c.borderStrong
-                }`,
-                background: c.soft,
-                color: c.text,
-                fontSize: 16,
-              }}
-            />
+  id="onboarding-name"
+  autoFocus
+  value={name}
+  placeholder={t.namePlaceholder}
+  onChange={(event) =>
+    setName(event.target.value)
+  }
+  onKeyDown={(event) =>
+    event.key === "Enter" &&
+    name.trim() &&
+    next()
+  }
+  className="ui-control"
+  style={{
+    height: 52,
+    marginBottom: 16,
+    fontSize: 16,
+    borderColor: name.trim()
+      ? c.blueBorder
+      : undefined,
+  }}
+/>
 
             <PrimaryButton
               disabled={!name.trim()}
@@ -5655,25 +6230,34 @@ function Onboarding({ c, t, language, theme, onComplete }) {
             >
               {levels.map((item) => {
                 const selected = level === item.id;
-
+                
                 return (
                   <button
-                    type="button"
-                    key={item.id}
-                    onClick={() => {
+  type="button"
+  key={item.id}
+  className="ui-choice-card"
+  data-selected={
+    selected
+      ? "true"
+      : "false"
+  }
+  aria-pressed={selected}
+  onClick={() => {
                       setLevel(item.id);
                       setModuleName("");
                     }}
                     style={{
-                      minHeight: 138,
-                      padding: 18,
-                      borderRadius: 18,
-                      border: `1px solid ${selected ? c.blueBorder : c.border}`,
-                      background: selected ? c.blueSoft : c.soft,
-                      color: selected ? c.blue : c.text,
-                      fontWeight: 750,
-                      cursor: "pointer",
-                    }}
+  minHeight: 138,
+  padding: 18,
+  borderRadius: 18,
+  border: `1px solid ${c.border}`,
+  background: c.soft,
+  color: selected
+    ? c.blue
+    : c.text,
+  fontWeight: 750,
+  cursor: "pointer",
+}}
                   >
                     <Icon name="book" size={29} />
                     <div style={{ marginTop: 12 }}>{item.label}</div>
@@ -5739,32 +6323,31 @@ function Onboarding({ c, t, language, theme, onComplete }) {
                   <button
                     type="button"
                     key={item}
+                className="ui-choice-card"
+data-selected={
+  selected
+    ? "true"
+    : "false"
+}
+aria-pressed={selected}
                     onClick={() => setModuleName(item)}
                     style={{
-                      minHeight: 104,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      padding: 15,
-                      textAlign: "start",
-                      borderRadius: 17,
-                      border: `1px solid ${selected ? c.blueBorder : c.border}`,
-                      background: selected ? c.blueSoft : c.soft,
-                      color: selected ? c.blue : c.text,
-                      boxShadow: selected ? `0 10px 22px ${c.blue}18` : "none",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      transition: "transform 160ms ease, border-color 160ms ease",
-                    }}
-                    onMouseEnter={(event) => {
-                      event.currentTarget.style.transform = "translateY(-2px)";
-                      if (!selected) event.currentTarget.style.borderColor = c.borderStrong;
-                    }}
-                    onMouseLeave={(event) => {
-                      event.currentTarget.style.transform = "translateY(0)";
-                      if (!selected) event.currentTarget.style.borderColor = c.border;
-                    }}
+  minHeight: 104,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  padding: 15,
+  textAlign: "start",
+  borderRadius: 17,
+  border: `1px solid ${c.border}`,
+  background: c.soft,
+  color: selected
+    ? c.blue
+    : c.text,
+  fontSize: 13,
+  fontWeight: 700,
+  cursor: "pointer",
+}}
                   >
                     <span
                       style={{
@@ -9192,8 +9775,17 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
             </div>
 
             {selectedEvents.length === 0 ? (
-              <p style={{ color: c.muted, fontSize: 12 }}>{t.calendarNoEvents}</p>
-            ) : (
+  <EmptyState
+    compact
+    symbol={
+      <Icon
+        name="calendar"
+        size={16}
+      />
+    }
+    title={t.calendarNoEvents}
+  />
+) : (
               <div style={{ display: "grid", gap: 7 }}>
                 {selectedEvents.map((event) => {
                   const palette = typeColors[event.type] || typeColors.other;
@@ -9269,8 +9861,17 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
               {t.calendarUpcoming}
             </div>
             {upcoming.length === 0 ? (
-              <p style={{ color: c.muted, fontSize: 12 }}>{t.calendarNoUpcoming}</p>
-            ) : (
+  <EmptyState
+    compact
+    symbol={
+      <Icon
+        name="calendar"
+        size={16}
+      />
+    }
+    title={t.calendarNoUpcoming}
+  />
+) : (
               <div style={{ display: "grid", gap: 7 }}>
                 {upcoming.map((event) => {
                   const palette = typeColors[event.type] || typeColors.other;
@@ -9706,10 +10307,20 @@ function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onS
           )}
         </>
       ) : (
-        <p style={{ color: c.secondary, fontSize: 13, marginBottom: 20 }}>
-          {t.noQuestionsInLecture}
-        </p>
-      )}
+  <EmptyState
+    compact
+    symbol={
+      <Icon
+        name="cards"
+        size={17}
+      />
+    }
+    title={t.noQuestionsInLecture}
+    style={{
+      marginBottom: 20,
+    }}
+  />
+)}
 
       <div
         style={{
@@ -18282,18 +18893,16 @@ questionLectureFilter !== "all"
 )}
 
           {flagsLoading ? (
-  <p
-    style={{
-      color: c.muted,
-      fontSize: 12,
-    }}
-  >
-    {language === "en"
-      ? "Loading flagged questions..."
-      : language === "ar"
-        ? "جارٍ تحميل الأسئلة المعلّمة..."
-        : "Henter flaggede spørgsmål..."}
-  </p>
+  <LoadingState
+    compact
+    label={
+      language === "en"
+        ? "Loading flagged questions..."
+        : language === "ar"
+          ? "جارٍ تحميل الأسئلة المعلّمة..."
+          : "Henter flaggede spørgsmål..."
+    }
+  />
 ) : flagsError ? (
   <div
     role="alert"
@@ -18310,14 +18919,16 @@ questionLectureFilter !== "all"
     {flagsError}
   </div>
 ) : flagged.length === 0 ? (
-  <p
-    style={{
-      color: c.muted,
-      fontSize: 12,
-    }}
-  >
-    {t.adminNoFlagged}
-  </p>
+  <EmptyState
+    compact
+    symbol={
+      <Icon
+        name="flag"
+        size={16}
+      />
+    }
+    title={t.adminNoFlagged}
+  />
 ) : (
             <div style={{ display: "grid", gap: 10, maxHeight: 440, overflowY: "auto" }}>
               {[...flagged]
@@ -22272,6 +22883,7 @@ function SettingsModal({
             {t.drByteAiProviderLabel}
           </label>
           <select
+          className="ui-control ui-control--compact"
             value={aiSettings.provider || "openai"}
             onChange={(event) => setAiSettings((prev) => ({ ...prev, provider: event.target.value }))}
             style={{
@@ -22298,6 +22910,7 @@ function SettingsModal({
                 {t.drByteGroqKeyLabel}
               </label>
               <input
+             className="ui-control ui-control--compact"
                 type="password"
                 value={aiSettings.groqApiKey}
                 onChange={(event) => setAiSettings((prev) => ({ ...prev, groqApiKey: event.target.value }))}
@@ -22321,6 +22934,7 @@ function SettingsModal({
                 {t.drByteAiModelLabel}
               </label>
               <select
+                className="ui-control ui-control--compact"
                 value={aiSettings.groqModel}
                 onChange={(event) => setAiSettings((prev) => ({ ...prev, groqModel: event.target.value }))}
                 style={{
@@ -22347,6 +22961,7 @@ function SettingsModal({
                 {t.drByteAiKeyLabel}
               </label>
               <input
+                className="ui-control ui-control--compact"
                 type="password"
                 value={aiSettings.apiKey}
                 onChange={(event) => setAiSettings((prev) => ({ ...prev, apiKey: event.target.value }))}
@@ -22369,6 +22984,7 @@ function SettingsModal({
                 {t.drByteAiModelLabel}
               </label>
               <select
+                className="ui-control ui-control--compact"
                 value={aiSettings.model}
                 onChange={(event) => setAiSettings((prev) => ({ ...prev, model: event.target.value }))}
                 style={{
@@ -22395,6 +23011,7 @@ function SettingsModal({
                 {t.drByteNvidiaKeyLabel}
               </label>
               <input
+                className="ui-control ui-control--compact"
                 type="password"
                 value={aiSettings.nvidiaApiKey}
                 onChange={(event) => setAiSettings((prev) => ({ ...prev, nvidiaApiKey: event.target.value }))}
@@ -22418,6 +23035,7 @@ function SettingsModal({
                 {t.drByteAiModelLabel}
               </label>
               <input
+                className="ui-control ui-control--compact"
                 type="text"
                 value={aiSettings.nvidiaModel}
                 onChange={(event) => setAiSettings((prev) => ({ ...prev, nvidiaModel: event.target.value }))}
@@ -22440,6 +23058,7 @@ function SettingsModal({
                 {t.drByteNvidiaProxyLabel}
               </label>
               <input
+                className="ui-control ui-control--compact"
                 type="text"
                 value={aiSettings.nvidiaProxyUrl}
                 onChange={(event) => setAiSettings((prev) => ({ ...prev, nvidiaProxyUrl: event.target.value }))}
@@ -22781,9 +23400,14 @@ function SettingsModal({
       
       </div>
 <div style={{ maxWidth: 480, margin: "0 auto" }}>
-        <button
-          type="button"
-          onClick={onClose}
+        <PrimaryButton
+  onClick={onClose}
+  style={{
+    width: "100%",
+  }}
+>
+  {t.done}
+</PrimaryButton>
           style={{
             width: "100%",
             height: 43,
@@ -22851,6 +23475,13 @@ function LanguageModal({ c, t, language, setLanguage, onClose }) {
             <button
               type="button"
               key={item.code}
+              className="ui-choice-card"
+data-selected={
+  selected
+    ? "true"
+    : "false"
+}
+aria-pressed={selected}         
               onClick={() => {
                 setLanguage(item.code);
                 onClose();
@@ -24685,88 +25316,204 @@ function AuthScreen({ c, t, language, theme }) {
         minHeight: "100vh",
         display: "grid",
         placeItems: "center",
-        background: c.background,
+        background: c.page,
         padding: 20,
       }}
     >
       <form
-        onSubmit={handleSubmit}
+  onSubmit={handleSubmit}
+  className="ui-card"
+  style={{
+    width: "100%",
+    maxWidth: 390,
+    display: "grid",
+    gap: 15,
+    padding: 29,
+    borderRadius: 22,
+    background: c.panel,
+    border: `1px solid ${c.border}`,
+    boxShadow: c.shadow,
+  }}
+>
+  <div
+    style={{
+      textAlign: "center",
+      marginBottom: 3,
+    }}
+  >
+    <div
+      style={{
+        width: 43,
+        height: 43,
+        display: "grid",
+        placeItems: "center",
+        margin: "0 auto 13px",
+        borderRadius: 14,
+        background: c.blueSoft,
+        border: `1px solid ${c.blueBorder}`,
+        color: c.blue,
+      }}
+    >
+      <Icon
+        name="logo"
+        size={20}
+      />
+    </div>
+
+    <div
+      style={{
+        color: c.text,
+        fontSize: 20,
+        fontWeight: 850,
+        letterSpacing: "-.02em",
+      }}
+    >
+      {mode === "login"
+        ? copy.loginTitle
+        : copy.signupTitle}
+    </div>
+  </div>
+
+  <FormField
+    label={copy.email}
+    htmlFor="auth-email"
+    required
+  >
+    <input
+      id="auth-email"
+      type="email"
+      required
+      autoComplete="email"
+      value={email}
+      onChange={(event) => {
+        setEmail(event.target.value);
+        setError(null);
+      }}
+      className="ui-control"
+      aria-invalid={
+        error
+          ? "true"
+          : "false"
+      }
+    />
+  </FormField>
+
+  <FormField
+    label={copy.password}
+    htmlFor="auth-password"
+    required
+    hint={
+      mode === "signup"
+        ? language === "en"
+          ? "Use at least six characters."
+          : language === "ar"
+            ? "استخدم ستة أحرف على الأقل."
+            : "Brug mindst seks tegn."
+        : null
+    }
+  >
+    <input
+      id="auth-password"
+      type="password"
+      required
+      minLength={6}
+      autoComplete={
+        mode === "login"
+          ? "current-password"
+          : "new-password"
+      }
+      value={password}
+      onChange={(event) => {
+        setPassword(
+          event.target.value
+        );
+        setError(null);
+      }}
+      className="ui-control"
+      aria-invalid={
+        error
+          ? "true"
+          : "false"
+      }
+    />
+  </FormField>
+
+  {error && (
+    <FeedbackBanner tone="error">
+      {error}
+    </FeedbackBanner>
+  )}
+
+  {infoMessage && (
+    <FeedbackBanner tone="success">
+      {infoMessage}
+    </FeedbackBanner>
+  )}
+
+  <PrimaryButton
+    type="submit"
+    disabled={loading}
+    style={{
+      width: "100%",
+      marginTop: 2,
+    }}
+  >
+    {loading ? (
+      <span
         style={{
-          width: "100%",
-          maxWidth: 380,
-          padding: 28,
-          borderRadius: 20,
-          background: c.panel,
-          border: `1px solid ${c.border}`,
-          boxShadow: c.shadow,
-          display: "grid",
-          gap: 14,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
         }}
       >
-        <div style={{ color: c.text, fontSize: 20, fontWeight: 800, textAlign: "center" }}>
-          {mode === "login" ? copy.loginTitle : copy.signupTitle}
-        </div>
-
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-            {copy.email}
-          </label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            style={{
-              width: "100%", height: 44, padding: "0 12px", borderRadius: 10,
-              border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 14,
-            }}
-          />
-        </div>
-
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-            {copy.password}
-          </label>
-          <input
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            style={{
-              width: "100%", height: 44, padding: "0 12px", borderRadius: 10,
-              border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 14,
-            }}
-          />
-        </div>
-
-        {error && (
-          <div style={{ padding: "9px 12px", borderRadius: 10, background: c.redSoft, color: c.red, fontSize: 12, fontWeight: 650 }}>
-            {error}
-          </div>
-        )}
-
-        {infoMessage && (
-          <div style={{ padding: "9px 12px", borderRadius: 10, background: c.greenSoft, color: c.green, fontSize: 12, fontWeight: 650 }}>
-            {infoMessage}
-          </div>
-        )}
-
-        <PrimaryButton onClick={handleSubmit} disabled={loading} style={{ width: "100%" }}>
-          {loading ? "..." : mode === "login" ? copy.loginButton : copy.signupButton}
-        </PrimaryButton>
-
-        <button
-          type="button"
-          onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(null); setInfoMessage(null); }}
+        <span
+          aria-hidden="true"
+          className="ui-loading-spinner ui-loading-spinner--small"
           style={{
-            background: "transparent", border: 0, color: c.blue, fontSize: 12.5, fontWeight: 700,
-            cursor: "pointer", textAlign: "center",
+            borderColor:
+              "rgba(255,255,255,.35)",
+            borderTopColor: "#fff",
           }}
-        >
-          {mode === "login" ? copy.switchToSignup : copy.switchToLogin}
-        </button>
-      </form>
+        />
+
+        {mode === "login"
+          ? copy.loginButton
+          : copy.signupButton}
+      </span>
+    ) : mode === "login" ? (
+      copy.loginButton
+    ) : (
+      copy.signupButton
+    )}
+  </PrimaryButton>
+
+  <button
+    type="button"
+    className="ui-button ui-button--ghost"
+    onClick={() => {
+      setMode(
+        mode === "login"
+          ? "signup"
+          : "login"
+      );
+      setError(null);
+      setInfoMessage(null);
+    }}
+    style={{
+      width: "100%",
+      minHeight: 38,
+      color: c.blue,
+      fontSize: 12,
+      fontWeight: 750,
+      whiteSpace: "normal",
+    }}
+  >
+    {mode === "login"
+      ? copy.switchToSignup
+      : copy.switchToLogin}
+  </button>
+</form>
     </div>
   );
 }
