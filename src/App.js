@@ -1272,163 +1272,240 @@ function minutesToTime(minutes) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function WeekCalendar({ c, events, weekStart, daysCount = 7, onMoveEvent, onSlotClick, onEventClick, weekdayLabels }) {
-  const days = Array.from({ length: daysCount }, (_, i) => addDays(weekStart, i));
+function WeekCalendar({
+  c,
+  events,
+  weekStart,
+  daysCount = 7,
+  onMoveEvent,
+  onSlotClick,
+  onEventClick,
+  weekdayLabels,
+  language = "da",
+}) {
+  const START_HOUR = 7;
+  const END_HOUR = 22;
+  const HOUR_HEIGHT = 56;
+  const GRID_HEIGHT = (END_HOUR - START_HOUR) * HOUR_HEIGHT;
+  const days = Array.from({ length: daysCount }, (_, index) => addDays(weekStart, index));
+  const scrollerRef = useRef(null);
   const [dragId, setDragId] = useState(null);
-  const [hoverSlot, setHoverSlot] = useState(null);
+  const [dropPreview, setDropPreview] = useState(null);
 
-  const eventsByDayAndTime = {};
-  events.forEach((event) => {
-    if (!eventsByDayAndTime[event.date]) eventsByDayAndTime[event.date] = [];
-    eventsByDayAndTime[event.date].push(event);
-  });
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    // The reference starts with the first useful morning hour visible rather than at midnight.
+    scroller.scrollTop = Math.max(0, (8 - START_HOUR) * HOUR_HEIGHT - 4);
+  }, [weekStart, daysCount]);
 
-  const typeColor = {
-    exam: c.red,
-    study: c.blue,
-    review: c.green,
-    other: c.secondary,
+  const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
+  const copy = ({
+    da: { study: "Studieblok", review: "Repetition", exam: "Eksamen", other: "Kalenderaktivitet" },
+    en: { study: "Study block", review: "Review session", exam: "Exam", other: "Calendar event" },
+    ar: { study: "جلسة دراسة", review: "جلسة مراجعة", exam: "امتحان", other: "حدث تقويم" },
+  })[language] || { study: "Studieblok", review: "Repetition", exam: "Eksamen", other: "Kalenderaktivitet" };
+
+  const typeMeta = {
+    study: { color: c.blue, surface: c.blueSoft, border: c.blueBorder, icon: "book", label: copy.study },
+    review: { color: c.green, surface: c.greenSoft, border: c.greenBorder, icon: "check", label: copy.review },
+    exam: { color: c.red, surface: c.redSoft, border: c.redBorder, icon: "flag", label: copy.exam },
+    other: { color: c.purple || c.secondary, surface: c.purpleSoft || c.soft, border: c.borderStrong, icon: "notebook", label: copy.other },
   };
 
-  function handleDrop(dayKeyStr, hour, event) {
-    event.preventDefault();
-    if (!dragId) return;
-    const source = events.find((item) => item.id === dragId);
-    if (!source) return;
-    const newTime = minutesToTime(hour * 60 + (timeToMinutes(source.time) % 60 || 0));
-    onMoveEvent({ ...source, date: dayKeyStr, time: source.time ? newTime : source.time });
-    setDragId(null);
-    setHoverSlot(null);
+  function keyForDate(date) {
+    return dateKey(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
-  return (
-    <div style={{ width: "100%", height: "100%", overflow: "auto", display: "flex", flexDirection: "column" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: `56px repeat(${daysCount}, 1fr)`,
-          position: "sticky",
-          top: 0,
-          zIndex: 2,
-          background: c.panel,
-          borderBottom: `1px solid ${c.border}`,
-        }}
-      >
-        <div />
-        {days.map((day, i) => {
-          const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
-          const isToday = key === dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-          return (
-            <div
-              key={key}
-              style={{
-                padding: "10px 6px",
-                textAlign: "center",
-                borderInlineStart: `1px solid ${c.border}`,
-                background: isToday ? c.blueSoft : "transparent",
-              }}
-            >
-              <div style={{ fontSize: 10, fontWeight: 700, color: c.muted, textTransform: "uppercase" }}>
-                {weekdayLabels[i]}
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: isToday ? c.blue : c.text, marginTop: 2 }}>
-                {day.getDate()}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+  function clampMinutes(minutes) {
+    return Math.max(START_HOUR * 60, Math.min(END_HOUR * 60 - 15, minutes));
+  }
 
-      <div style={{ display: "grid", gridTemplateColumns: `56px repeat(${daysCount}, 1fr)`, position: "relative" }}>
-        {CAL_HOURS.map((hour) => (
-          <React.Fragment key={hour}>
-            <div
-              style={{
-                height: 52,
-                textAlign: "end",
-                paddingInlineEnd: 8,
-                fontSize: 10,
-                color: c.muted,
-                fontWeight: 700,
-                borderTop: `1px solid ${c.border}`,
-                boxSizing: "border-box",
-              }}
-            >
-              {String(hour).padStart(2, "0")}:00
-            </div>
-            {days.map((day) => {
-              const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
-              const slotId = `${key}-${hour}`;
-              const isHovered = hoverSlot === slotId;
-              const dayEvents = (eventsByDayAndTime[key] || []).filter((event) => {
-                const mins = timeToMinutes(event.time);
-                return mins !== null && Math.floor(mins / 60) === hour;
-              });
+  function snapMinutes(minutes) {
+    return Math.round(minutes / 15) * 15;
+  }
+
+  function minutesFromPointer(clientY, surface) {
+    const rect = surface.getBoundingClientRect();
+    const position = Math.max(0, Math.min(GRID_HEIGHT, clientY - rect.top));
+    return clampMinutes(snapMinutes(START_HOUR * 60 + (position / HOUR_HEIGHT) * 60));
+  }
+
+  function dayIndexFromPointer(clientX, surface) {
+    const rect = surface.getBoundingClientRect();
+    const relative = Math.max(0, Math.min(rect.width - 1, clientX - rect.left));
+    return Math.max(0, Math.min(daysCount - 1, Math.floor(relative / (rect.width / daysCount))));
+  }
+
+  function handleSurfaceClick(event) {
+    if (event.target.closest(".mf-schedule-event")) return;
+    const minutes = minutesFromPointer(event.clientY, event.currentTarget);
+    const index = dayIndexFromPointer(event.clientX, event.currentTarget);
+    onSlotClick(keyForDate(days[index]), minutesToTime(minutes));
+  }
+
+  function handleDrop(event) {
+    event.preventDefault();
+    const id = dragId || event.dataTransfer.getData("text/medfluen-event");
+    const source = events.find((item) => String(item.id) === String(id));
+    if (!source) return;
+    const minutes = minutesFromPointer(event.clientY, event.currentTarget);
+    const index = dayIndexFromPointer(event.clientX, event.currentTarget);
+    onMoveEvent({ ...source, date: keyForDate(days[index]), time: minutesToTime(minutes) });
+    setDragId(null);
+    setDropPreview(null);
+  }
+
+  function handleDragOver(event) {
+    event.preventDefault();
+    const minutes = minutesFromPointer(event.clientY, event.currentTarget);
+    const index = dayIndexFromPointer(event.clientX, event.currentTarget);
+    setDropPreview({ dayIndex: index, minutes });
+  }
+
+  function formatTimeRange(event) {
+    if (!event.time) return "";
+    const start = timeToMinutes(event.time);
+    const durationMinutes = Math.max(15, Number(event.estimatedHours || event.durationHours || 1) * 60);
+    const end = Math.min(23 * 60 + 59, start + durationMinutes);
+    return `${event.time} – ${minutesToTime(end)}`;
+  }
+
+  function eventSubtitle(event, meta) {
+    return event.subtitle || event.description || event.planModuleId || meta.label;
+  }
+
+  const timedEvents = events.filter((event) => event.time && days.some((day) => keyForDate(day) === event.date));
+  const now = new Date();
+  const todayIndex = days.findIndex((day) => keyForDate(day) === keyForDate(now));
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const showNow = todayIndex >= 0 && nowMinutes >= START_HOUR * 60 && nowMinutes <= END_HOUR * 60;
+
+  return (
+    <div className={`mf-schedule mf-schedule--days-${daysCount}`}>
+      {daysCount > 1 && (
+        <div className="mf-schedule-days-head" style={{ gridTemplateColumns: `62px repeat(${daysCount}, minmax(0, 1fr))` }}>
+          <div className="mf-schedule-days-corner" />
+          {days.map((day, index) => {
+            const key = keyForDate(day);
+            const isToday = key === keyForDate(new Date());
+            return (
+              <div key={key} className="mf-schedule-day-head" data-today={isToday ? "true" : "false"}>
+                <span>{weekdayLabels[index] || day.toLocaleDateString(locale, { weekday: "short" })}</span>
+                <strong>{day.getDate()}</strong>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div ref={scrollerRef} className="mf-schedule-scroll">
+        <div className="mf-schedule-body" style={{ height: GRID_HEIGHT }}>
+          <div className="mf-schedule-times" aria-hidden="true">
+            {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, index) => START_HOUR + index).map((hour) => (
+              <span key={hour} style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}>
+                {String(hour).padStart(2, "0")}:00
+              </span>
+            ))}
+          </div>
+
+          <div
+            className="mf-schedule-grid-surface"
+            style={{
+              height: GRID_HEIGHT,
+              gridTemplateColumns: `repeat(${daysCount}, minmax(0, 1fr))`,
+              "--mf-hour-height": `${HOUR_HEIGHT}px`,
+            }}
+            onClick={handleSurfaceClick}
+            onDragOver={handleDragOver}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setDropPreview(null);
+            }}
+            onDrop={handleDrop}
+          >
+            {days.map((day) => (
+              <div key={keyForDate(day)} className="mf-schedule-day-column" />
+            ))}
+
+            {dropPreview && (
+              <span
+                className="mf-schedule-drop-preview"
+                style={{
+                  top: ((dropPreview.minutes - START_HOUR * 60) / 60) * HOUR_HEIGHT,
+                  left: `calc(${(dropPreview.dayIndex / daysCount) * 100}% + 6px)`,
+                  width: `calc(${100 / daysCount}% - 12px)`,
+                }}
+              />
+            )}
+
+            {showNow && (
+              <span
+                className="mf-schedule-now"
+                style={{
+                  top: ((nowMinutes - START_HOUR * 60) / 60) * HOUR_HEIGHT,
+                  left: `${(todayIndex / daysCount) * 100}%`,
+                  width: `${100 / daysCount}%`,
+                }}
+              />
+            )}
+
+            {timedEvents.map((event) => {
+              const dayIndex = days.findIndex((day) => keyForDate(day) === event.date);
+              const startMinutes = clampMinutes(timeToMinutes(event.time));
+              const durationMinutes = Math.max(30, Number(event.estimatedHours || event.durationHours || 1) * 60);
+              const height = Math.max(42, Math.min((durationMinutes / 60) * HOUR_HEIGHT - 6, GRID_HEIGHT - ((startMinutes - START_HOUR * 60) / 60) * HOUR_HEIGHT - 3));
+              const top = ((startMinutes - START_HOUR * 60) / 60) * HOUR_HEIGHT + 3;
+              const meta = typeMeta[event.type] || typeMeta.other;
               return (
-                <div
-                  key={slotId}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    setHoverSlot(slotId);
+                <button
+                  key={event.id}
+                  type="button"
+                  draggable
+                  className="mf-schedule-event"
+                  data-type={event.type || "other"}
+                  onDragStart={(domEvent) => {
+                    setDragId(event.id);
+                    domEvent.dataTransfer.effectAllowed = "move";
+                    domEvent.dataTransfer.setData("text/medfluen-event", String(event.id));
                   }}
-                  onDragLeave={() => setHoverSlot((prev) => (prev === slotId ? null : prev))}
-                  onDrop={(event) => handleDrop(key, hour, event)}
-                  onClick={(event) => {
-                    if (event.target === event.currentTarget) onSlotClick(key, `${String(hour).padStart(2, "0")}:00`);
+                  onDragEnd={() => {
+                    setDragId(null);
+                    setDropPreview(null);
+                  }}
+                  onClick={(domEvent) => {
+                    domEvent.stopPropagation();
+                    onEventClick(event);
                   }}
                   style={{
-                    position: "relative",
-                    height: 52,
-                    borderTop: `1px solid ${c.border}`,
-                    borderInlineStart: `1px solid ${c.border}`,
-                    background: isHovered ? c.blueSoft : "transparent",
-                    cursor: "pointer",
-                    transition: "background .1s ease",
+                    top,
+                    height,
+                    left: `calc(${(dayIndex / daysCount) * 100}% + 8px)`,
+                    width: `calc(${100 / daysCount}% - 16px)`,
+                    color: meta.color,
+                    background: meta.surface,
+                    borderColor: meta.border,
                   }}
+                  title={event.title}
                 >
-                  {dayEvents.map((event) => {
-                    const color = typeColor[event.type] || c.secondary;
-                    return (
-                      <div
-                        key={event.id}
-                        draggable
-                        onDragStart={() => setDragId(event.id)}
-                        onDragEnd={() => setDragId(null)}
-                        onClick={(domEvent) => {
-                          domEvent.stopPropagation();
-                          onEventClick(event);
-                        }}
-                        title={event.title}
-                        style={{
-                          position: "absolute",
-                          inset: "2px 3px",
-                          borderRadius: 7,
-                          background: `linear-gradient(135deg, ${color}, ${color}cc)`,
-                          color: "#fff",
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          padding: "3px 6px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          cursor: "grab",
-                          boxShadow: `0 3px 10px ${color}55`,
-                          zIndex: 1,
-                        }}
-                      >
-                        {event.time ? `${event.time} · ` : ""}{event.title}
-                      </div>
-                    );
-                  })}
-                </div>
+                  <span className="mf-schedule-event-accent" style={{ background: meta.color }} />
+                  <span className="mf-schedule-event-icon" style={{ color: meta.color }}>
+                    <Icon name={meta.icon} size={13} />
+                  </span>
+                  <span className="mf-schedule-event-copy">
+                    <small>{formatTimeRange(event)}</small>
+                    <strong>{event.title}</strong>
+                    {height >= 58 && <em>{eventSubtitle(event, meta)}</em>}
+                  </span>
+                </button>
               );
             })}
-          </React.Fragment>
-        ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
 function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, weekdayLabels }) {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
@@ -6141,7 +6218,7 @@ select.ui-control {
    Visual language based on the approved calendar-first concept.
    ============================================================ */
 :root {
-  --app-sidebar-width: 218px;
+  --app-sidebar-width: 238px;
 }
 
 .home-v2 {
@@ -8129,8 +8206,10 @@ select.ui-control {
     repeat(3, minmax(0, 1fr))
     !important;
 }
-}
   
+}
+
+
 /* ======================================================================
    MEDFLUEN PRODUCT DESIGN SYSTEM — CALENDAR-FIRST WORKSPACE (2026)
    ----------------------------------------------------------------------
@@ -9088,6 +9167,1089 @@ select.ui-control {
   .home-day-event,
   .mf-home-all-day button { transition: none !important; }
 }
+
+/* ======================================================================
+   MEDFLUEN REFERENCE-MATCH LAYER
+   Measured against the supplied 1408 × 1056 desktop reference.
+   This block is intentionally last in GlobalStyles so no legacy rule can
+   flatten the interface into browser-default controls.
+   ====================================================================== */
+:root {
+  --app-sidebar-width: 220px;
+  --mf-ref-page: #fbfcff;
+  --mf-ref-panel: #ffffff;
+  --mf-ref-line: #e7ebf2;
+  --mf-ref-line-strong: #dce2ec;
+  --mf-ref-text: #111a2e;
+  --mf-ref-secondary: #56627a;
+  --mf-ref-muted: #8d99ad;
+  --mf-ref-blue: #1768f2;
+  --mf-ref-blue-soft: #f0f5ff;
+  --mf-ref-green: #23a46f;
+  --mf-ref-green-soft: #f0faf5;
+  --mf-ref-amber: #efa61f;
+  --mf-ref-amber-soft: #fff9ed;
+  --mf-ref-purple: #7759ef;
+  --mf-ref-purple-soft: #f6f3ff;
+  --mf-ref-radius: 13px;
+  --mf-ref-card-shadow: 0 1px 2px rgba(16,24,40,.018), 0 8px 26px rgba(32,49,83,.025);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  background: var(--mf-ref-page) !important;
+}
+
+body {
+  color: var(--mf-ref-text);
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.app-blue-hue,
+.app-blue-hue-dark {
+  display: none !important;
+}
+
+.app-surface {
+  background: var(--mf-ref-page) !important;
+}
+
+.app-main-area {
+  background: var(--mf-ref-page) !important;
+}
+
+.content-route-home {
+  padding: 0 38px 42px !important;
+  background: var(--mf-ref-page) !important;
+}
+
+/* ----------------------------------------------------------------------
+   Sidebar — reference proportions, reduced from the supplied 260 px rail.
+   ---------------------------------------------------------------------- */
+.mf-sidebar {
+  width: var(--app-sidebar-width) !important;
+  flex: 0 0 var(--app-sidebar-width) !important;
+  height: 100vh !important;
+  padding: 18px 14px 12px !important;
+  background: #fff !important;
+  border-inline-end: 1px solid var(--mf-ref-line) !important;
+  box-shadow: none !important;
+}
+
+.mf-sidebar-brand {
+  min-height: 51px !important;
+  gap: 10px !important;
+  padding: 0 4px !important;
+}
+
+.mf-sidebar-logo {
+  width: 31px !important;
+  height: 31px !important;
+  flex-basis: 31px !important;
+  border-radius: 10px !important;
+  background: linear-gradient(145deg, #0b5ef0, #397ef7) !important;
+  box-shadow: 0 7px 17px rgba(23,104,242,.16) !important;
+}
+
+.mf-sidebar-wordmark {
+  color: #15213a !important;
+  font-size: 16px !important;
+  font-weight: 730 !important;
+  letter-spacing: -.035em !important;
+}
+
+.mf-sidebar-wordmark span {
+  color: var(--mf-ref-blue) !important;
+  font-weight: 820 !important;
+}
+
+.mf-sidebar-scroll {
+  padding: 9px 0 9px !important;
+  scrollbar-width: none !important;
+}
+.mf-sidebar-scroll::-webkit-scrollbar { display: none; }
+
+.mf-sidebar-group {
+  margin-top: 13px !important;
+}
+.mf-sidebar-group:first-child { margin-top: 6px !important; }
+
+.mf-sidebar-group-head {
+  min-height: 21px !important;
+  padding: 0 5px !important;
+  color: #7e8ca5 !important;
+  font-size: 8px !important;
+  font-weight: 790 !important;
+  letter-spacing: .075em !important;
+}
+
+.mf-sidebar-group-head button {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.mf-sidebar-list {
+  gap: 2px !important;
+  margin-top: 3px !important;
+}
+
+.mf-sidebar-item {
+  min-height: 36px !important;
+  grid-template-columns: 24px minmax(0,1fr) auto auto !important;
+  gap: 7px !important;
+  padding: 0 8px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: #56627a !important;
+  box-shadow: none !important;
+}
+
+.mf-sidebar-item:hover {
+  background: #f6f8fc !important;
+  color: #18243b !important;
+}
+
+.mf-sidebar-item[data-active="true"] {
+  background: #eff4ff !important;
+  color: #1768f2 !important;
+}
+
+.mf-sidebar-item-icon {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.mf-sidebar-item-label {
+  font-size: 10px !important;
+  font-weight: 680 !important;
+  letter-spacing: -.01em !important;
+}
+
+.mf-sidebar-badge {
+  min-width: 20px !important;
+  height: 18px !important;
+  font-size: 8px !important;
+}
+
+.mf-sidebar-footer {
+  padding-top: 9px !important;
+  border-color: var(--mf-ref-line) !important;
+}
+
+.mf-sidebar-profile {
+  min-height: 49px !important;
+  grid-template-columns: 33px minmax(0,1fr) 15px !important;
+  gap: 8px !important;
+  padding: 5px 4px !important;
+}
+
+.mf-sidebar-avatar {
+  width: 33px !important;
+  height: 33px !important;
+  background: #edf3ff !important;
+  color: var(--mf-ref-blue) !important;
+}
+
+.mf-sidebar-profile-copy strong { font-size: 10px !important; }
+.mf-sidebar-profile-copy small { font-size: 8px !important; }
+
+.mf-sidebar-footer-row {
+  min-height: 31px !important;
+  padding: 0 5px !important;
+  color: #647089 !important;
+  font-size: 9px !important;
+}
+
+/* ----------------------------------------------------------------------
+   Home top control — only the focus control remains visible on Home.
+   ---------------------------------------------------------------------- */
+.topbar-shell[data-route="home"] {
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+  z-index: 80 !important;
+}
+
+.topbar-shell[data-route="home"] .topbar-page-context,
+.topbar-shell[data-route="home"] > div:last-child {
+  display: none !important;
+}
+
+.topbar-shell[data-route="home"] .topbar-center {
+  position: absolute !important;
+  top: 55px !important;
+  inset-inline-end: max(38px, calc((100vw - var(--app-sidebar-width) - 1050px) / 2)) !important;
+  z-index: 90 !important;
+}
+
+.topbar-shell[data-route="home"] .topbar-pomodoro-trigger {
+  min-width: 216px !important;
+  width: 216px !important;
+  min-height: 45px !important;
+  height: 45px !important;
+  gap: 9px !important;
+  padding: 5px 11px !important;
+  border: 1px solid var(--mf-ref-line-strong) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.018) !important;
+}
+
+.topbar-shell[data-route="home"] .topbar-pomodoro-icon {
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: #26344e !important;
+}
+
+.topbar-shell[data-route="home"] .topbar-pomodoro-time {
+  color: #26344e !important;
+  font-family: inherit !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+.topbar-shell[data-route="home"] .topbar-pomodoro-status {
+  margin-top: 1px !important;
+  color: var(--mf-ref-blue) !important;
+  font-size: 9px !important;
+  font-weight: 720 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+/* ----------------------------------------------------------------------
+   Home composition — matches supplied 1408 × 1056 hierarchy.
+   ---------------------------------------------------------------------- */
+.mf-home {
+  width: min(1050px, 100%) !important;
+  margin: 0 auto !important;
+  padding-top: 54px !important;
+  color: var(--mf-ref-text) !important;
+}
+
+.mf-home-heading {
+  min-height: 84px !important;
+  padding-inline-end: 230px !important;
+}
+
+.mf-home-heading-copy h1 {
+  color: #111a2e !important;
+  font-size: 23px !important;
+  font-weight: 720 !important;
+  letter-spacing: -.035em !important;
+  line-height: 1.18 !important;
+}
+
+.mf-home-module-link {
+  margin-top: 8px !important;
+  color: var(--mf-ref-blue) !important;
+  font-size: 11px !important;
+  font-weight: 690 !important;
+}
+
+.mf-home-resume {
+  min-height: 25px !important;
+  margin-top: 7px !important;
+  border-color: #dce8ff !important;
+  background: #f7faff !important;
+  font-size: 8px !important;
+}
+
+.mf-home-plan {
+  height: 721px !important;
+  min-height: 721px !important;
+  grid-template-columns: minmax(0,1fr) 252px !important;
+  border: 1px solid var(--mf-ref-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: var(--mf-ref-card-shadow) !important;
+}
+
+.mf-home-plan-main {
+  border-inline-end: 1px solid var(--mf-ref-line) !important;
+}
+
+.mf-home-plan-header {
+  min-height: 118px !important;
+  padding: 24px 21px 17px !important;
+}
+
+.mf-home-plan-header h2,
+.mf-home-activity-head h2 {
+  color: #151d30 !important;
+  font-size: 13px !important;
+  font-weight: 760 !important;
+  letter-spacing: -.012em !important;
+}
+
+.mf-home-calendar-nav {
+  gap: 9px !important;
+  margin-top: 20px !important;
+}
+
+.mf-home-calendar-nav > button:not(.mf-home-today) {
+  width: 24px !important;
+  height: 24px !important;
+  color: #65718a !important;
+}
+
+.mf-home-calendar-nav > span {
+  color: #2c3850 !important;
+  font-size: 10px !important;
+  font-weight: 680 !important;
+}
+
+.mf-home-today {
+  min-height: 29px !important;
+  padding: 0 10px !important;
+  border: 1px solid #dce8ff !important;
+  border-radius: 7px !important;
+  background: #fff !important;
+  color: var(--mf-ref-blue) !important;
+  font-size: 8.5px !important;
+}
+
+.mf-home-view-switcher {
+  margin-top: 39px !important;
+  padding: 3px !important;
+  border-color: var(--mf-ref-line) !important;
+  border-radius: 9px !important;
+  background: #f8f9fc !important;
+}
+
+.mf-home-view-switcher button {
+  min-width: 62px !important;
+  height: 30px !important;
+  color: #65718a !important;
+  font-size: 8.5px !important;
+}
+
+.mf-home-view-switcher button[data-active="true"] {
+  background: #fff !important;
+  color: var(--mf-ref-blue) !important;
+  box-shadow: 0 1px 4px rgba(18,37,71,.06) !important;
+}
+
+.mf-home-calendar-frame {
+  margin: 0 20px 20px !important;
+  border-top-color: var(--mf-ref-line) !important;
+}
+
+.mf-home-all-day {
+  min-height: 39px !important;
+  grid-template-columns: 62px minmax(0,1fr) !important;
+  border-bottom-color: var(--mf-ref-line) !important;
+  color: #606d85 !important;
+  font-size: 9px !important;
+}
+
+.mf-home-calendar-canvas {
+  height: 542px !important;
+  min-height: 542px !important;
+  overflow: hidden !important;
+}
+
+/* ----------------------------------------------------------------------
+   Continuous scrollable schedule.
+   ---------------------------------------------------------------------- */
+.mf-schedule {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.mf-schedule-days-head {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex: 0 0 auto;
+  display: grid;
+  min-height: 48px;
+  border-bottom: 1px solid var(--mf-ref-line);
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(12px);
+}
+
+.mf-schedule-days-corner {
+  border-inline-end: 1px solid var(--mf-ref-line);
+}
+
+.mf-schedule-day-head {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  border-inline-start: 1px solid var(--mf-ref-line);
+  color: var(--mf-ref-muted);
+}
+.mf-schedule-day-head span { font-size: 8px; font-weight: 720; text-transform: uppercase; }
+.mf-schedule-day-head strong { color: #29364e; font-size: 11px; font-weight: 760; }
+.mf-schedule-day-head[data-today="true"] { background: #f5f8ff; }
+.mf-schedule-day-head[data-today="true"] strong { color: var(--mf-ref-blue); }
+
+.mf-schedule-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cfd6e2 transparent;
+  overscroll-behavior: contain;
+}
+.mf-schedule-scroll::-webkit-scrollbar { width: 6px; }
+.mf-schedule-scroll::-webkit-scrollbar-thumb { border-radius: 99px; background: #cfd6e2; }
+.mf-schedule-scroll::-webkit-scrollbar-track { background: transparent; }
+
+.mf-schedule-body {
+  position: relative;
+  min-width: 0;
+  padding-inline-start: 62px;
+}
+
+.mf-schedule-times {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 62px;
+  color: #7b879c;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.mf-schedule-times span {
+  position: absolute;
+  inset-inline: 0 9px;
+  transform: translateY(-6px);
+  text-align: end;
+  font-size: 8.5px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.mf-schedule-grid-surface {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  border-inline-start: 1px solid var(--mf-ref-line);
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      var(--mf-ref-line) 0,
+      var(--mf-ref-line) 1px,
+      transparent 1px,
+      transparent var(--mf-hour-height)
+    );
+  cursor: crosshair;
+}
+
+.mf-schedule-grid-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--mf-hour-height) / 2 - 1px),
+      rgba(231,235,242,.55) calc(var(--mf-hour-height) / 2 - 1px),
+      rgba(231,235,242,.55) calc(var(--mf-hour-height) / 2),
+      transparent calc(var(--mf-hour-height) / 2),
+      transparent var(--mf-hour-height)
+    );
+}
+
+.mf-schedule-day-column {
+  position: relative;
+  z-index: 1;
+  border-inline-start: 1px solid var(--mf-ref-line);
+  pointer-events: none;
+}
+.mf-schedule-day-column:first-child { border-inline-start: 0; }
+
+.mf-schedule-event {
+  appearance: none;
+  position: absolute;
+  z-index: 5;
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 3px 28px minmax(0,1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 7px 11px 7px 0;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  color: var(--mf-ref-blue);
+  font-family: inherit;
+  text-align: start;
+  overflow: hidden;
+  cursor: grab;
+  box-shadow: 0 2px 7px rgba(26,48,88,.025);
+  transition: box-shadow 130ms ease, transform 130ms ease;
+}
+
+.mf-schedule-event:hover {
+  z-index: 9;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(26,48,88,.07);
+}
+.mf-schedule-event:active { cursor: grabbing; }
+
+.mf-schedule-event-accent {
+  align-self: stretch;
+  width: 3px;
+  margin: -8px 0;
+  border-radius: 0 3px 3px 0;
+}
+
+.mf-schedule-event-icon {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(255,255,255,.8);
+}
+
+.mf-schedule-event-copy {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+}
+
+.mf-schedule-event-copy small {
+  color: currentColor;
+  font-size: 7.5px;
+  font-weight: 680;
+  line-height: 1.1;
+  opacity: .78;
+  font-variant-numeric: tabular-nums;
+}
+
+.mf-schedule-event-copy strong {
+  overflow: hidden;
+  color: #18243a;
+  font-size: 9.5px;
+  font-weight: 730;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mf-schedule-event-copy em {
+  overflow: hidden;
+  color: #65718a;
+  font-size: 7.5px;
+  font-style: normal;
+  font-weight: 580;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mf-schedule-drop-preview {
+  position: absolute;
+  z-index: 12;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--mf-ref-blue);
+  box-shadow: 0 0 0 3px rgba(23,104,242,.12);
+  pointer-events: none;
+}
+
+.mf-schedule-now {
+  position: absolute;
+  z-index: 10;
+  height: 1px;
+  background: #e64f5c;
+  pointer-events: none;
+}
+.mf-schedule-now::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e64f5c;
+}
+
+/* ----------------------------------------------------------------------
+   Right rail — same order and density as the reference.
+   ---------------------------------------------------------------------- */
+.mf-home-rail {
+  gap: 14px !important;
+  padding: 64px 20px 20px !important;
+  background: #fff !important;
+}
+
+.mf-home-rail-card {
+  padding: 16px !important;
+  border: 1px solid var(--mf-ref-line) !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.015) !important;
+}
+
+.mf-home-rail-card h3 {
+  color: #1b263d !important;
+  font-size: 10px !important;
+  font-weight: 730 !important;
+}
+
+.mf-home-exam-card {
+  min-height: 219px !important;
+}
+
+.mf-home-exam-icon {
+  width: 39px !important;
+  height: 39px !important;
+  margin-top: 27px !important;
+  border-radius: 9px !important;
+  background: #eff4ff !important;
+  color: var(--mf-ref-blue) !important;
+}
+
+.mf-home-exam-number {
+  margin-top: -34px !important;
+  margin-inline-start: 52px !important;
+  color: var(--mf-ref-blue) !important;
+  font-size: 35px !important;
+  font-weight: 790 !important;
+}
+
+.mf-home-exam-unit {
+  margin-top: 8px !important;
+  color: #647089 !important;
+  font-size: 10px !important;
+}
+
+.mf-home-exam-module {
+  margin-top: 19px !important;
+  color: #536078 !important;
+  font-size: 10px !important;
+}
+
+.mf-home-exam-date {
+  color: #8a96aa !important;
+  font-size: 8.5px !important;
+}
+
+.mf-home-module-card {
+  min-height: 101px !important;
+}
+
+.mf-home-progress-label {
+  margin-top: 14px !important;
+  font-size: 8.5px !important;
+}
+
+.mf-home-progress-track {
+  height: 3px !important;
+  margin-top: 7px !important;
+  background: #e7ebf2 !important;
+}
+.mf-home-progress-track span { background: var(--mf-ref-blue) !important; }
+
+.mf-home-upcoming-card {
+  min-height: 278px !important;
+}
+
+.mf-home-upcoming-row {
+  min-height: 47px !important;
+  border-color: #edf0f5 !important;
+}
+
+.mf-home-upcoming-icon {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.mf-home-upcoming-copy strong {
+  color: #263249 !important;
+  font-size: 8.5px !important;
+}
+
+.mf-home-upcoming-copy small {
+  color: #8b96a9 !important;
+  font-size: 7.5px !important;
+}
+
+/* ----------------------------------------------------------------------
+   Recent activity — 135 px reference panel, additional functions retained.
+   ---------------------------------------------------------------------- */
+.mf-home-activity {
+  min-height: 136px !important;
+  margin-top: 16px !important;
+  border: 1px solid var(--mf-ref-line) !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  box-shadow: var(--mf-ref-card-shadow) !important;
+}
+
+.mf-home-activity-head {
+  min-height: 48px !important;
+  padding: 0 18px !important;
+  border-bottom: 0 !important;
+}
+
+.mf-home-activity-tabs button {
+  min-height: 26px !important;
+  padding: 0 7px !important;
+  font-size: 7.5px !important;
+}
+
+.mf-home-activity-body {
+  min-height: 82px !important;
+  padding: 4px 18px 15px !important;
+}
+
+.mf-home-activity-grid {
+  gap: 14px !important;
+}
+
+.mf-home-activity-row {
+  min-height: 65px !important;
+  grid-template-columns: 30px minmax(0,1fr) !important;
+  gap: 9px !important;
+  padding: 8px !important;
+}
+
+.mf-home-activity-icon {
+  width: 29px !important;
+  height: 29px !important;
+}
+
+.mf-home-activity-row strong { font-size: 8.5px !important; }
+.mf-home-activity-row small { font-size: 7.5px !important; }
+.mf-home-activity-row em { font-size: 7px !important; }
+
+/* ----------------------------------------------------------------------
+   Full-height utility modules beside the sidebar.
+   ---------------------------------------------------------------------- */
+.utility-workspace-overlay,
+.calendar-workspace-overlay {
+  inset-block: 0 !important;
+  inset-inline-start: var(--app-sidebar-width) !important;
+  inset-inline-end: 0 !important;
+  width: auto !important;
+  height: 100vh !important;
+  background: #fff !important;
+}
+
+/* ----------------------------------------------------------------------
+   Desktop safeguards and responsive behavior.
+   ---------------------------------------------------------------------- */
+@media (max-width: 1230px) {
+  :root { --app-sidebar-width: 204px; }
+  .content-route-home { padding-inline: 24px !important; }
+  .mf-home { width: min(1010px,100%) !important; }
+  .mf-home-plan { grid-template-columns: minmax(0,1fr) 232px !important; }
+  .topbar-shell[data-route="home"] .topbar-center { inset-inline-end: 24px !important; }
+}
+
+@media (max-width: 1000px) {
+  :root { --app-sidebar-width: 58px; }
+  .mf-home-heading { padding-inline-end: 0 !important; }
+  .mf-home-plan { height: auto !important; min-height: 0 !important; grid-template-columns: 1fr !important; }
+  .mf-home-plan-main { min-height: 720px !important; border-inline-end: 0 !important; }
+  .mf-home-rail { display: grid !important; grid-template-columns: repeat(3,minmax(0,1fr)) !important; padding: 16px !important; border-top: 1px solid var(--mf-ref-line) !important; }
+  .mf-home-upcoming-card { min-height: 219px !important; }
+  .topbar-shell[data-route="home"] .topbar-center { top: 22px !important; }
+}
+
+@media (max-width: 720px) {
+  .content-route-home { padding: 0 12px 24px !important; }
+  .mf-home { padding-top: 82px !important; }
+  .mf-home-heading { min-height: 72px !important; }
+  .mf-home-heading-copy h1 { font-size: 20px !important; }
+  .topbar-shell[data-route="home"] .topbar-center { inset-inline: 12px auto !important; }
+  .mf-home-plan-header { min-height: 145px !important; flex-direction: column !important; }
+  .mf-home-view-switcher { margin-top: 0 !important; }
+  .mf-home-rail { grid-template-columns: 1fr !important; }
+  .mf-home-activity-grid { grid-template-columns: 1fr !important; }
+  .mf-home-activity-tabs { max-width: 62%; overflow-x: auto; }
+  .mf-schedule-event { grid-template-columns: 3px 23px minmax(0,1fr); gap: 6px; padding-inline-end: 7px; }
+  .mf-schedule-event-icon { width: 23px; height: 23px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-schedule-event,
+  .mf-sidebar-item,
+  .mf-home-activity-row {
+    transition: none !important;
+  }
+}
+
+/* Activity selector keeps tasks and results without changing the reference header. */
+.mf-home-activity-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mf-home-view-all {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--mf-ref-blue);
+  font-family: inherit;
+  font-size: 8.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mf-home-activity-menu {
+  position: absolute;
+  z-index: 30;
+  top: 27px;
+  inset-inline-end: 0;
+  width: 190px;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--mf-ref-line);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 36px rgba(26,42,72,.13);
+}
+
+.mf-home-activity-menu button {
+  min-height: 31px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--mf-ref-secondary);
+  font-family: inherit;
+  font-size: 8.5px;
+  font-weight: 680;
+  text-align: start;
+  cursor: pointer;
+}
+.mf-home-activity-menu button:hover,
+.mf-home-activity-menu button[data-active="true"] {
+  background: var(--mf-ref-blue-soft);
+  color: var(--mf-ref-blue);
+}
+
+/* Dedicated one-day renderer used on Home. */
+.home-day-schedule {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 62px minmax(0,1fr);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cfd6e2 transparent;
+  overscroll-behavior: contain;
+}
+.home-day-schedule::-webkit-scrollbar { width: 6px; }
+.home-day-schedule::-webkit-scrollbar-thumb { border-radius: 99px; background: #cfd6e2; }
+.home-day-schedule::-webkit-scrollbar-track { background: transparent; }
+
+.home-day-times {
+  position: relative;
+  min-width: 0;
+}
+
+.home-day-time {
+  height: 56px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 9px 10px 0 0;
+  border-top: 1px solid var(--mf-ref-line);
+  color: #7b879c;
+  font-size: 8.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-day-grid {
+  position: relative;
+  min-width: 0;
+  border-inline-start: 1px solid var(--mf-ref-line);
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      var(--mf-ref-line) 0,
+      var(--mf-ref-line) 1px,
+      transparent 1px,
+      transparent 56px
+    );
+  cursor: crosshair;
+}
+
+.home-day-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      rgba(231,235,242,.55) 27px,
+      rgba(231,235,242,.55) 28px,
+      transparent 28px,
+      transparent 56px
+    );
+}
+
+.home-day-event {
+  appearance: none;
+  position: absolute;
+  z-index: 5;
+  inset-inline: 14px 18px;
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 3px 28px minmax(0,1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 7px 11px 7px 0;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  color: var(--mf-ref-blue);
+  font-family: inherit;
+  text-align: start;
+  overflow: hidden;
+  cursor: grab;
+  box-shadow: 0 2px 7px rgba(26,48,88,.025);
+  transition: box-shadow 130ms ease, transform 130ms ease;
+}
+.home-day-event:hover {
+  z-index: 9;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(26,48,88,.07);
+}
+.home-day-event:active { cursor: grabbing; }
+
+.home-day-event-accent {
+  align-self: stretch;
+  width: 3px;
+  margin: -8px 0;
+  border-radius: 0 3px 3px 0;
+}
+
+.home-day-event-icon {
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  border-radius: 8px;
+  background: rgba(255,255,255,.8);
+}
+
+.home-day-event-copy {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+}
+
+.home-day-event-time {
+  display: block;
+  color: currentColor;
+  font-size: 7.5px;
+  font-weight: 680;
+  line-height: 1.1;
+  opacity: .78;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-day-event-title {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  color: #18243a;
+  font-size: 9.5px;
+  font-weight: 730;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-day-event-subtitle {
+  display: block;
+  overflow: hidden;
+  color: #65718a;
+  font-size: 7.5px;
+  font-weight: 580;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-day-drop-preview {
+  position: absolute;
+  z-index: 12;
+  inset-inline: 8px;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--mf-ref-blue);
+  box-shadow: 0 0 0 3px rgba(23,104,242,.12);
+  pointer-events: none;
+}
+
+.home-day-now-line {
+  position: absolute;
+  z-index: 10;
+  inset-inline: 0;
+  height: 1px;
+  background: #e64f5c;
+  pointer-events: none;
+}
+.home-day-now-line::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e64f5c;
+}
+
+/* Explicit layout hooks used by the redesigned Insights workspace. */
+.insights-v3-trend-panel { min-height: 360px; }
+.insights-v3-queue-panel { min-height: 360px; }
+.insights-v3-session-panel { min-height: 300px; }
+.insights-v3-lecture-view,
+.insights-v3-focus-view { display: grid; gap: 12px; }
     `}</style>
   );
 }
@@ -12516,9 +13678,7 @@ function computeStreak(days) {
   const today = new Date();
   let current = 0;
   const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  if (!dateSet.has(dateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()))) {
-    cursor.setDate(cursor.getDate() - 1);
-  }
+  if (!dateSet.has(dateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()))) cursor.setDate(cursor.getDate() - 1);
   while (dateSet.has(dateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()))) {
     current += 1;
     cursor.setDate(cursor.getDate() - 1);
@@ -13135,6 +14295,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
               weekStart={view === "day" ? dayDate : weekStart}
               daysCount={view === "day" ? 1 : 7}
               weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels}
+              language={language}
               onMoveEvent={moveEvent}
               onSlotClick={handleSlotClick}
               onEventClick={(event) => {
@@ -16305,20 +17466,34 @@ function HomeDaySchedule({
   onEventClick,
   onSlotClick,
   onMoveEvent,
+  language = "da",
 }) {
-  const hours = Array.from({ length: 14 }, (_, index) => index + 7);
+  const hours = Array.from({ length: 15 }, (_, index) => index + 7);
   const startHour = hours[0];
   const rowHeight = 56;
   const totalHeight = hours.length * rowHeight;
   const dateString = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
   const dragIdRef = useRef(null);
   const gridRef = useRef(null);
+  const scrollRef = useRef(null);
+  const [dropTop, setDropTop] = useState(null);
+
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTop = Math.max(0, rowHeight - 4);
+  }, [dateString]);
+
+  const copy = ({
+    da: { study: "Studieblok", review: "Repetition", exam: "Eksamen", other: "Kalenderaktivitet" },
+    en: { study: "Study block", review: "Review session", exam: "Exam", other: "Calendar event" },
+    ar: { study: "جلسة دراسة", review: "جلسة مراجعة", exam: "امتحان", other: "حدث تقويم" },
+  })[language] || { study: "Studieblok", review: "Repetition", exam: "Eksamen", other: "Kalenderaktivitet" };
 
   const palette = {
-    exam: { color: c.red, background: c.redSoft, icon: "flag" },
-    study: { color: c.blue, background: c.blueSoft, icon: "book" },
-    review: { color: c.green, background: c.greenSoft, icon: "check" },
-    other: { color: c.purple, background: c.purpleSoft, icon: "notebook" },
+    exam: { color: c.red, background: c.redSoft, border: c.redBorder, icon: "flag", label: copy.exam },
+    study: { color: c.blue, background: c.blueSoft, border: c.blueBorder, icon: "book", label: copy.study },
+    review: { color: c.green, background: c.greenSoft, border: c.greenBorder, icon: "check", label: copy.review },
+    other: { color: c.purple || c.secondary, background: c.purpleSoft || c.soft, border: c.borderStrong, icon: "notebook", label: copy.other },
   };
 
   const positionedEvents = events
@@ -16326,9 +17501,9 @@ function HomeDaySchedule({
     .map((event) => {
       const minutes = timeToMinutes(event.time);
       const top = Math.max(0, ((minutes - startHour * 60) / 60) * rowHeight);
-      const durationHours = Math.max(0.75, Number(event.estimatedHours) || 1);
-      const height = Math.max(44, durationHours * rowHeight - 6);
-      return { event, top, height };
+      const durationHours = Math.max(0.5, Number(event.estimatedHours || event.durationHours) || 1);
+      const height = Math.max(42, Math.min(durationHours * rowHeight - 6, totalHeight - top - 3));
+      return { event, top: top + 3, height };
     })
     .filter((item) => item.top < totalHeight);
 
@@ -16341,13 +17516,22 @@ function HomeDaySchedule({
     return minutesToTime(rounded);
   }
 
+  function topFromPointer(clientY) {
+    const minutes = timeToMinutes(timeFromPointer(clientY));
+    return ((minutes - startHour * 60) / 60) * rowHeight;
+  }
+
+  function eventSubtitle(event, tone) {
+    return event.subtitle || event.description || event.planModuleId || tone.label;
+  }
+
   const today = new Date();
   const isToday = dateString === dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = ((nowMinutes - startHour * 60) / 60) * rowHeight;
 
   return (
-    <div className="home-day-schedule">
+    <div ref={scrollRef} className="home-day-schedule">
       <div className="home-day-times" aria-hidden="true">
         {hours.map((hour) => (
           <div key={hour} className="home-day-time">
@@ -16361,38 +17545,47 @@ function HomeDaySchedule({
         className="home-day-grid"
         style={{ height: totalHeight }}
         onClick={(event) => {
-          if (event.target !== event.currentTarget) return;
+          if (event.target.closest(".home-day-event")) return;
           onSlotClick(dateString, timeFromPointer(event.clientY));
         }}
-        onDragOver={(event) => event.preventDefault()}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setDropTop(topFromPointer(event.clientY));
+        }}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setDropTop(null);
+        }}
         onDrop={(event) => {
           event.preventDefault();
-          const id = dragIdRef.current || event.dataTransfer.getData("text/plain");
-          const source = events.find((item) => item.id === id);
+          const id = dragIdRef.current || event.dataTransfer.getData("text/medfluen-event");
+          const source = events.find((item) => String(item.id) === String(id));
           if (!source) return;
           onMoveEvent({ ...source, date: dateString, time: timeFromPointer(event.clientY) });
           dragIdRef.current = null;
+          setDropTop(null);
         }}
       >
-        {isToday && nowTop >= 0 && nowTop <= totalHeight && (
-          <div className="home-day-now-line" style={{ top: nowTop }} />
-        )}
+        {dropTop !== null && <span className="home-day-drop-preview" style={{ top: dropTop }} />}
+        {isToday && nowTop >= 0 && nowTop <= totalHeight && <div className="home-day-now-line" style={{ top: nowTop }} />}
 
         {positionedEvents.map(({ event, top, height }) => {
           const tone = palette[event.type] || palette.other;
-          const endMinutes = timeToMinutes(event.time) + Math.round((Number(event.estimatedHours) || 1) * 60);
+          const endMinutes = timeToMinutes(event.time) + Math.round((Number(event.estimatedHours || event.durationHours) || 1) * 60);
           return (
             <button
               key={event.id}
               type="button"
               draggable
               className="home-day-event"
+              data-type={event.type || "other"}
               onDragStart={(domEvent) => {
                 dragIdRef.current = event.id;
-                domEvent.dataTransfer.setData("text/plain", event.id);
+                domEvent.dataTransfer.effectAllowed = "move";
+                domEvent.dataTransfer.setData("text/medfluen-event", String(event.id));
               }}
               onDragEnd={() => {
                 dragIdRef.current = null;
+                setDropTop(null);
               }}
               onClick={(domEvent) => {
                 domEvent.stopPropagation();
@@ -16401,21 +17594,17 @@ function HomeDaySchedule({
               style={{
                 top,
                 height,
-                borderColor: tone.color,
+                borderColor: tone.border || tone.color,
                 background: tone.background,
                 color: tone.color,
               }}
             >
-              <span className="home-day-event-icon">
-                <Icon name={tone.icon} size={13} />
-              </span>
-              <span style={{ minWidth: 0, flex: 1 }}>
-                <span className="home-day-event-time">
-                  {event.time} – {minutesToTime(endMinutes)}
-                </span>
-                <span className="home-day-event-title" style={{ display: "block" }}>
-                  {event.title}
-                </span>
+              <span className="home-day-event-accent" style={{ background: tone.color }} />
+              <span className="home-day-event-icon"><Icon name={tone.icon} size={13} /></span>
+              <span className="home-day-event-copy">
+                <span className="home-day-event-time">{event.time} – {minutesToTime(endMinutes)}</span>
+                <span className="home-day-event-title">{event.title}</span>
+                {height >= 58 && <span className="home-day-event-subtitle">{eventSubtitle(event, tone)}</span>}
               </span>
             </button>
           );
@@ -16445,6 +17634,7 @@ function Dashboard({
   const [calendarView, setCalendarView] = useState("day");
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [bottomTab, setBottomTab] = useState("activity");
+  const [activityMenuOpen, setActivityMenuOpen] = useState(false);
 
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
   const direction = language === "ar" ? "rtl" : "ltr";
@@ -16766,6 +17956,7 @@ function Dashboard({
                   onEventClick={setEditingPlanEvent}
                   onSlotClick={createEvent}
                   onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
+                  language={language}
                 />
               ) : calendarView === "week" ? (
                 <WeekCalendar
@@ -16774,6 +17965,7 @@ function Dashboard({
                   weekStart={startOfWeek(calendarDate)}
                   daysCount={7}
                   weekdayLabels={weekdayLabels}
+                 language={language}
                   onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
                   onSlotClick={createEvent}
                   onEventClick={setEditingPlanEvent}
@@ -16839,10 +18031,32 @@ function Dashboard({
       <section className="mf-home-activity">
         <div className="mf-home-activity-head">
           <h2>{bottomTab === "activity" ? copy.recentActivity : bottomTab === "tasks" ? copy.todayTasks : copy.results}</h2>
-          <div className="mf-home-activity-tabs">
-            {[["activity", copy.recentActivity], ["tasks", `${copy.todayTasks}${checklistItems.length ? ` ${completedTodayCount}/${checklistItems.length}` : ""}`], ["results", `${copy.results} ${earnedBadges.length}/${BADGE_DEFINITIONS.length}`]].map(([value, label]) => (
-              <button key={value} type="button" data-active={bottomTab === value ? "true" : "false"} onClick={() => setBottomTab(value)}>{label}</button>
-            ))}
+          <div className="mf-home-activity-actions">
+            <button
+              type="button"
+              className="mf-home-view-all"
+              aria-expanded={activityMenuOpen}
+              onClick={() => setActivityMenuOpen((value) => !value)}
+            >
+              {copy.viewAll}
+            </button>
+            {activityMenuOpen && (
+              <div className="mf-home-activity-menu">
+                {[["activity", copy.recentActivity], ["tasks", `${copy.todayTasks}${checklistItems.length ? ` ${completedTodayCount}/${checklistItems.length}` : ""}`], ["results", `${copy.results} ${earnedBadges.length}/${BADGE_DEFINITIONS.length}`]].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    data-active={bottomTab === value ? "true" : "false"}
+                    onClick={() => {
+                      setBottomTab(value);
+                      setActivityMenuOpen(false);
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -28867,12 +30081,7 @@ onNavigate={(target, options) => {
           </main>
           {notesOpen && (
             <div className="utility-workspace-overlay">
-              <Notebook
-                c={c}
-                t={t}
-                language={language}
-                onClose={() => setNotesOpen(false)}
-              />
+              <Notebook c={c} t={t} language={language} onClose={() => setNotesOpen(false)} />
             </div>
           )}
           {drByteOpen && (
