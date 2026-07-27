@@ -8129,6 +8129,7 @@ select.ui-control {
     repeat(3, minmax(0, 1fr))
     !important;
 }
+}
   
 /* ======================================================================
    MEDFLUEN PRODUCT DESIGN SYSTEM — CALENDAR-FIRST WORKSPACE (2026)
@@ -9086,8 +9087,6 @@ select.ui-control {
   .mf-sidebar-switch i,
   .home-day-event,
   .mf-home-all-day button { transition: none !important; }
-}
-
 }
     `}</style>
   );
