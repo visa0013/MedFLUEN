@@ -6111,6 +6111,940 @@ select.ui-control {
   }
 }
 
+
+
+/* ============================================================
+   MEDFLUEN HOME V2 — MODERN PRODUCTIVITY WORKSPACE
+   Visual language based on the approved calendar-first concept.
+   ============================================================ */
+:root {
+  --app-sidebar-width: 238px;
+}
+
+.home-v2 {
+  width: min(1420px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.home-v2-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 2px 2px 4px;
+}
+
+.home-v2-greeting {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: clamp(24px, 2.25vw, 32px);
+  font-weight: 820;
+  letter-spacing: -.04em;
+  line-height: 1.12;
+}
+
+.home-v2-module {
+  margin-top: 7px;
+  color: var(--ui-blue);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.home-v2-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(105px, 1fr)) minmax(250px, 1.45fr);
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 16px;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.home-v2-stat,
+.home-v2-recommendation {
+  min-width: 0;
+  min-height: 82px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-inline-start: 1px solid var(--ui-border);
+  background: transparent;
+  color: var(--ui-text);
+  text-align: start;
+  outline: none;
+  transition: background 150ms ease, box-shadow 150ms ease;
+}
+
+.home-v2-stat:first-child {
+  border-inline-start: 0;
+}
+
+.home-v2-stat:hover,
+.home-v2-recommendation:hover {
+  background: var(--ui-soft);
+}
+
+.home-v2-stat:focus-visible,
+.home-v2-recommendation:focus-visible {
+  position: relative;
+  z-index: 2;
+  box-shadow: inset 0 0 0 2px var(--ui-blue);
+}
+
+.home-v2-stat-icon,
+.home-v2-recommendation-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.home-v2-stat[data-tone="review"] .home-v2-stat-icon {
+  background: var(--ui-red-soft);
+  color: var(--ui-red);
+}
+
+.home-v2-stat[data-tone="streak"] .home-v2-stat-icon {
+  background: color-mix(in srgb, #ff9f43 13%, var(--ui-panel));
+  color: #f08a24;
+}
+
+.home-v2-stat-value {
+  color: var(--ui-text);
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-v2-stat-label {
+  margin-top: 5px;
+  color: var(--ui-secondary);
+  font-size: 10px;
+  font-weight: 730;
+  line-height: 1.25;
+}
+
+.home-v2-stat-meta {
+  margin-top: 3px;
+  color: var(--ui-muted);
+  font-size: 8.5px;
+  font-weight: 650;
+}
+
+.home-v2-recommendation {
+  border-inline-start: 1px solid var(--ui-border);
+  cursor: pointer;
+}
+
+.home-v2-recommendation-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.home-v2-recommendation-label {
+  color: var(--ui-text);
+  font-size: 11.5px;
+  font-weight: 820;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-v2-recommendation-meta {
+  margin-top: 4px;
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-v2-recommendation-badge {
+  min-width: 26px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.home-v2-workspace {
+  min-height: 640px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 235px;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 17px;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.home-v2-calendar-area {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-v2-panel-header {
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.home-v2-panel-title {
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 840;
+}
+
+.home-v2-calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.home-v2-date-label {
+  min-width: 0;
+  color: var(--ui-secondary);
+  font-size: 10px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.home-v2-mini-button,
+.home-v2-view-button {
+  min-height: 31px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-panel);
+  color: var(--ui-secondary);
+  font-size: 9.5px;
+  font-weight: 780;
+  outline: none;
+}
+
+.home-v2-mini-button:hover,
+.home-v2-view-button:hover {
+  border-color: var(--ui-blue-border);
+  color: var(--ui-blue);
+}
+
+.home-v2-view-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  background: var(--ui-soft);
+}
+
+.home-v2-view-button {
+  min-width: 52px;
+  border: 0;
+  background: transparent;
+}
+
+.home-v2-view-button[data-active="true"] {
+  background: var(--ui-panel);
+  color: var(--ui-blue);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.home-v2-calendar-canvas {
+  min-height: 565px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.home-day-schedule {
+  height: 100%;
+  min-height: 565px;
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr);
+  overflow: auto;
+  background: var(--ui-panel);
+}
+
+.home-day-times {
+  position: relative;
+  border-inline-end: 1px solid var(--ui-border);
+}
+
+.home-day-time {
+  height: 56px;
+  padding: 7px 11px 0 0;
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-align: end;
+  border-top: 1px solid var(--ui-border);
+}
+
+.home-day-grid {
+  position: relative;
+  min-width: 520px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 55px,
+    var(--ui-border) 55px,
+    var(--ui-border) 56px
+  );
+}
+
+.home-day-grid:hover {
+  background-color: color-mix(in srgb, var(--ui-blue-soft) 14%, transparent);
+}
+
+.home-day-event {
+  position: absolute;
+  inset-inline: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  overflow: hidden;
+  border: 1px solid;
+  border-inline-start-width: 3px;
+  border-radius: 10px;
+  text-align: start;
+  outline: none;
+  cursor: pointer;
+  transition: filter 150ms ease, box-shadow 150ms ease;
+}
+
+.home-day-event:hover {
+  filter: brightness(.99);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.home-day-event:focus-visible {
+  box-shadow: 0 0 0 3px var(--ui-ring), var(--ui-shadow-sm);
+}
+
+.home-day-event-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--ui-panel) 78%, transparent);
+}
+
+.home-day-event-time {
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 760;
+}
+
+.home-day-event-title {
+  margin-top: 3px;
+  color: var(--ui-text);
+  font-size: 10.5px;
+  font-weight: 820;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-day-now-line {
+  position: absolute;
+  z-index: 6;
+  inset-inline: 0;
+  height: 1px;
+  background: var(--ui-blue);
+  pointer-events: none;
+}
+
+.home-day-now-line::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ui-blue);
+}
+
+.home-v2-rail {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 14px;
+  border-inline-start: 1px solid var(--ui-border);
+  background: color-mix(in srgb, var(--ui-soft) 55%, var(--ui-panel));
+}
+
+.home-v2-rail-card {
+  padding: 14px;
+  border: 1px solid var(--ui-border);
+  border-radius: 13px;
+  background: var(--ui-panel);
+}
+
+.home-v2-rail-title {
+  color: var(--ui-text);
+  font-size: 10.5px;
+  font-weight: 820;
+}
+
+.home-v2-exam-number {
+  margin-top: 13px;
+  color: var(--ui-blue);
+  font-size: 35px;
+  font-weight: 900;
+  letter-spacing: -.055em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-v2-exam-unit {
+  margin-top: 5px;
+  color: var(--ui-secondary);
+  font-size: 10px;
+  font-weight: 720;
+}
+
+.home-v2-exam-date {
+  margin-top: 15px;
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.home-v2-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  color: var(--ui-secondary);
+  font-size: 9.5px;
+  font-weight: 720;
+}
+
+.home-v2-progress-track {
+  height: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--ui-border);
+}
+
+.home-v2-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ui-blue);
+}
+
+.home-v2-upcoming-list {
+  display: grid;
+  gap: 2px;
+  margin-top: 8px;
+}
+
+.home-v2-upcoming-item {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border: 0;
+  border-top: 1px solid var(--ui-border);
+  background: transparent;
+  color: var(--ui-text);
+  text-align: start;
+}
+
+.home-v2-upcoming-item:first-child {
+  border-top: 0;
+}
+
+.home-v2-upcoming-icon {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--ui-soft);
+  color: var(--ui-blue);
+}
+
+.home-v2-upcoming-title {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 9.5px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-v2-upcoming-meta {
+  margin-top: 3px;
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.home-v2-bottom {
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 16px;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.home-v2-bottom-header {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.home-v2-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.home-v2-tab {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-muted);
+  font-size: 9.5px;
+  font-weight: 760;
+}
+
+.home-v2-tab[data-active="true"] {
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.home-v2-bottom-content {
+  padding: 14px 16px;
+}
+
+.home-v2-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-v2-activity-item {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+  background: var(--ui-soft);
+}
+
+.home-v2-activity-icon {
+  width: 29px;
+  height: 29px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--ui-panel);
+  color: var(--ui-blue);
+}
+
+.home-v2-activity-title {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 9.5px;
+  font-weight: 790;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-v2-activity-meta {
+  margin-top: 4px;
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.home-v2-task-list {
+  display: grid;
+  gap: 6px;
+}
+
+.home-v2-task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  background: var(--ui-panel);
+  color: var(--ui-text);
+}
+
+.home-v2-task-row[data-complete="true"] {
+  background: var(--ui-green-soft);
+  border-color: var(--ui-green-border);
+}
+
+.home-v2-badge-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.home-v2-badge {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-soft);
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 740;
+}
+
+.home-v2-badge[data-earned="true"] {
+  border-color: var(--ui-blue-border);
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+/* Wide navigation matching the approved concept */
+.sidebar-wide-brand {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  margin-bottom: 18px;
+}
+
+.sidebar-wide-brand-mark {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ui-blue-gradient);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  box-shadow: 0 8px 20px rgba(22,101,234,.24);
+}
+
+.sidebar-wide-brand-name {
+  color: var(--ui-text);
+  font-size: 16px;
+  font-weight: 840;
+  letter-spacing: -.03em;
+}
+
+.sidebar-wide-section {
+  width: 100%;
+  padding: 0 12px;
+  margin-top: 12px;
+}
+
+.sidebar-wide-section-head {
+  min-height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.sidebar-wide-list {
+  display: grid;
+  gap: 3px;
+}
+
+.sidebar-wide-row {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ui-secondary);
+  text-align: start;
+  outline: none;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.sidebar-wide-row:hover {
+  background: var(--ui-soft);
+  color: var(--ui-text);
+}
+
+.sidebar-wide-row[data-active="true"] {
+  border-color: color-mix(in srgb, var(--ui-blue-border) 55%, transparent);
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.sidebar-wide-row:focus-visible {
+  box-shadow: 0 0 0 3px var(--ui-ring);
+}
+
+.sidebar-wide-row-icon {
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+
+.sidebar-wide-row-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-size: 10.5px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-wide-row-badge {
+  min-width: 20px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--ui-red-soft);
+  color: var(--ui-red);
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.sidebar-wide-profile {
+  width: calc(100% - 24px);
+  margin: auto 12px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--ui-border);
+}
+
+.sidebar-wide-profile-button {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ui-text);
+  text-align: start;
+}
+
+.sidebar-wide-avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.sidebar-wide-profile-name {
+  overflow: hidden;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-wide-profile-meta {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 1120px) {
+  .home-v2-summary {
+    grid-template-columns: repeat(4, minmax(90px, 1fr));
+  }
+
+  .home-v2-recommendation {
+    grid-column: 1 / -1;
+    border-inline-start: 0;
+    border-top: 1px solid var(--ui-border);
+  }
+
+  .home-v2-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .home-v2-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-inline-start: 0;
+    border-top: 1px solid var(--ui-border);
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --app-sidebar-width: 58px;
+  }
+
+  .sidebar-wide-brand {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar-wide-brand-name,
+  .sidebar-wide-section-head,
+  .sidebar-wide-row-label,
+  .sidebar-wide-row-badge,
+  .sidebar-wide-profile-copy,
+  .sidebar-wide-profile-chevron {
+    display: none !important;
+  }
+
+  .sidebar-wide-section {
+    padding: 0 7px;
+  }
+
+  .sidebar-wide-row {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar-wide-profile {
+    width: calc(100% - 12px);
+    margin-inline: 6px;
+  }
+
+  .sidebar-wide-profile-button {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .home-v2 {
+    gap: 12px;
+  }
+
+  .home-v2-heading {
+    padding-top: 0;
+  }
+
+  .home-v2-greeting {
+    font-size: 23px;
+  }
+
+  .home-v2-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-v2-stat {
+    min-height: 68px;
+    padding: 10px;
+  }
+
+  .home-v2-stat:nth-child(3) {
+    border-inline-start: 0;
+    border-top: 1px solid var(--ui-border);
+  }
+
+  .home-v2-stat:nth-child(4) {
+    border-top: 1px solid var(--ui-border);
+  }
+
+  .home-v2-recommendation {
+    min-height: 66px;
+  }
+
+  .home-v2-panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .home-v2-view-switcher {
+    align-self: stretch;
+  }
+
+  .home-v2-view-button {
+    flex: 1;
+  }
+
+  .home-v2-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .home-v2-activity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-v2-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
 @keyframes uiBackdropIn {
   from {
     opacity: 0;
@@ -9128,6 +10062,7 @@ function Timer({
   return (
     <header
       className="app-surface app-topbar topbar-shell"
+      data-route={route}
       dir={
         language === "ar"
           ? "rtl"
@@ -14515,6 +15450,134 @@ function StudyPlan({ c, language, user, setUser }) {
   </>;
 }
 
+
+function HomeDaySchedule({
+  c,
+  date,
+  events,
+  onEventClick,
+  onSlotClick,
+  onMoveEvent,
+}) {
+  const hours = Array.from({ length: 14 }, (_, index) => index + 7);
+  const startHour = hours[0];
+  const rowHeight = 56;
+  const totalHeight = hours.length * rowHeight;
+  const dateString = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
+  const dragIdRef = useRef(null);
+  const gridRef = useRef(null);
+
+  const palette = {
+    exam: { color: c.red, background: c.redSoft, icon: "flag" },
+    study: { color: c.blue, background: c.blueSoft, icon: "book" },
+    review: { color: c.green, background: c.greenSoft, icon: "check" },
+    other: { color: c.purple, background: c.purpleSoft, icon: "notebook" },
+  };
+
+  const positionedEvents = events
+    .filter((event) => event.date === dateString && event.time)
+    .map((event) => {
+      const minutes = timeToMinutes(event.time);
+      const top = Math.max(0, ((minutes - startHour * 60) / 60) * rowHeight);
+      const durationHours = Math.max(0.75, Number(event.estimatedHours) || 1);
+      const height = Math.max(44, durationHours * rowHeight - 6);
+      return { event, top, height };
+    })
+    .filter((item) => item.top < totalHeight);
+
+  function timeFromPointer(clientY) {
+    if (!gridRef.current) return `${String(startHour).padStart(2, "0")}:00`;
+    const rect = gridRef.current.getBoundingClientRect();
+    const relative = Math.max(0, Math.min(totalHeight - 1, clientY - rect.top));
+    const rawMinutes = startHour * 60 + (relative / rowHeight) * 60;
+    const rounded = Math.round(rawMinutes / 15) * 15;
+    return minutesToTime(rounded);
+  }
+
+  const today = new Date();
+  const isToday = dateString === dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const nowMinutes = today.getHours() * 60 + today.getMinutes();
+  const nowTop = ((nowMinutes - startHour * 60) / 60) * rowHeight;
+
+  return (
+    <div className="home-day-schedule">
+      <div className="home-day-times" aria-hidden="true">
+        {hours.map((hour) => (
+          <div key={hour} className="home-day-time">
+            {String(hour).padStart(2, "0")}:00
+          </div>
+        ))}
+      </div>
+
+      <div
+        ref={gridRef}
+        className="home-day-grid"
+        style={{ height: totalHeight }}
+        onClick={(event) => {
+          if (event.target !== event.currentTarget) return;
+          onSlotClick(dateString, timeFromPointer(event.clientY));
+        }}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          const id = dragIdRef.current || event.dataTransfer.getData("text/plain");
+          const source = events.find((item) => item.id === id);
+          if (!source) return;
+          onMoveEvent({ ...source, date: dateString, time: timeFromPointer(event.clientY) });
+          dragIdRef.current = null;
+        }}
+      >
+        {isToday && nowTop >= 0 && nowTop <= totalHeight && (
+          <div className="home-day-now-line" style={{ top: nowTop }} />
+        )}
+
+        {positionedEvents.map(({ event, top, height }) => {
+          const tone = palette[event.type] || palette.other;
+          const endMinutes = timeToMinutes(event.time) + Math.round((Number(event.estimatedHours) || 1) * 60);
+          return (
+            <button
+              key={event.id}
+              type="button"
+              draggable
+              className="home-day-event"
+              onDragStart={(domEvent) => {
+                dragIdRef.current = event.id;
+                domEvent.dataTransfer.setData("text/plain", event.id);
+              }}
+              onDragEnd={() => {
+                dragIdRef.current = null;
+              }}
+              onClick={(domEvent) => {
+                domEvent.stopPropagation();
+                onEventClick(event);
+              }}
+              style={{
+                top,
+                height,
+                borderColor: tone.color,
+                background: tone.background,
+                color: tone.color,
+              }}
+            >
+              <span className="home-day-event-icon">
+                <Icon name={tone.icon} size={13} />
+              </span>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <span className="home-day-event-time">
+                  {event.time} – {minutesToTime(endMinutes)}
+                </span>
+                <span className="home-day-event-title" style={{ display: "block" }}>
+                  {event.title}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Dashboard({
   c,
   t,
@@ -14525,257 +15588,176 @@ function Dashboard({
   spacedData,
   importedQuestions,
 }) {
-
   const [studyPlans, setPlansGlobal] = useStoredState(STORAGE.studyPlans, {});
   const [checklist, setChecklist] = useStoredState(STORAGE.dailyChecklist, {});
-  const activePlan = studyPlans[user.module];
-  const hour = new Date().getHours();
-  const greeting =
-    hour < 5
-      ? { da: "God nat", en: "Good night", ar: "تصبح على خير" }
-      : hour < 12
-      ? { da: "Godmorgen", en: "Good morning", ar: "صباح الخير" }
-      : hour < 18
-      ? { da: "God eftermiddag", en: "Good afternoon", ar: "مساء الخير" }
-      : { da: "Godaften", en: "Good evening", ar: "مساء الخير" };
-  const copy = {
-    da: {
-      overview: "Dagens overblik",
-      review: "Til repetition",
-      newQuestions: "Nye MCQ'er",
-      total: "MCQ'er i modulet",
-      focusText: "Oversigt over den valgte studiesession.",
-      start: "Start MCQ-session",
-      plan: "Studieplan",
-      planText: "Planlagte blokke vises her.",
-      emptyPlan: "Ingen studieblokke planlagt i dag",
-      planHint: "Se hele planen i kalenderen.",
-      quickAccess: "Funktioner",
-      repetition: "Repetition",
-      notes: "Notesbog",
-      insights: "Indsigter",
-      mcq: "Alle MCQ'er",
-      coming: "Kommer snart",
-    },
-    en: {
-      overview: "Today's overview",
-      review: "To review",
-      newQuestions: "New MCQs",
-      total: "MCQs in module",
-      focusText: "Overview of the selected study session.",
-      start: "Start MCQ session",
-      plan: "Study plan",
-      planText: "Scheduled blocks will appear here.",
-      emptyPlan: "No study blocks scheduled today",
-      planHint: "See the full plan in the calendar.",
-      quickAccess: "Functions",
-      repetition: "Revision",
-      notes: "Notebook",
-      insights: "Insights",
-      mcq: "All MCQs",
-      coming: "Coming soon",
-    },
-    ar: {
-      overview: "نظرة عامة اليوم",
-      review: "للمراجعة",
-      newQuestions: "أسئلة جديدة",
-      total: "أسئلة في الوحدة",
-      focusText: "نظرة عامة على جلسة الدراسة المحددة.",
-      start: "ابدأ جلسة الأسئلة",
-      plan: "خطة الدراسة",
-      planText: "ستظهر الكتل المخططة هنا.",
-      emptyPlan: "لا توجد جلسات دراسية مخططة اليوم",
-      planHint: "شاهد الخطة الكاملة في التقويم.",
-      quickAccess: "الوظائف",
-      repetition: "مراجعة",
-      notes: "دفتر الملاحظات",
-      insights: "الإحصاءات",
-      mcq: "جميع الأسئلة",
-      coming: "قريبًا",
-    },
-  }[language] || null;
-  const x = copy || { overview: "Dagens overblik", review: "Til repetition", newQuestions: "Nye MCQ'er", total: "MCQ'er i modulet", focusText: "", start: "Start MCQ-session", plan: "Studieplan", planText: "", emptyPlan: "Ingen studieblokke planlagt i dag", planHint: "", quickAccess: "Funktioner", repetition: "Repetition", notes: "Notesbog", insights: "Indsigter", mcq: "Alle MCQ'er", coming: "Kommer snart" };
   const [history] = useStoredState(STORAGE.quizHistory, []);
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
-  const [editingPlanEvent, setEditingPlanEvent] = useState(null);
-  const currentModule = user?.module || "";
-  const todayDate = new Date();
-  const todayIso = dateKey(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
-  const todaysEvents = calendarEvents
-  .filter(
-    (event) =>
-      event.date === todayIso
-  )
-  .sort((a, b) =>
-    (a.time || "").localeCompare(
-      b.time || ""
-    )
-  );
-
-const planModuleLectures =
-  MODULE_LECTURES[currentModule] || [];
-
-const planDoneLectureIds =
-  activePlan?.doneLectureIds || [];
-
-const planCompletedLectureCount =
-  planModuleLectures.filter(
-    (lecture) =>
-      planDoneLectureIds.includes(
-        lecture.id
-      )
-  ).length;
-
-const planProgressPercent =
-  planModuleLectures.length > 0
-    ? Math.round(
-        (
-          planCompletedLectureCount /
-          planModuleLectures.length
-        ) * 100
-      )
-    : 0;
-
-const planPendingLectures =
-  planModuleLectures.filter(
-    (lecture) =>
-      !planDoneLectureIds.includes(
-        lecture.id
-      )
-  );
-
-const planLectureOverview =
-  activePlan &&
-  planPendingLectures.length === 0
-    ? planModuleLectures.slice(-3)
-    : (
-        activePlan
-          ? planPendingLectures
-          : planModuleLectures
-      ).slice(0, 3);
-
-const planTodayStart =
-  new Date(todayDate);
-
-planTodayStart.setHours(
-  0,
-  0,
-  0,
-  0
-);
-
-const planDaysRemaining =
-  activePlan?.examDate
-    ? Math.max(
-        0,
-        Math.ceil(
-          (
-            new Date(
-              `${activePlan.examDate}T00:00:00`
-            ) -
-            planTodayStart
-          ) /
-            86400000
-        )
-      )
-    : null;
-
-const matchingTodayPlanEvents =
-  todaysEvents.filter(
-    (event) =>
-      !event.planModuleId ||
-      event.planModuleId ===
-        currentModule
-  );
-
-const todayPlanEvents =
-  matchingTodayPlanEvents.slice(
-    0,
-    2
-  );
-
-const hiddenTodayPlanEventCount =
-  Math.max(
-    0,
-    matchingTodayPlanEvents.length -
-      todayPlanEvents.length
-  );
-  const allQuestionsForDash = getFullQuestionBank(importedQuestions);
-  const moduleQuestions = allQuestionsForDash.filter((q) => q.moduleId === currentModule);
-  const questionCount = moduleQuestions.length > 0 ? moduleQuestions.length : allQuestionsForDash.length;
-  const scopedQuestions = moduleQuestions.length > 0 ? moduleQuestions : allQuestionsForDash;
-  const safeSpacedData = spacedData || {};
-  const reviewCount = scopedQuestions.filter(
-    (q) => safeSpacedData[q.id] && isDue(safeSpacedData[q.id])
-  ).length;
-  const newCount = scopedQuestions.filter((q) => !safeSpacedData[q.id]).length;
-  const actionsById = {
-    mcq: ["mcq", "clipboard", x.mcq, c.blue, true],
-    repeat: ["repeat", "cards", x.repetition, c.blue, false],
-    insights: ["insights", "chart", x.insights, c.green, true],
-  };
-  const actionDescriptions = {
-  da: {
-    mcq: "Gennemgå hele spørgsmålsbanken og vælg din studietilstand.",
-    repeat: "Arbejd målrettet med de spørgsmål, der er klar til repetition.",
-    insights: "Se din udvikling, aktivitet og resultater over tid.",
-  },
-
-  en: {
-    mcq: "Explore the full question bank and choose your study mode.",
-    repeat: "Work specifically with questions that are ready for review.",
-    insights: "View your progress, activity and results over time.",
-  },
-
-  ar: {
-    mcq: "استعرض بنك الأسئلة بالكامل واختر وضع الدراسة.",
-    repeat: "اعمل بشكل مركز على الأسئلة الجاهزة للمراجعة.",
-    insights: "شاهد تقدمك ونشاطك ونتائجك بمرور الوقت.",
-  },
-}[language] || {};
-  
-  const defaultActionOrder = ["mcq", "repeat", "insights"];
-  const [quickAccessOrder, setQuickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, defaultActionOrder);
-  const [reorderingActions, setReorderingActions] = useState(false);
-  const actionDragIdRef = useRef(null);
-  const [actionDragOverId, setActionDragOverId] = useState(null);
-  const safeActionOrder = quickAccessOrder.filter((id) => actionsById[id]);
-  const orderedActionIds =
-    safeActionOrder.length === defaultActionOrder.length
-      ? safeActionOrder
-      : [...safeActionOrder, ...defaultActionOrder.filter((id) => !safeActionOrder.includes(id))];
-  const actions = orderedActionIds.map((id) => actionsById[id]);
-
-  function moveActionTo(fromId, toId) {
-    if (!fromId || fromId === toId) return;
-    setQuickAccessOrder((previous) => {
-      const base = previous.filter((id) => actionsById[id]);
-      const list = base.length === defaultActionOrder.length
-        ? [...base]
-        : [...base, ...defaultActionOrder.filter((id) => !base.includes(id))];
-      const from = list.indexOf(fromId);
-      const to = list.indexOf(toId);
-      if (from === -1 || to === -1) return previous;
-      list.splice(from, 1);
-      list.splice(to, 0, fromId);
-      return list;
-    });
-  }
-
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
-  const streak = computeStreak(streakData.days || []);
-  const totalPomodoros = Object.values(pomodoroLog).reduce((sum, value) => sum + value, 0);
-  const todayPomodoros = pomodoroLog[todayIso] || 0;
+  const [editingPlanEvent, setEditingPlanEvent] = useState(null);
+  const [calendarView, setCalendarView] = useState("day");
+  const [calendarDate, setCalendarDate] = useState(() => new Date());
+  const [bottomTab, setBottomTab] = useState("activity");
 
-  const totalQuestionsAnswered = history.reduce((sum, session) => sum + (session.answered || 0), 0);
-  const bestSessionAccuracy = history.reduce((best, session) => Math.max(best, session.score || 0), 0);
-  const earnedBadges = computeEarnedBadges({
-    streakCurrent: streak.current,
-    totalQuestionsAnswered,
-    totalPomodoros,
-    bestSessionAccuracy,
-  });
+  const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
+  const direction = language === "ar" ? "rtl" : "ltr";
+  const currentModule = user?.module || "";
+  const activePlan = studyPlans[currentModule];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const selectedKey = dateKey(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate());
+
+  const copy = ({
+    da: {
+      greetingMorning: "Godmorgen",
+      greetingAfternoon: "God eftermiddag",
+      greetingEvening: "Godaften",
+      reviews: "Repetition",
+      new: "Nye",
+      total: "Spørgsmål",
+      streak: "Dages streak",
+      thisWeek: "Denne uge",
+      continueReview: "Fortsæt repetition",
+      continueSession: "Fortsæt session",
+      openPlan: "Åbn studieplan",
+      studyPlan: "Studieplan",
+      today: "I dag",
+      day: "Dag",
+      week: "Uge",
+      month: "Måned",
+      examCountdown: "Eksamensnedtælling",
+      days: "dage",
+      noExam: "Ingen eksamensdato",
+      moduleStatus: "Modulstatus",
+      lectures: "Forelæsninger",
+      examSets: "Eksamenssæt",
+      upcoming: "Kommende",
+      viewAll: "Se alle",
+      noUpcoming: "Ingen kommende hændelser",
+      activity: "Seneste aktivitet",
+      tasks: "Dagens opgaver",
+      results: "Resultater",
+      noActivity: "Ingen afsluttede sessioner endnu",
+      completedSession: "Afsluttet MCQ-session",
+      questions: "spørgsmål",
+      accuracy: "korrekt",
+      todayComplete: "Dagens plan er gennemført",
+      addLecture: "Tilføj næste forelæsning",
+      noTasks: "Intet planlagt for i dag",
+      catchUp: "Indhent planen",
+      behind: "Planen er bagud",
+      createPlan: "Opret studieplan",
+      focusSessions: "fokussessioner i dag",
+      badgeCount: "optjent",
+    },
+    en: {
+      greetingMorning: "Good morning",
+      greetingAfternoon: "Good afternoon",
+      greetingEvening: "Good evening",
+      reviews: "Reviews",
+      new: "New",
+      total: "Questions",
+      streak: "Day streak",
+      thisWeek: "This week",
+      continueReview: "Continue review",
+      continueSession: "Continue session",
+      openPlan: "Open study plan",
+      studyPlan: "Study plan",
+      today: "Today",
+      day: "Day",
+      week: "Week",
+      month: "Month",
+      examCountdown: "Exam countdown",
+      days: "days",
+      noExam: "No exam date",
+      moduleStatus: "Module status",
+      lectures: "Lectures",
+      examSets: "Exam set",
+      upcoming: "Upcoming",
+      viewAll: "View all",
+      noUpcoming: "No upcoming events",
+      activity: "Recent activity",
+      tasks: "Today's tasks",
+      results: "Results",
+      noActivity: "No completed sessions yet",
+      completedSession: "Completed MCQ session",
+      questions: "questions",
+      accuracy: "accuracy",
+      todayComplete: "Today's plan is complete",
+      addLecture: "Add next lecture",
+      noTasks: "Nothing planned for today",
+      catchUp: "Catch up",
+      behind: "Plan is behind schedule",
+      createPlan: "Create study plan",
+      focusSessions: "focus sessions today",
+      badgeCount: "earned",
+    },
+    ar: {
+      greetingMorning: "صباح الخير",
+      greetingAfternoon: "مساء الخير",
+      greetingEvening: "مساء الخير",
+      reviews: "المراجعة",
+      new: "جديد",
+      total: "الأسئلة",
+      streak: "أيام متتالية",
+      thisWeek: "هذا الأسبوع",
+      continueReview: "تابع المراجعة",
+      continueSession: "تابع الجلسة",
+      openPlan: "افتح خطة الدراسة",
+      studyPlan: "خطة الدراسة",
+      today: "اليوم",
+      day: "يوم",
+      week: "أسبوع",
+      month: "شهر",
+      examCountdown: "العد التنازلي للامتحان",
+      days: "أيام",
+      noExam: "لا يوجد موعد امتحان",
+      moduleStatus: "حالة الوحدة",
+      lectures: "المحاضرات",
+      examSets: "مجموعة الامتحان",
+      upcoming: "القادمة",
+      viewAll: "عرض الكل",
+      noUpcoming: "لا توجد أحداث قادمة",
+      activity: "النشاط الأخير",
+      tasks: "مهام اليوم",
+      results: "النتائج",
+      noActivity: "لا توجد جلسات مكتملة بعد",
+      completedSession: "جلسة أسئلة مكتملة",
+      questions: "أسئلة",
+      accuracy: "دقة",
+      todayComplete: "اكتملت خطة اليوم",
+      addLecture: "أضف المحاضرة التالية",
+      noTasks: "لا يوجد شيء مخطط لليوم",
+      catchUp: "إعادة توزيع الخطة",
+      behind: "الخطة متأخرة",
+      createPlan: "أنشئ خطة دراسة",
+      focusSessions: "جلسات تركيز اليوم",
+      badgeCount: "مكتسب",
+    },
+  })[language] || {};
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? copy.greetingMorning : hour < 18 ? copy.greetingAfternoon : copy.greetingEvening;
+  const moduleCode = currentModule.match(/^[A-Z]\d+/)?.[0] || currentModule;
+  const moduleName = currentModule.replace(/^[A-Z]\d+\s*/, "");
+  const planLectures = MODULE_LECTURES[currentModule] || [];
+  const doneLectureIds = activePlan?.doneLectureIds || [];
+  const doneLectureCount = planLectures.filter((lecture) => doneLectureIds.includes(lecture.id)).length;
+  const allQuestions = getFullQuestionBank(importedQuestions);
+  const moduleQuestions = allQuestions.filter((question) => question.moduleId === currentModule);
+  const scopedQuestions = moduleQuestions.length ? moduleQuestions : allQuestions;
+  const safeSpacedData = spacedData || {};
+  const reviewCount = scopedQuestions.filter((question) => safeSpacedData[question.id] && isDue(safeSpacedData[question.id])).length;
+  const newCount = scopedQuestions.filter((question) => !safeSpacedData[question.id]).length;
+  const questionCount = scopedQuestions.length;
+  const planExamQuestions = scopedQuestions.filter((question) => !question.lectureId);
+  const examSetDoneCount = planExamQuestions.filter((question) => safeSpacedData[question.id]).length;
+  const examSetTotalCount = planExamQuestions.length;
+  const lectureFraction = planLectures.length ? doneLectureCount / planLectures.length : 0;
+  const examFraction = examSetTotalCount ? examSetDoneCount / examSetTotalCount : 0;
+  const streak = computeStreak(streakData.days || []);
+  const todayPomodoros = pomodoroLog[todayKey] || 0;
 
   const resumeRaw = (() => {
     try {
@@ -14784,1985 +15766,409 @@ const hiddenTodayPlanEventCount =
       return null;
     }
   })();
-  const hasResumableSession = Boolean(resumeRaw && Object.keys(resumeRaw.answers || {}).length > 0);
+  const resumeAnswered = Object.keys(resumeRaw?.answers || {}).length;
+  const hasResumableSession = resumeAnswered > 0;
 
-  const dashCopy = ({
-    da: { streak: "Studiestreak", days: "dage", pomodoros: "Pomodoros i dag", badges: "Badges", noBadges: "Optjen dit første badge", resume: "Genoptag session", resumeText: "Du har en igangværende session" },
-    en: { streak: "Study streak", days: "days", pomodoros: "Pomodoros today", badges: "Badges", noBadges: "Earn your first badge", resume: "Resume session", resumeText: "You have a session in progress" },
-    ar: { streak: "سلسلة الدراسة", days: "أيام", pomodoros: "بومودورو اليوم", badges: "الشارات", noBadges: "اكسب شارتك الأولى", resume: "استئناف الجلسة", resumeText: "لديك جلسة قيد التقدم" },
-  })[language] || {};
+  const examDate = activePlan?.examDate ? new Date(`${activePlan.examDate}T00:00:00`) : null;
+  const daysRemaining = examDate ? Math.max(0, Math.ceil((examDate - today) / 86400000)) : null;
+  const selectedEvents = calendarEvents
+    .filter((event) => event.date === selectedKey)
+    .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+  const upcomingEvents = calendarEvents
+    .filter((event) => event.date >= todayKey)
+    .sort((a, b) => `${a.date} ${a.time || ""}`.localeCompare(`${b.date} ${b.time || ""}`))
+    .slice(0, 4);
 
+  const totalQuestionsAnswered = history.reduce((sum, session) => sum + (session.answered || 0), 0);
+  const bestSessionAccuracy = history.reduce((best, session) => Math.max(best, session.score || 0), 0);
+  const totalPomodoros = Object.values(pomodoroLog).reduce((sum, value) => sum + value, 0);
+  const earnedBadges = computeEarnedBadges({
+    streakCurrent: streak.current,
+    totalQuestionsAnswered,
+    totalPomodoros,
+    bestSessionAccuracy,
+  });
 
-  const studyPlanDashCopy = ({
-    da: { progressTitle: "Studieplan-fremdrift", lectureProgress: "Forelæsninger", examSetProgress: "Eksamenssæt", catchUpTitle: "Du er bagud med planen", catchUpText: "Din faktiske fremgang halter efter tidsplanen. Vil du omfordele det resterende indhold over de dage, der er tilbage?", catchUpButton: "Indhent nu", checklistTitle: "Dagens opgaver", checklistEmpty: "Intet planlagt for i dag", readMoreToday: "Vil du læse mere i dag? Tilføj næste forelæsning" },
-    en: { progressTitle: "Study plan progress", lectureProgress: "Lectures", examSetProgress: "Exam set", catchUpTitle: "You're behind on your plan", catchUpText: "Your actual progress is lagging behind schedule. Redistribute the remaining content over the days left?", catchUpButton: "Catch up now", checklistTitle: "Today's tasks", checklistEmpty: "Nothing planned for today", readMoreToday: "Want to read more today? Add next lecture" },
-    ar: { progressTitle: "تقدم خطة الدراسة", lectureProgress: "المحاضرات", examSetProgress: "مجموعة الامتحان", catchUpTitle: "أنت متأخر عن خطتك", catchUpText: "تقدمك الفعلي متأخر عن الجدول الزمني. هل تريد إعادة توزيع المحتوى المتبقي على الأيام المتبقية؟", catchUpButton: "إلحق الآن", checklistTitle: "مهام اليوم", checklistEmpty: "لا يوجد شيء مخطط لليوم", readMoreToday: "هل تريد المزيد اليوم؟ أضف المحاضرة التالية" },
-  })[language] || {};
+  const planCreated = activePlan?.createdAt ? new Date(activePlan.createdAt) : today;
+  const totalPlanDays = examDate ? Math.max(1, Math.ceil((examDate - planCreated) / 86400000)) : 1;
+  const elapsedPlanDays = Math.max(1, Math.ceil((today - planCreated) / 86400000));
+  const expectedFraction = Math.min(1, elapsedPlanDays / totalPlanDays);
+  const isBehind = Boolean(activePlan && activePlan.mode === "lectures" && planLectures.length && lectureFraction < expectedFraction - 0.08 && daysRemaining > 0);
 
-const integratedPlanCopy = ({
-  da: {
-    kicker:
-      "Plan, kalender og lektioner",
-    title:
-      "Studieplan",
-    activeDescription:
-      "Din plan, dagens studieblokke og næste lektioner samlet ét sted.",
-    emptyDescription:
-      "Opret en studieplan, og få den automatisk koblet til kalenderen.",
-    days:
-      "dage",
-    today:
-      "Dagens studieplan",
-    lessons:
-      "Lektionsoverblik",
-    completed:
-      "gennemført",
-    noToday:
-      "Ingen studieblokke planlagt i dag",
-    noLessons:
-      "Ingen lektioner tilknyttet modulet endnu",
-    openPlan:
-      "Åbn studieplan",
-    openCalendar:
-      "Åbn kalender",
-    lecturePlan:
-      "Forelæsningsplan",
-    examPlan:
-      "Eksamenssæt",
-    hoursPerDay:
-      "t/dag",
-    allComplete:
-      "Alle lektioner er gennemført",
-    moreEvents: (count) =>
-      `+${count} flere i kalenderen`,
-  },
+  function computeTodayLectureUnits() {
+    if (!activePlan || activePlan.mode !== "lectures" || (activePlan.excludedDates || []).includes(todayKey)) return [];
+    const pending = planLectures.filter((lecture) => !doneLectureIds.includes(lecture.id));
+    const units = pending.flatMap((lecture) => Array.from({ length: lecture.parts || 1 }, (_, index) => ({
+      ...lecture,
+      part: (lecture.parts || 1) > 1 ? index + 1 : null,
+    })));
+    const activeDays = Math.max(1, daysRemaining || 1);
+    const excludedDates = activePlan.excludedDates || [];
+    let excluded = 0;
+    for (let index = 0; index < activeDays; index += 1) {
+      const date = addDays(today, index);
+      const key = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
+      if (excludedDates.includes(key)) excluded += 1;
+    }
+    const availableDays = Math.max(1, activeDays - excluded);
+    return units.slice(0, Math.max(1, Math.ceil(units.length / availableDays)));
+  }
 
-  en: {
-    kicker:
-      "Plan, calendar and lectures",
-    title:
-      "Study plan",
-    activeDescription:
-      "Your plan, today's study blocks and upcoming lectures in one place.",
-    emptyDescription:
-      "Create a study plan and connect it automatically to your calendar.",
-    days:
-      "days",
-    today:
-      "Today's study plan",
-    lessons:
-      "Lecture overview",
-    completed:
-      "completed",
-    noToday:
-      "No study blocks scheduled today",
-    noLessons:
-      "No lectures linked to this module yet",
-    openPlan:
-      "Open study plan",
-    openCalendar:
-      "Open calendar",
-    lecturePlan:
-      "Lecture plan",
-    examPlan:
-      "Exam set",
-    hoursPerDay:
-      "hrs/day",
-    allComplete:
-      "All lectures are completed",
-    moreEvents: (count) =>
-      `+${count} more in the calendar`,
-  },
+  const unitKey = (unit) => unit.part ? `${unit.id}-${unit.part}` : unit.id;
+  const unitLabel = (unit) => unit.part ? `${unit.id} (${unit.part}): ${unit.title}` : `${unit.id}: ${unit.title}`;
+  const baseChecklistItems = computeTodayLectureUnits().map((unit) => ({ id: unitKey(unit), label: unitLabel(unit) }));
+  const extraTodayItems = checklist[`${todayKey}__extra`] || [];
+  const checklistItems = [...baseChecklistItems, ...extraTodayItems];
+  const todayChecklist = checklist[todayKey] || {};
+  const completedTodayCount = checklistItems.filter((item) => Boolean(todayChecklist[item.id])).length;
+  const allDoneToday = checklistItems.length > 0 && completedTodayCount === checklistItems.length;
+  const usedLectureIds = new Set([
+    ...doneLectureIds,
+    ...baseChecklistItems.map((item) => item.id.split("-")[0]),
+    ...extraTodayItems.map((item) => String(item.id).replace("extra-", "").split("-")[0]),
+  ]);
+  const nextExtraLecture = planLectures.find((lecture) => !usedLectureIds.has(lecture.id));
 
-  ar: {
-    kicker:
-      "الخطة والتقويم والمحاضرات",
-    title:
-      "خطة الدراسة",
-    activeDescription:
-      "خطتك وجلسات اليوم والمحاضرات القادمة في مكان واحد.",
-    emptyDescription:
-      "أنشئ خطة دراسة واربطها تلقائيًا بالتقويم.",
-    days:
-      "أيام",
-    today:
-      "خطة اليوم",
-    lessons:
-      "نظرة عامة على المحاضرات",
-    completed:
-      "مكتمل",
-    noToday:
-      "لا توجد جلسات دراسة مخططة اليوم",
-    noLessons:
-      "لا توجد محاضرات مرتبطة بهذه الوحدة",
-    openPlan:
-      "افتح خطة الدراسة",
-    openCalendar:
-      "افتح التقويم",
-    lecturePlan:
-      "خطة المحاضرات",
-    examPlan:
-      "مجموعة الامتحان",
-    hoursPerDay:
-      "ساعة/يوم",
-    allComplete:
-      "تم إكمال جميع المحاضرات",
-    moreEvents: (count) =>
-      `+${count} أحداث أخرى في التقويم`,
-  },
-})[language] || {
-  kicker:
-    "Plan, kalender og lektioner",
-  title:
-    "Studieplan",
-  activeDescription:
-    "Din plan, dagens studieblokke og næste lektioner samlet ét sted.",
-  emptyDescription:
-    "Opret en studieplan, og få den automatisk koblet til kalenderen.",
-  days:
-    "dage",
-  today:
-    "Dagens studieplan",
-  lessons:
-    "Lektionsoverblik",
-  completed:
-    "gennemført",
-  noToday:
-    "Ingen studieblokke planlagt i dag",
-  noLessons:
-    "Ingen lektioner tilknyttet modulet endnu",
-  openPlan:
-    "Åbn studieplan",
-  openCalendar:
-    "Åbn kalender",
-  lecturePlan:
-    "Forelæsningsplan",
-  examPlan:
-    "Eksamenssæt",
-  hoursPerDay:
-    "t/dag",
-  allComplete:
-    "Alle lektioner er gennemført",
-  moreEvents: (count) =>
-    `+${count} flere i kalenderen`,
-};
-
-const recommendationCopyByLanguage = {
-  da: {
-    kicker:
-      "Anbefalet næste skridt",
-
-    resumeTitle:
-      "Fortsæt din igangværende session",
-    resumeDescription: (count) =>
-      `${count} svar er allerede gemt. Fortsæt præcis, hvor du stoppede.`,
-    resumeAction:
-      "Fortsæt session",
-
-    reviewTitle:
-      "Prioritér dagens repetition",
-    reviewDescription: (count) =>
-      `${count} spørgsmål er klar til repetition og bør gennemgås først.`,
-    reviewAction:
-      "Start repetition",
-
-    todayTitle:
-      "Fortsæt med dagens studieplan",
-    todayDescription: (count) =>
-      count === 1
-        ? "Du har én planlagt studieblok i kalenderen i dag."
-        : `Du har ${count} planlagte studieblokke i kalenderen i dag.`,
-    todayAction:
-      "Se dagens plan",
-
-    createPlanTitle:
-      "Opret din første studieplan",
-    createPlanDescription:
-      "Saml lektioner, eksamensdato og kalenderblokke i én struktureret plan.",
-    createPlanAction:
-      "Opret studieplan",
-
-    newTitle:
-      "Start med nye MCQ’er",
-    newDescription: (count) =>
-      `${count} nye spørgsmål er klar i dit nuværende modul.`,
-    newAction:
-      "Start nye MCQ’er",
-
-    planTitle:
-      "Fortsæt din studieplan",
-    planDescription: (percent) =>
-      `Du har gennemført ${percent}% af modulets lektioner.`,
-    planCompleteTitle:
-      "Studieplanen er ajour",
-    planCompleteDescription:
-      "Alle registrerede lektioner er gennemført. Se kalenderen eller planlæg næste skridt.",
-    planAction:
-      "Åbn studieplan",
-
-    calendarAction:
-      "Åbn kalender",
-    insightsAction:
-      "Se indsigter",
-    newBadge:
-      "Ny",
-  },
-
-  en: {
-    kicker:
-      "Recommended next step",
-
-    resumeTitle:
-      "Continue your active session",
-    resumeDescription: (count) =>
-      `${count} answers are already saved. Continue exactly where you stopped.`,
-    resumeAction:
-      "Continue session",
-
-    reviewTitle:
-      "Prioritize today's review",
-    reviewDescription: (count) =>
-      `${count} questions are ready for review and should be handled first.`,
-    reviewAction:
-      "Start review",
-
-    todayTitle:
-      "Continue today's study plan",
-    todayDescription: (count) =>
-      count === 1
-        ? "You have one scheduled study block in the calendar today."
-        : `You have ${count} scheduled study blocks in the calendar today.`,
-    todayAction:
-      "View today's plan",
-
-    createPlanTitle:
-      "Create your first study plan",
-    createPlanDescription:
-      "Bring lectures, your exam date and calendar blocks into one structured plan.",
-    createPlanAction:
-      "Create study plan",
-
-    newTitle:
-      "Start with new MCQs",
-    newDescription: (count) =>
-      `${count} new questions are ready in your current module.`,
-    newAction:
-      "Start new MCQs",
-
-    planTitle:
-      "Continue your study plan",
-    planDescription: (percent) =>
-      `You have completed ${percent}% of the module's lectures.`,
-    planCompleteTitle:
-      "Your study plan is up to date",
-    planCompleteDescription:
-      "All registered lectures are complete. Open the calendar or plan your next step.",
-    planAction:
-      "Open study plan",
-
-    calendarAction:
-      "Open calendar",
-    insightsAction:
-      "View insights",
-    newBadge:
-      "New",
-  },
-
-  ar: {
-    kicker:
-      "الخطوة التالية المقترحة",
-
-    resumeTitle:
-      "تابع جلستك الحالية",
-    resumeDescription: (count) =>
-      `تم حفظ ${count} إجابة. تابع من حيث توقفت.`,
-    resumeAction:
-      "تابع الجلسة",
-
-    reviewTitle:
-      "أعطِ الأولوية لمراجعة اليوم",
-    reviewDescription: (count) =>
-      `${count} سؤالًا جاهزًا للمراجعة ويجب البدء بها أولًا.`,
-    reviewAction:
-      "ابدأ المراجعة",
-
-    todayTitle:
-      "تابع خطة اليوم",
-    todayDescription: (count) =>
-      `لديك ${count} جلسات دراسية مجدولة في تقويم اليوم.`,
-    todayAction:
-      "اعرض خطة اليوم",
-
-    createPlanTitle:
-      "أنشئ أول خطة دراسية",
-    createPlanDescription:
-      "اجمع المحاضرات وموعد الامتحان وجلسات التقويم في خطة منظمة.",
-    createPlanAction:
-      "أنشئ خطة",
-
-    newTitle:
-      "ابدأ بالأسئلة الجديدة",
-    newDescription: (count) =>
-      `${count} سؤالًا جديدًا جاهزًا في وحدتك الحالية.`,
-    newAction:
-      "ابدأ الأسئلة الجديدة",
-
-    planTitle:
-      "تابع خطة الدراسة",
-    planDescription: (percent) =>
-      `أكملت ${percent}% من محاضرات الوحدة.`,
-    planCompleteTitle:
-      "خطة الدراسة محدثة",
-    planCompleteDescription:
-      "تم إكمال جميع المحاضرات المسجلة. افتح التقويم أو خطط للخطوة التالية.",
-    planAction:
-      "افتح خطة الدراسة",
-
-    calendarAction:
-      "افتح التقويم",
-    insightsAction:
-      "اعرض الإحصاءات",
-    newBadge:
-      "جديد",
-  },
-};
-
-const recommendationCopy =
-  recommendationCopyByLanguage[language] ||
-  recommendationCopyByLanguage.da;
-
-const resumeAnsweredCount =
-  Object.keys(
-    resumeRaw?.answers || {}
-  ).length;
-
-const recommendationKey =
-  hasResumableSession
-    ? "resume"
+  const recommendation = hasResumableSession
+    ? { title: copy.continueSession, meta: `${resumeAnswered} ${copy.questions}`, badge: resumeAnswered, icon: "play", action: () => onNavigate("mcq") }
     : reviewCount > 0
-      ? "review"
-      : matchingTodayPlanEvents.length >
-          0
-        ? "today"
-        : !activePlan
-          ? "createPlan"
-          : newCount > 0
-            ? "new"
-            : "plan";
+      ? { title: copy.continueReview, meta: `${moduleCode} · ${reviewCount} ${copy.reviews.toLowerCase()}`, badge: reviewCount, icon: "reset", action: () => onNavigate("mcq", { mode: "due" }) }
+      : activePlan
+        ? { title: copy.openPlan, meta: `${moduleCode} · ${doneLectureCount}/${planLectures.length} ${copy.lectures.toLowerCase()}`, badge: daysRemaining ?? "", icon: "calendar", action: () => onNavigate("study-plan") }
+        : { title: copy.createPlan, meta: moduleName || currentModule, badge: "", icon: "calendar", action: () => onNavigate("study-plan") };
 
-const recommendationByKey = {
-  resume: {
-    tone:
-      "resume",
-    icon:
-      "right",
-    badge:
-      resumeAnsweredCount,
-    title:
-      recommendationCopy.resumeTitle,
-    description:
-      recommendationCopy.resumeDescription(
-        resumeAnsweredCount
-      ),
-    primaryLabel:
-      recommendationCopy.resumeAction,
-    secondaryLabel:
-      recommendationCopy.insightsAction,
-    primaryAction: () =>
-      onNavigate("mcq"),
-    secondaryAction: () =>
-      onNavigate("insights"),
-  },
+  const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
+  const selectedWeekdayIndex = (calendarDate.getDay() + 6) % 7;
+  const calendarTitle = calendarDate.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
-  review: {
-    tone:
-      "review",
-    icon:
-      "cards",
-    badge:
-      reviewCount > 99
-        ? "99+"
-        : reviewCount,
-    title:
-      recommendationCopy.reviewTitle,
-    description:
-      recommendationCopy.reviewDescription(
-        reviewCount
-      ),
-    primaryLabel:
-      recommendationCopy.reviewAction,
-    secondaryLabel:
-      recommendationCopy.insightsAction,
-    primaryAction: () =>
-      onNavigate("mcq"),
-    secondaryAction: () =>
-      onNavigate("insights"),
-  },
-
-  today: {
-    tone:
-      "today",
-    icon:
-      "calendar",
-    badge:
-      matchingTodayPlanEvents.length,
-    title:
-      recommendationCopy.todayTitle,
-    description:
-      recommendationCopy.todayDescription(
-        matchingTodayPlanEvents.length
-      ),
-    primaryLabel:
-      recommendationCopy.todayAction,
-    secondaryLabel:
-      recommendationCopy.planAction,
-    primaryAction:
-      onOpenCalendar,
-    secondaryAction: () =>
-      onNavigate("study-plan"),
-  },
-
-  createPlan: {
-    tone:
-      "plan",
-    icon:
-      "calendar",
-    badge:
-      recommendationCopy.newBadge,
-    title:
-      recommendationCopy.createPlanTitle,
-    description:
-      recommendationCopy.createPlanDescription,
-    primaryLabel:
-      recommendationCopy.createPlanAction,
-    secondaryLabel:
-      recommendationCopy.calendarAction,
-    primaryAction: () =>
-      onNavigate("study-plan"),
-    secondaryAction:
-      onOpenCalendar,
-  },
-
-  new: {
-    tone:
-      "new",
-    icon:
-      "clipboard",
-    badge:
-      newCount > 99
-        ? "99+"
-        : newCount,
-    title:
-      recommendationCopy.newTitle,
-    description:
-      recommendationCopy.newDescription(
-        newCount
-      ),
-    primaryLabel:
-      recommendationCopy.newAction,
-    secondaryLabel:
-      recommendationCopy.insightsAction,
-    primaryAction: () =>
-      onNavigate("mcq"),
-    secondaryAction: () =>
-      onNavigate("insights"),
-  },
-
-  plan: {
-    tone:
-      planProgressPercent === 100
-        ? "today"
-        : "plan",
-    icon:
-      planProgressPercent === 100
-        ? "check"
-        : "book",
-    badge:
-      `${planProgressPercent}%`,
-    title:
-      planProgressPercent === 100
-        ? recommendationCopy.planCompleteTitle
-        : recommendationCopy.planTitle,
-    description:
-      planProgressPercent === 100
-        ? recommendationCopy.planCompleteDescription
-        : recommendationCopy.planDescription(
-            planProgressPercent
-          ),
-    primaryLabel:
-      recommendationCopy.planAction,
-    secondaryLabel:
-      recommendationCopy.calendarAction,
-    primaryAction: () =>
-      onNavigate("study-plan"),
-    secondaryAction:
-      onOpenCalendar,
-  },
-};
-
-const dashboardRecommendation =
-  recommendationByKey[
-    recommendationKey
-  ];
-
-return (
-  
-    <div className="fade-up dashboard-shell">
-      <section className="dashboard-hero-area dashboard-hero ui-card">
-  <div className="dashboard-hero-grid">
-    <div className="dashboard-hero-copy">
-      <div className="dashboard-hero-eyebrow">
-        <span aria-hidden="true">
-          ✦
-        </span>
-
-        <span>
-          {greeting[language] ||
-            greeting.da}
-        </span>
-      </div>
-
-      <h1 className="dashboard-hero-title">
-        {language === "en"
-          ? `Welcome back, ${user?.name || "student"}`
-          : language === "ar"
-            ? `مرحبًا بعودتك، ${user?.name || "طالب"}`
-            : `Velkommen tilbage, ${user?.name || "studerende"}`}
-      </h1>
-
-      <div className="dashboard-hero-subtitle">
-        {language === "en"
-          ? "Your study space is organized around what matters most today: review, focus and steady progress."
-          : language === "ar"
-            ? "مساحة دراستك مرتبة حول أهم ما تحتاجه اليوم: المراجعة والتركيز والتقدم المستمر."
-            : "Dit studierum er bygget op omkring det vigtigste i dag: repetition, fokus og stabil fremdrift."}
-      </div>
-
-      <div className="dashboard-hero-metrics">
-  <button
-    type="button"
-    className="dashboard-metric-card dashboard-metric-button"
-    data-emphasis={
-      reviewCount > 0
-        ? "true"
-        : "false"
+  function shiftCalendar(amount) {
+    if (calendarView === "month") {
+      const next = new Date(calendarDate);
+      next.setMonth(next.getMonth() + amount);
+      setCalendarDate(next);
+      return;
     }
-    onClick={() =>
-      onNavigate("mcq")
+    setCalendarDate(addDays(calendarDate, amount * (calendarView === "week" ? 7 : 1)));
+  }
+
+  function createEvent(date, time) {
+    setEditingPlanEvent({
+      id: `event-${Date.now()}`,
+      title: "",
+      date,
+      time,
+      type: "study",
+      estimatedHours: 1,
+      __new: true,
+    });
+  }
+
+  function saveEditingEvent() {
+    if (!editingPlanEvent?.title?.trim() || !editingPlanEvent.date) return;
+    const cleanEvent = { ...editingPlanEvent };
+    delete cleanEvent.__new;
+    setCalendarEvents((previous) => editingPlanEvent.__new
+      ? [...previous, cleanEvent]
+      : previous.map((item) => item.id === cleanEvent.id ? cleanEvent : item));
+    setEditingPlanEvent(null);
+  }
+
+  function deleteEditingEvent() {
+    if (!editingPlanEvent) return;
+    if (!editingPlanEvent.__new) {
+      setCalendarEvents((previous) => previous.filter((item) => item.id !== editingPlanEvent.id));
     }
-    aria-label={`${reviewCount} ${x.review}`}
-  >
-    <div className="dashboard-metric-value">
-      {reviewCount}
-    </div>
-
-    <div className="dashboard-metric-label">
-      {x.review}
-    </div>
-  </button>
-
-  <button
-    type="button"
-    className="dashboard-metric-card dashboard-metric-button"
-    onClick={() =>
-      onNavigate("mcq")
-    }
-    aria-label={`${newCount} ${x.newQuestions}`}
-  >
-    <div className="dashboard-metric-value">
-      {newCount}
-    </div>
-
-    <div className="dashboard-metric-label">
-      {x.newQuestions}
-    </div>
-  </button>
-
-  <button
-    type="button"
-    className="dashboard-metric-card dashboard-metric-button"
-    onClick={() =>
-      onNavigate("mcq")
-    }
-    aria-label={`${questionCount} ${x.total}`}
-  >
-    <div className="dashboard-metric-value">
-      {questionCount}
-    </div>
-
-    <div className="dashboard-metric-label">
-      {x.total}
-    </div>
-  </button>
-</div>
-    </div>
-
-    <div className="dashboard-hero-cta">
-    <div
-  className="dashboard-focus-card"
-  data-tone={
-    dashboardRecommendation.tone
+    setEditingPlanEvent(null);
   }
->
-  <div className="dashboard-focus-top">
-    <div className="dashboard-focus-heading-row">
-      <span className="dashboard-focus-icon">
-        <Icon
-          name={
-            dashboardRecommendation.icon
-          }
-          size={17}
-        />
-      </span>
 
-      <div>
-        <div className="dashboard-focus-kicker">
-          {recommendationCopy.kicker}
-        </div>
-
-        <div className="dashboard-focus-title">
-          {dashboardRecommendation.title}
-        </div>
-
-        <div className="dashboard-focus-description">
-          {
-            dashboardRecommendation.description
-          }
-        </div>
-      </div>
-    </div>
-
-    <div className="dashboard-focus-badge">
-      {dashboardRecommendation.badge}
-    </div>
-  </div>
-
-  <div className="dashboard-focus-meta">
-    <span className="dashboard-focus-meta-item">
-      <Icon
-        name="flame"
-        size={13}
-      />
-
-      <span>
-        {streak.current}{" "}
-        {dashCopy.days}
-      </span>
-    </span>
-
-    <span className="dashboard-focus-meta-item">
-      <Icon
-        name="clock"
-        size={13}
-      />
-
-      <span>
-        {todayPomodoros}{" "}
-        {dashCopy.pomodoros}
-      </span>
-    </span>
-
-    {activePlan && (
-      <span className="dashboard-focus-meta-item">
-        <Icon
-          name="chart"
-          size={13}
-        />
-
-        <span>
-          {planProgressPercent}%{" "}
-          {x.plan.toLowerCase()}
-        </span>
-      </span>
-    )}
-  </div>
-
-  <div className="dashboard-focus-actions">
-    <PrimaryButton
-      onClick={
-        dashboardRecommendation.primaryAction
-      }
-      style={{
-        width: "100%",
-      }}
-    >
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-        }}
-      >
-        <Icon
-          name={
-            dashboardRecommendation.icon
-          }
-          size={15}
-        />
-
-        {
-          dashboardRecommendation.primaryLabel
-        }
-      </span>
-    </PrimaryButton>
-
-    <SecondaryButton
-      onClick={
-        dashboardRecommendation.secondaryAction
-      }
-      style={{
-        minWidth: 116,
-      }}
-    >
-      {
-        dashboardRecommendation.secondaryLabel
-      }
-    </SecondaryButton>
-  </div>
-</div> 
-    </div>
-  </div>
-</section>
- 
-      <section className="dashboard-quick-area">
-        <DashboardSectionHeader
-  kicker={
-    language === "en"
-      ? "Quick access"
-      : language === "ar"
-        ? "وصول سريع"
-        : "Hurtig adgang"
+  function toggleChecklistItem(id) {
+    setChecklist((old) => ({
+      ...old,
+      [todayKey]: { ...(old[todayKey] || {}), [id]: !old[todayKey]?.[id] },
+    }));
   }
-  title={x.quickAccess}
-  description={
-    language === "en"
-      ? "Jump directly into the part of your study flow that matters now."
-      : language === "ar"
-        ? "انتقل مباشرة إلى الجزء الذي تحتاجه الآن من مسار دراستك."
-        : "Gå direkte til den del af dit studieflow, du har brug for nu."
+
+  function addExtraToday() {
+    if (!nextExtraLecture) return;
+    setChecklist((old) => ({
+      ...old,
+      [`${todayKey}__extra`]: [
+        ...(old[`${todayKey}__extra`] || []),
+        { id: `extra-${nextExtraLecture.id}`, label: `${nextExtraLecture.id}: ${nextExtraLecture.title}` },
+      ],
+    }));
   }
-  action={
-    <IconButton
-      c={c}
-      title={
-        reorderingActions
-          ? t.doneReorder
-          : t.editOrder
-      }
-      active={reorderingActions}
-      onClick={() =>
-        setReorderingActions(
-          (value) => !value
-        )
-      }
-    >
-      <Icon
-        name={
-          reorderingActions
-            ? "check"
-            : "edit"
-        }
-        size={15}
-      />
-    </IconButton>
+
+  function handleCatchUp() {
+    setPlansGlobal((old) => old[currentModule]
+      ? { ...old, [currentModule]: { ...old[currentModule], createdAt: Date.now() } }
+      : old);
   }
-/>
-        {reorderingActions && (
-          <div style={{ marginBottom: 10, color: c.muted, fontSize: 11, fontWeight: 650 }}>{t.reorderHint}</div>
-        )}
-        <div className="dashboard-quick-grid">
-          {actions.map(([id, icon, title, color, enabled], index) => {
-            const isDragOver = reorderingActions && actionDragOverId === id;
-            return (
-              <div
-                key={id}
-                draggable={reorderingActions}
-                onDragStart={(event) => {
-                  actionDragIdRef.current = id;
-                  event.dataTransfer.effectAllowed = "move";
-                }}
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  if (actionDragOverId !== id) setActionDragOverId(id);
-                }}
-                onDragLeave={() => {
-                  if (actionDragOverId === id) setActionDragOverId(null);
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  moveActionTo(actionDragIdRef.current, id);
-                  actionDragIdRef.current = null;
-                  setActionDragOverId(null);
-                }}
-                onDragEnd={() => {
-                  actionDragIdRef.current = null;
-                  setActionDragOverId(null);
-                }}
-                className={reorderingActions ? "nav-wiggle" : ""}
-                style={{ "--wiggle-delay": index, borderRadius: 20, outline: isDragOver ? `2px dashed ${c.blue}` : "none", outlineOffset: 3 }}
-              >
-                <button
-                  type="button"
-                  className="ui-card ui-card--interactive ui-card-button dashboard-quick-card"
-                  data-tour={id === "mcq" ? "mcq-card" : id === "insights" ? "insights-card" : undefined}
-                  disabled={!enabled || reorderingActions}
-                  onClick={() => enabled && !reorderingActions && onNavigate(id)}
-                  style={{
-                    width: "100%",
-                    textAlign: "start",
-                    cursor: reorderingActions ? "grab" : enabled ? "pointer" : "not-allowed",
-                    opacity: enabled ? 1 : 0.5,
-                    padding: 18,
-                    borderRadius: 20,
-                    background: c.panel,
-                    border: `1px solid ${c.border}`,
-                    boxShadow: c.shadow,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 12,
-                    position: "relative",
-                  }}
-                >
-                 <span
-  className="dashboard-quick-icon"
-  style={{
-    background: `${color}18`,
-    borderColor: `${color}28`,
-    color,
-  }}
->
-  <Icon
-    name={icon}
-    size={17}
-  />
-</span>
 
-<div className="dashboard-quick-title">
-  {title}
-</div>
-
-<div className="dashboard-quick-description">
-  {actionDescriptions[id]}
-</div>
-
-{!enabled && !reorderingActions && (
-  <span
-    style={{
-      position: "absolute",
-      top: 14,
-      insetInlineEnd: 14,
-      padding: "4px 7px",
-      borderRadius: 999,
-      background: c.soft,
-      border: `1px solid ${c.border}`,
-      color: c.muted,
-      fontSize: 8.5,
-      fontWeight: 850,
-      letterSpacing: ".06em",
-      textTransform: "uppercase",
-    }}
-  >
-    {x.coming}
-  </span>
-)}
-                </button>
-              </div>
-            );
-          })}
+  return (
+    <div className="home-v2 fade-up" dir={direction}>
+      <header className="home-v2-heading">
+        <div>
+          <h1 className="home-v2-greeting">{greeting}, {user?.name || "MedFLUEN"}</h1>
+          <div className="home-v2-module">{currentModule}</div>
         </div>
+      </header>
+
+      <section className="home-v2-summary" aria-label={language === "en" ? "Study summary" : "Studieoverblik"}>
+        {[
+          { value: reviewCount, label: copy.reviews, meta: copy.thisWeek, icon: "reset", tone: "review", action: () => onNavigate("mcq", { mode: "due" }) },
+          { value: newCount, label: copy.new, meta: copy.thisWeek, icon: "clipboard", tone: "new", action: () => onNavigate("mcq") },
+          { value: questionCount, label: copy.total, meta: moduleCode, icon: "cards", tone: "total", action: () => onNavigate("mcq") },
+          { value: streak.current, label: copy.streak, meta: `${todayPomodoros} ${copy.focusSessions}`, icon: "flame", tone: "streak", action: () => onNavigate("insights") },
+        ].map((stat) => (
+          <button key={stat.label} type="button" className="home-v2-stat" data-tone={stat.tone} onClick={stat.action}>
+            <span className="home-v2-stat-icon"><Icon name={stat.icon} size={16} /></span>
+            <span style={{ minWidth: 0 }}>
+              <span className="home-v2-stat-value" style={{ display: "block" }}>{stat.value}</span>
+              <span className="home-v2-stat-label" style={{ display: "block" }}>{stat.label}</span>
+              <span className="home-v2-stat-meta" style={{ display: "block" }}>{stat.meta}</span>
+            </span>
+          </button>
+        ))}
+
+        <button type="button" className="home-v2-recommendation" onClick={recommendation.action}>
+          <span className="home-v2-recommendation-icon"><Icon name={recommendation.icon} size={16} /></span>
+          <span className="home-v2-recommendation-copy">
+            <span className="home-v2-recommendation-label" style={{ display: "block" }}>{recommendation.title}</span>
+            <span className="home-v2-recommendation-meta" style={{ display: "block" }}>{recommendation.meta}</span>
+          </span>
+          {recommendation.badge !== "" && <span className="home-v2-recommendation-badge">{recommendation.badge}</span>}
+          <Icon name="right" size={15} />
+        </button>
       </section>
 
-     <section className="dashboard-plan-area">
-  <div className="ui-card dashboard-section-card dashboard-plan-module">
-    <div className="dashboard-plan-module-header">
-      <div className="dashboard-plan-module-heading">
-        <span className="dashboard-plan-module-icon">
-          <Icon
-            name="calendar"
-            size={19}
-          />
-        </span>
-
-        <div>
-          <div className="dashboard-section-kicker">
-            {integratedPlanCopy.kicker}
-          </div>
-
-          <div className="dashboard-section-title">
-            {integratedPlanCopy.title}
-          </div>
-
-          <div className="dashboard-section-description">
-            {activePlan
-              ? integratedPlanCopy.activeDescription
-              : integratedPlanCopy.emptyDescription}
-          </div>
-        </div>
-      </div>
-
-      {planDaysRemaining !== null && (
-        <div className="dashboard-plan-countdown">
-          <span className="dashboard-plan-countdown-value">
-            {planDaysRemaining}
-          </span>
-
-          <span className="dashboard-plan-countdown-label">
-            {integratedPlanCopy.days}
-          </span>
-        </div>
-      )}
-    </div>
-
-    {activePlan ? (
-      <>
-        <div className="dashboard-plan-summary">
-          <div>
-            <div className="dashboard-plan-summary-label">
-              {activePlan.mode ===
-              "lectures"
-                ? integratedPlanCopy.lecturePlan
-                : integratedPlanCopy.examPlan}
+      <section className="home-v2-workspace">
+        <div className="home-v2-calendar-area">
+          <div className="home-v2-panel-header">
+            <div>
+              <div className="home-v2-panel-title">{copy.studyPlan}</div>
+              <div className="home-v2-calendar-nav">
+                <button type="button" className="home-v2-mini-button" aria-label={t.previous} onClick={() => shiftCalendar(-1)}><Icon name="left" size={13} /></button>
+                <button type="button" className="home-v2-mini-button" aria-label={t.next} onClick={() => shiftCalendar(1)}><Icon name="right" size={13} /></button>
+                <Icon name="calendar" size={13} />
+                <span className="home-v2-date-label">{calendarTitle}</span>
+                <button type="button" className="home-v2-mini-button" onClick={() => setCalendarDate(new Date())}>{copy.today}</button>
+              </div>
             </div>
 
-            <div className="dashboard-plan-summary-value">
-              {activePlan.hoursPerDay ||
-                2}{" "}
-              {
-                integratedPlanCopy.hoursPerDay
-              }
-            </div>
-          </div>
-
-          <div
-  className="dashboard-plan-progress-copy"
-  data-complete={
-    planProgressPercent === 100
-      ? "true"
-      : "false"
-  }
->
-            {planCompletedLectureCount}/
-            {planModuleLectures.length}{" "}
-            {integratedPlanCopy.completed}
-          </div>
-        </div>
-
-        <div
-  className="dashboard-plan-progress-track"
-  data-complete={
-    planProgressPercent === 100
-      ? "true"
-      : "false"
-  }
-  role="progressbar"
-  aria-valuemin={0}
-  aria-valuemax={100}
-  aria-valuenow={
-    planProgressPercent
-  }
-  aria-label={`${planProgressPercent}%`}
->
-  <div
-    className="dashboard-plan-progress-fill"
-    style={{
-      width: `${planProgressPercent}%`,
-    }}
-  />
-</div>
-      </>
-    ) : (
-      <div className="dashboard-plan-callout">
-        {
-          integratedPlanCopy.emptyDescription
-        }
-      </div>
-    )}
-
-    <div className="dashboard-plan-divider" />
-
-    <div className="dashboard-plan-block">
-      <div className="dashboard-plan-subheading">
-        <div className="dashboard-plan-subheading-title">
-          <Icon
-            name="clock"
-            size={14}
-          />
-
-          <span>
-            {integratedPlanCopy.today}
-          </span>
-        </div>
-
-        <IconButton
-          c={c}
-          title={
-            integratedPlanCopy.openCalendar
-          }
-          onClick={onOpenCalendar}
-        >
-          <Icon
-            name="calendar"
-            size={14}
-          />
-        </IconButton>
-      </div>
-
-      {todayPlanEvents.length === 0 ? (
-        <div className="dashboard-plan-callout">
-          {integratedPlanCopy.noToday}
-        </div>
-      ) : (
-        <div className="dashboard-plan-event-list">
-          {todayPlanEvents.map(
-            (event) => {
-              const palette =
-                event.type === "exam"
-                  ? [
-                      c.red,
-                      c.redSoft,
-                    ]
-                  : event.type ===
-                      "review"
-                    ? [
-                        c.green,
-                        c.greenSoft,
-                      ]
-                    : event.type ===
-                        "study"
-                      ? [
-                          c.blue,
-                          c.blueSoft,
-                        ]
-                      : [
-                          c.secondary,
-                          c.soft,
-                        ];
-
-              return (
-                <button
-                  key={event.id}
-                  type="button"
-                  className="dashboard-plan-event-row"
-                  onClick={() =>
-                    setEditingPlanEvent(
-                      event
-                    )
-                  }
-                  style={{
-                    background:
-                      palette[1],
-                  }}
-                >
-                  <span
-                    aria-hidden="true"
-                    className="dashboard-plan-event-dot"
-                    style={{
-                      background:
-                        palette[0],
-                    }}
-                  />
-
-                  <span className="dashboard-plan-event-copy">
-                    <span className="dashboard-plan-event-title">
-                      {event.title}
-                    </span>
-                  </span>
-
-                  {event.time && (
-                    <span
-                      className="dashboard-plan-event-time"
-                      style={{
-                        color:
-                          palette[0],
-                      }}
-                    >
-                      {event.time}
-                    </span>
-                  )}
-
-                  <Icon
-                    name="right"
-                    size={13}
-                  />
+            <div className="home-v2-view-switcher" role="tablist" aria-label={t.calendarTitle}>
+              {[["day", copy.day], ["week", copy.week], ["month", copy.month]].map(([value, label]) => (
+                <button key={value} type="button" role="tab" aria-selected={calendarView === value} className="home-v2-view-button" data-active={calendarView === value ? "true" : "false"} onClick={() => setCalendarView(value)}>
+                  {label}
                 </button>
-              );
-            }
-          )}
+              ))}
+            </div>
+          </div>
 
-          {hiddenTodayPlanEventCount >
-            0 && (
-            <button
-              type="button"
-              className="ui-button ui-button--ghost dashboard-plan-more-events"
-              onClick={onOpenCalendar}
-              style={{
-                justifySelf:
-                  "start",
-                minHeight: 28,
-                padding: "0 6px",
-              }}
-            >
-              {integratedPlanCopy.moreEvents(
-                hiddenTodayPlanEventCount
-              )}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-
-    <div className="dashboard-plan-block">
-      <div className="dashboard-plan-subheading">
-        <div className="dashboard-plan-subheading-title">
-          <Icon
-            name="book"
-            size={14}
-          />
-
-          <span>
-            {integratedPlanCopy.lessons}
-          </span>
-        </div>
-
-        {planModuleLectures.length >
-          0 && (
-          <span className="dashboard-plan-subheading-meta">
-            {planCompletedLectureCount}/
-            {planModuleLectures.length}
-          </span>
-        )}
-      </div>
-
-      {planModuleLectures.length ===
-      0 ? (
-        <div className="dashboard-plan-callout">
-          {integratedPlanCopy.noLessons}
-        </div>
-      ) : (
-        <div className="dashboard-plan-lecture-list">
-          {planLectureOverview.map(
-            (lecture, index) => {
-              const isComplete =
-                planDoneLectureIds.includes(
-                  lecture.id
-                );
-
-              return (
-                <div
-                  key={lecture.id}
-                  className="dashboard-plan-lecture-row"
-                >
-                  <span
-                    className="dashboard-plan-lecture-index"
-                    data-complete={
-                      isComplete
-                        ? "true"
-                        : "false"
-                    }
-                  >
-                    {isComplete ? (
-                      <Icon
-                        name="check"
-                        size={12}
-                      />
-                    ) : (
-                      index + 1
-                    )}
-                  </span>
-
-                  <div className="dashboard-plan-lecture-copy">
-                    <div className="dashboard-plan-lecture-id">
-                      {lecture.id}
-                    </div>
-
-                    <div
-                      className="dashboard-plan-lecture-title"
-                      title={
-                        lecture.title
-                      }
-                    >
-                      {lecture.title}
-                    </div>
-                  </div>
-
-                  {isComplete && (
-                    <span className="dashboard-plan-complete-note">
-                      <Icon
-                        name="check"
-                        size={12}
-                      />
-                    </span>
-                  )}
-                </div>
-              );
-            }
-          )}
-
-          {activePlan &&
-            planPendingLectures.length ===
-              0 && (
-              <div className="dashboard-plan-complete-note">
-                <Icon
-                  name="check"
-                  size={13}
-                />
-
-                <span>
-                  {
-                    integratedPlanCopy.allComplete
-                  }
-                </span>
-              </div>
-            )}
-        </div>
-      )}
-    </div>
-
-    <div className="dashboard-plan-actions">
-      <PrimaryButton
-        onClick={() =>
-          onNavigate("study-plan")
-        }
-        style={{
-          width: "100%",
-        }}
-      >
-        <span
-          style={{
-            display:
-              "inline-flex",
-            alignItems:
-              "center",
-            justifyContent:
-              "center",
-            gap: 7,
-          }}
-        >
-          <Icon
-            name="calendar"
-            size={14}
-          />
-
-          {
-            integratedPlanCopy.openPlan
-          }
-        </span>
-      </PrimaryButton>
-
-      <SecondaryButton
-        onClick={onOpenCalendar}
-        style={{
-          width: "100%",
-        }}
-      >
-        <span
-          style={{
-            display:
-              "inline-flex",
-            alignItems:
-              "center",
-            justifyContent:
-              "center",
-            gap: 7,
-          }}
-        >
-          <Icon
-            name="calendar"
-            size={14}
-          />
-
-          {
-            integratedPlanCopy.openCalendar
-          }
-        </span>
-      </SecondaryButton>
-    </div>
-  </div>
-</section>
-
-      {editingPlanEvent && (
-        <Modal c={c} onClose={() => setEditingPlanEvent(null)}>
-          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div style={{ color: c.text, fontWeight: 750, fontSize: 15 }}>{t.calendarEditEvent}</div>
-            <IconButton c={c} title={t.close} onClick={() => setEditingPlanEvent(null)}>
-              <Icon name="close" size={17} />
-            </IconButton>
-          </header>
-          <div style={{ display: "grid", gap: 12 }}>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-                {t.calendarEventTitle}
-              </label>
-              <input
-                value={editingPlanEvent.title}
-                onChange={(event) => setEditingPlanEvent((prev) => ({ ...prev, title: event.target.value }))}
-                style={{
-                  width: "100%", height: 40, padding: "0 10px", borderRadius: 10,
-                  border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 13,
-                }}
+          <div className="home-v2-calendar-canvas">
+            {calendarView === "day" ? (
+              <HomeDaySchedule
+                c={c}
+                date={calendarDate}
+                events={calendarEvents}
+                onEventClick={setEditingPlanEvent}
+                onSlotClick={createEvent}
+                onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
               />
+            ) : calendarView === "week" ? (
+              <WeekCalendar
+                c={c}
+                events={calendarEvents}
+                weekStart={startOfWeek(calendarDate)}
+                daysCount={7}
+                weekdayLabels={weekdayLabels}
+                onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
+                onSlotClick={createEvent}
+                onEventClick={setEditingPlanEvent}
+              />
+            ) : (
+              <MonthCalendar
+                c={c}
+                events={calendarEvents}
+                monthDate={calendarDate}
+                weekdayLabels={weekdayLabels}
+                onDayClick={(key) => {
+                  setCalendarDate(new Date(`${key}T12:00:00`));
+                  setCalendarView("day");
+                }}
+                onEventClick={setEditingPlanEvent}
+              />
+            )}
+          </div>
+        </div>
+
+        <aside className="home-v2-rail">
+          <div className="home-v2-rail-card">
+            <div className="home-v2-rail-title">{copy.examCountdown}</div>
+            {daysRemaining !== null ? (
+              <>
+                <div className="home-v2-exam-number">{daysRemaining}</div>
+                <div className="home-v2-exam-unit">{copy.days}</div>
+                <div className="home-v2-exam-date">
+                  {moduleCode}<br />
+                  {examDate.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })}
+                </div>
+              </>
+            ) : (
+              <button type="button" className="ui-button ui-button--ghost" onClick={() => onNavigate("study-plan")} style={{ width: "100%", marginTop: 10 }}>{copy.noExam}</button>
+            )}
+          </div>
+
+          <div className="home-v2-rail-card">
+            <div className="home-v2-rail-title">{copy.moduleStatus}</div>
+            <div className="home-v2-progress-row"><span>{copy.lectures}</span><strong>{doneLectureCount}/{planLectures.length}</strong></div>
+            <div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${lectureFraction * 100}%` }} /></div>
+            <div className="home-v2-progress-row"><span>{copy.examSets}</span><strong>{examSetDoneCount}/{examSetTotalCount}</strong></div>
+            <div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${examFraction * 100}%` }} /></div>
+            {isBehind && (
+              <button type="button" className="ui-button ui-button--ghost" onClick={handleCatchUp} style={{ width: "100%", minHeight: 32, marginTop: 10, color: c.red }}>
+                {copy.catchUp}
+              </button>
+            )}
+          </div>
+
+          <div className="home-v2-rail-card" style={{ minHeight: 210 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <div className="home-v2-rail-title">{copy.upcoming}</div>
+              <button type="button" onClick={onOpenCalendar} style={{ border: 0, background: "transparent", color: c.blue, fontSize: 8.5, fontWeight: 780 }}>{copy.viewAll}</button>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-                  {t.calendarEventDate}
-                </label>
-                <input
-                  type="date"
-                  value={editingPlanEvent.date}
-                  onChange={(event) => setEditingPlanEvent((prev) => ({ ...prev, date: event.target.value }))}
-                  style={{
-                    width: "100%", height: 40, padding: "0 10px", borderRadius: 10,
-                    border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 13,
-                  }}
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-                  {t.calendarEventTime}
-                </label>
-                <input
-                  type="time"
-                  value={editingPlanEvent.time}
-                  onChange={(event) => setEditingPlanEvent((prev) => ({ ...prev, time: event.target.value }))}
-                  style={{
-                    width: "100%", height: 40, padding: "0 10px", borderRadius: 10,
-                    border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 13,
-                  }}
-                />
-              </div>
-            </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-                {t.calendarEventType}
-              </label>
-              <div style={{ display: "flex", gap: 6 }}>
-                {[
-                  ["exam", t.calendarTypeExam],
-                  ["study", t.calendarTypeStudy],
-                  ["review", t.calendarTypeReview],
-                  ["other", t.calendarTypeOther],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setEditingPlanEvent((prev) => ({ ...prev, type: value }))}
-                    style={{
-                      flex: 1, height: 36, borderRadius: 9,
-                      border: `1px solid ${editingPlanEvent.type === value ? c.blueBorder : c.border}`,
-                      background: editingPlanEvent.type === value ? c.blueSoft : c.soft,
-                      color: editingPlanEvent.type === value ? c.blue : c.secondary,
-                      fontSize: 11, fontWeight: 700, cursor: "pointer",
-                    }}
-                  >
-                    {label}
+            {upcomingEvents.length ? (
+              <div className="home-v2-upcoming-list">
+                {upcomingEvents.map((event) => (
+                  <button key={event.id} type="button" className="home-v2-upcoming-item" onClick={() => setEditingPlanEvent(event)}>
+                    <span className="home-v2-upcoming-icon"><Icon name={event.type === "review" ? "check" : event.type === "exam" ? "flag" : "calendar"} size={12} /></span>
+                    <span style={{ minWidth: 0 }}>
+                      <span className="home-v2-upcoming-title" style={{ display: "block" }}>{event.title}</span>
+                      <span className="home-v2-upcoming-meta" style={{ display: "block" }}>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : ""}</span>
+                    </span>
                   </button>
                 ))}
               </div>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 6 }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setCalendarEvents((previous) => previous.filter((item) => item.id !== editingPlanEvent.id));
-                  setEditingPlanEvent(null);
-                }}
-                style={{
-                  height: 40, padding: "0 14px", border: `1px solid ${c.red}`, borderRadius: 10,
-                  background: c.redSoft, color: c.red, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                }}
-              >
-                {t.calendarDelete}
-              </button>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => setEditingPlanEvent(null)}
-                  style={{
-                    height: 40, padding: "0 14px", border: `1px solid ${c.borderStrong}`, borderRadius: 10,
-                    background: "transparent", color: c.text, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  {t.calendarCancel}
-                </button>
-                <PrimaryButton
-                  onClick={() => {
-                    if (!editingPlanEvent.title.trim() || !editingPlanEvent.date) return;
-                    setCalendarEvents((previous) =>
-                      previous.map((item) => (item.id === editingPlanEvent.id ? editingPlanEvent : item))
+            ) : <div className="home-v2-upcoming-meta" style={{ marginTop: 12 }}>{copy.noUpcoming}</div>}
+          </div>
+        </aside>
+      </section>
+
+      <section className="home-v2-bottom">
+        <div className="home-v2-bottom-header">
+          <div className="home-v2-panel-title">
+            {bottomTab === "activity" ? copy.activity : bottomTab === "tasks" ? copy.tasks : copy.results}
+          </div>
+          <div className="home-v2-tabs" role="tablist">
+            {[["activity", copy.activity], ["tasks", `${copy.tasks}${checklistItems.length ? ` ${completedTodayCount}/${checklistItems.length}` : ""}`], ["results", `${copy.results} ${earnedBadges.length}/${BADGE_DEFINITIONS.length}`]].map(([value, label]) => (
+              <button key={value} type="button" role="tab" aria-selected={bottomTab === value} className="home-v2-tab" data-active={bottomTab === value ? "true" : "false"} onClick={() => setBottomTab(value)}>{label}</button>
+            ))}
+          </div>
+        </div>
+
+        <div className="home-v2-bottom-content">
+          {bottomTab === "activity" ? (
+            history.length ? (
+              <div className="home-v2-activity-grid">
+                {[...history].reverse().slice(0, 4).map((session) => (
+                  <div key={session.id} className="home-v2-activity-item">
+                    <span className="home-v2-activity-icon"><Icon name="check" size={13} /></span>
+                    <span style={{ minWidth: 0 }}>
+                      <span className="home-v2-activity-title" style={{ display: "block" }}>{copy.completedSession}</span>
+                      <span className="home-v2-activity-meta" style={{ display: "block" }}>{session.answered || session.total || 0} {copy.questions} · {session.score || 0}% {copy.accuracy}<br />{session.completedAt ? new Date(session.completedAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) : ""}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : <EmptyState compact symbol={<Icon name="chart" size={16} />} title={copy.noActivity} />
+          ) : bottomTab === "tasks" ? (
+            <div>
+              {allDoneToday && <div style={{ marginBottom: 9, color: c.green, fontSize: 10, fontWeight: 800 }}>{copy.todayComplete}</div>}
+              {checklistItems.length ? (
+                <div className="home-v2-task-list">
+                  {checklistItems.map((item) => {
+                    const completed = Boolean(todayChecklist[item.id]);
+                    return (
+                      <label key={item.id} className="home-v2-task-row" data-complete={completed ? "true" : "false"}>
+                        <input type="checkbox" checked={completed} onChange={() => toggleChecklistItem(item.id)} style={{ accentColor: c.green }} />
+                        <span style={{ minWidth: 0, flex: 1, color: completed ? c.secondary : c.text, fontSize: 10.5, fontWeight: 720, textDecoration: completed ? "line-through" : "none" }}>{item.label}</span>
+                      </label>
                     );
-                    setEditingPlanEvent(null);
-                  }}
-                >
-                  {t.calendarSave}
-                </PrimaryButton>
+                  })}
+                </div>
+              ) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={copy.noTasks} />}
+              {allDoneToday && nextExtraLecture && (
+                <button type="button" className="ui-button ui-button--ghost" onClick={addExtraToday} style={{ marginTop: 9 }}>{copy.addLecture}</button>
+              )}
+            </div>
+          ) : (
+            <div className="home-v2-badge-list">
+              {BADGE_DEFINITIONS.map((badge) => {
+                const earned = earnedBadges.some((item) => item.id === badge.id);
+                return (
+                  <span key={badge.id} className="home-v2-badge" data-earned={earned ? "true" : "false"} title={badge.label[language] || badge.label.da}>
+                    <Icon name={badge.icon} size={12} />
+                    {badge.label[language] || badge.label.da}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {editingPlanEvent && (
+        <Modal c={c} onClose={() => setEditingPlanEvent(null)}>
+          <div style={{ padding: 22 }}>
+            <div className="ui-section-heading">
+              <div>
+                <h2 className="ui-section-title">{editingPlanEvent.__new ? t.calendarAddEvent : t.calendarEditEvent}</h2>
+              </div>
+              <IconButton c={c} title={t.close} onClick={() => setEditingPlanEvent(null)}><Icon name="close" size={16} /></IconButton>
+            </div>
+
+            <div style={{ display: "grid", gap: 12 }}>
+              <label className="ui-field">
+                <span className="ui-field-label">{t.calendarEventTitle}</span>
+                <input className="ui-control" value={editingPlanEvent.title || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, title: event.target.value }))} placeholder={t.calendarEventTitlePlaceholder} autoFocus />
+              </label>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <label className="ui-field">
+                  <span className="ui-field-label">{t.calendarEventDate}</span>
+                  <input type="date" className="ui-control" value={editingPlanEvent.date || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, date: event.target.value }))} />
+                </label>
+                <label className="ui-field">
+                  <span className="ui-field-label">{t.calendarEventTime}</span>
+                  <input type="time" className="ui-control" value={editingPlanEvent.time || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, time: event.target.value }))} />
+                </label>
+              </div>
+
+              <div className="ui-field">
+                <span className="ui-field-label">{t.calendarEventType}</span>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                  {[["exam", t.calendarTypeExam], ["study", t.calendarTypeStudy], ["review", t.calendarTypeReview], ["other", t.calendarTypeOther]].map(([value, label]) => (
+                    <button key={value} type="button" className="ui-choice-card" data-selected={editingPlanEvent.type === value ? "true" : "false"} onClick={() => setEditingPlanEvent((previous) => ({ ...previous, type: value }))} style={{ minHeight: 38, border: `1px solid ${editingPlanEvent.type === value ? c.blueBorder : c.border}`, borderRadius: 9, background: editingPlanEvent.type === value ? c.blueSoft : c.soft, color: editingPlanEvent.type === value ? c.blue : c.secondary, fontSize: 9.5, fontWeight: 750 }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 18 }}>
+              <button type="button" className="ui-button ui-button--ghost" onClick={deleteEditingEvent} style={{ color: c.red }}>{editingPlanEvent.__new ? t.calendarCancel : t.calendarDelete}</button>
+              <div style={{ display: "flex", gap: 8 }}>
+                <SecondaryButton onClick={() => setEditingPlanEvent(null)}>{t.calendarCancel}</SecondaryButton>
+                <PrimaryButton onClick={saveEditingEvent}>{t.calendarSave}</PrimaryButton>
               </div>
             </div>
           </div>
         </Modal>
       )}
-
-      {activePlan && (() => {
-        const planLectures = MODULE_LECTURES[currentModule] || [];
-        const planExamQuestions = scopedQuestions.filter((q) => !q.lectureId);
-        const doneCount = (activePlan.doneLectureIds || []).length;
-        const totalLectureCount = planLectures.length;
-        const examSetDoneCount = planExamQuestions.filter((q) => safeSpacedData[q.id]).length;
-        const examSetTotalCount = planExamQuestions.length;
-        const planToday = new Date(); planToday.setHours(0, 0, 0, 0);
-        const planExam = activePlan.examDate ? new Date(`${activePlan.examDate}T00:00:00`) : null;
-        const daysLeft = planExam ? Math.max(0, Math.ceil((planExam - planToday) / 86400000)) : 0;
-        const daysSinceCreated = activePlan.createdAt ? Math.max(1, Math.ceil((planToday - new Date(activePlan.createdAt)) / 86400000)) : 1;
-        const totalPlanDays = planExam && activePlan.createdAt ? Math.max(1, Math.ceil((planExam - new Date(activePlan.createdAt)) / 86400000)) : 1;
-        const expectedProgressFraction = Math.min(1, daysSinceCreated / totalPlanDays);
-        const actualProgressFraction = totalLectureCount > 0 ? doneCount / totalLectureCount : 1;
-        const isBehind = activePlan.mode === "lectures" && totalLectureCount > 0 && actualProgressFraction < expectedProgressFraction - 0.08 && daysLeft > 0;
-        const todayKey = dateKey(planToday.getFullYear(), planToday.getMonth(), planToday.getDate());
-        const todayIsExcluded = (activePlan.excludedDates || []).includes(todayKey);
-        const todayChecklist = checklist[todayKey] || {};
-
-        function computeTodayLectureUnits() {
-          if (activePlan.mode !== "lectures" || todayIsExcluded) return [];
-          const doneIds = activePlan.doneLectureIds || [];
-          const pending = planLectures.filter((l) => !doneIds.includes(l.id));
-          const units = pending.flatMap((item) =>
-            Array.from({ length: item.parts || 1 }, (_, i) => ({
-              ...item,
-              part: (item.parts || 1) > 1 ? i + 1 : null,
-            }))
-          );
-          const exam = activePlan.examDate ? new Date(`${activePlan.examDate}T00:00:00`) : null;
-          const daysUntilExam = exam ? Math.max(0, Math.ceil((exam - planToday) / 86400000)) : 0;
-          const activeDays = Math.max(1, daysUntilExam);
-          const excludedDates = activePlan.excludedDates || [];
-          let excludedCount = 0;
-          for (let i = 0; i < activeDays; i++) {
-            const d = new Date(planToday);
-            d.setDate(d.getDate() + i);
-            const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
-            if (excludedDates.includes(key)) excludedCount++;
-          }
-          const availableDaysCount = Math.max(1, activeDays - excludedCount);
-          const lecturesPerDay = Math.max(1, Math.ceil(units.length / availableDaysCount));
-          return units.slice(0, lecturesPerDay);
-        }
-
-        function unitKey(u) {
-          return u.part ? `${u.id}-${u.part}` : u.id;
-        }
-        function unitLabel(u) {
-          return u.part ? `${u.id} (${u.part}): ${u.title}` : `${u.id}: ${u.title}`;
-        }
-
-        const liveTodayUnits = computeTodayLectureUnits();
-        const baseChecklistItems = liveTodayUnits.map((u) => ({ id: unitKey(u), label: unitLabel(u) }));
-        const extraTodayItems = checklist[`${todayKey}__extra`] || [];
-        const checklistItems = [...baseChecklistItems, ...extraTodayItems];
-
-        const toggleChecklistItem = (id) => {
-          setChecklist((old) => {
-            const dayState = { ...(old[todayKey] || {}) };
-            dayState[id] = !dayState[id];
-            return { ...old, [todayKey]: dayState };
-          });
-        };
-
-        const completedTodayCount =
-  checklistItems.filter(
-    (item) =>
-      Boolean(
-        todayChecklist[item.id]
-      )
-  ).length;
-
-const allDoneToday =
-  checklistItems.length > 0 &&
-  completedTodayCount ===
-    checklistItems.length;
-
-        const usedLectureIds = new Set([
-          ...(activePlan.doneLectureIds || []),
-          ...baseChecklistItems.map((i) => i.id.split("-")[0]),
-          ...extraTodayItems.map((i) => String(i.id).replace("extra-", "").split("-")[0]),
-        ]);
-        const nextExtraLecture = planLectures.find((l) => !usedLectureIds.has(l.id));
-
-        const addExtraToday = () => {
-          if (!nextExtraLecture) return;
-          setChecklist((old) => ({
-            ...old,
-            [`${todayKey}__extra`]: [
-              ...(old[`${todayKey}__extra`] || []),
-              { id: `extra-${nextExtraLecture.id}`, label: `${nextExtraLecture.id}: ${nextExtraLecture.title}` },
-            ],
-          }));
-        };
-
-        const handleCatchUp = () => {
-          setPlansGlobal((old) => {
-            const plan = old[currentModule];
-            if (!plan) return old;
-            return { ...old, [currentModule]: { ...plan, createdAt: Date.now() } };
-          });
-        };
-        return (
-  <>
-    <section className="dashboard-progress-area">
-  <div className="ui-card dashboard-section-card">
-    <DashboardSectionHeader
-      kicker={
-        language === "en"
-          ? "Progress"
-          : language === "ar"
-            ? "التقدم"
-            : "Fremdrift"
-      }
-      title={
-        studyPlanDashCopy.progressTitle
-      }
-      description={
-        language === "en"
-          ? "See how much of your active study plan you have completed."
-          : language === "ar"
-            ? "شاهد مقدار ما أكملته من خطة الدراسة النشطة."
-            : "Se, hvor meget af din aktive studieplan du har gennemført."
-      }
-    />
-
-    <div className="dashboard-progress-grid">
-      {[
-        [
-          studyPlanDashCopy.lectureProgress,
-          doneCount,
-          totalLectureCount,
-        ],
-        [
-          studyPlanDashCopy.examSetProgress,
-          examSetDoneCount,
-          examSetTotalCount,
-        ],
-      ].map(
-        ([
-          label,
-          completed,
-          total,
-        ]) => {
-          const percentage =
-            total > 0
-              ? Math.round(
-                  (
-                    completed /
-                    total
-                  ) * 100
-                )
-              : 0;
-
-          const isComplete =
-            total > 0 &&
-            completed >= total;
-
-          const statusLabel =
-            isComplete
-              ? language === "en"
-                ? "Complete"
-                : language === "ar"
-                  ? "مكتمل"
-                  : "Gennemført"
-              : percentage > 0
-                ? language === "en"
-                  ? "In progress"
-                  : language === "ar"
-                    ? "قيد التنفيذ"
-                    : "I gang"
-                : language === "en"
-                  ? "Not started"
-                  : language === "ar"
-                    ? "لم يبدأ"
-                    : "Ikke startet";
-
-          return (
-            <div
-              key={label}
-              className="dashboard-progress-card"
-              data-complete={
-                isComplete
-                  ? "true"
-                  : "false"
-              }
-            >
-              <div className="dashboard-progress-head">
-                <div>
-                  <div className="dashboard-progress-label">
-                    {label}
-                  </div>
-
-                  <div
-                    className="dashboard-progress-status"
-                    data-complete={
-                      isComplete
-                        ? "true"
-                        : "false"
-                    }
-                  >
-                    {statusLabel}
-                  </div>
-                </div>
-
-                <div className="dashboard-progress-percent">
-                  {percentage}%
-                </div>
-              </div>
-
-              <div className="dashboard-progress-numbers">
-                <strong>
-                  {completed}
-                </strong>
-
-                <span>
-                  {" "}/ {total}
-                </span>
-              </div>
-
-              <div
-                className="dashboard-progress-track"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={
-                  percentage
-                }
-                aria-label={`${label}: ${percentage}%`}
-              >
-                <div
-                  className="dashboard-progress-fill"
-                  data-complete={
-                    isComplete
-                      ? "true"
-                      : "false"
-                  }
-                  style={{
-                    width:
-                      `${percentage}%`,
-                  }}
-                />
-              </div>
-            </div>
-          );
-        }
-      )}
-    </div>
-
-    {isBehind && (
-      <div
-        style={{
-          marginTop: 16,
-          padding: "14px 16px",
-          borderRadius: 14,
-          background: c.redSoft,
-          border:
-            `1px solid ${c.redBorder}`,
-        }}
-      >
-        <div
-          style={{
-            marginBottom: 4,
-            color: c.red,
-            fontSize: 13,
-            fontWeight: 850,
-          }}
-        >
-          {
-            studyPlanDashCopy.catchUpTitle
-          }
-        </div>
-
-        <div
-          style={{
-            marginBottom: 10,
-            color: c.secondary,
-            fontSize: 12,
-            lineHeight: 1.55,
-          }}
-        >
-          {
-            studyPlanDashCopy.catchUpText
-          }
-        </div>
-
-        <button
-          type="button"
-          className="ui-button ui-button--danger"
-          onClick={handleCatchUp}
-          style={{
-            minHeight: 36,
-            padding: "0 14px",
-            borderRadius: 10,
-            fontSize: 11.5,
-          }}
-        >
-          {
-            studyPlanDashCopy.catchUpButton
-          }
-        </button>
-      </div>
-    )}
-  </div>
-</section>
-
-    <section className="dashboard-checklist-area">
-      <div className="ui-card dashboard-section-card">
-        <DashboardSectionHeader
-  kicker={
-    language === "en"
-      ? "Tasks"
-      : language === "ar"
-        ? "المهام"
-        : "Opgaver"
-  }
-  title={
-    studyPlanDashCopy.checklistTitle
-  }
-  description={
-    language === "en"
-      ? "Complete the concrete actions that move today's study plan forward."
-      : language === "ar"
-        ? "أكمل الخطوات المحددة التي تدفع خطة اليوم إلى الأمام."
-        : "Gennemfør de konkrete handlinger, der flytter dagens studieplan fremad."
-  }
-  action={
-    checklistItems.length > 0 ? (
-      <span
-        className="dashboard-checklist-count"
-        data-complete={
-          allDoneToday
-            ? "true"
-            : "false"
-        }
-      >
-        {completedTodayCount}/
-        {checklistItems.length}
-      </span>
-    ) : null
-  }
-/>
-
-        {allDoneToday && (
-  <div className="dashboard-complete-banner">
-    <span className="dashboard-complete-banner-icon">
-      <Icon
-        name="check"
-        size={15}
-      />
-    </span>
-
-    <div>
-      <div className="dashboard-complete-banner-title">
-        {language === "en"
-          ? "Today's plan is complete"
-          : language === "ar"
-            ? "اكتملت خطة اليوم"
-            : "Dagens plan er gennemført"}
-      </div>
-
-      <div className="dashboard-complete-banner-description">
-        {language === "en"
-          ? "All planned tasks are complete. You can stop here or add the next lecture."
-          : language === "ar"
-            ? "تم إكمال جميع المهام المخططة. يمكنك التوقف أو إضافة المحاضرة التالية."
-            : "Alle planlagte opgaver er gennemført. Du kan stoppe her eller tilføje næste forelæsning."}
-      </div>
-    </div>
-  </div>
-)}
-
-{checklistItems.length === 0 ? (
-  <EmptyState
-    compact
-    symbol={
-      <Icon
-        name="check"
-        size={16}
-      />
-    }
-    title={
-      studyPlanDashCopy.checklistEmpty
-    }
-  />
-) : (
-  <div className="dashboard-checklist-list">
-    {checklistItems.map((item) => {
-      const isDone =
-        Boolean(
-          todayChecklist[item.id]
-        );
-
-      return (
-        <label
-          key={item.id}
-          className="dashboard-checklist-row"
-          data-complete={
-            isDone
-              ? "true"
-              : "false"
-          }
-        >
-          <input
-            type="checkbox"
-            className="dashboard-checklist-input"
-            checked={isDone}
-            onChange={() =>
-              toggleChecklistItem(
-                item.id
-              )
-            }
-          />
-
-          <span className="dashboard-checklist-copy">
-            {item.label}
-          </span>
-
-          {isDone && (
-            <span className="dashboard-checklist-done-icon">
-              <Icon
-                name="check"
-                size={14}
-              />
-            </span>
-          )}
-        </label>
-      );
-    })}
-  </div>
-)}
-
-        {allDoneToday &&
-          nextExtraLecture && (
-            <button
-              type="button"
-              className="ui-button ui-button--secondary"
-              onClick={addExtraToday}
-              style={{
-                width: "100%",
-                minHeight: 42,
-                marginTop: 12,
-                borderStyle: "dashed",
-                color: c.blue,
-              }}
-            >
-              {
-                studyPlanDashCopy.readMoreToday
-              }
-            </button>
-          )}
-      </div>
-    </section>
-  </>
-);
-      })()}
-
-      <section className="dashboard-badges-area">
-  <div className="ui-card dashboard-section-card">
-    <DashboardSectionHeader
-      kicker={
-        language === "en"
-          ? "Achievements"
-          : language === "ar"
-            ? "الإنجازات"
-            : "Resultater"
-      }
-      title={dashCopy.badges}
-      description={
-        language === "en"
-          ? "Milestones earned through consistency and completed study activity."
-          : language === "ar"
-            ? "إنجازات تحصل عليها من خلال الاستمرارية والنشاط الدراسي."
-            : "Milepæle, du optjener gennem kontinuitet og gennemført studieaktivitet."
-      }
-      action={
-        <span
-          style={{
-            color: c.muted,
-            fontSize: 11,
-            fontWeight: 750,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {earnedBadges.length}/
-          {BADGE_DEFINITIONS.length}
-        </span>
-      }
-    />
-
-    <div
-      style={{
-        display: "flex",
-        gap: 10,
-        flexWrap: "wrap",
-      }}
-    >
-      {BADGE_DEFINITIONS.map((badge) => {
-        const earned =
-          earnedBadges.some(
-            (earnedBadge) =>
-              earnedBadge.id === badge.id
-          );
-
-        return (
-          <span
-            key={badge.id}
-            className="ui-status-pill"
-            title={
-              badge.label[language] ||
-              badge.label.da
-            }
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "8px 13px",
-              borderRadius: 99,
-              background: earned
-                ? c.greenSoft
-                : c.soft,
-              border: `1px solid ${
-                earned
-                  ? c.greenBorder
-                  : c.border
-              }`,
-              opacity: earned
-                ? 1
-                : 0.55,
-            }}
-          >
-            <Icon
-              name={badge.icon}
-              size={14}
-            />
-
-            <span
-              style={{
-                color: earned
-                  ? c.green
-                  : c.muted,
-                fontSize: 11,
-                fontWeight: 750,
-              }}
-            >
-              {badge.label[language] ||
-                badge.label.da}
-            </span>
-          </span>
-        );
-      })}
-    </div>
-  </div>
-</section>
     </div>
   );
 }
-
-
 
 const ADMIN_PASSCODE_HASH = 384710755;
 
@@ -19816,7 +19222,7 @@ if (creatingAdminQuestion) {
         position: "fixed",
         top: 0,
         bottom: 0,
-        insetInlineStart: 74,
+        insetInlineStart: "var(--app-sidebar-width)",
         insetInlineEnd: 0,
         zIndex: 1001,
         overflow: "hidden",
@@ -26508,6 +25914,7 @@ aria-pressed={selected}
   );
 }
 
+
 function Sidebar({
   c,
   t,
@@ -26515,6 +25922,7 @@ function Sidebar({
   user,
   route,
   setRoute,
+  onNavigate,
   isAdmin,
   notesOpen,
   setNotesOpen,
@@ -26528,25 +25936,18 @@ function Sidebar({
   onProfileAction,
   dueCount = 0,
 }) {
-  const displayName = String(
-    user?.name ||
-      t.profile ||
-      "MedFLUEN"
-  ).trim();
+  const displayName = String(user?.name || t.profile || "MedFLUEN").trim();
+  const userInitial = displayName.slice(0, 1).toUpperCase() || "M";
+  const moduleLabel = String(user?.module || "").trim();
+  const [quickAccessOrder, setQuickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, ["mcq", "repeat", "insights"]);
+  const [reordering, setReordering] = useState(false);
+  const dragIdRef = useRef(null);
 
-  const userInitial =
-    displayName
-      .slice(0, 1)
-      .toUpperCase() || "M";
-
-  const moduleLabel = String(
-    user?.module || ""
-  ).trim();
-
-  const menuDirection =
-    language === "ar"
-      ? "rtl"
-      : "ltr";
+  const copy = ({
+    da: { study: "Studie", workspace: "Workspace", analytics: "Analyse", planning: "Planlægning", resources: "Værktøjer", lectures: "Forelæsninger", examSets: "Eksamenssæt", repetition: "Repetition", edit: "Rediger", done: "Færdig" },
+    en: { study: "Study", workspace: "Workspace", analytics: "Analytics", planning: "Planning", resources: "Tools", lectures: "Lectures", examSets: "Exam sets", repetition: "Review", edit: "Edit", done: "Done" },
+    ar: { study: "الدراسة", workspace: "مساحة العمل", analytics: "التحليلات", planning: "التخطيط", resources: "الأدوات", lectures: "المحاضرات", examSets: "مجموعات الامتحان", repetition: "المراجعة", edit: "تعديل", done: "تم" },
+  })[language] || {};
 
   function closeUtilityPanels() {
     setNotesOpen(false);
@@ -26555,601 +25956,171 @@ function Sidebar({
     setProfileOpen(false);
   }
 
-  function openRoute(nextRoute) {
-    setRoute(nextRoute);
+  function navigate(target, options) {
     closeUtilityPanels();
+    if (onNavigate) onNavigate(target, options);
+    else setRoute(target);
   }
 
-  function NavButton({
-    icon,
-    title,
-    active,
-    onClick,
-    badge = 0,
-    isRoute = false,
-  }) {
+  function openUtility(type) {
+    const nextNotes = type === "notes" && !notesOpen;
+    const nextCalendar = type === "calendar" && !calendarOpen;
+    const nextDrByte = type === "drbyte" && !drByteOpen;
+    if (type === "calendar" && calendarOpen) {
+      onCloseCalendar();
+      return;
+    }
+    setNotesOpen(nextNotes);
+    setCalendarOpen(nextCalendar);
+    setDrByteOpen(nextDrByte);
+    setProfileOpen(false);
+  }
+
+  const quickDefinitions = {
+    mcq: { icon: "clipboard", label: t.clinicalMcq, badge: 0, action: () => navigate("mcq") },
+    repeat: { icon: "reset", label: copy.repetition, badge: dueCount, action: () => navigate("mcq", { mode: "due" }) },
+    insights: { icon: "chart", label: t.insights, badge: 0, action: () => navigate("insights") },
+  };
+  const safeQuickOrder = [...quickAccessOrder.filter((id) => quickDefinitions[id]), ...["mcq", "repeat", "insights"].filter((id) => !quickAccessOrder.includes(id))];
+
+  function moveQuick(fromId, toId) {
+    if (!fromId || fromId === toId) return;
+    setQuickAccessOrder((previous) => {
+      const next = [...safeQuickOrder];
+      const from = next.indexOf(fromId);
+      const to = next.indexOf(toId);
+      if (from < 0 || to < 0) return previous;
+      next.splice(from, 1);
+      next.splice(to, 0, fromId);
+      return next;
+    });
+  }
+
+  function NavRow({ icon, label, active, onClick, badge = 0, draggable = false, id = null }) {
     return (
       <button
         type="button"
-        title={title}
-        aria-label={title}
-        aria-current={
-          isRoute && active
-            ? "page"
-            : undefined
-        }
-        aria-pressed={
-          !isRoute
-            ? Boolean(active)
-            : undefined
-        }
-        data-active={
-          active ? "true" : "false"
-        }
-        onClick={onClick}
-        className="sidebar-nav-btn"
-        style={{
-          position: "relative",
-          width: 48,
-          height: 48,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: `1px solid ${
-            active
-              ? c.blueBorder
-              : "transparent"
-          }`,
-          borderRadius: 15,
-          background: active
-            ? c.blueSoft
-            : "transparent",
-          color: active
-            ? c.blue
-            : c.secondary,
-          cursor: "pointer",
-        }}
+        className="sidebar-wide-row"
+        data-active={active ? "true" : "false"}
+        draggable={draggable}
+        onDragStart={() => { dragIdRef.current = id; }}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={() => { moveQuick(dragIdRef.current, id); dragIdRef.current = null; }}
+        onDragEnd={() => { dragIdRef.current = null; }}
+        onClick={() => !reordering && onClick()}
+        title={label}
       >
-        <span
-          className="sidebar-nav-icon"
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 10,
-          }}
-        >
-          <Icon
-            name={icon}
-            size={19}
-            stroke={active ? 2.35 : 2.1}
-          />
-        </span>
-
-        {active && (
-          <span
-            aria-hidden="true"
-            className="sidebar-active-dot"
-            style={{
-              position: "absolute",
-              insetInlineStart: -9,
-              top: "50%",
-              width: 3,
-              height: 21,
-              borderRadius: 99,
-              background: c.blue,
-              boxShadow:
-                "0 0 12px rgba(22,101,234,.40)",
-              transform:
-                "translateY(-50%)",
-            }}
-          />
-        )}
-
-        {badge > 0 && (
-          <span
-            aria-label={`${badge}`}
-            style={{
-              position: "absolute",
-              top: -4,
-              insetInlineEnd: -4,
-              minWidth: 18,
-              height: 18,
-              display: "grid",
-              placeItems: "center",
-              padding: "0 4px",
-              borderRadius: 99,
-              background: c.red,
-              color: "#fff",
-              border: `2px solid ${c.panel}`,
-              boxShadow:
-                "0 4px 10px rgba(210,50,70,.22)",
-              fontSize: 9,
-              fontWeight: 900,
-              lineHeight: 1,
-            }}
-          >
-            {badge > 99
-              ? "99+"
-              : badge}
-          </span>
-        )}
-
-        <span
-          aria-hidden="true"
-          className="sidebar-tooltip"
-        >
-          {title}
-        </span>
+        <span className="sidebar-wide-row-icon"><Icon name={icon} size={16} /></span>
+        <span className="sidebar-wide-row-label">{label}</span>
+        {badge > 0 && <span className="sidebar-wide-row-badge">{badge > 99 ? "99+" : badge}</span>}
+        {reordering && draggable && <Icon name="more" size={13} />}
       </button>
     );
   }
 
   const profileActions = [
-    [
-      "settings",
-      "settings",
-      t.settings,
-    ],
-    [
-      "language",
-      "globe",
-      t.language,
-    ],
-    [
-      "tutorial",
-      "target",
-      t.replayTutorial,
-    ],
-    ...(isAdmin
-      ? [
-          [
-            "admin",
-            "book",
-            t.adminPortal,
-          ],
-        ]
-      : []),
-    [
-      "logout",
-      "logout",
-      t.resetProfile,
-    ],
-    [
-      "signout",
-      "logout",
-      t.signOutAction,
-    ],
+    ["settings", "settings", t.settings],
+    ["language", "globe", t.language],
+    ["tutorial", "target", t.replayTutorial],
+    ...(isAdmin ? [["admin", "book", t.adminPortal]] : []),
+    ["logout", "reset", t.resetProfile],
+    ["signout", "logout", t.signOutAction],
   ];
 
   return (
     <aside
       data-tour="sidebar"
       className="app-sidebar app-surface"
-      aria-label={
-        language === "en"
-          ? "Primary navigation"
-          : language === "ar"
-            ? "التنقل الرئيسي"
-            : "Primær navigation"
-      }
+      aria-label={language === "en" ? "Primary navigation" : language === "ar" ? "التنقل الرئيسي" : "Primær navigation"}
       style={{
-        width: 74,
+        width: 238,
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
         flexShrink: 0,
-        padding: "18px 0",
+        padding: "18px 0 14px",
         background: c.panel,
         borderInlineEnd: `1px solid ${c.border}`,
-        boxShadow:
-          "8px 0 28px rgba(22,50,90,.025)",
-        direction: "ltr",
+        boxShadow: "8px 0 28px rgba(22,50,90,.025)",
+        direction: language === "ar" ? "rtl" : "ltr",
+        overflowY: "auto",
+        overflowX: "hidden",
       }}
     >
-      <button
-        type="button"
-        title="MedFLUEN"
-        aria-label={
-          language === "en"
-            ? "Go to home"
-            : language === "ar"
-              ? "الانتقال إلى الصفحة الرئيسية"
-              : "Gå til Hjem"
-        }
-        onClick={() =>
-          openRoute("home")
-        }
-        className="sidebar-logo"
-        style={{
-          position: "relative",
-          width: 44,
-          height: 44,
-          display: "grid",
-          placeItems: "center",
-          flexShrink: 0,
-          marginBottom: 22,
-          padding: 0,
-          border: 0,
-          borderRadius: 15,
-          background:
-            "linear-gradient(135deg,#1665ea 0%,#3788f5 52%,#72b8ff 100%)",
-          color: "#fff",
-          boxShadow:
-            "0 12px 26px rgba(22,101,234,.30)",
-          cursor: "pointer",
-        }}
-      >
-        <Icon
-          name="logo"
-          size={22}
-          stroke={2.2}
-        />
+      <button type="button" className="sidebar-wide-brand" onClick={() => navigate("home")} style={{ border: 0, background: "transparent", textAlign: "start" }}>
+        <span className="sidebar-wide-brand-mark">M</span>
+        <span className="sidebar-wide-brand-name">Med<span style={{ color: c.blue }}>FLUEN</span></span>
       </button>
 
-      <nav
-        aria-label={
-          language === "en"
-            ? "Main pages"
-            : language === "ar"
-              ? "الصفحات الرئيسية"
-              : "Hovedsider"
-        }
-        className="sidebar-nav-group"
-        style={{
-          display: "grid",
-          gap: 4,
-          padding: 4,
-          borderRadius: 19,
-          background: c.soft,
-          border: `1px solid ${c.border}`,
-        }}
-      >
-        <NavButton
-          icon="home"
-          title={t.home}
-          active={route === "home"}
-          isRoute
-          onClick={() =>
-            openRoute("home")
-          }
-        />
+      <div className="sidebar-wide-section">
+        <div className="sidebar-wide-section-head">
+          <span>{copy.study}</span>
+          <button type="button" onClick={() => setReordering((value) => !value)} title={reordering ? copy.done : copy.edit} style={{ border: 0, background: "transparent", color: reordering ? c.blue : c.muted, padding: 2 }}>
+            <Icon name={reordering ? "check" : "edit"} size={12} />
+          </button>
+        </div>
+        <div className="sidebar-wide-list">
+          <NavRow icon="home" label={t.home} active={route === "home"} onClick={() => navigate("home")} />
+          {safeQuickOrder.map((id) => {
+            const item = quickDefinitions[id];
+            return (
+              <NavRow
+                key={id}
+                id={id}
+                icon={item.icon}
+                label={item.label}
+                active={(id === "mcq" && route === "mcq") || (id === "insights" && route === "insights")}
+                onClick={item.action}
+                badge={item.badge}
+                draggable={reordering}
+              />
+            );
+          })}
+          <NavRow icon="book" label={copy.lectures} active={false} onClick={() => navigate("mcq", { contentType: "lectures" })} />
+        </div>
+      </div>
 
-        <NavButton
-          icon="clipboard"
-          title={t.clinicalMcq}
-          active={route === "mcq"}
-          badge={dueCount}
-          isRoute
-          onClick={() =>
-            openRoute("mcq")
-          }
-        />
-      </nav>
+      <div className="sidebar-wide-section">
+        <div className="sidebar-wide-section-head"><span>{copy.planning}</span></div>
+        <div className="sidebar-wide-list">
+          <NavRow icon="calendar" label={t.todaysPlanTitle || t.calendar} active={route === "study-plan"} onClick={() => navigate("study-plan")} />
+          <NavRow icon="calendar" label={t.calendar} active={calendarOpen} onClick={() => openUtility("calendar")} />
+        </div>
+      </div>
 
-      <div
-        aria-hidden="true"
-        style={{
-          width: 28,
-          height: 1,
-          margin: "16px 0",
-          background:
-            `linear-gradient(
-              90deg,
-              transparent,
-              ${c.borderStrong},
-              transparent
-            )`,
-        }}
-      />
+      <div className="sidebar-wide-section">
+        <div className="sidebar-wide-section-head"><span>{copy.workspace}</span></div>
+        <div className="sidebar-wide-list">
+          <NavRow icon="notebook" label={t.notebook} active={notesOpen} onClick={() => openUtility("notes")} />
+          <NavRow icon="chat" label={t.drByte} active={drByteOpen} onClick={() => openUtility("drbyte")} />
+          <NavRow icon="book" label={copy.examSets} active={false} onClick={() => navigate("mcq", { contentType: "examSet" })} />
+        </div>
+      </div>
 
-      <nav
-        aria-label={
-          language === "en"
-            ? "Study tools"
-            : language === "ar"
-              ? "أدوات الدراسة"
-              : "Studieværktøjer"
-        }
-        className="sidebar-nav-group"
-        style={{
-          display: "grid",
-          gap: 4,
-          padding: 4,
-          borderRadius: 19,
-          background: c.soft,
-          border: `1px solid ${c.border}`,
-        }}
-      >
-        <NavButton
-          icon="notebook"
-          title={t.notebook}
-          active={notesOpen}
-          onClick={() => {
-            const nextOpen =
-              !notesOpen;
-
-            setNotesOpen(nextOpen);
-            setCalendarOpen(false);
-            setDrByteOpen(false);
-            setProfileOpen(false);
-          }}
-        />
-
-        <NavButton
-          icon="calendar"
-          title={t.calendar}
-          active={calendarOpen}
-          onClick={() => {
-            if (calendarOpen) {
-              onCloseCalendar();
-              return;
-            }
-
-            setCalendarOpen(true);
-            setNotesOpen(false);
-            setDrByteOpen(false);
-            setProfileOpen(false);
-          }}
-        />
-
-        <NavButton
-          icon="chat"
-          title={t.drByte}
-          active={drByteOpen}
-          onClick={() => {
-            const nextOpen =
-              !drByteOpen;
-
-            setDrByteOpen(nextOpen);
-            setNotesOpen(false);
-            setCalendarOpen(false);
-            setProfileOpen(false);
-          }}
-        />
-      </nav>
-
-      <div
-        style={{
-          position: "relative",
-          marginTop: "auto",
-        }}
-      >
-        <button
-          type="button"
-          title={t.profile}
-          aria-label={t.profile}
-          aria-expanded={profileOpen}
-          aria-haspopup="menu"
-          onClick={() =>
-            setProfileOpen(
-              (value) => !value
-            )
-          }
-          className="sidebar-profile-btn"
-          style={{
-            width: 44,
-            height: 44,
-            display: "grid",
-            placeItems: "center",
-            padding: 0,
-            borderRadius: 14,
-            border: `1px solid ${
-              profileOpen
-                ? c.blueBorder
-                : c.border
-            }`,
-            background: profileOpen
-              ? c.blueSoft
-              : c.soft,
-            color: profileOpen
-              ? c.blue
-              : c.text,
-            boxShadow: profileOpen
-              ? "0 8px 20px rgba(22,101,234,.13)"
-              : "none",
-            fontSize: 13,
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
-          {userInitial}
+      <div className="sidebar-wide-profile" style={{ position: "relative" }}>
+        <button type="button" className="sidebar-wide-profile-button" aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}>
+          <span className="sidebar-wide-avatar">{userInitial}</span>
+          <span className="sidebar-wide-profile-copy" style={{ minWidth: 0, flex: 1 }}>
+            <span className="sidebar-wide-profile-name" style={{ display: "block" }}>{displayName}</span>
+            <span className="sidebar-wide-profile-meta" style={{ display: "block" }}>{moduleLabel}</span>
+          </span>
+          <span className="sidebar-wide-profile-chevron"><Icon name="right" size={13} /></span>
         </button>
 
         {profileOpen && (
-          <div
-            role="menu"
-            className="sidebar-profile-menu"
-            style={{
-              position: "absolute",
-              zIndex: 1100,
-              left: 62,
-              bottom: 0,
-              width: 248,
-              padding: 8,
-              borderRadius: 19,
-              background: c.panel,
-              border: `1px solid ${c.border}`,
-              boxShadow: c.shadowLg,
-              direction: menuDirection,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 11,
-                marginBottom: 7,
-                padding: "10px 10px 12px",
-                borderRadius: 13,
-                background: c.soft,
-                border: `1px solid ${c.border}`,
-              }}
-            >
-              <div
-                aria-hidden="true"
-                style={{
-                  width: 38,
-                  height: 38,
-                  flexShrink: 0,
-                  display: "grid",
-                  placeItems: "center",
-                  borderRadius: 12,
-                  background:
-                    "linear-gradient(135deg,#1665ea,#62adff)",
-                  color: "#fff",
-                  boxShadow:
-                    "0 7px 16px rgba(22,101,234,.22)",
-                  fontSize: 13,
-                  fontWeight: 900,
-                }}
-              >
-                {userInitial}
-              </div>
-
-              <div
-                style={{
-                  minWidth: 0,
-                }}
-              >
-                <div
-                  title={displayName}
-                  style={{
-                    color: c.text,
-                    fontSize: 12.5,
-                    fontWeight: 850,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {displayName}
-                </div>
-
-                <div
-                  title={moduleLabel}
-                  style={{
-                    marginTop: 3,
-                    color: c.muted,
-                    fontSize: 10,
-                    fontWeight: 650,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {moduleLabel
-                    ? `${t.currentModule}: ${moduleLabel}`
-                    : t.profile}
-                </div>
-              </div>
-            </div>
-
-            {profileActions.map(
-              ([
-                id,
-                icon,
-                label,
-              ]) => {
-                const destructive =
-                  id === "logout" ||
-                  id === "signout";
-
-                return (
-                  <React.Fragment
-                    key={id}
-                  >
-                    {id === "logout" && (
-                      <div
-                        aria-hidden="true"
-                        style={{
-                          height: 1,
-                          margin: "6px 7px",
-                          background:
-                            c.border,
-                        }}
-                      />
-                    )}
-
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() =>
-                        onProfileAction(
-                          id
-                        )
-                      }
-                      className="sidebar-menu-item"
-                      style={{
-                        width: "100%",
-                        minHeight: 40,
-                        display: "flex",
-                        alignItems:
-                          "center",
-                        gap: 11,
-                        padding:
-                          "0 10px",
-                        border: 0,
-                        borderRadius: 11,
-                        background:
-                          "transparent",
-                        color: destructive
-                          ? c.red
-                          : c.text,
-                        textAlign:
-                          "start",
-                        fontSize: 12,
-                        fontWeight:
-                          destructive
-                            ? 750
-                            : 650,
-                        fontFamily:
-                          "inherit",
-                        cursor:
-                          "pointer",
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 28,
-                          height: 28,
-                          flexShrink: 0,
-                          display:
-                            "grid",
-                          placeItems:
-                            "center",
-                          borderRadius: 9,
-                          background:
-                            destructive
-                              ? c.redSoft
-                              : c.soft,
-                          color:
-                            destructive
-                              ? c.red
-                              : c.secondary,
-                        }}
-                      >
-                        <Icon
-                          name={icon}
-                          size={15}
-                        />
-                      </span>
-
-                      <span>
-                        {label}
-                      </span>
-                    </button>
-                  </React.Fragment>
-                );
-              }
-            )}
+          <div role="menu" className="sidebar-profile-menu" style={{ position: "fixed", zIndex: 1200, insetInlineStart: "calc(var(--app-sidebar-width) + 10px)", bottom: 16, width: 220, padding: 8, borderRadius: 14, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg }}>
+            {profileActions.map(([action, icon, label]) => (
+              <button key={action} type="button" role="menuitem" className="sidebar-menu-item" onClick={() => onProfileAction(action)} style={{ width: "100%", minHeight: 38, display: "flex", alignItems: "center", gap: 9, padding: "0 10px", border: 0, borderRadius: 9, background: "transparent", color: action === "logout" || action === "signout" ? c.red : c.secondary, fontSize: 10, fontWeight: 720, textAlign: "start" }}>
+                <Icon name={icon} size={14} />
+                {label}
+              </button>
+            ))}
           </div>
         )}
       </div>
     </aside>
   );
 }
-
 
 function Modal({ c, children, onClose, size = "default" }) {
   const widthBySize = {
@@ -28879,6 +27850,22 @@ useEffect(() => {
         setProfileOpen={setProfileOpen}
         dueCount={sidebarDueCount}
         isAdmin={isAdmin}
+        onNavigate={(target, options) => {
+          if (target === "mcq") {
+            setSessionScope(
+              options
+                ? {
+                    moduleId: user.module,
+                    groupFilter: null,
+                    lectureFilter: null,
+                    mode: options.mode || null,
+                    contentType: options.contentType || null,
+                  }
+                : null
+            );
+          }
+          setRoute(target);
+        }}
  onProfileAction={(action) => {
   setProfileOpen(false);
 
@@ -28964,8 +27951,14 @@ onOpenCalendar={() => {
 onNavigate={(target, options) => {
                   if (target === "mcq") {
                     setSessionScope(
-                      options && options.contentType
-                        ? { moduleId: user.module, groupFilter: null, lectureFilter: null, mode: null, contentType: options.contentType }
+                      options
+                        ? {
+                            moduleId: user.module,
+                            groupFilter: null,
+                            lectureFilter: null,
+                            mode: options.mode || null,
+                            contentType: options.contentType || null,
+                          }
                         : null
                     );
                   }
