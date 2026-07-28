@@ -1448,10 +1448,10 @@ function WeekCalendar({
               {positioned.map(({ event, start, end, lane, laneCount }) => {
                 const tone = typeTone[event.type] || typeTone.other;
                 const top = ((start - startHour * 60) / 60) * hourHeight;
-                const height = Math.max(38, ((end - start) / 60) * hourHeight - 5);
+                const height = Math.max(26, ((end - start) / 60) * hourHeight - 2);
                 if (top + height < 0 || top > totalHeight) return null;
-                const width = `calc(${100 / laneCount}% - 8px)`;
-                const left = `calc(${lane * (100 / laneCount)}% + 4px)`;
+                const width = `calc(${100 / laneCount}% - 6px)`;
+                const left = `calc(${lane * (100 / laneCount)}% + 3px)`;
                 return (
                   <button
                     key={event.id}
@@ -1470,22 +1470,26 @@ function WeekCalendar({
                       onEventClick(event);
                     }}
                     style={{
-                      top,
+                      top: top + 1,
                       height,
                       width,
                       insetInlineStart: left,
-                      borderColor: tone.color,
-                      background: tone.background,
-                      color: tone.color,
+                      "--calendar-event-accent": tone.color,
+                      "--calendar-event-surface": tone.background,
                     }}
                     title={`${event.time || ""} ${event.title}`.trim()}
                   >
-                    <span className="calendar-week-event-icon"><Icon name={tone.icon} size={12} /></span>
-                    <span className="calendar-week-event-copy">
-                      <span className="calendar-week-event-time">{event.time}–{minutesToTime(end)}</span>
-                      <span className="calendar-week-event-title">{event.title}</span>
-                      {event.location && <span className="calendar-week-event-meta">{event.location}</span>}
+                    <span className="calendar-week-event-time">
+                      {event.time}–{minutesToTime(end)}
                     </span>
+                    <span className="calendar-week-event-title">
+                      {event.title}
+                    </span>
+                    {event.location && height >= 52 && (
+                      <span className="calendar-week-event-meta">
+                        {event.location}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -1562,13 +1566,18 @@ function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, weekday
                     }}
                     title={event.title}
                     style={{
-                      fontSize: 9.5,
-                      fontWeight: 700,
-                      color: "#fff",
-                      background: color,
-                      borderRadius: 5,
+                      minHeight: 21,
+                      display: "flex",
+                      alignItems: "center",
                       padding: "2px 5px",
                       overflow: "hidden",
+                      border: `1px solid ${c.border}`,
+                      borderInlineStart: `3px solid ${color}`,
+                      borderRadius: 5,
+                      background: `color-mix(in srgb, ${color} 9%, ${c.panel})`,
+                      color: c.text,
+                      fontSize: 9,
+                      fontWeight: 680,
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                       cursor: "pointer",
@@ -6187,7 +6196,7 @@ select.ui-control {
    Visual language based on the approved calendar-first concept.
    ============================================================ */
 :root {
-  --app-sidebar-width: 238px;
+  --app-sidebar-width: 74px;
 }
 
 .home-v2 {
@@ -7017,7 +7026,7 @@ select.ui-control {
 
 @media (max-width: 760px) {
   :root {
-    --app-sidebar-width: 58px;
+    --app-sidebar-width: 74px;
   }
 
   .sidebar-wide-brand {
@@ -7292,26 +7301,46 @@ select.ui-control {
 .calendar-week-event {
   position: absolute;
   z-index: 8;
-  min-height: 38px;
+  min-height: 26px;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  padding: 8px 9px;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 5px 7px;
   overflow: hidden;
-  border: 1px solid;
-  border-inline-start-width: 3px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(23,35,58,.07);
+  border: 1px solid var(--ui-border-strong);
+  border-inline-start: 3px solid var(--calendar-event-accent);
+  border-radius: 7px;
+  background: color-mix(
+    in srgb,
+    var(--calendar-event-surface) 64%,
+    var(--ui-panel)
+  );
+  color: var(--ui-text);
+  box-shadow: none;
   text-align: start;
   cursor: grab;
   outline: none;
-  transition: transform 130ms ease, box-shadow 130ms ease, opacity 130ms ease;
+  box-sizing: border-box;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    opacity 120ms ease;
 }
 
 .calendar-week-event:hover {
   z-index: 15;
-  transform: translateY(-1px);
-  box-shadow: 0 9px 20px rgba(23,35,58,.12);
+  border-color: color-mix(
+    in srgb,
+    var(--calendar-event-accent) 42%,
+    var(--ui-border-strong)
+  );
+  background: color-mix(
+    in srgb,
+    var(--calendar-event-surface) 82%,
+    var(--ui-panel)
+  );
 }
 
 .calendar-week-event:active {
@@ -7319,46 +7348,33 @@ select.ui-control {
 }
 
 .calendar-week-event:focus-visible {
-  box-shadow: 0 0 0 3px var(--ui-ring), 0 9px 20px rgba(23,35,58,.12);
+  box-shadow: 0 0 0 3px var(--ui-ring);
 }
 
 .calendar-week-event[data-complete="true"] {
-  opacity: .58;
-}
-
-.calendar-week-event-icon {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border-radius: 7px;
-  background: color-mix(in srgb, currentColor 9%, var(--ui-panel));
-}
-
-.calendar-week-event-copy {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
+  opacity: .52;
 }
 
 .calendar-week-event-time,
 .calendar-week-event-meta {
+  max-width: 100%;
   overflow: hidden;
-  font-size: 8.5px;
-  font-weight: 750;
+  color: var(--ui-secondary);
+  font-size: 8px;
+  font-weight: 680;
   font-variant-numeric: tabular-nums;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: .78;
 }
 
 .calendar-week-event-title {
+  max-width: 100%;
   overflow: hidden;
   color: var(--ui-text);
-  font-size: 10.5px;
-  font-weight: 800;
-  line-height: 1.3;
+  font-size: 9.5px;
+  font-weight: 760;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -7813,6 +7829,239 @@ select.ui-control {
   justify-content: space-between;
   gap: 12px;
   padding: 18px 8px 4px;
+}
+
+/* Compact Google Calendar-like event editor */
+.calendar-quick-editor {
+  width: 100%;
+  overflow: hidden;
+}
+
+.calendar-quick-editor-header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 16px 13px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.calendar-quick-editor-accent {
+  width: 4px;
+  min-height: 46px;
+  flex: 0 0 auto;
+  border-radius: 99px;
+  background: var(--ui-blue);
+}
+
+.calendar-quick-editor-accent[data-type="review"] {
+  background: var(--ui-green);
+}
+
+.calendar-quick-editor-accent[data-type="exam"] {
+  background: var(--ui-red);
+}
+
+.calendar-quick-editor-accent[data-type="other"] {
+  background: var(--ui-secondary);
+}
+
+.calendar-quick-editor-label {
+  color: var(--ui-muted);
+  font-size: 8.5px;
+  font-weight: 780;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.calendar-quick-editor-title {
+  width: 100%;
+  margin-top: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-text);
+  font-size: 18px;
+  font-weight: 760;
+  letter-spacing: -.02em;
+  outline: none;
+}
+
+.calendar-quick-editor-title::placeholder {
+  color: var(--ui-muted);
+}
+
+.calendar-quick-editor-body {
+  display: grid;
+  gap: 2px;
+  padding: 10px 16px 12px;
+}
+
+.calendar-quick-editor-row {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-quick-editor-row-icon {
+  display: grid;
+  place-items: center;
+  color: var(--ui-muted);
+}
+
+.calendar-quick-control {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: var(--ui-soft);
+  color: var(--ui-text);
+  font-size: 11px;
+  outline: none;
+}
+
+.calendar-quick-control:hover {
+  border-color: var(--ui-border);
+}
+
+.calendar-quick-control:focus {
+  border-color: var(--ui-blue-border);
+  background: var(--ui-panel);
+  box-shadow: 0 0 0 3px var(--ui-ring);
+}
+
+.calendar-quick-control--date {
+  max-width: 210px;
+}
+
+.calendar-quick-time-grid {
+  display: grid;
+  grid-template-columns: minmax(92px, 1fr) auto minmax(92px, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.calendar-quick-time-grid > span {
+  color: var(--ui-muted);
+  font-size: 10px;
+}
+
+.calendar-quick-time-grid > small {
+  color: var(--ui-muted);
+  font-size: 8.5px;
+  font-weight: 680;
+  white-space: nowrap;
+}
+
+.calendar-quick-more {
+  justify-self: start;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 2px 34px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ui-blue);
+  font-size: 9.5px;
+  font-weight: 720;
+}
+
+.calendar-quick-more:hover {
+  background: var(--ui-blue-soft);
+}
+
+.calendar-quick-advanced {
+  display: grid;
+  gap: 8px;
+  margin: 2px 0 4px 34px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ui-border);
+}
+
+.calendar-quick-advanced label {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-quick-advanced label > span {
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 680;
+}
+
+.calendar-quick-notes {
+  min-height: 68px;
+  padding: 8px 9px;
+  resize: vertical;
+}
+
+.calendar-quick-complete {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: 34px;
+  color: var(--ui-secondary);
+  font-size: 10px;
+  font-weight: 680;
+}
+
+.calendar-quick-complete input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--ui-green);
+}
+
+.calendar-quick-editor-footer {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+}
+
+.calendar-quick-delete {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-red);
+}
+
+.calendar-quick-delete:hover {
+  border-color: var(--ui-red-border);
+  background: var(--ui-red-soft);
+}
+
+@media (max-width: 560px) {
+  .calendar-quick-time-grid {
+    grid-template-columns: 1fr auto 1fr;
+  }
+
+  .calendar-quick-time-grid > small {
+    grid-column: 1 / -1;
+  }
+
+  .calendar-quick-advanced label {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }
 
 /* Daily planning sheet inside the Home calendar only */
@@ -13267,100 +13516,293 @@ function CalendarEventEditor({
 }) {
   const copy = ({
     da: {
-      details: "Detaljer", schedule: "Tidspunkt", relation: "Tilknytning", notes: "Noter",
-      duration: "Varighed", end: "Slutter", location: "Sted", link: "Link",
-      lecture: "Forelæsning", noLecture: "Ingen forelæsning", completed: "Færdig",
-      planned: "Planlagt", description: "Tilføj noter, pensum eller forberedelse…",
-      title: "Ny kalenderaktivitet", edit: "Redigér kalenderaktivitet",
+      end: "Slutter",
+      location: "Sted",
+      link: "Link",
+      lecture: "Forelæsning",
+      noLecture: "Ingen forelæsning",
+      completed: "Markér som færdig",
+      description: "Tilføj beskrivelse eller forberedelse…",
+      title: "Ny begivenhed",
+      edit: "Redigér begivenhed",
+      more: "Flere oplysninger",
+      less: "Færre oplysninger",
+      optional: "Valgfrit",
+      status: "Status",
     },
     en: {
-      details: "Details", schedule: "Schedule", relation: "Relation", notes: "Notes",
-      duration: "Duration", end: "Ends", location: "Location", link: "Link",
-      lecture: "Lecture", noLecture: "No lecture", completed: "Completed",
-      planned: "Planned", description: "Add notes, reading or preparation…",
-      title: "New calendar activity", edit: "Edit calendar activity",
+      end: "Ends",
+      location: "Location",
+      link: "Link",
+      lecture: "Lecture",
+      noLecture: "No lecture",
+      completed: "Mark as completed",
+      description: "Add description or preparation…",
+      title: "New event",
+      edit: "Edit event",
+      more: "More options",
+      less: "Fewer options",
+      optional: "Optional",
+      status: "Status",
     },
     ar: {
-      details: "التفاصيل", schedule: "الوقت", relation: "الارتباط", notes: "ملاحظات",
-      duration: "المدة", end: "ينتهي", location: "المكان", link: "الرابط",
-      lecture: "المحاضرة", noLecture: "بدون محاضرة", completed: "مكتمل",
-      planned: "مخطط", description: "أضف ملاحظات أو تحضيرًا…",
-      title: "نشاط تقويم جديد", edit: "تعديل نشاط التقويم",
+      end: "ينتهي",
+      location: "المكان",
+      link: "الرابط",
+      lecture: "المحاضرة",
+      noLecture: "بدون محاضرة",
+      completed: "وضع علامة كمكتمل",
+      description: "أضف وصفًا أو تحضيرًا…",
+      title: "حدث جديد",
+      edit: "تعديل الحدث",
+      more: "المزيد من الخيارات",
+      less: "خيارات أقل",
+      optional: "اختياري",
+      status: "الحالة",
     },
   })[language] || {};
+
+  const hasAdvancedValues = Boolean(
+    event.location || event.url || event.description || event.lectureId
+  );
+  const [advancedOpen, setAdvancedOpen] = useState(hasAdvancedValues);
   const startMinutes = timeToMinutes(event.time);
   const endMinutes = timeToMinutes(event.endTime);
-  const duration = startMinutes != null && endMinutes != null && endMinutes > startMinutes
-    ? endMinutes - startMinutes
-    : Math.round((Number(event.estimatedHours) || 1) * 60);
+  const duration =
+    startMinutes != null && endMinutes != null && endMinutes > startMinutes
+      ? endMinutes - startMinutes
+      : Math.round((Number(event.estimatedHours) || 1) * 60);
+
+  function updateStartTime(value) {
+    const start = timeToMinutes(value);
+    const currentEnd = timeToMinutes(event.endTime);
+    const fallbackMinutes = Math.max(15, duration);
+    const shouldAdjustEnd =
+      start != null && (currentEnd == null || currentEnd <= start);
+    onChange({
+      ...event,
+      time: value,
+      endTime: shouldAdjustEnd
+        ? minutesToTime(start + fallbackMinutes)
+        : event.endTime,
+    });
+  }
+
+  function updateEndTime(value) {
+    const start = timeToMinutes(event.time);
+    const end = timeToMinutes(value);
+    onChange({
+      ...event,
+      endTime: value,
+      estimatedHours:
+        start != null && end != null && end > start
+          ? Math.max(.25, (end - start) / 60)
+          : event.estimatedHours,
+    });
+  }
 
   return (
-    <Modal c={c} onClose={onClose} size="large">
-      <div className="calendar-editor" dir={language === "ar" ? "rtl" : "ltr"}>
-        <header className="calendar-editor-header">
-          <span className="calendar-editor-icon"><Icon name={event.type === "exam" ? "flag" : event.type === "review" ? "reset" : event.type === "other" ? "notebook" : "calendar"} size={19} /></span>
+    <Modal c={c} onClose={onClose} size="calendar">
+      <div className="calendar-quick-editor" dir={language === "ar" ? "rtl" : "ltr"}>
+        <header className="calendar-quick-editor-header">
+          <span
+            className="calendar-quick-editor-accent"
+            data-type={event.type || "study"}
+          />
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div className="calendar-editor-kicker">{exists ? copy.edit : copy.title}</div>
+            <div className="calendar-quick-editor-label">
+              {exists ? copy.edit : copy.title}
+            </div>
             <input
-              className="calendar-editor-title"
+              className="calendar-quick-editor-title"
               value={event.title || ""}
-              onChange={(domEvent) => onChange({ ...event, title: domEvent.target.value })}
+              onChange={(domEvent) =>
+                onChange({ ...event, title: domEvent.target.value })
+              }
               placeholder={t.calendarEventTitlePlaceholder}
               autoFocus
             />
           </div>
-          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
+          <IconButton c={c} title={t.close} onClick={onClose}>
+            <Icon name="close" size={16} />
+          </IconButton>
         </header>
 
-        <div className="calendar-editor-body">
-          <section className="calendar-editor-section">
-            <div className="calendar-editor-section-title">{copy.details}</div>
-            <div className="calendar-editor-property">
-              <span className="calendar-editor-property-label"><Icon name="cards" size={14} />{t.calendarEventType}</span>
-              <div className="calendar-editor-segmented">
-                {[["study", t.calendarTypeStudy], ["review", t.calendarTypeReview], ["exam", t.calendarTypeExam], ["other", t.calendarTypeOther]].map(([value, label]) => (
-                  <button key={value} type="button" data-active={event.type === value ? "true" : "false"} onClick={() => onChange({ ...event, type: value })}>{label}</button>
+        <div className="calendar-quick-editor-body">
+          <div className="calendar-quick-editor-row">
+            <span className="calendar-quick-editor-row-icon">
+              <Icon name="calendar" size={16} />
+            </span>
+            <input
+              type="date"
+              className="calendar-quick-control calendar-quick-control--date"
+              value={event.date || ""}
+              onChange={(domEvent) =>
+                onChange({ ...event, date: domEvent.target.value })
+              }
+            />
+          </div>
+
+          <div className="calendar-quick-editor-row">
+            <span className="calendar-quick-editor-row-icon">
+              <Icon name="clock" size={16} />
+            </span>
+            <div className="calendar-quick-time-grid">
+              <input
+                type="time"
+                className="calendar-quick-control"
+                value={event.time || ""}
+                onChange={(domEvent) =>
+                  updateStartTime(domEvent.target.value)
+                }
+              />
+              <span aria-hidden="true">–</span>
+              <input
+                type="time"
+                className="calendar-quick-control"
+                value={event.endTime || ""}
+                onChange={(domEvent) => updateEndTime(domEvent.target.value)}
+              />
+              <small>{Math.max(15, duration)} min</small>
+            </div>
+          </div>
+
+          <div className="calendar-quick-editor-row">
+            <span className="calendar-quick-editor-row-icon">
+              <Icon name="cards" size={16} />
+            </span>
+            <select
+              className="calendar-quick-control"
+              value={event.type || "study"}
+              onChange={(domEvent) =>
+                onChange({ ...event, type: domEvent.target.value })
+              }
+            >
+              <option value="study">{t.calendarTypeStudy}</option>
+              <option value="review">{t.calendarTypeReview}</option>
+              <option value="exam">{t.calendarTypeExam}</option>
+              <option value="other">{t.calendarTypeOther}</option>
+            </select>
+          </div>
+
+          {lectures.length > 0 && (
+            <div className="calendar-quick-editor-row">
+              <span className="calendar-quick-editor-row-icon">
+                <Icon name="book" size={16} />
+              </span>
+              <select
+                className="calendar-quick-control"
+                value={event.lectureId || ""}
+                onChange={(domEvent) => {
+                  const lectureId = domEvent.target.value || null;
+                  onChange({
+                    ...event,
+                    lectureId,
+                    lectureIds: lectureId ? [lectureId] : [],
+                    planModuleId: lectureId
+                      ? moduleName
+                      : event.planModuleId,
+                  });
+                }}
+              >
+                <option value="">{copy.noLecture}</option>
+                {lectures.map((lecture) => (
+                  <option key={lecture.id} value={lecture.id}>
+                    {lecture.id} · {lecture.title}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
-            <div className="calendar-editor-property">
-              <span className="calendar-editor-property-label"><Icon name="check" size={14} />Status</span>
-              <button type="button" className="calendar-editor-status" data-complete={event.completedAt ? "true" : "false"} onClick={() => onChange({ ...event, completedAt: event.completedAt ? null : new Date().toISOString(), status: event.completedAt ? "planned" : "completed" })}>
-                <Icon name={event.completedAt ? "check" : "clock"} size={13} />
-                {event.completedAt ? copy.completed : copy.planned}
-              </button>
-            </div>
-          </section>
+          )}
 
-          <section className="calendar-editor-section">
-            <div className="calendar-editor-section-title">{copy.schedule}</div>
-            <div className="calendar-editor-grid calendar-editor-grid--3">
-              <label className="ui-field"><span className="ui-field-label">{t.calendarEventDate}</span><input type="date" className="ui-control" value={event.date || ""} onChange={(domEvent) => onChange({ ...event, date: domEvent.target.value })} /></label>
-              <label className="ui-field"><span className="ui-field-label">{t.calendarEventTime}</span><input type="time" className="ui-control" value={event.time || ""} onChange={(domEvent) => onChange({ ...event, time: domEvent.target.value })} /></label>
-              <label className="ui-field"><span className="ui-field-label">{copy.end}</span><input type="time" className="ui-control" value={event.endTime || ""} onChange={(domEvent) => onChange({ ...event, endTime: domEvent.target.value, estimatedHours: event.time && domEvent.target.value ? Math.max(.25, (timeToMinutes(domEvent.target.value) - timeToMinutes(event.time)) / 60) : event.estimatedHours })} /></label>
-            </div>
-            <div className="calendar-editor-duration">{copy.duration}: <strong>{Math.max(15, duration)} min</strong></div>
-          </section>
+          <button
+            type="button"
+            className="calendar-quick-more"
+            onClick={() => setAdvancedOpen((value) => !value)}
+            aria-expanded={advancedOpen}
+          >
+            <Icon name={advancedOpen ? "collapse" : "plus"} size={14} />
+            {advancedOpen ? copy.less : copy.more}
+          </button>
 
-          <section className="calendar-editor-section">
-            <div className="calendar-editor-section-title">{copy.relation}</div>
-            <div className="calendar-editor-grid calendar-editor-grid--2">
-              <label className="ui-field"><span className="ui-field-label">{t.currentModule}</span><input className="ui-control" value={event.planModuleId || moduleName || ""} readOnly /></label>
-              <label className="ui-field"><span className="ui-field-label">{copy.lecture}</span><select className="ui-control" value={event.lectureId || ""} onChange={(domEvent) => { const lectureId = domEvent.target.value || null; onChange({ ...event, lectureId, lectureIds: lectureId ? [lectureId] : [], planModuleId: lectureId ? moduleName : event.planModuleId }); }}><option value="">{copy.noLecture}</option>{lectures.map((lecture) => <option key={lecture.id} value={lecture.id}>{lecture.id} · {lecture.title}</option>)}</select></label>
-              <label className="ui-field"><span className="ui-field-label">{copy.location}</span><input className="ui-control" value={event.location || ""} onChange={(domEvent) => onChange({ ...event, location: domEvent.target.value })} placeholder="Lokale, Zoom eller klinik" /></label>
-              <label className="ui-field"><span className="ui-field-label">{copy.link}</span><input className="ui-control" value={event.url || ""} onChange={(domEvent) => onChange({ ...event, url: domEvent.target.value })} placeholder="https://" /></label>
+          {advancedOpen && (
+            <div className="calendar-quick-advanced">
+              <label>
+                <span>{copy.location}</span>
+                <input
+                  className="calendar-quick-control"
+                  value={event.location || ""}
+                  onChange={(domEvent) =>
+                    onChange({ ...event, location: domEvent.target.value })
+                  }
+                  placeholder={copy.optional}
+                />
+              </label>
+              <label>
+                <span>{copy.link}</span>
+                <input
+                  className="calendar-quick-control"
+                  value={event.url || ""}
+                  onChange={(domEvent) =>
+                    onChange({ ...event, url: domEvent.target.value })
+                  }
+                  placeholder="https://"
+                />
+              </label>
+              <label>
+                <span>{t.note}</span>
+                <textarea
+                  className="calendar-quick-control calendar-quick-notes"
+                  value={event.description || ""}
+                  onChange={(domEvent) =>
+                    onChange({ ...event, description: domEvent.target.value })
+                  }
+                  placeholder={copy.description}
+                />
+              </label>
             </div>
-          </section>
+          )}
 
-          <section className="calendar-editor-section">
-            <div className="calendar-editor-section-title">{copy.notes}</div>
-            <textarea className="ui-control calendar-editor-notes" value={event.description || ""} onChange={(domEvent) => onChange({ ...event, description: domEvent.target.value })} placeholder={copy.description} />
-          </section>
+          <label className="calendar-quick-complete">
+            <input
+              type="checkbox"
+              checked={Boolean(event.completedAt)}
+              onChange={() =>
+                onChange({
+                  ...event,
+                  completedAt: event.completedAt
+                    ? null
+                    : new Date().toISOString(),
+                  status: event.completedAt ? "planned" : "completed",
+                })
+              }
+            />
+            <span>{copy.completed}</span>
+          </label>
         </div>
 
-        <footer className="calendar-editor-footer">
-          <div>{exists && <button type="button" className="ui-button ui-button--ghost" onClick={onDelete} style={{ color: c.red }}><Icon name="trash" size={14} />{t.calendarDelete}</button>}</div>
-          <div style={{ display: "flex", gap: 8 }}><SecondaryButton onClick={onClose}>{t.calendarCancel}</SecondaryButton><PrimaryButton disabled={!event.title?.trim() || !event.date} onClick={onSave}><Icon name="check" size={14} />{t.calendarSave}</PrimaryButton></div>
+        <footer className="calendar-quick-editor-footer">
+          <div>
+            {exists && (
+              <button
+                type="button"
+                className="calendar-quick-delete"
+                onClick={onDelete}
+                title={t.calendarDelete}
+              >
+                <Icon name="trash" size={15} />
+              </button>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <SecondaryButton onClick={onClose}>{t.calendarCancel}</SecondaryButton>
+            <PrimaryButton
+              disabled={!event.title?.trim() || !event.date}
+              onClick={onSave}
+            >
+              {t.calendarSave}
+            </PrimaryButton>
+          </div>
         </footer>
       </div>
     </Modal>
@@ -13368,68 +13810,189 @@ function CalendarEventEditor({
 }
 
 
-function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTotal = 0, fromDate = new Date() }) {
+function buildStudyPlanCalendarBundle({
+  moduleName,
+  plan,
+  lectures,
+  questionTotal = 0,
+  fromDate = new Date(),
+}) {
   if (!plan?.examDate || !moduleName) return { events: [], metadata: {} };
+
   const start = new Date(fromDate);
   start.setHours(0, 0, 0, 0);
   const exam = new Date(`${plan.examDate}T00:00:00`);
   const days = Math.max(0, Math.ceil((exam - start) / 86400000));
   if (days <= 0) return { events: [], metadata: {} };
+
   const excluded = new Set(plan.excludedDates || []);
   const doneIds = new Set(plan.doneLectureIds || []);
-  const pending = (lectures || []).filter((lecture) => !doneIds.has(lecture.id));
-  const lectureUnits = plan.mode === "lectures"
-    ? pending.flatMap((lecture) => Array.from({ length: lecture.parts || 1 }, (_, index) => ({ ...lecture, part: (lecture.parts || 1) > 1 ? index + 1 : null })))
-    : [];
+  const pendingLectures = (lectures || []).filter(
+    (lecture) => !doneIds.has(lecture.id)
+  );
   const dates = Array.from({ length: days }, (_, index) => addDays(start, index));
-  const available = dates.map((date, index) => ({ date, index, key: dateKey(date.getFullYear(), date.getMonth(), date.getDate()) })).filter((item) => !excluded.has(item.key));
-  const bucketCount = Math.max(1, available.length);
-  const distribute = (total) => {
-    const base = Math.floor(total / bucketCount);
-    const remainder = total % bucketCount;
-    return Array.from({ length: bucketCount }, (_, index) => base + (index < remainder ? 1 : 0));
-  };
-  const lectureCounts = distribute(lectureUnits.length);
-  const questionCounts = distribute(questionTotal);
-  let lectureCursor = 0;
+  const available = dates
+    .map((date) => ({
+      date,
+      key: dateKey(date.getFullYear(), date.getMonth(), date.getDate()),
+    }))
+    .filter((item) => !excluded.has(item.key));
+
+  if (!available.length) return { events: [], metadata: {} };
+
   const events = [];
   const metadata = {};
 
-  available.forEach((item, position) => {
-    const units = lectureUnits.slice(lectureCursor, lectureCursor + lectureCounts[position]);
-    lectureCursor += lectureCounts[position];
-    const questions = questionCounts[position] || 0;
-    if (!units.length && !questions) return;
-    const lectureIds = [...new Set(units.map((unit) => unit.id))];
-    const unitLabel = units.map((unit) => `${unit.id}${unit.part ? `.${unit.part}` : ""} ${unit.title}`).join(" · ");
-    const title = unitLabel || `${questions} MCQ`;
-    const id = `studyplan-${moduleName}-${item.key}`;
-    const event = {
-      id,
-      title,
-      date: item.key,
-      time: "",
-      type: "study",
-      planModuleId: moduleName,
-      lectureCount: lectureIds.length || null,
-      estimatedHours: Math.max(.5, Math.min(Number(plan.hoursPerDay) || 2, units.length * (Number(plan.hoursPerLecture) || 1) + questions * .04)),
-    };
-    events.push(event);
-    metadata[id] = {
-      source: "study-plan",
-      status: "planned",
-      needsScheduling: true,
-      lectureIds,
-      lectureUnits: units.map((unit) => ({ id: unit.id, part: unit.part || null, title: unit.title })),
-      questionCount: questions,
-      createdByUser: true,
-    };
-  });
+  if (plan.mode === "lectures") {
+    pendingLectures.forEach((lecture, index) => {
+      const dateIndex = Math.min(
+        available.length - 1,
+        Math.floor(
+          (index * available.length) /
+            Math.max(1, pendingLectures.length)
+        )
+      );
+      const item = available[dateIndex];
+      const id = `studyplan-${moduleName}-lecture-${lecture.id}`;
+      const parts = Math.max(1, Number(lecture.parts) || 1);
+      const hours = Math.max(
+        .5,
+        (Number(plan.hoursPerLecture) || 1) * parts
+      );
+
+      events.push({
+        id,
+        title: `${lecture.id} · ${lecture.title}`,
+        date: item.key,
+        time: "",
+        type: "study",
+        planModuleId: moduleName,
+        lectureCount: 1,
+        estimatedHours: hours,
+      });
+
+      metadata[id] = {
+        source: "study-plan",
+        status: "planned",
+        needsScheduling: true,
+        lectureId: lecture.id,
+        lectureIds: [lecture.id],
+        lectureUnits: [
+          {
+            id: lecture.id,
+            part: null,
+            parts,
+            title: lecture.title,
+          },
+        ],
+        questionCount: 0,
+        createdByUser: true,
+      };
+    });
+  } else {
+    const base = Math.floor(questionTotal / available.length);
+    const remainder = questionTotal % available.length;
+
+    available.forEach((item, index) => {
+      const questions = base + (index < remainder ? 1 : 0);
+      if (!questions) return;
+      const id = `studyplan-${moduleName}-questions-${item.key}`;
+
+      events.push({
+        id,
+        title: `${questions} MCQ`,
+        date: item.key,
+        time: "",
+        type: "review",
+        planModuleId: moduleName,
+        lectureCount: null,
+        estimatedHours: Math.max(
+          .5,
+          Math.min(Number(plan.hoursPerDay) || 2, questions * .04)
+        ),
+      });
+
+      metadata[id] = {
+        source: "study-plan",
+        status: "planned",
+        needsScheduling: true,
+        lectureIds: [],
+        lectureUnits: [],
+        questionCount: questions,
+        createdByUser: true,
+      };
+    });
+  }
 
   const examId = `studyplan-exam-${moduleName}`;
-  events.push({ id: examId, title: `${moduleName} · Eksamen`, date: plan.examDate, time: "", type: "exam", planModuleId: moduleName, estimatedHours: 1 });
-  metadata[examId] = { source: "study-plan", status: "planned", needsScheduling: false, createdByUser: true, lectureIds: [] };
+  events.push({
+    id: examId,
+    title: `${moduleName} · Eksamen`,
+    date: plan.examDate,
+    time: "",
+    type: "exam",
+    planModuleId: moduleName,
+    estimatedHours: 1,
+  });
+  metadata[examId] = {
+    source: "study-plan",
+    status: "planned",
+    needsScheduling: false,
+    createdByUser: true,
+    lectureIds: [],
+  };
+
   return { events, metadata };
+}
+
+function reconcileStudyPlanCalendarEvents({
+  moduleName,
+  generatedEvents,
+  generatedMetadata,
+  previousEvents,
+  previousMetadata,
+}) {
+  const moduleEvents = (previousEvents || []).filter(
+    (event) =>
+      event.planModuleId === moduleName &&
+      String(event.id).startsWith("studyplan-")
+  );
+  const exactById = Object.fromEntries(
+    moduleEvents.map((event) => [event.id, event])
+  );
+  const legacyUseCount = {};
+
+  return generatedEvents.map((event) => {
+    const exact = exactById[event.id];
+    if (exact) {
+      return {
+        ...event,
+        date: exact.date || event.date,
+        time: exact.time || event.time,
+        endTime: exact.endTime || event.endTime,
+        estimatedHours: exact.estimatedHours || event.estimatedHours,
+      };
+    }
+
+    const lectureId = generatedMetadata[event.id]?.lectureIds?.[0];
+    if (!lectureId) return event;
+
+    const legacy = moduleEvents.find((candidate) => {
+      const ids = previousMetadata[candidate.id]?.lectureIds || [];
+      return ids.includes(lectureId);
+    });
+    if (!legacy) return event;
+
+    const useIndex = legacyUseCount[legacy.id] || 0;
+    legacyUseCount[legacy.id] = useIndex + 1;
+
+    return {
+      ...event,
+      date: legacy.date || event.date,
+      time: useIndex === 0 ? legacy.time || "" : "",
+      endTime: useIndex === 0 ? legacy.endTime || "" : "",
+    };
+  });
 }
 
 function CalendarPanel({ c, t, language, theme, module, onClose }) {
@@ -13460,22 +14023,48 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
     const bundle = buildStudyPlanCalendarBundle({ moduleName: module, plan, lectures: moduleLectures, questionTotal });
     if (!bundle.events.length) return;
     setEvents((previous) => {
-      const existingById = Object.fromEntries(previous.filter((event) => event.planModuleId === module && String(event.id).startsWith("studyplan-")).map((event) => [event.id, event]));
-      const generated = bundle.events.map((event) => {
-        const existing = existingById[event.id];
-        return existing ? { ...event, date: existing.date || event.date, time: existing.time || event.time, estimatedHours: existing.estimatedHours || event.estimatedHours } : event;
+      const generated = reconcileStudyPlanCalendarEvents({
+        moduleName: module,
+        generatedEvents: bundle.events,
+        generatedMetadata: bundle.metadata,
+        previousEvents: previous,
+        previousMetadata: eventMeta,
       });
-      return [...previous.filter((event) => event.planModuleId !== module || !String(event.id).startsWith("studyplan-")), ...generated];
+      return [
+        ...previous.filter(
+          (event) =>
+            event.planModuleId !== module ||
+            !String(event.id).startsWith("studyplan-")
+        ),
+        ...generated,
+      ];
     });
     setEventMeta((previous) => {
+      const generated = reconcileStudyPlanCalendarEvents({
+        moduleName: module,
+        generatedEvents: bundle.events,
+        generatedMetadata: bundle.metadata,
+        previousEvents: events,
+        previousMetadata: previous,
+      });
       const next = { ...previous };
       Object.entries(bundle.metadata).forEach(([id, generatedMeta]) => {
         const existingMeta = previous[id] || {};
+        const generatedEvent = generated.find((event) => event.id === id);
         next[id] = {
           ...generatedMeta,
-          ...(existingMeta.completedAt ? { completedAt: existingMeta.completedAt, status: existingMeta.status || "completed" } : {}),
-          ...(existingMeta.missedResolvedAt ? { missedResolvedAt: existingMeta.missedResolvedAt } : {}),
-          needsScheduling: events.find((event) => event.id === id)?.time ? false : generatedMeta.needsScheduling,
+          ...(existingMeta.completedAt
+            ? {
+                completedAt: existingMeta.completedAt,
+                status: existingMeta.status || "completed",
+              }
+            : {}),
+          ...(existingMeta.missedResolvedAt
+            ? { missedResolvedAt: existingMeta.missedResolvedAt }
+            : {}),
+          needsScheduling: generatedEvent?.time
+            ? false
+            : generatedMeta.needsScheduling,
         };
       });
       return next;
@@ -16476,16 +17065,30 @@ function StudyPlan({ c, language, user, setUser }) {
       questionTotal,
       fromDate: today,
     });
-    const stored = JSON.parse(localStorage.getItem(STORAGE.calendarEvents) || "[]");
-    const existingById = Object.fromEntries(stored.filter((event) => event.planModuleId === moduleName && String(event.id).startsWith("studyplan-")).map((event) => [event.id, event]));
-    const withoutOldPlan = stored.filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-"));
-    const mergedPlanEvents = bundle.events.map((event) => {
-      const existingEvent = existingById[event.id];
-      return existingEvent ? { ...event, date: existingEvent.date || event.date, time: existingEvent.time || event.time, estimatedHours: existingEvent.estimatedHours || event.estimatedHours } : event;
+    const stored = JSON.parse(
+      localStorage.getItem(STORAGE.calendarEvents) || "[]"
+    );
+    const storedMeta = JSON.parse(
+      localStorage.getItem(STORAGE.calendarEventMeta) || "{}"
+    );
+    const withoutOldPlan = stored.filter(
+      (event) =>
+        event.planModuleId !== moduleName ||
+        !String(event.id).startsWith("studyplan-")
+    );
+    const mergedPlanEvents = reconcileStudyPlanCalendarEvents({
+      moduleName,
+      generatedEvents: bundle.events,
+      generatedMetadata: bundle.metadata,
+      previousEvents: stored,
+      previousMetadata: storedMeta,
     });
-    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify([...withoutOldPlan, ...mergedPlanEvents]));
+    localStorage.setItem(
+      STORAGE.calendarEvents,
+      JSON.stringify([...withoutOldPlan, ...mergedPlanEvents])
+    );
 
-    const storedMeta = JSON.parse(localStorage.getItem(STORAGE.calendarEventMeta) || "{}");
+
     const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id]) => !String(id).startsWith(`studyplan-${moduleName}`)));
     Object.entries(bundle.metadata).forEach(([id, generatedMeta]) => {
       const previousMeta = storedMeta[id] || {};
@@ -16493,7 +17096,7 @@ function StudyPlan({ c, language, user, setUser }) {
         ...generatedMeta,
         ...(previousMeta.completedAt ? { completedAt: previousMeta.completedAt, status: previousMeta.status || "completed" } : {}),
         ...(previousMeta.missedResolvedAt ? { missedResolvedAt: previousMeta.missedResolvedAt } : {}),
-        needsScheduling: existingById[id]?.time ? false : generatedMeta.needsScheduling,
+        needsScheduling: mergedPlanEvents.find((event) => event.id === id)?.time ? false : generatedMeta.needsScheduling,
       };
     });
     localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(nextMeta));
@@ -17116,23 +17719,48 @@ function Dashboard({
     const bundle = buildStudyPlanCalendarBundle({ moduleName: currentModule, plan: activePlan, lectures: planLectures, questionTotal: questionCount, fromDate: today });
     if (!bundle.events.length) return;
     setCalendarEvents((previous) => {
-      const existingById = Object.fromEntries(previous.filter((event) => event.planModuleId === currentModule && String(event.id).startsWith("studyplan-")).map((event) => [event.id, event]));
-      const generated = bundle.events.map((event) => {
-        const existing = existingById[event.id];
-        return existing ? { ...event, date: existing.date || event.date, time: existing.time || event.time, estimatedHours: existing.estimatedHours || event.estimatedHours } : event;
+      const generated = reconcileStudyPlanCalendarEvents({
+        moduleName: currentModule,
+        generatedEvents: bundle.events,
+        generatedMetadata: bundle.metadata,
+        previousEvents: previous,
+        previousMetadata: calendarEventMeta,
       });
-      return [...previous.filter((event) => event.planModuleId !== currentModule || !String(event.id).startsWith("studyplan-")), ...generated];
+      return [
+        ...previous.filter(
+          (event) =>
+            event.planModuleId !== currentModule ||
+            !String(event.id).startsWith("studyplan-")
+        ),
+        ...generated,
+      ];
     });
     setCalendarEventMeta((previous) => {
+      const generated = reconcileStudyPlanCalendarEvents({
+        moduleName: currentModule,
+        generatedEvents: bundle.events,
+        generatedMetadata: bundle.metadata,
+        previousEvents: calendarEvents,
+        previousMetadata: previous,
+      });
       const next = { ...previous };
       Object.entries(bundle.metadata).forEach(([id, generatedMeta]) => {
         const existingMeta = previous[id] || {};
-        const existingBase = calendarEvents.find((event) => event.id === id);
+        const generatedEvent = generated.find((event) => event.id === id);
         next[id] = {
           ...generatedMeta,
-          ...(existingMeta.completedAt ? { completedAt: existingMeta.completedAt, status: existingMeta.status || "completed" } : {}),
-          ...(existingMeta.missedResolvedAt ? { missedResolvedAt: existingMeta.missedResolvedAt } : {}),
-          needsScheduling: existingBase?.time ? false : generatedMeta.needsScheduling,
+          ...(existingMeta.completedAt
+            ? {
+                completedAt: existingMeta.completedAt,
+                status: existingMeta.status || "completed",
+              }
+            : {}),
+          ...(existingMeta.missedResolvedAt
+            ? { missedResolvedAt: existingMeta.missedResolvedAt }
+            : {}),
+          needsScheduling: generatedEvent?.time
+            ? false
+            : generatedMeta.needsScheduling,
         };
       });
       return next;
@@ -27377,14 +28005,31 @@ function Sidebar({
   const displayName = String(user?.name || t.profile || "MedFLUEN").trim();
   const userInitial = displayName.slice(0, 1).toUpperCase() || "M";
   const moduleLabel = String(user?.module || "").trim();
-  const [quickAccessOrder, setQuickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, ["mcq", "repeat", "insights"]);
-  const [reordering, setReordering] = useState(false);
-  const dragIdRef = useRef(null);
+  const menuDirection = language === "ar" ? "rtl" : "ltr";
+  const [quickAccessOrder] = useStoredState(
+    STORAGE.quickAccessOrder,
+    ["mcq", "repeat", "insights"]
+  );
 
   const copy = ({
-    da: { study: "Studie", workspace: "Workspace", analytics: "Analyse", planning: "Planlægning", resources: "Værktøjer", lectures: "Forelæsninger", examSets: "Eksamenssæt", repetition: "Repetition", edit: "Rediger", done: "Færdig" },
-    en: { study: "Study", workspace: "Workspace", analytics: "Analytics", planning: "Planning", resources: "Tools", lectures: "Lectures", examSets: "Exam sets", repetition: "Review", edit: "Edit", done: "Done" },
-    ar: { study: "الدراسة", workspace: "مساحة العمل", analytics: "التحليلات", planning: "التخطيط", resources: "الأدوات", lectures: "المحاضرات", examSets: "مجموعات الامتحان", repetition: "المراجعة", edit: "تعديل", done: "تم" },
+    da: {
+      repetition: "Repetition",
+      lectures: "Forelæsninger",
+      examSets: "Eksamenssæt",
+      studyPlan: "Studieplan",
+    },
+    en: {
+      repetition: "Review",
+      lectures: "Lectures",
+      examSets: "Exam sets",
+      studyPlan: "Study plan",
+    },
+    ar: {
+      repetition: "المراجعة",
+      lectures: "المحاضرات",
+      examSets: "مجموعات الامتحان",
+      studyPlan: "خطة الدراسة",
+    },
   })[language] || {};
 
   function closeUtilityPanels() {
@@ -27401,57 +28046,138 @@ function Sidebar({
   }
 
   function openUtility(type) {
-    const nextNotes = type === "notes" && !notesOpen;
-    const nextCalendar = type === "calendar" && !calendarOpen;
-    const nextDrByte = type === "drbyte" && !drByteOpen;
     if (type === "calendar" && calendarOpen) {
       onCloseCalendar();
       return;
     }
-    setNotesOpen(nextNotes);
-    setCalendarOpen(nextCalendar);
-    setDrByteOpen(nextDrByte);
+    setNotesOpen(type === "notes" ? !notesOpen : false);
+    setCalendarOpen(type === "calendar" ? !calendarOpen : false);
+    setDrByteOpen(type === "drbyte" ? !drByteOpen : false);
     setProfileOpen(false);
   }
 
   const quickDefinitions = {
-    mcq: { icon: "clipboard", label: t.clinicalMcq, badge: 0, action: () => navigate("mcq") },
-    repeat: { icon: "reset", label: copy.repetition, badge: dueCount, action: () => navigate("mcq", { mode: "due" }) },
-    insights: { icon: "chart", label: t.insights, badge: 0, action: () => navigate("insights") },
+    mcq: {
+      icon: "clipboard",
+      label: t.clinicalMcq,
+      badge: 0,
+      active: route === "mcq",
+      action: () => navigate("mcq"),
+    },
+    repeat: {
+      icon: "reset",
+      label: copy.repetition,
+      badge: dueCount,
+      active: false,
+      action: () => navigate("mcq", { mode: "due" }),
+    },
+    insights: {
+      icon: "chart",
+      label: t.insights,
+      badge: 0,
+      active: route === "insights",
+      action: () => navigate("insights"),
+    },
   };
-  const safeQuickOrder = [...quickAccessOrder.filter((id) => quickDefinitions[id]), ...["mcq", "repeat", "insights"].filter((id) => !quickAccessOrder.includes(id))];
 
-  function moveQuick(fromId, toId) {
-    if (!fromId || fromId === toId) return;
-    setQuickAccessOrder((previous) => {
-      const next = [...safeQuickOrder];
-      const from = next.indexOf(fromId);
-      const to = next.indexOf(toId);
-      if (from < 0 || to < 0) return previous;
-      next.splice(from, 1);
-      next.splice(to, 0, fromId);
-      return next;
-    });
-  }
+  const safeQuickOrder = [
+    ...quickAccessOrder.filter((id) => quickDefinitions[id]),
+    ...["mcq", "repeat", "insights"].filter(
+      (id) => !quickAccessOrder.includes(id)
+    ),
+  ];
 
-  function NavRow({ icon, label, active, onClick, badge = 0, draggable = false, id = null }) {
+  function NavButton({
+    icon,
+    title,
+    active,
+    onClick,
+    badge = 0,
+    isRoute = false,
+  }) {
     return (
       <button
         type="button"
-        className="sidebar-wide-row"
+        title={title}
+        aria-label={title}
+        aria-current={isRoute && active ? "page" : undefined}
+        aria-pressed={!isRoute ? Boolean(active) : undefined}
         data-active={active ? "true" : "false"}
-        draggable={draggable}
-        onDragStart={() => { dragIdRef.current = id; }}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={() => { moveQuick(dragIdRef.current, id); dragIdRef.current = null; }}
-        onDragEnd={() => { dragIdRef.current = null; }}
-        onClick={() => !reordering && onClick()}
-        title={label}
+        onClick={onClick}
+        className="sidebar-nav-btn"
+        style={{
+          position: "relative",
+          width: 44,
+          height: 44,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          padding: 0,
+          border: `1px solid ${active ? c.blueBorder : "transparent"}`,
+          borderRadius: 13,
+          background: active ? c.blueSoft : "transparent",
+          color: active ? c.blue : c.secondary,
+        }}
       >
-        <span className="sidebar-wide-row-icon"><Icon name={icon} size={16} /></span>
-        <span className="sidebar-wide-row-label">{label}</span>
-        {badge > 0 && <span className="sidebar-wide-row-badge">{badge > 99 ? "99+" : badge}</span>}
-        {reordering && draggable && <Icon name="more" size={13} />}
+        <span
+          className="sidebar-nav-icon"
+          style={{
+            width: 30,
+            height: 30,
+            display: "grid",
+            placeItems: "center",
+            borderRadius: 9,
+          }}
+        >
+          <Icon name={icon} size={18} stroke={active ? 2.35 : 2.05} />
+        </span>
+
+        {active && (
+          <span
+            aria-hidden="true"
+            className="sidebar-active-dot"
+            style={{
+              position: "absolute",
+              insetInlineStart: -8,
+              top: "50%",
+              width: 3,
+              height: 19,
+              borderRadius: 99,
+              background: c.blue,
+              transform: "translateY(-50%)",
+            }}
+          />
+        )}
+
+        {badge > 0 && (
+          <span
+            aria-label={`${badge}`}
+            style={{
+              position: "absolute",
+              top: -4,
+              insetInlineEnd: -4,
+              minWidth: 18,
+              height: 18,
+              display: "grid",
+              placeItems: "center",
+              padding: "0 4px",
+              borderRadius: 99,
+              background: c.red,
+              color: "#fff",
+              border: `2px solid ${c.panel}`,
+              fontSize: 8.5,
+              fontWeight: 900,
+              lineHeight: 1,
+            }}
+          >
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
+
+        <span aria-hidden="true" className="sidebar-tooltip">
+          {title}
+        </span>
       </button>
     );
   }
@@ -27469,86 +28195,319 @@ function Sidebar({
     <aside
       data-tour="sidebar"
       className="app-sidebar app-surface"
-      aria-label={language === "en" ? "Primary navigation" : language === "ar" ? "التنقل الرئيسي" : "Primær navigation"}
+      aria-label={
+        language === "en"
+          ? "Primary navigation"
+          : language === "ar"
+            ? "التنقل الرئيسي"
+            : "Primær navigation"
+      }
       style={{
-        width: 238,
+        width: 74,
         height: "100%",
         display: "flex",
         flexDirection: "column",
+        alignItems: "center",
         flexShrink: 0,
-        padding: "18px 0 14px",
+        padding: "14px 0 12px",
         background: c.panel,
         borderInlineEnd: `1px solid ${c.border}`,
-        boxShadow: "8px 0 28px rgba(22,50,90,.025)",
-        direction: language === "ar" ? "rtl" : "ltr",
-        overflowY: "auto",
-        overflowX: "hidden",
+        boxShadow: "6px 0 22px rgba(22,50,90,.025)",
+        direction: "ltr",
+        overflow: "visible",
       }}
     >
-      <button type="button" className="sidebar-wide-brand" onClick={() => navigate("home")} style={{ border: 0, background: "transparent", textAlign: "start" }}>
-        <span className="sidebar-wide-brand-mark">M</span>
-        <span className="sidebar-wide-brand-name">Med<span style={{ color: c.blue }}>FLUEN</span></span>
+      <button
+        type="button"
+        title="MedFLUEN"
+        aria-label={
+          language === "en"
+            ? "Go to home"
+            : language === "ar"
+              ? "الانتقال إلى الصفحة الرئيسية"
+              : "Gå til Hjem"
+        }
+        onClick={() => navigate("home")}
+        className="sidebar-logo"
+        style={{
+          width: 42,
+          height: 42,
+          display: "grid",
+          placeItems: "center",
+          flexShrink: 0,
+          marginBottom: 14,
+          padding: 0,
+          border: 0,
+          borderRadius: 13,
+          background: c.blueGradient,
+          color: "#fff",
+          boxShadow: "0 9px 20px rgba(22,101,234,.24)",
+        }}
+      >
+        <Icon name="logo" size={21} stroke={2.2} />
       </button>
 
-      <div className="sidebar-wide-section">
-        <div className="sidebar-wide-section-head">
-          <span>{copy.study}</span>
-          <button type="button" onClick={() => setReordering((value) => !value)} title={reordering ? copy.done : copy.edit} style={{ border: 0, background: "transparent", color: reordering ? c.blue : c.muted, padding: 2 }}>
-            <Icon name={reordering ? "check" : "edit"} size={12} />
-          </button>
-        </div>
-        <div className="sidebar-wide-list">
-          <NavRow icon="home" label={t.home} active={route === "home"} onClick={() => navigate("home")} />
-          {safeQuickOrder.map((id) => {
-            const item = quickDefinitions[id];
-            return (
-              <NavRow
-                key={id}
-                id={id}
-                icon={item.icon}
-                label={item.label}
-                active={(id === "mcq" && route === "mcq") || (id === "insights" && route === "insights")}
-                onClick={item.action}
-                badge={item.badge}
-                draggable={reordering}
-              />
-            );
-          })}
-          <NavRow icon="book" label={copy.lectures} active={false} onClick={() => navigate("mcq", { contentType: "lectures" })} />
-        </div>
-      </div>
+      <nav
+        aria-label={
+          language === "en"
+            ? "Main study navigation"
+            : language === "ar"
+              ? "التنقل الدراسي الرئيسي"
+              : "Primær studienavigation"
+        }
+        className="sidebar-nav-group"
+        style={{
+          display: "grid",
+          gap: 2,
+          padding: 3,
+          borderRadius: 16,
+          background: c.soft,
+          border: `1px solid ${c.border}`,
+        }}
+      >
+        <NavButton
+          icon="home"
+          title={t.home}
+          active={route === "home"}
+          isRoute
+          onClick={() => navigate("home")}
+        />
+        {safeQuickOrder.map((id) => {
+          const item = quickDefinitions[id];
+          return (
+            <NavButton
+              key={id}
+              icon={item.icon}
+              title={item.label}
+              active={item.active}
+              badge={item.badge}
+              isRoute={id !== "repeat"}
+              onClick={item.action}
+            />
+          );
+        })}
+      </nav>
 
-      <div className="sidebar-wide-section">
-        <div className="sidebar-wide-section-head"><span>{copy.planning}</span></div>
-        <div className="sidebar-wide-list">
-          <NavRow icon="calendar" label={t.todaysPlanTitle || t.calendar} active={route === "study-plan"} onClick={() => navigate("study-plan")} />
-          <NavRow icon="calendar" label={t.calendar} active={calendarOpen} onClick={() => openUtility("calendar")} />
-        </div>
-      </div>
+      <div
+        aria-hidden="true"
+        style={{
+          width: 26,
+          height: 1,
+          margin: "11px 0",
+          background: c.borderStrong,
+          opacity: .7,
+        }}
+      />
 
-      <div className="sidebar-wide-section">
-        <div className="sidebar-wide-section-head"><span>{copy.workspace}</span></div>
-        <div className="sidebar-wide-list">
-          <NavRow icon="notebook" label={t.notebook} active={notesOpen} onClick={() => openUtility("notes")} />
-          <NavRow icon="chat" label={t.drByte} active={drByteOpen} onClick={() => openUtility("drbyte")} />
-          <NavRow icon="book" label={copy.examSets} active={false} onClick={() => navigate("mcq", { contentType: "examSet" })} />
-        </div>
-      </div>
+      <nav
+        aria-label={
+          language === "en"
+            ? "Planning tools"
+            : language === "ar"
+              ? "أدوات التخطيط"
+              : "Planlægningsværktøjer"
+        }
+        className="sidebar-nav-group"
+        style={{
+          display: "grid",
+          gap: 2,
+          padding: 3,
+          borderRadius: 16,
+          background: c.soft,
+          border: `1px solid ${c.border}`,
+        }}
+      >
+        <NavButton
+          icon="book"
+          title={copy.lectures}
+          active={false}
+          onClick={() => navigate("mcq", { contentType: "lectures" })}
+        />
+        <NavButton
+          icon="target"
+          title={copy.studyPlan}
+          active={route === "study-plan"}
+          isRoute
+          onClick={() => navigate("study-plan")}
+        />
+        <NavButton
+          icon="calendar"
+          title={t.calendar}
+          active={calendarOpen}
+          onClick={() => openUtility("calendar")}
+        />
+      </nav>
 
-      <div className="sidebar-wide-profile" style={{ position: "relative" }}>
-        <button type="button" className="sidebar-wide-profile-button" aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}>
-          <span className="sidebar-wide-avatar">{userInitial}</span>
-          <span className="sidebar-wide-profile-copy" style={{ minWidth: 0, flex: 1 }}>
-            <span className="sidebar-wide-profile-name" style={{ display: "block" }}>{displayName}</span>
-            <span className="sidebar-wide-profile-meta" style={{ display: "block" }}>{moduleLabel}</span>
-          </span>
-          <span className="sidebar-wide-profile-chevron"><Icon name="right" size={13} /></span>
+      <div
+        aria-hidden="true"
+        style={{
+          width: 26,
+          height: 1,
+          margin: "11px 0",
+          background: c.borderStrong,
+          opacity: .7,
+        }}
+      />
+
+      <nav
+        aria-label={
+          language === "en"
+            ? "Workspace tools"
+            : language === "ar"
+              ? "أدوات مساحة العمل"
+              : "Workspace-værktøjer"
+        }
+        className="sidebar-nav-group"
+        style={{
+          display: "grid",
+          gap: 2,
+          padding: 3,
+          borderRadius: 16,
+          background: c.soft,
+          border: `1px solid ${c.border}`,
+        }}
+      >
+        <NavButton
+          icon="notebook"
+          title={t.notebook}
+          active={notesOpen}
+          onClick={() => openUtility("notes")}
+        />
+        <NavButton
+          icon="chat"
+          title={t.drByte}
+          active={drByteOpen}
+          onClick={() => openUtility("drbyte")}
+        />
+        <NavButton
+          icon="cards"
+          title={copy.examSets}
+          active={false}
+          onClick={() => navigate("mcq", { contentType: "examSet" })}
+        />
+      </nav>
+
+      <div style={{ position: "relative", marginTop: "auto", paddingTop: 12 }}>
+        <button
+          type="button"
+          title={t.profile}
+          aria-label={t.profile}
+          aria-expanded={profileOpen}
+          aria-haspopup="menu"
+          onClick={() => setProfileOpen((value) => !value)}
+          className="sidebar-profile-btn"
+          style={{
+            width: 42,
+            height: 42,
+            display: "grid",
+            placeItems: "center",
+            padding: 0,
+            borderRadius: 13,
+            border: `1px solid ${profileOpen ? c.blueBorder : c.border}`,
+            background: profileOpen ? c.blueSoft : c.soft,
+            color: profileOpen ? c.blue : c.text,
+            fontSize: 12.5,
+            fontWeight: 900,
+          }}
+        >
+          {userInitial}
         </button>
 
         {profileOpen && (
-          <div role="menu" className="sidebar-profile-menu" style={{ position: "fixed", zIndex: 1200, insetInlineStart: "calc(var(--app-sidebar-width) + 10px)", bottom: 16, width: 220, padding: 8, borderRadius: 14, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg }}>
+          <div
+            role="menu"
+            className="sidebar-profile-menu"
+            style={{
+              position: "fixed",
+              zIndex: 1200,
+              left: 86,
+              bottom: 14,
+              width: 250,
+              padding: 8,
+              borderRadius: 16,
+              background: c.panel,
+              border: `1px solid ${c.border}`,
+              boxShadow: c.shadowLg,
+              direction: menuDirection,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "9px 9px 11px",
+                marginBottom: 5,
+                borderBottom: `1px solid ${c.border}`,
+              }}
+            >
+              <span
+                style={{
+                  width: 34,
+                  height: 34,
+                  display: "grid",
+                  placeItems: "center",
+                  flexShrink: 0,
+                  borderRadius: 10,
+                  background: c.blueSoft,
+                  color: c.blue,
+                  fontSize: 11,
+                  fontWeight: 900,
+                }}
+              >
+                {userInitial}
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <strong
+                  style={{
+                    display: "block",
+                    overflow: "hidden",
+                    color: c.text,
+                    fontSize: 11.5,
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {displayName}
+                </strong>
+                <small
+                  style={{
+                    display: "block",
+                    marginTop: 2,
+                    overflow: "hidden",
+                    color: c.muted,
+                    fontSize: 9,
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {moduleLabel}
+                </small>
+              </span>
+            </div>
+
             {profileActions.map(([action, icon, label]) => (
-              <button key={action} type="button" role="menuitem" className="sidebar-menu-item" onClick={() => onProfileAction(action)} style={{ width: "100%", minHeight: 38, display: "flex", alignItems: "center", gap: 9, padding: "0 10px", border: 0, borderRadius: 9, background: "transparent", color: action === "logout" || action === "signout" ? c.red : c.secondary, fontSize: 10, fontWeight: 720, textAlign: "start" }}>
+              <button
+                key={action}
+                type="button"
+                role="menuitem"
+                onClick={() => onProfileAction(action)}
+                style={{
+                  width: "100%",
+                  minHeight: 38,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 9,
+                  padding: "0 10px",
+                  border: 0,
+                  borderRadius: 9,
+                  background: "transparent",
+                  color: action === "signout" ? c.red : c.text,
+                  fontSize: 11,
+                  fontWeight: 720,
+                  textAlign: "start",
+                }}
+              >
                 <Icon name={icon} size={14} />
                 {label}
               </button>
@@ -27563,10 +28522,12 @@ function Sidebar({
 function Modal({ c, children, onClose, size = "default" }) {
   const widthBySize = {
     default: "min(400px,100%)",
+    calendar: "min(500px,calc(100vw - 32px))",
     large: "min(880px,94vw)",
   };
   const maxHeightBySize = {
     default: "88vh",
+    calendar: "min(680px,86vh)",
     large: "86vh",
   };
   return (
@@ -27600,8 +28561,8 @@ function Modal({ c, children, onClose, size = "default" }) {
           width: widthBySize[size] || widthBySize.default,
           maxHeight: maxHeightBySize[size] || maxHeightBySize.default,
           overflowY: "auto",
-          padding: size === "large" ? 32 : 24,
-          borderRadius: 22,
+          padding: size === "calendar" ? 0 : size === "large" ? 32 : 24,
+          borderRadius: size === "calendar" ? 16 : 22,
           background: c.panel,
           border: `1px solid ${c.border}`,
           boxShadow: c.shadowLg,
