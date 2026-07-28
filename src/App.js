@@ -54,6 +54,8 @@ const STORAGE = {
   lectureNotes: "medlearn-lecture-notes",
   sharedLectureNotes: "medlearn-shared-lecture-notes",
   lectureProgress: "medlearn-lecture-progress",
+  dashboardPreferences: "medlearn-dashboard-preferences",
+  dashboardDayClose: "medlearn-dashboard-day-close",
 };
 
 const LANGUAGES = [
@@ -3687,6 +3689,8 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
     ),
     left: <path d="m15 18-6-6 6-6" />,
     right: <path d="m9 18 6-6-6-6" />,
+    up: <path d="m6 15 6-6 6 6" />,
+    down: <path d="m6 9 6 6 6-6" />,
     book: (
       <>
         <path d="M4 4.5A3.5 3.5 0 0 1 7.5 1H20v18H7.5A3.5 3.5 0 0 0 4 22Z" />
@@ -10334,7 +10338,63 @@ select.ui-control {
   .topbar-digital-clock:hover .topbar-digital-time { transform: none !important; }
 }
 
-    `}</style>
+/* ============================================================
+   SEGMENT 2.0 — HOME CONTROL CENTER
+   ============================================================ */
+.home-v2-heading { align-items: center; }
+.home-v2-customize-button { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 10.5px; font-weight: 780; box-shadow: none; }
+.home-v2-customize-button:hover { color: var(--ui-blue); border-color: var(--ui-blue-border); background: var(--ui-blue-soft); }
+.home-v2-quick-section { display: grid; gap: 8px; }
+.home-v2-section-label { color: var(--ui-muted); font-size: 9.5px; font-weight: 820; letter-spacing: .08em; text-transform: uppercase; }
+.home-v2-quick-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; }
+.home-v2-quick-item { min-width: 0; min-height: 68px; display: grid; grid-template-columns: 30px minmax(0,1fr); grid-template-rows: auto auto; column-gap: 9px; align-items: center; padding: 10px; border: 1px solid var(--ui-border); border-radius: 13px; background: var(--ui-panel); color: var(--ui-text); text-align: start; box-shadow: none; transition: border-color 150ms ease, background 150ms ease, transform 150ms var(--ui-ease); }
+.home-v2-quick-item > span { grid-row: 1 / 3; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: var(--ui-soft); color: var(--ui-blue); }
+.home-v2-quick-item strong { overflow: hidden; font-size: 10.5px; font-weight: 800; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.home-v2-quick-item small { overflow: hidden; color: var(--ui-muted); font-size: 8.8px; font-weight: 650; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.home-v2-quick-item:not(:disabled):hover { transform: translateY(-1px); border-color: var(--ui-blue-border); background: var(--ui-blue-soft); }
+.home-v2-quick-item:disabled { opacity: .46; }
+.home-v2-rail-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.home-v2-rail-card-heading > button { border: 0; background: transparent; color: var(--ui-blue); font-size: 9px; font-weight: 800; }
+.home-v2-empty-card { min-height: 136px; display: grid; align-content: center; justify-items: start; gap: 6px; padding-top: 8px; }
+.home-v2-empty-card > span { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: var(--ui-soft); color: var(--ui-blue); }
+.home-v2-empty-card > strong { color: var(--ui-text); font-size: 11px; font-weight: 820; }
+.home-v2-empty-card > small { color: var(--ui-muted); font-size: 9.5px; font-weight: 620; line-height: 1.5; }
+.home-v2-empty-card .ui-button { min-height: 32px; margin-top: 4px; padding-inline: 10px; font-size: 9.5px; }
+.home-v2-empty-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+.home-v2-day-close { display: grid; grid-template-columns: 38px minmax(0,1fr) auto auto; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--ui-green-border); border-radius: 16px; background: var(--ui-green-soft); }
+.home-v2-day-close-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: var(--ui-panel); color: var(--ui-green); }
+.home-v2-day-close-copy { display: grid; gap: 3px; }
+.home-v2-day-close-copy strong { color: var(--ui-text); font-size: 12px; font-weight: 840; }
+.home-v2-day-close-copy small { color: var(--ui-secondary); font-size: 9.5px; font-weight: 630; }
+.home-v2-day-close-metrics { display: flex; gap: 15px; }
+.home-v2-day-close-metrics span { display: grid; gap: 2px; color: var(--ui-muted); font-size: 8.5px; font-weight: 690; white-space: nowrap; }
+.home-v2-day-close-metrics b { color: var(--ui-text); font-size: 11px; font-weight: 850; }
+.home-v2-day-close-dismiss { border: 0; background: transparent; color: var(--ui-secondary); font-size: 9px; font-weight: 780; }
+.home-v2-editor-backdrop { position: fixed; inset: 0; z-index: 1450; display: grid; place-items: center; padding: 24px; background: var(--ui-overlay); }
+.home-v2-editor { width: min(520px, calc(100vw - 32px)); max-height: min(720px, calc(100vh - 48px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 18px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); }
+.home-v2-editor > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 17px 18px; border-bottom: 1px solid var(--ui-border); }
+.home-v2-editor > header > div { display: grid; gap: 4px; }
+.home-v2-editor > header strong { color: var(--ui-text); font-size: 14px; font-weight: 860; }
+.home-v2-editor > header small { color: var(--ui-muted); font-size: 10px; font-weight: 620; line-height: 1.45; }
+.home-v2-editor-body { min-height: 0; overflow-y: auto; display: grid; gap: 14px; padding: 16px 18px; }
+.home-v2-editor-group { display: grid; gap: 7px; padding: 12px; border: 1px solid var(--ui-border); border-radius: 13px; background: var(--ui-soft); }
+.home-v2-editor-group h3 { margin: 0 0 2px; color: var(--ui-text); font-size: 10.5px; font-weight: 830; }
+.home-v2-editor-toggle, .home-v2-editor-row { min-height: 34px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 8px; border-radius: 9px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 10px; font-weight: 720; }
+.home-v2-editor-toggle { justify-content: flex-start; }
+.home-v2-editor-toggle input, .home-v2-editor-row input { accent-color: var(--ui-blue); }
+.home-v2-editor-row label { display: flex; align-items: center; gap: 7px; }
+.home-v2-editor-row > div { display: flex; gap: 3px; }
+.home-v2-editor-row button { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-secondary); }
+.home-v2-editor-row button:disabled { opacity: .32; }
+.home-v2-editor > footer { display: flex; justify-content: flex-end; padding: 12px 18px; border-top: 1px solid var(--ui-border); }
+.lecture-view-toggle span { display: none !important; }
+.lecture-view-toggle { width: 28px !important; min-width: 28px !important; justify-content: center !important; padding: 0 !important; }
+@media (max-width: 1100px) { .home-v2-quick-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .home-v2-day-close { grid-template-columns: 38px minmax(0,1fr) auto; } .home-v2-day-close-metrics { grid-column: 2 / -1; } }
+@media (max-width: 760px) { .home-v2-customize-button { width: 34px; padding: 0; justify-content: center; font-size: 0; } .home-v2-quick-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .home-v2-day-close { grid-template-columns: 34px minmax(0,1fr); } .home-v2-day-close-metrics { grid-column: 1 / -1; flex-wrap: wrap; } .home-v2-day-close-dismiss { position: absolute; inset-inline-end: 14px; } }
+
+    `}
+
+</style>
   );
 }
 
@@ -16970,6 +17030,7 @@ function Dashboard({
   user,
   onNavigate,
   onOpenCalendar,
+  onOpenWorkspace,
   language,
   spacedData,
   importedQuestions,
@@ -16983,6 +17044,14 @@ function Dashboard({
   const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
+  const [pomodoroMinutesLog] = useStoredState(STORAGE.pomodoroMinutesLog, {});
+  const [dashboardPreferences, setDashboardPreferences] = useStoredState(STORAGE.dashboardPreferences, {
+    railOrder: ["exam", "progress", "upcoming"],
+    quickOrder: ["resume", "review", "lecture", "event", "note"],
+    visible: { stats: true, recommendation: true, quick: true, exam: true, progress: true, upcoming: true, bottom: true },
+  });
+  const [dashboardDayClose, setDashboardDayClose] = useStoredState(STORAGE.dashboardDayClose, {});
+  const [dashboardEditorOpen, setDashboardEditorOpen] = useState(false);
   const [editingPlanEvent, setEditingPlanEvent] = useState(null);
   const [calendarView, setCalendarView] = useState("day");
   const [calendarDate, setCalendarDate] = useState(() => new Date());
@@ -17041,6 +17110,36 @@ function Dashboard({
       createPlan: "Opret studieplan",
       focusSessions: "fokussessioner i dag",
       badgeCount: "optjent",
+      customize: "Tilpas Hjem",
+      customizeTitle: "Tilpas dashboard",
+      customizeHint: "Vælg hvad der skal vises, og flyt elementerne i den rækkefølge, der passer dig.",
+      statsSection: "Studieoverblik",
+      recommendationSection: "Anbefaling",
+      quickSection: "Hurtig adgang",
+      bottomSection: "Aktivitet, opgaver og resultater",
+      saveDashboard: "Færdig",
+      moveUp: "Flyt op",
+      moveDown: "Flyt ned",
+      quickAccess: "Hurtig adgang",
+      resumeQuick: "Fortsæt seneste",
+      reviewQuick: "Start repetition",
+      lectureQuick: "Næste forelæsning",
+      eventQuick: "Ny aktivitet",
+      noteQuick: "Åbn notesbog",
+      noPlanTitle: "Ingen aktiv studieplan",
+      noPlanDescription: "Opret en plan for at få eksamensdato, forelæsningsprogression og kommende aktiviteter samlet her.",
+      noUpcomingTitle: "Du er ajour",
+      noUpcomingDescription: "Der er ingen kommende studieplansaktiviteter. Du kan oprette en aktivitet eller åbne kalenderen.",
+      addEvent: "Opret aktivitet",
+      delayedRecommendation: "Håndtér forsinket arbejde",
+      placeRecommendation: "Placér dagens forelæsninger",
+      nextRecommendation: "Fortsæt dagens plan",
+      dayCloseTitle: "Dagens studiearbejde er afsluttet",
+      dayCloseDescription: "Et roligt overblik over det, du nåede i dag.",
+      activitiesDone: "aktiviteter gennemført",
+      focusToday: "fokus i dag",
+      tomorrowItems: "aktiviteter i morgen",
+      dismiss: "Skjul",
     },
     en: {
       greetingMorning: "Good morning",
@@ -17083,6 +17182,36 @@ function Dashboard({
       createPlan: "Create study plan",
       focusSessions: "focus sessions today",
       badgeCount: "earned",
+      customize: "Customize Home",
+      customizeTitle: "Customize dashboard",
+      customizeHint: "Choose what is visible and move items into the order that suits you.",
+      statsSection: "Study overview",
+      recommendationSection: "Recommendation",
+      quickSection: "Quick access",
+      bottomSection: "Activity, tasks and results",
+      saveDashboard: "Done",
+      moveUp: "Move up",
+      moveDown: "Move down",
+      quickAccess: "Quick access",
+      resumeQuick: "Continue latest",
+      reviewQuick: "Start review",
+      lectureQuick: "Next lecture",
+      eventQuick: "New activity",
+      noteQuick: "Open notebook",
+      noPlanTitle: "No active study plan",
+      noPlanDescription: "Create a plan to bring your exam date, lecture progress and upcoming work together here.",
+      noUpcomingTitle: "You are up to date",
+      noUpcomingDescription: "There are no upcoming study-plan activities. Create an activity or open the calendar.",
+      addEvent: "Create activity",
+      delayedRecommendation: "Handle delayed work",
+      placeRecommendation: "Place today's lectures",
+      nextRecommendation: "Continue today's plan",
+      dayCloseTitle: "Today's study work is complete",
+      dayCloseDescription: "A calm overview of what you completed today.",
+      activitiesDone: "activities completed",
+      focusToday: "focus today",
+      tomorrowItems: "activities tomorrow",
+      dismiss: "Hide",
     },
     ar: {
       greetingMorning: "صباح الخير",
@@ -17125,6 +17254,36 @@ function Dashboard({
       createPlan: "أنشئ خطة دراسة",
       focusSessions: "جلسات تركيز اليوم",
       badgeCount: "مكتسب",
+      customize: "تخصيص الرئيسية",
+      customizeTitle: "تخصيص لوحة التحكم",
+      customizeHint: "اختر ما يظهر ورتّب العناصر بالطريقة التي تناسبك.",
+      statsSection: "نظرة الدراسة",
+      recommendationSection: "التوصية",
+      quickSection: "وصول سريع",
+      bottomSection: "النشاط والمهام والنتائج",
+      saveDashboard: "تم",
+      moveUp: "تحريك لأعلى",
+      moveDown: "تحريك لأسفل",
+      quickAccess: "وصول سريع",
+      resumeQuick: "متابعة الأحدث",
+      reviewQuick: "بدء المراجعة",
+      lectureQuick: "المحاضرة التالية",
+      eventQuick: "نشاط جديد",
+      noteQuick: "فتح دفتر الملاحظات",
+      noPlanTitle: "لا توجد خطة دراسة نشطة",
+      noPlanDescription: "أنشئ خطة لعرض موعد الامتحان وتقدم المحاضرات والمهام القادمة هنا.",
+      noUpcomingTitle: "أنت على المسار",
+      noUpcomingDescription: "لا توجد أنشطة قادمة في خطة الدراسة. أنشئ نشاطًا أو افتح التقويم.",
+      addEvent: "إنشاء نشاط",
+      delayedRecommendation: "معالجة العمل المتأخر",
+      placeRecommendation: "تحديد أوقات محاضرات اليوم",
+      nextRecommendation: "متابعة خطة اليوم",
+      dayCloseTitle: "اكتمل عمل اليوم الدراسي",
+      dayCloseDescription: "ملخص هادئ لما أنجزته اليوم.",
+      activitiesDone: "أنشطة مكتملة",
+      focusToday: "تركيز اليوم",
+      tomorrowItems: "أنشطة غدًا",
+      dismiss: "إخفاء",
     },
   })[language] || {};
 
@@ -17229,6 +17388,19 @@ function Dashboard({
     .filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date < todayKey && event.type !== "exam" && !event.completedAt && !event.missedResolvedAt)
     .sort((a, b) => `${b.date} ${b.time || ""}`.localeCompare(`${a.date} ${a.time || ""}`));
   const shouldShowDailyPlanner = Boolean(activePlan && !calendarDailyPlanner[todayKey]?.confirmed && (todaysPlanEvents.length || missedPlanEvents.length));
+  const dashboardVisible = { stats: true, recommendation: true, quick: true, exam: true, progress: true, upcoming: true, bottom: true, ...(dashboardPreferences.visible || {}) };
+  const dashboardRailOrder = Array.isArray(dashboardPreferences.railOrder) && dashboardPreferences.railOrder.length
+    ? dashboardPreferences.railOrder.filter((id) => ["exam", "progress", "upcoming"].includes(id))
+    : ["exam", "progress", "upcoming"];
+  const dashboardQuickOrder = Array.isArray(dashboardPreferences.quickOrder) && dashboardPreferences.quickOrder.length
+    ? dashboardPreferences.quickOrder.filter((id) => ["resume", "review", "lecture", "event", "note"].includes(id))
+    : ["resume", "review", "lecture", "event", "note"];
+  const allTodayPlanEvents = mergedCalendarEvents.filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date === todayKey && event.type !== "exam");
+  const completedPlanEventsToday = allTodayPlanEvents.filter((event) => Boolean(event.completedAt));
+  const todayFocusMinutes = Number(pomodoroMinutesLog[todayKey]) || 0;
+  const tomorrow = addDays(today, 1);
+  const tomorrowKey = dateKey(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+  const tomorrowPlanCount = mergedCalendarEvents.filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date === tomorrowKey && event.type !== "exam" && !event.completedAt).length;
 
   useEffect(() => {
     if (!activePlan) return;
@@ -17249,6 +17421,25 @@ function Dashboard({
     setPlansGlobal((previous) => ({ ...previous, [currentModule]: { ...previous[currentModule], doneLectureIds: next, updatedAt: Date.now() } }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calendarEvents, calendarEventMeta, currentModule]);
+
+  useEffect(() => {
+    if (!currentModule || !activePlan) return;
+    const doneIds = new Set(activePlan.doneLectureIds || []);
+    setLectureProgress((previous) => {
+      let changed = false;
+      const next = { ...previous };
+      planLectures.forEach((lecture) => {
+        const key = `${currentModule}:${lecture.id}`;
+        const current = next[key] || { viewed: false, mastery: "unrated" };
+        const viewed = doneIds.has(lecture.id);
+        if (Boolean(current.viewed) !== viewed) {
+          next[key] = { ...current, viewed, lastViewedAt: viewed ? current.lastViewedAt || Date.now() : null };
+          changed = true;
+        }
+      });
+      return changed ? next : previous;
+    });
+  }, [currentModule, activePlan?.updatedAt, activePlan?.doneLectureIds?.join("|")]);
 
   const totalQuestionsAnswered = history.reduce((sum, session) => sum + (session.answered || 0), 0);
   const bestSessionAccuracy = history.reduce((best, session) => Math.max(best, session.score || 0), 0);
@@ -17300,13 +17491,23 @@ function Dashboard({
   ]);
   const nextExtraLecture = planLectures.find((lecture) => !usedLectureIds.has(lecture.id));
 
-  const recommendation = hasResumableSession
-    ? { title: copy.continueSession, meta: `${resumeAnswered} ${copy.questions}`, badge: resumeAnswered, icon: "play", action: () => onNavigate("mcq") }
-    : reviewCount > 0
-      ? { title: copy.continueReview, meta: `${moduleCode} · ${reviewCount} ${copy.reviews.toLowerCase()}`, badge: reviewCount, icon: "reset", action: () => onNavigate("mcq", { mode: "due" }) }
-      : activePlan
-        ? { title: copy.openPlan, meta: `${moduleCode} · ${doneLectureCount}/${planLectures.length} ${copy.lectures.toLowerCase()}`, badge: daysRemaining ?? "", icon: "calendar", action: () => onNavigate("study-plan") }
-        : { title: copy.createPlan, meta: moduleName || currentModule, badge: "", icon: "calendar", action: () => onNavigate("study-plan") };
+  const nextTodayEvent = mergedCalendarEvents
+    .filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date === todayKey && event.type !== "exam" && !event.completedAt)
+    .sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"))[0];
+  const unscheduledTodayCount = todaysPlanEvents.filter((event) => !event.time || event.needsScheduling).length;
+  const recommendation = missedPlanEvents.length
+    ? { title: copy.delayedRecommendation, meta: `${missedPlanEvents.length} · ${copy.behind}`, badge: missedPlanEvents.length, icon: "clock", action: () => { setCalendarDate(new Date()); setCalendarView("day"); setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { ...(previous[todayKey] || {}), confirmed: false } })); } }
+    : unscheduledTodayCount > 0
+      ? { title: copy.placeRecommendation, meta: `${unscheduledTodayCount} · ${copy.today}`, badge: unscheduledTodayCount, icon: "calendar", action: () => { setCalendarDate(new Date()); setCalendarView("day"); setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { ...(previous[todayKey] || {}), confirmed: false } })); } }
+      : hasResumableSession
+        ? { title: copy.continueSession, meta: `${resumeAnswered} ${copy.questions}`, badge: resumeAnswered, icon: "play", action: () => onNavigate("mcq") }
+        : reviewCount > 0
+          ? { title: copy.continueReview, meta: `${moduleCode} · ${reviewCount} ${copy.reviews.toLowerCase()}`, badge: reviewCount, icon: "reset", action: () => onNavigate("mcq", { mode: "due" }) }
+          : nextTodayEvent
+            ? { title: copy.nextRecommendation, meta: `${nextTodayEvent.time || copy.today} · ${nextTodayEvent.title}`, badge: "", icon: "play", action: () => setEditingPlanEvent(nextTodayEvent) }
+            : activePlan
+              ? { title: copy.openPlan, meta: `${moduleCode} · ${doneLectureCount}/${planLectures.length} ${copy.lectures.toLowerCase()}`, badge: daysRemaining ?? "", icon: "calendar", action: () => onNavigate("study-plan") }
+              : { title: copy.createPlan, meta: moduleName || currentModule, badge: "", icon: "calendar", action: () => onNavigate("study-plan") };
 
   const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
   const selectedWeekdayIndex = (calendarDate.getDay() + 6) % 7;
@@ -17393,17 +17594,13 @@ function Dashboard({
 
     const lectureProgressKey = `${currentModule}:${lectureId}`;
     setLectureProgress((previous) => {
-      const current = previous[lectureProgressKey] || { viewed: false, viewCount: 0, mastery: "unrated" };
-      const count = completed
-        ? current.viewed ? Number(current.viewCount) || 0 : (Number(current.viewCount) || 0) + 1
-        : current.viewed ? Math.max(0, (Number(current.viewCount) || 0) - 1) : Number(current.viewCount) || 0;
+      const current = previous[lectureProgressKey] || { viewed: false, mastery: "unrated" };
       return {
         ...previous,
         [lectureProgressKey]: {
           ...current,
           viewed: completed,
-          viewCount: count,
-          lastViewedAt: completed ? Date.now() : count > 0 ? current.lastViewedAt || null : null,
+          lastViewedAt: completed ? Date.now() : null,
         },
       };
     });
@@ -17519,6 +17716,37 @@ function Dashboard({
       : old);
   }
 
+  function setDashboardVisibility(id, value) {
+    setDashboardPreferences((previous) => ({
+      ...previous,
+      visible: { ...(previous.visible || {}), [id]: value },
+    }));
+  }
+
+  function moveDashboardItem(collection, id, direction2) {
+    setDashboardPreferences((previous) => {
+      const current = Array.isArray(previous[collection]) ? [...previous[collection]] : [];
+      const index = current.indexOf(id);
+      const target = index + direction2;
+      if (index < 0 || target < 0 || target >= current.length) return previous;
+      [current[index], current[target]] = [current[target], current[index]];
+      return { ...previous, [collection]: current };
+    });
+  }
+
+  const quickAccessItems = {
+    resume: { label: copy.resumeQuick, meta: hasResumableSession ? `${resumeAnswered} ${copy.questions}` : copy.noActivity, icon: "play", disabled: !hasResumableSession, action: () => onNavigate("mcq") },
+    review: { label: copy.reviewQuick, meta: `${reviewCount} ${copy.reviews.toLowerCase()}`, icon: "reset", disabled: reviewCount <= 0, action: () => onNavigate("mcq", { mode: "due" }) },
+    lecture: { label: copy.lectureQuick, meta: nextTodayEvent?.title || upcomingEvents[0]?.title || copy.noUpcoming, icon: "book", disabled: !(nextTodayEvent || upcomingEvents[0]), action: () => { const event = nextTodayEvent || upcomingEvents[0]; if (event) setEditingPlanEvent(event); } },
+    event: { label: copy.eventQuick, meta: copy.today, icon: "plus", disabled: false, action: () => createEvent(todayKey, "") },
+    note: { label: copy.noteQuick, meta: currentModule, icon: "notebook", disabled: false, action: () => onOpenWorkspace && onOpenWorkspace("notes") },
+  };
+
+  const showDayClose = allTodayPlanEvents.length > 0
+    && completedPlanEventsToday.length === allTodayPlanEvents.length
+    && (!checklistItems.length || allDoneToday)
+    && !dashboardDayClose[todayKey]?.dismissed;
+
   if (progressDetailsOpen) {
     return (
       <PlanProgressPage
@@ -17541,15 +17769,16 @@ function Dashboard({
           <h1 className="home-v2-greeting">{greeting}, {user?.name || "MedFLUEN"}</h1>
           <div className="home-v2-module">{currentModule}</div>
         </div>
+        <button type="button" className="home-v2-customize-button" onClick={() => setDashboardEditorOpen(true)}><Icon name="settings" size={14} />{copy.customize}</button>
       </header>
 
-      <section className="home-v2-summary" aria-label={language === "en" ? "Study summary" : "Studieoverblik"}>
-        {[
+      {(dashboardVisible.stats || dashboardVisible.recommendation) && <section className="home-v2-summary" aria-label={language === "en" ? "Study summary" : "Studieoverblik"}>
+        {dashboardVisible.stats && ([
           { value: reviewCount, label: copy.reviews, meta: copy.thisWeek, icon: "reset", tone: "review", action: () => onNavigate("mcq", { mode: "due" }) },
           { value: newCount, label: copy.new, meta: copy.thisWeek, icon: "clipboard", tone: "new", action: () => onNavigate("mcq") },
           { value: questionCount, label: copy.total, meta: moduleCode, icon: "cards", tone: "total", action: () => onNavigate("mcq") },
           { value: streak.current, label: copy.streak, meta: `${todayPomodoros} ${copy.focusSessions}`, icon: "flame", tone: "streak", action: () => onNavigate("insights") },
-        ].map((stat) => (
+        ]).map((stat) => (
           <button key={stat.label} type="button" className="home-v2-stat" data-tone={stat.tone} onClick={stat.action}>
             <span className="home-v2-stat-icon"><Icon name={stat.icon} size={16} /></span>
             <span style={{ minWidth: 0 }}>
@@ -17560,7 +17789,7 @@ function Dashboard({
           </button>
         ))}
 
-        <button type="button" className="home-v2-recommendation" onClick={recommendation.action}>
+        {dashboardVisible.recommendation && <button type="button" className="home-v2-recommendation" onClick={recommendation.action}>
           <span className="home-v2-recommendation-icon"><Icon name={recommendation.icon} size={16} /></span>
           <span className="home-v2-recommendation-copy">
             <span className="home-v2-recommendation-label" style={{ display: "block" }}>{recommendation.title}</span>
@@ -17568,8 +17797,15 @@ function Dashboard({
           </span>
           {recommendation.badge !== "" && <span className="home-v2-recommendation-badge">{recommendation.badge}</span>}
           <Icon name="right" size={15} />
-        </button>
-      </section>
+        </button>}
+      </section>}
+
+      {dashboardVisible.quick && <section className="home-v2-quick-section">
+        <div className="home-v2-section-label">{copy.quickAccess}</div>
+        <div className="home-v2-quick-grid">
+          {dashboardQuickOrder.map((id) => { const item = quickAccessItems[id]; if (!item) return null; return <button key={id} type="button" className="home-v2-quick-item" disabled={item.disabled} onClick={item.action}><span><Icon name={item.icon} size={15} /></span><strong>{item.label}</strong><small>{item.meta}</small></button>; })}
+        </div>
+      </section>}
 
       <section className="home-v2-workspace">
         <div className="home-v2-calendar-area">
@@ -17643,58 +17879,43 @@ function Dashboard({
         </div>
 
         <aside className="home-v2-rail">
-          <div className="home-v2-rail-card">
-            <div className="home-v2-rail-title">{copy.examCountdown}</div>
-            {daysRemaining !== null ? (
-              <>
-                <div className="home-v2-exam-number">{daysRemaining}</div>
-                <div className="home-v2-exam-unit">{copy.days}</div>
-                <div className="home-v2-exam-date">
-                  {moduleCode}<br />
-                  {examDate.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })}
-                </div>
-              </>
-            ) : (
-              <button type="button" className="ui-button ui-button--ghost" onClick={() => onNavigate("study-plan")} style={{ width: "100%", marginTop: 10 }}>{copy.noExam}</button>
-            )}
-          </div>
-
-          <div className="home-v2-rail-card home-v2-rail-card--clickable" role="button" tabIndex={0} onClick={() => setProgressDetailsOpen(true)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setProgressDetailsOpen(true); }}>
-            <div className="home-v2-rail-title">{copy.moduleStatus}<span className="home-v2-rail-link">{copy.viewAll} <Icon name="right" size={11} /></span></div>
-            <div className="home-v2-progress-row"><span>{copy.lectures}</span><strong>{doneLectureCount}/{planLectures.length}</strong></div>
-            <div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${lectureFraction * 100}%` }} /></div>
-            <div className="home-v2-progress-row"><span>{copy.examSets}</span><strong>{examSetDoneCount}/{examSetTotalCount}</strong></div>
-            <div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${examFraction * 100}%` }} /></div>
-            {isBehind && (
-              <button type="button" className="ui-button ui-button--ghost" onClick={handleCatchUp} style={{ width: "100%", minHeight: 32, marginTop: 10, color: c.red }}>
-                {copy.catchUp}
-              </button>
-            )}
-          </div>
-
-          <div className="home-v2-rail-card" style={{ minHeight: 210 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-              <div className="home-v2-rail-title">{copy.upcoming}</div>
-              <button type="button" onClick={onOpenCalendar} style={{ border: 0, background: "transparent", color: c.blue, fontSize: 8.5, fontWeight: 780 }}>{copy.viewAll}</button>
-            </div>
-            {upcomingEvents.length ? (
-              <div className="home-v2-upcoming-list">
-                {upcomingEvents.map((event) => (
-                  <button key={event.id} type="button" className="home-v2-upcoming-item" onClick={() => setEditingPlanEvent(event)}>
-                    <span className="home-v2-upcoming-check" role="checkbox" aria-checked="false" tabIndex={0} onClick={(domEvent) => { domEvent.stopPropagation(); togglePlanEventComplete(event); }} onKeyDown={(domEvent) => { if (domEvent.key === "Enter" || domEvent.key === " ") { domEvent.preventDefault(); domEvent.stopPropagation(); togglePlanEventComplete(event); } }}><Icon name="check" size={11} /></span>
-                    <span style={{ minWidth: 0 }}>
-                      <span className="home-v2-upcoming-title" style={{ display: "block" }}>{event.title}</span>
-                      <span className="home-v2-upcoming-meta" style={{ display: "block" }}>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : " · Ikke placeret"}</span>
-                    </span>
-                  </button>
-                ))}
+          {dashboardRailOrder.map((cardId) => {
+            if (!dashboardVisible[cardId]) return null;
+            if (cardId === "exam") return (
+              <div key={cardId} className="home-v2-rail-card">
+                <div className="home-v2-rail-title">{copy.examCountdown}</div>
+                {daysRemaining !== null ? (
+                  <><div className="home-v2-exam-number">{daysRemaining}</div><div className="home-v2-exam-unit">{copy.days}</div><div className="home-v2-exam-date">{moduleCode}<br />{examDate.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })}</div></>
+                ) : (
+                  <div className="home-v2-empty-card"><span><Icon name="calendar" size={17} /></span><strong>{copy.noExam}</strong><small>{copy.noPlanDescription}</small><button type="button" className="ui-button ui-button--secondary" onClick={() => onNavigate("study-plan")}>{copy.createPlan}</button></div>
+                )}
               </div>
-            ) : <div className="home-v2-upcoming-meta" style={{ marginTop: 12 }}>{copy.noUpcoming}</div>}
-          </div>
+            );
+            if (cardId === "progress") return (
+              <div key={cardId} className="home-v2-rail-card home-v2-rail-card--clickable" role="button" tabIndex={0} onClick={() => activePlan ? setProgressDetailsOpen(true) : onNavigate("study-plan")} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") activePlan ? setProgressDetailsOpen(true) : onNavigate("study-plan"); }}>
+                <div className="home-v2-rail-title">{copy.moduleStatus}<span className="home-v2-rail-link">{activePlan ? copy.viewAll : copy.createPlan} <Icon name="right" size={11} /></span></div>
+                {activePlan ? <><div className="home-v2-progress-row"><span>{copy.lectures}</span><strong>{doneLectureCount}/{planLectures.length}</strong></div><div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${lectureFraction * 100}%` }} /></div><div className="home-v2-progress-row"><span>{copy.examSets}</span><strong>{examSetDoneCount}/{examSetTotalCount}</strong></div><div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${examFraction * 100}%` }} /></div>{isBehind && <button type="button" className="ui-button ui-button--ghost" onClick={(event) => { event.stopPropagation(); handleCatchUp(); }} style={{ width: "100%", minHeight: 32, marginTop: 10 }}>{copy.catchUp}</button>}</> : <div className="home-v2-empty-card"><span><Icon name="target" size={17} /></span><strong>{copy.noPlanTitle}</strong><small>{copy.noPlanDescription}</small></div>}
+              </div>
+            );
+            if (cardId === "upcoming") return (
+              <div key={cardId} className="home-v2-rail-card" style={{ minHeight: 210 }}>
+                <div className="home-v2-rail-card-heading"><div className="home-v2-rail-title">{copy.upcoming}</div><button type="button" onClick={onOpenCalendar}>{copy.viewAll}</button></div>
+                {upcomingEvents.length ? <div className="home-v2-upcoming-list">{upcomingEvents.map((event) => <button key={event.id} type="button" className="home-v2-upcoming-item" onClick={() => setEditingPlanEvent(event)}><span className="home-v2-upcoming-check" role="checkbox" aria-checked="false" tabIndex={0} onClick={(domEvent) => { domEvent.stopPropagation(); togglePlanEventComplete(event); }} onKeyDown={(domEvent) => { if (domEvent.key === "Enter" || domEvent.key === " ") { domEvent.preventDefault(); domEvent.stopPropagation(); togglePlanEventComplete(event); } }}><Icon name="check" size={11} /></span><span style={{ minWidth: 0 }}><span className="home-v2-upcoming-title" style={{ display: "block" }}>{event.title}</span><span className="home-v2-upcoming-meta" style={{ display: "block" }}>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : " · Ikke placeret"}</span></span></button>)}</div> : <div className="home-v2-empty-card"><span><Icon name="check" size={17} /></span><strong>{copy.noUpcomingTitle}</strong><small>{copy.noUpcomingDescription}</small><div className="home-v2-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => createEvent(todayKey, "")}>{copy.addEvent}</button><button type="button" className="ui-button ui-button--ghost" onClick={onOpenCalendar}>{copy.viewAll}</button></div></div>}
+              </div>
+            );
+            return null;
+          })}
         </aside>
       </section>
 
-      <section className="home-v2-bottom">
+      {showDayClose && <section className="home-v2-day-close">
+        <div className="home-v2-day-close-icon"><Icon name="check" size={18} /></div>
+        <div className="home-v2-day-close-copy"><strong>{copy.dayCloseTitle}</strong><small>{copy.dayCloseDescription}</small></div>
+        <div className="home-v2-day-close-metrics"><span><b>{completedPlanEventsToday.length}</b>{copy.activitiesDone}</span><span><b>{Math.round(todayFocusMinutes / 6) / 10} t</b>{copy.focusToday}</span><span><b>{tomorrowPlanCount}</b>{copy.tomorrowItems}</span></div>
+        <button type="button" className="home-v2-day-close-dismiss" onClick={() => setDashboardDayClose((previous) => ({ ...previous, [todayKey]: { dismissed: true, dismissedAt: Date.now() } }))}>{copy.dismiss}</button>
+      </section>}
+
+      {dashboardVisible.bottom && <section className="home-v2-bottom">
         <div className="home-v2-bottom-header">
           <div className="home-v2-panel-title">
             {bottomTab === "activity" ? copy.activity : bottomTab === "tasks" ? copy.tasks : copy.results}
@@ -17755,7 +17976,21 @@ function Dashboard({
             </div>
           )}
         </div>
-      </section>
+      </section>}
+
+      {dashboardEditorOpen && (
+        <div className="home-v2-editor-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDashboardEditorOpen(false); }}>
+          <section className="home-v2-editor" role="dialog" aria-modal="true" aria-label={copy.customizeTitle}>
+            <header><div><strong>{copy.customizeTitle}</strong><small>{copy.customizeHint}</small></div><IconButton c={c} title={t.close} onClick={() => setDashboardEditorOpen(false)}><Icon name="close" size={16} /></IconButton></header>
+            <div className="home-v2-editor-body">
+              <div className="home-v2-editor-group"><h3>{copy.statsSection}</h3>{[["stats", copy.statsSection], ["recommendation", copy.recommendationSection], ["quick", copy.quickSection], ["bottom", copy.bottomSection]].map(([id, label]) => <label key={id} className="home-v2-editor-toggle"><input type="checkbox" checked={dashboardVisible[id]} onChange={(event) => setDashboardVisibility(id, event.target.checked)} /><span>{label}</span></label>)}</div>
+              <div className="home-v2-editor-group"><h3>{copy.moduleStatus}</h3>{dashboardRailOrder.map((id, index) => { const label = id === "exam" ? copy.examCountdown : id === "progress" ? copy.moduleStatus : copy.upcoming; return <div key={id} className="home-v2-editor-row"><label><input type="checkbox" checked={dashboardVisible[id]} onChange={(event) => setDashboardVisibility(id, event.target.checked)} /><span>{label}</span></label><div><button type="button" disabled={index === 0} title={copy.moveUp} onClick={() => moveDashboardItem("railOrder", id, -1)}><Icon name="up" size={13} /></button><button type="button" disabled={index === dashboardRailOrder.length - 1} title={copy.moveDown} onClick={() => moveDashboardItem("railOrder", id, 1)}><Icon name="down" size={13} /></button></div></div>; })}</div>
+              <div className="home-v2-editor-group"><h3>{copy.quickAccess}</h3>{dashboardQuickOrder.map((id, index) => { const item = quickAccessItems[id]; return <div key={id} className="home-v2-editor-row"><span>{item?.label}</span><div><button type="button" disabled={index === 0} title={copy.moveUp} onClick={() => moveDashboardItem("quickOrder", id, -1)}><Icon name="up" size={13} /></button><button type="button" disabled={index === dashboardQuickOrder.length - 1} title={copy.moveDown} onClick={() => moveDashboardItem("quickOrder", id, 1)}><Icon name="down" size={13} /></button></div></div>; })}</div>
+            </div>
+            <footer><button type="button" className="ui-button ui-button--primary" onClick={() => setDashboardEditorOpen(false)}>{copy.saveDashboard}</button></footer>
+          </section>
+        </div>
+      )}
 
       {editingPlanEvent && (
         <CalendarEventEditor
@@ -27689,7 +27924,6 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
   function getLectureProgress(lectureId) {
     return lectureProgress[lectureProgressKey(lectureId)] || {
       viewed: false,
-      viewCount: 0,
       mastery: "unrated",
     };
   }
@@ -27774,17 +28008,13 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
     const key = lectureProgressKey(lectureId);
     const previous = getLectureProgress(lectureId);
     const viewed = !previous.viewed;
-    const nextCount = viewed
-      ? (Number(previous.viewCount) || 0) + 1
-      : Math.max(0, (Number(previous.viewCount) || 0) - 1);
 
     setLectureProgress((current) => ({
       ...current,
       [key]: {
         ...(current[key] || previous),
         viewed,
-        viewCount: nextCount,
-        lastViewedAt: viewed ? Date.now() : nextCount > 0 ? previous.lastViewedAt || null : null,
+        lastViewedAt: viewed ? Date.now() : null,
       },
     }));
 
@@ -27794,7 +28024,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
   function cycleLectureMastery(lectureId) {
     const key = lectureProgressKey(lectureId);
     setLectureProgress((current) => {
-      const previous = current[key] || { viewed: false, viewCount: 0, mastery: "unrated" };
+      const previous = current[key] || { viewed: false, mastery: "unrated" };
       const currentIndex = masteryOrder.indexOf(previous.mastery || "unrated");
       const mastery = masteryOrder[(currentIndex + 1) % masteryOrder.length];
       return { ...current, [key]: { ...previous, mastery, masteryUpdatedAt: Date.now() } };
@@ -27869,8 +28099,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
                       <span className="document-library-copy"><strong>{lecture.title}</strong><small>{lecture.group} · {mastery.label}</small></span>
                     </button>
                     <div className="lecture-progress-actions">
-                      <button type="button" className="lecture-view-toggle" data-viewed={progressState.viewed ? "true" : "false"} aria-pressed={Boolean(progressState.viewed)} title={`${progressState.viewed ? copy.viewed : copy.notViewed} · ${progressState.viewCount || 0} ${copy.timesViewed}`} onClick={() => toggleLectureViewed(lecture.id)}>
-                        <Icon name="check" size={11} /><span>{progressState.viewCount || 0}×</span>
+                      <button type="button" className="lecture-view-toggle" data-viewed={progressState.viewed ? "true" : "false"} aria-pressed={Boolean(progressState.viewed)} title={progressState.viewed ? copy.viewed : copy.notViewed} onClick={() => toggleLectureViewed(lecture.id)}>
+                        <Icon name="check" size={11} />
                       </button>
                       <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
                       <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"}><Icon name={hasPdf ? "file" : "plus"} size={12} /></span>
@@ -29966,6 +30196,7 @@ useEffect(() => {
                 onResetAllProgress={setSpacedData}
                 importedQuestions={importedQuestions}
 onOpenCalendar={() => openWorkspace("calendar")}
+onOpenWorkspace={openWorkspace}
 onNavigate={navigateFromShell}
               />
             ) : (
