@@ -1283,6 +1283,119 @@ function minutesToTime(minutes) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+
+function calendarDurationMinutes(event, fallbackMinutes = 60) {
+  const start = timeToMinutes(event?.time);
+  const end = timeToMinutes(event?.endTime);
+  if (start != null && end != null && end > start) return end - start;
+  const estimated = Number(event?.estimatedHours);
+  return Number.isFinite(estimated) && estimated > 0
+    ? Math.max(15, Math.round(estimated * 60))
+    : fallbackMinutes;
+}
+
+function calendarEventRange(event) {
+  if (!event?.date || !event.time) return null;
+  const start = timeToMinutes(event.time);
+  if (start == null) return null;
+  return { start, end: start + calendarDurationMinutes(event) };
+}
+
+function calendarEventsConflict(first, second) {
+  if (!first || !second || first.id === second.id || first.date !== second.date) return false;
+  const a = calendarEventRange(first);
+  const b = calendarEventRange(second);
+  return Boolean(a && b && a.start < b.end && b.start < a.end);
+}
+
+function calendarFindNextFreeStart(event, events, dayStart = 7 * 60, dayEnd = 22 * 60) {
+  const duration = calendarDurationMinutes(event);
+  const occupied = (events || [])
+    .filter((item) => item.id !== event.id && item.date === event.date && item.time)
+    .map((item) => calendarEventRange(item))
+    .filter(Boolean)
+    .sort((a, b) => a.start - b.start);
+  let cursor = Math.max(dayStart, timeToMinutes(event.time) || dayStart);
+  for (const range of occupied) {
+    if (cursor + duration <= range.start) return minutesToTime(cursor);
+    if (cursor < range.end) cursor = Math.ceil(range.end / 15) * 15;
+  }
+  return cursor + duration <= dayEnd ? minutesToTime(cursor) : null;
+}
+
+function calendarContextCopy(language) {
+  return ({
+    da: {
+      edit: "Redigér", complete: "Markér færdig", incomplete: "Markér ikke færdig",
+      today: "Flyt til i dag", tomorrow: "Flyt til i morgen", chooseDate: "Vælg anden dato",
+      duplicate: "Duplikér", split: "Del sessionen", openLecture: "Åbn forelæsning", remove: "Slet",
+      place: "Placér i kalenderen", autoPlace: "Placér i næste ledige tid", moveDay: "Flyt til anden dag",
+      create: "Nyt event her", placeLecture: "Placér ikke-planlagt forelæsning",
+      createStudy: "Opret studieblok", createReview: "Opret repetition",
+    },
+    en: {
+      edit: "Edit", complete: "Mark complete", incomplete: "Mark incomplete",
+      today: "Move to today", tomorrow: "Move to tomorrow", chooseDate: "Choose another date",
+      duplicate: "Duplicate", split: "Split session", openLecture: "Open lecture", remove: "Delete",
+      place: "Place in calendar", autoPlace: "Place in next free time", moveDay: "Move to another day",
+      create: "New event here", placeLecture: "Place unscheduled lecture",
+      createStudy: "Create study block", createReview: "Create review",
+    },
+    ar: {
+      edit: "تعديل", complete: "وضع علامة مكتمل", incomplete: "وضع علامة غير مكتمل",
+      today: "نقل إلى اليوم", tomorrow: "نقل إلى الغد", chooseDate: "اختيار تاريخ آخر",
+      duplicate: "تكرار", split: "تقسيم الجلسة", openLecture: "فتح المحاضرة", remove: "حذف",
+      place: "وضع في التقويم", autoPlace: "وضع في الوقت المتاح التالي", moveDay: "نقل إلى يوم آخر",
+      create: "حدث جديد هنا", placeLecture: "وضع محاضرة غير مجدولة",
+      createStudy: "إنشاء جلسة دراسة", createReview: "إنشاء مراجعة",
+    },
+  })[language] || {};
+}
+
+function CalendarContextMenu({ c, menu, items, onClose }) {
+  const menuRef = useRef(null);
+  useEffect(() => {
+    if (!menu) return undefined;
+    function handlePointer(event) {
+      if (!menuRef.current?.contains(event.target)) onClose();
+    }
+    function handleKey(event) {
+      if (event.key === "Escape") onClose();
+    }
+    window.addEventListener("pointerdown", handlePointer);
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointer);
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [menu, onClose]);
+  if (!menu) return null;
+  const width = 224;
+  const left = Math.max(8, Math.min(menu.x, window.innerWidth - width - 8));
+  const top = Math.max(8, Math.min(menu.y, window.innerHeight - Math.min(430, items.length * 39 + 18)));
+  return (
+    <div ref={menuRef} className="calendar-context-menu" style={{ left, top, width }} role="menu">
+      {items.filter(Boolean).map((item, index) => item.separator ? (
+        <span key={`separator-${index}`} className="calendar-context-separator" />
+      ) : (
+        <button
+          key={item.id || item.label}
+          type="button"
+          className="calendar-context-item"
+          data-danger={item.danger ? "true" : "false"}
+          disabled={item.disabled}
+          onClick={() => { item.action?.(); onClose(); }}
+          role="menuitem"
+        >
+          <Icon name={item.icon || "calendar"} size={14} />
+          <span>{item.label}</span>
+          {item.hint && <small>{item.hint}</small>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function WeekCalendar({
   c,
   events,
@@ -1291,6 +1404,7 @@ function WeekCalendar({
   onMoveEvent,
   onSlotClick,
   onEventClick,
+  onContextRequest,
   weekdayLabels,
 }) {
   const days = Array.from({ length: daysCount }, (_, index) => addDays(weekStart, index));
@@ -1299,43 +1413,32 @@ function WeekCalendar({
   const scrollRef = useRef(null);
   const startHour = 7;
   const endHour = 22;
-  const hourHeight = 64;
+  const hourHeight = 60;
   const totalHeight = (endHour - startHour) * hourHeight;
   const today = new Date();
   const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = ((nowMinutes - startHour * 60) / 60) * hourHeight;
   const typeTone = {
-    exam: { color: c.red, background: c.redSoft, icon: "flag" },
-    study: { color: c.blue, background: c.blueSoft, icon: "book" },
-    review: { color: c.green, background: c.greenSoft, icon: "reset" },
-    other: { color: c.purple, background: c.purpleSoft, icon: "notebook" },
+    exam: { color: "#c9822f", background: "rgba(201,130,47,.11)" },
+    study: { color: c.blue, background: c.blueSoft },
+    review: { color: c.green, background: c.greenSoft },
+    other: { color: c.secondary, background: c.soft },
   };
 
   useEffect(() => {
     const currentHour = Math.max(startHour, Math.min(endHour - 1, new Date().getHours()));
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = Math.max(0, (currentHour - startHour - 1) * hourHeight);
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = Math.max(0, (currentHour - startHour - 1) * hourHeight);
   }, [weekStart, daysCount]);
-
-  function durationMinutes(event) {
-    const start = timeToMinutes(event.time);
-    const explicitEnd = timeToMinutes(event.endTime);
-    if (start != null && explicitEnd != null && explicitEnd > start) return explicitEnd - start;
-    return Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60));
-  }
 
   function layoutEvents(dayEvents) {
     const items = dayEvents
       .filter((event) => event.time)
       .map((event) => {
         const start = timeToMinutes(event.time);
-        const end = start + durationMinutes(event);
-        return { event, start, end, lane: 0, laneCount: 1 };
+        return { event, start, end: start + calendarDurationMinutes(event), lane: 0, laneCount: 1 };
       })
       .sort((a, b) => a.start - b.start || b.end - a.end);
-
     const groups = [];
     let activeGroup = [];
     let groupEnd = -1;
@@ -1349,7 +1452,6 @@ function WeekCalendar({
       groupEnd = Math.max(groupEnd, item.end);
     });
     if (activeGroup.length) groups.push(activeGroup);
-
     groups.forEach((group) => {
       const laneEnds = [];
       group.forEach((item) => {
@@ -1358,8 +1460,7 @@ function WeekCalendar({
         laneEnds[lane] = item.end;
         item.lane = lane;
       });
-      const laneCount = Math.max(1, laneEnds.length);
-      group.forEach((item) => { item.laneCount = laneCount; });
+      group.forEach((item) => { item.laneCount = Math.max(1, laneEnds.length); });
     });
     return items;
   }
@@ -1367,51 +1468,69 @@ function WeekCalendar({
   function pointerTime(event, dayElement) {
     const rect = dayElement.getBoundingClientRect();
     const relative = Math.max(0, Math.min(totalHeight - 1, event.clientY - rect.top));
-    const raw = startHour * 60 + (relative / hourHeight) * 60;
-    return minutesToTime(Math.round(raw / 15) * 15);
+    return minutesToTime(Math.round((startHour * 60 + (relative / hourHeight) * 60) / 15) * 15);
+  }
+
+  function beginDrag(domEvent, eventId) {
+    setDragId(eventId);
+    domEvent.dataTransfer.effectAllowed = "move";
+    domEvent.dataTransfer.setData("text/plain", eventId);
   }
 
   return (
-    <div
-      ref={scrollRef}
-      className="calendar-week-scroll"
-      style={{ "--calendar-days": daysCount, "--calendar-hour-height": `${hourHeight}px` }}
-    >
-      <div className="calendar-week-header">
-        <div className="calendar-week-gutter calendar-week-gutter--header" aria-hidden="true" />
-        {days.map((day, index) => {
-          const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
-          const isToday = key === todayString;
-          const unscheduled = events.filter((event) => event.date === key && !event.time && !event.completedAt);
-          return (
-            <div
-              key={key}
-              className="calendar-week-day-header"
-              data-today={isToday ? "true" : "false"}
-            >
-              <button type="button" className="calendar-week-day-button" onClick={() => onSlotClick(key, "09:00")}>
-                <span className="calendar-week-day-name">{weekdayLabels[index]}</span>
-                <span className="calendar-week-day-number">{day.getDate()}</span>
-              </button>
-              {unscheduled.length > 0 && (
-                <button type="button" className="calendar-week-unscheduled" onClick={() => onEventClick(unscheduled[0])} title={unscheduled.map((event) => event.title).join("\n")}>
-                  {unscheduled.length} ikke placeret
+    <div ref={scrollRef} className="calendar-week-scroll" style={{ "--calendar-days": daysCount, "--calendar-hour-height": `${hourHeight}px` }}>
+      <div className="calendar-week-sticky-head">
+        <div className="calendar-week-header">
+          <div className="calendar-week-gutter calendar-week-gutter--header" aria-hidden="true" />
+          {days.map((day, index) => {
+            const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
+            const isToday = key === todayString;
+            return (
+              <div key={key} className="calendar-week-day-header" data-today={isToday ? "true" : "false"}>
+                <button type="button" className="calendar-week-day-button" onClick={() => onSlotClick(key, "09:00")}>
+                  <span className="calendar-week-day-name">{weekdayLabels[index]}</span>
+                  <span className="calendar-week-day-number">{day.getDate()}</span>
                 </button>
-              )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
+        <div className="calendar-week-unscheduled-grid">
+          <div className="calendar-week-gutter calendar-week-unscheduled-label">Ikke placeret</div>
+          {days.map((day) => {
+            const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
+            const unscheduled = events.filter((event) => event.date === key && !event.time && !event.completedAt && event.type !== "exam");
+            return (
+              <div key={key} className="calendar-week-unscheduled-cell" data-empty={!unscheduled.length ? "true" : "false"}>
+                {unscheduled.length ? unscheduled.map((event) => (
+                  <button
+                    key={event.id}
+                    type="button"
+                    draggable
+                    className="calendar-week-unscheduled-chip"
+                    onDragStart={(domEvent) => beginDrag(domEvent, event.id)}
+                    onDragEnd={() => setDragId(null)}
+                    onClick={() => onEventClick(event)}
+                    onContextMenu={(domEvent) => {
+                      domEvent.preventDefault();
+                      onContextRequest?.({ kind: "unscheduled", event, date: key, x: domEvent.clientX, y: domEvent.clientY });
+                    }}
+                    title={event.title}
+                  >
+                    <span>{event.lectureId || "•"}</span><strong>{event.title}</strong>
+                  </button>
+                )) : <span className="calendar-week-unscheduled-empty">—</span>}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="calendar-week-body" style={{ height: totalHeight }}>
         <div className="calendar-week-gutter">
           {Array.from({ length: endHour - startHour + 1 }, (_, index) => {
             const hour = startHour + index;
-            return (
-              <span key={hour} className="calendar-week-time-label" style={{ top: index * hourHeight }}>
-                {String(hour).padStart(2, "0")}:00
-              </span>
-            );
+            return <span key={hour} className="calendar-week-time-label" style={{ top: index * hourHeight }}>{String(hour).padStart(2, "0")}:00</span>;
           })}
         </div>
 
@@ -1428,39 +1547,36 @@ function WeekCalendar({
                 if (event.target !== event.currentTarget) return;
                 onSlotClick(key, pointerTime(event, event.currentTarget));
               }}
-              onDragOver={(event) => {
+              onContextMenu={(event) => {
+                if (event.target !== event.currentTarget) return;
                 event.preventDefault();
-                setHoverDay(key);
+                onContextRequest?.({ kind: "slot", date: key, time: pointerTime(event, event.currentTarget), x: event.clientX, y: event.clientY });
               }}
+              onDragOver={(event) => { event.preventDefault(); setHoverDay(key); }}
               onDragLeave={() => setHoverDay((value) => value === key ? null : value)}
               onDrop={(event) => {
                 event.preventDefault();
                 const id = dragId || event.dataTransfer.getData("text/plain");
                 const source = events.find((item) => item.id === id);
                 if (!source) return;
-                onMoveEvent({ ...source, date: key, time: pointerTime(event, event.currentTarget) });
+                const time = pointerTime(event, event.currentTarget);
+                const duration = calendarDurationMinutes(source);
+                onMoveEvent({ ...source, date: key, time, endTime: minutesToTime((timeToMinutes(time) || 0) + duration) });
                 setDragId(null);
                 setHoverDay(null);
               }}
               style={{ height: totalHeight }}
             >
-              {Array.from({ length: endHour - startHour + 1 }, (_, index) => (
-                <span key={index} className="calendar-week-hour-line" style={{ top: index * hourHeight }} />
-              ))}
-              {Array.from({ length: endHour - startHour }, (_, index) => (
-                <span key={index} className="calendar-week-half-line" style={{ top: index * hourHeight + hourHeight / 2 }} />
-              ))}
-              {isToday && nowTop >= 0 && nowTop <= totalHeight && (
-                <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>
-              )}
+              {Array.from({ length: endHour - startHour + 1 }, (_, index) => <span key={index} className="calendar-week-hour-line" style={{ top: index * hourHeight }} />)}
+              {Array.from({ length: endHour - startHour }, (_, index) => <span key={index} className="calendar-week-half-line" style={{ top: index * hourHeight + hourHeight / 2 }} />)}
+              {isToday && nowTop >= 0 && nowTop <= totalHeight && <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>}
 
               {positioned.map(({ event, start, end, lane, laneCount }) => {
                 const tone = typeTone[event.type] || typeTone.other;
                 const top = ((start - startHour * 60) / 60) * hourHeight;
-                const height = Math.max(26, ((end - start) / 60) * hourHeight - 2);
+                const height = Math.max(25, ((end - start) / 60) * hourHeight - 2);
                 if (top + height < 0 || top > totalHeight) return null;
-                const width = `calc(${100 / laneCount}% - 6px)`;
-                const left = `calc(${lane * (100 / laneCount)}% + 3px)`;
+                const hasConflict = events.some((other) => calendarEventsConflict(event, other));
                 return (
                   <button
                     key={event.id}
@@ -1468,37 +1584,28 @@ function WeekCalendar({
                     draggable
                     className="calendar-week-event"
                     data-complete={event.completedAt ? "true" : "false"}
-                    onDragStart={(domEvent) => {
-                      setDragId(event.id);
-                      domEvent.dataTransfer.effectAllowed = "move";
-                      domEvent.dataTransfer.setData("text/plain", event.id);
-                    }}
+                    data-conflict={hasConflict ? "true" : "false"}
+                    onDragStart={(domEvent) => beginDrag(domEvent, event.id)}
                     onDragEnd={() => setDragId(null)}
-                    onClick={(domEvent) => {
+                    onClick={(domEvent) => { domEvent.stopPropagation(); onEventClick(event); }}
+                    onContextMenu={(domEvent) => {
+                      domEvent.preventDefault();
                       domEvent.stopPropagation();
-                      onEventClick(event);
+                      onContextRequest?.({ kind: "event", event, date: key, x: domEvent.clientX, y: domEvent.clientY });
                     }}
                     style={{
                       top: top + 1,
                       height,
-                      width,
-                      insetInlineStart: left,
+                      width: `calc(${100 / laneCount}% - 6px)`,
+                      insetInlineStart: `calc(${lane * (100 / laneCount)}% + 3px)`,
                       "--calendar-event-accent": tone.color,
                       "--calendar-event-surface": tone.background,
                     }}
                     title={`${event.time || ""} ${event.title}`.trim()}
                   >
-                    <span className="calendar-week-event-time">
-                      {event.time}–{minutesToTime(end)}
-                    </span>
-                    <span className="calendar-week-event-title">
-                      {event.title}
-                    </span>
-                    {event.location && height >= 52 && (
-                      <span className="calendar-week-event-meta">
-                        {event.location}
-                      </span>
-                    )}
+                    <span className="calendar-week-event-time">{event.time}–{minutesToTime(end)}</span>
+                    <span className="calendar-week-event-title">{event.title}</span>
+                    {event.deliveryStatus === "held" && <span className="calendar-week-event-state">Afholdt</span>}
                   </button>
                 );
               })}
@@ -1510,95 +1617,60 @@ function WeekCalendar({
   );
 }
 
-function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, weekdayLabels }) {
+function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, onContextRequest, weekdayLabels }) {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
   const cells = getMonthMatrix(year, month);
   const todayKeyStr = dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-
   const eventsByDate = {};
-  events.forEach((event) => {
-    if (!eventsByDate[event.date]) eventsByDate[event.date] = [];
-    eventsByDate[event.date].push(event);
-  });
-
-  const typeColor = {
-    exam: c.red,
-    study: c.blue,
-    review: c.green,
-    other: c.secondary,
-  };
-
+  events.forEach((event) => { (eventsByDate[event.date] = eventsByDate[event.date] || []).push(event); });
+  const tone = { exam: "#c9822f", study: c.blue, review: c.green, other: c.secondary };
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", overflow: "auto" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: `1px solid ${c.border}` }}>
-        {weekdayLabels.map((label) => (
-          <div key={label} style={{ padding: "10px 6px", textAlign: "center", fontSize: 10, fontWeight: 700, color: c.muted, textTransform: "uppercase" }}>
-            {label}
-          </div>
-        ))}
+    <div className="calendar-month-root">
+      <div className="calendar-month-weekdays">
+        {weekdayLabels.map((label) => <div key={label}>{label}</div>)}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gridAutoRows: "minmax(96px, 1fr)", flex: 1 }}>
-        {cells.map((day, i) => {
-          if (!day) {
-            return <div key={`empty-${i}`} style={{ borderTop: `1px solid ${c.border}`, borderInlineStart: `1px solid ${c.border}`, background: c.soft }} />;
-          }
+      <div className="calendar-month-grid">
+        {cells.map((day, index) => {
+          if (!day) return <div key={`empty-${index}`} className="calendar-month-cell calendar-month-cell--empty" />;
           const key = dateKey(year, month, day);
-          const isToday = key === todayKeyStr;
-          const dayEvents = (eventsByDate[key] || []).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+          const dayEvents = (eventsByDate[key] || []).sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
+          const timed = dayEvents.filter((event) => event.time);
+          const unscheduled = dayEvents.filter((event) => !event.time && !event.completedAt && event.type !== "exam");
           return (
             <div
               key={key}
+              className="calendar-month-cell"
+              data-today={key === todayKeyStr ? "true" : "false"}
               onClick={() => onDayClick(key)}
-              style={{
-                position: "relative",
-                borderTop: `1px solid ${c.border}`,
-                borderInlineStart: `1px solid ${c.border}`,
-                padding: 6,
-                cursor: "pointer",
-                background: isToday ? c.blueSoft : "transparent",
-                display: "flex",
-                flexDirection: "column",
-                gap: 3,
-                overflow: "hidden",
+              onContextMenu={(event) => {
+                if (event.target !== event.currentTarget) return;
+                event.preventDefault();
+                onContextRequest?.({ kind: "slot", date: key, time: "09:00", x: event.clientX, y: event.clientY });
               }}
             >
-              <span style={{ fontSize: 11, fontWeight: 800, color: isToday ? c.blue : c.text }}>{day}</span>
-              {dayEvents.slice(0, 3).map((event) => {
-                const color = typeColor[event.type] || c.secondary;
-                return (
-                  <div
+              <span className="calendar-month-day-number">{day}</span>
+              {unscheduled.length > 0 && <span className="calendar-month-unscheduled-count">{unscheduled.length} ikke placeret</span>}
+              <div className="calendar-month-events">
+                {[...unscheduled, ...timed].slice(0, 4).map((event) => (
+                  <button
                     key={event.id}
-                    onClick={(domEvent) => {
-                      domEvent.stopPropagation();
-                      onEventClick(event);
-                    }}
-                    title={event.title}
-                    style={{
-                      minHeight: 21,
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "2px 5px",
-                      overflow: "hidden",
-                      border: `1px solid ${c.border}`,
-                      borderInlineStart: `3px solid ${color}`,
-                      borderRadius: 5,
-                      background: `color-mix(in srgb, ${color} 9%, ${c.panel})`,
-                      color: c.text,
-                      fontSize: 9,
-                      fontWeight: 680,
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      cursor: "pointer",
+                    type="button"
+                    className="calendar-month-event"
+                    data-unscheduled={!event.time ? "true" : "false"}
+                    data-complete={event.completedAt ? "true" : "false"}
+                    style={{ "--calendar-month-accent": tone[event.type] || tone.other }}
+                    onClick={(domEvent) => { domEvent.stopPropagation(); onEventClick(event); }}
+                    onContextMenu={(domEvent) => {
+                      domEvent.preventDefault(); domEvent.stopPropagation();
+                      onContextRequest?.({ kind: event.time ? "event" : "unscheduled", event, date: key, x: domEvent.clientX, y: domEvent.clientY });
                     }}
                   >
-                    {event.time ? `${event.time} ` : ""}{event.title}
-                  </div>
-                );
-              })}
-              {dayEvents.length > 3 && (
-                <span style={{ fontSize: 9, color: c.muted, fontWeight: 700 }}>+{dayEvents.length - 3}</span>
-              )}
+                    <span>{event.time || "Ikke placeret"}</span><strong>{event.title}</strong>
+                  </button>
+                ))}
+                {dayEvents.length > 4 && <small className="calendar-month-more">+{dayEvents.length - 4}</small>}
+              </div>
             </div>
           );
         })}
@@ -1606,7 +1678,6 @@ function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, weekday
     </div>
   );
 }
-
 
 function loadStorage(key, fallback) {
   try {
@@ -10392,6 +10463,77 @@ select.ui-control {
 @media (max-width: 1100px) { .home-v2-quick-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .home-v2-day-close { grid-template-columns: 38px minmax(0,1fr) auto; } .home-v2-day-close-metrics { grid-column: 2 / -1; } }
 @media (max-width: 760px) { .home-v2-customize-button { width: 34px; padding: 0; justify-content: center; font-size: 0; } .home-v2-quick-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .home-v2-day-close { grid-template-columns: 34px minmax(0,1fr); } .home-v2-day-close-metrics { grid-column: 1 / -1; flex-wrap: wrap; } .home-v2-day-close-dismiss { position: absolute; inset-inline-end: 14px; } }
 
+
+/* ============================================================
+   SEGMENT 3.0 — CALENDAR, UNSCHEDULED QUEUE & CONTEXT MENUS
+   ============================================================ */
+.calendar-week-sticky-head { position: sticky; top: 0; z-index: 8; background: var(--ui-panel); border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent); }
+.calendar-week-header { position: relative !important; top: auto !important; border-bottom: 0 !important; }
+.calendar-week-unscheduled-grid { display: grid; grid-template-columns: 56px repeat(var(--calendar-days), minmax(0, 1fr)); min-height: 38px; background: var(--ui-panel); }
+.calendar-week-unscheduled-label { position: static !important; height: auto !important; display: flex; align-items: center; justify-content: flex-end; padding: 7px 8px 7px 2px; color: var(--ui-muted); font-size: 8px; font-weight: 800; line-height: 1.15; text-transform: uppercase; letter-spacing: .05em; }
+.calendar-week-unscheduled-cell { min-width: 0; display: flex; gap: 4px; align-items: center; overflow-x: auto; padding: 5px; border-inline-start: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent); }
+.calendar-week-unscheduled-cell[data-empty="true"] { justify-content: center; }
+.calendar-week-unscheduled-empty { color: var(--ui-muted); opacity: .55; font-size: 10px; }
+.calendar-week-unscheduled-chip { min-width: 0; max-width: 190px; height: 27px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-text); box-shadow: none; }
+.calendar-week-unscheduled-chip > span { color: var(--ui-blue); font-size: 8px; font-weight: 900; }
+.calendar-week-unscheduled-chip > strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; font-weight: 750; }
+.calendar-week-hour-line, .home-day-hour-line { border-top: 1px solid color-mix(in srgb, var(--ui-border) 62%, transparent) !important; }
+.calendar-week-half-line, .home-day-half-line { border-top: 1px dashed color-mix(in srgb, var(--ui-border) 37%, transparent) !important; }
+.calendar-week-day-column, .home-day-grid { background-image: none !important; }
+.calendar-week-event, .home-day-event { border: 1px solid color-mix(in srgb, var(--calendar-event-accent, var(--home-event-accent)) 22%, var(--ui-border)) !important; border-inline-start: 3px solid var(--calendar-event-accent, var(--home-event-accent)) !important; border-radius: 6px !important; background: color-mix(in srgb, var(--calendar-event-surface, var(--home-event-surface)) 72%, var(--ui-panel)) !important; box-shadow: none !important; padding: 5px 7px !important; align-items: flex-start !important; justify-content: flex-start !important; text-align: start !important; }
+.calendar-week-event:hover, .home-day-event:hover { transform: none !important; filter: none !important; border-color: color-mix(in srgb, var(--calendar-event-accent, var(--home-event-accent)) 42%, var(--ui-border)) !important; }
+.calendar-week-event-time, .home-day-event-time { font-size: 8.5px !important; line-height: 1.15 !important; font-weight: 750 !important; color: var(--ui-secondary) !important; }
+.calendar-week-event-title, .home-day-event-title { width: 100%; font-size: 10px !important; line-height: 1.25 !important; font-weight: 780 !important; color: var(--ui-text) !important; }
+.calendar-week-event-state, .home-day-event > small { color: var(--ui-muted); font-size: 8px; font-weight: 700; }
+.calendar-week-event[data-conflict="true"]::after, .home-day-event[data-conflict="true"]::after { content: ""; position: absolute; inset-block-start: 4px; inset-inline-end: 4px; width: 5px; height: 5px; border-radius: 50%; background: #d59a3c; }
+.home-day-unscheduled { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; align-items: start; padding: 7px 8px; border-bottom: 1px solid var(--ui-border); background: var(--ui-panel); }
+.home-day-unscheduled > span { padding-top: 6px; color: var(--ui-muted); font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
+.home-day-unscheduled > div { min-width: 0; display: flex; gap: 5px; overflow-x: auto; }
+.home-day-unscheduled button { min-width: 0; max-width: 220px; height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-text); }
+.home-day-unscheduled button strong { color: var(--ui-blue); font-size: 8px; }
+.home-day-unscheduled button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; font-weight: 750; }
+.calendar-context-menu { position: fixed; z-index: 2200; overflow: hidden; padding: 5px; border: 1px solid var(--ui-border-strong); border-radius: 10px; background: color-mix(in srgb, var(--ui-panel) 96%, transparent); box-shadow: 0 14px 38px rgba(20,30,48,.18); backdrop-filter: blur(16px); }
+.calendar-context-item { width: 100%; min-height: 34px; display: grid; grid-template-columns: 20px minmax(0,1fr) auto; align-items: center; gap: 7px; padding: 0 9px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-text); text-align: start; font-size: 11px; font-weight: 700; }
+.calendar-context-item:hover:not(:disabled) { background: var(--ui-soft); }
+.calendar-context-item[data-danger="true"] { color: var(--ui-red); }
+.calendar-context-item small { color: var(--ui-muted); font-size: 9px; }
+.calendar-context-item:disabled { opacity: .38; }
+.calendar-context-separator { display: block; height: 1px; margin: 4px 5px; background: var(--ui-border); }
+.calendar-month-root { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: auto; }
+.calendar-month-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); position: sticky; top: 0; z-index: 3; background: var(--ui-panel); border-bottom: 1px solid var(--ui-border); }
+.calendar-month-weekdays > div { padding: 9px 6px; color: var(--ui-muted); text-align: center; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.calendar-month-grid { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(105px, 1fr); }
+.calendar-month-cell { min-width: 0; padding: 6px; border-inline-start: 1px solid color-mix(in srgb, var(--ui-border) 65%, transparent); border-top: 1px solid color-mix(in srgb, var(--ui-border) 65%, transparent); background: var(--ui-panel); }
+.calendar-month-cell[data-today="true"] { background: color-mix(in srgb, var(--ui-blue-soft) 50%, var(--ui-panel)); }
+.calendar-month-cell--empty { background: var(--ui-soft); opacity: .55; }
+.calendar-month-day-number { display: inline-grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; color: var(--ui-text); font-size: 10px; font-weight: 800; }
+.calendar-month-cell[data-today="true"] .calendar-month-day-number { background: var(--ui-blue); color: #fff; }
+.calendar-month-unscheduled-count { float: inline-end; padding-top: 5px; color: var(--ui-muted); font-size: 8px; font-weight: 750; }
+.calendar-month-events { display: grid; gap: 3px; margin-top: 4px; }
+.calendar-month-event { min-width: 0; display: grid; grid-template-columns: auto minmax(0,1fr); gap: 5px; align-items: center; padding: 3px 5px; border: 0; border-inline-start: 2px solid var(--calendar-month-accent); border-radius: 4px; background: var(--ui-soft); color: var(--ui-text); text-align: start; }
+.calendar-month-event[data-unscheduled="true"] { border: 1px dashed var(--ui-border-strong); border-inline-start: 2px solid var(--calendar-month-accent); background: transparent; }
+.calendar-month-event span { color: var(--ui-muted); font-size: 7.5px; font-weight: 750; }
+.calendar-month-event strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8.5px; font-weight: 750; }
+.calendar-month-more { color: var(--ui-muted); font-size: 8px; }
+.calendar-quick-editor { width: min(510px, 100%); }
+.calendar-quick-editor-heading { min-width: 0; flex: 1; }
+.calendar-quick-editor-heading > small { display: block; color: var(--ui-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.calendar-quick-all-day { display: flex; align-items: center; gap: 8px; padding-inline-start: 32px; color: var(--ui-secondary); font-size: 11px; font-weight: 700; }
+.calendar-quick-two-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.calendar-conflict-callout { display: grid; grid-template-columns: 18px minmax(0,1fr) auto; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid color-mix(in srgb, #d59a3c 38%, var(--ui-border)); border-radius: 8px; background: color-mix(in srgb, #d59a3c 9%, var(--ui-panel)); color: var(--ui-secondary); font-size: 10px; }
+.calendar-conflict-callout button { border: 0; background: transparent; color: var(--ui-blue); font-size: 9px; font-weight: 800; }
+.calendar-delivery-state { display: flex; align-items: center; gap: 7px; color: var(--ui-secondary); font-size: 10px; font-weight: 700; }
+.calendar-delivery-state > span { width: 7px; height: 7px; border-radius: 50%; background: var(--ui-muted); }
+.calendar-delivery-state > span[data-state="held"] { background: #8b74c7; }
+.daily-planner-event-row { grid-template-columns: 8px minmax(0,1fr) minmax(95px,.55fr) minmax(110px,.6fr) !important; }
+.daily-planner-event-copy { min-width: 0; display: grid; gap: 2px; }
+.daily-planner-event-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.daily-planner-event-row label { display: grid; gap: 4px; }
+.daily-planner-event-row label small { color: var(--ui-muted); font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.daily-planner-event-row select, .daily-planner-event-row input { width: 100%; min-height: 34px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-text); padding: 0 8px; font-size: 10px; }
+.study-plan-duration-note { margin: -8px 0 18px; padding: 10px 12px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 10.5px; line-height: 1.55; }
+@media (max-width: 760px) { .calendar-week-unscheduled-grid { grid-template-columns: 48px repeat(var(--calendar-days), minmax(110px, 1fr)); } .daily-planner-event-row { grid-template-columns: 8px minmax(0,1fr) !important; } .daily-planner-event-row label { grid-column: 2; } .calendar-quick-two-cols { grid-template-columns: 1fr; } }
+
     `}
 
 </style>
@@ -12719,7 +12861,8 @@ function calendarEventMetaFields(event) {
     "endTime", "description", "location", "url", "lectureId", "lectureIds",
     "source", "importedSchedule", "completedAt", "status", "needsScheduling",
     "questionCount", "lectureUnits", "allDay", "createdByUser", "colorKey",
-    "returnedToQueueAt", "manualIncompleteAt",
+    "returnedToQueueAt", "manualIncompleteAt", "deliveryStatus", "reminderMinutes",
+    "recurrence", "attachmentLabel", "attachmentUrl", "splitFromId", "conflictDismissedAt",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -12780,6 +12923,7 @@ function calendarReturnLectureToQueue(event, todayKeyString) {
     needsScheduling: true,
     returnedToQueueAt: Date.now(),
     manualIncompleteAt: Date.now(),
+    estimatedHours: null,
   };
 }
 
@@ -12801,7 +12945,7 @@ function calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existi
     type: existingEvent?.type || "study",
     planModuleId: moduleName,
     lectureCount: 1,
-    estimatedHours: Math.max(.5, Number(existingEvent?.estimatedHours) || Number(lecture.parts) || 1),
+    estimatedHours: null,
   };
 }
 
@@ -12890,6 +13034,7 @@ function CalendarEventEditor({
   event,
   moduleName,
   lectures = [],
+  allEvents = [],
   exists = false,
   onChange,
   onSave,
@@ -12897,300 +13042,71 @@ function CalendarEventEditor({
   onClose,
 }) {
   const copy = ({
-    da: {
-      end: "Slutter",
-      location: "Sted",
-      link: "Link",
-      lecture: "Forelæsning",
-      noLecture: "Ingen forelæsning",
-      completed: "Markér som færdig",
-      description: "Tilføj beskrivelse eller forberedelse…",
-      title: "Ny begivenhed",
-      edit: "Redigér begivenhed",
-      more: "Flere oplysninger",
-      less: "Færre oplysninger",
-      optional: "Valgfrit",
-      status: "Status",
-    },
-    en: {
-      end: "Ends",
-      location: "Location",
-      link: "Link",
-      lecture: "Lecture",
-      noLecture: "No lecture",
-      completed: "Mark as completed",
-      description: "Add description or preparation…",
-      title: "New event",
-      edit: "Edit event",
-      more: "More options",
-      less: "Fewer options",
-      optional: "Optional",
-      status: "Status",
-    },
-    ar: {
-      end: "ينتهي",
-      location: "المكان",
-      link: "الرابط",
-      lecture: "المحاضرة",
-      noLecture: "بدون محاضرة",
-      completed: "وضع علامة كمكتمل",
-      description: "أضف وصفًا أو تحضيرًا…",
-      title: "حدث جديد",
-      edit: "تعديل الحدث",
-      more: "المزيد من الخيارات",
-      less: "خيارات أقل",
-      optional: "اختياري",
-      status: "الحالة",
-    },
+    da: { end: "Slutter", location: "Sted", link: "Link", lecture: "Forelæsning", noLecture: "Ingen forelæsning", completed: "Gennemgået", description: "Beskrivelse eller forberedelse…", title: "Ny begivenhed", edit: "Redigér begivenhed", more: "Flere oplysninger", less: "Færre oplysninger", optional: "Valgfrit", allDay: "Hele dagen", reminder: "Påmindelse", recurrence: "Gentagelse", none: "Ingen", daily: "Dagligt", weekly: "Ugentligt", attachment: "PDF eller note", conflict: "Tiden overlapper med en anden aktivitet.", suggest: "Find næste ledige tid", held: "Forelæsningen er afholdt", planned: "Planlagt", reviewed: "Gennemgået" },
+    en: { end: "Ends", location: "Location", link: "Link", lecture: "Lecture", noLecture: "No lecture", completed: "Reviewed", description: "Description or preparation…", title: "New event", edit: "Edit event", more: "More options", less: "Fewer options", optional: "Optional", allDay: "All day", reminder: "Reminder", recurrence: "Repeat", none: "None", daily: "Daily", weekly: "Weekly", attachment: "PDF or note", conflict: "This time overlaps another activity.", suggest: "Find next free time", held: "Lecture held", planned: "Planned", reviewed: "Reviewed" },
+    ar: { end: "ينتهي", location: "المكان", link: "الرابط", lecture: "المحاضرة", noLecture: "بدون محاضرة", completed: "تمت المراجعة", description: "وصف أو تحضير…", title: "حدث جديد", edit: "تعديل الحدث", more: "المزيد", less: "أقل", optional: "اختياري", allDay: "طوال اليوم", reminder: "تذكير", recurrence: "تكرار", none: "لا شيء", daily: "يومي", weekly: "أسبوعي", attachment: "PDF أو ملاحظة", conflict: "يتداخل هذا الوقت مع نشاط آخر.", suggest: "العثور على الوقت المتاح التالي", held: "تمت المحاضرة", planned: "مخطط", reviewed: "تمت المراجعة" },
   })[language] || {};
-
-  const hasAdvancedValues = Boolean(
-    event.location || event.url || event.description || event.lectureId
-  );
-  const [advancedOpen, setAdvancedOpen] = useState(hasAdvancedValues);
-  const startMinutes = timeToMinutes(event.time);
-  const endMinutes = timeToMinutes(event.endTime);
-  const duration =
-    startMinutes != null && endMinutes != null && endMinutes > startMinutes
-      ? endMinutes - startMinutes
-      : Math.round((Number(event.estimatedHours) || 1) * 60);
+  const [advancedOpen, setAdvancedOpen] = useState(Boolean(event.location || event.url || event.description || event.reminderMinutes || event.recurrence || event.attachmentUrl));
+  const duration = calendarDurationMinutes(event);
+  const conflicts = event.time ? allEvents.filter((item) => calendarEventsConflict(event, item)) : [];
 
   function updateStartTime(value) {
     const start = timeToMinutes(value);
-    const currentEnd = timeToMinutes(event.endTime);
-    const fallbackMinutes = Math.max(15, duration);
-    const shouldAdjustEnd =
-      start != null && (currentEnd == null || currentEnd <= start);
-    onChange({
-      ...event,
-      time: value,
-      endTime: shouldAdjustEnd
-        ? minutesToTime(start + fallbackMinutes)
-        : event.endTime,
-    });
+    onChange({ ...event, time: value, endTime: start == null ? "" : minutesToTime(start + duration), estimatedHours: duration / 60, needsScheduling: !value });
   }
-
   function updateEndTime(value) {
     const start = timeToMinutes(event.time);
     const end = timeToMinutes(value);
-    onChange({
-      ...event,
-      endTime: value,
-      estimatedHours:
-        start != null && end != null && end > start
-          ? Math.max(.25, (end - start) / 60)
-          : event.estimatedHours,
-    });
+    onChange({ ...event, endTime: value, estimatedHours: start != null && end != null && end > start ? (end - start) / 60 : event.estimatedHours });
+  }
+  function suggestFreeTime() {
+    const next = calendarFindNextFreeStart(event, allEvents);
+    if (!next) return;
+    const start = timeToMinutes(next);
+    onChange({ ...event, time: next, endTime: minutesToTime(start + duration), needsScheduling: false });
   }
 
   return (
     <Modal c={c} onClose={onClose} size="calendar">
       <div className="calendar-quick-editor" dir={language === "ar" ? "rtl" : "ltr"}>
         <header className="calendar-quick-editor-header">
-          <span
-            className="calendar-quick-editor-accent"
-            data-type={event.type || "study"}
-          />
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div className="calendar-quick-editor-label">
-              {exists ? copy.edit : copy.title}
-            </div>
-            <input
-              className="calendar-quick-editor-title"
-              value={event.title || ""}
-              onChange={(domEvent) =>
-                onChange({ ...event, title: domEvent.target.value })
-              }
-              placeholder={t.calendarEventTitlePlaceholder}
-              autoFocus
-            />
+          <span className="calendar-quick-editor-accent" data-type={event.type || "study"} />
+          <div className="calendar-quick-editor-heading">
+            <small>{exists ? copy.edit : copy.title}</small>
+            <input className="calendar-quick-editor-title" value={event.title || ""} onChange={(e) => onChange({ ...event, title: e.target.value })} placeholder={t.calendarEventTitlePlaceholder} autoFocus />
           </div>
-          <IconButton c={c} title={t.close} onClick={onClose}>
-            <Icon name="close" size={16} />
-          </IconButton>
+          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={16} /></IconButton>
         </header>
 
         <div className="calendar-quick-editor-body">
-          <div className="calendar-quick-editor-row">
-            <span className="calendar-quick-editor-row-icon">
-              <Icon name="calendar" size={16} />
-            </span>
-            <input
-              type="date"
-              className="calendar-quick-control calendar-quick-control--date"
-              value={event.date || ""}
-              onChange={(domEvent) =>
-                onChange({ ...event, date: domEvent.target.value })
-              }
-            />
-          </div>
+          <label className="calendar-quick-all-day"><input type="checkbox" checked={Boolean(event.allDay)} onChange={(e) => onChange({ ...event, allDay: e.target.checked, time: e.target.checked ? "" : event.time, endTime: e.target.checked ? "" : event.endTime, needsScheduling: !e.target.checked && !event.time })} /><span>{copy.allDay}</span></label>
+          <div className="calendar-quick-editor-row"><Icon name="calendar" size={16} /><input type="date" className="calendar-quick-control" value={event.date || ""} onChange={(e) => onChange({ ...event, date: e.target.value })} /></div>
+          {!event.allDay && <div className="calendar-quick-editor-row"><Icon name="clock" size={16} /><div className="calendar-quick-time-grid"><input type="time" className="calendar-quick-control" value={event.time || ""} onChange={(e) => updateStartTime(e.target.value)} /><span>–</span><input type="time" className="calendar-quick-control" value={event.endTime || ""} onChange={(e) => updateEndTime(e.target.value)} /><small>{duration} min</small></div></div>}
+          <div className="calendar-quick-editor-row"><Icon name="cards" size={16} /><select className="calendar-quick-control" value={event.type || "study"} onChange={(e) => onChange({ ...event, type: e.target.value })}><option value="study">{t.calendarTypeStudy}</option><option value="review">{t.calendarTypeReview}</option><option value="exam">{t.calendarTypeExam}</option><option value="other">{t.calendarTypeOther}</option></select></div>
+          {lectures.length > 0 && <div className="calendar-quick-editor-row"><Icon name="book" size={16} /><select className="calendar-quick-control" value={event.lectureId || ""} onChange={(e) => { const lectureId = e.target.value || null; onChange({ ...event, lectureId, lectureIds: lectureId ? [lectureId] : [], planModuleId: lectureId ? moduleName : event.planModuleId }); }}><option value="">{copy.noLecture}</option>{lectures.map((lecture) => <option key={lecture.id} value={lecture.id}>{lecture.id} · {lecture.title}</option>)}</select></div>}
 
-          <div className="calendar-quick-editor-row">
-            <span className="calendar-quick-editor-row-icon">
-              <Icon name="clock" size={16} />
-            </span>
-            <div className="calendar-quick-time-grid">
-              <input
-                type="time"
-                className="calendar-quick-control"
-                value={event.time || ""}
-                onChange={(domEvent) =>
-                  updateStartTime(domEvent.target.value)
-                }
-              />
-              <span aria-hidden="true">–</span>
-              <input
-                type="time"
-                className="calendar-quick-control"
-                value={event.endTime || ""}
-                onChange={(domEvent) => updateEndTime(domEvent.target.value)}
-              />
-              <small>{Math.max(15, duration)} min</small>
+          {conflicts.length > 0 && !event.conflictDismissedAt && <div className="calendar-conflict-callout"><Icon name="clock" size={14} /><span>{copy.conflict}</span><button type="button" onClick={suggestFreeTime}>{copy.suggest}</button></div>}
+          {event.importedSchedule && <div className="calendar-delivery-state"><span data-state={event.deliveryStatus || "planned"} />{event.deliveryStatus === "held" ? copy.held : copy.planned}</div>}
+
+          <button type="button" className="calendar-quick-more" onClick={() => setAdvancedOpen((value) => !value)} aria-expanded={advancedOpen}><Icon name={advancedOpen ? "collapse" : "plus"} size={14} />{advancedOpen ? copy.less : copy.more}</button>
+          {advancedOpen && <div className="calendar-quick-advanced">
+            <label><span>{copy.location}</span><input className="calendar-quick-control" value={event.location || ""} onChange={(e) => onChange({ ...event, location: e.target.value })} placeholder={copy.optional} /></label>
+            <label><span>{copy.link}</span><input className="calendar-quick-control" value={event.url || ""} onChange={(e) => onChange({ ...event, url: e.target.value })} placeholder="https://" /></label>
+            <div className="calendar-quick-two-cols">
+              <label><span>{copy.reminder}</span><select className="calendar-quick-control" value={event.reminderMinutes ?? ""} onChange={(e) => onChange({ ...event, reminderMinutes: e.target.value === "" ? null : Number(e.target.value) })}><option value="">{copy.none}</option><option value="10">10 min</option><option value="30">30 min</option><option value="60">1 time</option><option value="1440">1 dag</option></select></label>
+              <label><span>{copy.recurrence}</span><select className="calendar-quick-control" value={event.recurrence || "none"} onChange={(e) => onChange({ ...event, recurrence: e.target.value })}><option value="none">{copy.none}</option><option value="daily">{copy.daily}</option><option value="weekly">{copy.weekly}</option></select></label>
             </div>
-          </div>
-
-          <div className="calendar-quick-editor-row">
-            <span className="calendar-quick-editor-row-icon">
-              <Icon name="cards" size={16} />
-            </span>
-            <select
-              className="calendar-quick-control"
-              value={event.type || "study"}
-              onChange={(domEvent) =>
-                onChange({ ...event, type: domEvent.target.value })
-              }
-            >
-              <option value="study">{t.calendarTypeStudy}</option>
-              <option value="review">{t.calendarTypeReview}</option>
-              <option value="exam">{t.calendarTypeExam}</option>
-              <option value="other">{t.calendarTypeOther}</option>
-            </select>
-          </div>
-
-          {lectures.length > 0 && (
-            <div className="calendar-quick-editor-row">
-              <span className="calendar-quick-editor-row-icon">
-                <Icon name="book" size={16} />
-              </span>
-              <select
-                className="calendar-quick-control"
-                value={event.lectureId || ""}
-                onChange={(domEvent) => {
-                  const lectureId = domEvent.target.value || null;
-                  onChange({
-                    ...event,
-                    lectureId,
-                    lectureIds: lectureId ? [lectureId] : [],
-                    planModuleId: lectureId
-                      ? moduleName
-                      : event.planModuleId,
-                  });
-                }}
-              >
-                <option value="">{copy.noLecture}</option>
-                {lectures.map((lecture) => (
-                  <option key={lecture.id} value={lecture.id}>
-                    {lecture.id} · {lecture.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <button
-            type="button"
-            className="calendar-quick-more"
-            onClick={() => setAdvancedOpen((value) => !value)}
-            aria-expanded={advancedOpen}
-          >
-            <Icon name={advancedOpen ? "collapse" : "plus"} size={14} />
-            {advancedOpen ? copy.less : copy.more}
-          </button>
-
-          {advancedOpen && (
-            <div className="calendar-quick-advanced">
-              <label>
-                <span>{copy.location}</span>
-                <input
-                  className="calendar-quick-control"
-                  value={event.location || ""}
-                  onChange={(domEvent) =>
-                    onChange({ ...event, location: domEvent.target.value })
-                  }
-                  placeholder={copy.optional}
-                />
-              </label>
-              <label>
-                <span>{copy.link}</span>
-                <input
-                  className="calendar-quick-control"
-                  value={event.url || ""}
-                  onChange={(domEvent) =>
-                    onChange({ ...event, url: domEvent.target.value })
-                  }
-                  placeholder="https://"
-                />
-              </label>
-              <label>
-                <span>{t.note}</span>
-                <textarea
-                  className="calendar-quick-control calendar-quick-notes"
-                  value={event.description || ""}
-                  onChange={(domEvent) =>
-                    onChange({ ...event, description: domEvent.target.value })
-                  }
-                  placeholder={copy.description}
-                />
-              </label>
-            </div>
-          )}
-
-          <label className="calendar-quick-complete">
-            <input
-              type="checkbox"
-              checked={Boolean(event.completedAt)}
-              onChange={() =>
-                onChange({
-                  ...event,
-                  completedAt: event.completedAt
-                    ? null
-                    : new Date().toISOString(),
-                  status: event.completedAt ? "planned" : "completed",
-                })
-              }
-            />
-            <span>{copy.completed}</span>
-          </label>
+            <label><span>{copy.attachment}</span><input className="calendar-quick-control" value={event.attachmentUrl || ""} onChange={(e) => onChange({ ...event, attachmentUrl: e.target.value })} placeholder="Link til PDF eller note" /></label>
+            <label><span>{t.note}</span><textarea className="calendar-quick-control calendar-quick-notes" value={event.description || ""} onChange={(e) => onChange({ ...event, description: e.target.value })} placeholder={copy.description} /></label>
+          </div>}
+          <label className="calendar-quick-complete"><input type="checkbox" checked={Boolean(event.completedAt)} onChange={() => onChange({ ...event, completedAt: event.completedAt ? null : new Date().toISOString(), status: event.completedAt ? "planned" : "completed" })} /><span>{copy.completed}</span></label>
         </div>
 
-        <footer className="calendar-quick-editor-footer">
-          <div>
-            {exists && (
-              <button
-                type="button"
-                className="calendar-quick-delete"
-                onClick={onDelete}
-                title={t.calendarDelete}
-              >
-                <Icon name="trash" size={15} />
-              </button>
-            )}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <SecondaryButton onClick={onClose}>{t.calendarCancel}</SecondaryButton>
-            <PrimaryButton
-              disabled={!event.title?.trim() || !event.date}
-              onClick={onSave}
-            >
-              {t.calendarSave}
-            </PrimaryButton>
-          </div>
-        </footer>
+        <footer className="calendar-quick-editor-footer"><div>{exists && <button type="button" className="calendar-quick-delete" onClick={onDelete}><Icon name="trash" size={15} /></button>}</div><div><SecondaryButton onClick={onClose}>{t.calendarCancel}</SecondaryButton><PrimaryButton disabled={!event.title?.trim() || !event.date} onClick={onSave}>{t.calendarSave}</PrimaryButton></div></footer>
       </div>
     </Modal>
   );
 }
-
 
 function buildStudyPlanCalendarBundle({
   moduleName,
@@ -13237,10 +13153,6 @@ function buildStudyPlanCalendarBundle({
       const item = available[dateIndex];
       const id = `studyplan-${moduleName}-lecture-${lecture.id}`;
       const parts = Math.max(1, Number(lecture.parts) || 1);
-      const hours = Math.max(
-        .5,
-        (Number(plan.hoursPerLecture) || 1) * parts
-      );
 
       events.push({
         id,
@@ -13250,7 +13162,7 @@ function buildStudyPlanCalendarBundle({
         type: "study",
         planModuleId: moduleName,
         lectureCount: 1,
-        estimatedHours: hours,
+        estimatedHours: null,
       });
 
       metadata[id] = {
@@ -13352,7 +13264,7 @@ function reconcileStudyPlanCalendarEvents({
         date: exact.date || event.date,
         time: exact.time || event.time,
         endTime: exact.endTime || event.endTime,
-        estimatedHours: exact.estimatedHours || event.estimatedHours,
+        estimatedHours: exact.time ? (exact.estimatedHours || event.estimatedHours) : event.estimatedHours,
       };
     }
 
@@ -13377,11 +13289,12 @@ function reconcileStudyPlanCalendarEvents({
   });
 }
 
-function CalendarPanel({ c, t, language, theme, module, onClose }) {
+function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }) {
   const [events, setEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [eventMeta, setEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
+  const [contextMenu, setContextMenu] = useState(null);
   const mergedEvents = mergeCalendarEventMeta(events, eventMeta);
   const today = new Date();
   const [view, setView] = useState("week");
@@ -13397,6 +13310,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
   const moduleLectures = MODULE_LECTURES[module] || [];
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
+  const contextCopy = calendarContextCopy(language);
 
   useEffect(() => {
     const plan = plans[module];
@@ -13405,86 +13319,41 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
     const bundle = buildStudyPlanCalendarBundle({ moduleName: module, plan, lectures: moduleLectures, questionTotal });
     if (!bundle.events.length) return;
     setEvents((previous) => {
-      const generated = reconcileStudyPlanCalendarEvents({
-        moduleName: module,
-        generatedEvents: bundle.events,
-        generatedMetadata: bundle.metadata,
-        previousEvents: previous,
-        previousMetadata: eventMeta,
-      });
-      return [
-        ...previous.filter(
-          (event) =>
-            event.planModuleId !== module ||
-            !String(event.id).startsWith("studyplan-")
-        ),
-        ...generated,
-      ];
+      const generated = reconcileStudyPlanCalendarEvents({ moduleName: module, generatedEvents: bundle.events, generatedMetadata: bundle.metadata, previousEvents: previous, previousMetadata: eventMeta });
+      return [...previous.filter((event) => event.planModuleId !== module || !String(event.id).startsWith("studyplan-")), ...generated];
     });
     setEventMeta((previous) => {
-      const generated = reconcileStudyPlanCalendarEvents({
-        moduleName: module,
-        generatedEvents: bundle.events,
-        generatedMetadata: bundle.metadata,
-        previousEvents: events,
-        previousMetadata: previous,
-      });
+      const generated = reconcileStudyPlanCalendarEvents({ moduleName: module, generatedEvents: bundle.events, generatedMetadata: bundle.metadata, previousEvents: events, previousMetadata: previous });
       const next = { ...previous };
       Object.entries(bundle.metadata).forEach(([id, generatedMeta]) => {
         const existingMeta = previous[id] || {};
         const generatedEvent = generated.find((event) => event.id === id);
-        next[id] = {
-          ...generatedMeta,
-          ...(existingMeta.completedAt
-            ? {
-                completedAt: existingMeta.completedAt,
-                status: existingMeta.status || "completed",
-              }
-            : {}),
-          ...(existingMeta.missedResolvedAt
-            ? { missedResolvedAt: existingMeta.missedResolvedAt }
-            : {}),
-          needsScheduling: generatedEvent?.time
-            ? false
-            : generatedMeta.needsScheduling,
-        };
+        next[id] = { ...generatedMeta, ...existingMeta, needsScheduling: generatedEvent?.time ? false : generatedMeta.needsScheduling };
       });
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [module]);
 
+  // Imported timetable events become "held" when their end time passes. They are
+  // deliberately not marked "reviewed"; the user controls reviewed completion.
   useEffect(() => {
-    const completedImportedIds = mergedEvents
-      .filter((event) => event.planModuleId === module && event.importedSchedule && event.lectureId && !event.manualIncompleteAt && calendarEventEndTimestamp(event) <= Date.now())
-      .map((event) => event.lectureId);
-    if (!completedImportedIds.length || !plans[module]) return;
-    const nextIds = [...new Set([...(plans[module].doneLectureIds || []), ...completedImportedIds])];
-    const completedImportedEvents = mergedEvents.filter((event) => event.planModuleId === module && event.importedSchedule && event.lectureId && !event.manualIncompleteAt && calendarEventEndTimestamp(event) <= Date.now() && !event.completedAt);
-    if (completedImportedEvents.length) {
-      setEventMeta((previous) => {
-        const next = { ...previous };
-        completedImportedEvents.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), completedAt: new Date(calendarEventEndTimestamp(event)).toISOString(), status: "completed" }; });
-        return next;
-      });
-    }
-    if (nextIds.length === (plans[module].doneLectureIds || []).length) return;
-    setPlans((previous) => ({ ...previous, [module]: { ...previous[module], doneLectureIds: nextIds, updatedAt: Date.now() } }));
+    const held = mergedEvents.filter((event) => event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
+    if (!held.length) return;
+    setEventMeta((previous) => {
+      const next = { ...previous };
+      held.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), deliveryStatus: "held" }; });
+      return next;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events, eventMeta, module]);
+  }, [events, eventMeta]);
 
-  const eventsByDate = mergedEvents.reduce((result, event) => {
-    (result[event.date] = result[event.date] || []).push(event);
-    return result;
-  }, {});
+  const eventsByDate = mergedEvents.reduce((result, event) => { (result[event.date] = result[event.date] || []).push(event); return result; }, {});
   const selectedEvents = (eventsByDate[selectedDate] || []).sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
-  const upcoming = mergedEvents
-    .filter((event) => event.date >= todayKey && !event.completedAt)
-    .sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`))
-    .slice(0, 8);
+  const upcoming = mergedEvents.filter((event) => event.date >= todayKey && !event.completedAt).sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`)).slice(0, 8);
 
   function saveEvent(nextEvent) {
-    const clean = { ...nextEvent, type: nextEvent.type || "study" };
+    const clean = { ...nextEvent, type: nextEvent.type || "study", needsScheduling: !nextEvent.allDay && !nextEvent.time };
     const metadata = calendarEventMetaFields(clean);
     setEvents((previous) => {
       const base = { ...clean };
@@ -13498,77 +13367,127 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
 
   function deleteEvent(id) {
     const currentEvent = mergedEvents.find((item) => item.id === id);
-
     if (calendarIsUnfinishedStudyPlanLecture(currentEvent)) {
       const queuedEvent = calendarReturnLectureToQueue(currentEvent, todayKey);
-      setEvents((previous) => previous.map((item) =>
-        item.id === id
-          ? { ...item, date: queuedEvent.date, time: "" }
-          : item
-      ));
-      setEventMeta((previous) => ({
-        ...previous,
-        [id]: {
-          ...(previous[id] || {}),
-          ...calendarEventMetaFields(queuedEvent),
-        },
-      }));
+      setEvents((previous) => previous.map((item) => item.id === id ? { ...item, date: queuedEvent.date, time: "", endTime: "", estimatedHours: null } : item));
+      setEventMeta((previous) => ({ ...previous, [id]: { ...(previous[id] || {}), ...calendarEventMetaFields(queuedEvent) } }));
       setEditingEvent(null);
       return;
     }
-
     setEvents((previous) => previous.filter((item) => item.id !== id));
     setEventMeta((previous) => { const next = { ...previous }; delete next[id]; return next; });
     setEditingEvent(null);
   }
 
   function moveEvent(updatedEvent) {
-    setEvents((previous) => previous.map((item) => item.id === updatedEvent.id ? { ...item, date: updatedEvent.date, time: updatedEvent.time } : item));
-    setEventMeta((previous) => ({ ...previous, [updatedEvent.id]: { ...(previous[updatedEvent.id] || {}), needsScheduling: false } }));
+    setEvents((previous) => previous.map((item) => item.id === updatedEvent.id ? { ...item, date: updatedEvent.date, time: updatedEvent.time, endTime: updatedEvent.endTime, estimatedHours: updatedEvent.estimatedHours } : item));
+    setEventMeta((previous) => ({ ...previous, [updatedEvent.id]: { ...(previous[updatedEvent.id] || {}), needsScheduling: !updatedEvent.time, status: updatedEvent.time ? "planned" : "unscheduled" } }));
   }
 
   function toggleEventComplete(event) {
     const completing = !event.completedAt;
     const lectureIds = calendarLectureIds(event);
     const completedAt = completing ? new Date().toISOString() : null;
-
     if (!completing && event.source === "study-plan" && lectureIds.length) {
       const queued = calendarReturnLectureToQueue(event, todayKey);
-      setEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, date: queued.date, time: "" } : item));
+      setEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, date: queued.date, time: "", endTime: "", estimatedHours: null } : item));
       setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...calendarEventMetaFields(queued) } }));
     } else {
-      setEventMeta((previous) => ({
-        ...previous,
-        [event.id]: {
-          ...(previous[event.id] || {}),
-          completedAt,
-          status: completedAt ? "completed" : "planned",
-          manualIncompleteAt: completedAt ? null : Date.now(),
-        },
-      }));
+      setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), completedAt, status: completedAt ? "completed" : "planned", manualIncompleteAt: completedAt ? null : Date.now() } }));
     }
-
     if (!event.planModuleId || !lectureIds.length || !plans[event.planModuleId]) return;
     setPlans((previous) => {
       const plan = previous[event.planModuleId];
       const current = new Set(plan.doneLectureIds || []);
       lectureIds.forEach((id) => completing ? current.add(id) : current.delete(id));
-      const questionDelta = Number(event.questionCount) || 0;
-      const completedExamQuestions = Math.max(0, (Number(plan.completedExamQuestions) || 0) + (completing ? questionDelta : -questionDelta));
-      return { ...previous, [event.planModuleId]: { ...plan, doneLectureIds: [...current], completedExamQuestions, updatedAt: Date.now() } };
+      return { ...previous, [event.planModuleId]: { ...plan, doneLectureIds: [...current], updatedAt: Date.now() } };
     });
   }
 
-  function handleSlotClick(dayKeyString, time) {
+  function newEvent(dayKeyString, time, type = "study") {
+    const start = timeToMinutes(time);
     setSelectedDate(dayKeyString);
-    setEditingEvent({ id: `event-${Date.now()}`, title: "", date: dayKeyString, time, endTime: minutesToTime((timeToMinutes(time) || 0) + 60), type: "study", estimatedHours: 1, planModuleId: module, createdByUser: true });
+    setEditingEvent({ id: `event-${Date.now()}`, title: "", date: dayKeyString, time, endTime: start == null ? "" : minutesToTime(start + 60), type, estimatedHours: time ? 1 : null, planModuleId: module, createdByUser: true, needsScheduling: !time });
+  }
+
+  function duplicateEvent(event) {
+    const start = timeToMinutes(event.time);
+    const duration = calendarDurationMinutes(event);
+    const shifted = start == null ? "" : minutesToTime(start + 15);
+    saveEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · kopi`, time: shifted, endTime: shifted ? minutesToTime((timeToMinutes(shifted) || 0) + duration) : "", completedAt: null, source: "duplicate", createdByUser: true });
+  }
+
+  function splitEvent(event) {
+    const start = timeToMinutes(event.time);
+    const duration = calendarDurationMinutes(event);
+    if (start == null || duration < 60) return;
+    const firstDuration = Math.round(duration / 2 / 15) * 15;
+    const secondStart = start + firstDuration;
+    const first = { ...event, endTime: minutesToTime(secondStart), estimatedHours: firstDuration / 60 };
+    const second = { ...event, id: `event-${Date.now()}`, title: `${event.title} · del 2`, time: minutesToTime(secondStart), endTime: minutesToTime(start + duration), estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null };
+    saveEvent(first);
+    setTimeout(() => saveEvent(second), 0);
+  }
+
+  function moveEventTo(event, targetDate, clearTime = false) {
+    const updated = { ...event, date: targetDate, time: clearTime ? "" : event.time, endTime: clearTime ? "" : event.endTime, estimatedHours: clearTime ? null : event.estimatedHours };
+    moveEvent(updated);
+  }
+
+  function openLecture(event) {
+    const lectureId = calendarLectureIds(event)[0];
+    if (!lectureId) return;
+    onOpenLecture?.(lectureId);
+  }
+
+  function handleContextRequest(menu) { setContextMenu(menu); }
+  function contextItems() {
+    if (!contextMenu) return [];
+    if (contextMenu.kind === "slot") {
+      const unscheduled = mergedEvents.find((event) => event.date === contextMenu.date && !event.time && !event.completedAt && event.type !== "exam");
+      return [
+        { id: "new", label: contextCopy.create, icon: "plus", action: () => newEvent(contextMenu.date, contextMenu.time, "other") },
+        unscheduled && { id: "place", label: contextCopy.placeLecture, icon: "book", action: () => { const duration = calendarDurationMinutes(unscheduled); moveEvent({ ...unscheduled, time: contextMenu.time, endTime: minutesToTime((timeToMinutes(contextMenu.time) || 0) + duration), estimatedHours: duration / 60 }); } },
+        { id: "study", label: contextCopy.createStudy, icon: "book", action: () => newEvent(contextMenu.date, contextMenu.time, "study") },
+        { id: "review", label: contextCopy.createReview, icon: "reset", action: () => newEvent(contextMenu.date, contextMenu.time, "review") },
+      ];
+    }
+    const event = contextMenu.event;
+    if (!event) return [];
+    const tomorrow = addDays(today, 1);
+    const tomorrowKey = dateKey(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+    if (contextMenu.kind === "unscheduled") {
+      const next = calendarFindNextFreeStart({ ...event, time: "09:00" }, mergedEvents);
+      return [
+        { id: "edit", label: contextCopy.edit, icon: "edit", action: () => setEditingEvent(event) },
+        { id: "place", label: contextCopy.place, icon: "clock", action: () => setEditingEvent({ ...event, time: "09:00", endTime: "10:00", estimatedHours: 1 }) },
+        { id: "auto", label: contextCopy.autoPlace, icon: "calendar", disabled: !next, action: () => moveEvent({ ...event, time: next, endTime: minutesToTime((timeToMinutes(next) || 0) + 60), estimatedHours: 1 }) },
+        { id: "tomorrow", label: contextCopy.tomorrow, icon: "right", action: () => moveEventTo(event, tomorrowKey, true) },
+        { id: "complete", label: contextCopy.complete, icon: "check", action: () => toggleEventComplete(event) },
+        event.lectureId && { id: "lecture", label: contextCopy.openLecture, icon: "book", action: () => openLecture(event) },
+        { separator: true },
+        { id: "delete", label: contextCopy.remove, icon: "trash", danger: true, action: () => deleteEvent(event.id) },
+      ];
+    }
+    return [
+      { id: "edit", label: contextCopy.edit, icon: "edit", action: () => setEditingEvent(event) },
+      { id: "complete", label: event.completedAt ? contextCopy.incomplete : contextCopy.complete, icon: "check", action: () => toggleEventComplete(event) },
+      { id: "today", label: contextCopy.today, icon: "calendar", action: () => moveEventTo(event, todayKey) },
+      { id: "tomorrow", label: contextCopy.tomorrow, icon: "right", action: () => moveEventTo(event, tomorrowKey) },
+      { id: "date", label: contextCopy.chooseDate, icon: "calendar", action: () => setEditingEvent(event) },
+      { separator: true },
+      { id: "duplicate", label: contextCopy.duplicate, icon: "plus", action: () => duplicateEvent(event) },
+      { id: "split", label: contextCopy.split, icon: "cards", disabled: calendarDurationMinutes(event) < 60 || !event.time, action: () => splitEvent(event) },
+      event.lectureId && { id: "lecture", label: contextCopy.openLecture, icon: "book", action: () => openLecture(event) },
+      { separator: true },
+      { id: "delete", label: contextCopy.remove, icon: "trash", danger: true, action: () => deleteEvent(event.id) },
+    ];
   }
 
   function handleICalFile(fileEvent) {
     const file = fileEvent.target.files?.[0];
     if (!file) return;
-    setImportError("");
-    setImportSummary(null);
+    setImportError(""); setImportSummary(null);
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -13577,18 +13496,13 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
         const recognized = parsed.filter((event) => event.lectureId).length;
         setEvents((previous) => {
           const known = new Set(previous.map((event) => event.id));
-          return [...previous, ...parsed.filter((event) => !known.has(event.id)).map((event) => {
-            const base = { ...event }; Object.keys(calendarEventMetaFields(event)).forEach((key) => delete base[key]); return base;
-          })];
+          return [...previous, ...parsed.filter((event) => !known.has(event.id)).map((event) => { const base = { ...event }; Object.keys(calendarEventMetaFields(event)).forEach((key) => delete base[key]); return base; })];
         });
-        setEventMeta((previous) => ({ ...previous, ...Object.fromEntries(parsed.map((event) => [event.id, calendarEventMetaFields(event)])) }));
+        setEventMeta((previous) => ({ ...previous, ...Object.fromEntries(parsed.map((event) => [event.id, { ...calendarEventMetaFields(event), deliveryStatus: calendarEventEndTimestamp(event) <= Date.now() ? "held" : "planned" }])) }));
         setImportSummary({ total: parsed.length, recognized });
-      } catch (error) {
-        setImportError(t.calendarICalError || "Kunne ikke læse iCal-filen.");
-      }
+      } catch { setImportError(t.calendarICalError || "Kunne ikke læse iCal-filen."); }
     };
-    reader.readAsText(file);
-    fileEvent.target.value = "";
+    reader.readAsText(file); fileEvent.target.value = "";
   }
 
   function currentLabel() {
@@ -13597,59 +13511,19 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
     if (view === "day") return new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(dayDate);
     return `${weekStart.getDate()}/${weekStart.getMonth() + 1} – ${addDays(weekStart, 6).getDate()}/${addDays(weekStart, 6).getMonth() + 1}`;
   }
-
-  function shift(delta) {
-    if (view === "month") setMonthDate((previous) => new Date(previous.getFullYear(), previous.getMonth() + delta, 1));
-    else if (view === "day") setDayDate((previous) => addDays(previous, delta));
-    else setWeekStart((previous) => addDays(previous, delta * 7));
-  }
-
-  function goToday() {
-    const now = new Date(); setWeekStart(startOfWeek(now)); setMonthDate(new Date(now.getFullYear(), now.getMonth(), 1)); setDayDate(now); setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate()));
-  }
+  function shift(delta) { if (view === "month") setMonthDate((previous) => new Date(previous.getFullYear(), previous.getMonth() + delta, 1)); else if (view === "day") setDayDate((previous) => addDays(previous, delta)); else setWeekStart((previous) => addDays(previous, delta * 7)); }
+  function goToday() { const now = new Date(); setWeekStart(startOfWeek(now)); setMonthDate(new Date(now.getFullYear(), now.getMonth(), 1)); setDayDate(now); setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate())); }
 
   return (
     <div className="calendar-workspace fade-up" data-theme={theme}>
-      <header className="calendar-workspace-header">
-        <div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module}</small></div></div>
-        <div className="calendar-workspace-toolbar">
-          <div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div>
-          <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button>
-          <span className="calendar-workspace-label">{currentLabel()}</span>
-          <button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button>
-          <SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
-          <input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} />
-          <SecondaryButton onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />{t.calendarImportICal}</SecondaryButton>
-          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
-        </div>
-      </header>
-
+      <header className="calendar-workspace-header"><div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module}</small></div></div><div className="calendar-workspace-toolbar"><div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div><button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton><input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} /><SecondaryButton onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />{t.calendarImportICal}</SecondaryButton><IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton></div></header>
       {(importError || importSummary) && <div className="calendar-import-feedback" data-error={importError ? "true" : "false"}>{importError || `${importSummary.total} aktiviteter importeret · ${importSummary.recognized} forelæsninger genkendt`}</div>}
-
-      <div className="calendar-workspace-layout">
-        <main className="calendar-workspace-canvas">
-          {view === "month" ? <MonthCalendar c={c} events={mergedEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setDayDate(new Date(`${key}T12:00:00`)); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} /> : <WeekCalendar c={c} events={mergedEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onSlotClick={handleSlotClick} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} />}
-        </main>
-
-        <aside className="calendar-workspace-sidebar">
-          <section className="calendar-side-section">
-            <div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(language === "da" ? "da-DK" : "en-GB", { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => handleSlotClick(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div>
-            <div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setEditingEvent(event)}><span className="calendar-side-check" onClick={(domEvent) => { domEvent.stopPropagation(); toggleEventComplete(event); }}><Icon name={event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || "Ikke placeret"}{event.lectureId ? ` · ${event.lectureId}` : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div>
-          </section>
-
-          <section className="calendar-side-section">
-            <button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>
-            {showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: lecture.title, date: selectedDate, time: "09:00", endTime: "10:00", type: "study", estimatedHours: 1, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], createdByUser: true })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}
-          </section>
-
-          <section className="calendar-side-section">
-            <div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div>
-            <div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setEditingEvent(event)}><span className="calendar-side-check" onClick={(domEvent) => { domEvent.stopPropagation(); toggleEventComplete(event); }}><Icon name="check" size={12} /></span><span><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : " · Ikke placeret"}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div>
-          </section>
-        </aside>
-      </div>
-
-      {editingEvent && <CalendarEventEditor c={c} t={t} language={language} event={editingEvent} moduleName={module} lectures={moduleLectures} exists={events.some((event) => event.id === editingEvent.id)} onChange={setEditingEvent} onSave={() => saveEvent(editingEvent)} onDelete={() => deleteEvent(editingEvent.id)} onClose={() => setEditingEvent(null)} />}
+      <div className="calendar-workspace-layout"><main className="calendar-workspace-canvas">{view === "month" ? <MonthCalendar c={c} events={mergedEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setDayDate(new Date(`${key}T12:00:00`)); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} onContextRequest={handleContextRequest} /> : <WeekCalendar c={c} events={mergedEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onSlotClick={newEvent} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} onContextRequest={handleContextRequest} />}</main>
+        <aside className="calendar-workspace-sidebar"><section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(language === "da" ? "da-DK" : "en-GB", { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setEditingEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name={event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || "Ikke placeret"}{event.deliveryStatus === "held" ? " · Afholdt" : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
+          <section className="calendar-side-section"><button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>{showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: `${lecture.id} · ${lecture.title}`, date: selectedDate, time: "", endTime: "", type: "study", estimatedHours: null, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], createdByUser: true, needsScheduling: true })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}</section>
+          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setEditingEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name="check" size={12} /></span><span><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : " · Ikke placeret"}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section></aside></div>
+      <CalendarContextMenu c={c} menu={contextMenu} items={contextItems()} onClose={() => setContextMenu(null)} />
+      {editingEvent && <CalendarEventEditor c={c} t={t} language={language} event={editingEvent} moduleName={module} lectures={moduleLectures} allEvents={mergedEvents} exists={events.some((event) => event.id === editingEvent.id)} onChange={setEditingEvent} onSave={() => saveEvent(editingEvent)} onDelete={() => deleteEvent(editingEvent.id)} onClose={() => setEditingEvent(null)} />}
     </div>
   );
 }
@@ -16332,7 +16206,6 @@ function StudyPlan({ c, language, user, setUser }) {
   const [mode, setMode] = useState(existing?.mode || "lectures");
   const [done, setDone] = useState(existing?.doneLectureIds || []);
   const [hoursPerDay, setHoursPerDay] = useState(existing?.hoursPerDay || 2);
-  const [hoursPerLecture, setHoursPerLecture] = useState(existing?.hoursPerLecture || 1);
   const [questionDistribution, setQuestionDistribution] = useState(existing?.questionDistribution || "spread");
   const [reviewMethod, setReviewMethod] = useState(existing?.reviewMethod || null);
   const [excludedDates, setExcludedDates] = useState(existing?.excludedDates || []);
@@ -16424,14 +16297,11 @@ function StudyPlan({ c, language, user, setUser }) {
   };
   const totalDifficultyWeight = lectureUnits.reduce((sum, u) => sum + difficultyWeight(difficulty[u.id]), 0);
   const avgWeight = lectureUnits.length ? totalDifficultyWeight / lectureUnits.length : 1;
-  const minutesPerLecture = Math.round(hoursPerLecture * 60);
-  const estimatedMinutes = difficultyEnabled
-    ? lecturesPerDay * minutesPerLecture * avgWeight + questionsPerDay * 2.5 + (lectureUnits.length ? 20 : 0)
-    : lecturesPerDay * minutesPerLecture + questionsPerDay * 2.5 + (lectureUnits.length ? 20 : 0);
   const capacityMinutes = Math.round(hoursPerDay * 60);
-  const copy = ({ da: { title:"Studieplan", intro:"Opsæt en plan frem mod eksamen", next:"Fortsæt", back:"Tilbage", setup:"Opsætning", module:"Modul", level:"Niveau", exam:"Eksamensdato", examHint:"Datoen bruges til at fordele indholdet frem mod eksamen.", pathway:"Indhold og metode", lectures:"Forelæsninger + eksamenssæt", lecturesText:"Fordeler resterende forelæsninger og eksamensspørgsmål.", questions:"Kun eksamenssæt", questionsText:"Planlægger eksamensspørgsmål og repetition uden forelæsninger.", prior:"Gennemgået indhold", priorText:"Markér forelæsninger, du allerede har set. De indgår ikke som nye opgaver.", generate:"Opret studieplan", edit:"Redigér opsætning", overview:"Planoversigt", days:"dage til eksamen", hours:"timer pr. dag", workload:"Forventet arbejdsbyrde", minutes:"minutter pr. dag", lecturesDay:"forelæsningsdele pr. dag", questionsDay:"MCQ'er pr. dag", timeline:"Tidslinje", today:"I dag", examDay:"Eksamen", lecture:"Forelæsning", questionsLabel:"Nye MCQ'er", review:"Repetition", noLectures:"Der er endnu ikke tilføjet forelæsninger for dette modul.", select:"Vælg modul", saved:"Studieplan opdateret", planNote:"Planen fordeler nyt indhold tidligt og lægger repetition efter de valgte intervaller, når der er tid før eksamen.", done:"Gennemgået", remaining:"resterende", list:"Liste", graph:"Planoversigt", mcqOnly:"Kun eksamenssæt: nye MCQ'er fordeles jævnt over dagene før eksamen.", daysUntilExamLabel:"dage til din eksamen", stepExamDate:"Eksamensdato", stepReviewMethod:"Repetitionsmetode", stepQuestionTiming:"Eksamenssæt-fordeling", stepHoursPerLecture:"Tid pr. forelæsning", stepWorkload:"Daglig arbejdsbyrde", reviewStepHint:"Vælg hvordan dit gennemgåede indhold skal repeteres frem mod eksamen.", method2357Name:"2-3-5-7 metoden", method2357Desc:"Bedst 1-2 uger før eksamen. Hurtig, intensiv repetition.", method137Name:"1-3-7-14-30 reglen", method137Desc:"Bedst 1+ måned før eksamen. Langsigtet hukommelsesopbygning.", recommended:"Anbefalet til dig", intervalsLabel:"Repeteres efter", questionTimingHint:"Skal eksamenssættet øves løbende sammen med hver forelæsning, eller samlet op til et par uger før eksamen?", spreadName:"Løbende", spreadDesc:"Nye MCQ'er fordeles jævnt hver dag fra start til eksamen.", crammName:"Op til eksamen", crammDesc:"MCQ'er samles i de sidste 14 dage (eller færre) op til eksamen.", lecturesInModule:"forelæsninger i dette modul", hoursPerLectureQ:"Hvor lang tid tager det typisk dig at gå igennem én forelæsning?", minutesUnit:"min", livePreviewTitle:"Live forhåndsvisning", perDayHours:"timer/dag", reviewsFit:"repetitioner du kan nå", capacityWarning:"Din daglige tid dækker ikke helt det planlagte indhold — overvej flere timer.", capacityOk:"Din tid pr. dag dækker planen godt.", waterLevelHint:"Vandstanden viser hvor godt din tid dækker dagens indhold.", exceptionDays:"Undtagelsesdage", exceptionDaysHint:"Markér dage hvor du ikke kan studere. Planen fordeler indholdet uden om disse dage.", addExceptionDay:"Tilføj dag", noExceptionDays:"Ingen undtagelsesdage tilføjet", removeExceptionDay:"Fjern", difficultyStep:"Sværhedsgrad (valgfrit)", difficultyToggleLabel:"Brug selvvurderet sværhedsgrad", difficultyToggleHint:"Marker forelæsninger som lette, middel eller svære. Planen giver mere tid til svære forelæsninger.", difficultyEasy:"Let", difficultyMedium:"Middel", difficultyHard:"Svær", difficultySkippedHint:"Denne funktion er slået fra. Alle forelæsninger får lige meget tid.", catchUpTitle:"Indhent forsinkelse", catchUpText:"Du er bagud med planen. Vil du omfordele det resterende indhold over de dage, der er tilbage?", catchUpButton:"Indhent nu", catchUpDone:"Planen er opdateret", lectureProgress:"Forelæsninger", examSetProgress:"Eksamenssæt", ofTotal:"af", checklistTitle:"Dagens opgaver", checklistEmpty:"Intet planlagt for i dag", checklistDone:"Færdig", markDone:"Markér som færdig", exportPlan:"Eksportér studieplan", exportPlanDone:"Studieplan eksporteret", checkAll:"Marker alle", uncheckAll:"Fjern alle", checkGroup:"Marker emne", uncheckGroup:"Fjern emne", ungrouped:"Øvrige", deletePlan:"Slet plan", deletePlanConfirmTitle:"Slet studieplan?", deletePlanConfirmText:"Dette fjerner planen permanent og rydder alle tilhørende blokke i kalenderen. Denne handling kan ikke fortrydes.", cancel:"Annuller" }, en: { title:"Study plan", intro:"Set up a plan towards your exam", next:"Continue", back:"Back", setup:"Setup", module:"Module", level:"Level", exam:"Exam date", examHint:"The date distributes content up to the exam.", pathway:"Content and method", lectures:"Lectures + exam sets", lecturesText:"Distributes remaining lectures and exam questions.", questions:"Exam sets only", questionsText:"Plans exam questions and review without lectures.", prior:"Completed content", priorText:"Mark lectures you have already watched.", generate:"Create study plan", edit:"Edit setup", overview:"Plan overview", days:"days to exam", hours:"hours per day", workload:"Expected workload", minutes:"minutes per day", lecturesDay:"lecture units per day", questionsDay:"MCQs per day", timeline:"Timeline", today:"Today", examDay:"Exam", lecture:"Lecture", questionsLabel:"New MCQs", review:"Review", noLectures:"Lectures have not been added for this module yet.", select:"Select module", saved:"Study plan updated", planNote:"The plan places new content early and schedules review after the chosen intervals when time allows.", done:"Completed", remaining:"remaining", list:"List", graph:"Plan overview", mcqOnly:"Exam sets only: new MCQs are distributed across the days before the exam.", daysUntilExamLabel:"days until your exam", stepExamDate:"Exam date", stepReviewMethod:"Review method", stepQuestionTiming:"Exam set timing", stepHoursPerLecture:"Time per lecture", stepWorkload:"Daily workload", reviewStepHint:"Choose how your completed content should be reviewed towards the exam.", method2357Name:"The 2-3-5-7 Method", method2357Desc:"Best for 1-2 weeks before an exam. Fast, intensive review.", method137Name:"The 1-3-7-14-30 Rule", method137Desc:"Best for 1+ month before an exam. Long-term retention.", recommended:"Recommended for you", intervalsLabel:"Reviewed after", questionTimingHint:"Should the exam set be practiced continuously alongside each lecture, or bundled a couple of weeks before the exam?", spreadName:"Continuous", spreadDesc:"New MCQs are spread evenly from start to exam day.", crammName:"Close to exam", crammDesc:"MCQs are bundled into the last 14 days (or fewer) before the exam.", lecturesInModule:"lectures in this module", hoursPerLectureQ:"How long does it typically take you to get through one lecture?", minutesUnit:"min", livePreviewTitle:"Live preview", perDayHours:"hours/day", reviewsFit:"reviews you can fit", capacityWarning:"Your daily time doesn't quite cover the planned content — consider more hours.", capacityOk:"Your daily time covers the plan well.", waterLevelHint:"The water level shows how well your time covers today's content.", exceptionDays:"Exception days", exceptionDaysHint:"Mark days you can't study. The plan distributes content around these days.", addExceptionDay:"Add day", noExceptionDays:"No exception days added", removeExceptionDay:"Remove", difficultyStep:"Difficulty (optional)", difficultyToggleLabel:"Use self-rated difficulty", difficultyToggleHint:"Mark lectures as easy, medium, or hard. The plan allocates more time to hard lectures.", difficultyEasy:"Easy", difficultyMedium:"Medium", difficultyHard:"Hard", difficultySkippedHint:"This feature is turned off. All lectures get equal time.", catchUpTitle:"Catch up on delay", catchUpText:"You're behind on your plan. Redistribute the remaining content over the days left?", catchUpButton:"Catch up now", catchUpDone:"Plan updated", lectureProgress:"Lectures", examSetProgress:"Exam set", ofTotal:"of", checklistTitle:"Today's tasks", checklistEmpty:"Nothing planned for today", checklistDone:"Done", markDone:"Mark as done", exportPlan:"Export study plan", exportPlanDone:"Study plan exported", checkAll:"Check all", uncheckAll:"Uncheck all", checkGroup:"Check topic", uncheckGroup:"Uncheck topic", ungrouped:"Other", deletePlan:"Delete plan", deletePlanConfirmTitle:"Delete study plan?", deletePlanConfirmText:"This permanently removes the plan and clears all related blocks from the calendar. This action cannot be undone.", cancel:"Cancel" } })[language] || {};
+  const estimatedMinutes = capacityMinutes;
+  const copy = ({ da: { title:"Studieplan", intro:"Opsæt en plan frem mod eksamen", next:"Fortsæt", back:"Tilbage", setup:"Opsætning", module:"Modul", level:"Niveau", exam:"Eksamensdato", examHint:"Datoen bruges til at fordele indholdet frem mod eksamen.", pathway:"Indhold og metode", lectures:"Forelæsninger + eksamenssæt", lecturesText:"Fordeler resterende forelæsninger og eksamensspørgsmål.", questions:"Kun eksamenssæt", questionsText:"Planlægger eksamensspørgsmål og repetition uden forelæsninger.", prior:"Gennemgået indhold", priorText:"Markér forelæsninger, du allerede har set. De indgår ikke som nye opgaver.", generate:"Opret studieplan", edit:"Redigér opsætning", overview:"Planoversigt", days:"dage til eksamen", hours:"timer pr. dag", workload:"Forventet arbejdsbyrde", minutes:"minutter pr. dag", lecturesDay:"forelæsningsdele pr. dag", questionsDay:"MCQ'er pr. dag", timeline:"Tidslinje", today:"I dag", examDay:"Eksamen", lecture:"Forelæsning", questionsLabel:"Nye MCQ'er", review:"Repetition", noLectures:"Der er endnu ikke tilføjet forelæsninger for dette modul.", select:"Vælg modul", saved:"Studieplan opdateret", planNote:"Planen fordeler nyt indhold tidligt og lægger repetition efter de valgte intervaller, når der er tid før eksamen.", done:"Gennemgået", remaining:"resterende", list:"Liste", graph:"Planoversigt", mcqOnly:"Kun eksamenssæt: nye MCQ'er fordeles jævnt over dagene før eksamen.", daysUntilExamLabel:"dage til din eksamen", stepExamDate:"Eksamensdato", stepReviewMethod:"Repetitionsmetode", stepQuestionTiming:"Eksamenssæt-fordeling", stepWorkload:"Daglig arbejdsbyrde", reviewStepHint:"Vælg hvordan dit gennemgåede indhold skal repeteres frem mod eksamen.", method2357Name:"2-3-5-7 metoden", method2357Desc:"Bedst 1-2 uger før eksamen. Hurtig, intensiv repetition.", method137Name:"1-3-7-14-30 reglen", method137Desc:"Bedst 1+ måned før eksamen. Langsigtet hukommelsesopbygning.", recommended:"Anbefalet til dig", intervalsLabel:"Repeteres efter", questionTimingHint:"Skal eksamenssættet øves løbende sammen med hver forelæsning, eller samlet op til et par uger før eksamen?", spreadName:"Løbende", spreadDesc:"Nye MCQ'er fordeles jævnt hver dag fra start til eksamen.", crammName:"Op til eksamen", crammDesc:"MCQ'er samles i de sidste 14 dage (eller færre) op til eksamen.", lecturesInModule:"forelæsninger i dette modul", minutesUnit:"min", livePreviewTitle:"Live forhåndsvisning", perDayHours:"timer/dag", reviewsFit:"repetitioner du kan nå", capacityWarning:"Din daglige tid dækker ikke helt det planlagte indhold — overvej flere timer.", capacityOk:"Din tid pr. dag dækker planen godt.", waterLevelHint:"Vandstanden viser hvor godt din tid dækker dagens indhold.", exceptionDays:"Undtagelsesdage", exceptionDaysHint:"Markér dage hvor du ikke kan studere. Planen fordeler indholdet uden om disse dage.", addExceptionDay:"Tilføj dag", noExceptionDays:"Ingen undtagelsesdage tilføjet", removeExceptionDay:"Fjern", difficultyStep:"Sværhedsgrad (valgfrit)", difficultyToggleLabel:"Brug selvvurderet sværhedsgrad", difficultyToggleHint:"Marker forelæsninger som lette, middel eller svære. Planen giver mere tid til svære forelæsninger.", difficultyEasy:"Let", difficultyMedium:"Middel", difficultyHard:"Svær", difficultySkippedHint:"Denne funktion er slået fra. Alle forelæsninger får lige meget tid.", catchUpTitle:"Indhent forsinkelse", catchUpText:"Du er bagud med planen. Vil du omfordele det resterende indhold over de dage, der er tilbage?", catchUpButton:"Indhent nu", catchUpDone:"Planen er opdateret", lectureProgress:"Forelæsninger", examSetProgress:"Eksamenssæt", ofTotal:"af", checklistTitle:"Dagens opgaver", checklistEmpty:"Intet planlagt for i dag", checklistDone:"Færdig", markDone:"Markér som færdig", exportPlan:"Eksportér studieplan", exportPlanDone:"Studieplan eksporteret", checkAll:"Marker alle", uncheckAll:"Fjern alle", checkGroup:"Marker emne", uncheckGroup:"Fjern emne", ungrouped:"Øvrige", deletePlan:"Slet plan", deletePlanConfirmTitle:"Slet studieplan?", deletePlanConfirmText:"Dette fjerner planen permanent og rydder alle tilhørende blokke i kalenderen. Denne handling kan ikke fortrydes.", cancel:"Annuller" }, en: { title:"Study plan", intro:"Set up a plan towards your exam", next:"Continue", back:"Back", setup:"Setup", module:"Module", level:"Level", exam:"Exam date", examHint:"The date distributes content up to the exam.", pathway:"Content and method", lectures:"Lectures + exam sets", lecturesText:"Distributes remaining lectures and exam questions.", questions:"Exam sets only", questionsText:"Plans exam questions and review without lectures.", prior:"Completed content", priorText:"Mark lectures you have already watched.", generate:"Create study plan", edit:"Edit setup", overview:"Plan overview", days:"days to exam", hours:"hours per day", workload:"Expected workload", minutes:"minutes per day", lecturesDay:"lecture units per day", questionsDay:"MCQs per day", timeline:"Timeline", today:"Today", examDay:"Exam", lecture:"Lecture", questionsLabel:"New MCQs", review:"Review", noLectures:"Lectures have not been added for this module yet.", select:"Select module", saved:"Study plan updated", planNote:"The plan places new content early and schedules review after the chosen intervals when time allows.", done:"Completed", remaining:"remaining", list:"List", graph:"Plan overview", mcqOnly:"Exam sets only: new MCQs are distributed across the days before the exam.", daysUntilExamLabel:"days until your exam", stepExamDate:"Exam date", stepReviewMethod:"Review method", stepQuestionTiming:"Exam set timing", stepWorkload:"Daily workload", reviewStepHint:"Choose how your completed content should be reviewed towards the exam.", method2357Name:"The 2-3-5-7 Method", method2357Desc:"Best for 1-2 weeks before an exam. Fast, intensive review.", method137Name:"The 1-3-7-14-30 Rule", method137Desc:"Best for 1+ month before an exam. Long-term retention.", recommended:"Recommended for you", intervalsLabel:"Reviewed after", questionTimingHint:"Should the exam set be practiced continuously alongside each lecture, or bundled a couple of weeks before the exam?", spreadName:"Continuous", spreadDesc:"New MCQs are spread evenly from start to exam day.", crammName:"Close to exam", crammDesc:"MCQs are bundled into the last 14 days (or fewer) before the exam.", lecturesInModule:"lectures in this module", minutesUnit:"min", livePreviewTitle:"Live preview", perDayHours:"hours/day", reviewsFit:"reviews you can fit", capacityWarning:"Your daily time doesn't quite cover the planned content — consider more hours.", capacityOk:"Your daily time covers the plan well.", waterLevelHint:"The water level shows how well your time covers today's content.", exceptionDays:"Exception days", exceptionDaysHint:"Mark days you can't study. The plan distributes content around these days.", addExceptionDay:"Add day", noExceptionDays:"No exception days added", removeExceptionDay:"Remove", difficultyStep:"Difficulty (optional)", difficultyToggleLabel:"Use self-rated difficulty", difficultyToggleHint:"Mark lectures as easy, medium, or hard. The plan allocates more time to hard lectures.", difficultyEasy:"Easy", difficultyMedium:"Medium", difficultyHard:"Hard", difficultySkippedHint:"This feature is turned off. All lectures get equal time.", catchUpTitle:"Catch up on delay", catchUpText:"You're behind on your plan. Redistribute the remaining content over the days left?", catchUpButton:"Catch up now", catchUpDone:"Plan updated", lectureProgress:"Lectures", examSetProgress:"Exam set", ofTotal:"of", checklistTitle:"Today's tasks", checklistEmpty:"Nothing planned for today", checklistDone:"Done", markDone:"Mark as done", exportPlan:"Export study plan", exportPlanDone:"Study plan exported", checkAll:"Check all", uncheckAll:"Uncheck all", checkGroup:"Check topic", uncheckGroup:"Uncheck topic", ungrouped:"Other", deletePlan:"Delete plan", deletePlanConfirmTitle:"Delete study plan?", deletePlanConfirmText:"This permanently removes the plan and clears all related blocks from the calendar. This action cannot be undone.", cancel:"Cancel" } })[language] || {};
   const field = { width:"100%", height:48, padding:"0 13px", borderRadius:12, border:`1px solid ${c.borderStrong}`, background:c.soft, color:c.text, fontSize:13, outline:0 };
-  const setModule = (value) => { setModuleName(value); const saved = plans[value]; setDone(saved?.doneLectureIds || []); setExamDate(saved?.examDate || ""); setMode(saved?.mode || "lectures"); setHoursPerDay(saved?.hoursPerDay || 2); setHoursPerLecture(saved?.hoursPerLecture || 1); setQuestionDistribution(saved?.questionDistribution || "spread"); setReviewMethod(saved?.reviewMethod || null); setExcludedDates(saved?.excludedDates || []); setDifficultyEnabled(saved?.difficultyEnabled || false); setDifficulty(saved?.difficulty || {}); setPlanSaved(Boolean(saved)); };
+  const setModule = (value) => { setModuleName(value); const saved = plans[value]; setDone(saved?.doneLectureIds || []); setExamDate(saved?.examDate || ""); setMode(saved?.mode || "lectures"); setHoursPerDay(saved?.hoursPerDay || 2); setQuestionDistribution(saved?.questionDistribution || "spread"); setReviewMethod(saved?.reviewMethod || null); setExcludedDates(saved?.excludedDates || []); setDifficultyEnabled(saved?.difficultyEnabled || false); setDifficulty(saved?.difficulty || {}); setPlanSaved(Boolean(saved)); };
   const toggle = (id) => setDone((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
   const activationCopy = ({
     da: { activate: "Gem og aktivér i kalenderen", update: "Gem ændringer i kalenderen", confirmTitle: "Aktivér studieplan?", confirmText: "Planens studieblokke oprettes i kalenderen. Du vælger selv de præcise tidspunkter i dagens plan, når du åbner Hjem.", confirm: "Aktivér plan", active: "Planen er aktiv og synkroniseret med kalenderen", saved: "Studieplanen er gemt og aktiveret" },
@@ -16445,7 +16315,6 @@ function StudyPlan({ c, language, user, setUser }) {
       mode,
       doneLectureIds: done,
       hoursPerDay,
-      hoursPerLecture,
       questionDistribution,
       reviewMethod,
       excludedDates,
@@ -16475,7 +16344,7 @@ function StudyPlan({ c, language, user, setUser }) {
 
   function syncPlanToCalendar(planOverride) {
     const planRecord = planOverride || {
-      examDate, mode, doneLectureIds: done, hoursPerDay, hoursPerLecture,
+      examDate, mode, doneLectureIds: done, hoursPerDay,
       questionDistribution, reviewMethod, excludedDates, difficultyEnabled, difficulty,
     };
     const bundle = buildStudyPlanCalendarBundle({
@@ -16559,7 +16428,7 @@ function StudyPlan({ c, language, user, setUser }) {
     return lectureUnits.slice(start, start + count);
   };
   const typeStyle = (type) => type === "lecture" ? [c.blue, c.blueSoft] : type === "review" ? [c.blue, `${c.blue}14`] : [c.green, c.greenSoft];
-  const stepTitles = [copy.setup, copy.stepExamDate, copy.stepReviewMethod, copy.stepQuestionTiming, copy.prior, copy.exceptionDays, copy.difficultyStep, copy.stepHoursPerLecture, copy.stepWorkload, copy.timeline];
+  const stepTitles = [copy.setup, copy.stepExamDate, copy.stepReviewMethod, copy.stepQuestionTiming, copy.prior, copy.exceptionDays, copy.difficultyStep, copy.stepWorkload, copy.timeline];
   const totalWizardSteps = 9;
   const stepTitle = stepTitles[step - 1];
   function exportCalendar() {
@@ -16587,7 +16456,6 @@ function StudyPlan({ c, language, user, setUser }) {
       mode,
       reviewMethod,
       hoursPerDay,
-      hoursPerLecture,
       questionDistribution,
       excludedDates,
       difficultyEnabled,
@@ -16649,9 +16517,7 @@ function StudyPlan({ c, language, user, setUser }) {
 
       {step===7&&<div><label style={{ display:"flex",alignItems:"center",gap:11,padding:"12px 14px",borderRadius:11,background:difficultyEnabled?c.blueSoft:c.soft,border:`1px solid ${difficultyEnabled?c.blueBorder:"transparent"}`,cursor:"pointer",marginBottom:14 }}><input type="checkbox" checked={difficultyEnabled} onChange={(e)=>setDifficultyEnabled(e.target.checked)} style={{ accentColor:c.blue }}/><span style={{ fontSize:12,fontWeight:700,color:difficultyEnabled?c.blue:c.text }}>{copy.difficultyToggleLabel}</span></label><p style={{ margin:"0 0 16px",color:c.secondary,fontSize:12,lineHeight:1.55 }}>{difficultyEnabled?copy.difficultyToggleHint:copy.difficultySkippedHint}</p>{difficultyEnabled&&lectures.length ? <div style={{ display:"grid",gap:7,maxHeight:340,overflowY:"auto",paddingInlineEnd:4 }}>{lectures.map((item)=>{const lvl=difficulty[item.id]||"medium";return <div key={item.id} style={{ display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,background:c.soft }}><span style={{ flex:1,fontSize:12,fontWeight:650,color:c.text }}>{item.id}: {item.title}</span><div style={{ display:"flex",gap:4 }}>{["easy","medium","hard"].map((opt)=><button key={opt} type="button" onClick={()=>setLectureDifficulty(item.id,opt)} style={{ padding:"5px 9px",borderRadius:7,border:"none",fontSize:10,fontWeight:800,cursor:"pointer",background:lvl===opt?(opt==="hard"?c.red:opt==="easy"?c.green:c.blue):c.panel,color:lvl===opt?"#fff":c.secondary }}>{opt==="easy"?copy.difficultyEasy:opt==="hard"?copy.difficultyHard:copy.difficultyMedium}</button>)}</div></div>})}</div> : null}</div>}
 
-      {step===7&&<div><p style={{ margin:"0 0 18px",color:c.secondary,fontSize:12,lineHeight:1.55 }}>{copy.hoursPerLectureQ}</p><div style={{ display:"flex",alignItems:"center",gap:14 }}><input type="range" min="0.25" max="4" step="0.25" value={hoursPerLecture} onChange={(e)=>setHoursPerLecture(Number(e.target.value))} style={{ flex:1, accentColor:c.blue }}/><span style={{ minWidth:76,padding:"9px 12px",borderRadius:11,background:c.blueSoft,color:c.blue,fontFamily:'"Space Mono",monospace',fontSize:15,fontWeight:800,textAlign:"center" }}>{Math.round(hoursPerLecture*60)} {copy.minutesUnit}</span></div></div>}
-
-      {step===8&&<div><div style={{ display:"flex",alignItems:"center",gap:14,marginBottom:22 }}><input type="range" min="0.5" max="10" step="0.5" value={hoursPerDay} onChange={(e)=>setHoursPerDay(Number(e.target.value))} style={{ flex:1, accentColor:c.blue }}/><span style={{ minWidth:64,padding:"9px 12px",borderRadius:11,background:c.blueSoft,color:c.blue,fontFamily:'"Space Mono",monospace',fontSize:15,fontWeight:800,textAlign:"center" }}>{hoursPerDay}t</span></div><WorkloadVisualizer c={c} copy={copy} hoursPerDay={hoursPerDay} estimatedMinutes={estimatedMinutes} capacityMinutes={capacityMinutes} days={Math.max(days,1)} reviewIntervals={REVIEW_METHODS[reviewMethod]?.intervals || [1,3,7]} lectureUnitsCount={lectureUnits.length} language={language}/></div>}
+      {step===8&&<div><div style={{ display:"flex",alignItems:"center",gap:14,marginBottom:22 }}><input type="range" min="0.5" max="10" step="0.5" value={hoursPerDay} onChange={(e)=>setHoursPerDay(Number(e.target.value))} style={{ flex:1, accentColor:c.blue }}/><span style={{ minWidth:64,padding:"9px 12px",borderRadius:11,background:c.blueSoft,color:c.blue,fontFamily:'"Space Mono",monospace',fontSize:15,fontWeight:800,textAlign:"center" }}>{hoursPerDay}t</span></div><p className="study-plan-duration-note">Forelæsninger placeres på datoen uden fast klokkeslæt. Varighed og starttid vælges i dagens planlægning.</p><WorkloadVisualizer c={c} copy={copy} hoursPerDay={hoursPerDay} estimatedMinutes={estimatedMinutes} capacityMinutes={capacityMinutes} days={Math.max(days,1)} reviewIntervals={REVIEW_METHODS[reviewMethod]?.intervals || [1,3,7]} lectureUnitsCount={lectureUnits.length} language={language}/></div>}
 
       <footer style={{ display:"flex",justifyContent:"space-between",gap:10,marginTop:25 }}><button type="button" onClick={()=>setStep((value)=>Math.max(1,value-1))} disabled={step===1} style={{ height:42,padding:"0 14px",borderRadius:10,border:`1px solid ${c.borderStrong}`,background:c.panel,color:c.secondary,fontSize:12,fontWeight:800,cursor:step===1?"default":"pointer",opacity:step===1?.4:1 }}>{copy.back}</button>{step===2?<PrimaryButton disabled={!examDate} onClick={()=>triggerReveal("examDate",3)}>{copy.next}</PrimaryButton>:step===5?<PrimaryButton onClick={()=> totalLecturesCount>0 ? triggerReveal("lectureCount",6) : setStep(6)}>{copy.next}</PrimaryButton>:step<9?<PrimaryButton disabled={(step===1&&!moduleName)||(step===3&&!reviewMethod)} onClick={()=>setStep((value)=>value+1)}>{copy.next}</PrimaryButton>:<PrimaryButton disabled={!moduleName||!examDate} onClick={save}>{copy.generate}</PrimaryButton>}</footer></section></>}
     {step===9&&<><section style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(165px,1fr))",borderRadius:17,overflow:"hidden",background:c.panel,border:`1px solid ${c.border}`,boxShadow:c.shadow }}>{[[days,copy.days],[mode === "questions" ? questionTotal : lectureUnits.length,mode === "questions" ? "MCQ\u2019er i alt" : copy.remaining],[questionsPerDay,copy.questionsDay],[`${Math.round(estimatedMinutes)} ${copy.minutes}`,copy.workload]].map(([value,label])=><div key={label} style={{ padding:"17px 18px",borderInlineEnd:`1px solid ${c.border}` }}><div style={{ color:c.text,fontFamily:'"Space Mono",monospace',fontSize:24,fontWeight:700 }}>{value}</div><div style={{ marginTop:6,color:c.muted,fontSize:10,fontWeight:800,letterSpacing:".06em",textTransform:"uppercase" }}>{label}</div></div>)}</section><section style={{ padding:"16px 18px",borderRadius:14,background:c.blueSoft,border:`1px solid ${c.blueBorder}`,color:c.secondary,fontSize:12,lineHeight:1.6 }}>{copy.planNote}{mode === "questions" && <strong style={{display:"block",marginTop:7,color:c.text}}>{questionsPerDay} {copy.questionsLabel.toLowerCase()}.</strong>}</section><section className="study-plan-activation" data-active={planSaved ? "true" : "false"}><div><span className="study-plan-activation-icon"><Icon name={planSaved ? "check" : "calendar"} size={16} /></span><div><strong>{planSaved ? activationCopy.active : activationCopy.confirmTitle}</strong><small>{planSaved ? copy.saved : activationCopy.confirmText}</small></div></div><PrimaryButton onClick={() => setConfirmActivatePlan(true)}><Icon name="calendar" size={14} />{planSaved ? activationCopy.update : activationCopy.activate}</PrimaryButton></section>{saveNotice && <div className="ui-feedback" data-tone="success"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content"><div className="ui-feedback-title">{saveNotice}</div></div></div>}<section style={{ width:"calc(100% + 32px)", marginInline:"-16px", borderRadius:0,overflow:"hidden",background:c.panel,borderTop:`1px solid ${c.border}`,borderBottom:`1px solid ${c.border}`,boxShadow:c.shadow }}><header style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"19px max(21px, calc((100vw - 1100px) / 2))",borderBottom:`1px solid ${c.border}` }}><h2 style={{ margin:0,color:c.text,fontSize:16 }}>{copy.timeline}</h2><div style={{display:"flex",gap:7}}><div style={{display:"flex",padding:3,borderRadius:9,background:c.soft,border:`1px solid ${c.border}`}}>{[["list",copy.list],["graph",copy.graph]].map(([id,label])=><button key={id} type="button" onClick={()=>setTimelineView(id)} style={{height:28,padding:"0 9px",border:0,borderRadius:6,background:timelineView===id?c.panel:"transparent",color:timelineView===id?c.text:c.muted,fontSize:10,fontWeight:800,cursor:"pointer"}}>{label}</button>)}</div><button type="button" onClick={exportCalendar} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.blueBorder}`,background:c.blueSoft,color:c.blue,fontSize:11,fontWeight:800,cursor:"pointer" }}>Google Calendar (.ics)</button><button type="button" onClick={exportPlanAsJSON} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.borderStrong}`,background:c.panel,color:c.secondary,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.exportPlan}</button><button type="button" onClick={()=>setConfirmDeletePlan(true)} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.red}`,background:c.redSoft,color:c.red,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.deletePlan}</button></div></header>{timelineView === "list" ? <div style={{ display:"grid",gap:0 }}>{timelineDays.map((date,index)=>{const isExam=index===days;const units=unitForDay(index);const tasks=[];if(!isExam){units.forEach(unit=>tasks.push({type:"lecture",text:`${unit.title}${unit.part?` (${unit.part}/${unit.parts})`:""}`}));const count=questionsForDayIndex(index);if(count)tasks.push({type:"questions",text:`${count} ${copy.questionsLabel}`});(REVIEW_METHODS[reviewMethod]?.intervals || [1,3,7]).forEach(interval=>{if(index>=interval&&unitForDay(index-interval).length)tasks.push({type:"review",text:`${copy.review} \u00b7 ${unitForDay(index-interval).map(x=>x.title).join(", ")}`})})}return <article key={date.toISOString()} style={{ display:"grid",gridTemplateColumns:"125px minmax(0,1fr)",gap:17,padding:"16px 21px",borderBottom:index===timelineDays.length-1?0:`1px solid ${c.border}`,background:index===0?`${c.blueSoft}55`:"transparent" }}><div><div style={{ color:index===0?c.blue:c.text,fontSize:12,fontWeight:800 }}>{isExam?copy.examDay:index===0?copy.today:dateShort(date)}</div><div style={{ marginTop:4,color:c.muted,fontFamily:'"Space Mono",monospace',fontSize:10 }}>{date.toLocaleDateString(language==="da"?"da-DK":"en-GB",{day:"2-digit",month:"2-digit"})}</div></div><div style={{ display:"grid",gap:6 }}>{isExam?<span style={{ color:c.red,fontSize:12,fontWeight:800 }}>{copy.examDay}</span>:tasks.map((task,i)=>{const [color,bg]=typeStyle(task.type);return <div key={i} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:8,background:bg,color:c.text,fontSize:11,fontWeight:650 }}><span style={{ width:6,height:6,borderRadius:"50%",background:color,flexShrink:0 }}/>{task.text}</div>})}</div></article>})}</div> : <AdvancedPlanTimeline c={c} language={language} copy={copy} today={today} exam={exam} timelineDays={timelineDays} mode={mode} questionTotal={questionTotal} questionsForDayIndex={questionsForDayIndex} unitForDay={unitForDay} reviewIntervals={REVIEW_METHODS[reviewMethod]?.intervals}/>}</section></>}
@@ -16697,14 +16563,7 @@ function StudyPlan({ c, language, user, setUser }) {
 }
 
 
-function HomeDaySchedule({
-  c,
-  date,
-  events,
-  onEventClick,
-  onSlotClick,
-  onMoveEvent,
-}) {
+function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onMoveEvent, onContextRequest }) {
   const startHour = 7;
   const endHour = 21;
   const hourHeight = 60;
@@ -16712,154 +16571,34 @@ function HomeDaySchedule({
   const dateString = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
   const dragIdRef = useRef(null);
   const gridRef = useRef(null);
+  const palette = { exam: { color: "#c9822f", background: "rgba(201,130,47,.11)" }, study: { color: c.blue, background: c.blueSoft }, review: { color: c.green, background: c.greenSoft }, other: { color: c.secondary, background: c.soft } };
+  const dayEvents = events.filter((event) => event.date === dateString);
+  const unscheduled = dayEvents.filter((event) => !event.time && !event.completedAt && event.type !== "exam");
 
-  const palette = {
-    exam: { color: c.red, background: c.redSoft },
-    study: { color: c.blue, background: c.blueSoft },
-    review: { color: c.green, background: c.greenSoft },
-    other: { color: c.purple, background: c.purpleSoft },
-  };
-
-  function eventDurationMinutes(event) {
-    const start = timeToMinutes(event.time);
-    const end = timeToMinutes(event.endTime);
-    if (start != null && end != null && end > start) return end - start;
-    return Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60));
-  }
-
-  function layoutDayEvents(dayEvents) {
-    const items = dayEvents
-      .filter((event) => event.time)
-      .map((event) => {
-        const start = timeToMinutes(event.time);
-        const end = start + eventDurationMinutes(event);
-        return { event, start, end, lane: 0, laneCount: 1 };
-      })
-      .sort((a, b) => a.start - b.start || b.end - a.end);
-
-    const groups = [];
-    let active = [];
-    let activeEnd = -1;
-    items.forEach((item) => {
-      if (active.length && item.start >= activeEnd) {
-        groups.push(active);
-        active = [];
-        activeEnd = -1;
-      }
-      active.push(item);
-      activeEnd = Math.max(activeEnd, item.end);
-    });
+  function layoutDayEvents(items2) {
+    const items = items2.filter((event) => event.time).map((event) => { const start = timeToMinutes(event.time); return { event, start, end: start + calendarDurationMinutes(event), lane: 0, laneCount: 1 }; }).sort((a, b) => a.start - b.start || b.end - a.end);
+    const groups = []; let active = []; let activeEnd = -1;
+    items.forEach((item) => { if (active.length && item.start >= activeEnd) { groups.push(active); active = []; activeEnd = -1; } active.push(item); activeEnd = Math.max(activeEnd, item.end); });
     if (active.length) groups.push(active);
-
-    groups.forEach((group) => {
-      const laneEnds = [];
-      group.forEach((item) => {
-        let lane = laneEnds.findIndex((value) => value <= item.start);
-        if (lane < 0) lane = laneEnds.length;
-        laneEnds[lane] = item.end;
-        item.lane = lane;
-      });
-      group.forEach((item) => { item.laneCount = Math.max(1, laneEnds.length); });
-    });
+    groups.forEach((group) => { const laneEnds = []; group.forEach((item) => { let lane = laneEnds.findIndex((value) => value <= item.start); if (lane < 0) lane = laneEnds.length; laneEnds[lane] = item.end; item.lane = lane; }); group.forEach((item) => { item.laneCount = Math.max(1, laneEnds.length); }); });
     return items;
   }
-
-  const positionedEvents = layoutDayEvents(events.filter((event) => event.date === dateString));
-
-  function timeFromPointer(clientY) {
-    if (!gridRef.current) return `${String(startHour).padStart(2, "0")}:00`;
-    const rect = gridRef.current.getBoundingClientRect();
-    const relative = Math.max(0, Math.min(totalHeight - 1, clientY - rect.top));
-    const rawMinutes = startHour * 60 + (relative / hourHeight) * 60;
-    return minutesToTime(Math.round(rawMinutes / 15) * 15);
-  }
-
+  const positionedEvents = layoutDayEvents(dayEvents);
+  function timeFromPointer(clientY) { if (!gridRef.current) return `${String(startHour).padStart(2, "0")}:00`; const rect = gridRef.current.getBoundingClientRect(); const relative = Math.max(0, Math.min(totalHeight - 1, clientY - rect.top)); return minutesToTime(Math.round((startHour * 60 + (relative / hourHeight) * 60) / 15) * 15); }
   const today = new Date();
   const isToday = dateString === dateKey(today.getFullYear(), today.getMonth(), today.getDate());
-  const nowMinutes = today.getHours() * 60 + today.getMinutes();
-  const nowTop = ((nowMinutes - startHour * 60) / 60) * hourHeight;
-  const hourLines = Array.from({ length: endHour - startHour + 1 }, (_, index) => ({
-    hour: startHour + index,
-    top: index * hourHeight,
-  }));
+  const nowTop = (((today.getHours() * 60 + today.getMinutes()) - startHour * 60) / 60) * hourHeight;
+  const hourLines = Array.from({ length: endHour - startHour + 1 }, (_, index) => ({ hour: startHour + index, top: index * hourHeight }));
 
   return (
     <div className="home-day-schedule" style={{ "--home-hour-height": `${hourHeight}px` }}>
-      <div className="home-day-times" style={{ height: totalHeight }} aria-hidden="true">
-        {hourLines.map(({ hour, top }) => (
-          <React.Fragment key={hour}>
-            <span className="home-day-gutter-line" style={{ top }} />
-            <span className="home-day-time" style={{ top }}>{String(hour).padStart(2, "0")}:00</span>
-          </React.Fragment>
-        ))}
-      </div>
-
-      <div
-        ref={gridRef}
-        className="home-day-grid"
-        style={{ height: totalHeight }}
-        onClick={(event) => {
-          if (event.target.closest('.home-day-event')) return;
-          onSlotClick(dateString, timeFromPointer(event.clientY));
-        }}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          const id = dragIdRef.current || event.dataTransfer.getData("text/plain");
-          const source = events.find((item) => item.id === id);
-          if (!source) return;
-          onMoveEvent({ ...source, date: dateString, time: timeFromPointer(event.clientY) });
-          dragIdRef.current = null;
-        }}
-      >
+      {unscheduled.length > 0 && <div className="home-day-unscheduled"><span>Ikke placeret</span><div>{unscheduled.map((event) => <button key={event.id} type="button" draggable onDragStart={(e) => { dragIdRef.current = event.id; e.dataTransfer.setData("text/plain", event.id); }} onDragEnd={() => { dragIdRef.current = null; }} onClick={() => onEventClick(event)} onContextMenu={(e) => { e.preventDefault(); onContextRequest?.({ kind: "unscheduled", event, date: dateString, x: e.clientX, y: e.clientY }); }}><strong>{event.lectureId || "•"}</strong><span>{event.title}</span></button>)}</div></div>}
+      <div className="home-day-times" style={{ height: totalHeight }} aria-hidden="true">{hourLines.map(({ hour, top }) => <React.Fragment key={hour}><span className="home-day-gutter-line" style={{ top }} /><span className="home-day-time" style={{ top }}>{String(hour).padStart(2, "0")}:00</span></React.Fragment>)}</div>
+      <div ref={gridRef} className="home-day-grid" style={{ height: totalHeight }} onClick={(event) => { if (event.target.closest('.home-day-event')) return; onSlotClick(dateString, timeFromPointer(event.clientY)); }} onContextMenu={(event) => { if (event.target.closest('.home-day-event')) return; event.preventDefault(); onContextRequest?.({ kind: "slot", date: dateString, time: timeFromPointer(event.clientY), x: event.clientX, y: event.clientY }); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const id = dragIdRef.current || event.dataTransfer.getData("text/plain"); const source = events.find((item) => item.id === id); if (!source) return; const time = timeFromPointer(event.clientY); const duration = calendarDurationMinutes(source); onMoveEvent({ ...source, date: dateString, time, endTime: minutesToTime((timeToMinutes(time) || 0) + duration), estimatedHours: duration / 60 }); dragIdRef.current = null; }}>
         {hourLines.map(({ hour, top }) => <span key={`hour-${hour}`} className="home-day-hour-line" style={{ top }} />)}
-        {Array.from({ length: endHour - startHour }, (_, index) => (
-          <span key={`half-${index}`} className="home-day-half-line" style={{ top: index * hourHeight + hourHeight / 2 }} />
-        ))}
-
-        {isToday && nowTop >= 0 && nowTop <= totalHeight && (
-          <div className="home-day-now-line" style={{ top: nowTop }} />
-        )}
-
-        {positionedEvents.map(({ event, start, end, lane, laneCount }) => {
-          const tone = palette[event.type] || palette.other;
-          const top = ((start - startHour * 60) / 60) * hourHeight;
-          const height = Math.max(28, ((end - start) / 60) * hourHeight - 3);
-          if (top + height < 0 || top > totalHeight) return null;
-          const width = `calc(${100 / laneCount}% - 10px)`;
-          const left = `calc(${lane * (100 / laneCount)}% + 5px)`;
-          return (
-            <button
-              key={event.id}
-              type="button"
-              draggable
-              className="home-day-event"
-              data-complete={event.completedAt ? "true" : "false"}
-              onDragStart={(domEvent) => {
-                dragIdRef.current = event.id;
-                domEvent.dataTransfer.effectAllowed = "move";
-                domEvent.dataTransfer.setData("text/plain", event.id);
-              }}
-              onDragEnd={() => { dragIdRef.current = null; }}
-              onClick={(domEvent) => {
-                domEvent.stopPropagation();
-                onEventClick(event);
-              }}
-              style={{
-                top: top + 1,
-                height,
-                width,
-                insetInlineStart: left,
-                "--home-event-accent": tone.color,
-                "--home-event-surface": tone.background,
-              }}
-              title={`${event.time}–${minutesToTime(end)} ${event.title}`}
-            >
-              <span className="home-day-event-time">{event.time}–{minutesToTime(end)}</span>
-              <span className="home-day-event-title">{event.title}</span>
-            </button>
-          );
-        })}
+        {Array.from({ length: endHour - startHour }, (_, index) => <span key={`half-${index}`} className="home-day-half-line" style={{ top: index * hourHeight + hourHeight / 2 }} />)}
+        {isToday && nowTop >= 0 && nowTop <= totalHeight && <div className="home-day-now-line" style={{ top: nowTop }} />}
+        {positionedEvents.map(({ event, start, end, lane, laneCount }) => { const tone = palette[event.type] || palette.other; const top = ((start - startHour * 60) / 60) * hourHeight; const height = Math.max(28, ((end - start) / 60) * hourHeight - 2); if (top + height < 0 || top > totalHeight) return null; return <button key={event.id} type="button" draggable className="home-day-event" data-complete={event.completedAt ? "true" : "false"} data-conflict={events.some((other) => calendarEventsConflict(event, other)) ? "true" : "false"} onDragStart={(e) => { dragIdRef.current = event.id; e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", event.id); }} onDragEnd={() => { dragIdRef.current = null; }} onClick={(e) => { e.stopPropagation(); onEventClick(event); }} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onContextRequest?.({ kind: "event", event, date: dateString, x: e.clientX, y: e.clientY }); }} style={{ top: top + 1, height, width: `calc(${100 / laneCount}% - 10px)`, insetInlineStart: `calc(${lane * (100 / laneCount)}% + 5px)`, "--home-event-accent": tone.color, "--home-event-surface": tone.background }} title={`${event.time}–${minutesToTime(end)} ${event.title}`}><span className="home-day-event-time">{event.time}–{minutesToTime(end)}</span><span className="home-day-event-title">{event.title}</span>{event.deliveryStatus === "held" && <small>Afholdt</small>}</button>; })}
       </div>
     </div>
   );
@@ -16867,80 +16606,24 @@ function HomeDaySchedule({
 
 function CalendarDailyPlanner({ c, language, todayEvents, missedEvents, onSaveToday, onResolveMissed, onDismiss }) {
   const copy = ({
-    da: { title: "Dagens plan", subtitle: "Placér dagens studieblokke, før du går i gang.", missed: "Ikke afsluttet fra tidligere", auto: "Fordel automatisk", save: "Gem dagens placering", dismiss: "Behold placeringen", noTime: "Vælg tidspunkt", today: "Flyt til i dag", tomorrow: "Flyt til i morgen", done: "Markér færdig", keep: "Behold på datoen", duration: "varighed" },
-    en: { title: "Today's plan", subtitle: "Place today's study blocks before you begin.", missed: "Unfinished from earlier", auto: "Auto-place", save: "Save today's schedule", dismiss: "Keep current schedule", noTime: "Choose time", today: "Move to today", tomorrow: "Move to tomorrow", done: "Mark complete", keep: "Keep on date", duration: "duration" },
-    ar: { title: "خطة اليوم", subtitle: "حدّد أوقات جلسات اليوم قبل البدء.", missed: "غير مكتمل من الأيام السابقة", auto: "توزيع تلقائي", save: "حفظ جدول اليوم", dismiss: "الاحتفاظ بالجدول", noTime: "اختر الوقت", today: "نقل إلى اليوم", tomorrow: "نقل إلى الغد", done: "وضع علامة مكتمل", keep: "الاحتفاظ بالتاريخ", duration: "المدة" },
+    da: { title: "Planlæg din dag", subtitle: "Vælg varighed og tidspunkt for dagens forelæsninger.", missed: "Ikke afsluttet fra tidligere", auto: "Placér automatisk", save: "Gem dagens placering", dismiss: "Behold ikke placeret", noTime: "Ikke placeret", today: "Flyt til i dag", tomorrow: "Flyt til i morgen", done: "Markér færdig", keep: "Behold på datoen", duration: "Varighed", start: "Starter" },
+    en: { title: "Plan your day", subtitle: "Choose duration and time for today's lectures.", missed: "Unfinished from earlier", auto: "Auto-place", save: "Save today's schedule", dismiss: "Keep unscheduled", noTime: "Unscheduled", today: "Move to today", tomorrow: "Move to tomorrow", done: "Mark complete", keep: "Keep on date", duration: "Duration", start: "Starts" },
+    ar: { title: "خطط ليومك", subtitle: "اختر المدة والوقت لمحاضرات اليوم.", missed: "غير مكتمل سابقًا", auto: "وضع تلقائي", save: "حفظ جدول اليوم", dismiss: "إبقاء غير مجدول", noTime: "غير مجدول", today: "نقل لليوم", tomorrow: "نقل للغد", done: "مكتمل", keep: "إبقاء التاريخ", duration: "المدة", start: "البداية" },
   })[language] || {};
   const [draft, setDraft] = useState({});
-
   useEffect(() => {
     const next = {};
-    let cursor = 9 * 60;
-    todayEvents.forEach((event) => {
-      const value = event.time || minutesToTime(cursor);
-      next[event.id] = value;
-      cursor = Math.max(cursor + Math.round((Number(event.estimatedHours) || 1) * 60), (timeToMinutes(value) || cursor) + Math.round((Number(event.estimatedHours) || 1) * 60));
-    });
+    todayEvents.forEach((event) => { next[event.id] = { time: event.time || "", durationMinutes: calendarDurationMinutes(event) || 60 }; });
     setDraft(next);
-  }, [todayEvents.map((event) => `${event.id}:${event.time}`).join("|")]);
-
-  function autoPlace() {
-    let cursor = 9 * 60;
-    const next = {};
-    todayEvents.forEach((event) => {
-      next[event.id] = minutesToTime(cursor);
-      cursor += Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60)) + 15;
-    });
-    setDraft(next);
-  }
-
+  }, [todayEvents.map((event) => `${event.id}:${event.time}:${event.endTime}:${event.estimatedHours}`).join("|")]);
+  function update(id, patch) { setDraft((previous) => ({ ...previous, [id]: { ...(previous[id] || { time: "", durationMinutes: 60 }), ...patch } })); }
+  function autoPlace() { let cursor = 9 * 60; const next = {}; todayEvents.forEach((event) => { const durationMinutes = draft[event.id]?.durationMinutes || calendarDurationMinutes(event) || 60; next[event.id] = { time: minutesToTime(cursor), durationMinutes }; cursor += durationMinutes + 15; }); setDraft(next); }
   return (
-    <div className="daily-planner-overlay">
-      <div className="daily-planner-card">
-        <header className="daily-planner-header">
-          <span className="daily-planner-icon"><Icon name="calendar" size={18} /></span>
-          <div><h2>{copy.title}</h2><p>{copy.subtitle}</p></div>
-          <IconButton c={c} title={copy.dismiss} onClick={onDismiss}><Icon name="close" size={16} /></IconButton>
-        </header>
-
-        {missedEvents.length > 0 && (
-          <section className="daily-planner-missed">
-            <div className="daily-planner-section-title"><Icon name="reset" size={14} />{copy.missed}<span>{missedEvents.length}</span></div>
-            <div className="daily-planner-missed-list">
-              {missedEvents.slice(0, 5).map((event) => (
-                <article key={event.id} className="daily-planner-missed-item">
-                  <div><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : ""}</small></div>
-                  <div className="daily-planner-actions">
-                    <button type="button" onClick={() => onResolveMissed(event, "today")}>{copy.today}</button>
-                    <button type="button" onClick={() => onResolveMissed(event, "tomorrow")}>{copy.tomorrow}</button>
-                    <button type="button" onClick={() => onResolveMissed(event, "complete")}>{copy.done}</button>
-                    <button type="button" onClick={() => onResolveMissed(event, "keep")}>{copy.keep}</button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="daily-planner-today">
-          <div className="daily-planner-section-title"><Icon name="clock" size={14} />{copy.title}<button type="button" onClick={autoPlace}>{copy.auto}</button></div>
-          <div className="daily-planner-event-list">
-            {todayEvents.map((event) => (
-              <label key={event.id} className="daily-planner-event-row">
-                <span className="daily-planner-event-dot" />
-                <span><strong>{event.title}</strong><small>{Math.round((Number(event.estimatedHours) || 1) * 60)} min {copy.duration}</small></span>
-                <input type="time" value={draft[event.id] || ""} onChange={(domEvent) => setDraft((previous) => ({ ...previous, [event.id]: domEvent.target.value }))} aria-label={`${event.title}: ${copy.noTime}`} />
-              </label>
-            ))}
-          </div>
-        </section>
-
-        <footer className="daily-planner-footer">
-          <SecondaryButton onClick={onDismiss}>{copy.dismiss}</SecondaryButton>
-          <PrimaryButton disabled={todayEvents.some((event) => !draft[event.id])} onClick={() => onSaveToday(draft)}><Icon name="check" size={14} />{copy.save}</PrimaryButton>
-        </footer>
-      </div>
-    </div>
+    <div className="daily-planner-overlay"><div className="daily-planner-card"><header className="daily-planner-header"><span className="daily-planner-icon"><Icon name="calendar" size={18} /></span><div><h2>{copy.title}</h2><p>{copy.subtitle}</p></div><IconButton c={c} title={copy.dismiss} onClick={onDismiss}><Icon name="close" size={16} /></IconButton></header>
+      {missedEvents.length > 0 && <section className="daily-planner-missed"><div className="daily-planner-section-title"><Icon name="reset" size={14} />{copy.missed}<span>{missedEvents.length}</span></div><div className="daily-planner-missed-list">{missedEvents.slice(0, 5).map((event) => <article key={event.id} className="daily-planner-missed-item"><div><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : ""}</small></div><div className="daily-planner-actions"><button type="button" onClick={() => onResolveMissed(event, "today")}>{copy.today}</button><button type="button" onClick={() => onResolveMissed(event, "tomorrow")}>{copy.tomorrow}</button><button type="button" onClick={() => onResolveMissed(event, "complete")}>{copy.done}</button><button type="button" onClick={() => onResolveMissed(event, "keep")}>{copy.keep}</button></div></article>)}</div></section>}
+      <section className="daily-planner-today"><div className="daily-planner-section-title"><Icon name="clock" size={14} />{copy.title}<button type="button" onClick={autoPlace}>{copy.auto}</button></div><div className="daily-planner-event-list">{todayEvents.map((event) => <div key={event.id} className="daily-planner-event-row"><span className="daily-planner-event-dot" /><span className="daily-planner-event-copy"><strong>{event.title}</strong><small>{event.lectureId || event.type}</small></span><label><small>{copy.duration}</small><select value={draft[event.id]?.durationMinutes || 60} onChange={(e) => update(event.id, { durationMinutes: Number(e.target.value) })}><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 t</option><option value="90">1,5 t</option><option value="120">2 t</option><option value="180">3 t</option></select></label><label><small>{copy.start}</small><input type="time" value={draft[event.id]?.time || ""} onChange={(e) => update(event.id, { time: e.target.value })} /></label></div>)}</div></section>
+      <footer className="daily-planner-footer"><SecondaryButton onClick={onDismiss}>{copy.dismiss}</SecondaryButton><PrimaryButton onClick={() => onSaveToday(draft)}>{copy.save}</PrimaryButton></footer>
+    </div></div>
   );
 }
 
@@ -17057,6 +16740,7 @@ function Dashboard({
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [bottomTab, setBottomTab] = useState("activity");
   const [progressDetailsOpen, setProgressDetailsOpen] = useState(false);
+  const [calendarContextMenu, setCalendarContextMenu] = useState(null);
 
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
   const direction = language === "ar" ? "rtl" : "ltr";
@@ -17403,22 +17087,13 @@ function Dashboard({
   const tomorrowPlanCount = mergedCalendarEvents.filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date === tomorrowKey && event.type !== "exam" && !event.completedAt).length;
 
   useEffect(() => {
-    if (!activePlan) return;
-    const completedImported = mergedCalendarEvents
-      .filter((event) => event.planModuleId === currentModule && event.importedSchedule && event.lectureId && !event.manualIncompleteAt && calendarEventEndTimestamp(event) <= Date.now())
-      .map((event) => event.lectureId);
-    if (!completedImported.length) return;
-    const next = [...new Set([...(activePlan.doneLectureIds || []), ...completedImported])];
-    const completedImportedEvents = mergedCalendarEvents.filter((event) => event.planModuleId === currentModule && event.importedSchedule && event.lectureId && !event.manualIncompleteAt && calendarEventEndTimestamp(event) <= Date.now() && !event.completedAt);
-    if (completedImportedEvents.length) {
-      setCalendarEventMeta((previous) => {
-        const meta = { ...previous };
-        completedImportedEvents.forEach((event) => { meta[event.id] = { ...(meta[event.id] || {}), completedAt: new Date(calendarEventEndTimestamp(event)).toISOString(), status: "completed" }; });
-        return meta;
-      });
-    }
-    if (next.length === (activePlan.doneLectureIds || []).length) return;
-    setPlansGlobal((previous) => ({ ...previous, [currentModule]: { ...previous[currentModule], doneLectureIds: next, updatedAt: Date.now() } }));
+    const held = mergedCalendarEvents.filter((event) => event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
+    if (!held.length) return;
+    setCalendarEventMeta((previous) => {
+      const next = { ...previous };
+      held.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), deliveryStatus: "held" }; });
+      return next;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [calendarEvents, calendarEventMeta, currentModule]);
 
@@ -17668,10 +17343,16 @@ function Dashboard({
   }
 
   function saveTodaySchedule(draft) {
-    setCalendarEvents((previous) => previous.map((event) => draft[event.id] ? { ...event, date: todayKey, time: draft[event.id] } : event));
+    setCalendarEvents((previous) => previous.map((event) => {
+      const entry = draft[event.id];
+      if (!entry) return event;
+      const start = timeToMinutes(entry.time);
+      const durationMinutes = Math.max(15, Number(entry.durationMinutes) || 60);
+      return { ...event, date: todayKey, time: entry.time || "", endTime: start == null ? "" : minutesToTime(start + durationMinutes), estimatedHours: durationMinutes / 60 };
+    }));
     setCalendarEventMeta((previous) => {
       const next = { ...previous };
-      Object.entries(draft).forEach(([id]) => { next[id] = { ...(next[id] || {}), needsScheduling: false, status: "planned" }; });
+      Object.entries(draft).forEach(([id, entry]) => { next[id] = { ...(next[id] || {}), needsScheduling: !entry.time, status: entry.time ? "planned" : "unscheduled" }; });
       return next;
     });
     setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { confirmed: true, confirmedAt: Date.now() } }));
@@ -17690,6 +17371,93 @@ function Dashboard({
     const target = action === "tomorrow" ? dateKey(addDays(today, 1).getFullYear(), addDays(today, 1).getMonth(), addDays(today, 1).getDate()) : todayKey;
     setCalendarEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, date: target, time: action === "today" ? item.time || "17:00" : item.time || "09:00" } : item));
     setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), missedResolvedAt: Date.now(), needsScheduling: action === "today" ? !event.time : false } }));
+  }
+
+  function dashboardMoveEvent(updated) {
+    setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? { ...item, date: updated.date, time: updated.time, endTime: updated.endTime, estimatedHours: updated.estimatedHours } : item));
+    setCalendarEventMeta((previous) => ({ ...previous, [updated.id]: { ...(previous[updated.id] || {}), needsScheduling: !updated.time, status: updated.time ? "planned" : "unscheduled" } }));
+  }
+
+  function dashboardOpenLecture(event) {
+    const lectureId = calendarLectureIds(event)[0];
+    if (!lectureId || !onOpenWorkspace) return;
+    const state = loadStorage(STORAGE.workspaceState, {});
+    localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId }));
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } }));
+    onOpenWorkspace("lectures");
+  }
+
+  function dashboardInsertEvent(event) {
+    const metadata = calendarEventMetaFields(event);
+    const base = { ...event }; Object.keys(metadata).forEach((key) => delete base[key]);
+    setCalendarEvents((previous) => [...previous, base]);
+    setCalendarEventMeta((previous) => ({ ...previous, [event.id]: metadata }));
+  }
+
+  function dashboardDuplicateEvent(event) {
+    const duration = calendarDurationMinutes(event);
+    const start = timeToMinutes(event.time);
+    const shifted = start == null ? "" : minutesToTime(start + 15);
+    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · kopi`, time: shifted, endTime: shifted ? minutesToTime((timeToMinutes(shifted) || 0) + duration) : "", completedAt: null, createdByUser: true, source: "duplicate" });
+  }
+
+  function dashboardSplitEvent(event) {
+    const start = timeToMinutes(event.time);
+    const duration = calendarDurationMinutes(event);
+    if (start == null || duration < 60) return;
+    const firstDuration = Math.max(30, Math.round(duration / 2 / 15) * 15);
+    const secondStart = start + firstDuration;
+    setCalendarEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, endTime: minutesToTime(secondStart), estimatedHours: firstDuration / 60 } : item));
+    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · del 2`, time: minutesToTime(secondStart), endTime: minutesToTime(start + duration), estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null, createdByUser: true });
+  }
+
+  function dashboardDeleteEvent(event) {
+    if (calendarIsUnfinishedStudyPlanLecture(event)) {
+      const queued = calendarReturnLectureToQueue(event, todayKey);
+      setCalendarEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, date: queued.date, time: "", endTime: "", estimatedHours: null } : item));
+      setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...calendarEventMetaFields(queued) } }));
+      return;
+    }
+    setCalendarEvents((previous) => previous.filter((item) => item.id !== event.id));
+    setCalendarEventMeta((previous) => { const next = { ...previous }; delete next[event.id]; return next; });
+  }
+
+  function dashboardContextItems() {
+    if (!calendarContextMenu) return [];
+    const labels = calendarContextCopy(language);
+    if (calendarContextMenu.kind === "slot") {
+      const unscheduled = mergedCalendarEvents.find((event) => event.date === calendarContextMenu.date && !event.time && !event.completedAt && event.type !== "exam");
+      return [
+        { id: "new", label: labels.create, icon: "plus", action: () => createEvent(calendarContextMenu.date, calendarContextMenu.time) },
+        unscheduled && { id: "place", label: labels.placeLecture, icon: "book", action: () => { const duration = calendarDurationMinutes(unscheduled); dashboardMoveEvent({ ...unscheduled, time: calendarContextMenu.time, endTime: minutesToTime((timeToMinutes(calendarContextMenu.time) || 0) + duration), estimatedHours: duration / 60 }); } },
+        { id: "review", label: labels.createReview, icon: "reset", action: () => setEditingPlanEvent({ id: `event-${Date.now()}`, title: "Repetition", date: calendarContextMenu.date, time: calendarContextMenu.time, endTime: minutesToTime((timeToMinutes(calendarContextMenu.time) || 0) + 45), type: "review", estimatedHours: .75, __new: true }) },
+      ];
+    }
+    const event = calendarContextMenu.event;
+    if (!event) return [];
+    const tomorrow2 = addDays(today, 1);
+    const tomorrowKey2 = dateKey(tomorrow2.getFullYear(), tomorrow2.getMonth(), tomorrow2.getDate());
+    if (calendarContextMenu.kind === "unscheduled") return [
+      { id: "edit", label: labels.edit, icon: "edit", action: () => setEditingPlanEvent(event) },
+      { id: "place", label: labels.place, icon: "clock", action: () => setEditingPlanEvent({ ...event, time: "09:00", endTime: "10:00", estimatedHours: 1 }) },
+      { id: "tomorrow", label: labels.tomorrow, icon: "right", action: () => dashboardMoveEvent({ ...event, date: tomorrowKey2, time: "", endTime: "", estimatedHours: null }) },
+      { id: "complete", label: labels.complete, icon: "check", action: () => togglePlanEventComplete(event) },
+      event.lectureId && { id: "lecture", label: labels.openLecture, icon: "book", action: () => dashboardOpenLecture(event) },
+      { separator: true },
+      { id: "delete", label: labels.remove, icon: "trash", danger: true, action: () => dashboardDeleteEvent(event) },
+    ];
+    return [
+      { id: "edit", label: labels.edit, icon: "edit", action: () => setEditingPlanEvent(event) },
+      { id: "complete", label: event.completedAt ? labels.incomplete : labels.complete, icon: "check", action: () => togglePlanEventComplete(event) },
+      { id: "today", label: labels.today, icon: "calendar", action: () => dashboardMoveEvent({ ...event, date: todayKey }) },
+      { id: "tomorrow", label: labels.tomorrow, icon: "right", action: () => dashboardMoveEvent({ ...event, date: tomorrowKey2 }) },
+      { separator: true },
+      { id: "duplicate", label: labels.duplicate, icon: "plus", action: () => dashboardDuplicateEvent(event) },
+      { id: "split", label: labels.split, icon: "cards", disabled: !event.time || calendarDurationMinutes(event) < 60, action: () => dashboardSplitEvent(event) },
+      event.lectureId && { id: "lecture", label: labels.openLecture, icon: "book", action: () => dashboardOpenLecture(event) },
+      { separator: true },
+      { id: "delete", label: labels.remove, icon: "trash", danger: true, action: () => dashboardDeleteEvent(event) },
+    ];
   }
 
   function toggleChecklistItem(id) {
@@ -17838,7 +17606,8 @@ function Dashboard({
                 events={mergedCalendarEvents}
                 onEventClick={setEditingPlanEvent}
                 onSlotClick={createEvent}
-                onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
+                onMoveEvent={dashboardMoveEvent}
+                onContextRequest={setCalendarContextMenu}
               />
             ) : calendarView === "week" ? (
               <WeekCalendar
@@ -17847,9 +17616,10 @@ function Dashboard({
                 weekStart={startOfWeek(calendarDate)}
                 daysCount={7}
                 weekdayLabels={weekdayLabels}
-                onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
+                onMoveEvent={dashboardMoveEvent}
                 onSlotClick={createEvent}
                 onEventClick={setEditingPlanEvent}
+                onContextRequest={setCalendarContextMenu}
               />
             ) : (
               <MonthCalendar
@@ -17862,6 +17632,7 @@ function Dashboard({
                   setCalendarView("day");
                 }}
                 onEventClick={setEditingPlanEvent}
+                onContextRequest={setCalendarContextMenu}
               />
             )}
             {shouldShowDailyPlanner && (
@@ -17992,6 +17763,8 @@ function Dashboard({
         </div>
       )}
 
+      <CalendarContextMenu c={c} menu={calendarContextMenu} items={dashboardContextItems()} onClose={() => setCalendarContextMenu(null)} />
+
       {editingPlanEvent && (
         <CalendarEventEditor
           c={c}
@@ -18000,6 +17773,7 @@ function Dashboard({
           event={editingPlanEvent}
           moduleName={currentModule}
           lectures={planLectures}
+          allEvents={mergedCalendarEvents}
           exists={!editingPlanEvent.__new && calendarEvents.some((event) => event.id === editingPlanEvent.id)}
           onChange={setEditingPlanEvent}
           onSave={saveEditingEvent}
@@ -30141,7 +29915,7 @@ useEffect(() => {
           closing={calendarClosing}
         >
           {activeWorkspace === "calendar" && (
-            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} onClose={closeWorkspace} />
+            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} onClose={closeWorkspace} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
           )}
           {activeWorkspace === "notes" && (
             <Notebook c={c} t={t} onClose={closeWorkspace} />
