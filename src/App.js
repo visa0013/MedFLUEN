@@ -39,6 +39,7 @@ const STORAGE = {
   resumeSession: "medlearn-resume-session",
   pomodoroLog: "medlearn-pomodoro-log",
   pomodoroMinutesLog: "medlearn-pomodoro-minutes-log",
+  pomodoroPlans: "medlearn-pomodoro-plans",
   badgesSeen: "medlearn-badges-seen",
   mascotState: "medlearn-mascot-state",
   dailyChecklist: "medlearn-daily-checklist",
@@ -52,6 +53,7 @@ const STORAGE = {
   workspaceState: "medlearn-workspace-state",
   lectureNotes: "medlearn-lecture-notes",
   sharedLectureNotes: "medlearn-shared-lecture-notes",
+  lectureProgress: "medlearn-lecture-progress",
 };
 
 const LANGUAGES = [
@@ -3784,7 +3786,7 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
 function GlobalStyles({ c }) {  
   return (
     <style>{`
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Share+Tech+Mono&family=Space+Mono:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700&display=swap");
 
       /* --------------------------------------------------------------
          KALENDER-TEMA (WeekCalendar)
@@ -10117,6 +10119,150 @@ select.ui-control {
   .workspace-shell--closing { animation: none !important; }
 }
 
+
+/* ============================================================
+   SEGMENT 1.1 — quiet indicators, digital Pomodoro and lecture progress
+   ============================================================ */
+.sidebar-badge,
+.sidebar-wide-row-badge,
+.mobile-bottom-nav em {
+  background: var(--ui-panel) !important;
+  color: var(--ui-blue) !important;
+  border: 1px solid var(--ui-blue-border) !important;
+  box-shadow: none !important;
+}
+
+.topbar-digital-clock {
+  width: 176px;
+  min-height: 54px;
+  display: grid;
+  place-items: center;
+  padding: 5px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ui-text);
+  outline: none;
+}
+.topbar-digital-clock:focus-visible { box-shadow: 0 0 0 3px var(--ui-ring); }
+.topbar-digital-time {
+  display: block;
+  font-family: "Orbitron", "Azeret Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: .075em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transform-origin: center;
+  transition: transform 180ms var(--ui-ease), color 160ms ease;
+}
+.topbar-digital-clock:hover { filter: none !important; background: transparent !important; }
+.topbar-digital-clock:hover .topbar-digital-time { transform: scale(1.075); color: var(--ui-blue); }
+.topbar-digital-clock:active .topbar-digital-time { transform: scale(1.02); }
+
+.pomodoro-popover-v11 {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 9px);
+  left: 50%;
+  width: min(368px, calc(100vw - 112px));
+  max-height: min(620px, calc(100vh - 92px));
+  overflow-y: auto;
+  padding: 14px;
+  border-radius: 14px;
+  transform: translateX(-50%);
+}
+.pomodoro-v11-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.pomodoro-v11-header > div { min-width: 0; display: grid; gap: 3px; }
+.pomodoro-v11-header strong { color: var(--ui-text); font-size: 13px; font-weight: 850; }
+.pomodoro-v11-header small { color: var(--ui-muted); font-size: 9.5px; font-weight: 700; }
+.pomodoro-v11-active { margin-bottom: 10px; padding: 13px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-soft); }
+.pomodoro-v11-countdown { color: var(--ui-text); font-family: "Orbitron", "Azeret Mono", monospace; font-size: 34px; font-weight: 600; letter-spacing: .055em; text-align: center; font-variant-numeric: tabular-nums; }
+.pomodoro-v11-progress { height: 4px; margin-top: 11px; overflow: hidden; border-radius: 99px; background: var(--ui-border); }
+.pomodoro-v11-progress span { height: 100%; display: block; border-radius: inherit; background: var(--ui-blue); transition: width 1s linear; }
+.pomodoro-v11-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 11px; }
+.pomodoro-v11-stats > div { padding: 10px 11px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); }
+.pomodoro-v11-stats span { display: block; color: var(--ui-muted); font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .055em; }
+.pomodoro-v11-stats strong { display: block; margin-top: 5px; color: var(--ui-text); font-size: 16px; font-weight: 900; }
+.pomodoro-v11-duration-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.pomodoro-v11-duration-grid label { display: grid; gap: 6px; padding: 10px 11px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); }
+.pomodoro-v11-duration-grid label > span,
+.pomodoro-v11-save-row label > span { color: var(--ui-secondary); font-size: 9px; font-weight: 800; }
+.pomodoro-v11-duration-grid label > div { display: flex; align-items: baseline; gap: 5px; }
+.pomodoro-v11-duration-grid input { width: 60px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--ui-text); font-size: 19px; font-weight: 900; }
+.pomodoro-v11-duration-grid em { color: var(--ui-muted); font-size: 9px; font-style: normal; font-weight: 700; }
+.pomodoro-v11-save-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 11px; }
+.pomodoro-v11-save-row label { min-width: 0; display: grid; gap: 5px; }
+.pomodoro-v11-save-row input { width: 100%; min-height: 38px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-text); font-size: 10.5px; outline: 0; }
+.pomodoro-v11-save-row input:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 3px var(--ui-ring); background: var(--ui-panel); }
+.pomodoro-v11-save-row .ui-button { align-self: end; min-height: 38px; padding-inline: 11px; border-radius: 9px; }
+.pomodoro-v11-plans { margin-bottom: 11px; }
+.pomodoro-v11-section-title { margin-bottom: 6px; color: var(--ui-muted); font-size: 8.5px; font-weight: 850; letter-spacing: .065em; text-transform: uppercase; }
+.pomodoro-v11-plan-row { display: grid; grid-template-columns: minmax(0, 1fr) 30px; gap: 5px; margin-bottom: 5px; }
+.pomodoro-v11-plan-row > button:first-child { min-width: 0; min-height: 38px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-text); text-align: start; }
+.pomodoro-v11-plan-row > button:first-child:hover { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); }
+.pomodoro-v11-plan-row span { min-width: 0; overflow: hidden; font-size: 10px; font-weight: 780; text-overflow: ellipsis; white-space: nowrap; }
+.pomodoro-v11-plan-row small { flex-shrink: 0; color: var(--ui-muted); font-size: 8.5px; font-weight: 750; }
+.pomodoro-v11-plan-delete { width: 30px; height: 38px; display: grid; place-items: center; padding: 0; border: 1px solid var(--ui-border); border-radius: 9px; background: transparent; color: var(--ui-muted); }
+.pomodoro-v11-plan-delete:hover { background: var(--ui-soft); color: var(--ui-text); }
+.pomodoro-v11-empty { padding: 10px; border: 1px dashed var(--ui-border); border-radius: 9px; color: var(--ui-muted); font-size: 9.5px; text-align: center; }
+.pomodoro-v11-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pomodoro-v11-controls .ui-button { min-height: 40px; border-radius: 10px; }
+
+.lecture-progress-row {
+  position: relative;
+  min-height: 58px;
+  gap: 4px;
+  padding: 0 5px 0 0;
+  overflow: hidden;
+  border-inline-start: 3px solid var(--lecture-tone, var(--ui-border-strong));
+}
+.document-library-main {
+  min-width: 0;
+  flex: 1;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 3px 6px 7px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+}
+.document-library-main:hover { filter: none !important; }
+.lecture-progress-actions { flex-shrink: 0; display: inline-flex; align-items: center; gap: 3px; }
+.lecture-view-toggle {
+  min-width: 38px;
+  height: 27px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 5px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-panel);
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 850;
+}
+.lecture-view-toggle[data-viewed="true"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-mastery-toggle { width: 27px; height: 27px; display: grid; place-items: center; padding: 0; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); }
+.lecture-mastery-toggle span { width: 9px; height: 9px; border-radius: 99px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+.lecture-progress-row .document-library-file-state { width: 25px; height: 27px; }
+
+@media (max-width: 760px) {
+  .topbar-digital-clock { width: 132px; min-height: 48px; padding-inline: 8px; }
+  .topbar-digital-time { font-size: 21px; }
+  .pomodoro-popover-v11 { left: 10px !important; right: 10px !important; top: 64px !important; width: auto !important; max-height: calc(100vh - 136px) !important; transform: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar-digital-time { transition: none !important; }
+  .topbar-digital-clock:hover .topbar-digital-time { transform: none !important; }
+}
+
     `}</style>
   );
 }
@@ -11385,671 +11531,240 @@ function Timer({
   setUser,
   route,
 }) {
-  const [
-    settings,
-    setSettings,
-  ] = useStoredState(
-    STORAGE.timer,
-    {
-      focus: 25,
-      pause: 5,
-      sessions: 0,
-      fontStyle: "plex",
-    }
-  );
+  const [settings, setSettings] = useStoredState(STORAGE.timer, {
+    focus: 25,
+    pause: 5,
+    sessions: 0,
+  });
+  const [savedPlans, setSavedPlans] = useStoredState(STORAGE.pomodoroPlans, []);
+  const [planName, setPlanName] = useState("");
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState("idle");
+  const [running, setRunning] = useState(false);
+  const [seconds, setSeconds] = useState((Number(settings.focus) || 25) * 60);
+  const [clock, setClock] = useState("");
+  const [pomodoroLog, setPomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
+  const [pomodoroMinutesLog, setPomodoroMinutesLog] = useStoredState(STORAGE.pomodoroMinutesLog, {});
+  const triggerRef = useRef(null);
+  const popoverRef = useRef(null);
 
-  const [open, setOpen] =
-    useState(false);
-
-  const [mode, setMode] =
-    useState("idle");
-
-  const [running, setRunning] =
-    useState(false);
-
-  const [seconds, setSeconds] =
-    useState(
-      settings.focus * 60
-    );
-
-  const [clock, setClock] =
-    useState("");
-
-  const [
-    clockDate,
-    setClockDate,
-  ] = useState("");
-
-  const [
-    pomodoroLog,
-    setPomodoroLog,
-  ] = useStoredState(
-    STORAGE.pomodoroLog,
-    {}
-  );
-
-  const [
-    pomodoroMinutesLog,
-    setPomodoroMinutesLog,
-  ] = useStoredState(
-    STORAGE.pomodoroMinutesLog,
-    {}
-  );
-
-  const triggerRef =
-    useRef(null);
-
-  const popoverRef =
-    useRef(null);
-
-  const copy = {
+  const copy = ({
     da: {
-      homeSubtitle:
-        "Dit studieoverblik",
-      mcqSubtitle:
-        "Træn og repetér",
-      insightsTitle:
-        "Indsigter",
-      insightsSubtitle:
-        "Se din udvikling",
-      planTitle:
-        "Studieplan",
-      planSubtitle:
-        "Planlæg frem mod eksamen",
-      timerTitle:
-        "Fokustimer",
-      timerDescription:
-        "Vælg en rolig fokusblok og en passende pause.",
-      startFocus:
-        "Start fokussession",
-      openTimer:
-        "Åbn fokustimer",
-      closeTimer:
-        "Luk fokustimer",
-      quickPresets:
-        "Hurtigt valg",
-      customSession:
-        "Tilpas session",
-      focusLength:
-        "Fokuslængde",
-      breakLength:
-        "Pauselængde",
-      todaySessions:
-        "I dag",
-      todayMinutes:
-        "Fokusminutter",
-      totalSessions:
-        "I alt",
-      completed:
-        "gennemført",
-      running:
-        "Kører",
-      paused:
-        "På pause",
-      activeFocus:
-        "Fokussession",
-      activeBreak:
-        "Pause",
-      progress:
-        "Sessionens fremgang",
-      sessionsShort:
-        "sessioner",
-      resetDescription:
-        "Afslut den aktuelle session og nulstil timeren.",
-      clockFace: "Urdesign",
-      clockPlex: "Præcis",
-      clockSpace: "Klassisk",
-      clockTech: "Digital",
+      homeSubtitle: "Dit studieoverblik",
+      mcqSubtitle: "Træn og repetér",
+      insightsTitle: "Indsigter",
+      insightsSubtitle: "Se din udvikling",
+      planTitle: "Studieplan",
+      planSubtitle: "Planlæg frem mod eksamen",
+      timerTitle: "Pomodoro",
+      openTimer: "Åbn Pomodoro",
+      closeTimer: "Luk Pomodoro",
+      focusLength: "Læsning",
+      breakLength: "Pause",
+      todayHours: "I dag",
+      weekHours: "Denne uge",
+      hoursShort: "t",
+      savedPlans: "Gemte planer",
+      noSavedPlans: "Ingen gemte planer endnu",
+      planName: "Navn på plan",
+      planNamePlaceholder: "Fx Lang læseblok",
+      savePlan: "Gem plan",
+      startFocus: "Start fokus",
+      activeFocus: "Fokus",
+      activeBreak: "Pause",
+      deletePlan: "Slet plan",
+      applyPlan: "Brug plan",
     },
-
     en: {
-      homeSubtitle:
-        "Your study overview",
-      mcqSubtitle:
-        "Practice and review",
-      insightsTitle:
-        "Insights",
-      insightsSubtitle:
-        "View your progress",
-      planTitle:
-        "Study plan",
-      planSubtitle:
-        "Plan towards your exam",
-      timerTitle:
-        "Focus timer",
-      timerDescription:
-        "Choose a calm focus block and a suitable break.",
-      startFocus:
-        "Start focus session",
-      openTimer:
-        "Open focus timer",
-      closeTimer:
-        "Close focus timer",
-      quickPresets:
-        "Quick selection",
-      customSession:
-        "Custom session",
-      focusLength:
-        "Focus length",
-      breakLength:
-        "Break length",
-      todaySessions:
-        "Today",
-      todayMinutes:
-        "Focus minutes",
-      totalSessions:
-        "Total",
-      completed:
-        "completed",
-      running:
-        "Running",
-      paused:
-        "Paused",
-      activeFocus:
-        "Focus session",
-      activeBreak:
-        "Break",
-      progress:
-        "Session progress",
-      sessionsShort:
-        "sessions",
-      resetDescription:
-        "End the current session and reset the timer.",
-      clockFace: "Clock style",
-      clockPlex: "Precise",
-      clockSpace: "Classic",
-      clockTech: "Digital",
+      homeSubtitle: "Your study overview",
+      mcqSubtitle: "Practice and review",
+      insightsTitle: "Insights",
+      insightsSubtitle: "View your progress",
+      planTitle: "Study plan",
+      planSubtitle: "Plan towards your exam",
+      timerTitle: "Pomodoro",
+      openTimer: "Open Pomodoro",
+      closeTimer: "Close Pomodoro",
+      focusLength: "Focus",
+      breakLength: "Break",
+      todayHours: "Today",
+      weekHours: "This week",
+      hoursShort: "h",
+      savedPlans: "Saved plans",
+      noSavedPlans: "No saved plans yet",
+      planName: "Plan name",
+      planNamePlaceholder: "E.g. Long study block",
+      savePlan: "Save plan",
+      startFocus: "Start focus",
+      activeFocus: "Focus",
+      activeBreak: "Break",
+      deletePlan: "Delete plan",
+      applyPlan: "Use plan",
     },
-
     ar: {
-      homeSubtitle:
-        "نظرة عامة على دراستك",
-      mcqSubtitle:
-        "تدرّب وراجع",
-      insightsTitle:
-        "الإحصاءات",
-      insightsSubtitle:
-        "اطّلع على تقدمك",
-      planTitle:
-        "خطة الدراسة",
-      planSubtitle:
-        "خطط حتى موعد الامتحان",
-      timerTitle:
-        "مؤقت التركيز",
-      timerDescription:
-        "اختر فترة تركيز هادئة واستراحة مناسبة.",
-      startFocus:
-        "ابدأ جلسة التركيز",
-      openTimer:
-        "افتح مؤقت التركيز",
-      closeTimer:
-        "أغلق مؤقت التركيز",
-      quickPresets:
-        "اختيار سريع",
-      customSession:
-        "جلسة مخصصة",
-      focusLength:
-        "مدة التركيز",
-      breakLength:
-        "مدة الاستراحة",
-      todaySessions:
-        "اليوم",
-      todayMinutes:
-        "دقائق التركيز",
-      totalSessions:
-        "الإجمالي",
-      completed:
-        "مكتمل",
-      running:
-        "قيد التشغيل",
-      paused:
-        "متوقف مؤقتًا",
-      activeFocus:
-        "جلسة تركيز",
-      activeBreak:
-        "استراحة",
-      progress:
-        "تقدم الجلسة",
-      sessionsShort:
-        "جلسات",
-      resetDescription:
-        "إنهاء الجلسة الحالية وإعادة ضبط المؤقت.",
-      clockFace: "نمط الساعة",
-      clockPlex: "دقيق",
-      clockSpace: "كلاسيكي",
-      clockTech: "رقمي",
+      homeSubtitle: "نظرة عامة على دراستك",
+      mcqSubtitle: "تدرّب وراجع",
+      insightsTitle: "الإحصاءات",
+      insightsSubtitle: "اطّلع على تقدمك",
+      planTitle: "خطة الدراسة",
+      planSubtitle: "خطط حتى موعد الامتحان",
+      timerTitle: "بومودورو",
+      openTimer: "فتح بومودورو",
+      closeTimer: "إغلاق بومودورو",
+      focusLength: "تركيز",
+      breakLength: "استراحة",
+      todayHours: "اليوم",
+      weekHours: "هذا الأسبوع",
+      hoursShort: "س",
+      savedPlans: "الخطط المحفوظة",
+      noSavedPlans: "لا توجد خطط محفوظة",
+      planName: "اسم الخطة",
+      planNamePlaceholder: "مثال: جلسة طويلة",
+      savePlan: "حفظ الخطة",
+      startFocus: "ابدأ التركيز",
+      activeFocus: "تركيز",
+      activeBreak: "استراحة",
+      deletePlan: "حذف الخطة",
+      applyPlan: "استخدام الخطة",
     },
-  }[language] || {
-    homeSubtitle:
-      "Dit studieoverblik",
-    mcqSubtitle:
-      "Træn og repetér",
-    insightsTitle:
-      "Indsigter",
-    insightsSubtitle:
-      "Se din udvikling",
-    planTitle:
-      "Studieplan",
-    planSubtitle:
-      "Planlæg frem mod eksamen",
-    timerTitle:
-      "Fokustimer",
-    timerDescription:
-      "Vælg en rolig fokusblok og en passende pause.",
-    startFocus:
-      "Start fokussession",
-    openTimer:
-      "Åbn fokustimer",
-    closeTimer:
-      "Luk fokustimer",
-    quickPresets:
-      "Hurtigt valg",
-    customSession:
-      "Tilpas session",
-    focusLength:
-      "Fokuslængde",
-    breakLength:
-      "Pauselængde",
-    todaySessions:
-      "I dag",
-    todayMinutes:
-      "Fokusminutter",
-    totalSessions:
-      "I alt",
-    completed:
-      "gennemført",
-    running:
-      "Kører",
-    paused:
-      "På pause",
-    activeFocus:
-      "Fokussession",
-    activeBreak:
-      "Pause",
-    progress:
-      "Sessionens fremgang",
-    sessionsShort:
-      "sessioner",
-    resetDescription:
-      "Afslut den aktuelle session og nulstil timeren.",
-    clockFace: "Urdesign",
-    clockPlex: "Præcis",
-    clockSpace: "Klassisk",
-    clockTech: "Digital",
-  };
+  })[language] || {};
 
-  const locale =
-    language === "da"
-      ? "da-DK"
-      : language === "ar"
-        ? "ar"
-        : "en-GB";
+  const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
+  const focusMinutes = Math.max(1, Math.min(180, Number(settings.focus) || 25));
+  const pauseMinutes = Math.max(1, Math.min(60, Number(settings.pause) || 5));
+  const active = mode !== "idle";
+  const isBreak = mode === "break";
+  const activeMinutes = isBreak ? pauseMinutes : focusMinutes;
+  const totalSeconds = Math.max(1, activeMinutes * 60);
+  const progress = active ? Math.max(0, Math.min(100, ((totalSeconds - seconds) / totalSeconds) * 100)) : 0;
+  const safeSavedPlans = Array.isArray(savedPlans) ? savedPlans : [];
 
-  const todayKeyStr = (() => {
-    const date = new Date();
+  const todayDate = new Date();
+  const todayKeyStr = dateKey(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+  const weekStartDate = startOfWeek(todayDate);
+  const todayFocusMinutes = Number(pomodoroMinutesLog[todayKeyStr]) || 0;
+  const weekFocusMinutes = Array.from({ length: 7 }, (_, index) => {
+    const day = addDays(weekStartDate, index);
+    const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
+    return Number(pomodoroMinutesLog[key]) || 0;
+  }).reduce((sum, value) => sum + value, 0);
 
-    return dateKey(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate()
-    );
-  })();
-
-  const todayPomodoroCount =
-    pomodoroLog[todayKeyStr] ||
-    0;
-
-  const todayFocusMinutes =
-    pomodoroMinutesLog[
-      todayKeyStr
-    ] || 0;
-
-  const active =
-    mode !== "idle";
-
-  const isBreak =
-    mode === "break";
-
-  const minutes =
-    isBreak
-      ? settings.pause
-      : settings.focus;
-
-  const totalSeconds =
-    Math.max(
-      1,
-      minutes * 60
-    );
-
-  const progress = active
-    ? Math.max(
-        0,
-        Math.min(
-          100,
-          (
-            (totalSeconds -
-              seconds) /
-            totalSeconds
-          ) * 100
-        )
-      )
-    : 0;
-
-  const accent =
-    isBreak
-      ? c.green
-      : c.blue;
-
-  const accentSoft =
-    isBreak
-      ? c.greenSoft
-      : c.blueSoft;
-
-  const accentBorder =
-    isBreak
-      ? c.greenBorder
-      : c.blueBorder;
-
-  const activeLabel =
-    isBreak
-      ? copy.activeBreak
-      : copy.activeFocus;
-
-  const runningLabel =
-    running
-      ? copy.running
-      : copy.paused;
-
-  const timerFontOptions = [
-    { id: "plex", label: copy.clockPlex, family: '"IBM Plex Mono", "SFMono-Regular", Consolas, monospace' },
-    { id: "space", label: copy.clockSpace, family: '"Space Mono", "SFMono-Regular", Consolas, monospace' },
-    { id: "tech", label: copy.clockTech, family: '"Share Tech Mono", "SFMono-Regular", Consolas, monospace' },
-  ];
-  const timerFont = timerFontOptions.find((item) => item.id === settings.fontStyle) || timerFontOptions[0];
-
-  const routeData =
-    route === "mcq"
-      ? {
-          title:
-            t.clinicalMcq,
-          subtitle:
-            copy.mcqSubtitle,
-          icon:
-            "clipboard",
-        }
-      : route === "insights"
-        ? {
-            title:
-              copy.insightsTitle,
-            subtitle:
-              copy.insightsSubtitle,
-            icon:
-              "chart",
-          }
-        : route ===
-            "study-plan"
-          ? {
-              title:
-                copy.planTitle,
-              subtitle:
-                copy.planSubtitle,
-              icon:
-                "calendar",
-            }
-          : {
-              title:
-                t.home,
-              subtitle:
-                copy.homeSubtitle,
-              icon:
-                "home",
-            };
+  const routeData = route === "mcq"
+    ? { title: t.clinicalMcq, subtitle: copy.mcqSubtitle, icon: "clipboard" }
+    : route === "insights"
+      ? { title: copy.insightsTitle, subtitle: copy.insightsSubtitle, icon: "chart" }
+      : route === "study-plan"
+        ? { title: copy.planTitle, subtitle: copy.planSubtitle, icon: "calendar" }
+        : { title: t.home, subtitle: copy.homeSubtitle, icon: "home" };
 
   useEffect(() => {
     function updateClock() {
-      const now =
-        new Date();
-
-      setClock(
-        now.toLocaleTimeString(
-          locale,
-          {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }
-        )
-      );
-
-      setClockDate(
-        now.toLocaleDateString(
-          locale,
-          {
-            weekday: "short",
-            day: "2-digit",
-            month: "short",
-          }
-        )
-      );
+      const now = new Date();
+      setClock(now.toLocaleTimeString(locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }));
     }
-
     updateClock();
-
-    const interval =
-      window.setInterval(
-        updateClock,
-        1000
-      );
-
-    return () =>
-      window.clearInterval(
-        interval
-      );
+    const interval = window.setInterval(updateClock, 1000);
+    return () => window.clearInterval(interval);
   }, [locale]);
 
   useEffect(() => {
-    if (!running) {
-      return undefined;
-    }
-
-    const interval =
-      window.setInterval(() => {
-        setSeconds((value) =>
-          Math.max(
-            0,
-            value - 1
-          )
-        );
-      }, 1000);
-
-    return () =>
-      window.clearInterval(
-        interval
-      );
+    if (!running) return undefined;
+    const interval = window.setInterval(() => {
+      setSeconds((value) => Math.max(0, value - 1));
+    }, 1000);
+    return () => window.clearInterval(interval);
   }, [running]);
 
   useEffect(() => {
-    if (
-      !running ||
-      seconds !== 0
-    ) {
-      return;
-    }
+    if (mode === "idle") setSeconds(focusMinutes * 60);
+  }, [focusMinutes, mode]);
 
+  useEffect(() => {
+    if (!running || seconds !== 0) return;
     if (mode === "focus") {
-      setSettings((current) => ({
-        ...current,
-        sessions:
-          current.sessions + 1,
-      }));
-
-      logPomodoroCompletion();
+      setSettings((current) => ({ ...current, sessions: (Number(current.sessions) || 0) + 1 }));
+      setPomodoroLog((current) => ({ ...current, [todayKeyStr]: (Number(current[todayKeyStr]) || 0) + 1 }));
+      setPomodoroMinutesLog((current) => ({ ...current, [todayKeyStr]: (Number(current[todayKeyStr]) || 0) + focusMinutes }));
       recordStudyActivity();
-
       setMode("break");
-
-      setSeconds(
-        settings.pause * 60
-      );
+      setSeconds(pauseMinutes * 60);
     } else {
       setMode("idle");
       setRunning(false);
-
-      setSeconds(
-        settings.focus * 60
-      );
+      setSeconds(focusMinutes * 60);
     }
-  }, [
-    seconds,
-    running,
-    mode,
-    settings.focus,
-    settings.pause,
-    setSettings,
-  ]);
+  }, [seconds, running, mode, focusMinutes, pauseMinutes, setSettings, setPomodoroLog, setPomodoroMinutesLog, todayKeyStr]);
 
   useEffect(() => {
-    if (!open) {
-      return undefined;
+    if (!open) return undefined;
+    function handlePointerDown(event) {
+      if (!triggerRef.current?.contains(event.target) && !popoverRef.current?.contains(event.target)) setOpen(false);
     }
-
-    function handlePointerDown(
-      event
-    ) {
-      const clickedTrigger =
-        triggerRef.current?.contains(
-          event.target
-        );
-
-      const clickedPopover =
-        popoverRef.current?.contains(
-          event.target
-        );
-
-      if (
-        !clickedTrigger &&
-        !clickedPopover
-      ) {
-        setOpen(false);
-      }
-    }
-
     function handleKeyDown(event) {
-      if (event.key === "Escape") {
-        setOpen(false);
-      }
+      if (event.key === "Escape") setOpen(false);
     }
-
-    document.addEventListener(
-      "mousedown",
-      handlePointerDown
-    );
-
-    document.addEventListener(
-      "keydown",
-      handleKeyDown
-    );
-
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handlePointerDown
-      );
-
-      document.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
 
-  function logPomodoroCompletion() {
-    setPomodoroLog(
-      (current) => ({
-        ...current,
-        [todayKeyStr]:
-          (
-            current[
-              todayKeyStr
-            ] || 0
-          ) + 1,
-      })
-    );
-
-    setPomodoroMinutesLog(
-      (current) => ({
-        ...current,
-        [todayKeyStr]:
-          (
-            current[
-              todayKeyStr
-            ] || 0
-          ) +
-          settings.focus,
-      })
-    );
-  }
-
   function formatTime(value) {
-    const minuteValue =
-      Math.floor(
-        value / 60
-      );
-
-    const secondValue =
-      value % 60;
-
-    return `${String(
-      minuteValue
-    ).padStart(
-      2,
-      "0"
-    )}:${String(
-      secondValue
-    ).padStart(
-      2,
-      "0"
-    )}`;
+    const minuteValue = Math.floor(value / 60);
+    const secondValue = value % 60;
+    return `${String(minuteValue).padStart(2, "0")}:${String(secondValue).padStart(2, "0")}`;
   }
 
-  function updateDuration(
-    key,
-    rawValue,
-    maximum
-  ) {
-    const value =
-      Math.max(
-        1,
-        Math.min(
-          maximum,
-          Number(rawValue) || 1
-        )
-      );
+  function formatHours(minutes) {
+    return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(minutes / 60)} ${copy.hoursShort}`;
+  }
 
-    setSettings(
-      (current) => ({
-        ...current,
-        [key]: value,
-      })
-    );
+  function updateDuration(key, rawValue, maximum) {
+    const value = Math.max(1, Math.min(maximum, Number(rawValue) || 1));
+    setSettings((current) => ({ ...current, [key]: value }));
+    if (key === "focus" && mode === "idle") setSeconds(value * 60);
+  }
 
-    if (
-      key === "focus" &&
-      mode === "idle"
-    ) {
-      setSeconds(
-        value * 60
-      );
-    }
+  function applyPlan(plan) {
+    const focus = Math.max(1, Math.min(180, Number(plan.focus) || 25));
+    const pause = Math.max(1, Math.min(60, Number(plan.pause) || 5));
+    setSettings((current) => ({ ...current, focus, pause }));
+    if (mode === "idle") setSeconds(focus * 60);
+  }
+
+  function savePlan() {
+    const name = planName.trim() || `${focusMinutes}/${pauseMinutes}`;
+    const nextPlan = {
+      id: `pomodoro-plan-${Date.now()}`,
+      name,
+      focus: focusMinutes,
+      pause: pauseMinutes,
+      updatedAt: Date.now(),
+    };
+    setSavedPlans((current) => {
+      const list = Array.isArray(current) ? current : [];
+      const matchingIndex = list.findIndex((item) => String(item.name || "").toLowerCase() === name.toLowerCase());
+      const next = matchingIndex >= 0
+        ? list.map((item, index) => index === matchingIndex ? { ...item, ...nextPlan, id: item.id } : item)
+        : [...list, nextPlan];
+      return next.slice(-8);
+    });
+    setPlanName("");
+  }
+
+  function deletePlan(id) {
+    setSavedPlans((current) => (Array.isArray(current) ? current.filter((item) => item.id !== id) : []));
   }
 
   function startTimer() {
     setMode("focus");
-
-    setSeconds(
-      settings.focus * 60
-    );
-
+    setSeconds(focusMinutes * 60);
     setRunning(true);
     setOpen(false);
   }
@@ -12057,57 +11772,20 @@ function Timer({
   function resetTimer() {
     setMode("idle");
     setRunning(false);
-
-    setSeconds(
-      settings.focus * 60
-    );
-
-    setOpen(false);
+    setSeconds(focusMinutes * 60);
   }
-
-  const statistics = [
-    {
-      label:
-        copy.todaySessions,
-      value:
-        todayPomodoroCount,
-      icon:
-        "check",
-    },
-    {
-      label:
-        copy.todayMinutes,
-      value:
-        todayFocusMinutes,
-      icon:
-        "clock",
-    },
-    {
-      label:
-        copy.totalSessions,
-      value:
-        settings.sessions,
-      icon:
-        "bolt",
-    },
-  ];
 
   return (
     <header
       className="app-surface app-topbar topbar-shell"
       data-route={route}
-      dir={
-        language === "ar"
-          ? "rtl"
-          : "ltr"
-      }
+      dir={language === "ar" ? "rtl" : "ltr"}
       style={{
         position: "relative",
         height: 64,
         flexShrink: 0,
         display: "grid",
-        gridTemplateColumns:
-          "minmax(0, 1fr) auto minmax(0, 1fr)",
+        gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
         alignItems: "center",
         gap: 14,
         padding: "0 16px",
@@ -12115,1090 +11793,109 @@ function Timer({
         borderBottom: `1px solid ${c.border}`,
       }}
     >
-      <div
-        className="topbar-page-context"
-        style={{
-          minWidth: 0,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          justifySelf: "start",
-        }}
-      >
-        <span
-          aria-hidden="true"
-          className="topbar-page-icon"
-          style={{
-            width: 36,
-            height: 36,
-            flexShrink: 0,
-            display: "grid",
-            placeItems: "center",
-            borderRadius: 12,
-            background: c.blueSoft,
-            border: `1px solid ${c.blueBorder}`,
-            color: c.blue,
-          }}
-        >
-          <Icon
-            name={routeData.icon}
-            size={16}
-          />
+      <div className="topbar-page-context" style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10, justifySelf: "start" }}>
+        <span aria-hidden="true" className="topbar-page-icon" style={{ width: 36, height: 36, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 12, background: c.blueSoft, border: `1px solid ${c.blueBorder}`, color: c.blue }}>
+          <Icon name={routeData.icon} size={16} />
         </span>
-
-        <span
-          style={{
-            minWidth: 0,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <span
-            style={{
-              color: c.text,
-              fontSize: 12,
-              fontWeight: 850,
-              lineHeight: 1.15,
-            }}
-          >
-            {routeData.title}
-          </span>
-
-          <span
-            style={{
-              maxWidth: 220,
-              marginTop: 3,
-              color: c.muted,
-              fontSize: 9.5,
-              fontWeight: 650,
-              lineHeight: 1.2,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {routeData.subtitle}
-          </span>
+        <span style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+          <span style={{ color: c.text, fontSize: 12, fontWeight: 850, lineHeight: 1.15 }}>{routeData.title}</span>
+          <span style={{ maxWidth: 220, marginTop: 3, color: c.muted, fontSize: 9.5, fontWeight: 650, lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{routeData.subtitle}</span>
         </span>
       </div>
 
-      <div
-        className="topbar-center"
-        style={{
-          justifySelf: "center",
-          display: "flex",
-          alignItems: "center",
-          gap: 7,
-          direction: "ltr",
-        }}
-      >
+      <div className="topbar-center" style={{ position: "relative", justifySelf: "center", display: "grid", placeItems: "center", direction: "ltr" }}>
         <button
           ref={triggerRef}
           type="button"
           data-tour="pomodoro"
-          data-active={
-            active
-              ? "true"
-              : "false"
-          }
-          data-running={
-            running
-              ? "true"
-              : "false"
-          }
-          aria-label={
-            open
-              ? copy.closeTimer
-              : copy.openTimer
-          }
+          className="topbar-digital-clock"
+          aria-label={`${open ? copy.closeTimer : copy.openTimer}: ${active ? formatTime(seconds) : clock}`}
           aria-expanded={open}
           aria-haspopup="dialog"
-          onClick={() =>
-            setOpen(
-              (value) => !value
-            )
-          }
-          className="topbar-pomodoro-trigger"
-          style={{
-            minWidth: active
-              ? 220
-              : 198,
-            minHeight: 44,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "5px 9px",
-            borderRadius: 12,
-            border: `1px solid ${
-              active
-                ? accentBorder
-                : c.border
-            }`,
-            background: active
-              ? accentSoft
-              : c.soft,
-            color: c.text,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            textAlign: "start",
-          }}
+          onClick={() => setOpen((value) => !value)}
         >
-          <span
-            aria-hidden="true"
-            className="topbar-pomodoro-icon"
-            style={{
-              width: 32,
-              height: 32,
-              flexShrink: 0,
-              display: "grid",
-              placeItems: "center",
-              borderRadius: 9,
-              background: active
-                ? c.panel
-                : c.blueSoft,
-              border: `1px solid ${
-                active
-                  ? accentBorder
-                  : c.blueBorder
-              }`,
-              color: active
-                ? accent
-                : c.blue,
-            }}
-          >
-            <Icon
-              name={
-                isBreak
-                  ? "coffee"
-                  : active
-                    ? "bolt"
-                    : "clock"
-              }
-              size={16}
-            />
-          </span>
-
-          <span
-            style={{
-              minWidth: 0,
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <span
-              className="topbar-pomodoro-time"
-              style={{
-                color: active
-                  ? accent
-                  : c.text,
-                fontFamily:
-                  timerFont.family,
-                fontSize: active
-                  ? 19
-                  : 18,
-                fontWeight: timerFont.id === "tech" ? 400 : 700,
-                letterSpacing: ".015em",
-                lineHeight: 1,
-                fontVariantNumeric:
-                  "tabular-nums",
-              }}
-            >
-              {active
-                ? formatTime(seconds)
-                : clock}
-            </span>
-
-            <span
-              className="topbar-pomodoro-status"
-              style={{
-                marginTop: 4,
-                color: active
-                  ? accent
-                  : c.muted,
-                fontSize: 9,
-                fontWeight: 800,
-                letterSpacing: ".055em",
-                lineHeight: 1,
-                textTransform: "uppercase",
-              }}
-            >
-              {active
-                ? `${activeLabel} · ${runningLabel}`
-                : t.startFocus}
-            </span>
-          </span>
-
-          {!active && (
-            <span
-              className="topbar-pomodoro-date"
-              style={{
-                paddingInlineStart: 10,
-                borderInlineStart: `1px solid ${c.border}`,
-                color: c.muted,
-                fontSize: 9.5,
-                fontWeight: 700,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {clockDate}
-            </span>
-          )}
-
-          {active && (
-            <span
-              className="topbar-session-count"
-              style={{
-                minWidth: 30,
-                height: 27,
-                display: "grid",
-                placeItems: "center",
-                padding: "0 7px",
-                borderRadius: 9,
-                background: c.panel,
-                color: accent,
-                fontSize: 9.5,
-                fontWeight: 900,
-              }}
-            >
-              {todayPomodoroCount}
-            </span>
-          )}
-
-          {active && (
-            <span
-              aria-hidden="true"
-              className="topbar-pomodoro-progress"
-              style={{
-                width: `${progress}%`,
-                background: accent,
-              }}
-            />
-          )}
+          <span className="topbar-digital-time">{active ? formatTime(seconds) : clock}</span>
         </button>
-
-        {active && (
-          <>
-            <button
-              type="button"
-              title={
-                running
-                  ? t.pause
-                  : t.resume
-              }
-              aria-label={
-                running
-                  ? t.pause
-                  : t.resume
-              }
-              onClick={() =>
-                setRunning(
-                  (value) => !value
-                )
-              }
-              className="topbar-quick-control"
-              style={{
-                width: 38,
-                height: 38,
-                display: "grid",
-                placeItems: "center",
-                padding: 0,
-                borderRadius: 12,
-                border: `1px solid ${accentBorder}`,
-                background: accentSoft,
-                color: accent,
-                cursor: "pointer",
-              }}
-            >
-              <Icon
-                name={
-                  running
-                    ? "pause"
-                    : "play"
-                }
-                size={15}
-              />
-            </button>
-
-            <button
-              type="button"
-              title={t.resetTimer}
-              aria-label={
-                t.resetTimer
-              }
-              onClick={resetTimer}
-              className="topbar-quick-control"
-              style={{
-                width: 38,
-                height: 38,
-                display: "grid",
-                placeItems: "center",
-                padding: 0,
-                borderRadius: 12,
-                border: `1px solid ${c.border}`,
-                background: c.soft,
-                color: c.secondary,
-                cursor: "pointer",
-              }}
-            >
-              <Icon
-                name="reset"
-                size={15}
-              />
-            </button>
-          </>
-        )}
 
         {open && (
           <section
             ref={popoverRef}
             role="dialog"
-            aria-label={
-              copy.timerTitle
-            }
-            className="pomodoro-popover"
-            style={{
-              position: "absolute",
-              zIndex: 80,
-              top: "calc(100% + 11px)",
-              left: "50%",
-              width:
-                "min(470px, calc(100vw - 112px))",
-              padding: 16,
-              borderRadius: 16,
-              background: c.panel,
-              border: `1px solid ${c.border}`,
-              boxShadow: c.shadowLg,
-              transform:
-                "translateX(-50%)",
-              direction:
-                language === "ar"
-                  ? "rtl"
-                  : "ltr",
-            }}
+            aria-label={copy.timerTitle}
+            className="pomodoro-popover pomodoro-popover-v11"
+            style={{ background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg, direction: language === "ar" ? "rtl" : "ltr" }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                gap: 12,
-                marginBottom: 15,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 11,
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 38,
-                    height: 38,
-                    flexShrink: 0,
-                    display: "grid",
-                    placeItems: "center",
-                    borderRadius: 12,
-                    background: active
-                      ? accentSoft
-                      : c.blueSoft,
-                    border: `1px solid ${
-                      active
-                        ? accentBorder
-                        : c.blueBorder
-                    }`,
-                    color: active
-                      ? accent
-                      : c.blue,
-                  }}
-                >
-                  <Icon
-                    name={
-                      isBreak
-                        ? "coffee"
-                        : active
-                          ? "bolt"
-                          : "clock"
-                    }
-                    size={17}
-                  />
-                </span>
-
-                <div>
-                  <div
-                    style={{
-                      color: c.text,
-                      fontSize: 14,
-                      fontWeight: 850,
-                    }}
-                  >
-                    {active
-                      ? activeLabel
-                      : copy.timerTitle}
-                  </div>
-
-                  <div
-                    style={{
-                      maxWidth: 340,
-                      marginTop: 4,
-                      color: c.secondary,
-                      fontSize: 10.5,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {active
-                      ? `${runningLabel} · ${Math.round(
-                          progress
-                        )}% ${copy.completed}`
-                      : copy.timerDescription}
-                  </div>
-                </div>
+            <header className="pomodoro-v11-header">
+              <div>
+                <strong>{copy.timerTitle}</strong>
+                <small>{active ? (isBreak ? copy.activeBreak : copy.activeFocus) : `${focusMinutes} / ${pauseMinutes} min`}</small>
               </div>
-
-              <IconButton
-                c={c}
-                title={t.close}
-                onClick={() =>
-                  setOpen(false)
-                }
-                style={{
-                  width: 34,
-                  height: 34,
-                  flexShrink: 0,
-                  border: `1px solid ${c.border}`,
-                  background: c.soft,
-                }}
-              >
-                <Icon
-                  name="close"
-                  size={15}
-                />
+              <IconButton c={c} title={t.close} onClick={() => setOpen(false)} style={{ width: 32, height: 32, border: `1px solid ${c.border}`, background: c.soft }}>
+                <Icon name="close" size={14} />
               </IconButton>
+            </header>
+
+            {active && (
+              <div className="pomodoro-v11-active">
+                <div className="pomodoro-v11-countdown">{formatTime(seconds)}</div>
+                <div className="pomodoro-v11-progress" aria-hidden="true"><span style={{ width: `${progress}%` }} /></div>
+              </div>
+            )}
+
+            <div className="pomodoro-v11-stats">
+              <div><span>{copy.todayHours}</span><strong>{formatHours(todayFocusMinutes)}</strong></div>
+              <div><span>{copy.weekHours}</span><strong>{formatHours(weekFocusMinutes)}</strong></div>
             </div>
 
-            {active ? (
+            {!active ? (
               <>
-                <div
-                  style={{
-                    padding: 18,
-                    borderRadius: 17,
-                    background: accentSoft,
-                    border: `1px solid ${accentBorder}`,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 7,
-                        color: accent,
-                        fontSize: 10,
-                        fontWeight: 850,
-                        letterSpacing: ".07em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          width: 7,
-                          height: 7,
-                          borderRadius: 99,
-                          background: accent,
-                          boxShadow: running
-                            ? `0 0 0 5px ${accent}18`
-                            : "none",
-                        }}
-                      />
+                <div className="pomodoro-v11-duration-grid">
+                  <label>
+                    <span>{copy.focusLength}</span>
+                    <div><input type="number" min="1" max="180" value={focusMinutes} onChange={(event) => updateDuration("focus", event.target.value, 180)} /><em>{t.minutes}</em></div>
+                  </label>
+                  <label>
+                    <span>{copy.breakLength}</span>
+                    <div><input type="number" min="1" max="60" value={pauseMinutes} onChange={(event) => updateDuration("pause", event.target.value, 60)} /><em>{t.minutes}</em></div>
+                  </label>
+                </div>
 
-                      {runningLabel}
+                <div className="pomodoro-v11-save-row">
+                  <label>
+                    <span>{copy.planName}</span>
+                    <input value={planName} onChange={(event) => setPlanName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && savePlan()} placeholder={copy.planNamePlaceholder} />
+                  </label>
+                  <button type="button" className="ui-button ui-button--secondary" onClick={savePlan}>{copy.savePlan}</button>
+                </div>
+
+                <div className="pomodoro-v11-plans">
+                  <div className="pomodoro-v11-section-title">{copy.savedPlans}</div>
+                  {safeSavedPlans.length ? safeSavedPlans.map((plan) => (
+                    <div key={plan.id} className="pomodoro-v11-plan-row">
+                      <button type="button" onClick={() => applyPlan(plan)} title={copy.applyPlan}>
+                        <span>{plan.name}</span>
+                        <small>{plan.focus}/{plan.pause} min</small>
+                      </button>
+                      <button type="button" className="pomodoro-v11-plan-delete" onClick={() => deletePlan(plan.id)} title={copy.deletePlan} aria-label={`${copy.deletePlan}: ${plan.name}`}><Icon name="trash" size={13} /></button>
                     </div>
-
-                    <div
-                      style={{
-                        color: accent,
-                        fontSize: 10,
-                        fontWeight: 800,
-                      }}
-                    >
-                      {Math.round(
-                        progress
-                      )}
-                      %
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 17,
-                      color: accent,
-                      fontFamily:
-                        timerFont.family,
-                      fontSize:
-                        "clamp(38px, 8vw, 54px)",
-                      fontWeight: timerFont.id === "tech" ? 400 : 700,
-                      letterSpacing: "-.035em",
-                      lineHeight: 1,
-                      textAlign: "center",
-                      fontVariantNumeric:
-                        "tabular-nums",
-                    }}
-                  >
-                    {formatTime(
-                      seconds
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      height: 7,
-                      marginTop: 18,
-                      overflow: "hidden",
-                      borderRadius: 99,
-                      background: c.panel,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${progress}%`,
-                        height: "100%",
-                        borderRadius: 99,
-                        background: accent,
-                        transition:
-                          "width 1s linear",
-                      }}
-                    />
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      marginTop: 8,
-                      color: c.secondary,
-                      fontSize: 9.5,
-                      fontWeight: 700,
-                    }}
-                  >
-                    <span>
-                      {copy.progress}
-                    </span>
-
-                    <span>
-                      {minutes}
-                      {" "}
-                      {t.minutes}
-                    </span>
-                  </div>
+                  )) : <div className="pomodoro-v11-empty">{copy.noSavedPlans}</div>}
                 </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "1fr 1fr",
-                    gap: 9,
-                    marginTop: 12,
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRunning(
-                        (value) =>
-                          !value
-                      )
-                    }
-                    className="pomodoro-control-button"
-                    style={{
-                      minHeight: 44,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      padding: "0 15px",
-                      border: 0,
-                      borderRadius: 12,
-                      background: accent,
-                      color: "#fff",
-                      boxShadow: `0 9px 20px ${accent}30`,
-                      fontFamily:
-                        "inherit",
-                      fontSize: 11.5,
-                      fontWeight: 850,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Icon
-                      name={
-                        running
-                          ? "pause"
-                          : "play"
-                      }
-                      size={15}
-                    />
-
-                    {running
-                      ? t.pause
-                      : t.resume}
-                  </button>
-
-                  <button
-                    type="button"
-                    title={
-                      copy.resetDescription
-                    }
-                    onClick={
-                      resetTimer
-                    }
-                    className="pomodoro-control-button"
-                    style={{
-                      minHeight: 44,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      padding: "0 15px",
-                      borderRadius: 12,
-                      border: `1px solid ${c.borderStrong}`,
-                      background: c.soft,
-                      color: c.secondary,
-                      fontFamily:
-                        "inherit",
-                      fontSize: 11.5,
-                      fontWeight: 800,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Icon
-                      name="reset"
-                      size={15}
-                    />
-
-                    {t.resetTimer}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div
-                  className="pomodoro-stats-grid"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(3, minmax(0, 1fr))",
-                    gap: 8,
-                    marginBottom: 15,
-                  }}
-                >
-                  {statistics.map(
-                    (stat) => (
-                      <div
-                        key={
-                          stat.label
-                        }
-                        style={{
-                          minWidth: 0,
-                          padding:
-                            "10px 11px",
-                          borderRadius: 13,
-                          background: c.soft,
-                          border: `1px solid ${c.border}`,
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: 6,
-                            color: c.muted,
-                          }}
-                        >
-                          <span
-                            style={{
-                              minWidth: 0,
-                              fontSize: 8.5,
-                              fontWeight: 800,
-                              letterSpacing: ".045em",
-                              textTransform: "uppercase",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {stat.label}
-                          </span>
-
-                          <Icon
-                            name={
-                              stat.icon
-                            }
-                            size={12}
-                          />
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: 6,
-                            color: c.text,
-                            fontSize: 18,
-                            fontWeight: 900,
-                            lineHeight: 1,
-                          }}
-                        >
-                          {stat.value}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ marginBottom: 7, color: c.muted, fontSize: 8.5, fontWeight: 850, letterSpacing: ".08em", textTransform: "uppercase" }}>
-                    {copy.clockFace}
-                  </div>
-                  <div className="pomodoro-font-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7 }}>
-                    {timerFontOptions.map((option) => {
-                      const selected = timerFont.id === option.id;
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          aria-pressed={selected}
-                          onClick={() => setSettings((current) => ({ ...current, fontStyle: option.id }))}
-                          className="pomodoro-font-option"
-                          style={{
-                            minHeight: 52,
-                            display: "grid",
-                            placeItems: "center",
-                            gap: 3,
-                            padding: "7px 8px",
-                            borderRadius: 10,
-                            border: `1px solid ${selected ? c.blueBorder : c.border}`,
-                            background: selected ? c.blueSoft : c.soft,
-                            color: selected ? c.blue : c.secondary,
-                          }}
-                        >
-                          <span style={{ fontFamily: option.family, fontSize: option.id === "tech" ? 19 : 16, fontWeight: option.id === "tech" ? 400 : 700, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>12:45</span>
-                          <span style={{ fontSize: 8.5, fontWeight: 800 }}>{option.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    marginBottom: 8,
-                    color: c.muted,
-                    fontSize: 8.5,
-                    fontWeight: 850,
-                    letterSpacing: ".08em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {copy.quickPresets}
-                </div>
-
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(4, 1fr)",
-                    gap: 7,
-                    marginBottom: 15,
-                  }}
-                >
-                  {[15, 25, 45, 60].map(
-                    (value) => {
-                      const selected =
-                        settings.focus ===
-                        value;
-
-                      return (
-                        <button
-                          type="button"
-                          key={value}
-                          onClick={() =>
-                            updateDuration(
-                              "focus",
-                              value,
-                              90
-                            )
-                          }
-                          className="pomodoro-preset"
-                          style={{
-                            minHeight: 53,
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 3,
-                            padding: "5px 7px",
-                            borderRadius: 12,
-                            border: `1px solid ${
-                              selected
-                                ? c.blueBorder
-                                : c.border
-                            }`,
-                            background: selected
-                              ? c.blueSoft
-                              : c.soft,
-                            color: selected
-                              ? c.blue
-                              : c.secondary,
-                            fontFamily:
-                              "inherit",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: 15,
-                              fontWeight: 900,
-                              lineHeight: 1,
-                            }}
-                          >
-                            {value}
-                          </span>
-
-                          <span
-                            style={{
-                              fontSize: 8.5,
-                              fontWeight: 750,
-                            }}
-                          >
-                            {t.minutes}
-                          </span>
-                        </button>
-                      );
-                    }
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    marginBottom: 8,
-                    color: c.muted,
-                    fontSize: 8.5,
-                    fontWeight: 850,
-                    letterSpacing: ".08em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {copy.customSession}
-                </div>
-
-                <div
-                  className="pomodoro-duration-grid"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "1fr 1fr",
-                    gap: 9,
-                    marginBottom: 14,
-                  }}
-                >
-                  {[
-                    {
-                      label:
-                        copy.focusLength,
-                      key:
-                        "focus",
-                      maximum:
-                        90,
-                      icon:
-                        "bolt",
-                      color:
-                        c.blue,
-                      soft:
-                        c.blueSoft,
-                      border:
-                        c.blueBorder,
-                    },
-                    {
-                      label:
-                        copy.breakLength,
-                      key:
-                        "pause",
-                      maximum:
-                        30,
-                      icon:
-                        "coffee",
-                      color:
-                        c.green,
-                      soft:
-                        c.greenSoft,
-                      border:
-                        c.greenBorder,
-                    },
-                  ].map((field) => (
-                    <label
-                      key={field.key}
-                      className="pomodoro-duration-card"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 11,
-                        padding: "11px 12px",
-                        borderRadius: 14,
-                        background: c.soft,
-                        border: `1px solid ${c.border}`,
-                      }}
-                    >
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          width: 34,
-                          height: 34,
-                          flexShrink: 0,
-                          display: "grid",
-                          placeItems: "center",
-                          borderRadius: 10,
-                          background:
-                            field.soft,
-                          border: `1px solid ${field.border}`,
-                          color:
-                            field.color,
-                        }}
-                      >
-                        <Icon
-                          name={
-                            field.icon
-                          }
-                          size={15}
-                        />
-                      </span>
-
-                      <span
-                        style={{
-                          minWidth: 0,
-                          flex: 1,
-                          display: "flex",
-                          flexDirection: "column",
-                        }}
-                      >
-                        <span
-                          style={{
-                            color: c.secondary,
-                            fontSize: 9.5,
-                            fontWeight: 750,
-                          }}
-                        >
-                          {field.label}
-                        </span>
-
-                        <span
-                          style={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            gap: 5,
-                            marginTop: 3,
-                          }}
-                        >
-                          <input
-                            type="number"
-                            min="1"
-                            max={
-                              field.maximum
-                            }
-                            value={
-                              settings[
-                                field.key
-                              ]
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateDuration(
-                                field.key,
-                                event
-                                  .target
-                                  .value,
-                                field.maximum
-                              )
-                            }
-                            className="pomodoro-number-input"
-                            style={{
-                              width: 58,
-                              padding: 0,
-                              border: 0,
-                              background: "transparent",
-                              color: c.text,
-                              fontFamily:
-                                "inherit",
-                              fontSize: 18,
-                              fontWeight: 900,
-                              lineHeight: 1,
-                            }}
-                          />
-
-                          <span
-                            style={{
-                              color: c.muted,
-                              fontSize: 9.5,
-                              fontWeight: 700,
-                            }}
-                          >
-                            {t.minutes}
-                          </span>
-                        </span>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-
-                <PrimaryButton
-                  onClick={startTimer}
-                  style={{
-                    width: "100%",
-                    minHeight: 46,
-                    borderRadius: 13,
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <Icon
-                      name="play"
-                      size={15}
-                    />
-
-                    {copy.startFocus}
-                  </span>
+                <PrimaryButton onClick={startTimer} style={{ width: "100%", minHeight: 42, borderRadius: 11 }}>
+                  <Icon name="play" size={14} />{copy.startFocus}
                 </PrimaryButton>
               </>
+            ) : (
+              <div className="pomodoro-v11-controls">
+                <button type="button" className="ui-button ui-button--primary" onClick={() => setRunning((value) => !value)}><Icon name={running ? "pause" : "play"} size={14} />{running ? t.pause : t.resume}</button>
+                <button type="button" className="ui-button ui-button--secondary" onClick={resetTimer}><Icon name="reset" size={14} />{t.resetTimer}</button>
+              </div>
             )}
           </section>
         )}
       </div>
 
-      <ModuleSwitcher
-        c={c}
-        t={t}
-        language={language}
-        user={user}
-        setUser={setUser}
-      />
+      <ModuleSwitcher c={c} t={t} language={language} user={user} setUser={setUser} />
     </header>
   );
 }
@@ -13891,6 +12588,7 @@ function calendarEventMetaFields(event) {
     "endTime", "description", "location", "url", "lectureId", "lectureIds",
     "source", "importedSchedule", "completedAt", "status", "needsScheduling",
     "questionCount", "lectureUnits", "allDay", "createdByUser", "colorKey",
+    "returnedToQueueAt",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -13912,6 +12610,45 @@ function calendarEventEndTimestamp(event) {
   const date = new Date(`${event.date}T00:00:00`);
   date.setMinutes(startMinutes + duration);
   return date.getTime();
+}
+
+function calendarIsUnfinishedStudyPlanLecture(event) {
+  const lectureIds = event?.lectureIds?.length
+    ? event.lectureIds
+    : event?.lectureId
+      ? [event.lectureId]
+      : [];
+
+  return Boolean(
+    event &&
+    !event.completedAt &&
+    event.planModuleId &&
+    lectureIds.length &&
+    event.source === "study-plan"
+  );
+}
+
+function calendarReturnLectureToQueue(event, todayKeyString) {
+  const lectureIds = event?.lectureIds?.length
+    ? event.lectureIds
+    : event?.lectureId
+      ? [event.lectureId]
+      : [];
+  const safeDate = event?.date && event.date >= todayKeyString
+    ? event.date
+    : todayKeyString;
+
+  return {
+    ...event,
+    date: safeDate,
+    time: "",
+    endTime: "",
+    lectureIds,
+    completedAt: null,
+    status: "unscheduled",
+    needsScheduling: true,
+    returnedToQueueAt: Date.now(),
+  };
 }
 
 function parseICalToEvents(icsText, options = {}) {
@@ -14606,6 +13343,26 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
   }
 
   function deleteEvent(id) {
+    const currentEvent = mergedEvents.find((item) => item.id === id);
+
+    if (calendarIsUnfinishedStudyPlanLecture(currentEvent)) {
+      const queuedEvent = calendarReturnLectureToQueue(currentEvent, todayKey);
+      setEvents((previous) => previous.map((item) =>
+        item.id === id
+          ? { ...item, date: queuedEvent.date, time: "" }
+          : item
+      ));
+      setEventMeta((previous) => ({
+        ...previous,
+        [id]: {
+          ...(previous[id] || {}),
+          ...calendarEventMetaFields(queuedEvent),
+        },
+      }));
+      setEditingEvent(null);
+      return;
+    }
+
     setEvents((previous) => previous.filter((item) => item.id !== id));
     setEventMeta((previous) => { const next = { ...previous }; delete next[id]; return next; });
     setEditingEvent(null);
@@ -18410,6 +17167,25 @@ function Dashboard({
 
   function deleteEditingEvent() {
     if (!editingPlanEvent) return;
+
+    if (!editingPlanEvent.__new && calendarIsUnfinishedStudyPlanLecture(editingPlanEvent)) {
+      const queuedEvent = calendarReturnLectureToQueue(editingPlanEvent, todayKey);
+      setCalendarEvents((previous) => previous.map((item) =>
+        item.id === editingPlanEvent.id
+          ? { ...item, date: queuedEvent.date, time: "" }
+          : item
+      ));
+      setCalendarEventMeta((previous) => ({
+        ...previous,
+        [editingPlanEvent.id]: {
+          ...(previous[editingPlanEvent.id] || {}),
+          ...calendarEventMetaFields(queuedEvent),
+        },
+      }));
+      setEditingPlanEvent(null);
+      return;
+    }
+
     if (!editingPlanEvent.__new) {
       setCalendarEvents((previous) => previous.filter((item) => item.id !== editingPlanEvent.id));
       setCalendarEventMeta((previous) => { const next = { ...previous }; delete next[editingPlanEvent.id]; return next; });
@@ -28512,6 +27288,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
   const [workspaceState, setWorkspaceState] = useStoredState(STORAGE.workspaceState, {});
   const [lectureNotes, setLectureNotes] = useStoredState(STORAGE.lectureNotes, {});
   const [sharedNotes] = useStoredState(STORAGE.sharedLectureNotes, {});
+  const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
   const uploadRef = useRef(null);
 
   const copy = ({
@@ -28536,6 +27313,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       noExamSets: "Ingen eksamenssæt er tilføjet endnu.",
       openSeparate: "Åbn separat",
       close: "Luk workspace",
+      viewed: "Set",
+      notViewed: "Ikke set",
+      mastery: "Fagligt niveau",
+      masteryUnrated: "Ikke vurderet",
+      masteryUncertain: "Usikker",
+      masteryDeveloping: "På vej",
+      masteryConfident: "Sikker",
+      timesViewed: "gange set",
     },
     en: {
       lectures: "Lectures",
@@ -28558,6 +27343,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       noExamSets: "No exam sets have been added yet.",
       openSeparate: "Open separately",
       close: "Close workspace",
+      viewed: "Viewed",
+      notViewed: "Not viewed",
+      mastery: "Confidence",
+      masteryUnrated: "Not rated",
+      masteryUncertain: "Uncertain",
+      masteryDeveloping: "Developing",
+      masteryConfident: "Confident",
+      timesViewed: "views",
     },
     ar: {
       lectures: "المحاضرات",
@@ -28580,6 +27373,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       noExamSets: "لم تتم إضافة مجموعات امتحان بعد.",
       openSeparate: "فتح منفصل",
       close: "إغلاق مساحة العمل",
+      viewed: "تمت المشاهدة",
+      notViewed: "لم تتم المشاهدة",
+      mastery: "مستوى الإتقان",
+      masteryUnrated: "غير مقيّم",
+      masteryUncertain: "غير متأكد",
+      masteryDeveloping: "قيد التطور",
+      masteryConfident: "واثق",
+      timesViewed: "مرات المشاهدة",
     },
   })[language] || {};
 
@@ -28603,6 +27404,56 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
   const filteredLectures = lectures.filter((lecture) => `${lecture.id} ${lecture.title} ${lecture.group}`.toLowerCase().includes(normalizedQuery));
   const filteredDocuments = documents.filter((document) => `${document.name} ${document.year || ""}`.toLowerCase().includes(normalizedQuery));
   const noteKey = selectedLecture ? `${moduleName || "module"}:${selectedLecture.id}` : null;
+  const masteryOrder = ["unrated", "uncertain", "developing", "confident"];
+
+  function lectureProgressKey(lectureId) {
+    return `${moduleName || "module"}:${lectureId}`;
+  }
+
+  function getLectureProgress(lectureId) {
+    return lectureProgress[lectureProgressKey(lectureId)] || {
+      viewed: false,
+      viewCount: 0,
+      mastery: "unrated",
+    };
+  }
+
+  function masteryDefinition(value) {
+    const definitions = {
+      unrated: { label: copy.masteryUnrated, color: c.borderStrong },
+      uncertain: { label: copy.masteryUncertain, color: "#d7a22f" },
+      developing: { label: copy.masteryDeveloping, color: c.blue },
+      confident: { label: copy.masteryConfident, color: c.green },
+    };
+    return definitions[value] || definitions.unrated;
+  }
+
+  function toggleLectureViewed(lectureId) {
+    const key = lectureProgressKey(lectureId);
+    setLectureProgress((current) => {
+      const previous = current[key] || { viewed: false, viewCount: 0, mastery: "unrated" };
+      const viewed = !previous.viewed;
+      return {
+        ...current,
+        [key]: {
+          ...previous,
+          viewed,
+          viewCount: viewed ? (Number(previous.viewCount) || 0) + 1 : Number(previous.viewCount) || 0,
+          lastViewedAt: viewed ? Date.now() : previous.lastViewedAt || null,
+        },
+      };
+    });
+  }
+
+  function cycleLectureMastery(lectureId) {
+    const key = lectureProgressKey(lectureId);
+    setLectureProgress((current) => {
+      const previous = current[key] || { viewed: false, viewCount: 0, mastery: "unrated" };
+      const currentIndex = masteryOrder.indexOf(previous.mastery || "unrated");
+      const mastery = masteryOrder[(currentIndex + 1) % masteryOrder.length];
+      return { ...current, [key]: { ...previous, mastery, masteryUpdatedAt: Date.now() } };
+    });
+  }
 
   function updateDocuments(next) {
     DOCUMENT_SESSION_CACHE[cacheKey] = next;
@@ -28644,16 +27495,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       <header className="document-workspace-header">
         <div className="document-workspace-title-block">
           <span className="document-workspace-mark"><Icon name={isLectureLibrary ? "book" : "cards"} size={18} /></span>
-          <span>
-            <strong>{title}</strong>
-            <small>{subtitle}</small>
-          </span>
+          <span><strong>{title}</strong><small>{subtitle}</small></span>
         </div>
         <div className="document-workspace-header-actions">
           <input ref={uploadRef} type="file" accept="application/pdf,.pdf" multiple={!isLectureLibrary} onChange={handleUpload} hidden />
           <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && !selectedLecture}>
-            <Icon name="upload" size={14} />
-            {activeDocument && isLectureLibrary ? copy.replace : copy.upload}
+            <Icon name="upload" size={14} />{activeDocument && isLectureLibrary ? copy.replace : copy.upload}
           </button>
           <IconButton c={c} title={copy.close} onClick={onClose} style={{ border: `1px solid ${c.border}`, background: c.soft }}><Icon name="close" size={16} /></IconButton>
         </div>
@@ -28661,21 +27508,28 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
 
       <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : ""}`}>
         <aside className="document-library-panel">
-          <label className="document-search-box">
-            <Icon name="search" size={14} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} />
-          </label>
+          <label className="document-search-box"><Icon name="search" size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} /></label>
           <div className="document-library-list">
             {isLectureLibrary ? (
               filteredLectures.length ? filteredLectures.map((lecture) => {
                 const selected = lecture.id === selectedLecture?.id;
                 const hasPdf = documents.some((document) => document.lectureId === lecture.id);
+                const progressState = getLectureProgress(lecture.id);
+                const mastery = masteryDefinition(progressState.mastery);
                 return (
-                  <button key={lecture.id} type="button" className="document-library-row" data-active={selected ? "true" : "false"} onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }))}>
-                    <span className="document-library-code">{lecture.id}</span>
-                    <span className="document-library-copy"><strong>{lecture.title}</strong><small>{lecture.group}</small></span>
-                    <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"}><Icon name={hasPdf ? "file" : "plus"} size={12} /></span>
-                  </button>
+                  <div key={lecture.id} className="document-library-row lecture-progress-row" data-active={selected ? "true" : "false"} style={{ "--lecture-tone": mastery.color }}>
+                    <button type="button" className="document-library-main" onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }))}>
+                      <span className="document-library-code">{lecture.id}</span>
+                      <span className="document-library-copy"><strong>{lecture.title}</strong><small>{lecture.group} · {mastery.label}</small></span>
+                    </button>
+                    <div className="lecture-progress-actions">
+                      <button type="button" className="lecture-view-toggle" data-viewed={progressState.viewed ? "true" : "false"} aria-pressed={Boolean(progressState.viewed)} title={`${progressState.viewed ? copy.viewed : copy.notViewed} · ${progressState.viewCount || 0} ${copy.timesViewed}`} onClick={() => toggleLectureViewed(lecture.id)}>
+                        <Icon name="check" size={11} /><span>{progressState.viewCount || 0}×</span>
+                      </button>
+                      <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
+                      <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"}><Icon name={hasPdf ? "file" : "plus"} size={12} /></span>
+                    </div>
+                  </div>
                 );
               }) : <div className="document-library-empty">{copy.noLectures}</div>
             ) : (
@@ -28696,14 +27550,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
             {activeDocument && <button type="button" onClick={() => window.open(activeDocument.url, "_blank", "noopener,noreferrer")}><Icon name="expand" size={13} />{copy.openSeparate}</button>}
           </div>
           <div className="document-viewer-canvas">
-            {activeDocument ? (
-              <iframe title={activeDocument.name} src={activeDocument.url} />
-            ) : (
-              <div className="document-viewer-empty">
-                <span><Icon name="file" size={24} /></span>
-                <strong>{isLectureLibrary && !selectedLecture ? copy.selectItem : copy.noPdf}</strong>
-                <button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && !selectedLecture}><Icon name="upload" size={14} />{copy.upload}</button>
-              </div>
+            {activeDocument ? <iframe title={activeDocument.name} src={activeDocument.url} /> : (
+              <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{isLectureLibrary && !selectedLecture ? copy.selectItem : copy.noPdf}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && !selectedLecture}><Icon name="upload" size={14} />{copy.upload}</button></div>
             )}
           </div>
         </main>
@@ -28715,18 +27563,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
               <button type="button" data-active={noteMode === "shared" ? "true" : "false"} onClick={() => setNoteMode("shared")}><Icon name="share" size={12} />{copy.sharedNotes}</button>
             </div>
             {noteMode === "own" ? (
-              <textarea
-                value={noteKey ? lectureNotes[noteKey] || "" : ""}
-                disabled={!noteKey}
-                onChange={(event) => noteKey && setLectureNotes((current) => ({ ...current, [noteKey]: event.target.value }))}
-                placeholder={copy.notesPlaceholder}
-              />
+              <textarea value={noteKey ? lectureNotes[noteKey] || "" : ""} disabled={!noteKey} onChange={(event) => noteKey && setLectureNotes((current) => ({ ...current, [noteKey]: event.target.value }))} placeholder={copy.notesPlaceholder} />
             ) : (
-              <div className="shared-notes-placeholder">
-                <Icon name="share" size={18} />
-                <strong>{copy.sharedNotes}</strong>
-                <p>{noteKey && sharedNotes[noteKey] ? sharedNotes[noteKey] : copy.sharedReady}</p>
-              </div>
+              <div className="shared-notes-placeholder"><Icon name="share" size={18} /><strong>{copy.sharedNotes}</strong><p>{noteKey && sharedNotes[noteKey] ? sharedNotes[noteKey] : copy.sharedReady}</p></div>
             )}
           </aside>
         )}
