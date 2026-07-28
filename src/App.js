@@ -26,7 +26,6 @@ const STORAGE = {
   preferences: "medlearn-preferences",
   notes: "medlearn-notes",
   activeNote: "medlearn-active-note",
-  noteSections: "medlearn-note-sections",
   timer: "medlearn-timer",
   quizHistory: "medlearn-quiz-history",
   studyPlans: "medlearn-study-plans",
@@ -1272,240 +1271,176 @@ function minutesToTime(minutes) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function WeekCalendar({
-  c,
-  events,
-  weekStart,
-  daysCount = 7,
-  onMoveEvent,
-  onSlotClick,
-  onEventClick,
-  weekdayLabels,
-  language = "da",
-}) {
-  const START_HOUR = 7;
-  const END_HOUR = 22;
-  const HOUR_HEIGHT = 56;
-  const GRID_HEIGHT = (END_HOUR - START_HOUR) * HOUR_HEIGHT;
+function WeekCalendar({ c, events, weekStart, daysCount = 7, onMoveEvent, onSlotClick, onEventClick, weekdayLabels }) {
   const days = Array.from({ length: daysCount }, (_, index) => addDays(weekStart, index));
-  const scrollerRef = useRef(null);
+  const startHour = 7;
+  const endHour = 22;
+  const hourHeight = 62;
+  const totalHeight = (endHour - startHour) * hourHeight;
   const [dragId, setDragId] = useState(null);
-  const [dropPreview, setDropPreview] = useState(null);
+  const [hoverDay, setHoverDay] = useState(null);
+  const dayRefs = useRef({});
 
-  useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    // The reference starts with the first useful morning hour visible rather than at midnight.
-    scroller.scrollTop = Math.max(0, (8 - START_HOUR) * HOUR_HEIGHT - 4);
-  }, [weekStart, daysCount]);
-
-  const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
-  const copy = ({
-    da: { study: "Studieblok", review: "Repetition", exam: "Eksamen", other: "Kalenderaktivitet" },
-    en: { study: "Study block", review: "Review session", exam: "Exam", other: "Calendar event" },
-    ar: { study: "جلسة دراسة", review: "جلسة مراجعة", exam: "امتحان", other: "حدث تقويم" },
-  })[language] || { study: "Studieblok", review: "Repetition", exam: "Eksamen", other: "Kalenderaktivitet" };
-
-  const typeMeta = {
-    study: { color: c.blue, surface: c.blueSoft, border: c.blueBorder, icon: "book", label: copy.study },
-    review: { color: c.green, surface: c.greenSoft, border: c.greenBorder, icon: "check", label: copy.review },
-    exam: { color: c.red, surface: c.redSoft, border: c.redBorder, icon: "flag", label: copy.exam },
-    other: { color: c.purple || c.secondary, surface: c.purpleSoft || c.soft, border: c.borderStrong, icon: "notebook", label: copy.other },
+  const palette = {
+    exam: { color: c.red, background: c.redSoft, icon: 'flag' },
+    study: { color: c.blue, background: c.blueSoft, icon: 'book' },
+    review: { color: c.green, background: c.greenSoft, icon: 'reset' },
+    other: { color: c.purple, background: c.purpleSoft, icon: 'notebook' },
   };
 
-  function keyForDate(date) {
-    return dateKey(date.getFullYear(), date.getMonth(), date.getDate());
+  const eventsByDate = events.reduce((map, event) => {
+    if (!map[event.date]) map[event.date] = [];
+    map[event.date].push(event);
+    return map;
+  }, {});
+
+  function pointerToTime(dayKeyStr, clientY) {
+    const node = dayRefs.current[dayKeyStr];
+    if (!node) return '09:00';
+    const rect = node.getBoundingClientRect();
+    const offset = Math.max(0, Math.min(totalHeight - 1, clientY - rect.top));
+    const rawMinutes = startHour * 60 + (offset / hourHeight) * 60;
+    return minutesToTime(Math.round(rawMinutes / 15) * 15);
   }
 
-  function clampMinutes(minutes) {
-    return Math.max(START_HOUR * 60, Math.min(END_HOUR * 60 - 15, minutes));
-  }
-
-  function snapMinutes(minutes) {
-    return Math.round(minutes / 15) * 15;
-  }
-
-  function minutesFromPointer(clientY, surface) {
-    const rect = surface.getBoundingClientRect();
-    const position = Math.max(0, Math.min(GRID_HEIGHT, clientY - rect.top));
-    return clampMinutes(snapMinutes(START_HOUR * 60 + (position / HOUR_HEIGHT) * 60));
-  }
-
-  function dayIndexFromPointer(clientX, surface) {
-    const rect = surface.getBoundingClientRect();
-    const relative = Math.max(0, Math.min(rect.width - 1, clientX - rect.left));
-    return Math.max(0, Math.min(daysCount - 1, Math.floor(relative / (rect.width / daysCount))));
-  }
-
-  function handleSurfaceClick(event) {
-    if (event.target.closest(".mf-schedule-event")) return;
-    const minutes = minutesFromPointer(event.clientY, event.currentTarget);
-    const index = dayIndexFromPointer(event.clientX, event.currentTarget);
-    onSlotClick(keyForDate(days[index]), minutesToTime(minutes));
-  }
-
-  function handleDrop(event) {
-    event.preventDefault();
-    const id = dragId || event.dataTransfer.getData("text/medfluen-event");
-    const source = events.find((item) => String(item.id) === String(id));
+  function moveDraggedEvent(dayKeyStr, clientY) {
+    if (!dragId) return;
+    const source = events.find((event) => event.id === dragId);
     if (!source) return;
-    const minutes = minutesFromPointer(event.clientY, event.currentTarget);
-    const index = dayIndexFromPointer(event.clientX, event.currentTarget);
-    onMoveEvent({ ...source, date: keyForDate(days[index]), time: minutesToTime(minutes) });
+    onMoveEvent({
+      ...source,
+      date: dayKeyStr,
+      time: pointerToTime(dayKeyStr, clientY),
+    });
     setDragId(null);
-    setDropPreview(null);
+    setHoverDay(null);
   }
 
-  function handleDragOver(event) {
-    event.preventDefault();
-    const minutes = minutesFromPointer(event.clientY, event.currentTarget);
-    const index = dayIndexFromPointer(event.clientX, event.currentTarget);
-    setDropPreview({ dayIndex: index, minutes });
-  }
-
-  function formatTimeRange(event) {
-    if (!event.time) return "";
-    const start = timeToMinutes(event.time);
-    const durationMinutes = Math.max(15, Number(event.estimatedHours || event.durationHours || 1) * 60);
-    const end = Math.min(23 * 60 + 59, start + durationMinutes);
-    return `${event.time} – ${minutesToTime(end)}`;
-  }
-
-  function eventSubtitle(event, meta) {
-    return event.subtitle || event.description || event.planModuleId || meta.label;
-  }
-
-  const timedEvents = events.filter((event) => event.time && days.some((day) => keyForDate(day) === event.date));
-  const now = new Date();
-  const todayIndex = days.findIndex((day) => keyForDate(day) === keyForDate(now));
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const showNow = todayIndex >= 0 && nowMinutes >= START_HOUR * 60 && nowMinutes <= END_HOUR * 60;
+  const today = new Date();
+  const todayKeyStr = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const nowMinutes = today.getHours() * 60 + today.getMinutes();
+  const nowTop = ((nowMinutes - startHour * 60) / 60) * hourHeight;
 
   return (
-    <div className={`mf-schedule mf-schedule--days-${daysCount}`}>
-      {daysCount > 1 && (
-        <div className="mf-schedule-days-head" style={{ gridTemplateColumns: `62px repeat(${daysCount}, minmax(0, 1fr))` }}>
-          <div className="mf-schedule-days-corner" />
-          {days.map((day, index) => {
-            const key = keyForDate(day);
-            const isToday = key === keyForDate(new Date());
-            return (
-              <div key={key} className="mf-schedule-day-head" data-today={isToday ? "true" : "false"}>
-                <span>{weekdayLabels[index] || day.toLocaleDateString(locale, { weekday: "short" })}</span>
-                <strong>{day.getDate()}</strong>
-              </div>
-            );
-          })}
-        </div>
-      )}
+    <div className="week-calendar-polished">
+      <div
+        className="week-calendar-polished-header"
+        style={{ gridTemplateColumns: `64px repeat(${daysCount}, minmax(118px, 1fr))` }}
+      >
+        <div className="week-calendar-polished-corner" />
+        {days.map((day, index) => {
+          const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
+          const isToday = key === todayKeyStr;
+          return (
+            <div key={key} className="week-calendar-polished-day-head" data-today={isToday ? 'true' : 'false'}>
+              <span>{weekdayLabels[index]}</span>
+              <strong>{day.getDate()}</strong>
+            </div>
+          );
+        })}
+      </div>
 
-      <div ref={scrollerRef} className="mf-schedule-scroll">
-        <div className="mf-schedule-body" style={{ height: GRID_HEIGHT }}>
-          <div className="mf-schedule-times" aria-hidden="true">
-            {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, index) => START_HOUR + index).map((hour) => (
-              <span key={hour} style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}>
-                {String(hour).padStart(2, "0")}:00
+      <div className="week-calendar-polished-scroll">
+        <div
+          className="week-calendar-polished-body"
+          style={{ gridTemplateColumns: `64px repeat(${daysCount}, minmax(118px, 1fr))`, minWidth: daysCount === 7 ? 920 : 0 }}
+        >
+          <div className="week-calendar-polished-times" style={{ height: totalHeight }} aria-hidden="true">
+            {Array.from({ length: endHour - startHour + 1 }, (_, index) => startHour + index).map((hour) => (
+              <span key={hour} style={{ top: (hour - startHour) * hourHeight - 6 }}>
+                {String(hour).padStart(2, '0')}:00
               </span>
             ))}
           </div>
 
-          <div
-            className="mf-schedule-grid-surface"
-            style={{
-              height: GRID_HEIGHT,
-              gridTemplateColumns: `repeat(${daysCount}, minmax(0, 1fr))`,
-              "--mf-hour-height": `${HOUR_HEIGHT}px`,
-            }}
-            onClick={handleSurfaceClick}
-            onDragOver={handleDragOver}
-            onDragLeave={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget)) setDropPreview(null);
-            }}
-            onDrop={handleDrop}
-          >
-            {days.map((day) => (
-              <div key={keyForDate(day)} className="mf-schedule-day-column" />
-            ))}
+          {days.map((day) => {
+            const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
+            const dayEvents = [...(eventsByDate[key] || [])]
+              .filter((event) => event.time)
+              .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+            const isToday = key === todayKeyStr;
 
-            {dropPreview && (
-              <span
-                className="mf-schedule-drop-preview"
-                style={{
-                  top: ((dropPreview.minutes - START_HOUR * 60) / 60) * HOUR_HEIGHT,
-                  left: `calc(${(dropPreview.dayIndex / daysCount) * 100}% + 6px)`,
-                  width: `calc(${100 / daysCount}% - 12px)`,
+            return (
+              <div
+                key={key}
+                ref={(node) => { if (node) dayRefs.current[key] = node; }}
+                className="week-calendar-polished-day"
+                data-today={isToday ? 'true' : 'false'}
+                data-drop-active={hoverDay === key ? 'true' : 'false'}
+                style={{ height: totalHeight }}
+                onClick={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  onSlotClick(key, pointerToTime(key, event.clientY));
                 }}
-              />
-            )}
-
-            {showNow && (
-              <span
-                className="mf-schedule-now"
-                style={{
-                  top: ((nowMinutes - START_HOUR * 60) / 60) * HOUR_HEIGHT,
-                  left: `${(todayIndex / daysCount) * 100}%`,
-                  width: `${100 / daysCount}%`,
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setHoverDay(key);
                 }}
-              />
-            )}
+                onDragLeave={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) setHoverDay(null);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  moveDraggedEvent(key, event.clientY);
+                }}
+              >
+                {isToday && nowTop >= 0 && nowTop <= totalHeight && (
+                  <div className="week-calendar-polished-now" style={{ top: nowTop }} />
+                )}
 
-            {timedEvents.map((event) => {
-              const dayIndex = days.findIndex((day) => keyForDate(day) === event.date);
-              const startMinutes = clampMinutes(timeToMinutes(event.time));
-              const durationMinutes = Math.max(30, Number(event.estimatedHours || event.durationHours || 1) * 60);
-              const height = Math.max(42, Math.min((durationMinutes / 60) * HOUR_HEIGHT - 6, GRID_HEIGHT - ((startMinutes - START_HOUR * 60) / 60) * HOUR_HEIGHT - 3));
-              const top = ((startMinutes - START_HOUR * 60) / 60) * HOUR_HEIGHT + 3;
-              const meta = typeMeta[event.type] || typeMeta.other;
-              return (
-                <button
-                  key={event.id}
-                  type="button"
-                  draggable
-                  className="mf-schedule-event"
-                  data-type={event.type || "other"}
-                  onDragStart={(domEvent) => {
-                    setDragId(event.id);
-                    domEvent.dataTransfer.effectAllowed = "move";
-                    domEvent.dataTransfer.setData("text/medfluen-event", String(event.id));
-                  }}
-                  onDragEnd={() => {
-                    setDragId(null);
-                    setDropPreview(null);
-                  }}
-                  onClick={(domEvent) => {
-                    domEvent.stopPropagation();
-                    onEventClick(event);
-                  }}
-                  style={{
-                    top,
-                    height,
-                    left: `calc(${(dayIndex / daysCount) * 100}% + 8px)`,
-                    width: `calc(${100 / daysCount}% - 16px)`,
-                    color: meta.color,
-                    background: meta.surface,
-                    borderColor: meta.border,
-                  }}
-                  title={event.title}
-                >
-                  <span className="mf-schedule-event-accent" style={{ background: meta.color }} />
-                  <span className="mf-schedule-event-icon" style={{ color: meta.color }}>
-                    <Icon name={meta.icon} size={13} />
-                  </span>
-                  <span className="mf-schedule-event-copy">
-                    <small>{formatTimeRange(event)}</small>
-                    <strong>{event.title}</strong>
-                    {height >= 58 && <em>{eventSubtitle(event, meta)}</em>}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                {dayEvents.map((event) => {
+                  const startMinutes = timeToMinutes(event.time);
+                  const durationMinutes = Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60));
+                  const top = ((startMinutes - startHour * 60) / 60) * hourHeight;
+                  const height = Math.max(38, (durationMinutes / 60) * hourHeight - 5);
+                  if (top < 0 || top >= totalHeight) return null;
+                  const tone = palette[event.type] || palette.other;
+                  const endTime = minutesToTime(startMinutes + durationMinutes);
+
+                  return (
+                    <button
+                      key={event.id}
+                      type="button"
+                      draggable
+                      className="week-calendar-polished-event"
+                      title={`${event.time}–${endTime} · ${event.title}`}
+                      onDragStart={(domEvent) => {
+                        setDragId(event.id);
+                        domEvent.dataTransfer.effectAllowed = 'move';
+                        domEvent.dataTransfer.setData('text/plain', event.id);
+                      }}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setHoverDay(null);
+                      }}
+                      onClick={(domEvent) => {
+                        domEvent.stopPropagation();
+                        onEventClick(event);
+                      }}
+                      style={{
+                        top,
+                        height,
+                        borderColor: tone.color,
+                        background: tone.background,
+                        color: tone.color,
+                      }}
+                    >
+                      <span className="week-calendar-polished-event-icon"><Icon name={tone.icon} size={12} /></span>
+                      <span className="week-calendar-polished-event-copy">
+                        <span className="week-calendar-polished-event-time">{event.time}–{endTime}</span>
+                        <span className="week-calendar-polished-event-title">{event.title}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
-
 function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, weekdayLabels }) {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
@@ -3680,28 +3615,6 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
     ),
     left: <path d="m15 18-6-6 6-6" />,
     right: <path d="m9 18 6-6-6-6" />,
-    up: <path d="m18 15-6-6-6 6" />,
-    down: <path d="m6 9 6 6 6-6" />,
-    search: (
-      <>
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-4-4" />
-      </>
-    ),
-    download: (
-      <>
-        <path d="M12 3v12" />
-        <path d="m7 10 5 5 5-5" />
-        <path d="M4 21h16" />
-      </>
-    ),
-    help: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M9.8 9a2.4 2.4 0 1 1 3.7 2c-.9.5-1.5 1.1-1.5 2" />
-        <path d="M12 17h.01" />
-      </>
-    ),
     book: (
       <>
         <path d="M4 4.5A3.5 3.5 0 0 1 7.5 1H20v18H7.5A3.5 3.5 0 0 0 4 22Z" />
@@ -7145,6 +7058,1047 @@ select.ui-control {
   }
 }
 
+
+/* ============================================================
+   MEDFLUEN POLISH SYSTEM — APP(4) BASELINE
+   Keeps the existing information architecture and functionality.
+   ============================================================ */
+:root {
+  --app-sidebar-width: 224px;
+  --mf-radius-control: 10px;
+  --mf-radius-row: 12px;
+  --mf-radius-panel: 16px;
+  --mf-radius-modal: 18px;
+  --mf-shadow-panel: 0 1px 2px rgba(16,24,40,.025), 0 10px 30px rgba(16,24,40,.045);
+  --mf-shadow-popover: 0 18px 48px rgba(16,24,40,.16);
+  --mf-transition: 150ms cubic-bezier(.2,.8,.2,1);
+}
+
+button:not(:disabled):hover,
+button:not(:disabled):active {
+  filter: none;
+}
+
+.ui-card,
+.dashboard-section-card,
+.home-v2-summary,
+.home-v2-workspace,
+.home-v2-bottom {
+  border-color: var(--ui-border) !important;
+  box-shadow: var(--mf-shadow-panel) !important;
+}
+
+.ui-card {
+  border-radius: var(--mf-radius-panel);
+}
+
+.ui-card::after,
+.dashboard-section-card::after,
+.dashboard-hero::after,
+.dashboard-metric-card::after,
+.dashboard-focus-card::after {
+  box-shadow: none;
+}
+
+.ui-card--interactive:hover {
+  transform: none;
+  border-color: var(--ui-border-strong) !important;
+  box-shadow: 0 1px 2px rgba(16,24,40,.03), 0 12px 34px rgba(16,24,40,.06) !important;
+}
+
+.ui-button {
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: var(--mf-radius-control);
+  font-size: 11.5px;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.ui-button:not(:disabled):hover,
+.ui-button:not(:disabled):active {
+  transform: none;
+}
+
+.ui-button--primary {
+  background: var(--ui-blue);
+  box-shadow: 0 4px 12px rgba(22,101,234,.18);
+}
+
+.ui-button--primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--ui-blue) 92%, #000);
+  box-shadow: 0 6px 16px rgba(22,101,234,.22);
+}
+
+.ui-button--secondary {
+  box-shadow: none;
+}
+
+.ui-button--secondary:not(:disabled):hover,
+.ui-button--ghost:not(:disabled):hover {
+  box-shadow: none;
+}
+
+.ui-icon-button {
+  border-radius: var(--mf-radius-control) !important;
+}
+
+.ui-icon-button:not(:disabled):hover,
+.ui-icon-button:not(:disabled):active {
+  transform: none;
+}
+
+.ui-control {
+  min-height: 42px;
+  border-radius: var(--mf-radius-control);
+  border-color: var(--ui-border);
+  background: var(--ui-panel);
+  box-shadow: none;
+}
+
+.ui-control:hover:not(:disabled) {
+  border-color: var(--ui-border-strong) !important;
+}
+
+.ui-control:focus {
+  border-color: var(--ui-blue) !important;
+  box-shadow: 0 0 0 3px var(--ui-ring) !important;
+}
+
+.ui-choice-card {
+  border-radius: var(--mf-radius-control) !important;
+}
+
+.ui-choice-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.ui-modal-surface {
+  border-radius: var(--mf-radius-modal) !important;
+  box-shadow: var(--mf-shadow-popover) !important;
+}
+
+.ui-empty-state,
+.ui-loading-state {
+  border-radius: var(--mf-radius-panel);
+  background: color-mix(in srgb, var(--ui-soft) 76%, var(--ui-panel));
+}
+
+/* Sidebar: same structure, sharper rhythm and less visual noise. */
+.app-sidebar {
+  width: var(--app-sidebar-width) !important;
+  padding: 14px 0 12px !important;
+  box-shadow: 1px 0 0 var(--ui-border) !important;
+}
+
+.sidebar-wide-brand {
+  min-height: 46px;
+  padding: 0 15px;
+  margin-bottom: 8px;
+}
+
+.sidebar-wide-brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(22,101,234,.18);
+}
+
+.sidebar-wide-brand-name {
+  font-size: 15px;
+  font-weight: 820;
+}
+
+.sidebar-wide-section {
+  padding: 0 10px;
+  margin-top: 10px;
+}
+
+.sidebar-wide-section-head {
+  min-height: 24px;
+  padding: 0 9px;
+  font-size: 7.5px;
+  letter-spacing: .1em;
+}
+
+.sidebar-wide-list {
+  gap: 2px;
+}
+
+.sidebar-wide-row {
+  position: relative;
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 9px;
+  transition: background var(--mf-transition), color var(--mf-transition), border-color var(--mf-transition);
+}
+
+.sidebar-wide-row:hover {
+  background: color-mix(in srgb, var(--ui-soft) 78%, transparent);
+}
+
+.sidebar-wide-row[data-active="true"] {
+  border-color: transparent;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.sidebar-wide-row[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 9px;
+  inset-inline-start: 0;
+  width: 2px;
+  border-radius: 99px;
+  background: var(--ui-blue);
+}
+
+.sidebar-wide-row-icon {
+  width: 21px;
+  height: 21px;
+}
+
+.sidebar-wide-row-label {
+  font-size: 10.5px;
+  font-weight: 690;
+}
+
+.sidebar-wide-row-badge {
+  min-width: 19px;
+  height: 18px;
+  border-radius: 7px;
+}
+
+.sidebar-wide-profile {
+  width: calc(100% - 20px);
+  margin-inline: 10px;
+}
+
+.sidebar-wide-profile-button {
+  min-height: 46px;
+  border-radius: 10px;
+}
+
+.sidebar-wide-profile-button:hover {
+  background: var(--ui-soft);
+}
+
+.sidebar-profile-menu {
+  border-radius: 14px !important;
+  box-shadow: var(--mf-shadow-popover) !important;
+}
+
+.sidebar-menu-item:hover {
+  background: var(--ui-soft) !important;
+}
+
+/* Topbar: quieter, aligned, and intentionally utilitarian. */
+.topbar-shell {
+  min-height: 68px !important;
+  padding-inline: 16px !important;
+  border-bottom: 1px solid var(--ui-border) !important;
+  box-shadow: none !important;
+}
+
+.topbar-page-icon,
+.topbar-pomodoro-icon,
+.topbar-quick-control,
+.topbar-module-btn {
+  border-radius: 10px !important;
+}
+
+.topbar-pomodoro-trigger,
+.topbar-module-btn,
+.topbar-quick-control {
+  box-shadow: none !important;
+}
+
+.topbar-pomodoro-trigger:hover,
+.topbar-module-btn:hover,
+.topbar-quick-control:hover {
+  transform: none !important;
+  border-color: var(--ui-border-strong) !important;
+  background: var(--ui-soft) !important;
+}
+
+/* Home: preserve current calendar-first vibe, improve density and hierarchy. */
+.home-v2 {
+  width: min(1360px, 100%);
+  gap: 14px;
+}
+
+.home-v2-heading {
+  padding: 1px 2px 2px;
+}
+
+.home-v2-greeting {
+  font-size: clamp(24px, 2vw, 30px);
+  font-weight: 800;
+  letter-spacing: -.035em;
+}
+
+.home-v2-module {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.home-v2-summary {
+  grid-template-columns: repeat(4, minmax(100px, 1fr)) minmax(250px, 1.4fr);
+  border-radius: var(--mf-radius-panel);
+  overflow: hidden;
+}
+
+.home-v2-stat,
+.home-v2-recommendation {
+  min-height: 72px;
+  gap: 10px;
+  padding: 11px 13px;
+}
+
+.home-v2-stat:hover,
+.home-v2-recommendation:hover {
+  background: color-mix(in srgb, var(--ui-soft) 74%, var(--ui-panel));
+}
+
+.home-v2-stat-icon,
+.home-v2-recommendation-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.home-v2-stat-value {
+  font-size: 18px;
+}
+
+.home-v2-stat-label {
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.home-v2-stat-meta,
+.home-v2-recommendation-meta {
+  font-size: 8.5px;
+}
+
+.home-v2-recommendation-label {
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.home-v2-recommendation-badge {
+  border-radius: 8px;
+  border: 1px solid var(--ui-blue-border);
+}
+
+.home-v2-workspace {
+  min-height: 620px;
+  grid-template-columns: minmax(0, 1fr) 244px;
+  border-radius: var(--mf-radius-panel);
+}
+
+.home-v2-panel-header {
+  min-height: 70px;
+  padding: 12px 16px;
+}
+
+.home-v2-panel-title {
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.home-v2-calendar-nav {
+  margin-top: 6px;
+}
+
+.home-v2-mini-button,
+.home-v2-view-button {
+  min-height: 30px;
+  border-radius: 8px;
+  background: var(--ui-panel);
+  box-shadow: none;
+}
+
+.home-v2-view-switcher {
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-border) 45%, transparent);
+}
+
+.home-v2-view-button[data-active="true"] {
+  box-shadow: 0 1px 2px rgba(16,24,40,.08);
+}
+
+.home-v2-calendar-canvas {
+  min-height: 548px;
+}
+
+.home-day-schedule {
+  min-height: 548px;
+  grid-template-columns: 62px minmax(0, 1fr);
+}
+
+.home-day-time {
+  color: var(--ui-muted);
+  font-size: 8.5px;
+}
+
+.home-day-grid {
+  background-image:
+    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, color-mix(in srgb, var(--ui-border) 45%, transparent) 27px, color-mix(in srgb, var(--ui-border) 45%, transparent) 28px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 55px, var(--ui-border) 55px, var(--ui-border) 56px);
+}
+
+.home-day-grid:hover {
+  background-color: transparent;
+}
+
+.home-day-event {
+  inset-inline: 12px;
+  gap: 9px;
+  padding: 8px 10px;
+  border-inline-start-width: 3px;
+  border-radius: 9px;
+  box-shadow: 0 2px 7px rgba(16,24,40,.05);
+}
+
+.home-day-event:hover {
+  filter: none;
+  box-shadow: 0 5px 14px rgba(16,24,40,.09);
+}
+
+.home-day-event-icon {
+  width: 23px;
+  height: 23px;
+  border-radius: 7px;
+}
+
+.home-v2-rail {
+  gap: 10px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--ui-soft) 58%, var(--ui-panel));
+}
+
+.home-v2-rail-card {
+  padding: 13px;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(16,24,40,.025);
+}
+
+.home-v2-exam-number {
+  font-size: 32px;
+}
+
+.home-v2-upcoming-item {
+  padding: 8px 1px;
+}
+
+.home-v2-upcoming-item:hover .home-v2-upcoming-title {
+  color: var(--ui-blue);
+}
+
+.home-v2-bottom {
+  border-radius: var(--mf-radius-panel);
+}
+
+.home-v2-bottom-header {
+  min-height: 48px;
+}
+
+.home-v2-tab {
+  border-radius: 8px;
+}
+
+.home-v2-activity-item,
+.home-v2-task-row {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.home-v2-activity-item {
+  background: color-mix(in srgb, var(--ui-soft) 66%, var(--ui-panel));
+}
+
+.home-v2-badge {
+  border-radius: 8px;
+}
+
+/* Duration-aware week calendar */
+.week-calendar-polished {
+  height: 100%;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--ui-panel);
+}
+
+.week-calendar-polished-header {
+  flex-shrink: 0;
+  display: grid;
+  position: relative;
+  z-index: 4;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+}
+
+.week-calendar-polished-corner,
+.week-calendar-polished-day-head {
+  min-height: 52px;
+  border-inline-start: 1px solid var(--ui-border);
+}
+
+.week-calendar-polished-corner {
+  border-inline-start: 0;
+}
+
+.week-calendar-polished-day-head {
+  display: grid;
+  place-content: center;
+  gap: 3px;
+  color: var(--ui-muted);
+  text-align: center;
+}
+
+.week-calendar-polished-day-head span {
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.week-calendar-polished-day-head strong {
+  color: var(--ui-text);
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.week-calendar-polished-day-head[data-today="true"] {
+  background: color-mix(in srgb, var(--ui-blue-soft) 54%, var(--ui-panel));
+}
+
+.week-calendar-polished-day-head[data-today="true"] strong,
+.week-calendar-polished-day-head[data-today="true"] span {
+  color: var(--ui-blue);
+}
+
+.week-calendar-polished-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.week-calendar-polished-body {
+  display: grid;
+  position: relative;
+}
+
+.week-calendar-polished-times {
+  position: relative;
+  border-inline-end: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+}
+
+.week-calendar-polished-times span {
+  position: absolute;
+  inset-inline: 0 8px;
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 690;
+  text-align: end;
+}
+
+.week-calendar-polished-day {
+  position: relative;
+  border-inline-start: 1px solid var(--ui-border);
+  background-image:
+    repeating-linear-gradient(to bottom, transparent 0, transparent 30px, color-mix(in srgb, var(--ui-border) 42%, transparent) 30px, color-mix(in srgb, var(--ui-border) 42%, transparent) 31px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 61px, var(--ui-border) 61px, var(--ui-border) 62px);
+  transition: background-color var(--mf-transition);
+}
+
+.week-calendar-polished-day[data-today="true"] {
+  background-color: color-mix(in srgb, var(--ui-blue-soft) 12%, transparent);
+}
+
+.week-calendar-polished-day[data-drop-active="true"] {
+  background-color: color-mix(in srgb, var(--ui-blue-soft) 50%, transparent);
+}
+
+.week-calendar-polished-event {
+  position: absolute;
+  inset-inline: 6px;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  overflow: hidden;
+  padding: 7px 8px;
+  border: 1px solid;
+  border-inline-start-width: 3px;
+  border-radius: 9px;
+  text-align: start;
+  box-shadow: 0 2px 7px rgba(16,24,40,.05);
+  transition: box-shadow var(--mf-transition), opacity var(--mf-transition);
+}
+
+.week-calendar-polished-event:hover {
+  box-shadow: 0 6px 16px rgba(16,24,40,.10);
+}
+
+.week-calendar-polished-event:active {
+  cursor: grabbing;
+  opacity: .78;
+}
+
+.week-calendar-polished-event-icon {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ui-panel) 82%, transparent);
+}
+
+.week-calendar-polished-event-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.week-calendar-polished-event-time {
+  display: block;
+  opacity: .72;
+  font-size: 7.5px;
+  font-weight: 760;
+}
+
+.week-calendar-polished-event-title {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 9px;
+  font-weight: 780;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.week-calendar-polished-now {
+  position: absolute;
+  z-index: 5;
+  inset-inline: 0;
+  height: 1px;
+  background: var(--ui-blue);
+  pointer-events: none;
+}
+
+.week-calendar-polished-now::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ui-blue);
+}
+
+/* Notebook: OneNote-inspired within the existing utility panel. */
+.notebook-polished {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-inline-start: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+  color: var(--ui-text);
+}
+
+.notebook-polished-header {
+  min-height: 62px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px 0 14px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.notebook-polished-brand,
+.notebook-polished-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.notebook-polished-brand-icon {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  border: 1px solid var(--ui-blue-border);
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.notebook-polished-brand strong,
+.notebook-polished-brand small {
+  display: block;
+}
+
+.notebook-polished-brand strong {
+  font-size: 12.5px;
+  font-weight: 790;
+}
+
+.notebook-polished-brand small {
+  margin-top: 2px;
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.notebook-polished-body {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr);
+}
+
+.notebook-polished-list-pane {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px;
+  border-inline-end: 1px solid var(--ui-border);
+  background: color-mix(in srgb, var(--ui-soft) 60%, var(--ui-panel));
+}
+
+.notebook-polished-search {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-panel);
+  color: var(--ui-muted);
+}
+
+.notebook-polished-search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ui-text);
+  font-size: 9px;
+}
+
+.notebook-polished-note-list {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  margin-top: 8px;
+  overflow-y: auto;
+}
+
+.notebook-polished-note-row {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  gap: 7px;
+  padding: 7px 7px 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ui-secondary);
+  text-align: start;
+}
+
+.notebook-polished-note-row:hover {
+  background: var(--ui-panel);
+  border-color: var(--ui-border);
+}
+
+.notebook-polished-note-row[data-active="true"] {
+  border-color: var(--ui-blue-border);
+  background: var(--ui-panel);
+  color: var(--ui-text);
+  box-shadow: 0 1px 2px rgba(16,24,40,.04);
+}
+
+.notebook-polished-note-indicator {
+  width: 2px;
+  align-self: stretch;
+  border-radius: 99px;
+  background: transparent;
+}
+
+.notebook-polished-note-row[data-active="true"] .notebook-polished-note-indicator {
+  background: var(--ui-blue);
+}
+
+.notebook-polished-note-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.notebook-polished-note-copy strong,
+.notebook-polished-note-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notebook-polished-note-copy strong {
+  font-size: 9.5px;
+  font-weight: 760;
+}
+
+.notebook-polished-note-copy small {
+  margin-top: 4px;
+  color: var(--ui-muted);
+  font-size: 7.5px;
+  font-weight: 600;
+}
+
+.notebook-polished-add {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 8px;
+  border: 1px dashed var(--ui-border-strong);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ui-secondary);
+  font-size: 8.5px;
+  font-weight: 700;
+}
+
+.notebook-polished-add:hover {
+  border-color: var(--ui-blue-border);
+  color: var(--ui-blue);
+  background: var(--ui-blue-soft);
+}
+
+.notebook-polished-editor-pane {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.notebook-polished-titlebar {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px 8px 12px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.notebook-polished-title-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.notebook-polished-title-wrap > span {
+  display: block;
+  margin-top: 3px;
+  color: var(--ui-muted);
+  font-size: 7.5px;
+  font-weight: 650;
+}
+
+.notebook-polished-title-button,
+.notebook-polished-title-input {
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ui-text);
+  font-size: 13px;
+  font-weight: 790;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notebook-polished-document-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.notebook-polished-ribbon {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--ui-border);
+  background: color-mix(in srgb, var(--ui-soft) 55%, var(--ui-panel));
+}
+
+.notebook-polished-ribbon select,
+.notebook-polished-ribbon button {
+  height: 30px;
+  min-width: 30px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-secondary);
+  font-size: 9px;
+}
+
+.notebook-polished-ribbon select {
+  min-width: 72px;
+  border-color: var(--ui-border);
+  background: var(--ui-panel);
+}
+
+.notebook-polished-ribbon button:hover {
+  border-color: var(--ui-border);
+  background: var(--ui-panel);
+  color: var(--ui-text);
+}
+
+.notebook-polished-ribbon-divider {
+  width: 1px;
+  height: 20px;
+  margin-inline: 3px;
+  background: var(--ui-border);
+}
+
+.notebook-polished-paper-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--ui-page) 60%, var(--ui-panel));
+}
+
+.notebook-polished-paper {
+  min-height: calc(100% - 24px);
+  margin: 12px;
+  padding: 22px 20px 80px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  outline: 0;
+  background: var(--ui-panel);
+  color: var(--ui-text);
+  box-shadow: 0 1px 2px rgba(16,24,40,.025), 0 8px 22px rgba(16,24,40,.04);
+  font-size: 13px;
+  line-height: 1.72;
+}
+
+.notebook-polished-paper h2 {
+  margin: 1.2em 0 .45em;
+  font-size: 19px;
+  letter-spacing: -.025em;
+}
+
+.notebook-polished-footer {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 11px;
+  border-top: 1px solid var(--ui-border);
+  color: var(--ui-muted);
+  font-size: 7.5px;
+  font-weight: 650;
+}
+
+.notebook-polished-footer span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.notebook-polished-saved-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ui-green);
+}
+
+/* Insights: same content, now visibly part of MedFLUEN. */
+.insights-polished {
+  border-radius: 18px !important;
+  border-color: var(--ui-border) !important;
+  background: var(--ui-panel) !important;
+  color: var(--ui-text) !important;
+  box-shadow: var(--mf-shadow-panel) !important;
+}
+
+.insights-polished:not(.insights-polished-empty) {
+  padding: clamp(28px, 4vw, 48px) clamp(24px, 5vw, 56px) 48px !important;
+}
+
+.insights-polished article > button {
+  border-radius: 10px !important;
+  transition: background var(--mf-transition);
+}
+
+.insights-polished article > button:hover {
+  background: var(--ui-soft) !important;
+}
+
+.insights-polished select,
+.insights-polished input {
+  border-radius: 9px !important;
+}
+
+@media (max-width: 1180px) {
+  .home-v2-summary {
+    grid-template-columns: repeat(4, minmax(92px, 1fr));
+  }
+
+  .home-v2-recommendation {
+    grid-column: 1 / -1;
+    border-inline-start: 0;
+    border-top: 1px solid var(--ui-border);
+  }
+}
+
+@media (max-width: 900px) {
+  .home-v2-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .home-v2-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-inline-start: 0;
+    border-top: 1px solid var(--ui-border);
+  }
+
+  .notebook-polished-body {
+    grid-template-columns: 110px minmax(0, 1fr);
+  }
+}
+
 @keyframes uiBackdropIn {
   from {
     opacity: 0;
@@ -8208,2048 +9162,6 @@ select.ui-control {
 }
   
 }
-
-
-/* ======================================================================
-   MEDFLUEN PRODUCT DESIGN SYSTEM — CALENDAR-FIRST WORKSPACE (2026)
-   ----------------------------------------------------------------------
-   This block intentionally overrides the earlier dashboard/sidebar rules.
-   It preserves all behavior while applying the approved high-fidelity UI.
-   ====================================================================== */
-
-:root {
-  --app-sidebar-width: 218px;
-  --mf-radius-xs: 7px;
-  --mf-radius-sm: 10px;
-  --mf-radius-md: 14px;
-  --mf-radius-lg: 18px;
-  --mf-shadow-panel: 0 1px 2px rgba(16,24,40,.025), 0 12px 34px rgba(24,39,75,.035);
-  --mf-shadow-float: 0 18px 48px rgba(24,39,75,.12);
-}
-
-/* ---------- app frame / overlays ---------- */
-.app-main-area {
-  position: relative;
-}
-
-.content-route-home {
-  padding: 0 34px 34px !important;
-}
-
-.utility-workspace-overlay {
-  position: fixed !important;
-  inset-block: 0 !important;
-  inset-inline-start: var(--app-sidebar-width) !important;
-  inset-inline-end: 0 !important;
-  width: auto !important;
-  height: 100vh !important;
-  z-index: 980 !important;
-  opacity: 1 !important;
-  overflow: hidden !important;
-  background: var(--ui-panel) !important;
-  border-inline-start: 0 !important;
-  transition: opacity 180ms ease !important;
-}
-
-.calendar-workspace-overlay {
-  inset-inline-start: var(--app-sidebar-width) !important;
-}
-
-/* ---------- home topbar becomes the reference focus control ---------- */
-.topbar-shell[data-route="home"] {
-  height: 0 !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  overflow: visible !important;
-  z-index: 70 !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-page-context,
-.topbar-shell[data-route="home"] > div:last-child {
-  display: none !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-center {
-  position: absolute !important;
-  top: 28px !important;
-  inset-inline-end: 34px !important;
-  justify-self: auto !important;
-  z-index: 72 !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-pomodoro-trigger {
-  min-width: 190px !important;
-  min-height: 43px !important;
-  height: 43px !important;
-  padding: 5px 10px !important;
-  border-radius: 10px !important;
-  background: var(--ui-panel) !important;
-  box-shadow: 0 1px 2px rgba(16,24,40,.02) !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-pomodoro-icon {
-  width: 29px !important;
-  height: 29px !important;
-  border-radius: 8px !important;
-  background: transparent !important;
-  border: 0 !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-pomodoro-time {
-  font-family: inherit !important;
-  font-size: 11px !important;
-  font-weight: 760 !important;
-  letter-spacing: 0 !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-pomodoro-status {
-  margin-top: 2px !important;
-  color: var(--ui-blue) !important;
-  font-size: 9px !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-}
-
-.topbar-shell[data-route="home"] .pomodoro-popover {
-  top: 54px !important;
-  inset-inline-end: 0 !important;
-}
-
-/* ======================================================================
-   SIDEBAR
-   ====================================================================== */
-.mf-sidebar {
-  width: var(--app-sidebar-width);
-  height: 100vh;
-  flex: 0 0 var(--app-sidebar-width);
-  display: flex;
-  flex-direction: column;
-  padding: 18px 12px 14px;
-  background: var(--ui-panel);
-  border-inline-end: 1px solid var(--ui-border);
-  overflow: hidden;
-  box-shadow: none;
-}
-
-.mf-sidebar-brand {
-  appearance: none;
-  width: 100%;
-  min-height: 46px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 7px;
-  border: 0;
-  background: transparent;
-  color: var(--ui-text);
-  font-family: inherit;
-  cursor: pointer;
-  text-align: start;
-}
-
-.mf-sidebar-logo {
-  position: relative;
-  width: 31px;
-  height: 31px;
-  flex: 0 0 31px;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  background: linear-gradient(145deg, var(--ui-blue), #4b8cff);
-  box-shadow: 0 8px 20px rgba(22,101,234,.18);
-  overflow: hidden;
-}
-
-.mf-sidebar-logo i {
-  position: absolute;
-  width: 15px;
-  height: 3px;
-  border-radius: 999px;
-  background: #fff;
-  transform-origin: center;
-}
-
-.mf-sidebar-logo i:nth-child(1) { transform: translateY(-5px) rotate(-8deg); opacity: .82; }
-.mf-sidebar-logo i:nth-child(2) { transform: translateY(0) rotate(7deg); }
-.mf-sidebar-logo i:nth-child(3) { transform: translateY(5px) rotate(-8deg); opacity: .72; }
-
-.mf-sidebar-wordmark {
-  color: var(--ui-text);
-  font-size: 16px;
-  font-weight: 760;
-  letter-spacing: -.035em;
-}
-
-.mf-sidebar-wordmark span { color: var(--ui-blue); font-weight: 850; }
-
-.mf-sidebar-scroll {
-  min-height: 0;
-  flex: 1;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  padding: 8px 0 12px;
-}
-
-.mf-sidebar-group { margin-top: 14px; }
-.mf-sidebar-group:first-child { margin-top: 8px; }
-
-.mf-sidebar-group-head {
-  min-height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-  color: var(--ui-muted);
-  font-size: 8px;
-  font-weight: 850;
-  letter-spacing: .075em;
-  text-transform: uppercase;
-}
-
-.mf-sidebar-group-head button {
-  width: 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--ui-muted);
-  cursor: pointer;
-}
-.mf-sidebar-group-head button:hover { background: var(--ui-soft); color: var(--ui-blue); }
-
-.mf-sidebar-list { display: grid; gap: 2px; margin-top: 4px; }
-
-.mf-sidebar-item {
-  appearance: none;
-  width: 100%;
-  min-height: 36px;
-  display: grid;
-  grid-template-columns: 24px minmax(0,1fr) auto auto;
-  align-items: center;
-  gap: 7px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ui-secondary);
-  font-family: inherit;
-  text-align: start;
-  cursor: pointer;
-  outline: none;
-  transition: background 130ms ease, color 130ms ease;
-}
-
-.mf-sidebar-item:hover { background: var(--ui-soft); color: var(--ui-text); }
-.mf-sidebar-item[data-active="true"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
-.mf-sidebar-item:focus-visible { box-shadow: 0 0 0 2px var(--ui-ring); }
-
-.mf-sidebar-item-icon {
-  width: 23px;
-  height: 23px;
-  display: grid;
-  place-items: center;
-  color: currentColor;
-}
-
-.mf-sidebar-item-label {
-  overflow: hidden;
-  font-size: 10px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mf-sidebar-badge {
-  min-width: 21px;
-  height: 19px;
-  display: grid;
-  place-items: center;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--ui-red-soft);
-  color: var(--ui-red);
-  font-size: 8px;
-  font-weight: 850;
-  font-variant-numeric: tabular-nums;
-}
-
-.mf-sidebar-drag { color: var(--ui-muted); }
-
-.mf-sidebar-footer {
-  flex: 0 0 auto;
-  padding-top: 11px;
-  border-top: 1px solid var(--ui-border);
-}
-
-.mf-sidebar-profile-wrap { position: relative; }
-
-.mf-sidebar-profile {
-  appearance: none;
-  width: 100%;
-  min-height: 50px;
-  display: grid;
-  grid-template-columns: 34px minmax(0,1fr) 16px;
-  align-items: center;
-  gap: 9px;
-  padding: 5px 7px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--ui-text);
-  font-family: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-.mf-sidebar-profile:hover { background: var(--ui-soft); }
-
-.mf-sidebar-avatar {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--ui-blue-soft);
-  color: var(--ui-blue);
-  font-size: 10px;
-  font-weight: 850;
-}
-
-.mf-sidebar-profile-copy { min-width: 0; display: grid; gap: 3px; }
-.mf-sidebar-profile-copy strong { overflow: hidden; color: var(--ui-text); font-size: 10px; font-weight: 780; text-overflow: ellipsis; white-space: nowrap; }
-.mf-sidebar-profile-copy small { overflow: hidden; color: var(--ui-muted); font-size: 8.5px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
-
-.mf-sidebar-profile-menu {
-  position: fixed;
-  z-index: 1300;
-  inset-inline-start: calc(var(--app-sidebar-width) + 10px);
-  bottom: 14px;
-  width: 218px;
-  display: grid;
-  gap: 2px;
-  padding: 7px;
-  border: 1px solid var(--ui-border);
-  border-radius: 13px;
-  background: var(--ui-panel);
-  box-shadow: var(--mf-shadow-float);
-}
-.mf-sidebar-profile-menu button {
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ui-secondary);
-  font-family: inherit;
-  font-size: 9.5px;
-  font-weight: 700;
-  text-align: start;
-  cursor: pointer;
-}
-.mf-sidebar-profile-menu button:hover { background: var(--ui-soft); color: var(--ui-text); }
-.mf-sidebar-profile-menu button[data-danger="true"] { color: var(--ui-red); }
-
-.mf-sidebar-footer-row {
-  appearance: none;
-  width: 100%;
-  min-height: 32px;
-  display: grid;
-  grid-template-columns: 23px minmax(0,1fr) auto;
-  align-items: center;
-  gap: 7px;
-  padding: 0 8px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ui-secondary);
-  font-family: inherit;
-  font-size: 9.5px;
-  font-weight: 680;
-  text-align: start;
-  cursor: pointer;
-}
-.mf-sidebar-footer-row:hover { background: var(--ui-soft); color: var(--ui-text); }
-
-.mf-sidebar-switch {
-  width: 30px;
-  height: 17px;
-  display: flex;
-  align-items: center;
-  padding: 2px;
-  border-radius: 999px;
-  background: var(--ui-border-strong);
-  transition: background 160ms ease;
-}
-.mf-sidebar-switch i { width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.16); transition: transform 160ms ease; }
-.mf-sidebar-switch[data-active="true"] { background: var(--ui-blue); }
-.mf-sidebar-switch[data-active="true"] i { transform: translateX(13px); }
-
-/* ======================================================================
-   HOME — exact calendar-first composition
-   ====================================================================== */
-.mf-home {
-  width: min(1120px, 100%);
-  margin: 0 auto;
-  padding-top: 31px;
-  color: var(--ui-text);
-}
-
-.mf-home-heading {
-  min-height: 94px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding-inline-end: 225px;
-}
-
-.mf-home-heading-copy h1 {
-  margin: 0;
-  color: var(--ui-text);
-  font-size: clamp(20px, 2vw, 25px);
-  font-weight: 760;
-  letter-spacing: -.038em;
-  line-height: 1.2;
-}
-
-.mf-home-module-link {
-  appearance: none;
-  display: block;
-  margin-top: 8px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ui-blue);
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 720;
-  cursor: pointer;
-}
-
-.mf-home-resume {
-  appearance: none;
-  min-height: 27px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  padding: 0 8px;
-  border: 1px solid var(--ui-blue-border);
-  border-radius: 7px;
-  background: var(--ui-blue-soft);
-  color: var(--ui-blue);
-  font-family: inherit;
-  font-size: 8.5px;
-  font-weight: 750;
-  cursor: pointer;
-}
-.mf-home-resume strong { min-width: 17px; height: 17px; display: grid; place-items: center; border-radius: 999px; background: var(--ui-panel); font-size: 8px; }
-
-.mf-home-plan {
-  min-height: 694px;
-  display: grid;
-  grid-template-columns: minmax(0,1fr) 214px;
-  border: 1px solid var(--ui-border);
-  border-radius: 13px;
-  background: var(--ui-panel);
-  box-shadow: var(--mf-shadow-panel);
-  overflow: hidden;
-}
-
-.mf-home-plan-main {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  border-inline-end: 1px solid var(--ui-border);
-}
-
-.mf-home-plan-header {
-  min-height: 110px;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 22px 22px 16px;
-}
-
-.mf-home-plan-header h2,
-.mf-home-activity-head h2 {
-  margin: 0;
-  color: var(--ui-text);
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: -.015em;
-}
-
-.mf-home-calendar-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 20px;
-  color: var(--ui-secondary);
-}
-
-.mf-home-calendar-nav > button:not(.mf-home-today) {
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--ui-secondary);
-  cursor: pointer;
-}
-.mf-home-calendar-nav > button:not(.mf-home-today):hover { background: var(--ui-soft); color: var(--ui-blue); }
-.mf-home-calendar-nav > span { color: var(--ui-text); font-size: 10px; font-weight: 720; text-transform: capitalize; }
-
-.mf-home-today {
-  min-height: 28px;
-  padding: 0 10px;
-  border: 1px solid var(--ui-blue-border);
-  border-radius: 7px;
-  background: var(--ui-panel);
-  color: var(--ui-blue);
-  font-family: inherit;
-  font-size: 8.5px;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.mf-home-view-switcher {
-  display: flex;
-  padding: 3px;
-  border: 1px solid var(--ui-border);
-  border-radius: 9px;
-  background: var(--ui-soft);
-}
-.mf-home-view-switcher button {
-  min-width: 56px;
-  height: 29px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ui-secondary);
-  font-family: inherit;
-  font-size: 8.5px;
-  font-weight: 720;
-  cursor: pointer;
-}
-.mf-home-view-switcher button[data-active="true"] { background: var(--ui-panel); color: var(--ui-blue); box-shadow: 0 1px 4px rgba(20,35,60,.08); }
-
-.mf-home-calendar-frame {
-  min-height: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  margin: 0 20px 20px;
-  border-top: 1px solid var(--ui-border);
-}
-
-.mf-home-all-day {
-  min-height: 36px;
-  display: grid;
-  grid-template-columns: 62px minmax(0,1fr);
-  align-items: center;
-  border-bottom: 1px solid var(--ui-border);
-  color: var(--ui-secondary);
-  font-size: 9px;
-  font-weight: 680;
-}
-.mf-home-all-day span { padding-inline-end: 10px; text-align: end; }
-.mf-home-all-day button {
-  justify-self: end;
-  min-height: 24px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 7px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--ui-muted);
-  font-family: inherit;
-  font-size: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 140ms ease, background 140ms ease;
-}
-.mf-home-all-day:hover button { opacity: 1; }
-.mf-home-all-day button:hover { background: var(--ui-soft); color: var(--ui-blue); }
-
-.mf-home-calendar-canvas {
-  min-height: 0;
-  height: 548px;
-  flex: 1;
-  overflow: hidden;
-}
-
-.home-day-schedule {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-columns: 62px minmax(0,1fr);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-}
-
-.home-day-times { position: relative; }
-.home-day-time {
-  height: 56px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 9px 10px 0 0;
-  color: var(--ui-secondary);
-  font-size: 9px;
-  font-weight: 650;
-  border-top: 1px solid var(--ui-border);
-}
-
-.home-day-grid {
-  position: relative;
-  min-width: 0;
-  background-image: repeating-linear-gradient(to bottom, var(--ui-border) 0, var(--ui-border) 1px, transparent 1px, transparent 56px);
-  border-inline-start: 1px solid var(--ui-border);
-  cursor: crosshair;
-}
-
-.home-day-grid::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, color-mix(in srgb, var(--ui-border) 52%, transparent) 27px, color-mix(in srgb, var(--ui-border) 52%, transparent) 28px, transparent 28px, transparent 56px);
-}
-
-.home-day-event {
-  position: absolute;
-  inset-inline: 14px 18px;
-  min-height: 44px;
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  padding: 9px 12px;
-  border: 1px solid currentColor;
-  border-inline-start-width: 3px;
-  border-radius: 8px;
-  text-align: start;
-  font-family: inherit;
-  cursor: grab;
-  overflow: hidden;
-  box-shadow: 0 3px 9px rgba(22,50,90,.035);
-  transition: transform 130ms ease, box-shadow 130ms ease;
-}
-.home-day-event:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(22,50,90,.08); }
-.home-day-event:active { cursor: grabbing; }
-.home-day-event-icon { width: 22px; height: 22px; flex: 0 0 22px; display: grid; place-items: center; margin-top: 2px; border-radius: 6px; background: var(--ui-panel); }
-.home-day-event-time { display: block; color: currentColor; font-size: 8px; font-weight: 690; opacity: .82; }
-.home-day-event-title { margin-top: 4px; overflow: hidden; color: var(--ui-text); font-size: 10.5px; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
-.home-day-now-line { position: absolute; z-index: 5; inset-inline: 0; height: 1px; background: var(--ui-red); pointer-events: none; }
-.home-day-now-line::before { content: ""; position: absolute; inset-inline-start: -4px; top: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--ui-red); }
-
-.mf-home-rail {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 64px 16px 16px;
-  background: color-mix(in srgb, var(--ui-soft) 34%, var(--ui-panel));
-}
-
-.mf-home-rail-card {
-  padding: 16px;
-  border: 1px solid var(--ui-border);
-  border-radius: 11px;
-  background: var(--ui-panel);
-  box-shadow: 0 1px 2px rgba(16,24,40,.02);
-}
-.mf-home-rail-card h3 { margin: 0; color: var(--ui-text); font-size: 10.5px; font-weight: 780; }
-
-.mf-home-exam-card { min-height: 218px; text-align: center; }
-.mf-home-exam-card h3 { text-align: start; }
-.mf-home-exam-icon { width: 38px; height: 38px; display: grid; place-items: center; margin: 25px auto 0; border-radius: 9px; background: var(--ui-blue-soft); color: var(--ui-blue); }
-.mf-home-exam-number { margin-top: -33px; margin-inline-start: 48px; color: var(--ui-blue); font-size: 35px; font-weight: 820; letter-spacing: -.055em; line-height: 1; }
-.mf-home-exam-unit { margin-top: 7px; color: var(--ui-secondary); font-size: 10px; font-weight: 650; }
-.mf-home-exam-module { margin-top: 19px; color: var(--ui-secondary); font-size: 10px; font-weight: 680; }
-.mf-home-exam-date { margin-top: 6px; color: var(--ui-muted); font-size: 9px; font-weight: 600; }
-.mf-home-empty-action { width: 100%; min-height: 116px; display: grid; place-items: center; gap: 8px; margin-top: 12px; border: 1px dashed var(--ui-border-strong); border-radius: 9px; background: var(--ui-soft); color: var(--ui-blue); font-family: inherit; font-size: 9px; font-weight: 700; cursor: pointer; }
-
-.mf-home-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.mf-home-card-head button { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: var(--ui-blue); font-family: inherit; font-size: 8.5px; font-weight: 720; cursor: pointer; }
-.mf-home-progress-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 17px; color: var(--ui-secondary); font-size: 9px; font-weight: 670; }
-.mf-home-progress-label strong { color: var(--ui-text); font-size: 9px; font-weight: 760; font-variant-numeric: tabular-nums; }
-.mf-home-progress-label-secondary { margin-top: 12px; }
-.mf-home-progress-track { height: 3px; margin-top: 8px; overflow: hidden; border-radius: 99px; background: var(--ui-border); }
-.mf-home-progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--ui-blue); }
-.mf-home-catchup { width: 100%; min-height: 28px; margin-top: 12px; border: 0; border-radius: 7px; background: var(--ui-red-soft); color: var(--ui-red); font-family: inherit; font-size: 8.5px; font-weight: 720; cursor: pointer; }
-
-.mf-home-upcoming-card { flex: 1; min-height: 230px; }
-.mf-home-upcoming-list { display: grid; margin-top: 10px; }
-.mf-home-upcoming-row { appearance: none; width: 100%; min-height: 46px; display: grid; grid-template-columns: 28px minmax(0,1fr); align-items: center; gap: 8px; padding: 5px 0; border: 0; border-top: 1px solid var(--ui-border); background: transparent; color: var(--ui-text); font-family: inherit; text-align: start; cursor: pointer; }
-.mf-home-upcoming-row:first-child { border-top: 0; }
-.mf-home-upcoming-icon { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 8px; background: var(--ui-soft); color: var(--ui-secondary); }
-.mf-home-upcoming-icon[data-type="study"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
-.mf-home-upcoming-icon[data-type="review"] { background: var(--ui-green-soft); color: var(--ui-green); }
-.mf-home-upcoming-icon[data-type="exam"] { background: var(--ui-red-soft); color: var(--ui-red); }
-.mf-home-upcoming-icon[data-type="other"] { background: var(--ui-purple-soft); color: var(--ui-purple); }
-.mf-home-upcoming-copy { min-width: 0; display: grid; gap: 3px; }
-.mf-home-upcoming-copy strong { overflow: hidden; color: var(--ui-text); font-size: 9px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
-.mf-home-upcoming-copy small { color: var(--ui-muted); font-size: 8px; font-weight: 620; }
-.mf-home-no-upcoming { margin-top: 16px; color: var(--ui-muted); font-size: 9px; }
-
-.mf-home-activity {
-  margin-top: 16px;
-  border: 1px solid var(--ui-border);
-  border-radius: 12px;
-  background: var(--ui-panel);
-  box-shadow: var(--mf-shadow-panel);
-  overflow: hidden;
-}
-.mf-home-activity-head { min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 18px; border-bottom: 1px solid var(--ui-border); }
-.mf-home-activity-tabs { display: flex; align-items: center; gap: 4px; }
-.mf-home-activity-tabs button { min-height: 28px; padding: 0 8px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-muted); font-family: inherit; font-size: 8px; font-weight: 700; cursor: pointer; }
-.mf-home-activity-tabs button[data-active="true"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
-.mf-home-activity-body { min-height: 106px; padding: 14px 18px; }
-.mf-home-activity-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
-.mf-home-activity-row { appearance: none; min-width: 0; min-height: 70px; display: grid; grid-template-columns: 31px minmax(0,1fr); align-items: start; gap: 9px; padding: 9px; border: 0; border-radius: 9px; background: transparent; color: var(--ui-text); font-family: inherit; text-align: start; cursor: pointer; }
-.mf-home-activity-row:hover { background: var(--ui-soft); }
-.mf-home-activity-icon { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 9px; background: var(--ui-blue-soft); color: var(--ui-blue); }
-.mf-home-activity-row > span:last-child { min-width: 0; display: grid; gap: 3px; }
-.mf-home-activity-row strong { overflow: hidden; color: var(--ui-text); font-size: 9px; font-weight: 730; text-overflow: ellipsis; white-space: nowrap; }
-.mf-home-activity-row small { color: var(--ui-secondary); font-size: 8px; font-weight: 620; line-height: 1.4; }
-.mf-home-activity-row em { color: var(--ui-muted); font-size: 7.5px; font-style: normal; font-weight: 600; }
-
-.mf-home-task-area { display: grid; gap: 9px; }
-.mf-home-complete-line { display: inline-flex; align-items: center; gap: 6px; color: var(--ui-green); font-size: 9px; font-weight: 720; }
-.mf-home-task-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px 14px; }
-.mf-home-task-row { min-width: 0; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 7px; background: var(--ui-soft); color: var(--ui-text); font-size: 9px; font-weight: 680; }
-.mf-home-task-row input { accent-color: var(--ui-green); }
-.mf-home-task-row[data-complete="true"] span { color: var(--ui-muted); text-decoration: line-through; }
-.mf-home-add-lecture { justify-self: start; min-height: 28px; padding: 0 9px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); color: var(--ui-blue); font-family: inherit; font-size: 8.5px; font-weight: 700; cursor: pointer; }
-.mf-home-badges { display: flex; flex-wrap: wrap; gap: 7px; }
-.mf-home-badges > span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-muted); font-size: 8px; font-weight: 680; }
-.mf-home-badges > span[data-earned="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
-
-.mf-event-modal { padding: 22px; }
-.mf-event-form { display: grid; gap: 12px; }
-.mf-event-two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.mf-event-types { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
-.mf-event-types button { min-height: 38px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-secondary); font-family: inherit; font-size: 9px; font-weight: 720; cursor: pointer; }
-.mf-event-types button[data-selected="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
-.mf-event-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 18px; }
-.mf-event-actions > div { display: flex; gap: 8px; }
-
-/* ======================================================================
-   ONENOTE-LIKE NOTEBOOK
-   ====================================================================== */
-.onenote-shell { width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--ui-panel); color: var(--ui-text); }
-.onenote-topbar { height: 58px; flex: 0 0 58px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 18px; border-bottom: 1px solid var(--ui-border); }
-.onenote-brand { display: flex; align-items: center; gap: 10px; }
-.onenote-brand-icon { width: 33px; height: 33px; display: grid; place-items: center; border-radius: 8px; background: #7c5cff; color: #fff; box-shadow: 0 7px 18px rgba(124,92,255,.2); }
-.onenote-title { color: var(--ui-text); font-size: 13px; font-weight: 780; }
-.onenote-save-state { margin-top: 3px; color: var(--ui-muted); font-size: 8px; font-weight: 620; }
-.onenote-top-actions { display: flex; align-items: center; gap: 7px; }
-.onenote-primary-action { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 11px; border: 0; border-radius: 8px; background: var(--ui-blue); color: #fff; font-family: inherit; font-size: 9px; font-weight: 730; cursor: pointer; }
-
-.onenote-ribbon { flex: 0 0 auto; border-bottom: 1px solid var(--ui-border); background: var(--ui-panel); }
-.onenote-ribbon-tabs { height: 29px; display: flex; align-items: end; gap: 18px; padding: 0 18px; }
-.onenote-ribbon-tabs span { height: 29px; display: inline-flex; align-items: center; border-bottom: 2px solid transparent; color: var(--ui-muted); font-size: 8.5px; font-weight: 700; }
-.onenote-ribbon-tabs span[data-active="true"] { border-color: #7c5cff; color: #7c5cff; }
-.onenote-toolbar { min-height: 48px; display: flex; align-items: center; gap: 4px; padding: 6px 14px; overflow-x: auto; }
-.onenote-select { height: 30px; max-width: 108px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 8.5px; }
-.onenote-size-select { width: 52px; }
-.onenote-toolbar-divider { width: 1px; height: 22px; margin: 0 4px; background: var(--ui-border); }
-.onenote-tool { min-width: 29px; height: 29px; display: grid; place-items: center; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; color: var(--ui-secondary); font-family: inherit; font-size: 9px; font-weight: 760; cursor: pointer; }
-.onenote-tool:hover { background: var(--ui-soft); color: var(--ui-text); }
-.note-toolbar-italic { font-style: italic; }
-.note-toolbar-underline { text-decoration: underline; }
-.onenote-color-tool { position: relative; width: 29px; height: 29px; display: grid; place-items: center; border-radius: 6px; color: var(--ui-secondary); font-size: 10px; font-weight: 800; cursor: pointer; }
-.onenote-color-tool:hover { background: var(--ui-soft); }
-.onenote-color-tool input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-
-.onenote-workspace { min-height: 0; flex: 1; display: grid; grid-template-columns: 150px 236px minmax(0,1fr); }
-.onenote-sections { min-width: 0; display: flex; flex-direction: column; padding: 14px 10px; border-inline-end: 1px solid var(--ui-border); background: color-mix(in srgb, var(--ui-soft) 55%, var(--ui-panel)); overflow-y: auto; }
-.onenote-section-label { padding: 0 7px 8px; color: var(--ui-muted); font-size: 7.5px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-.onenote-section-list { display: grid; gap: 3px; }
-.onenote-section-wrap { position: relative; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; border-radius: 7px; }
-.onenote-section-wrap[data-active="true"] { background: var(--ui-panel); box-shadow: 0 1px 3px rgba(20,35,60,.06); }
-.onenote-section-button { min-width: 0; min-height: 34px; display: flex; align-items: center; gap: 7px; padding: 0 8px; border: 0; background: transparent; color: var(--ui-secondary); font-family: inherit; font-size: 9px; font-weight: 690; text-align: start; cursor: pointer; }
-.onenote-section-wrap[data-active="true"] .onenote-section-button { color: var(--ui-text); }
-.onenote-section-color { width: 4px; height: 18px; flex: 0 0 4px; border-radius: 999px; }
-.onenote-section-delete { width: 23px; height: 23px; display: grid; place-items: center; margin-inline-end: 3px; border: 0; border-radius: 6px; background: transparent; color: var(--ui-muted); cursor: pointer; }
-.onenote-section-rename { width: calc(100% - 8px); height: 29px; margin: 3px 4px; padding: 0 7px; border: 1px solid var(--ui-blue-border); border-radius: 6px; background: var(--ui-panel); color: var(--ui-text); font-size: 9px; outline: 0; }
-.onenote-add-section { min-height: 32px; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 0 8px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-muted); font-family: inherit; font-size: 8.5px; font-weight: 700; cursor: pointer; }
-.onenote-add-section:hover { background: var(--ui-panel); color: #7c5cff; }
-
-.onenote-pages { min-width: 0; display: flex; flex-direction: column; border-inline-end: 1px solid var(--ui-border); background: var(--ui-panel); }
-.onenote-pages-head { min-height: 65px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 13px 8px; }
-.onenote-pages-title { color: var(--ui-text); font-size: 12px; font-weight: 770; }
-.onenote-pages-count { margin-top: 3px; color: var(--ui-muted); font-size: 7.5px; font-weight: 620; }
-.onenote-page-add { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); color: var(--ui-blue); cursor: pointer; }
-.onenote-search { height: 34px; display: flex; align-items: center; gap: 7px; margin: 0 11px 9px; padding: 0 9px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-muted); }
-.onenote-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--ui-text); font-size: 8.5px; }
-.onenote-page-list { min-height: 0; flex: 1; overflow-y: auto; padding: 0 7px 10px; }
-.onenote-page-row { appearance: none; position: relative; width: 100%; min-height: 76px; display: grid; grid-template-columns: 3px minmax(0,1fr) 18px; align-items: stretch; gap: 8px; padding: 9px 7px; border: 0; border-bottom: 1px solid var(--ui-border); background: transparent; color: var(--ui-text); font-family: inherit; text-align: start; cursor: pointer; }
-.onenote-page-row[data-active="true"] { border-bottom-color: transparent; border-radius: 8px; background: var(--ui-blue-soft); }
-.onenote-page-accent { width: 3px; height: 100%; border-radius: 999px; opacity: 0; }
-.onenote-page-row[data-active="true"] .onenote-page-accent { opacity: 1; }
-.onenote-page-copy { min-width: 0; display: grid; align-content: center; gap: 4px; }
-.onenote-page-title { overflow: hidden; color: var(--ui-text); font-size: 9.5px; font-weight: 740; text-overflow: ellipsis; white-space: nowrap; }
-.onenote-page-preview { overflow: hidden; color: var(--ui-secondary); font-size: 7.8px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
-.onenote-page-date { color: var(--ui-muted); font-size: 7.2px; }
-.onenote-page-delete { width: 18px; height: 18px; display: grid; place-items: center; align-self: start; border-radius: 5px; color: var(--ui-muted); }
-.onenote-empty-list { padding: 20px 10px; color: var(--ui-muted); font-size: 8.5px; text-align: center; }
-
-.onenote-editor-pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--ui-panel); }
-.onenote-editor-head { flex: 0 0 auto; padding: 30px 56px 18px; }
-.onenote-page-title-input { width: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--ui-text); font-family: inherit; font-size: 28px; font-weight: 720; letter-spacing: -.04em; }
-.onenote-page-title-input::placeholder { color: var(--ui-border-strong); }
-.onenote-page-meta { margin-top: 9px; color: var(--ui-muted); font-size: 8.5px; font-weight: 620; }
-.onenote-editor-scroll { min-height: 0; flex: 1; overflow-y: auto; }
-.onenote-editor { width: min(850px, 100%); min-height: 100%; padding: 12px 56px 80px; outline: 0; color: var(--ui-text); font-size: 14px; line-height: 1.75; }
-.onenote-editor h1 { font-size: 25px; letter-spacing: -.03em; }
-.onenote-editor h2 { font-size: 19px; letter-spacing: -.02em; }
-.onenote-editor blockquote { margin-inline: 0; padding: 8px 12px; border-inline-start: 3px solid #7c5cff; background: var(--ui-soft); color: var(--ui-secondary); }
-.onenote-statusbar { height: 28px; flex: 0 0 28px; display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 0 14px; border-top: 1px solid var(--ui-border); color: var(--ui-muted); font-size: 7.5px; }
-.onenote-empty-editor { height: 100%; display: grid; place-items: center; align-content: center; gap: 12px; color: var(--ui-muted); font-size: 10px; }
-
-/* ======================================================================
-   INSIGHTS V3
-   ====================================================================== */
-.insights-v3 { width: min(1180px,100%); margin: 0 auto; padding-bottom: 40px; color: var(--ui-text); }
-.insights-v3-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 3px 0 20px; }
-.insights-v3-eyebrow { color: var(--ui-blue); font-size: 8px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
-.insights-v3-header h1 { margin: 6px 0 0; color: var(--ui-text); font-size: 27px; font-weight: 780; letter-spacing: -.045em; }
-.insights-v3-header p { margin: 6px 0 0; color: var(--ui-secondary); font-size: 10px; font-weight: 620; }
-.insights-v3-actions { display: flex; align-items: center; gap: 8px; }
-.insights-v3-range { display: flex; padding: 3px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
-.insights-v3-range button { min-height: 28px; padding: 0 9px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-muted); font-family: inherit; font-size: 8px; font-weight: 700; cursor: pointer; }
-.insights-v3-range button[data-active="true"] { background: var(--ui-panel); color: var(--ui-blue); box-shadow: 0 1px 4px rgba(20,35,60,.07); }
-.insights-v3-export { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-secondary); font-family: inherit; font-size: 8.5px; font-weight: 700; cursor: pointer; }
-.insights-v3-nav { display: flex; gap: 4px; margin-bottom: 14px; padding: 4px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); box-shadow: var(--mf-shadow-panel); }
-.insights-v3-nav button { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--ui-secondary); font-family: inherit; font-size: 9px; font-weight: 700; cursor: pointer; }
-.insights-v3-nav button[data-active="true"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
-
-.insights-v3-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
-.insights-v3-metric { min-width: 0; padding: 15px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); box-shadow: var(--mf-shadow-panel); }
-.insights-v3-metric-icon { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 8px; background: var(--ui-blue-soft); color: var(--ui-blue); }
-.insights-v3-metric-value { margin-top: 17px; color: var(--ui-text); font-size: 23px; font-weight: 800; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
-.insights-v3-metric-label { margin-top: 4px; color: var(--ui-secondary); font-size: 8.5px; font-weight: 680; }
-.insights-v3-metric-change { margin-top: 9px; color: var(--ui-muted); font-size: 7.5px; font-weight: 650; }
-.insights-v3-metric-change[data-positive="true"] { color: var(--ui-green); }
-.insights-v3-metric-change[data-positive="false"] { color: var(--ui-red); }
-.insights-v3-grid { display: grid; gap: 12px; margin-top: 12px; }
-.insights-v3-grid-main { grid-template-columns: minmax(0,1.7fr) minmax(260px,.7fr); }
-.insights-v3-grid-secondary { grid-template-columns: minmax(280px,.75fr) minmax(0,1.25fr); }
-.insights-v3-panel { min-width: 0; padding: 16px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); box-shadow: var(--mf-shadow-panel); }
-.insights-v3-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-.insights-v3-panel-head-inline { align-items: center; }
-.insights-v3-panel-head h2 { margin: 0; color: var(--ui-text); font-size: 11.5px; font-weight: 780; }
-.insights-v3-panel-head p { margin: 4px 0 0; color: var(--ui-muted); font-size: 8px; font-weight: 620; }
-.insights-v3-queue-chart { position: relative; }
-.insights-v3-queue-total { position: absolute; top: 50%; left: 50%; display: grid; justify-items: center; transform: translate(-50%,-50%); pointer-events: none; }
-.insights-v3-queue-total strong { color: var(--ui-text); font-size: 20px; font-weight: 800; }
-.insights-v3-queue-total span { color: var(--ui-muted); font-size: 7.5px; }
-.insights-v3-queue-list { display: grid; gap: 7px; margin-top: 4px; }
-.insights-v3-queue-list > div { display: grid; grid-template-columns: 7px minmax(0,1fr) auto; align-items: center; gap: 7px; color: var(--ui-secondary); font-size: 8.5px; }
-.insights-v3-queue-list strong { color: var(--ui-text); font-size: 9px; }
-.insights-v3-dot { width: 7px; height: 7px; border-radius: 50%; }
-.insights-v3-topic-list { display: grid; gap: 7px; margin-top: 10px; }
-.insights-v3-topic-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 7px 12px; padding: 9px 0; border-top: 1px solid var(--ui-border); }
-.insights-v3-topic-row:first-child { border-top: 0; }
-.insights-v3-topic-row > div:first-child { min-width: 0; display: grid; gap: 3px; }
-.insights-v3-topic-row strong { overflow: hidden; color: var(--ui-text); font-size: 9px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
-.insights-v3-topic-row span { color: var(--ui-muted); font-size: 7.5px; }
-.insights-v3-topic-score { color: var(--ui-green); font-size: 10px; font-weight: 800; }
-.insights-v3-topic-score[data-low="true"] { color: var(--ui-red); }
-.insights-v3-topic-track { grid-column: 1/-1; height: 3px; overflow: hidden; border-radius: 99px; background: var(--ui-border); }
-.insights-v3-topic-track span { display: block; height: 100%; border-radius: inherit; background: var(--ui-blue); }
-.insights-v3-table-wrap { overflow-x: auto; }
-.insights-v3-table { width: 100%; border-collapse: collapse; font-size: 8.5px; }
-.insights-v3-table th { padding: 8px 7px; color: var(--ui-muted); font-size: 7.5px; font-weight: 750; text-align: start; border-bottom: 1px solid var(--ui-border); }
-.insights-v3-table td { padding: 10px 7px; color: var(--ui-secondary); border-bottom: 1px solid var(--ui-border); }
-.insights-v3-score { display: inline-grid; place-items: center; min-width: 37px; min-height: 22px; padding: 0 6px; border-radius: 6px; background: var(--ui-soft); color: var(--ui-secondary); font-weight: 760; }
-.insights-v3-score[data-tone="good"] { background: var(--ui-green-soft); color: var(--ui-green); }
-.insights-v3-score[data-tone="mid"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
-.insights-v3-score[data-tone="low"] { background: var(--ui-red-soft); color: var(--ui-red); }
-.insights-v3-expand { width: 25px; height: 25px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--ui-muted); cursor: pointer; }
-.insights-v3-detail-row td { background: var(--ui-soft); }
-.insights-v3-detail-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(110px,1fr)); gap: 7px; }
-.insights-v3-detail-grid > div { display: flex; justify-content: space-between; gap: 8px; padding: 7px 8px; border-radius: 6px; background: var(--ui-panel); }
-.insights-v3-detail-grid span { overflow: hidden; color: var(--ui-muted); text-overflow: ellipsis; white-space: nowrap; }
-.insights-v3-detail-grid strong { color: var(--ui-text); }
-.insights-v3-select { height: 32px; padding: 0 9px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 8.5px; }
-.insights-v3-lecture-section { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--ui-border); }
-.insights-v3-lecture-section h3 { margin: 0 0 8px; color: var(--ui-text); font-size: 10px; }
-.insights-v3-focus-metrics { margin-bottom: 12px; }
-
-/* ---------- responsive ---------- */
-@media (max-width: 1120px) {
-  :root { --app-sidebar-width: 204px; }
-  .mf-home-plan { grid-template-columns: minmax(0,1fr) 198px; }
-  .mf-home-activity-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .insights-v3-grid-main,
-  .insights-v3-grid-secondary { grid-template-columns: 1fr; }
-  .onenote-workspace { grid-template-columns: 132px 210px minmax(0,1fr); }
-}
-
-@media (max-width: 900px) {
-  :root { --app-sidebar-width: 58px; }
-  .mf-sidebar { width: 58px; flex-basis: 58px; padding-inline: 7px; }
-  .mf-sidebar-wordmark,
-  .mf-sidebar-group-head,
-  .mf-sidebar-item-label,
-  .mf-sidebar-badge,
-  .mf-sidebar-profile-copy,
-  .mf-sidebar-footer-row span:not(.mf-sidebar-switch),
-  .mf-sidebar-profile > svg { display: none; }
-  .mf-sidebar-brand { justify-content: center; padding: 0; }
-  .mf-sidebar-item { grid-template-columns: 1fr; justify-items: center; padding: 0; }
-  .mf-sidebar-item-icon { width: 34px; height: 34px; }
-  .mf-sidebar-profile { grid-template-columns: 1fr; padding: 5px 0; }
-  .mf-sidebar-avatar { margin: 0 auto; }
-  .mf-sidebar-footer-row { grid-template-columns: 1fr; justify-items: center; padding: 0; }
-  .mf-sidebar-switch { display: none; }
-  .content-route-home { padding-inline: 20px !important; }
-  .topbar-shell[data-route="home"] .topbar-center { inset-inline-end: 20px !important; }
-  .mf-home-plan { grid-template-columns: 1fr; }
-  .mf-home-plan-main { border-inline-end: 0; }
-  .mf-home-rail { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); padding: 14px; border-top: 1px solid var(--ui-border); }
-  .mf-home-upcoming-card { min-height: 0; }
-  .onenote-workspace { grid-template-columns: 96px 190px minmax(0,1fr); }
-  .insights-v3-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
-}
-
-@media (max-width: 700px) {
-  .content-route-home { padding: 0 12px 22px !important; }
-  .topbar-shell[data-route="home"] .topbar-center { position: fixed !important; top: auto !important; bottom: 14px !important; inset-inline-end: 14px !important; }
-  .mf-home { padding-top: 20px; }
-  .mf-home-heading { min-height: 84px; padding-inline-end: 0; }
-  .mf-home-plan-header { flex-direction: column; min-height: 132px; }
-  .mf-home-view-switcher { align-self: stretch; }
-  .mf-home-view-switcher button { flex: 1; }
-  .mf-home-calendar-frame { margin-inline: 10px; }
-  .mf-home-calendar-canvas { height: 500px; }
-  .mf-home-rail { grid-template-columns: 1fr; }
-  .mf-home-activity-head { align-items: flex-start; flex-direction: column; padding-block: 12px; }
-  .mf-home-activity-tabs { width: 100%; overflow-x: auto; }
-  .mf-home-activity-grid { grid-template-columns: 1fr; }
-  .mf-home-task-list { grid-template-columns: 1fr; }
-  .onenote-workspace { grid-template-columns: 1fr; }
-  .onenote-sections { display: none; }
-  .onenote-pages { display: none; }
-  .onenote-editor-head { padding-inline: 22px; }
-  .onenote-editor { padding-inline: 22px; }
-  .insights-v3-header { align-items: stretch; flex-direction: column; }
-  .insights-v3-actions { flex-wrap: wrap; }
-  .insights-v3-range { overflow-x: auto; }
-  .insights-v3-metrics { grid-template-columns: 1fr; }
-  .mf-event-two-columns,
-  .mf-event-types { grid-template-columns: 1fr 1fr; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mf-sidebar-item,
-  .mf-sidebar-switch i,
-  .home-day-event,
-  .mf-home-all-day button { transition: none !important; }
-}
-
-/* ======================================================================
-   MEDFLUEN REFERENCE-MATCH LAYER
-   Measured against the supplied 1408 × 1056 desktop reference.
-   This block is intentionally last in GlobalStyles so no legacy rule can
-   flatten the interface into browser-default controls.
-   ====================================================================== */
-:root {
-  --app-sidebar-width: 220px;
-  --mf-ref-page: #fbfcff;
-  --mf-ref-panel: #ffffff;
-  --mf-ref-line: #e7ebf2;
-  --mf-ref-line-strong: #dce2ec;
-  --mf-ref-text: #111a2e;
-  --mf-ref-secondary: #56627a;
-  --mf-ref-muted: #8d99ad;
-  --mf-ref-blue: #1768f2;
-  --mf-ref-blue-soft: #f0f5ff;
-  --mf-ref-green: #23a46f;
-  --mf-ref-green-soft: #f0faf5;
-  --mf-ref-amber: #efa61f;
-  --mf-ref-amber-soft: #fff9ed;
-  --mf-ref-purple: #7759ef;
-  --mf-ref-purple-soft: #f6f3ff;
-  --mf-ref-radius: 13px;
-  --mf-ref-card-shadow: 0 1px 2px rgba(16,24,40,.018), 0 8px 26px rgba(32,49,83,.025);
-}
-
-html,
-body,
-#root {
-  width: 100%;
-  height: 100%;
-  background: var(--mf-ref-page) !important;
-}
-
-body {
-  color: var(--mf-ref-text);
-  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  text-rendering: geometricPrecision;
-  -webkit-font-smoothing: antialiased;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-.app-blue-hue,
-.app-blue-hue-dark {
-  display: none !important;
-}
-
-.app-surface {
-  background: var(--mf-ref-page) !important;
-}
-
-.app-main-area {
-  background: var(--mf-ref-page) !important;
-}
-
-.content-route-home {
-  padding: 0 38px 42px !important;
-  background: var(--mf-ref-page) !important;
-}
-
-/* ----------------------------------------------------------------------
-   Sidebar — reference proportions, reduced from the supplied 260 px rail.
-   ---------------------------------------------------------------------- */
-.mf-sidebar {
-  width: var(--app-sidebar-width) !important;
-  flex: 0 0 var(--app-sidebar-width) !important;
-  height: 100vh !important;
-  padding: 18px 14px 12px !important;
-  background: #fff !important;
-  border-inline-end: 1px solid var(--mf-ref-line) !important;
-  box-shadow: none !important;
-}
-
-.mf-sidebar-brand {
-  min-height: 51px !important;
-  gap: 10px !important;
-  padding: 0 4px !important;
-}
-
-.mf-sidebar-logo {
-  width: 31px !important;
-  height: 31px !important;
-  flex-basis: 31px !important;
-  border-radius: 10px !important;
-  background: linear-gradient(145deg, #0b5ef0, #397ef7) !important;
-  box-shadow: 0 7px 17px rgba(23,104,242,.16) !important;
-}
-
-.mf-sidebar-wordmark {
-  color: #15213a !important;
-  font-size: 16px !important;
-  font-weight: 730 !important;
-  letter-spacing: -.035em !important;
-}
-
-.mf-sidebar-wordmark span {
-  color: var(--mf-ref-blue) !important;
-  font-weight: 820 !important;
-}
-
-.mf-sidebar-scroll {
-  padding: 9px 0 9px !important;
-  scrollbar-width: none !important;
-}
-.mf-sidebar-scroll::-webkit-scrollbar { display: none; }
-
-.mf-sidebar-group {
-  margin-top: 13px !important;
-}
-.mf-sidebar-group:first-child { margin-top: 6px !important; }
-
-.mf-sidebar-group-head {
-  min-height: 21px !important;
-  padding: 0 5px !important;
-  color: #7e8ca5 !important;
-  font-size: 8px !important;
-  font-weight: 790 !important;
-  letter-spacing: .075em !important;
-}
-
-.mf-sidebar-group-head button {
-  width: 20px !important;
-  height: 20px !important;
-}
-
-.mf-sidebar-list {
-  gap: 2px !important;
-  margin-top: 3px !important;
-}
-
-.mf-sidebar-item {
-  min-height: 36px !important;
-  grid-template-columns: 24px minmax(0,1fr) auto auto !important;
-  gap: 7px !important;
-  padding: 0 8px !important;
-  border: 0 !important;
-  border-radius: 9px !important;
-  background: transparent !important;
-  color: #56627a !important;
-  box-shadow: none !important;
-}
-
-.mf-sidebar-item:hover {
-  background: #f6f8fc !important;
-  color: #18243b !important;
-}
-
-.mf-sidebar-item[data-active="true"] {
-  background: #eff4ff !important;
-  color: #1768f2 !important;
-}
-
-.mf-sidebar-item-icon {
-  width: 22px !important;
-  height: 22px !important;
-}
-
-.mf-sidebar-item-label {
-  font-size: 10px !important;
-  font-weight: 680 !important;
-  letter-spacing: -.01em !important;
-}
-
-.mf-sidebar-badge {
-  min-width: 20px !important;
-  height: 18px !important;
-  font-size: 8px !important;
-}
-
-.mf-sidebar-footer {
-  padding-top: 9px !important;
-  border-color: var(--mf-ref-line) !important;
-}
-
-.mf-sidebar-profile {
-  min-height: 49px !important;
-  grid-template-columns: 33px minmax(0,1fr) 15px !important;
-  gap: 8px !important;
-  padding: 5px 4px !important;
-}
-
-.mf-sidebar-avatar {
-  width: 33px !important;
-  height: 33px !important;
-  background: #edf3ff !important;
-  color: var(--mf-ref-blue) !important;
-}
-
-.mf-sidebar-profile-copy strong { font-size: 10px !important; }
-.mf-sidebar-profile-copy small { font-size: 8px !important; }
-
-.mf-sidebar-footer-row {
-  min-height: 31px !important;
-  padding: 0 5px !important;
-  color: #647089 !important;
-  font-size: 9px !important;
-}
-
-/* ----------------------------------------------------------------------
-   Home top control — only the focus control remains visible on Home.
-   ---------------------------------------------------------------------- */
-.topbar-shell[data-route="home"] {
-  height: 0 !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  overflow: visible !important;
-  z-index: 80 !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-page-context,
-.topbar-shell[data-route="home"] > div:last-child {
-  display: none !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-center {
-  position: absolute !important;
-  top: 55px !important;
-  inset-inline-end: max(38px, calc((100vw - var(--app-sidebar-width) - 1050px) / 2)) !important;
-  z-index: 90 !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-pomodoro-trigger {
-  min-width: 216px !important;
-  width: 216px !important;
-  min-height: 45px !important;
-  height: 45px !important;
-  gap: 9px !important;
-  padding: 5px 11px !important;
-  border: 1px solid var(--mf-ref-line-strong) !important;
-  border-radius: 10px !important;
-  background: #fff !important;
-  box-shadow: 0 1px 2px rgba(15,23,42,.018) !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-pomodoro-icon {
-  width: 28px !important;
-  height: 28px !important;
-  border: 0 !important;
-  border-radius: 7px !important;
-  background: transparent !important;
-  color: #26344e !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-pomodoro-time {
-  color: #26344e !important;
-  font-family: inherit !important;
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0 !important;
-}
-
-.topbar-shell[data-route="home"] .topbar-pomodoro-status {
-  margin-top: 1px !important;
-  color: var(--mf-ref-blue) !important;
-  font-size: 9px !important;
-  font-weight: 720 !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-}
-
-/* ----------------------------------------------------------------------
-   Home composition — matches supplied 1408 × 1056 hierarchy.
-   ---------------------------------------------------------------------- */
-.mf-home {
-  width: min(1050px, 100%) !important;
-  margin: 0 auto !important;
-  padding-top: 54px !important;
-  color: var(--mf-ref-text) !important;
-}
-
-.mf-home-heading {
-  min-height: 84px !important;
-  padding-inline-end: 230px !important;
-}
-
-.mf-home-heading-copy h1 {
-  color: #111a2e !important;
-  font-size: 23px !important;
-  font-weight: 720 !important;
-  letter-spacing: -.035em !important;
-  line-height: 1.18 !important;
-}
-
-.mf-home-module-link {
-  margin-top: 8px !important;
-  color: var(--mf-ref-blue) !important;
-  font-size: 11px !important;
-  font-weight: 690 !important;
-}
-
-.mf-home-resume {
-  min-height: 25px !important;
-  margin-top: 7px !important;
-  border-color: #dce8ff !important;
-  background: #f7faff !important;
-  font-size: 8px !important;
-}
-
-.mf-home-plan {
-  height: 721px !important;
-  min-height: 721px !important;
-  grid-template-columns: minmax(0,1fr) 252px !important;
-  border: 1px solid var(--mf-ref-line) !important;
-  border-radius: 14px !important;
-  background: #fff !important;
-  box-shadow: var(--mf-ref-card-shadow) !important;
-}
-
-.mf-home-plan-main {
-  border-inline-end: 1px solid var(--mf-ref-line) !important;
-}
-
-.mf-home-plan-header {
-  min-height: 118px !important;
-  padding: 24px 21px 17px !important;
-}
-
-.mf-home-plan-header h2,
-.mf-home-activity-head h2 {
-  color: #151d30 !important;
-  font-size: 13px !important;
-  font-weight: 760 !important;
-  letter-spacing: -.012em !important;
-}
-
-.mf-home-calendar-nav {
-  gap: 9px !important;
-  margin-top: 20px !important;
-}
-
-.mf-home-calendar-nav > button:not(.mf-home-today) {
-  width: 24px !important;
-  height: 24px !important;
-  color: #65718a !important;
-}
-
-.mf-home-calendar-nav > span {
-  color: #2c3850 !important;
-  font-size: 10px !important;
-  font-weight: 680 !important;
-}
-
-.mf-home-today {
-  min-height: 29px !important;
-  padding: 0 10px !important;
-  border: 1px solid #dce8ff !important;
-  border-radius: 7px !important;
-  background: #fff !important;
-  color: var(--mf-ref-blue) !important;
-  font-size: 8.5px !important;
-}
-
-.mf-home-view-switcher {
-  margin-top: 39px !important;
-  padding: 3px !important;
-  border-color: var(--mf-ref-line) !important;
-  border-radius: 9px !important;
-  background: #f8f9fc !important;
-}
-
-.mf-home-view-switcher button {
-  min-width: 62px !important;
-  height: 30px !important;
-  color: #65718a !important;
-  font-size: 8.5px !important;
-}
-
-.mf-home-view-switcher button[data-active="true"] {
-  background: #fff !important;
-  color: var(--mf-ref-blue) !important;
-  box-shadow: 0 1px 4px rgba(18,37,71,.06) !important;
-}
-
-.mf-home-calendar-frame {
-  margin: 0 20px 20px !important;
-  border-top-color: var(--mf-ref-line) !important;
-}
-
-.mf-home-all-day {
-  min-height: 39px !important;
-  grid-template-columns: 62px minmax(0,1fr) !important;
-  border-bottom-color: var(--mf-ref-line) !important;
-  color: #606d85 !important;
-  font-size: 9px !important;
-}
-
-.mf-home-calendar-canvas {
-  height: 542px !important;
-  min-height: 542px !important;
-  overflow: hidden !important;
-}
-
-/* ----------------------------------------------------------------------
-   Continuous scrollable schedule.
-   ---------------------------------------------------------------------- */
-.mf-schedule {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-}
-
-.mf-schedule-days-head {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  flex: 0 0 auto;
-  display: grid;
-  min-height: 48px;
-  border-bottom: 1px solid var(--mf-ref-line);
-  background: rgba(255,255,255,.96);
-  backdrop-filter: blur(12px);
-}
-
-.mf-schedule-days-corner {
-  border-inline-end: 1px solid var(--mf-ref-line);
-}
-
-.mf-schedule-day-head {
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 3px;
-  border-inline-start: 1px solid var(--mf-ref-line);
-  color: var(--mf-ref-muted);
-}
-.mf-schedule-day-head span { font-size: 8px; font-weight: 720; text-transform: uppercase; }
-.mf-schedule-day-head strong { color: #29364e; font-size: 11px; font-weight: 760; }
-.mf-schedule-day-head[data-today="true"] { background: #f5f8ff; }
-.mf-schedule-day-head[data-today="true"] strong { color: var(--mf-ref-blue); }
-
-.mf-schedule-scroll {
-  min-height: 0;
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #cfd6e2 transparent;
-  overscroll-behavior: contain;
-}
-.mf-schedule-scroll::-webkit-scrollbar { width: 6px; }
-.mf-schedule-scroll::-webkit-scrollbar-thumb { border-radius: 99px; background: #cfd6e2; }
-.mf-schedule-scroll::-webkit-scrollbar-track { background: transparent; }
-
-.mf-schedule-body {
-  position: relative;
-  min-width: 0;
-  padding-inline-start: 62px;
-}
-
-.mf-schedule-times {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: 62px;
-  color: #7b879c;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-}
-
-.mf-schedule-times span {
-  position: absolute;
-  inset-inline: 0 9px;
-  transform: translateY(-6px);
-  text-align: end;
-  font-size: 8.5px;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.mf-schedule-grid-surface {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  border-inline-start: 1px solid var(--mf-ref-line);
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      var(--mf-ref-line) 0,
-      var(--mf-ref-line) 1px,
-      transparent 1px,
-      transparent var(--mf-hour-height)
-    );
-  cursor: crosshair;
-}
-
-.mf-schedule-grid-surface::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent calc(var(--mf-hour-height) / 2 - 1px),
-      rgba(231,235,242,.55) calc(var(--mf-hour-height) / 2 - 1px),
-      rgba(231,235,242,.55) calc(var(--mf-hour-height) / 2),
-      transparent calc(var(--mf-hour-height) / 2),
-      transparent var(--mf-hour-height)
-    );
-}
-
-.mf-schedule-day-column {
-  position: relative;
-  z-index: 1;
-  border-inline-start: 1px solid var(--mf-ref-line);
-  pointer-events: none;
-}
-.mf-schedule-day-column:first-child { border-inline-start: 0; }
-
-.mf-schedule-event {
-  appearance: none;
-  position: absolute;
-  z-index: 5;
-  min-height: 42px;
-  display: grid;
-  grid-template-columns: 3px 28px minmax(0,1fr);
-  align-items: center;
-  gap: 9px;
-  padding: 7px 11px 7px 0;
-  border: 1px solid currentColor;
-  border-radius: 8px;
-  color: var(--mf-ref-blue);
-  font-family: inherit;
-  text-align: start;
-  overflow: hidden;
-  cursor: grab;
-  box-shadow: 0 2px 7px rgba(26,48,88,.025);
-  transition: box-shadow 130ms ease, transform 130ms ease;
-}
-
-.mf-schedule-event:hover {
-  z-index: 9;
-  transform: translateY(-1px);
-  box-shadow: 0 7px 18px rgba(26,48,88,.07);
-}
-.mf-schedule-event:active { cursor: grabbing; }
-
-.mf-schedule-event-accent {
-  align-self: stretch;
-  width: 3px;
-  margin: -8px 0;
-  border-radius: 0 3px 3px 0;
-}
-
-.mf-schedule-event-icon {
-  width: 27px;
-  height: 27px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  background: rgba(255,255,255,.8);
-}
-
-.mf-schedule-event-copy {
-  min-width: 0;
-  display: grid;
-  align-content: center;
-  gap: 2px;
-}
-
-.mf-schedule-event-copy small {
-  color: currentColor;
-  font-size: 7.5px;
-  font-weight: 680;
-  line-height: 1.1;
-  opacity: .78;
-  font-variant-numeric: tabular-nums;
-}
-
-.mf-schedule-event-copy strong {
-  overflow: hidden;
-  color: #18243a;
-  font-size: 9.5px;
-  font-weight: 730;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mf-schedule-event-copy em {
-  overflow: hidden;
-  color: #65718a;
-  font-size: 7.5px;
-  font-style: normal;
-  font-weight: 580;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mf-schedule-drop-preview {
-  position: absolute;
-  z-index: 12;
-  height: 3px;
-  border-radius: 99px;
-  background: var(--mf-ref-blue);
-  box-shadow: 0 0 0 3px rgba(23,104,242,.12);
-  pointer-events: none;
-}
-
-.mf-schedule-now {
-  position: absolute;
-  z-index: 10;
-  height: 1px;
-  background: #e64f5c;
-  pointer-events: none;
-}
-.mf-schedule-now::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: -4px;
-  top: -3px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #e64f5c;
-}
-
-/* ----------------------------------------------------------------------
-   Right rail — same order and density as the reference.
-   ---------------------------------------------------------------------- */
-.mf-home-rail {
-  gap: 14px !important;
-  padding: 64px 20px 20px !important;
-  background: #fff !important;
-}
-
-.mf-home-rail-card {
-  padding: 16px !important;
-  border: 1px solid var(--mf-ref-line) !important;
-  border-radius: 11px !important;
-  background: #fff !important;
-  box-shadow: 0 1px 2px rgba(15,23,42,.015) !important;
-}
-
-.mf-home-rail-card h3 {
-  color: #1b263d !important;
-  font-size: 10px !important;
-  font-weight: 730 !important;
-}
-
-.mf-home-exam-card {
-  min-height: 219px !important;
-}
-
-.mf-home-exam-icon {
-  width: 39px !important;
-  height: 39px !important;
-  margin-top: 27px !important;
-  border-radius: 9px !important;
-  background: #eff4ff !important;
-  color: var(--mf-ref-blue) !important;
-}
-
-.mf-home-exam-number {
-  margin-top: -34px !important;
-  margin-inline-start: 52px !important;
-  color: var(--mf-ref-blue) !important;
-  font-size: 35px !important;
-  font-weight: 790 !important;
-}
-
-.mf-home-exam-unit {
-  margin-top: 8px !important;
-  color: #647089 !important;
-  font-size: 10px !important;
-}
-
-.mf-home-exam-module {
-  margin-top: 19px !important;
-  color: #536078 !important;
-  font-size: 10px !important;
-}
-
-.mf-home-exam-date {
-  color: #8a96aa !important;
-  font-size: 8.5px !important;
-}
-
-.mf-home-module-card {
-  min-height: 101px !important;
-}
-
-.mf-home-progress-label {
-  margin-top: 14px !important;
-  font-size: 8.5px !important;
-}
-
-.mf-home-progress-track {
-  height: 3px !important;
-  margin-top: 7px !important;
-  background: #e7ebf2 !important;
-}
-.mf-home-progress-track span { background: var(--mf-ref-blue) !important; }
-
-.mf-home-upcoming-card {
-  min-height: 278px !important;
-}
-
-.mf-home-upcoming-row {
-  min-height: 47px !important;
-  border-color: #edf0f5 !important;
-}
-
-.mf-home-upcoming-icon {
-  width: 28px !important;
-  height: 28px !important;
-}
-
-.mf-home-upcoming-copy strong {
-  color: #263249 !important;
-  font-size: 8.5px !important;
-}
-
-.mf-home-upcoming-copy small {
-  color: #8b96a9 !important;
-  font-size: 7.5px !important;
-}
-
-/* ----------------------------------------------------------------------
-   Recent activity — 135 px reference panel, additional functions retained.
-   ---------------------------------------------------------------------- */
-.mf-home-activity {
-  min-height: 136px !important;
-  margin-top: 16px !important;
-  border: 1px solid var(--mf-ref-line) !important;
-  border-radius: 13px !important;
-  background: #fff !important;
-  box-shadow: var(--mf-ref-card-shadow) !important;
-}
-
-.mf-home-activity-head {
-  min-height: 48px !important;
-  padding: 0 18px !important;
-  border-bottom: 0 !important;
-}
-
-.mf-home-activity-tabs button {
-  min-height: 26px !important;
-  padding: 0 7px !important;
-  font-size: 7.5px !important;
-}
-
-.mf-home-activity-body {
-  min-height: 82px !important;
-  padding: 4px 18px 15px !important;
-}
-
-.mf-home-activity-grid {
-  gap: 14px !important;
-}
-
-.mf-home-activity-row {
-  min-height: 65px !important;
-  grid-template-columns: 30px minmax(0,1fr) !important;
-  gap: 9px !important;
-  padding: 8px !important;
-}
-
-.mf-home-activity-icon {
-  width: 29px !important;
-  height: 29px !important;
-}
-
-.mf-home-activity-row strong { font-size: 8.5px !important; }
-.mf-home-activity-row small { font-size: 7.5px !important; }
-.mf-home-activity-row em { font-size: 7px !important; }
-
-/* ----------------------------------------------------------------------
-   Full-height utility modules beside the sidebar.
-   ---------------------------------------------------------------------- */
-.utility-workspace-overlay,
-.calendar-workspace-overlay {
-  inset-block: 0 !important;
-  inset-inline-start: var(--app-sidebar-width) !important;
-  inset-inline-end: 0 !important;
-  width: auto !important;
-  height: 100vh !important;
-  background: #fff !important;
-}
-
-/* ----------------------------------------------------------------------
-   Desktop safeguards and responsive behavior.
-   ---------------------------------------------------------------------- */
-@media (max-width: 1230px) {
-  :root { --app-sidebar-width: 204px; }
-  .content-route-home { padding-inline: 24px !important; }
-  .mf-home { width: min(1010px,100%) !important; }
-  .mf-home-plan { grid-template-columns: minmax(0,1fr) 232px !important; }
-  .topbar-shell[data-route="home"] .topbar-center { inset-inline-end: 24px !important; }
-}
-
-@media (max-width: 1000px) {
-  :root { --app-sidebar-width: 58px; }
-  .mf-home-heading { padding-inline-end: 0 !important; }
-  .mf-home-plan { height: auto !important; min-height: 0 !important; grid-template-columns: 1fr !important; }
-  .mf-home-plan-main { min-height: 720px !important; border-inline-end: 0 !important; }
-  .mf-home-rail { display: grid !important; grid-template-columns: repeat(3,minmax(0,1fr)) !important; padding: 16px !important; border-top: 1px solid var(--mf-ref-line) !important; }
-  .mf-home-upcoming-card { min-height: 219px !important; }
-  .topbar-shell[data-route="home"] .topbar-center { top: 22px !important; }
-}
-
-@media (max-width: 720px) {
-  .content-route-home { padding: 0 12px 24px !important; }
-  .mf-home { padding-top: 82px !important; }
-  .mf-home-heading { min-height: 72px !important; }
-  .mf-home-heading-copy h1 { font-size: 20px !important; }
-  .topbar-shell[data-route="home"] .topbar-center { inset-inline: 12px auto !important; }
-  .mf-home-plan-header { min-height: 145px !important; flex-direction: column !important; }
-  .mf-home-view-switcher { margin-top: 0 !important; }
-  .mf-home-rail { grid-template-columns: 1fr !important; }
-  .mf-home-activity-grid { grid-template-columns: 1fr !important; }
-  .mf-home-activity-tabs { max-width: 62%; overflow-x: auto; }
-  .mf-schedule-event { grid-template-columns: 3px 23px minmax(0,1fr); gap: 6px; padding-inline-end: 7px; }
-  .mf-schedule-event-icon { width: 23px; height: 23px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mf-schedule-event,
-  .mf-sidebar-item,
-  .mf-home-activity-row {
-    transition: none !important;
-  }
-}
-
-/* Activity selector keeps tasks and results without changing the reference header. */
-.mf-home-activity-actions {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.mf-home-view-all {
-  appearance: none;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--mf-ref-blue);
-  font-family: inherit;
-  font-size: 8.5px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mf-home-activity-menu {
-  position: absolute;
-  z-index: 30;
-  top: 27px;
-  inset-inline-end: 0;
-  width: 190px;
-  display: grid;
-  gap: 2px;
-  padding: 6px;
-  border: 1px solid var(--mf-ref-line);
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 14px 36px rgba(26,42,72,.13);
-}
-
-.mf-home-activity-menu button {
-  min-height: 31px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--mf-ref-secondary);
-  font-family: inherit;
-  font-size: 8.5px;
-  font-weight: 680;
-  text-align: start;
-  cursor: pointer;
-}
-.mf-home-activity-menu button:hover,
-.mf-home-activity-menu button[data-active="true"] {
-  background: var(--mf-ref-blue-soft);
-  color: var(--mf-ref-blue);
-}
-
-/* Dedicated one-day renderer used on Home. */
-.home-day-schedule {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-columns: 62px minmax(0,1fr);
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #cfd6e2 transparent;
-  overscroll-behavior: contain;
-}
-.home-day-schedule::-webkit-scrollbar { width: 6px; }
-.home-day-schedule::-webkit-scrollbar-thumb { border-radius: 99px; background: #cfd6e2; }
-.home-day-schedule::-webkit-scrollbar-track { background: transparent; }
-
-.home-day-times {
-  position: relative;
-  min-width: 0;
-}
-
-.home-day-time {
-  height: 56px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 9px 10px 0 0;
-  border-top: 1px solid var(--mf-ref-line);
-  color: #7b879c;
-  font-size: 8.5px;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-}
-
-.home-day-grid {
-  position: relative;
-  min-width: 0;
-  border-inline-start: 1px solid var(--mf-ref-line);
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      var(--mf-ref-line) 0,
-      var(--mf-ref-line) 1px,
-      transparent 1px,
-      transparent 56px
-    );
-  cursor: crosshair;
-}
-
-.home-day-grid::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent 27px,
-      rgba(231,235,242,.55) 27px,
-      rgba(231,235,242,.55) 28px,
-      transparent 28px,
-      transparent 56px
-    );
-}
-
-.home-day-event {
-  appearance: none;
-  position: absolute;
-  z-index: 5;
-  inset-inline: 14px 18px;
-  min-height: 42px;
-  display: grid;
-  grid-template-columns: 3px 28px minmax(0,1fr);
-  align-items: center;
-  gap: 9px;
-  padding: 7px 11px 7px 0;
-  border: 1px solid currentColor;
-  border-radius: 8px;
-  color: var(--mf-ref-blue);
-  font-family: inherit;
-  text-align: start;
-  overflow: hidden;
-  cursor: grab;
-  box-shadow: 0 2px 7px rgba(26,48,88,.025);
-  transition: box-shadow 130ms ease, transform 130ms ease;
-}
-.home-day-event:hover {
-  z-index: 9;
-  transform: translateY(-1px);
-  box-shadow: 0 7px 18px rgba(26,48,88,.07);
-}
-.home-day-event:active { cursor: grabbing; }
-
-.home-day-event-accent {
-  align-self: stretch;
-  width: 3px;
-  margin: -8px 0;
-  border-radius: 0 3px 3px 0;
-}
-
-.home-day-event-icon {
-  width: 27px;
-  height: 27px;
-  flex: 0 0 27px;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  border-radius: 8px;
-  background: rgba(255,255,255,.8);
-}
-
-.home-day-event-copy {
-  min-width: 0;
-  display: grid;
-  align-content: center;
-  gap: 2px;
-}
-
-.home-day-event-time {
-  display: block;
-  color: currentColor;
-  font-size: 7.5px;
-  font-weight: 680;
-  line-height: 1.1;
-  opacity: .78;
-  font-variant-numeric: tabular-nums;
-}
-
-.home-day-event-title {
-  display: block;
-  margin: 0;
-  overflow: hidden;
-  color: #18243a;
-  font-size: 9.5px;
-  font-weight: 730;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.home-day-event-subtitle {
-  display: block;
-  overflow: hidden;
-  color: #65718a;
-  font-size: 7.5px;
-  font-weight: 580;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.home-day-drop-preview {
-  position: absolute;
-  z-index: 12;
-  inset-inline: 8px;
-  height: 3px;
-  border-radius: 99px;
-  background: var(--mf-ref-blue);
-  box-shadow: 0 0 0 3px rgba(23,104,242,.12);
-  pointer-events: none;
-}
-
-.home-day-now-line {
-  position: absolute;
-  z-index: 10;
-  inset-inline: 0;
-  height: 1px;
-  background: #e64f5c;
-  pointer-events: none;
-}
-.home-day-now-line::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: -4px;
-  top: -3px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #e64f5c;
-}
-
-/* Explicit layout hooks used by the redesigned Insights workspace. */
-.insights-v3-trend-panel { min-height: 360px; }
-.insights-v3-queue-panel { min-height: 360px; }
-.insights-v3-session-panel { min-height: 300px; }
-.insights-v3-lecture-view,
-.insights-v3-focus-view { display: grid; gap: 12px; }
     `}</style>
   );
 }
@@ -12415,9 +11327,7 @@ function Timer({
             >
               {active
                 ? formatTime(seconds)
-                : route === "home"
-                  ? copy.timerTitle
-                  : clock}
+                : clock}
             </span>
 
             <span
@@ -12436,13 +11346,11 @@ function Timer({
             >
               {active
                 ? `${activeLabel} · ${runningLabel}`
-                : route === "home"
-                  ? `${settings.focus} ${t.minutes}`
-                  : t.startFocus}
+                : t.startFocus}
             </span>
           </span>
 
-          {!active && route !== "home" && (
+          {!active && (
             <span
               className="topbar-pomodoro-date"
               style={{
@@ -13282,356 +12190,226 @@ function Timer({
   );
 }
 
-function Notebook({ c, t, language = "da", onClose }) {
-  const defaultSectionTitle = language === "en" ? "General" : language === "ar" ? "عام" : "Generelt";
-  const [sections, setSections] = useStoredState(STORAGE.noteSections, [
-    { id: "section-general", title: defaultSectionTitle, color: "#7c5cff" },
-  ]);
+function Notebook({ c, t, onClose }) {
   const [tabs, setTabs] = useStoredState(STORAGE.notes, [
-    {
-      id: "note-1",
-      title: language === "en" ? "Notes" : language === "ar" ? "ملاحظات" : "Noter",
-      content: "",
-      sectionId: "section-general",
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    },
+    { id: 'note-1', title: 'Noter', content: '' },
   ]);
-  const [activeId, setActiveId] = useStoredState(STORAGE.activeNote, "note-1");
-  const [activeSectionId, setActiveSectionId] = useState(() => tabs.find((tab) => tab.id === activeId)?.sectionId || sections[0]?.id || "section-general");
-  const [search, setSearch] = useState("");
-  const [renamingSectionId, setRenamingSectionId] = useState(null);
-  const [sectionDraft, setSectionDraft] = useState("");
-  const [lastSavedAt, setLastSavedAt] = useState(Date.now());
+  const [activeId, setActiveId] = useStoredState(STORAGE.activeNote, 'note-1');
+  const [renamingId, setRenamingId] = useState(null);
+  const [draft, setDraft] = useState('');
+  const [search, setSearch] = useState('');
+  const [savedAt, setSavedAt] = useState(() => Date.now());
   const editorRef = useRef(null);
+  const renameRef = useRef(null);
 
-  const copy = ({
-    da: {
-      notebook: "Notesbog",
-      pages: "Sider",
-      sections: "Sektioner",
-      newPage: "Ny side",
-      newSection: "Ny sektion",
-      search: "Søg i noter",
-      untitled: "Unavngivet side",
-      deletePage: "Slet side",
-      deleteSection: "Slet sektion",
-      saved: "Gemt",
-      words: "ord",
-      empty: "Vælg eller opret en side",
-      pageTitle: "Sidetitel",
-      confirmPage: "Vil du slette denne side?",
-      confirmSection: "Vil du slette denne sektion og flytte siderne til Generelt?",
-      home: "Hjem",
-      insert: "Indsæt",
-      format: "Formater",
-    },
-    en: {
-      notebook: "Notebook",
-      pages: "Pages",
-      sections: "Sections",
-      newPage: "New page",
-      newSection: "New section",
-      search: "Search notes",
-      untitled: "Untitled page",
-      deletePage: "Delete page",
-      deleteSection: "Delete section",
-      saved: "Saved",
-      words: "words",
-      empty: "Select or create a page",
-      pageTitle: "Page title",
-      confirmPage: "Delete this page?",
-      confirmSection: "Delete this section and move its pages to General?",
-      home: "Home",
-      insert: "Insert",
-      format: "Format",
-    },
-    ar: {
-      notebook: "دفتر الملاحظات",
-      pages: "الصفحات",
-      sections: "الأقسام",
-      newPage: "صفحة جديدة",
-      newSection: "قسم جديد",
-      search: "البحث في الملاحظات",
-      untitled: "صفحة بلا عنوان",
-      deletePage: "حذف الصفحة",
-      deleteSection: "حذف القسم",
-      saved: "تم الحفظ",
-      words: "كلمة",
-      empty: "اختر صفحة أو أنشئ صفحة جديدة",
-      pageTitle: "عنوان الصفحة",
-      confirmPage: "هل تريد حذف هذه الصفحة؟",
-      confirmSection: "هل تريد حذف هذا القسم ونقل صفحاته إلى القسم العام؟",
-      home: "الرئيسية",
-      insert: "إدراج",
-      format: "تنسيق",
-    },
-  })[language] || {};
+  const activeTab = tabs.find((tab) => tab.id === activeId) || tabs[0];
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleTabs = normalizedSearch
+    ? tabs.filter((tab) => `${tab.title} ${String(tab.content || '').replace(/<[^>]*>/g, ' ')}`.toLowerCase().includes(normalizedSearch))
+    : tabs;
 
   useEffect(() => {
-    const fallbackSection = sections[0]?.id || "section-general";
-    const needsMigration = tabs.some((tab) => !tab.sectionId || !tab.createdAt || !tab.updatedAt);
-    if (!needsMigration) return;
-    setTabs((previous) => previous.map((tab) => ({
-      ...tab,
-      sectionId: tab.sectionId || fallbackSection,
-      createdAt: tab.createdAt || Date.now(),
-      updatedAt: tab.updatedAt || Date.now(),
-    })));
-  }, [sections, tabs, setTabs]);
+    if (!tabs.some((tab) => tab.id === activeId) && tabs[0]) setActiveId(tabs[0].id);
+  }, [tabs, activeId, setActiveId]);
 
   useEffect(() => {
-    if (!tabs.length) {
-      const id = `note-${Date.now()}`;
-      const sectionId = sections[0]?.id || "section-general";
-      setTabs([{ id, title: copy.untitled, content: "", sectionId, createdAt: Date.now(), updatedAt: Date.now() }]);
-      setActiveId(id);
-      setActiveSectionId(sectionId);
+    if (editorRef.current && editorRef.current.innerHTML !== (activeTab?.content || '')) {
+      editorRef.current.innerHTML = activeTab?.content || '';
+    }
+  }, [activeId, activeTab?.content]);
+
+  useEffect(() => {
+    if (renamingId && renameRef.current) {
+      renameRef.current.focus();
+      renameRef.current.select();
+    }
+  }, [renamingId]);
+
+  function updateContent(content) {
+    setTabs((previous) => previous.map((tab) => tab.id === activeId ? { ...tab, content } : tab));
+    setSavedAt(Date.now());
+  }
+
+  function command(commandName, value) {
+    editorRef.current?.focus();
+    document.execCommand(commandName, false, value);
+    updateContent(editorRef.current?.innerHTML || '');
+  }
+
+  function addNote() {
+    const id = `note-${Date.now()}`;
+    const title = `${t.note} ${tabs.length + 1}`;
+    setTabs((previous) => [...previous, { id, title, content: '' }]);
+    setActiveId(id);
+    setDraft(title);
+    setRenamingId(id);
+  }
+
+  function duplicateNote() {
+    if (!activeTab) return;
+    const id = `note-${Date.now()}`;
+    const title = `${activeTab.title} · kopi`;
+    setTabs((previous) => [...previous, { id, title, content: activeTab.content || '' }]);
+    setActiveId(id);
+  }
+
+  function deleteNote(id) {
+    if (tabs.length === 1) {
+      setTabs([{ id: 'note-1', title: t.notebook, content: '' }]);
+      setActiveId('note-1');
       return;
     }
-    if (!tabs.some((tab) => tab.id === activeId)) {
-      setActiveId(tabs[0].id);
-      setActiveSectionId(tabs[0].sectionId || sections[0]?.id);
-    }
-  }, [tabs, activeId, sections, setTabs, setActiveId]);
-
-  const activePage = tabs.find((tab) => tab.id === activeId) || null;
-  const activeSection = sections.find((section) => section.id === activeSectionId) || sections[0];
-  const normalizedSearch = search.trim().toLowerCase();
-  const visiblePages = tabs
-    .filter((tab) => tab.sectionId === activeSection?.id)
-    .filter((tab) => {
-      if (!normalizedSearch) return true;
-      const text = `${tab.title || ""} ${(tab.content || "").replace(/<[^>]*>/g, " ")}`.toLowerCase();
-      return text.includes(normalizedSearch);
-    })
-    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-
-  useEffect(() => {
-    if (!activePage || !editorRef.current) return;
-    if (editorRef.current.innerHTML !== (activePage.content || "")) {
-      editorRef.current.innerHTML = activePage.content || "";
-    }
-  }, [activeId, activePage?.content]);
-
-  function updatePage(patch) {
-    if (!activePage) return;
-    const now = Date.now();
-    setTabs((previous) => previous.map((tab) => tab.id === activePage.id ? { ...tab, ...patch, updatedAt: now } : tab));
-    setLastSavedAt(now);
-  }
-
-  function runCommand(name, value = null) {
-    editorRef.current?.focus();
-    document.execCommand(name, false, value);
-    updatePage({ content: editorRef.current?.innerHTML || "" });
-  }
-
-  function addPage() {
-    const sectionId = activeSection?.id || sections[0]?.id || "section-general";
-    const id = `note-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const now = Date.now();
-    setTabs((previous) => [{ id, title: copy.untitled, content: "", sectionId, createdAt: now, updatedAt: now }, ...previous]);
-    setActiveId(id);
-    setActiveSectionId(sectionId);
-    requestAnimationFrame(() => editorRef.current?.focus());
-  }
-
-  function addSection() {
-    const id = `section-${Date.now()}`;
-    const palette = ["#7c5cff", "#1665ea", "#0e9a68", "#e09021", "#d94f70", "#0f91a8"];
-    const next = {
-      id,
-      title: language === "en" ? `Section ${sections.length + 1}` : language === "ar" ? `قسم ${sections.length + 1}` : `Sektion ${sections.length + 1}`,
-      color: palette[sections.length % palette.length],
-    };
-    setSections((previous) => [...previous, next]);
-    setActiveSectionId(id);
-    setSectionDraft(next.title);
-    setRenamingSectionId(id);
-  }
-
-  function deletePage(pageId) {
-    if (!window.confirm(copy.confirmPage)) return;
-    const remaining = tabs.filter((page) => page.id !== pageId);
+    const tabIndex = tabs.findIndex((tab) => tab.id === id);
+    const remaining = tabs.filter((tab) => tab.id !== id);
     setTabs(remaining);
-    if (activeId === pageId) {
-      const next = remaining.find((page) => page.sectionId === activeSectionId) || remaining[0];
-      if (next) {
-        setActiveId(next.id);
-        setActiveSectionId(next.sectionId);
-      }
-    }
+    if (activeId === id) setActiveId(remaining[Math.max(0, tabIndex - 1)].id);
+    if (renamingId === id) setRenamingId(null);
   }
 
-  function deleteSection(sectionId) {
-    if (sections.length <= 1 || !window.confirm(copy.confirmSection)) return;
-    const fallback = sections.find((section) => section.id !== sectionId);
-    setTabs((previous) => previous.map((page) => page.sectionId === sectionId ? { ...page, sectionId: fallback.id, updatedAt: Date.now() } : page));
-    setSections((previous) => previous.filter((section) => section.id !== sectionId));
-    setActiveSectionId(fallback.id);
+  function beginRename(tab) {
+    setDraft(tab.title);
+    setRenamingId(tab.id);
   }
 
-  function saveSectionRename() {
-    if (!renamingSectionId) return;
-    const title = sectionDraft.trim() || defaultSectionTitle;
-    setSections((previous) => previous.map((section) => section.id === renamingSectionId ? { ...section, title } : section));
-    setRenamingSectionId(null);
+  function saveRename() {
+    if (!renamingId) return;
+    const title = draft.trim() || t.untitledNote;
+    setTabs((previous) => previous.map((tab) => tab.id === renamingId ? { ...tab, title } : tab));
+    setRenamingId(null);
+    setSavedAt(Date.now());
   }
 
-  const plainText = (activePage?.content || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
-  const wordCount = plainText ? plainText.split(" ").length : 0;
+  function plainText(html) {
+    return String(html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
 
-  const toolbar = [
-    { label: "B", title: "Bold", command: "bold", className: "note-toolbar-bold" },
-    { label: "I", title: "Italic", command: "italic", className: "note-toolbar-italic" },
-    { label: "U", title: "Underline", command: "underline", className: "note-toolbar-underline" },
-    { icon: "list", title: "Bullets", command: "insertUnorderedList" },
-    { label: "1.", title: "Numbered list", command: "insertOrderedList" },
-    { icon: "check", title: "Checklist", command: "insertUnorderedList" },
-    { label: "H1", title: "Heading 1", command: "formatBlock", value: "h1" },
-    { label: "H2", title: "Heading 2", command: "formatBlock", value: "h2" },
-    { icon: "reset", title: "Undo", command: "undo" },
-    { icon: "right", title: "Redo", command: "redo" },
-  ];
+  const activePlainText = plainText(activeTab?.content);
+  const wordCount = activePlainText ? activePlainText.split(' ').length : 0;
 
   return (
-    <section className="onenote-shell" dir={language === "ar" ? "rtl" : "ltr"}>
-      <header className="onenote-topbar">
-        <div className="onenote-brand">
-          <span className="onenote-brand-icon"><Icon name="notebook" size={17} /></span>
-          <div>
-            <div className="onenote-title">{copy.notebook}</div>
-            <div className="onenote-save-state">{copy.saved} · {new Date(lastSavedAt).toLocaleTimeString(language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB", { hour: "2-digit", minute: "2-digit" })}</div>
-          </div>
+    <aside className="notebook-polished" style={{ '--notebook-border': c.border }}>
+      <header className="notebook-polished-header">
+        <div className="notebook-polished-brand">
+          <span className="notebook-polished-brand-icon"><Icon name="notebook" size={16} /></span>
+          <span>
+            <strong>{t.notebook}</strong>
+            <small>{tabs.length} {tabs.length === 1 ? t.note : t.notebook.toLowerCase()}</small>
+          </span>
         </div>
-        <div className="onenote-top-actions">
-          <button type="button" className="onenote-primary-action" onClick={addPage}><Icon name="plus" size={14} />{copy.newPage}</button>
-          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
+        <div className="notebook-polished-header-actions">
+          <IconButton c={c} title={t.newNote} onClick={addNote}><Icon name="plus" size={16} /></IconButton>
+          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={16} /></IconButton>
         </div>
       </header>
 
-      <div className="onenote-ribbon">
-        <div className="onenote-ribbon-tabs">
-          <span data-active="true">{copy.home}</span>
-          <span>{copy.insert}</span>
-          <span>{copy.format}</span>
-        </div>
-        <div className="onenote-toolbar" role="toolbar" aria-label={copy.format}>
-          <select className="onenote-select" defaultValue="default" onChange={(event) => { if (event.target.value !== "default") runCommand("fontName", event.target.value); event.target.value = "default"; }}>
-            <option value="default">{t.font}</option>
-            <option value="Arial">Arial</option>
-            <option value="Aptos">Aptos</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Courier New">Mono</option>
-          </select>
-          <select className="onenote-select onenote-size-select" defaultValue="default" onChange={(event) => { if (event.target.value !== "default") runCommand("fontSize", event.target.value); event.target.value = "default"; }}>
-            <option value="default">15</option>
-            <option value="2">13</option>
-            <option value="3">15</option>
-            <option value="4">18</option>
-            <option value="5">24</option>
-          </select>
-          <span className="onenote-toolbar-divider" />
-          {toolbar.map((item, index) => (
-            <button key={`${item.title}-${index}`} type="button" title={item.title} className={`onenote-tool ${item.className || ""}`} onMouseDown={(event) => event.preventDefault()} onClick={() => runCommand(item.command, item.value)}>
-              {item.icon ? <Icon name={item.icon} size={14} /> : item.label}
-            </button>
-          ))}
-          <span className="onenote-toolbar-divider" />
-          <label className="onenote-color-tool" title="Text color">
-            <span>A</span>
-            <input type="color" defaultValue="#1665ea" onChange={(event) => runCommand("foreColor", event.target.value)} />
+      <div className="notebook-polished-body">
+        <aside className="notebook-polished-list-pane">
+          <label className="notebook-polished-search">
+            <Icon name="cards" size={13} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`${t.notebook}…`} />
           </label>
-          <label className="onenote-color-tool" title="Highlight">
-            <Icon name="edit" size={13} />
-            <input type="color" defaultValue="#fff2a8" onChange={(event) => runCommand("hiliteColor", event.target.value)} />
-          </label>
-        </div>
-      </div>
 
-      <div className="onenote-workspace">
-        <aside className="onenote-sections" aria-label={copy.sections}>
-          <div className="onenote-section-label">{copy.sections}</div>
-          <div className="onenote-section-list">
-            {sections.map((section) => {
-              const active = section.id === activeSection?.id;
+          <div className="notebook-polished-note-list">
+            {visibleTabs.map((tab) => {
+              const selected = tab.id === activeId;
+              const preview = plainText(tab.content).slice(0, 56);
               return (
-                <div key={section.id} className="onenote-section-wrap" data-active={active ? "true" : "false"}>
-                  {renamingSectionId === section.id ? (
-                    <input className="onenote-section-rename" value={sectionDraft} onChange={(event) => setSectionDraft(event.target.value)} onBlur={saveSectionRename} onKeyDown={(event) => { if (event.key === "Enter") saveSectionRename(); if (event.key === "Escape") setRenamingSectionId(null); }} autoFocus />
-                  ) : (
-                    <button type="button" className="onenote-section-button" onClick={() => { setActiveSectionId(section.id); const first = tabs.find((page) => page.sectionId === section.id); if (first) setActiveId(first.id); }} onDoubleClick={() => { setSectionDraft(section.title); setRenamingSectionId(section.id); }}>
-                      <span className="onenote-section-color" style={{ background: section.color }} />
-                      <span>{section.title}</span>
-                    </button>
-                  )}
-                  {sections.length > 1 && active && (
-                    <button type="button" className="onenote-section-delete" title={copy.deleteSection} onClick={() => deleteSection(section.id)}><Icon name="close" size={11} /></button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <button type="button" className="onenote-add-section" onClick={addSection}><Icon name="plus" size={13} />{copy.newSection}</button>
-        </aside>
-
-        <aside className="onenote-pages" aria-label={copy.pages}>
-          <div className="onenote-pages-head">
-            <div>
-              <div className="onenote-pages-title">{activeSection?.title || copy.pages}</div>
-              <div className="onenote-pages-count">{visiblePages.length} {copy.pages.toLowerCase()}</div>
-            </div>
-            <button type="button" className="onenote-page-add" onClick={addPage} title={copy.newPage}><Icon name="plus" size={15} /></button>
-          </div>
-          <label className="onenote-search">
-            <Icon name="search" size={14} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={copy.search} />
-          </label>
-          <div className="onenote-page-list">
-            {visiblePages.map((page) => {
-              const selected = page.id === activeId;
-              const preview = (page.content || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
-              return (
-                <button key={page.id} type="button" className="onenote-page-row" data-active={selected ? "true" : "false"} onClick={() => setActiveId(page.id)}>
-                  <span className="onenote-page-accent" style={{ background: activeSection?.color || c.blue }} />
-                  <span className="onenote-page-copy">
-                    <span className="onenote-page-title" style={{ display: "block" }}>{page.title || copy.untitled}</span>
-                    <span className="onenote-page-preview" style={{ display: "block" }}>{preview || t.notesPlaceholder}</span>
-                    <span className="onenote-page-date" style={{ display: "block" }}>{new Date(page.updatedAt || page.createdAt || Date.now()).toLocaleDateString(language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB", { day: "numeric", month: "short" })}</span>
+                <button
+                  key={tab.id}
+                  type="button"
+                  className="notebook-polished-note-row"
+                  data-active={selected ? 'true' : 'false'}
+                  onClick={() => setActiveId(tab.id)}
+                  onDoubleClick={() => beginRename(tab)}
+                >
+                  <span className="notebook-polished-note-indicator" />
+                  <span className="notebook-polished-note-copy">
+                    <strong>{tab.title}</strong>
+                    <small>{preview || t.notesPlaceholder}</small>
                   </span>
-                  {selected && <span className="onenote-page-delete" role="button" tabIndex={0} title={copy.deletePage} onClick={(event) => { event.stopPropagation(); deletePage(page.id); }} onKeyDown={(event) => { if (event.key === "Enter") { event.stopPropagation(); deletePage(page.id); } }}><Icon name="more" size={14} /></span>}
                 </button>
               );
             })}
-            {!visiblePages.length && <div className="onenote-empty-list">{copy.empty}</div>}
           </div>
+
+          <button type="button" className="notebook-polished-add" onClick={addNote}>
+            <Icon name="plus" size={14} /> {t.newNote}
+          </button>
         </aside>
 
-        <main className="onenote-editor-pane">
-          {activePage ? (
-            <>
-              <div className="onenote-editor-head">
-                <input className="onenote-page-title-input" value={activePage.title || ""} onChange={(event) => updatePage({ title: event.target.value })} placeholder={copy.pageTitle} />
-                <div className="onenote-page-meta">{new Date(activePage.updatedAt || Date.now()).toLocaleDateString(language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
-              </div>
-              <div className="onenote-editor-scroll">
-                <div ref={editorRef} contentEditable suppressContentEditableWarning className="onenote-editor rich-editor" data-placeholder={t.notesPlaceholder} onInput={(event) => updatePage({ content: event.currentTarget.innerHTML })} />
-              </div>
-              <footer className="onenote-statusbar">
-                <span>{wordCount} {copy.words}</span>
-                <span>{copy.saved}</span>
-              </footer>
-            </>
-          ) : (
-            <div className="onenote-empty-editor"><Icon name="notebook" size={26} /><span>{copy.empty}</span><button type="button" className="onenote-primary-action" onClick={addPage}>{copy.newPage}</button></div>
-          )}
-        </main>
+        <section className="notebook-polished-editor-pane">
+          <div className="notebook-polished-titlebar">
+            <div className="notebook-polished-title-wrap">
+              {renamingId === activeTab?.id ? (
+                <input
+                  ref={renameRef}
+                  className="notebook-polished-title-input"
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  onBlur={saveRename}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') { event.preventDefault(); saveRename(); }
+                    if (event.key === 'Escape') setRenamingId(null);
+                  }}
+                />
+              ) : (
+                <button type="button" className="notebook-polished-title-button" onClick={() => activeTab && beginRename(activeTab)}>
+                  {activeTab?.title || t.untitledNote}
+                </button>
+              )}
+              <span>{wordCount} {t.words}</span>
+            </div>
+            <div className="notebook-polished-document-actions">
+              <IconButton c={c} title="Duplikér" onClick={duplicateNote}><Icon name="cards" size={15} /></IconButton>
+              <IconButton c={c} title={t.deleteNote} onClick={() => activeTab && deleteNote(activeTab.id)} style={{ color: c.red }}><Icon name="trash" size={15} /></IconButton>
+            </div>
+          </div>
+
+          <div className="notebook-polished-ribbon" role="toolbar" aria-label={t.notebook}>
+            <select
+              aria-label={t.font}
+              defaultValue="default"
+              onChange={(event) => {
+                if (event.target.value !== 'default') command('fontName', event.target.value);
+                event.target.value = 'default';
+              }}
+            >
+              <option value="default">{t.font}</option>
+              <option value="Arial">Arial</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Mono</option>
+            </select>
+            <span className="notebook-polished-ribbon-divider" />
+            <button type="button" onClick={() => command('bold')} aria-label="Bold"><strong>B</strong></button>
+            <button type="button" onClick={() => command('italic')} aria-label="Italic"><em>I</em></button>
+            <button type="button" onClick={() => command('underline')} aria-label="Underline"><u>U</u></button>
+            <span className="notebook-polished-ribbon-divider" />
+            <button type="button" onClick={() => command('formatBlock', 'H2')} aria-label="Heading">H2</button>
+            <button type="button" onClick={() => command('insertUnorderedList')} aria-label="Bulleted list"><Icon name="list" size={15} /></button>
+            <button type="button" onClick={() => command('insertOrderedList')} aria-label="Numbered list">1.</button>
+            <button type="button" onClick={() => command('removeFormat')} aria-label="Clear formatting"><Icon name="reset" size={14} /></button>
+          </div>
+
+          <div className="notebook-polished-paper-scroll">
+            <div
+              ref={editorRef}
+              contentEditable
+              suppressContentEditableWarning
+              className="rich-editor notebook-polished-paper"
+              data-placeholder={t.notesPlaceholder}
+              onInput={(event) => updateContent(event.currentTarget.innerHTML)}
+            />
+          </div>
+
+          <footer className="notebook-polished-footer">
+            <span><span className="notebook-polished-saved-dot" /> Gemmes automatisk</span>
+            <span>{new Date(savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          </footer>
+        </section>
       </div>
-    </section>
+    </aside>
   );
 }
-
 
 function getMonthMatrix(year, month) {
   const first = new Date(year, month, 1);
@@ -13678,7 +12456,9 @@ function computeStreak(days) {
   const today = new Date();
   let current = 0;
   const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  if (!dateSet.has(dateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()))) cursor.setDate(cursor.getDate() - 1);
+  if (!dateSet.has(dateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()))) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
   while (dateSet.has(dateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()))) {
     current += 1;
     cursor.setDate(cursor.getDate() - 1);
@@ -13707,6 +12487,7 @@ function computeEarnedBadges({ streakCurrent, totalQuestionsAnswered, totalPomod
     return false;
   });
 }
+
 
 /* ------------------------------------------------------------------------
    LECTURE LINE RACE + POMODORO CALENDAR HEATMAP (ECharts)
@@ -14295,7 +13076,6 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
               weekStart={view === "day" ? dayDate : weekStart}
               daysCount={view === "day" ? 1 : 7}
               weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels}
-              language={language}
               onMoveEvent={moveEvent}
               onSlotClick={handleSlotClick}
               onEventClick={(event) => {
@@ -16383,6 +15163,7 @@ async function submitFlag() {
       flagSubmitting
         ? 0.6
         : 1,
+    opacity: flagSubmitting ? 0.6 : 1,
   }}
   disabled={
     flagReason.trim().length < 3 ||
@@ -16470,509 +15251,623 @@ async function submitFlag() {
 function Insights({ c, t, language, user }) {
   const [history] = useStoredState(STORAGE.quizHistory, []);
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
-  const [spacedData] = useStoredState(STORAGE.spacedRepetition, {});
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
   const [pomodoroMinutesLog] = useStoredState(STORAGE.pomodoroMinutesLog, {});
-  const [range, setRange] = useState("30");
-  const [view, setView] = useState("overview");
   const [expandedId, setExpandedId] = useState(null);
-  const [lectureGroup, setLectureGroup] = useState("all");
+  const [depthGroupFilter, setDepthGroupFilter] = useState("all");
+  const sessions = [...history].sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
 
-  const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
-  const moduleName = user?.module || "";
-  const copy = ({
+  // Denne visning bruger en fast, hvid baggrund med mørk tekst uafhængigt af app-temaet
+  // (lys/mørk), så indsigterne altid er tydelige og læsbare. Accentfarver (grøn/blå/rød)
+  // følger stadig samme betydning som resten af appen.
+  const ink = {
+    page: c.panel,
+    text: c.text,
+    secondary: c.secondary,
+    muted: c.muted,
+    line: c.border,
+    lineStrong: c.borderStrong,
+    blue: c.blue,
+    blueSoft: c.blueSoft,
+    green: c.green,
+    red: c.red,
+    redSoft: c.redSoft,
+  };
+
+  const x = ({
     da: {
-      eyebrow: "Analyse",
       title: "Indsigter",
-      subtitle: "Et samlet billede af læring, repetition og fokustid.",
-      overview: "Overblik",
-      lectures: "Forelæsninger",
-      focus: "Fokus",
-      sevenDays: "7 dage",
-      thirtyDays: "30 dage",
-      ninetyDays: "90 dage",
-      allTime: "Al tid",
-      export: "Eksportér CSV",
-      sessions: "Sessioner",
-      questions: "Besvarelser",
-      accuracy: "Nøjagtighed",
-      studyTime: "Studietid",
-      compared: "mod forrige periode",
-      noComparison: "Ingen forrige data",
-      trend: "Aktivitet og nøjagtighed",
-      trendSubtitle: "Daglig udvikling i den valgte periode",
-      questionsLabel: "Spørgsmål",
-      accuracyLabel: "Nøjagtighed",
-      queue: "Repetitionskø",
-      queueSubtitle: "Aktuel status for kort i modulet",
-      new: "Nye",
-      learning: "Læring",
-      due: "Til repetition",
-      learned: "Lært",
-      suspended: "Suspenderet",
-      weakTopics: "Fokusområder",
-      weakTopicsSubtitle: "Emner med lavest dokumenteret nøjagtighed",
-      noTopics: "Der er endnu ikke nok emnedata.",
-      recent: "Seneste sessioner",
-      date: "Dato",
-      module: "Modul",
-      result: "Resultat",
-      duration: "Varighed",
+      subtitle: "Din læring, fortalt",
+      score: "Samlet korrekt",
+      accuracy: "Korrektprocent",
+      answered: "Besvarede",
+      sessionsWord: "Sessioner",
+      trend: "Udvikling",
+      recent: "Sessionslog",
+      correct: "korrekte",
+      time: "Tid",
+      average: "Gennemsnit",
+      best: "Bedste",
+      latest: "Seneste",
       details: "Detaljer",
-      correct: "korrekt",
-      minutes: "min",
-      noSessions: "Ingen sessioner i den valgte periode.",
-      lectureDevelopment: "Udvikling pr. forelæsning",
-      lectureDevelopmentSubtitle: "Kumulativ nøjagtighed over gennemførte sessioner",
-      allGroups: "Alle grupper",
-      noLectureData: "Der er endnu ingen data for denne forelæsningsgruppe.",
-      focusCalendar: "Fokuskalender",
-      focusCalendarSubtitle: "Fokusminutter registreret af Pomodoro-timeren",
-      noFocusData: "Der er endnu ingen registreret fokustid.",
-      consistency: "Kontinuitet",
-      currentStreak: "Nuværende streak",
-      bestStreak: "Bedste streak",
-      totalPomodoros: "Pomodoros",
-      focusMinutes: "Fokusminutter",
-      days: "dage",
-      sessionDetail: "Sessionsdetaljer",
+      hide: "Luk",
       topic: "Emne",
-      answered: "Besvaret",
+      result: "Resultat",
+      date: "Dato",
+      duration: "Varighed",
+      noDuration: "Ikke registreret",
+      lowest: "Laveste emnescore",
+      all: "Alle data",
+      noData: "Ingen sessioner endnu",
+      noDataText: "Gennemfør en MCQ-session for at se din analyse her.",
+      min: "min",
+      activity: "Aktivitet",
+      activityText: "Studiedage, pomodoros og gennemsnitlig score de sidste 14 dage",
+      currentStreak: "Nuværende streak",
+      longestStreak: "Længste streak",
+      totalPomodoros: "Pomodoros i alt",
+      activeDays: "Aktive dage",
+      allTopicsOption: "Alle emner",
+      statusHeading: "Status",
+      statusStrongFor: (moduleName) => `Du har et solidt greb om ${moduleName}, og præstationen holder sig konsekvent på et højt niveau.`,
+      statusMixedFor: (moduleName) => `Din forståelse af ${moduleName} er i fremgang, men enkelte emner trækker stadig ned i det samlede billede.`,
+      statusWeakFor: (moduleName) => `${moduleName} kræver fortsat systematisk repetition — flere emner ligger under et sikkert niveau.`,
+      statusEarlyFor: (moduleName) => `Du er tidligt i din gennemgang af ${moduleName}. Der er endnu ikke nok data til et fuldt billede.`,
+      statusNoModule: "Vælg et modul i din profil for at få en detaljeret gennemgang af din læring inden for det.",
+      statusGlobalNote: "Nedenstående afsnit dækker hele dit studieforløb, uafhængigt af modul.",
+      attentionHeading: "Opmærksomhedspunkter",
+      attentionIntroFor: (moduleName) => `De emner i ${moduleName}, der kræver mest opmærksomhed lige nu.`,
+      attentionNone: "Ingen emner i dette modul kræver særlig opmærksomhed lige nu — godt arbejde.",
+      attentionItem: (topic, percent) => `${topic} står aktuelt til ${percent} procent korrekte svar og bør prioriteres ved næste repetition.`,
+      depthHeading: "Emne for emne",
+      allGroupsOption: "Alle underemner",
+      depthNoData: "Ingen data for dette underemne endnu.",
+      depthIntroFor: (moduleName) => `Sådan udvikler hvert emne i ${moduleName} sig over dine seneste sessioner.`,
+      depthSentenceUp: (topic) => `${topic} er i fremgang og nærmer sig et solidt niveau.`,
+      depthSentenceDown: (topic) => `${topic} er gået tilbage siden dine tidligere sessioner og bør revurderes.`,
+      depthSentenceStable: (topic) => `${topic} ligger stabilt uden markante udsving.`,
+      depthSentenceEarly: (topic) => `${topic} er endnu kun besvaret få gange — for tidligt at afgøre en tendens.`,
+      trendHeading: "Udvikling over tid",
+      recentHeading: "Dine seneste sessioner",
+      activityHeading: "Aktivitet",
+      pomodoroHeatmapTitle: "Fokus-minutter pr. dag",
+      pomodoroHeatmapEmpty: "Ingen pomodoro-data endnu. Start fokusuret for at se din kalenderoversigt.",
     },
     en: {
-      eyebrow: "Analytics",
       title: "Insights",
-      subtitle: "A unified view of learning, review and focus time.",
-      overview: "Overview",
-      lectures: "Lectures",
-      focus: "Focus",
-      sevenDays: "7 days",
-      thirtyDays: "30 days",
-      ninetyDays: "90 days",
-      allTime: "All time",
-      export: "Export CSV",
-      sessions: "Sessions",
-      questions: "Answers",
+      subtitle: "Your learning, told as a story",
+      score: "Overall correct",
       accuracy: "Accuracy",
-      studyTime: "Study time",
-      compared: "vs previous period",
-      noComparison: "No previous data",
-      trend: "Activity and accuracy",
-      trendSubtitle: "Daily development in the selected period",
-      questionsLabel: "Questions",
-      accuracyLabel: "Accuracy",
-      queue: "Review queue",
-      queueSubtitle: "Current card state in this module",
-      new: "New",
-      learning: "Learning",
-      due: "Due",
-      learned: "Learned",
-      suspended: "Suspended",
-      weakTopics: "Focus areas",
-      weakTopicsSubtitle: "Topics with the lowest documented accuracy",
-      noTopics: "There is not enough topic data yet.",
-      recent: "Recent sessions",
-      date: "Date",
-      module: "Module",
-      result: "Result",
-      duration: "Duration",
-      details: "Details",
-      correct: "correct",
-      minutes: "min",
-      noSessions: "No sessions in the selected period.",
-      lectureDevelopment: "Lecture development",
-      lectureDevelopmentSubtitle: "Cumulative accuracy across completed sessions",
-      allGroups: "All groups",
-      noLectureData: "There is no data for this lecture group yet.",
-      focusCalendar: "Focus calendar",
-      focusCalendarSubtitle: "Focus minutes recorded by the Pomodoro timer",
-      noFocusData: "No focus time has been recorded yet.",
-      consistency: "Consistency",
-      currentStreak: "Current streak",
-      bestStreak: "Best streak",
-      totalPomodoros: "Pomodoros",
-      focusMinutes: "Focus minutes",
-      days: "days",
-      sessionDetail: "Session details",
-      topic: "Topic",
       answered: "Answered",
+      sessionsWord: "Sessions",
+      trend: "Progress",
+      recent: "Session log",
+      correct: "correct",
+      time: "Time",
+      average: "Average",
+      best: "Best",
+      latest: "Latest",
+      details: "Details",
+      hide: "Close",
+      topic: "Topic",
+      result: "Result",
+      date: "Date",
+      duration: "Duration",
+      noDuration: "Not recorded",
+      lowest: "Lowest topic score",
+      all: "All data",
+      noData: "No sessions yet",
+      noDataText: "Complete an MCQ session to see your analysis here.",
+      min: "min",
+      activity: "Activity",
+      activityText: "Study days, pomodoros and average score over the last 14 days",
+      currentStreak: "Current streak",
+      longestStreak: "Longest streak",
+      totalPomodoros: "Total pomodoros",
+      activeDays: "Active days",
+      allTopicsOption: "All topics",
+      statusHeading: "Status",
+      statusStrongFor: (moduleName) => `You have a solid grasp of ${moduleName}, and performance remains consistently strong.`,
+      statusMixedFor: (moduleName) => `Your understanding of ${moduleName} is improving, but a few topics still weigh down the overall picture.`,
+      statusWeakFor: (moduleName) => `${moduleName} still needs systematic review — several topics remain below a safe level.`,
+      statusEarlyFor: (moduleName) => `You are early in your review of ${moduleName}. There isn't enough data yet for a complete picture.`,
+      statusNoModule: "Choose a module in your profile to get a detailed breakdown of your learning within it.",
+      statusGlobalNote: "The sections below cover your entire study history, independent of module.",
+      attentionHeading: "Points of attention",
+      attentionIntroFor: (moduleName) => `The topics in ${moduleName} that need the most attention right now.`,
+      attentionNone: "No topics in this module need particular attention right now — good work.",
+      attentionItem: (topic, percent) => `${topic} currently stands at ${percent} percent correct and should be prioritised in your next review.`,
+      depthHeading: "Topic by topic",
+      allGroupsOption: "All subtopics",
+      depthNoData: "No data for this subtopic yet.",
+      depthIntroFor: (moduleName) => `How each topic in ${moduleName} has developed across your recent sessions.`,
+      depthSentenceUp: (topic) => `${topic} is improving and approaching a solid level.`,
+      depthSentenceDown: (topic) => `${topic} has declined since your earlier sessions and should be revisited.`,
+      depthSentenceStable: (topic) => `${topic} remains stable without significant fluctuation.`,
+      depthSentenceEarly: (topic) => `${topic} has only been answered a few times — too early to determine a trend.`,
+      trendHeading: "Progress over time",
+      recentHeading: "Your recent sessions",
+      activityHeading: "Activity",
+      pomodoroHeatmapTitle: "Focus minutes per day",
+      pomodoroHeatmapEmpty: "No pomodoro data yet. Start the focus timer to see your calendar overview.",
     },
     ar: {
-      eyebrow: "التحليلات",
       title: "الإحصاءات",
-      subtitle: "صورة موحدة للتعلم والمراجعة ووقت التركيز.",
-      overview: "نظرة عامة",
-      lectures: "المحاضرات",
-      focus: "التركيز",
-      sevenDays: "7 أيام",
-      thirtyDays: "30 يومًا",
-      ninetyDays: "90 يومًا",
-      allTime: "كل الوقت",
-      export: "تصدير CSV",
-      sessions: "الجلسات",
-      questions: "الإجابات",
-      accuracy: "الدقة",
-      studyTime: "وقت الدراسة",
-      compared: "مقارنة بالفترة السابقة",
-      noComparison: "لا توجد بيانات سابقة",
-      trend: "النشاط والدقة",
-      trendSubtitle: "التطور اليومي في الفترة المحددة",
-      questionsLabel: "الأسئلة",
-      accuracyLabel: "الدقة",
-      queue: "قائمة المراجعة",
-      queueSubtitle: "الحالة الحالية للبطاقات في الوحدة",
-      new: "جديد",
-      learning: "قيد التعلم",
-      due: "للمراجعة",
-      learned: "تم تعلمه",
-      suspended: "معلق",
-      weakTopics: "مجالات التركيز",
-      weakTopicsSubtitle: "الموضوعات ذات أقل دقة موثقة",
-      noTopics: "لا توجد بيانات كافية عن الموضوعات بعد.",
-      recent: "الجلسات الأخيرة",
-      date: "التاريخ",
-      module: "الوحدة",
-      result: "النتيجة",
-      duration: "المدة",
-      details: "التفاصيل",
-      correct: "صحيح",
-      minutes: "دقيقة",
-      noSessions: "لا توجد جلسات في الفترة المحددة.",
-      lectureDevelopment: "تطور المحاضرات",
-      lectureDevelopmentSubtitle: "الدقة التراكمية عبر الجلسات المكتملة",
-      allGroups: "كل المجموعات",
-      noLectureData: "لا توجد بيانات لهذه المجموعة بعد.",
-      focusCalendar: "تقويم التركيز",
-      focusCalendarSubtitle: "دقائق التركيز المسجلة بواسطة مؤقت بومودورو",
-      noFocusData: "لا يوجد وقت تركيز مسجل بعد.",
-      consistency: "الاستمرارية",
-      currentStreak: "السلسلة الحالية",
-      bestStreak: "أفضل سلسلة",
-      totalPomodoros: "بومودورو",
-      focusMinutes: "دقائق التركيز",
-      days: "أيام",
-      sessionDetail: "تفاصيل الجلسة",
-      topic: "الموضوع",
+      subtitle: "مسيرتك التعليمية بصيغة سردية",
+      score: "الصحيح الإجمالي",
+      accuracy: "نسبة الصحة",
       answered: "تمت الإجابة",
+      sessionsWord: "الجلسات",
+      trend: "التطور",
+      recent: "سجل الجلسات",
+      correct: "صحيحة",
+      time: "الوقت",
+      average: "المتوسط",
+      best: "الأفضل",
+      latest: "الأحدث",
+      details: "التفاصيل",
+      hide: "إغلاق",
+      topic: "الموضوع",
+      result: "النتيجة",
+      date: "التاريخ",
+      duration: "المدة",
+      noDuration: "غير مسجلة",
+      lowest: "أدنى نتيجة موضوع",
+      all: "كل البيانات",
+      noData: "لا توجد جلسات بعد",
+      noDataText: "أكمل جلسة أسئلة لرؤية التحليل هنا.",
+      min: "د",
+      activity: "النشاط",
+      activityText: "أيام الدراسة والبومودورو والمعدل خلال آخر 14 يومًا",
+      currentStreak: "التتابع الحالي",
+      longestStreak: "أطول تتابع",
+      totalPomodoros: "إجمالي البومودورو",
+      activeDays: "الأيام النشطة",
+      allTopicsOption: "جميع الموضوعات",
+      statusHeading: "الوضع الحالي",
+      statusStrongFor: (moduleName) => `لديك فهم قوي لمقرر ${moduleName}، وأدائك ثابت عند مستوى مرتفع.`,
+      statusMixedFor: (moduleName) => `فهمك لمقرر ${moduleName} يتحسن، لكن بعض الموضوعات لا تزال تؤثر سلبًا على الصورة العامة.`,
+      statusWeakFor: (moduleName) => `لا يزال مقرر ${moduleName} يحتاج إلى مراجعة منهجية — عدة موضوعات دون المستوى الآمن.`,
+      statusEarlyFor: (moduleName) => `أنت في بداية مراجعتك لمقرر ${moduleName}. لا توجد بيانات كافية بعد لصورة كاملة.`,
+      statusNoModule: "اختر وحدة في ملفك الشخصي للحصول على تحليل تفصيلي لمسيرتك التعليمية ضمنها.",
+      statusGlobalNote: "الأقسام أدناه تغطي مسيرتك الدراسية الكاملة، بغض النظر عن الوحدة.",
+      attentionHeading: "نقاط تحتاج إلى اهتمام",
+      attentionIntroFor: (moduleName) => `الموضوعات في ${moduleName} التي تحتاج إلى أكبر قدر من الاهتمام حاليًا.`,
+      attentionNone: "لا توجد موضوعات في هذه الوحدة تحتاج إلى اهتمام خاص حاليًا — عمل جيد.",
+      attentionItem: (topic, percent) => `يقف ${topic} حاليًا عند ${percent} بالمئة من الإجابات الصحيحة، وينبغي إعطاؤه الأولوية في مراجعتك القادمة.`,
+      depthHeading: "موضوع بموضوع",
+      allGroupsOption: "جميع المواضيع الفرعية",
+      depthNoData: "لا توجد بيانات لهذا الموضوع الفرعي بعد.",
+      depthIntroFor: (moduleName) => `كيف تطور كل موضوع في ${moduleName} عبر جلساتك الأخيرة.`,
+      depthSentenceUp: (topic) => `${topic} في تحسن ويقترب من مستوى جيد.`,
+      depthSentenceDown: (topic) => `${topic} تراجع منذ جلساتك السابقة وينبغي إعادة النظر فيه.`,
+      depthSentenceStable: (topic) => `${topic} مستقر دون تقلبات ملحوظة.`,
+      depthSentenceEarly: (topic) => `لم تتم الإجابة على ${topic} إلا قليلًا حتى الآن — من المبكر تحديد اتجاه.`,
+      trendHeading: "التطور مع الوقت",
+      recentHeading: "جلساتك الأخيرة",
+      activityHeading: "النشاط",
+      pomodoroHeatmapTitle: "دقائق التركيز يوميًا",
+      pomodoroHeatmapEmpty: "لا توجد بيانات بومودورو حتى الآن. ابدأ مؤقت التركيز لعرض التقويم.",
     },
   })[language] || {};
 
-  const allSessions = [...history]
-    .filter((session) => !moduleName || !session.module || session.module === moduleName)
-    .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
+  const scoreColor = (value) => (value >= 80 ? ink.green : value >= 60 ? ink.blue : ink.red);
 
-  const now = new Date();
-  const rangeDays = range === "all" ? null : Number(range);
-  const rangeStart = rangeDays ? new Date(now.getTime() - rangeDays * 86400000) : null;
-  const previousStart = rangeDays ? new Date(now.getTime() - rangeDays * 2 * 86400000) : null;
-  const filteredSessions = allSessions.filter((session) => !rangeStart || new Date(session.completedAt || 0) >= rangeStart);
-  const previousSessions = rangeDays
-    ? allSessions.filter((session) => {
-        const date = new Date(session.completedAt || 0);
-        return date >= previousStart && date < rangeStart;
-      })
-    : [];
-
-  function sessionTotal(session) {
-    return Number(session.total || session.answered || 0);
+  if (!sessions.length) {
+    return (
+      <section className="fade-up insights-polished insights-polished-empty" style={{ maxWidth: 640, margin: "40px auto", padding: "60px 40px", textAlign: "center", background: ink.page, borderRadius: 20, border: `1px solid ${ink.line}` }}>
+        <Icon name="chart" size={26} />
+        <h1 style={{ marginTop: 18, color: ink.text, fontSize: 24, fontWeight: 700 }}>{x.noData}</h1>
+        <p style={{ marginTop: 8, color: ink.secondary, fontSize: 13.5, lineHeight: 1.6 }}>{x.noDataText}</p>
+      </section>
+    );
   }
 
-  function sessionCorrect(session) {
-    if (Number.isFinite(Number(session.correct))) return Number(session.correct);
-    const total = sessionTotal(session);
-    return Math.round((Number(session.score || 0) / 100) * total);
-  }
+  const currentModule = user?.module || null;
+  const moduleSessions = currentModule ? sessions.filter((s) => s.module === currentModule) : [];
+  const hasModuleData = moduleSessions.length > 0;
 
-  function metrics(sessions) {
-    const totalQuestions = sessions.reduce((sum, session) => sum + sessionTotal(session), 0);
-    const correctQuestions = sessions.reduce((sum, session) => sum + sessionCorrect(session), 0);
-    const seconds = sessions.reduce((sum, session) => sum + Number(session.durationSeconds || 0), 0);
-    return {
-      sessions: sessions.length,
-      questions: totalQuestions,
-      accuracy: totalQuestions ? Math.round((correctQuestions / totalQuestions) * 100) : 0,
-      minutes: Math.round(seconds / 60),
-    };
-  }
+  const buildTopicMap = (sourceSessions) =>
+    sourceSessions.reduce((all, session) => {
+      Object.entries(session.categories || {}).forEach(([name, result]) => {
+        if (!all[name]) all[name] = { correct: 0, total: 0 };
+        all[name].correct += result.correct;
+        all[name].total += result.total;
+      });
+      return all;
+    }, {});
 
-  const currentMetrics = metrics(filteredSessions);
-  const previousMetrics = metrics(previousSessions);
+  const globalTopicMap = buildTopicMap(sessions);
+  const globalTopics = Object.entries(globalTopicMap)
+    .map(([name, result]) => ({ name, ...result, percent: result.total ? Math.round((result.correct / result.total) * 100) : 0 }))
+    .sort((a, b) => a.percent - b.percent);
 
-  function changeFor(key) {
-    if (!rangeDays || !previousMetrics[key]) return null;
-    return Math.round(((currentMetrics[key] - previousMetrics[key]) / Math.abs(previousMetrics[key])) * 100);
-  }
+  // Modulafgrænset emnetabel — kun sessioner, hvor session.module matcher det aktuelt valgte modul, indgår.
+  const moduleTopicMap = buildTopicMap(moduleSessions);
+  const moduleTopics = Object.entries(moduleTopicMap)
+    .map(([name, result]) => ({ name, ...result, percent: result.total ? Math.round((result.correct / result.total) * 100) : 0 }))
+    .sort((a, b) => a.percent - b.percent);
 
-  const rangeLength = rangeDays || Math.max(30, Math.min(365, Math.ceil((now - new Date(allSessions[allSessions.length - 1]?.completedAt || now)) / 86400000) + 1));
-  const dailyKeys = Array.from({ length: rangeLength }, (_, index) => {
-    const date = new Date(now);
-    date.setHours(0, 0, 0, 0);
-    date.setDate(date.getDate() - (rangeLength - 1 - index));
-    return dateKey(date.getFullYear(), date.getMonth(), date.getDate());
-  });
-  const dailyMap = {};
-  filteredSessions.forEach((session) => {
-    const key = String(session.completedAt || "").slice(0, 10);
-    if (!key) return;
-    if (!dailyMap[key]) dailyMap[key] = { questions: 0, correct: 0 };
-    dailyMap[key].questions += sessionTotal(session);
-    dailyMap[key].correct += sessionCorrect(session);
-  });
-  const dailyQuestions = dailyKeys.map((key) => dailyMap[key]?.questions || 0);
-  const dailyAccuracy = dailyKeys.map((key) => dailyMap[key]?.questions ? Math.round((dailyMap[key].correct / dailyMap[key].questions) * 100) : null);
-
-  const trendOption = {
-    backgroundColor: "transparent",
-    tooltip: { trigger: "axis" },
-    legend: { data: [copy.questionsLabel, copy.accuracyLabel], top: 0, right: 0, textStyle: { color: c.secondary, fontSize: 10 } },
-    grid: { left: 42, right: 42, top: 42, bottom: 32 },
-    xAxis: {
-      type: "category",
-      data: dailyKeys.map((key) => new Date(`${key}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })),
-      axisLine: { lineStyle: { color: c.border } },
-      axisLabel: { color: c.muted, fontSize: 9, interval: Math.max(0, Math.floor(rangeLength / 8) - 1) },
-    },
-    yAxis: [
-      { type: "value", min: 0, axisLine: { show: false }, splitLine: { lineStyle: { color: c.border } }, axisLabel: { color: c.muted, fontSize: 9 } },
-      { type: "value", min: 0, max: 100, axisLine: { show: false }, splitLine: { show: false }, axisLabel: { color: c.muted, fontSize: 9, formatter: "{value}%" } },
-    ],
-    series: [
-      { name: copy.questionsLabel, type: "bar", data: dailyQuestions, barMaxWidth: 16, itemStyle: { color: c.blue, borderRadius: [4, 4, 0, 0] } },
-      { name: copy.accuracyLabel, type: "line", yAxisIndex: 1, data: dailyAccuracy, connectNulls: true, smooth: true, symbolSize: 5, lineStyle: { width: 2, color: c.green }, itemStyle: { color: c.green }, areaStyle: { color: c.greenSoft, opacity: 0.25 } },
-    ],
-  };
-
-  const questionBank = getFullQuestionBank(importedQuestions).filter((question) => !moduleName || question.moduleId === moduleName);
-  const queue = { new: 0, learning: 0, due: 0, learned: 0, suspended: 0 };
-  questionBank.forEach((question) => {
-    const card = spacedData[question.id];
-    if (!card) queue.new += 1;
-    else {
-      const status = cardStatus(card);
-      if (status === "learning" || status === "relearning") queue.learning += 1;
-      else if (status === "due") queue.due += 1;
-      else if (status === "suspended") queue.suspended += 1;
-      else queue.learned += 1;
-    }
-  });
-
-  const queueOption = {
-    backgroundColor: "transparent",
-    tooltip: { trigger: "item" },
-    series: [{
-      type: "pie",
-      radius: ["62%", "84%"],
-      center: ["50%", "50%"],
-      label: { show: false },
-      data: [
-        { name: copy.new, value: queue.new, itemStyle: { color: c.blue } },
-        { name: copy.learning, value: queue.learning, itemStyle: { color: c.purple } },
-        { name: copy.due, value: queue.due, itemStyle: { color: c.red } },
-        { name: copy.learned, value: queue.learned, itemStyle: { color: c.green } },
-        { name: copy.suspended, value: queue.suspended, itemStyle: { color: c.muted } },
-      ].filter((item) => item.value > 0),
-    }],
-  };
-
-  const topicMap = {};
-  filteredSessions.forEach((session) => {
-    Object.entries(session.categories || {}).forEach(([topic, values]) => {
-      if (!topicMap[topic]) topicMap[topic] = { correct: 0, total: 0 };
-      topicMap[topic].correct += Number(values?.correct || 0);
-      topicMap[topic].total += Number(values?.total || 0);
+  // Tendens pr. emne: sammenligner den ældre halvdel af sessioner med den nyere halvdel,
+  // så "Emne for emne" kan formuleres som en udvikling snarere end et statisk øjebliksbillede.
+  const computeTopicTrends = (sourceSessions) => {
+    const chronological = [...sourceSessions].sort((a, b) => new Date(a.completedAt) - new Date(b.completedAt));
+    const perTopic = {};
+    chronological.forEach((session) => {
+      Object.entries(session.categories || {}).forEach(([name, result]) => {
+        if (!result.total) return;
+        if (!perTopic[name]) perTopic[name] = [];
+        perTopic[name].push(Math.round((result.correct / result.total) * 100));
+      });
     });
+    return Object.entries(perTopic).map(([name, values]) => {
+      if (values.length < 2) {
+        return { name, trend: "early", sampleSize: values.length, recentPercent: values[values.length - 1] };
+      }
+      const half = Math.ceil(values.length / 2);
+      const earlier = values.slice(0, half);
+      const recent = values.slice(half);
+      const avg = (list) => list.reduce((sum, v) => sum + v, 0) / list.length;
+      const earlierAvg = avg(earlier);
+      const recentAvg = recent.length ? avg(recent) : earlierAvg;
+      const delta = recentAvg - earlierAvg;
+      const trend = delta > 6 ? "up" : delta < -6 ? "down" : "stable";
+      return { name, trend, sampleSize: values.length, recentPercent: Math.round(recentAvg) };
+    });
+  };
+
+  const moduleTrends = computeTopicTrends(moduleSessions);
+
+  const lecturesInModule = currentModule ? MODULE_LECTURES[currentModule] || [] : [];
+  const lectureGroupById = lecturesInModule.reduce((map, lecture) => {
+    map[lecture.id] = lecture.group || null;
+    return map;
+  }, {});
+  const depthGroupOptions = Array.from(new Set(lecturesInModule.map((l) => l.group).filter(Boolean)));
+
+  const categoryToGroups = {};
+getFullQuestionBank(
+  importedQuestions
+).forEach((q) => {
+  if (q.moduleId !== currentModule) return;
+    const groupName = q.lectureId ? lectureGroupById[q.lectureId] : null;
+    if (!groupName) return;
+    const categoryName = translate(q.category, language);
+    if (!categoryToGroups[categoryName]) categoryToGroups[categoryName] = new Set();
+    categoryToGroups[categoryName].add(groupName);
   });
-  const topicRows = Object.entries(topicMap)
-    .map(([topic, values]) => ({ topic, ...values, accuracy: values.total ? Math.round((values.correct / values.total) * 100) : 0 }))
-    .filter((row) => row.total > 0)
-    .sort((a, b) => a.accuracy - b.accuracy);
 
-  const lectures = MODULE_LECTURES[moduleName] || [];
-  const lectureGroups = [...new Set(lectures.map((lecture) => lecture.group))];
-  const visibleLectureGroups = lectureGroup === "all" ? lectureGroups : lectureGroups.filter((group) => group === lectureGroup);
-  const streak = computeStreak(streakData.days || []);
-  const totalPomodoros = Object.values(pomodoroLog || {}).reduce((sum, value) => sum + Number(value || 0), 0);
-  const totalFocusMinutes = Object.values(pomodoroMinutesLog || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+  const filteredDepthTopics =
+    depthGroupFilter === "all"
+      ? moduleTrends
+      : moduleTrends.filter((topic) => categoryToGroups[topic.name]?.has(depthGroupFilter));
 
-  function exportCsv() {
-    const header = [copy.date, copy.module, copy.questions, copy.result, copy.duration];
-    const rows = filteredSessions.map((session) => [
-      session.completedAt || "",
-      session.module || moduleName,
-      sessionTotal(session),
-      `${Number(session.score || 0)}%`,
-      `${Math.round(Number(session.durationSeconds || 0) / 60)} ${copy.minutes}`,
-    ]);
-    const csv = [header, ...rows].map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `medfluen-insights-${new Date().toISOString().slice(0, 10)}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
+  const attentionTopics = moduleTopics.filter((topic) => topic.percent < 70).slice(0, 4);
 
-  const metricCards = [
-    { key: "sessions", label: copy.sessions, value: currentMetrics.sessions, icon: "cards" },
-    { key: "questions", label: copy.questions, value: currentMetrics.questions, icon: "clipboard" },
-    { key: "accuracy", label: copy.accuracy, value: `${currentMetrics.accuracy}%`, icon: "target" },
-    { key: "minutes", label: copy.studyTime, value: currentMetrics.minutes < 60 ? `${currentMetrics.minutes}m` : `${Math.floor(currentMetrics.minutes / 60)}h ${currentMetrics.minutes % 60}m`, icon: "clock" },
-  ];
+  const overallAccuracyModule = moduleTopics.length
+    ? Math.round((moduleTopics.reduce((sum, tp) => sum + tp.correct, 0) / moduleTopics.reduce((sum, tp) => sum + tp.total, 0)) * 100)
+    : 0;
+
+  const statusSentence = !currentModule
+    ? x.statusNoModule
+    : !hasModuleData
+    ? x.statusEarlyFor(currentModule)
+    : overallAccuracyModule >= 80
+    ? x.statusStrongFor(currentModule)
+    : overallAccuracyModule >= 60
+    ? x.statusMixedFor(currentModule)
+    : x.statusWeakFor(currentModule);
+
+  // -- Resten af komponenten (udvikling over tid, aktivitet, sessionslog) forbliver globalt, dvs. hele studiehistorikken --
+  const total = sessions.reduce((sum, item) => ({ correct: sum.correct + (item.correct || 0), answered: sum.answered + (item.answered || 0) }), { correct: 0, answered: 0 });
+  const accuracy = total.answered ? Math.round((total.correct / total.answered) * 100) : 0;
+
+  const formatDate = (date, compact = false) =>
+    new Intl.DateTimeFormat(language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB", compact ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(date));
+  const formatDuration = (seconds) => (seconds ? `${Math.max(1, Math.round(seconds / 60))} ${x.min}` : x.noDuration);
+
+  const totalPomodoros = Object.values(pomodoroLog).reduce((sum, value) => sum + value, 0);
+
+  // Statistik uden panelbaggrund — tal bærer vægten typografisk i stedet for at blive pakket i kort.
+  const stat = (label, value, dimmed = false) => (
+    <div key={label} style={{ minWidth: 88 }}>
+      <div style={{ color: dimmed ? ink.red : ink.text, fontFamily: '"Space Mono", monospace', fontSize: 22, fontWeight: 700, letterSpacing: "-.01em" }}>{value}</div>
+      <div style={{ marginTop: 4, color: dimmed ? ink.red : ink.muted, fontSize: 10, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>{label}</div>
+    </div>
+  );
+
+  const eyebrow = (label) => (
+    <div style={{ color: ink.muted, fontSize: 10.5, fontWeight: 800, letterSpacing: ".12em", textTransform: "uppercase" }}>{label}</div>
+  );
+
+  // Synlige, konsistente skillelinjer mellem kapitlerne — fuld bredde, ensartet farve og luft.
+  const divider = <div style={{ height: 1, background: ink.lineStrong, margin: "38px 0" }} />;
 
   return (
-    <section className="insights-v3 fade-up" dir={language === "ar" ? "rtl" : "ltr"}>
-      <header className="insights-v3-header">
-        <div>
-          <div className="insights-v3-eyebrow">{copy.eyebrow}</div>
-          <h1>{copy.title}</h1>
-          <p>{copy.subtitle}</p>
-        </div>
-        <div className="insights-v3-actions">
-          <div className="insights-v3-range" role="tablist">
-            {[["7", copy.sevenDays], ["30", copy.thirtyDays], ["90", copy.ninetyDays], ["all", copy.allTime]].map(([value, label]) => (
-              <button key={value} type="button" data-active={range === value ? "true" : "false"} onClick={() => setRange(value)}>{label}</button>
-            ))}
-          </div>
-          <button type="button" className="insights-v3-export" onClick={exportCsv}><Icon name="download" size={14} />{copy.export}</button>
-        </div>
+    <div
+      className="fade-up insights-polished"
+      style={{
+        width: "min(1200px, 100%)",
+        margin: "0 auto",
+        background: ink.page,
+        borderRadius: 24,
+        border: `1px solid ${ink.line}`,
+        boxShadow: "0 1px 3px rgba(15,23,42,0.04)",
+        padding: "48px 64px 56px",
+      }}
+    >
+      {/* Overskrift ---------------------------------------------------- */}
+      <header style={{ marginBottom: 34 }}>
+        {eyebrow(x.subtitle)}
+        <h1 style={{ margin: "10px 0 0", color: ink.text, fontSize: 32, lineHeight: 1.15, letterSpacing: "-.03em", fontWeight: 700 }}>{x.title}</h1>
       </header>
 
-      <nav className="insights-v3-nav" aria-label={copy.title}>
-        {[["overview", copy.overview, "chart"], ["lectures", copy.lectures, "book"], ["focus", copy.focus, "clock"]].map(([value, label, icon]) => (
-          <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}><Icon name={icon} size={14} />{label}</button>
-        ))}
-      </nav>
-
-      {view === "overview" && (
-        <>
-          <div className="insights-v3-metrics">
-            {metricCards.map((item) => {
-              const change = changeFor(item.key);
-              return (
-                <article key={item.key} className="insights-v3-metric">
-                  <span className="insights-v3-metric-icon"><Icon name={item.icon} size={15} /></span>
-                  <div className="insights-v3-metric-value">{item.value}</div>
-                  <div className="insights-v3-metric-label">{item.label}</div>
-                  <div className="insights-v3-metric-change" data-positive={change > 0 ? "true" : change < 0 ? "false" : "neutral"}>
-                    {change === null ? copy.noComparison : `${change > 0 ? "+" : ""}${change}% ${copy.compared}`}
-                  </div>
-                </article>
-              );
-            })}
+      {/* Kapitel 1 — Status --------------------------------------------- */}
+      <section style={{ marginBottom: 8 }}>
+        {eyebrow(x.statusHeading)}
+        <p style={{ margin: "12px 0 0", color: ink.text, fontSize: 17, lineHeight: 1.65, fontWeight: 500, maxWidth: 620 }}>
+          {statusSentence}
+        </p>
+        {currentModule && (
+          <p style={{ margin: "10px 0 0", color: ink.muted, fontSize: 12.5, lineHeight: 1.6 }}>{x.statusGlobalNote}</p>
+        )}
+        {hasModuleData && (
+          <div style={{ display: "flex", gap: 34, marginTop: 22, flexWrap: "wrap" }}>
+            {stat(x.score, `${overallAccuracyModule}%`, overallAccuracyModule < 60)}
+            {stat(x.sessionsWord, moduleSessions.length)}
+            {stat(x.answered, moduleTopics.reduce((sum, tp) => sum + tp.total, 0))}
           </div>
+        )}
+      </section>
 
-          <div className="insights-v3-grid insights-v3-grid-main">
-            <article className="insights-v3-panel insights-v3-trend-panel">
-              <div className="insights-v3-panel-head"><div><h2>{copy.trend}</h2><p>{copy.trendSubtitle}</p></div></div>
-              <EChart option={trendOption} height={330} />
-            </article>
+      {hasModuleData && divider}
 
-            <article className="insights-v3-panel insights-v3-queue-panel">
-              <div className="insights-v3-panel-head"><div><h2>{copy.queue}</h2><p>{copy.queueSubtitle}</p></div></div>
-              <div className="insights-v3-queue-chart"><EChart option={queueOption} height={190} /><div className="insights-v3-queue-total"><strong>{questionBank.length}</strong><span>{copy.questions}</span></div></div>
-              <div className="insights-v3-queue-list">
-                {[[copy.new, queue.new, c.blue], [copy.learning, queue.learning, c.purple], [copy.due, queue.due, c.red], [copy.learned, queue.learned, c.green], [copy.suspended, queue.suspended, c.muted]].map(([label, value, color]) => (
-                  <div key={label}><span className="insights-v3-dot" style={{ background: color }} /><span>{label}</span><strong>{value}</strong></div>
-                ))}
-              </div>
-            </article>
-          </div>
-
-          <div className="insights-v3-grid insights-v3-grid-secondary">
-            <article className="insights-v3-panel">
-              <div className="insights-v3-panel-head"><div><h2>{copy.weakTopics}</h2><p>{copy.weakTopicsSubtitle}</p></div></div>
-              {topicRows.length ? (
-                <div className="insights-v3-topic-list">
-                  {topicRows.slice(0, 8).map((row) => (
-                    <div key={row.topic} className="insights-v3-topic-row">
-                      <div><strong>{row.topic}</strong><span>{row.correct}/{row.total} {copy.correct}</span></div>
-                      <div className="insights-v3-topic-score" data-low={row.accuracy < 70 ? "true" : "false"}>{row.accuracy}%</div>
-                      <div className="insights-v3-topic-track"><span style={{ width: `${row.accuracy}%` }} /></div>
-                    </div>
-                  ))}
+      {/* Kapitel 2 — Opmærksomhedspunkter (svage punkter, modulafgrænset) -- */}
+      {hasModuleData && (
+        <section style={{ marginBottom: 8 }}>
+          {eyebrow(x.attentionHeading)}
+          <p style={{ margin: "12px 0 20px", color: ink.secondary, fontSize: 13.5, lineHeight: 1.6, maxWidth: 560 }}>
+            {x.attentionIntroFor(currentModule)}
+          </p>
+          {attentionTopics.length === 0 ? (
+            <p style={{ color: ink.text, fontSize: 14.5, lineHeight: 1.6 }}>{x.attentionNone}</p>
+          ) : (
+            <div style={{ display: "grid", gap: 16 }}>
+              {attentionTopics.map((topic) => (
+                <div key={topic.name} style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: ink.red, flexShrink: 0, transform: "translateY(-2px)" }} />
+                  <p style={{ margin: 0, color: ink.text, fontSize: 14.5, lineHeight: 1.6 }}>
+                    {x.attentionItem(topic.name, topic.percent)}
+                  </p>
                 </div>
-              ) : <EmptyState compact symbol={<Icon name="target" size={17} />} title={copy.noTopics} />}
-            </article>
-
-            <article className="insights-v3-panel insights-v3-session-panel">
-              <div className="insights-v3-panel-head"><div><h2>{copy.recent}</h2><p>{moduleName}</p></div></div>
-              {filteredSessions.length ? (
-                <div className="insights-v3-table-wrap">
-                  <table className="insights-v3-table">
-                    <thead><tr><th>{copy.date}</th><th>{copy.questions}</th><th>{copy.result}</th><th>{copy.duration}</th><th /></tr></thead>
-                    <tbody>
-                      {filteredSessions.slice(0, 10).map((session) => (
-                        <React.Fragment key={session.id}>
-                          <tr>
-                            <td>{new Date(session.completedAt).toLocaleDateString(locale, { day: "numeric", month: "short" })}</td>
-                            <td>{sessionTotal(session)}</td>
-                            <td><span className="insights-v3-score" data-tone={Number(session.score || 0) >= 80 ? "good" : Number(session.score || 0) >= 60 ? "mid" : "low"}>{Number(session.score || 0)}%</span></td>
-                            <td>{Math.round(Number(session.durationSeconds || 0) / 60)} {copy.minutes}</td>
-                            <td><button type="button" className="insights-v3-expand" onClick={() => setExpandedId((value) => value === session.id ? null : session.id)}><Icon name={expandedId === session.id ? "up" : "down"} size={13} /></button></td>
-                          </tr>
-                          {expandedId === session.id && (
-                            <tr className="insights-v3-detail-row"><td colSpan={5}>
-                              <div className="insights-v3-detail-grid">
-                                <div><span>{copy.answered}</span><strong>{sessionTotal(session)}</strong></div>
-                                <div><span>{copy.correct}</span><strong>{sessionCorrect(session)}</strong></div>
-                                {Object.entries(session.categories || {}).slice(0, 6).map(([topic, stat]) => <div key={topic}><span>{topic}</span><strong>{stat.correct || 0}/{stat.total || 0}</strong></div>)}
-                              </div>
-                            </td></tr>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : <EmptyState compact symbol={<Icon name="chart" size={17} />} title={copy.noSessions} />}
-            </article>
-          </div>
-        </>
-      )}
-
-      {view === "lectures" && (
-        <div className="insights-v3-lecture-view">
-          <article className="insights-v3-panel">
-            <div className="insights-v3-panel-head insights-v3-panel-head-inline">
-              <div><h2>{copy.lectureDevelopment}</h2><p>{copy.lectureDevelopmentSubtitle}</p></div>
-              <select className="insights-v3-select" value={lectureGroup} onChange={(event) => setLectureGroup(event.target.value)}>
-                <option value="all">{copy.allGroups}</option>
-                {lectureGroups.map((group) => <option key={group} value={group}>{group}</option>)}
-              </select>
+              ))}
             </div>
-            {visibleLectureGroups.length ? visibleLectureGroups.map((group) => (
-              <section key={group} className="insights-v3-lecture-section">
-                <h3>{group}</h3>
-                <LectureLineRace group={group} lectures={lectures} sessions={filteredSessions} ink={{ text: c.text, secondary: c.secondary, muted: c.muted, line: c.border, lineStrong: c.borderStrong, blue: c.blue, green: c.green, red: c.red }} emptyLabel={copy.noLectureData} />
-              </section>
-            )) : <EmptyState symbol={<Icon name="book" size={18} />} title={copy.noLectureData} />}
-          </article>
-        </div>
+          )}
+        </section>
       )}
 
-      {view === "focus" && (
-        <div className="insights-v3-focus-view">
-          <div className="insights-v3-metrics insights-v3-focus-metrics">
-            {[
-              [copy.currentStreak, `${streak.current} ${copy.days}`, "flame"],
-              [copy.bestStreak, `${streak.longest} ${copy.days}`, "target"],
-              [copy.totalPomodoros, totalPomodoros, "clock"],
-              [copy.focusMinutes, totalFocusMinutes, "bolt"],
-            ].map(([label, value, icon]) => (
-              <article key={label} className="insights-v3-metric"><span className="insights-v3-metric-icon"><Icon name={icon} size={15} /></span><div className="insights-v3-metric-value">{value}</div><div className="insights-v3-metric-label">{label}</div></article>
-            ))}
-          </div>
-          <article className="insights-v3-panel">
-            <div className="insights-v3-panel-head"><div><h2>{copy.focusCalendar}</h2><p>{copy.focusCalendarSubtitle}</p></div></div>
-            <PomodoroCalendarHeatmap pomodoroMinutesLog={pomodoroMinutesLog} ink={{ text: c.text, secondary: c.secondary, muted: c.muted, line: c.border, lineStrong: c.borderStrong, blue: c.blue, green: c.green, red: c.red }} year={new Date().getFullYear()} emptyLabel={copy.noFocusData} />
-          </article>
-        </div>
+      {divider}
+
+      {/* Kapitel 5 — Fokus-kalender (globalt) --------------------------- */}
+      <section style={{ marginBottom: 8 }}>
+        {eyebrow(x.pomodoroHeatmapTitle)}
+        <p style={{ margin: "12px 0 22px", color: ink.secondary, fontSize: 13.5, lineHeight: 1.6, maxWidth: 560 }}>{x.activityText}</p>
+        <PomodoroCalendarHeatmap
+          pomodoroMinutesLog={pomodoroMinutesLog}
+          ink={ink}
+          year={new Date().getFullYear()}
+          emptyLabel={x.pomodoroHeatmapEmpty}
+        />
+      </section>
+
+      
+
+      {hasModuleData && divider}
+
+      {/* Kapitel 3 — Emne for emne (reworket emneanalyse, modulafgrænset) -- */}
+      {hasModuleData && (
+        <section style={{ marginBottom: 8 }}>
+          {eyebrow(x.depthHeading)}
+          <p style={{ margin: "12px 0 22px", color: ink.secondary, fontSize: 13.5, lineHeight: 1.6, maxWidth: 560 }}>
+            {x.depthIntroFor(currentModule)}
+          </p>
+
+          {depthGroupOptions.length > 1 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 22 }}>
+              <button
+                type="button"
+                onClick={() => setDepthGroupFilter("all")}
+                style={{ height: 28, padding: "0 12px", borderRadius: 20, border: `1px solid ${depthGroupFilter === "all" ? ink.blue : ink.lineStrong}`, background: depthGroupFilter === "all" ? ink.blueSoft : "transparent", color: depthGroupFilter === "all" ? ink.blue : ink.secondary, fontSize: 10.5, fontWeight: 800, cursor: "pointer" }}
+              >
+                {x.allGroupsOption}
+              </button>
+              {depthGroupOptions.map((groupName) => (
+                <button
+                  key={groupName}
+                  type="button"
+                  onClick={() => setDepthGroupFilter(groupName)}
+                  style={{ height: 28, padding: "0 12px", borderRadius: 20, border: `1px solid ${depthGroupFilter === groupName ? ink.blue : ink.lineStrong}`, background: depthGroupFilter === groupName ? ink.blueSoft : "transparent", color: depthGroupFilter === groupName ? ink.blue : ink.secondary, fontSize: 10.5, fontWeight: 800, cursor: "pointer" }}
+                >
+                  {groupName}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {depthGroupFilter !== "all" && (
+            <div style={{ marginBottom: 26 }}>
+              <p style={{ margin: "0 0 10px", color: ink.secondary, fontSize: 11.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.4 }}>
+                {depthGroupFilter}
+              </p>
+              <LectureLineRace
+                group={depthGroupFilter}
+                lectures={lecturesInModule}
+                sessions={moduleSessions}
+                ink={ink}
+                emptyLabel={x.depthNoData}
+              />
+            </div>
+          )}
+
+          {filteredDepthTopics.length === 0 ? (
+            <p style={{ color: ink.muted, fontSize: 13, lineHeight: 1.6 }}>{x.depthNoData}</p>
+          ) : (
+            <>
+              {filteredDepthTopics.length >= 3 && (() => {
+                const radarSize = 300;
+                const center = radarSize / 2;
+                const maxRadius = center - 50;
+                const axisCount = filteredDepthTopics.length;
+                const angleStep = (Math.PI * 2) / axisCount;
+                const pointAt = (index, valuePercent) => {
+                  const angle = angleStep * index - Math.PI / 2;
+                  const r = (Math.max(0, Math.min(100, valuePercent)) / 100) * maxRadius;
+                  return { x: center + r * Math.cos(angle), y: center + r * Math.sin(angle) };
+                };
+                const labelPointAt = (index) => {
+                  const angle = angleStep * index - Math.PI / 2;
+                  const r = maxRadius + 24;
+                  return { x: center + r * Math.cos(angle), y: center + r * Math.sin(angle) };
+                };
+                const dataPoints = filteredDepthTopics.map((topic, index) => pointAt(index, topic.recentPercent));
+                const polygonPoints = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
+                const ringLevels = [25, 50, 75, 100];
+                return (
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
+                    <div style={{ position: "relative", width: "100%", maxWidth: 340, aspectRatio: "1 / 1" }}>
+                      <svg viewBox={`0 0 ${radarSize} ${radarSize}`} style={{ width: "100%", height: "100%", overflow: "visible" }}>
+                        {ringLevels.map((level) => (
+                          <polygon
+                            key={level}
+                            points={filteredDepthTopics.map((_, index) => { const p = pointAt(index, level); return `${p.x},${p.y}`; }).join(" ")}
+                            fill="none"
+                            stroke={ink.line}
+                            strokeWidth={1}
+                          />
+                        ))}
+                        {filteredDepthTopics.map((_, index) => {
+                          const edge = pointAt(index, 100);
+                          return <line key={index} x1={center} y1={center} x2={edge.x} y2={edge.y} stroke={ink.line} strokeWidth={1} />;
+                        })}
+                        <polygon points={polygonPoints} fill={ink.blueSoft} stroke={ink.blue} strokeWidth={2} fillOpacity={0.6} />
+                        {dataPoints.map((p, index) => (
+                          <circle key={index} cx={p.x} cy={p.y} r={3.5} fill={scoreColor(filteredDepthTopics[index].recentPercent)} stroke={ink.page} strokeWidth={1.5} />
+                        ))}
+                        {filteredDepthTopics.map((topic, index) => {
+                          const lp = labelPointAt(index);
+                          return (
+                            <text
+                              key={topic.name}
+                              x={lp.x}
+                              y={lp.y}
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              fontSize={9.5}
+                              fontWeight={700}
+                              fill={ink.secondary}
+                            >
+                              {topic.name.length > 16 ? `${topic.name.slice(0, 15)}…` : topic.name}
+                            </text>
+                          );
+                        })}
+                      </svg>
+                    </div>
+                  </div>
+                );
+              })()}
+               
+              <div style={{ display: "grid", gap: 18 }}>
+                {filteredDepthTopics
+                  .slice()
+                  .sort((a, b) => {
+                    const order = { down: 0, early: 1, stable: 2, up: 3 };
+                    return order[a.trend] - order[b.trend];
+                  })
+                  .map((topicTrend) => {
+                    const sentence =
+                      topicTrend.trend === "up"
+                        ? x.depthSentenceUp(topicTrend.name)
+                        : topicTrend.trend === "down"
+                        ? x.depthSentenceDown(topicTrend.name)
+                        : topicTrend.trend === "early"
+                        ? x.depthSentenceEarly(topicTrend.name)
+                        : x.depthSentenceStable(topicTrend.name);
+                    const dotColor = topicTrend.trend === "up" ? ink.green : topicTrend.trend === "down" ? ink.red : topicTrend.trend === "early" ? ink.muted : ink.blue;
+                    return (
+                      <div key={topicTrend.name} style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, flexShrink: 0, transform: "translateY(-2px)" }} />
+                        <p style={{ margin: 0, color: ink.text, fontSize: 14.5, lineHeight: 1.6 }}>
+                          {sentence}
+                          <span style={{ marginInlineStart: 8, color: ink.muted, fontFamily: '"Space Mono",monospace', fontSize: 11 }}>{topicTrend.recentPercent}%</span>
+                        </p>
+                      </div>
+                    );
+                  })}
+              </div>
+            </>
+          )}
+        </section>
       )}
-    </section>
+
+
+      {divider}
+
+      {/* Kapitel 6 — Sessionslog (globalt) -------------------------------- */}
+      <section>
+        {eyebrow(x.recentHeading)}
+        <div style={{ marginTop: 18 }}>
+          {sessions.slice(0, 10).map((session, index) => {
+            const open = expandedId === session.id;
+            const categoryRows = Object.entries(session.categories || {})
+              .map(([name, value]) => ({ name, ...value, percent: value.total ? Math.round((value.correct / value.total) * 100) : 0 }))
+              .sort((a, b) => a.percent - b.percent);
+            const lowest = categoryRows[0];
+            return (
+              <article key={session.id} style={{ borderBottom: index === Math.min(9, sessions.length - 1) ? 0 : `1px solid ${ink.line}` }}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(open ? null : session.id)}
+                  style={{ width: "100%", display: "grid", gridTemplateColumns: "minmax(150px,1.4fr) minmax(100px,1fr) 90px 70px", gap: 14, alignItems: "center", padding: "14px 0", border: 0, background: "transparent", color: ink.text, textAlign: "start", cursor: "pointer" }}
+                >
+                  <span>
+                    <strong style={{ display: "block", fontSize: 12.5 }}>{session.module || "MCQ"}</strong>
+                    <span style={{ display: "block", marginTop: 4, color: ink.muted, fontSize: 10 }}>{formatDate(session.completedAt)}</span>
+                  </span>
+                  <span style={{ color: ink.secondary, fontSize: 11 }}>{session.correct}/{session.total} {x.correct}</span>
+                  <span style={{ color: ink.secondary, fontFamily: '"Space Mono",monospace', fontSize: 11 }}>{formatDuration(session.durationSeconds)}</span>
+                  <span style={{ justifySelf: "end", color: scoreColor(session.score), fontFamily: '"Space Mono",monospace', fontSize: 13, fontWeight: 800 }}>{session.score}%</span>
+                </button>
+                {open && (
+                  <div className="fade-up" style={{ padding: "0 0 20px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "minmax(170px,.7fr) minmax(0,1.3fr)", gap: 20 }}>
+                      <div>
+                        <div style={{ color: ink.muted, fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{x.lowest}</div>
+                        <div style={{ marginTop: 6, color: ink.text, fontSize: 13, fontWeight: 700 }}>{lowest ? `${lowest.name} · ${lowest.percent}%` : "—"}</div>
+                      </div>
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {categoryRows.map((row) => (
+                          <div key={row.name} style={{ display: "grid", gridTemplateColumns: "minmax(110px,1fr) 35px minmax(80px,1fr)", gap: 8, alignItems: "center", fontSize: 10 }}>
+                            <span style={{ color: ink.secondary, fontWeight: 700 }}>{row.name}</span>
+                            <span style={{ color: ink.muted, textAlign: "end" }}>{row.percent}%</span>
+                            <span style={{ height: 4, overflow: "hidden", borderRadius: 9, background: ink.line }}>
+                              <span style={{ display: "block", width: `${row.percent}%`, height: "100%", borderRadius: 9, background: scoreColor(row.percent) }} />
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }
+
 
 function AdvancedPlanTimeline({ c, language, copy, today, exam, timelineDays, mode, questionTotal, questionsForDayIndex, unitForDay, reviewIntervals }) {
   const scrollRef = useRef(null);
@@ -17466,34 +16361,20 @@ function HomeDaySchedule({
   onEventClick,
   onSlotClick,
   onMoveEvent,
-  language = "da",
 }) {
-  const hours = Array.from({ length: 15 }, (_, index) => index + 7);
+  const hours = Array.from({ length: 14 }, (_, index) => index + 7);
   const startHour = hours[0];
   const rowHeight = 56;
   const totalHeight = hours.length * rowHeight;
   const dateString = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
   const dragIdRef = useRef(null);
   const gridRef = useRef(null);
-  const scrollRef = useRef(null);
-  const [dropTop, setDropTop] = useState(null);
-
-  useEffect(() => {
-    if (!scrollRef.current) return;
-    scrollRef.current.scrollTop = Math.max(0, rowHeight - 4);
-  }, [dateString]);
-
-  const copy = ({
-    da: { study: "Studieblok", review: "Repetition", exam: "Eksamen", other: "Kalenderaktivitet" },
-    en: { study: "Study block", review: "Review session", exam: "Exam", other: "Calendar event" },
-    ar: { study: "جلسة دراسة", review: "جلسة مراجعة", exam: "امتحان", other: "حدث تقويم" },
-  })[language] || { study: "Studieblok", review: "Repetition", exam: "Eksamen", other: "Kalenderaktivitet" };
 
   const palette = {
-    exam: { color: c.red, background: c.redSoft, border: c.redBorder, icon: "flag", label: copy.exam },
-    study: { color: c.blue, background: c.blueSoft, border: c.blueBorder, icon: "book", label: copy.study },
-    review: { color: c.green, background: c.greenSoft, border: c.greenBorder, icon: "check", label: copy.review },
-    other: { color: c.purple || c.secondary, background: c.purpleSoft || c.soft, border: c.borderStrong, icon: "notebook", label: copy.other },
+    exam: { color: c.red, background: c.redSoft, icon: "flag" },
+    study: { color: c.blue, background: c.blueSoft, icon: "book" },
+    review: { color: c.green, background: c.greenSoft, icon: "check" },
+    other: { color: c.purple, background: c.purpleSoft, icon: "notebook" },
   };
 
   const positionedEvents = events
@@ -17501,9 +16382,9 @@ function HomeDaySchedule({
     .map((event) => {
       const minutes = timeToMinutes(event.time);
       const top = Math.max(0, ((minutes - startHour * 60) / 60) * rowHeight);
-      const durationHours = Math.max(0.5, Number(event.estimatedHours || event.durationHours) || 1);
-      const height = Math.max(42, Math.min(durationHours * rowHeight - 6, totalHeight - top - 3));
-      return { event, top: top + 3, height };
+      const durationHours = Math.max(0.75, Number(event.estimatedHours) || 1);
+      const height = Math.max(44, durationHours * rowHeight - 6);
+      return { event, top, height };
     })
     .filter((item) => item.top < totalHeight);
 
@@ -17516,22 +16397,13 @@ function HomeDaySchedule({
     return minutesToTime(rounded);
   }
 
-  function topFromPointer(clientY) {
-    const minutes = timeToMinutes(timeFromPointer(clientY));
-    return ((minutes - startHour * 60) / 60) * rowHeight;
-  }
-
-  function eventSubtitle(event, tone) {
-    return event.subtitle || event.description || event.planModuleId || tone.label;
-  }
-
   const today = new Date();
   const isToday = dateString === dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = ((nowMinutes - startHour * 60) / 60) * rowHeight;
 
   return (
-    <div ref={scrollRef} className="home-day-schedule">
+    <div className="home-day-schedule">
       <div className="home-day-times" aria-hidden="true">
         {hours.map((hour) => (
           <div key={hour} className="home-day-time">
@@ -17545,47 +16417,38 @@ function HomeDaySchedule({
         className="home-day-grid"
         style={{ height: totalHeight }}
         onClick={(event) => {
-          if (event.target.closest(".home-day-event")) return;
+          if (event.target !== event.currentTarget) return;
           onSlotClick(dateString, timeFromPointer(event.clientY));
         }}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setDropTop(topFromPointer(event.clientY));
-        }}
-        onDragLeave={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) setDropTop(null);
-        }}
+        onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
           event.preventDefault();
-          const id = dragIdRef.current || event.dataTransfer.getData("text/medfluen-event");
-          const source = events.find((item) => String(item.id) === String(id));
+          const id = dragIdRef.current || event.dataTransfer.getData("text/plain");
+          const source = events.find((item) => item.id === id);
           if (!source) return;
           onMoveEvent({ ...source, date: dateString, time: timeFromPointer(event.clientY) });
           dragIdRef.current = null;
-          setDropTop(null);
         }}
       >
-        {dropTop !== null && <span className="home-day-drop-preview" style={{ top: dropTop }} />}
-        {isToday && nowTop >= 0 && nowTop <= totalHeight && <div className="home-day-now-line" style={{ top: nowTop }} />}
+        {isToday && nowTop >= 0 && nowTop <= totalHeight && (
+          <div className="home-day-now-line" style={{ top: nowTop }} />
+        )}
 
         {positionedEvents.map(({ event, top, height }) => {
           const tone = palette[event.type] || palette.other;
-          const endMinutes = timeToMinutes(event.time) + Math.round((Number(event.estimatedHours || event.durationHours) || 1) * 60);
+          const endMinutes = timeToMinutes(event.time) + Math.round((Number(event.estimatedHours) || 1) * 60);
           return (
             <button
               key={event.id}
               type="button"
               draggable
               className="home-day-event"
-              data-type={event.type || "other"}
               onDragStart={(domEvent) => {
                 dragIdRef.current = event.id;
-                domEvent.dataTransfer.effectAllowed = "move";
-                domEvent.dataTransfer.setData("text/medfluen-event", String(event.id));
+                domEvent.dataTransfer.setData("text/plain", event.id);
               }}
               onDragEnd={() => {
                 dragIdRef.current = null;
-                setDropTop(null);
               }}
               onClick={(domEvent) => {
                 domEvent.stopPropagation();
@@ -17594,17 +16457,21 @@ function HomeDaySchedule({
               style={{
                 top,
                 height,
-                borderColor: tone.border || tone.color,
+                borderColor: tone.color,
                 background: tone.background,
                 color: tone.color,
               }}
             >
-              <span className="home-day-event-accent" style={{ background: tone.color }} />
-              <span className="home-day-event-icon"><Icon name={tone.icon} size={13} /></span>
-              <span className="home-day-event-copy">
-                <span className="home-day-event-time">{event.time} – {minutesToTime(endMinutes)}</span>
-                <span className="home-day-event-title">{event.title}</span>
-                {height >= 58 && <span className="home-day-event-subtitle">{eventSubtitle(event, tone)}</span>}
+              <span className="home-day-event-icon">
+                <Icon name={tone.icon} size={13} />
+              </span>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <span className="home-day-event-time">
+                  {event.time} – {minutesToTime(endMinutes)}
+                </span>
+                <span className="home-day-event-title" style={{ display: "block" }}>
+                  {event.title}
+                </span>
               </span>
             </button>
           );
@@ -17634,7 +16501,6 @@ function Dashboard({
   const [calendarView, setCalendarView] = useState("day");
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [bottomTab, setBottomTab] = useState("activity");
-  const [activityMenuOpen, setActivityMenuOpen] = useState(false);
 
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
   const direction = language === "ar" ? "rtl" : "ltr";
@@ -17650,133 +16516,127 @@ function Dashboard({
       greetingMorning: "Godmorgen",
       greetingAfternoon: "God eftermiddag",
       greetingEvening: "Godaften",
-      review: "repetition",
-      new: "nye",
-      questions: "spørgsmål",
+      reviews: "Repetition",
+      new: "Nye",
+      total: "Spørgsmål",
+      streak: "Dages streak",
+      thisWeek: "Denne uge",
       continueReview: "Fortsæt repetition",
       continueSession: "Fortsæt session",
+      openPlan: "Åbn studieplan",
       studyPlan: "Studieplan",
       today: "I dag",
-      allDay: "Hele dagen",
       day: "Dag",
       week: "Uge",
       month: "Måned",
       examCountdown: "Eksamensnedtælling",
       days: "dage",
-      noExam: "Tilføj eksamensdato",
+      noExam: "Ingen eksamensdato",
       moduleStatus: "Modulstatus",
       lectures: "Forelæsninger",
       examSets: "Eksamenssæt",
-      complete: "gennemført",
       upcoming: "Kommende",
       viewAll: "Se alle",
       noUpcoming: "Ingen kommende hændelser",
-      recentActivity: "Seneste aktivitet",
-      todayTasks: "Dagens opgaver",
+      activity: "Seneste aktivitet",
+      tasks: "Dagens opgaver",
       results: "Resultater",
       noActivity: "Ingen afsluttede sessioner endnu",
-      completedMcq: "Afsluttet MCQ-session",
+      completedSession: "Afsluttet MCQ-session",
+      questions: "spørgsmål",
       accuracy: "korrekt",
       todayComplete: "Dagens plan er gennemført",
       addLecture: "Tilføj næste forelæsning",
       noTasks: "Intet planlagt for i dag",
       catchUp: "Indhent planen",
-      editPlan: "Åbn studieplan",
-      focusSessions: "fokussessioner",
-      duration: "Varighed",
-      hour: "time",
-      hours: "timer",
-      min: "min",
-      openCalendar: "Åbn kalender",
-      createEvent: "Ny hændelse",
+      behind: "Planen er bagud",
+      createPlan: "Opret studieplan",
+      focusSessions: "fokussessioner i dag",
+      badgeCount: "optjent",
     },
     en: {
       greetingMorning: "Good morning",
       greetingAfternoon: "Good afternoon",
       greetingEvening: "Good evening",
-      review: "review",
-      new: "new",
-      questions: "questions",
+      reviews: "Reviews",
+      new: "New",
+      total: "Questions",
+      streak: "Day streak",
+      thisWeek: "This week",
       continueReview: "Continue review",
       continueSession: "Continue session",
+      openPlan: "Open study plan",
       studyPlan: "Study plan",
       today: "Today",
-      allDay: "All day",
       day: "Day",
       week: "Week",
       month: "Month",
       examCountdown: "Exam countdown",
       days: "days",
-      noExam: "Add exam date",
+      noExam: "No exam date",
       moduleStatus: "Module status",
       lectures: "Lectures",
       examSets: "Exam set",
-      complete: "complete",
       upcoming: "Upcoming",
       viewAll: "View all",
       noUpcoming: "No upcoming events",
-      recentActivity: "Recent activity",
-      todayTasks: "Today's tasks",
+      activity: "Recent activity",
+      tasks: "Today's tasks",
       results: "Results",
       noActivity: "No completed sessions yet",
-      completedMcq: "Completed MCQ session",
+      completedSession: "Completed MCQ session",
+      questions: "questions",
       accuracy: "accuracy",
       todayComplete: "Today's plan is complete",
       addLecture: "Add next lecture",
       noTasks: "Nothing planned for today",
       catchUp: "Catch up",
-      editPlan: "Open study plan",
-      focusSessions: "focus sessions",
-      duration: "Duration",
-      hour: "hour",
-      hours: "hours",
-      min: "min",
-      openCalendar: "Open calendar",
-      createEvent: "New event",
+      behind: "Plan is behind schedule",
+      createPlan: "Create study plan",
+      focusSessions: "focus sessions today",
+      badgeCount: "earned",
     },
     ar: {
       greetingMorning: "صباح الخير",
       greetingAfternoon: "مساء الخير",
       greetingEvening: "مساء الخير",
-      review: "للمراجعة",
+      reviews: "المراجعة",
       new: "جديد",
-      questions: "أسئلة",
+      total: "الأسئلة",
+      streak: "أيام متتالية",
+      thisWeek: "هذا الأسبوع",
       continueReview: "تابع المراجعة",
       continueSession: "تابع الجلسة",
+      openPlan: "افتح خطة الدراسة",
       studyPlan: "خطة الدراسة",
       today: "اليوم",
-      allDay: "طوال اليوم",
       day: "يوم",
       week: "أسبوع",
       month: "شهر",
       examCountdown: "العد التنازلي للامتحان",
       days: "أيام",
-      noExam: "أضف موعد الامتحان",
+      noExam: "لا يوجد موعد امتحان",
       moduleStatus: "حالة الوحدة",
       lectures: "المحاضرات",
       examSets: "مجموعة الامتحان",
-      complete: "مكتمل",
       upcoming: "القادمة",
       viewAll: "عرض الكل",
       noUpcoming: "لا توجد أحداث قادمة",
-      recentActivity: "النشاط الأخير",
-      todayTasks: "مهام اليوم",
+      activity: "النشاط الأخير",
+      tasks: "مهام اليوم",
       results: "النتائج",
       noActivity: "لا توجد جلسات مكتملة بعد",
-      completedMcq: "جلسة أسئلة مكتملة",
+      completedSession: "جلسة أسئلة مكتملة",
+      questions: "أسئلة",
       accuracy: "دقة",
       todayComplete: "اكتملت خطة اليوم",
       addLecture: "أضف المحاضرة التالية",
       noTasks: "لا يوجد شيء مخطط لليوم",
       catchUp: "إعادة توزيع الخطة",
-      editPlan: "افتح خطة الدراسة",
-      focusSessions: "جلسات تركيز",
-      duration: "المدة",
-      hour: "ساعة",
-      hours: "ساعات",
-      min: "دقيقة",
-      openCalendar: "افتح التقويم",
-      createEvent: "حدث جديد",
+      behind: "الخطة متأخرة",
+      createPlan: "أنشئ خطة دراسة",
+      focusSessions: "جلسات تركيز اليوم",
+      badgeCount: "مكتسب",
     },
   })[language] || {};
 
@@ -17793,6 +16653,7 @@ function Dashboard({
   const safeSpacedData = spacedData || {};
   const reviewCount = scopedQuestions.filter((question) => safeSpacedData[question.id] && isDue(safeSpacedData[question.id])).length;
   const newCount = scopedQuestions.filter((question) => !safeSpacedData[question.id]).length;
+  const questionCount = scopedQuestions.length;
   const planExamQuestions = scopedQuestions.filter((question) => !question.lectureId);
   const examSetDoneCount = planExamQuestions.filter((question) => safeSpacedData[question.id]).length;
   const examSetTotalCount = planExamQuestions.length;
@@ -17802,23 +16663,34 @@ function Dashboard({
   const todayPomodoros = pomodoroLog[todayKey] || 0;
 
   const resumeRaw = (() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE.resumeSession) || "null"); }
-    catch { return null; }
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE.resumeSession) || "null");
+    } catch {
+      return null;
+    }
   })();
   const resumeAnswered = Object.keys(resumeRaw?.answers || {}).length;
   const hasResumableSession = resumeAnswered > 0;
 
   const examDate = activePlan?.examDate ? new Date(`${activePlan.examDate}T00:00:00`) : null;
   const daysRemaining = examDate ? Math.max(0, Math.ceil((examDate - today) / 86400000)) : null;
+  const selectedEvents = calendarEvents
+    .filter((event) => event.date === selectedKey)
+    .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
   const upcomingEvents = calendarEvents
     .filter((event) => event.date >= todayKey)
     .sort((a, b) => `${a.date} ${a.time || ""}`.localeCompare(`${b.date} ${b.time || ""}`))
     .slice(0, 4);
 
-  const totalQuestionsAnswered = history.reduce((sum, session) => sum + (session.answered || session.total || 0), 0);
+  const totalQuestionsAnswered = history.reduce((sum, session) => sum + (session.answered || 0), 0);
   const bestSessionAccuracy = history.reduce((best, session) => Math.max(best, session.score || 0), 0);
   const totalPomodoros = Object.values(pomodoroLog).reduce((sum, value) => sum + value, 0);
-  const earnedBadges = computeEarnedBadges({ streakCurrent: streak.current, totalQuestionsAnswered, totalPomodoros, bestSessionAccuracy });
+  const earnedBadges = computeEarnedBadges({
+    streakCurrent: streak.current,
+    totalQuestionsAnswered,
+    totalPomodoros,
+    bestSessionAccuracy,
+  });
 
   const planCreated = activePlan?.createdAt ? new Date(activePlan.createdAt) : today;
   const totalPlanDays = examDate ? Math.max(1, Math.ceil((examDate - planCreated) / 86400000)) : 1;
@@ -17829,7 +16701,10 @@ function Dashboard({
   function computeTodayLectureUnits() {
     if (!activePlan || activePlan.mode !== "lectures" || (activePlan.excludedDates || []).includes(todayKey)) return [];
     const pending = planLectures.filter((lecture) => !doneLectureIds.includes(lecture.id));
-    const units = pending.flatMap((lecture) => Array.from({ length: lecture.parts || 1 }, (_, index) => ({ ...lecture, part: (lecture.parts || 1) > 1 ? index + 1 : null })));
+    const units = pending.flatMap((lecture) => Array.from({ length: lecture.parts || 1 }, (_, index) => ({
+      ...lecture,
+      part: (lecture.parts || 1) > 1 ? index + 1 : null,
+    })));
     const activeDays = Math.max(1, daysRemaining || 1);
     const excludedDates = activePlan.excludedDates || [];
     let excluded = 0;
@@ -17850,16 +16725,23 @@ function Dashboard({
   const todayChecklist = checklist[todayKey] || {};
   const completedTodayCount = checklistItems.filter((item) => Boolean(todayChecklist[item.id])).length;
   const allDoneToday = checklistItems.length > 0 && completedTodayCount === checklistItems.length;
-  const usedLectureIds = new Set([...doneLectureIds, ...baseChecklistItems.map((item) => item.id.split("-")[0]), ...extraTodayItems.map((item) => String(item.id).replace("extra-", "").split("-")[0])]);
+  const usedLectureIds = new Set([
+    ...doneLectureIds,
+    ...baseChecklistItems.map((item) => item.id.split("-")[0]),
+    ...extraTodayItems.map((item) => String(item.id).replace("extra-", "").split("-")[0]),
+  ]);
   const nextExtraLecture = planLectures.find((lecture) => !usedLectureIds.has(lecture.id));
 
   const recommendation = hasResumableSession
     ? { title: copy.continueSession, meta: `${resumeAnswered} ${copy.questions}`, badge: resumeAnswered, icon: "play", action: () => onNavigate("mcq") }
     : reviewCount > 0
-      ? { title: copy.continueReview, meta: `${reviewCount} ${copy.review}`, badge: reviewCount, icon: "reset", action: () => onNavigate("mcq", { mode: "due" }) }
-      : null;
+      ? { title: copy.continueReview, meta: `${moduleCode} · ${reviewCount} ${copy.reviews.toLowerCase()}`, badge: reviewCount, icon: "reset", action: () => onNavigate("mcq", { mode: "due" }) }
+      : activePlan
+        ? { title: copy.openPlan, meta: `${moduleCode} · ${doneLectureCount}/${planLectures.length} ${copy.lectures.toLowerCase()}`, badge: daysRemaining ?? "", icon: "calendar", action: () => onNavigate("study-plan") }
+        : { title: copy.createPlan, meta: moduleName || currentModule, badge: "", icon: "calendar", action: () => onNavigate("study-plan") };
 
   const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
+  const selectedWeekdayIndex = (calendarDate.getDay() + 6) % 7;
   const calendarTitle = calendarDate.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   function shiftCalendar(amount) {
@@ -17873,228 +16755,265 @@ function Dashboard({
   }
 
   function createEvent(date, time) {
-    setEditingPlanEvent({ id: `event-${Date.now()}`, title: "", date, time, type: "study", estimatedHours: 1, __new: true });
+    setEditingPlanEvent({
+      id: `event-${Date.now()}`,
+      title: "",
+      date,
+      time,
+      type: "study",
+      estimatedHours: 1,
+      __new: true,
+    });
   }
 
   function saveEditingEvent() {
     if (!editingPlanEvent?.title?.trim() || !editingPlanEvent.date) return;
     const cleanEvent = { ...editingPlanEvent };
     delete cleanEvent.__new;
-    setCalendarEvents((previous) => editingPlanEvent.__new ? [...previous, cleanEvent] : previous.map((item) => item.id === cleanEvent.id ? cleanEvent : item));
+    setCalendarEvents((previous) => editingPlanEvent.__new
+      ? [...previous, cleanEvent]
+      : previous.map((item) => item.id === cleanEvent.id ? cleanEvent : item));
     setEditingPlanEvent(null);
   }
 
   function deleteEditingEvent() {
     if (!editingPlanEvent) return;
-    if (!editingPlanEvent.__new) setCalendarEvents((previous) => previous.filter((item) => item.id !== editingPlanEvent.id));
+    if (!editingPlanEvent.__new) {
+      setCalendarEvents((previous) => previous.filter((item) => item.id !== editingPlanEvent.id));
+    }
     setEditingPlanEvent(null);
   }
 
   function toggleChecklistItem(id) {
-    setChecklist((old) => ({ ...old, [todayKey]: { ...(old[todayKey] || {}), [id]: !old[todayKey]?.[id] } }));
+    setChecklist((old) => ({
+      ...old,
+      [todayKey]: { ...(old[todayKey] || {}), [id]: !old[todayKey]?.[id] },
+    }));
   }
 
   function addExtraToday() {
     if (!nextExtraLecture) return;
     setChecklist((old) => ({
       ...old,
-      [`${todayKey}__extra`]: [...(old[`${todayKey}__extra`] || []), { id: `extra-${nextExtraLecture.id}`, label: `${nextExtraLecture.id}: ${nextExtraLecture.title}` }],
+      [`${todayKey}__extra`]: [
+        ...(old[`${todayKey}__extra`] || []),
+        { id: `extra-${nextExtraLecture.id}`, label: `${nextExtraLecture.id}: ${nextExtraLecture.title}` },
+      ],
     }));
   }
 
   function handleCatchUp() {
-    setPlansGlobal((old) => old[currentModule] ? { ...old, [currentModule]: { ...old[currentModule], createdAt: Date.now() } } : old);
+    setPlansGlobal((old) => old[currentModule]
+      ? { ...old, [currentModule]: { ...old[currentModule], createdAt: Date.now() } }
+      : old);
   }
 
-  const recentSessions = [...history].sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0)).slice(0, 4);
-
   return (
-    <div className="mf-home fade-up" dir={direction}>
-      <header className="mf-home-heading">
-        <div className="mf-home-heading-copy">
-          <h1>{greeting}, {user?.name || "MedFLUEN"}</h1>
-          <button type="button" className="mf-home-module-link" onClick={() => onNavigate("study-plan")}>{moduleCode}{moduleName ? ` · ${moduleName}` : ""}</button>
-          {recommendation && (
-            <button type="button" className="mf-home-resume" onClick={recommendation.action}>
-              <Icon name={recommendation.icon} size={12} />
-              <span>{recommendation.title}</span>
-              <strong>{recommendation.badge}</strong>
-              <Icon name="right" size={12} />
-            </button>
-          )}
+    <div className="home-v2 fade-up" dir={direction}>
+      <header className="home-v2-heading">
+        <div>
+          <h1 className="home-v2-greeting">{greeting}, {user?.name || "MedFLUEN"}</h1>
+          <div className="home-v2-module">{currentModule}</div>
         </div>
       </header>
 
-      <section className="mf-home-plan">
-        <div className="mf-home-plan-main">
-          <div className="mf-home-plan-header">
+      <section className="home-v2-summary" aria-label={language === "en" ? "Study summary" : "Studieoverblik"}>
+        {[
+          { value: reviewCount, label: copy.reviews, meta: copy.thisWeek, icon: "reset", tone: "review", action: () => onNavigate("mcq", { mode: "due" }) },
+          { value: newCount, label: copy.new, meta: copy.thisWeek, icon: "clipboard", tone: "new", action: () => onNavigate("mcq") },
+          { value: questionCount, label: copy.total, meta: moduleCode, icon: "cards", tone: "total", action: () => onNavigate("mcq") },
+          { value: streak.current, label: copy.streak, meta: `${todayPomodoros} ${copy.focusSessions}`, icon: "flame", tone: "streak", action: () => onNavigate("insights") },
+        ].map((stat) => (
+          <button key={stat.label} type="button" className="home-v2-stat" data-tone={stat.tone} onClick={stat.action}>
+            <span className="home-v2-stat-icon"><Icon name={stat.icon} size={16} /></span>
+            <span style={{ minWidth: 0 }}>
+              <span className="home-v2-stat-value" style={{ display: "block" }}>{stat.value}</span>
+              <span className="home-v2-stat-label" style={{ display: "block" }}>{stat.label}</span>
+              <span className="home-v2-stat-meta" style={{ display: "block" }}>{stat.meta}</span>
+            </span>
+          </button>
+        ))}
+
+        <button type="button" className="home-v2-recommendation" onClick={recommendation.action}>
+          <span className="home-v2-recommendation-icon"><Icon name={recommendation.icon} size={16} /></span>
+          <span className="home-v2-recommendation-copy">
+            <span className="home-v2-recommendation-label" style={{ display: "block" }}>{recommendation.title}</span>
+            <span className="home-v2-recommendation-meta" style={{ display: "block" }}>{recommendation.meta}</span>
+          </span>
+          {recommendation.badge !== "" && <span className="home-v2-recommendation-badge">{recommendation.badge}</span>}
+          <Icon name="right" size={15} />
+        </button>
+      </section>
+
+      <section className="home-v2-workspace">
+        <div className="home-v2-calendar-area">
+          <div className="home-v2-panel-header">
             <div>
-              <h2>{copy.studyPlan}</h2>
-              <div className="mf-home-calendar-nav">
-                <button type="button" aria-label={t.previous} onClick={() => shiftCalendar(-1)}><Icon name="left" size={14} /></button>
-                <button type="button" aria-label={t.next} onClick={() => shiftCalendar(1)}><Icon name="right" size={14} /></button>
-                <Icon name="calendar" size={15} />
-                <span>{calendarTitle}</span>
-                <button type="button" className="mf-home-today" onClick={() => setCalendarDate(new Date())}>{copy.today}</button>
+              <div className="home-v2-panel-title">{copy.studyPlan}</div>
+              <div className="home-v2-calendar-nav">
+                <button type="button" className="home-v2-mini-button" aria-label={t.previous} onClick={() => shiftCalendar(-1)}><Icon name="left" size={13} /></button>
+                <button type="button" className="home-v2-mini-button" aria-label={t.next} onClick={() => shiftCalendar(1)}><Icon name="right" size={13} /></button>
+                <Icon name="calendar" size={13} />
+                <span className="home-v2-date-label">{calendarTitle}</span>
+                <button type="button" className="home-v2-mini-button" onClick={() => setCalendarDate(new Date())}>{copy.today}</button>
               </div>
             </div>
-            <div className="mf-home-view-switcher" role="tablist" aria-label={t.calendarTitle}>
+
+            <div className="home-v2-view-switcher" role="tablist" aria-label={t.calendarTitle}>
               {[["day", copy.day], ["week", copy.week], ["month", copy.month]].map(([value, label]) => (
-                <button key={value} type="button" role="tab" aria-selected={calendarView === value} data-active={calendarView === value ? "true" : "false"} onClick={() => setCalendarView(value)}>{label}</button>
+                <button key={value} type="button" role="tab" aria-selected={calendarView === value} className="home-v2-view-button" data-active={calendarView === value ? "true" : "false"} onClick={() => setCalendarView(value)}>
+                  {label}
+                </button>
               ))}
             </div>
           </div>
 
-          <div className="mf-home-calendar-frame">
-            {calendarView === "day" && <div className="mf-home-all-day"><span>{copy.allDay}</span><button type="button" onClick={() => createEvent(selectedKey, "")}>{copy.createEvent}<Icon name="plus" size={11} /></button></div>}
-            <div className="mf-home-calendar-canvas">
-              {calendarView === "day" ? (
-                <HomeDaySchedule
-                  c={c}
-                  date={calendarDate}
-                  events={calendarEvents}
-                  onEventClick={setEditingPlanEvent}
-                  onSlotClick={createEvent}
-                  onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
-                  language={language}
-                />
-              ) : calendarView === "week" ? (
-                <WeekCalendar
-                  c={c}
-                  events={calendarEvents}
-                  weekStart={startOfWeek(calendarDate)}
-                  daysCount={7}
-                  weekdayLabels={weekdayLabels}
-                 language={language}
-                  onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
-                  onSlotClick={createEvent}
-                  onEventClick={setEditingPlanEvent}
-                />
-              ) : (
-                <MonthCalendar
-                  c={c}
-                  events={calendarEvents}
-                  monthDate={calendarDate}
-                  weekdayLabels={weekdayLabels}
-                  onDayClick={(key) => { setCalendarDate(new Date(`${key}T12:00:00`)); setCalendarView("day"); }}
-                  onEventClick={setEditingPlanEvent}
-                />
-              )}
-            </div>
+          <div className="home-v2-calendar-canvas">
+            {calendarView === "day" ? (
+              <HomeDaySchedule
+                c={c}
+                date={calendarDate}
+                events={calendarEvents}
+                onEventClick={setEditingPlanEvent}
+                onSlotClick={createEvent}
+                onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
+              />
+            ) : calendarView === "week" ? (
+              <WeekCalendar
+                c={c}
+                events={calendarEvents}
+                weekStart={startOfWeek(calendarDate)}
+                daysCount={7}
+                weekdayLabels={weekdayLabels}
+                onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
+                onSlotClick={createEvent}
+                onEventClick={setEditingPlanEvent}
+              />
+            ) : (
+              <MonthCalendar
+                c={c}
+                events={calendarEvents}
+                monthDate={calendarDate}
+                weekdayLabels={weekdayLabels}
+                onDayClick={(key) => {
+                  setCalendarDate(new Date(`${key}T12:00:00`));
+                  setCalendarView("day");
+                }}
+                onEventClick={setEditingPlanEvent}
+              />
+            )}
           </div>
         </div>
 
-        <aside className="mf-home-rail">
-          <article className="mf-home-rail-card mf-home-exam-card">
-            <h3>{copy.examCountdown}</h3>
+        <aside className="home-v2-rail">
+          <div className="home-v2-rail-card">
+            <div className="home-v2-rail-title">{copy.examCountdown}</div>
             {daysRemaining !== null ? (
               <>
-                <span className="mf-home-exam-icon"><Icon name="calendar" size={22} /></span>
-                <div className="mf-home-exam-number">{daysRemaining}</div>
-                <div className="mf-home-exam-unit">{copy.days}</div>
-                <div className="mf-home-exam-module">{moduleCode || currentModule}</div>
-                <div className="mf-home-exam-date">{examDate.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })}</div>
+                <div className="home-v2-exam-number">{daysRemaining}</div>
+                <div className="home-v2-exam-unit">{copy.days}</div>
+                <div className="home-v2-exam-date">
+                  {moduleCode}<br />
+                  {examDate.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })}
+                </div>
               </>
             ) : (
-              <button type="button" className="mf-home-empty-action" onClick={() => onNavigate("study-plan")}><Icon name="calendar" size={18} />{copy.noExam}</button>
+              <button type="button" className="ui-button ui-button--ghost" onClick={() => onNavigate("study-plan")} style={{ width: "100%", marginTop: 10 }}>{copy.noExam}</button>
             )}
-          </article>
+          </div>
 
-          <article className="mf-home-rail-card mf-home-module-card">
-            <div className="mf-home-card-head"><h3>{moduleCode || currentModule}</h3><button type="button" onClick={() => onNavigate("study-plan")}><Icon name="right" size={12} /></button></div>
-            <div className="mf-home-progress-label"><span>{copy.lectures}</span><strong>{doneLectureCount}/{planLectures.length}</strong></div>
-            <div className="mf-home-progress-track"><span style={{ width: `${lectureFraction * 100}%` }} /></div>
-            <div className="mf-home-progress-label mf-home-progress-label-secondary"><span>{copy.examSets}</span><strong>{examSetDoneCount}/{examSetTotalCount}</strong></div>
-            <div className="mf-home-progress-track"><span style={{ width: `${examFraction * 100}%` }} /></div>
-            {isBehind && <button type="button" className="mf-home-catchup" onClick={handleCatchUp}>{copy.catchUp}</button>}
-          </article>
+          <div className="home-v2-rail-card">
+            <div className="home-v2-rail-title">{copy.moduleStatus}</div>
+            <div className="home-v2-progress-row"><span>{copy.lectures}</span><strong>{doneLectureCount}/{planLectures.length}</strong></div>
+            <div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${lectureFraction * 100}%` }} /></div>
+            <div className="home-v2-progress-row"><span>{copy.examSets}</span><strong>{examSetDoneCount}/{examSetTotalCount}</strong></div>
+            <div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${examFraction * 100}%` }} /></div>
+            {isBehind && (
+              <button type="button" className="ui-button ui-button--ghost" onClick={handleCatchUp} style={{ width: "100%", minHeight: 32, marginTop: 10, color: c.red }}>
+                {copy.catchUp}
+              </button>
+            )}
+          </div>
 
-          <article className="mf-home-rail-card mf-home-upcoming-card">
-            <div className="mf-home-card-head"><h3>{copy.upcoming}</h3><button type="button" onClick={onOpenCalendar}>{copy.viewAll}</button></div>
+          <div className="home-v2-rail-card" style={{ minHeight: 210 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <div className="home-v2-rail-title">{copy.upcoming}</div>
+              <button type="button" onClick={onOpenCalendar} style={{ border: 0, background: "transparent", color: c.blue, fontSize: 8.5, fontWeight: 780 }}>{copy.viewAll}</button>
+            </div>
             {upcomingEvents.length ? (
-              <div className="mf-home-upcoming-list">
+              <div className="home-v2-upcoming-list">
                 {upcomingEvents.map((event) => (
-                  <button key={event.id} type="button" className="mf-home-upcoming-row" onClick={() => setEditingPlanEvent(event)}>
-                    <span className="mf-home-upcoming-icon" data-type={event.type}><Icon name={event.type === "review" ? "check" : event.type === "exam" ? "flag" : event.type === "other" ? "notebook" : "calendar"} size={13} /></span>
-                    <span className="mf-home-upcoming-copy">
-                      <strong>{event.title}</strong>
-                      <small>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : ""}</small>
+                  <button key={event.id} type="button" className="home-v2-upcoming-item" onClick={() => setEditingPlanEvent(event)}>
+                    <span className="home-v2-upcoming-icon"><Icon name={event.type === "review" ? "check" : event.type === "exam" ? "flag" : "calendar"} size={12} /></span>
+                    <span style={{ minWidth: 0 }}>
+                      <span className="home-v2-upcoming-title" style={{ display: "block" }}>{event.title}</span>
+                      <span className="home-v2-upcoming-meta" style={{ display: "block" }}>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : ""}</span>
                     </span>
                   </button>
                 ))}
               </div>
-            ) : <div className="mf-home-no-upcoming">{copy.noUpcoming}</div>}
-          </article>
+            ) : <div className="home-v2-upcoming-meta" style={{ marginTop: 12 }}>{copy.noUpcoming}</div>}
+          </div>
         </aside>
       </section>
 
-      <section className="mf-home-activity">
-        <div className="mf-home-activity-head">
-          <h2>{bottomTab === "activity" ? copy.recentActivity : bottomTab === "tasks" ? copy.todayTasks : copy.results}</h2>
-          <div className="mf-home-activity-actions">
-            <button
-              type="button"
-              className="mf-home-view-all"
-              aria-expanded={activityMenuOpen}
-              onClick={() => setActivityMenuOpen((value) => !value)}
-            >
-              {copy.viewAll}
-            </button>
-            {activityMenuOpen && (
-              <div className="mf-home-activity-menu">
-                {[["activity", copy.recentActivity], ["tasks", `${copy.todayTasks}${checklistItems.length ? ` ${completedTodayCount}/${checklistItems.length}` : ""}`], ["results", `${copy.results} ${earnedBadges.length}/${BADGE_DEFINITIONS.length}`]].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    data-active={bottomTab === value ? "true" : "false"}
-                    onClick={() => {
-                      setBottomTab(value);
-                      setActivityMenuOpen(false);
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
+      <section className="home-v2-bottom">
+        <div className="home-v2-bottom-header">
+          <div className="home-v2-panel-title">
+            {bottomTab === "activity" ? copy.activity : bottomTab === "tasks" ? copy.tasks : copy.results}
+          </div>
+          <div className="home-v2-tabs" role="tablist">
+            {[["activity", copy.activity], ["tasks", `${copy.tasks}${checklistItems.length ? ` ${completedTodayCount}/${checklistItems.length}` : ""}`], ["results", `${copy.results} ${earnedBadges.length}/${BADGE_DEFINITIONS.length}`]].map(([value, label]) => (
+              <button key={value} type="button" role="tab" aria-selected={bottomTab === value} className="home-v2-tab" data-active={bottomTab === value ? "true" : "false"} onClick={() => setBottomTab(value)}>{label}</button>
+            ))}
           </div>
         </div>
 
-        <div className="mf-home-activity-body">
+        <div className="home-v2-bottom-content">
           {bottomTab === "activity" ? (
-            recentSessions.length ? (
-              <div className="mf-home-activity-grid">
-                {recentSessions.map((session) => (
-                  <button key={session.id} type="button" className="mf-home-activity-row" onClick={() => onNavigate("insights")}>
-                    <span className="mf-home-activity-icon"><Icon name="check" size={14} /></span>
-                    <span><strong>{copy.completedMcq}</strong><small>{session.answered || session.total || 0} {copy.questions} · {session.score || 0}% {copy.accuracy}</small><em>{session.completedAt ? new Date(session.completedAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) : ""}</em></span>
-                  </button>
+            history.length ? (
+              <div className="home-v2-activity-grid">
+                {[...history].reverse().slice(0, 4).map((session) => (
+                  <div key={session.id} className="home-v2-activity-item">
+                    <span className="home-v2-activity-icon"><Icon name="check" size={13} /></span>
+                    <span style={{ minWidth: 0 }}>
+                      <span className="home-v2-activity-title" style={{ display: "block" }}>{copy.completedSession}</span>
+                      <span className="home-v2-activity-meta" style={{ display: "block" }}>{session.answered || session.total || 0} {copy.questions} · {session.score || 0}% {copy.accuracy}<br />{session.completedAt ? new Date(session.completedAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) : ""}</span>
+                    </span>
+                  </div>
                 ))}
               </div>
             ) : <EmptyState compact symbol={<Icon name="chart" size={16} />} title={copy.noActivity} />
           ) : bottomTab === "tasks" ? (
-            <div className="mf-home-task-area">
-              {allDoneToday && <div className="mf-home-complete-line"><Icon name="check" size={13} />{copy.todayComplete}</div>}
+            <div>
+              {allDoneToday && <div style={{ marginBottom: 9, color: c.green, fontSize: 10, fontWeight: 800 }}>{copy.todayComplete}</div>}
               {checklistItems.length ? (
-                <div className="mf-home-task-list">
+                <div className="home-v2-task-list">
                   {checklistItems.map((item) => {
                     const completed = Boolean(todayChecklist[item.id]);
                     return (
-                      <label key={item.id} className="mf-home-task-row" data-complete={completed ? "true" : "false"}>
-                        <input type="checkbox" checked={completed} onChange={() => toggleChecklistItem(item.id)} />
-                        <span>{item.label}</span>
+                      <label key={item.id} className="home-v2-task-row" data-complete={completed ? "true" : "false"}>
+                        <input type="checkbox" checked={completed} onChange={() => toggleChecklistItem(item.id)} style={{ accentColor: c.green }} />
+                        <span style={{ minWidth: 0, flex: 1, color: completed ? c.secondary : c.text, fontSize: 10.5, fontWeight: 720, textDecoration: completed ? "line-through" : "none" }}>{item.label}</span>
                       </label>
                     );
                   })}
                 </div>
               ) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={copy.noTasks} />}
-              {allDoneToday && nextExtraLecture && <button type="button" className="mf-home-add-lecture" onClick={addExtraToday}>{copy.addLecture}</button>}
+              {allDoneToday && nextExtraLecture && (
+                <button type="button" className="ui-button ui-button--ghost" onClick={addExtraToday} style={{ marginTop: 9 }}>{copy.addLecture}</button>
+              )}
             </div>
           ) : (
-            <div className="mf-home-badges">
+            <div className="home-v2-badge-list">
               {BADGE_DEFINITIONS.map((badge) => {
                 const earned = earnedBadges.some((item) => item.id === badge.id);
-                return <span key={badge.id} data-earned={earned ? "true" : "false"} title={badge.label[language] || badge.label.da}><Icon name={badge.icon} size={12} />{badge.label[language] || badge.label.da}</span>;
+                return (
+                  <span key={badge.id} className="home-v2-badge" data-earned={earned ? "true" : "false"} title={badge.label[language] || badge.label.da}>
+                    <Icon name={badge.icon} size={12} />
+                    {badge.label[language] || badge.label.da}
+                  </span>
+                );
               })}
             </div>
           )}
@@ -18103,21 +17022,50 @@ function Dashboard({
 
       {editingPlanEvent && (
         <Modal c={c} onClose={() => setEditingPlanEvent(null)}>
-          <div className="mf-event-modal">
+          <div style={{ padding: 22 }}>
             <div className="ui-section-heading">
-              <div><h2 className="ui-section-title">{editingPlanEvent.__new ? t.calendarAddEvent : t.calendarEditEvent}</h2></div>
+              <div>
+                <h2 className="ui-section-title">{editingPlanEvent.__new ? t.calendarAddEvent : t.calendarEditEvent}</h2>
+              </div>
               <IconButton c={c} title={t.close} onClick={() => setEditingPlanEvent(null)}><Icon name="close" size={16} /></IconButton>
             </div>
-            <div className="mf-event-form">
-              <label className="ui-field"><span className="ui-field-label">{t.calendarEventTitle}</span><input className="ui-control" value={editingPlanEvent.title || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, title: event.target.value }))} placeholder={t.calendarEventTitlePlaceholder} autoFocus /></label>
-              <div className="mf-event-two-columns">
-                <label className="ui-field"><span className="ui-field-label">{t.calendarEventDate}</span><input type="date" className="ui-control" value={editingPlanEvent.date || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, date: event.target.value }))} /></label>
-                <label className="ui-field"><span className="ui-field-label">{t.calendarEventTime}</span><input type="time" className="ui-control" value={editingPlanEvent.time || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, time: event.target.value }))} /></label>
+
+            <div style={{ display: "grid", gap: 12 }}>
+              <label className="ui-field">
+                <span className="ui-field-label">{t.calendarEventTitle}</span>
+                <input className="ui-control" value={editingPlanEvent.title || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, title: event.target.value }))} placeholder={t.calendarEventTitlePlaceholder} autoFocus />
+              </label>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <label className="ui-field">
+                  <span className="ui-field-label">{t.calendarEventDate}</span>
+                  <input type="date" className="ui-control" value={editingPlanEvent.date || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, date: event.target.value }))} />
+                </label>
+                <label className="ui-field">
+                  <span className="ui-field-label">{t.calendarEventTime}</span>
+                  <input type="time" className="ui-control" value={editingPlanEvent.time || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, time: event.target.value }))} />
+                </label>
               </div>
-              <label className="ui-field"><span className="ui-field-label">{copy.duration}</span><select className="ui-control" value={Number(editingPlanEvent.estimatedHours) || 1} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, estimatedHours: Number(event.target.value) }))}>{[0.5, 0.75, 1, 1.5, 2, 3, 4].map((value) => <option key={value} value={value}>{value < 1 ? `${value * 60} ${copy.min}` : `${value} ${value === 1 ? copy.hour : copy.hours}`}</option>)}</select></label>
-              <div className="ui-field"><span className="ui-field-label">{t.calendarEventType}</span><div className="mf-event-types">{[["exam", t.calendarTypeExam], ["study", t.calendarTypeStudy], ["review", t.calendarTypeReview], ["other", t.calendarTypeOther]].map(([value, label]) => <button key={value} type="button" data-selected={editingPlanEvent.type === value ? "true" : "false"} onClick={() => setEditingPlanEvent((previous) => ({ ...previous, type: value }))}>{label}</button>)}</div></div>
+
+              <div className="ui-field">
+                <span className="ui-field-label">{t.calendarEventType}</span>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                  {[["exam", t.calendarTypeExam], ["study", t.calendarTypeStudy], ["review", t.calendarTypeReview], ["other", t.calendarTypeOther]].map(([value, label]) => (
+                    <button key={value} type="button" className="ui-choice-card" data-selected={editingPlanEvent.type === value ? "true" : "false"} onClick={() => setEditingPlanEvent((previous) => ({ ...previous, type: value }))} style={{ minHeight: 38, border: `1px solid ${editingPlanEvent.type === value ? c.blueBorder : c.border}`, borderRadius: 9, background: editingPlanEvent.type === value ? c.blueSoft : c.soft, color: editingPlanEvent.type === value ? c.blue : c.secondary, fontSize: 9.5, fontWeight: 750 }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="mf-event-actions"><button type="button" className="ui-button ui-button--ghost" onClick={deleteEditingEvent} style={{ color: c.red }}>{editingPlanEvent.__new ? t.calendarCancel : t.calendarDelete}</button><div><SecondaryButton onClick={() => setEditingPlanEvent(null)}>{t.calendarCancel}</SecondaryButton><PrimaryButton onClick={saveEditingEvent}>{t.calendarSave}</PrimaryButton></div></div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 18 }}>
+              <button type="button" className="ui-button ui-button--ghost" onClick={deleteEditingEvent} style={{ color: c.red }}>{editingPlanEvent.__new ? t.calendarCancel : t.calendarDelete}</button>
+              <div style={{ display: "flex", gap: 8 }}>
+                <SecondaryButton onClick={() => setEditingPlanEvent(null)}>{t.calendarCancel}</SecondaryButton>
+                <PrimaryButton onClick={saveEditingEvent}>{t.calendarSave}</PrimaryButton>
+              </div>
+            </div>
           </div>
         </Modal>
       )}
@@ -27890,96 +26838,18 @@ function Sidebar({
   setProfileOpen,
   onProfileAction,
   dueCount = 0,
-  theme,
-  setTheme,
 }) {
   const displayName = String(user?.name || t.profile || "MedFLUEN").trim();
-  const userInitials = displayName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part.slice(0, 1).toUpperCase())
-    .join("") || "MF";
+  const userInitial = displayName.slice(0, 1).toUpperCase() || "M";
   const moduleLabel = String(user?.module || "").trim();
   const [quickAccessOrder, setQuickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, ["mcq", "repeat", "insights"]);
   const [reordering, setReordering] = useState(false);
   const dragIdRef = useRef(null);
 
   const copy = ({
-    da: {
-      study: "Studie",
-      analytics: "Analyse",
-      planning: "Planlægning",
-      resources: "Ressourcer",
-      home: "Hjem",
-      studyHub: "Studie",
-      lectures: "Forelæsninger",
-      mcq: "MCQ-træning",
-      flashcards: "Flashcards",
-      repetition: "Repetition",
-      notes: "Noter",
-      insights: "Indsigter",
-      performance: "Præstation",
-      planner: "Studieplan",
-      calendar: "Kalender",
-      questionBank: "Spørgsmålsbank",
-      examSets: "Eksamenssæt",
-      drByte: "Dr. Byte",
-      settings: "Indstillinger",
-      help: "Hjælp og support",
-      darkMode: "Mørk tilstand",
-      edit: "Rediger",
-      done: "Færdig",
-    },
-    en: {
-      study: "Study",
-      analytics: "Analytics",
-      planning: "Planning",
-      resources: "Resources",
-      home: "Home",
-      studyHub: "Study",
-      lectures: "Lectures",
-      mcq: "MCQ Practice",
-      flashcards: "Flashcards",
-      repetition: "Review",
-      notes: "Notes",
-      insights: "Insights",
-      performance: "Performance",
-      planner: "Planner",
-      calendar: "Calendar",
-      questionBank: "Question Bank",
-      examSets: "Exam Sets",
-      drByte: "Dr. Byte",
-      settings: "Settings",
-      help: "Help & Support",
-      darkMode: "Dark mode",
-      edit: "Edit",
-      done: "Done",
-    },
-    ar: {
-      study: "الدراسة",
-      analytics: "التحليلات",
-      planning: "التخطيط",
-      resources: "المصادر",
-      home: "الرئيسية",
-      studyHub: "الدراسة",
-      lectures: "المحاضرات",
-      mcq: "تدريب الأسئلة",
-      flashcards: "البطاقات",
-      repetition: "المراجعة",
-      notes: "الملاحظات",
-      insights: "الإحصاءات",
-      performance: "الأداء",
-      planner: "خطة الدراسة",
-      calendar: "التقويم",
-      questionBank: "بنك الأسئلة",
-      examSets: "مجموعات الامتحان",
-      drByte: "د. بايت",
-      settings: "الإعدادات",
-      help: "المساعدة والدعم",
-      darkMode: "الوضع الداكن",
-      edit: "تعديل",
-      done: "تم",
-    },
+    da: { study: "Studie", workspace: "Workspace", analytics: "Analyse", planning: "Planlægning", resources: "Værktøjer", lectures: "Forelæsninger", examSets: "Eksamenssæt", repetition: "Repetition", edit: "Rediger", done: "Færdig" },
+    en: { study: "Study", workspace: "Workspace", analytics: "Analytics", planning: "Planning", resources: "Tools", lectures: "Lectures", examSets: "Exam sets", repetition: "Review", edit: "Edit", done: "Done" },
+    ar: { study: "الدراسة", workspace: "مساحة العمل", analytics: "التحليلات", planning: "التخطيط", resources: "الأدوات", lectures: "المحاضرات", examSets: "مجموعات الامتحان", repetition: "المراجعة", edit: "تعديل", done: "تم" },
   })[language] || {};
 
   function closeUtilityPanels() {
@@ -28010,14 +26880,11 @@ function Sidebar({
   }
 
   const quickDefinitions = {
-    mcq: { icon: "clipboard", label: copy.mcq, badge: 0, action: () => navigate("mcq") },
+    mcq: { icon: "clipboard", label: t.clinicalMcq, badge: 0, action: () => navigate("mcq") },
     repeat: { icon: "reset", label: copy.repetition, badge: dueCount, action: () => navigate("mcq", { mode: "due" }) },
-    insights: { icon: "chart", label: copy.insights, badge: 0, action: () => navigate("insights") },
+    insights: { icon: "chart", label: t.insights, badge: 0, action: () => navigate("insights") },
   };
-  const safeQuickOrder = [
-    ...quickAccessOrder.filter((id) => quickDefinitions[id]),
-    ...["mcq", "repeat", "insights"].filter((id) => !quickAccessOrder.includes(id)),
-  ];
+  const safeQuickOrder = [...quickAccessOrder.filter((id) => quickDefinitions[id]), ...["mcq", "repeat", "insights"].filter((id) => !quickAccessOrder.includes(id))];
 
   function moveQuick(fromId, toId) {
     if (!fromId || fromId === toId) return;
@@ -28032,11 +26899,11 @@ function Sidebar({
     });
   }
 
-  function NavItem({ icon, label, active, onClick, badge = 0, draggable = false, id = null }) {
+  function NavRow({ icon, label, active, onClick, badge = 0, draggable = false, id = null }) {
     return (
       <button
         type="button"
-        className="mf-sidebar-item"
+        className="sidebar-wide-row"
         data-active={active ? "true" : "false"}
         draggable={draggable}
         onDragStart={() => { dragIdRef.current = id; }}
@@ -28046,10 +26913,10 @@ function Sidebar({
         onClick={() => !reordering && onClick()}
         title={label}
       >
-        <span className="mf-sidebar-item-icon"><Icon name={icon} size={15} /></span>
-        <span className="mf-sidebar-item-label">{label}</span>
-        {badge > 0 && <span className="mf-sidebar-badge">{badge > 99 ? "99+" : badge}</span>}
-        {reordering && draggable && <span className="mf-sidebar-drag"><Icon name="more" size={12} /></span>}
+        <span className="sidebar-wide-row-icon"><Icon name={icon} size={16} /></span>
+        <span className="sidebar-wide-row-label">{label}</span>
+        {badge > 0 && <span className="sidebar-wide-row-badge">{badge > 99 ? "99+" : badge}</span>}
+        {reordering && draggable && <Icon name="more" size={13} />}
       </button>
     );
   }
@@ -28066,92 +26933,93 @@ function Sidebar({
   return (
     <aside
       data-tour="sidebar"
-      className="mf-sidebar app-sidebar app-surface"
+      className="app-sidebar app-surface"
       aria-label={language === "en" ? "Primary navigation" : language === "ar" ? "التنقل الرئيسي" : "Primær navigation"}
-      dir={language === "ar" ? "rtl" : "ltr"}
+      style={{
+        width: 224,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        flexShrink: 0,
+        padding: "18px 0 14px",
+        background: c.panel,
+        borderInlineEnd: `1px solid ${c.border}`,
+        boxShadow: "8px 0 28px rgba(22,50,90,.025)",
+        direction: language === "ar" ? "rtl" : "ltr",
+        overflowY: "auto",
+        overflowX: "hidden",
+      }}
     >
-      <button type="button" className="mf-sidebar-brand" onClick={() => navigate("home")}>
-        <span className="mf-sidebar-logo" aria-hidden="true"><i /><i /><i /></span>
-        <span className="mf-sidebar-wordmark">Med<span>FLUEN</span></span>
+      <button type="button" className="sidebar-wide-brand" onClick={() => navigate("home")} style={{ border: 0, background: "transparent", textAlign: "start" }}>
+        <span className="sidebar-wide-brand-mark">M</span>
+        <span className="sidebar-wide-brand-name">Med<span style={{ color: c.blue }}>FLUEN</span></span>
       </button>
 
-      <div className="mf-sidebar-scroll">
-        <section className="mf-sidebar-group">
-          <div className="mf-sidebar-group-head">
-            <span>{copy.study}</span>
-            <button type="button" title={reordering ? copy.done : copy.edit} onClick={() => setReordering((value) => !value)}><Icon name={reordering ? "check" : "edit"} size={11} /></button>
-          </div>
-          <div className="mf-sidebar-list">
-            <NavItem icon="home" label={copy.home} active={route === "home" && !notesOpen && !calendarOpen && !drByteOpen} onClick={() => navigate("home")} />
-            <NavItem icon="cards" label={copy.studyHub} active={route === "mcq"} onClick={() => navigate("mcq")} />
-            <NavItem icon="book" label={copy.lectures} active={route === "mcq" && false} onClick={() => navigate("mcq", { contentType: "lectures" })} />
-            {safeQuickOrder.map((id) => {
-              const item = quickDefinitions[id];
-              return (
-                <NavItem
-                  key={id}
-                  id={id}
-                  icon={item.icon}
-                  label={item.label}
-                  active={(id === "mcq" && route === "mcq") || (id === "insights" && route === "insights")}
-                  onClick={item.action}
-                  badge={item.badge}
-                  draggable={reordering}
-                />
-              );
-            })}
-            <NavItem icon="cards" label={copy.flashcards} active={false} onClick={() => navigate("mcq")} />
-            <NavItem icon="notebook" label={copy.notes} active={notesOpen} onClick={() => openUtility("notes")} />
-          </div>
-        </section>
-
-        <section className="mf-sidebar-group">
-          <div className="mf-sidebar-group-head"><span>{copy.analytics}</span></div>
-          <div className="mf-sidebar-list">
-            <NavItem icon="chart" label={copy.insights} active={route === "insights"} onClick={() => navigate("insights")} />
-            <NavItem icon="target" label={copy.performance} active={route === "insights"} onClick={() => navigate("insights")} />
-          </div>
-        </section>
-
-        <section className="mf-sidebar-group">
-          <div className="mf-sidebar-group-head"><span>{copy.planning}</span></div>
-          <div className="mf-sidebar-list">
-            <NavItem icon="calendar" label={copy.planner} active={route === "study-plan"} onClick={() => navigate("study-plan")} />
-            <NavItem icon="calendar" label={copy.calendar} active={calendarOpen} onClick={() => openUtility("calendar")} />
-          </div>
-        </section>
-
-        <section className="mf-sidebar-group">
-          <div className="mf-sidebar-group-head"><span>{copy.resources}</span></div>
-          <div className="mf-sidebar-list">
-            <NavItem icon="clipboard" label={copy.questionBank} active={false} onClick={() => navigate("mcq")} />
-            <NavItem icon="book" label={copy.examSets} active={false} onClick={() => navigate("mcq", { contentType: "examSet" })} />
-            <NavItem icon="chat" label={copy.drByte} active={drByteOpen} onClick={() => openUtility("drbyte")} />
-          </div>
-        </section>
+      <div className="sidebar-wide-section">
+        <div className="sidebar-wide-section-head">
+          <span>{copy.study}</span>
+          <button type="button" onClick={() => setReordering((value) => !value)} title={reordering ? copy.done : copy.edit} style={{ border: 0, background: "transparent", color: reordering ? c.blue : c.muted, padding: 2 }}>
+            <Icon name={reordering ? "check" : "edit"} size={12} />
+          </button>
+        </div>
+        <div className="sidebar-wide-list">
+          <NavRow icon="home" label={t.home} active={route === "home"} onClick={() => navigate("home")} />
+          {safeQuickOrder.map((id) => {
+            const item = quickDefinitions[id];
+            return (
+              <NavRow
+                key={id}
+                id={id}
+                icon={item.icon}
+                label={item.label}
+                active={(id === "mcq" && route === "mcq") || (id === "insights" && route === "insights")}
+                onClick={item.action}
+                badge={item.badge}
+                draggable={reordering}
+              />
+            );
+          })}
+          <NavRow icon="book" label={copy.lectures} active={false} onClick={() => navigate("mcq", { contentType: "lectures" })} />
+        </div>
       </div>
 
-      <div className="mf-sidebar-footer">
-        <div className="mf-sidebar-profile-wrap">
-          <button type="button" className="mf-sidebar-profile" aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}>
-            <span className="mf-sidebar-avatar">{userInitials}</span>
-            <span className="mf-sidebar-profile-copy"><strong>{displayName}</strong><small>{moduleLabel}</small></span>
-            <Icon name="down" size={12} />
-          </button>
-          {profileOpen && (
-            <div role="menu" className="mf-sidebar-profile-menu">
-              {profileActions.map(([action, icon, label]) => (
-                <button key={action} type="button" role="menuitem" data-danger={action === "logout" || action === "signout" ? "true" : "false"} onClick={() => onProfileAction(action)}><Icon name={icon} size={14} />{label}</button>
-              ))}
-            </div>
-          )}
+      <div className="sidebar-wide-section">
+        <div className="sidebar-wide-section-head"><span>{copy.planning}</span></div>
+        <div className="sidebar-wide-list">
+          <NavRow icon="calendar" label={t.todaysPlanTitle || t.calendar} active={route === "study-plan"} onClick={() => navigate("study-plan")} />
+          <NavRow icon="calendar" label={t.calendar} active={calendarOpen} onClick={() => openUtility("calendar")} />
         </div>
+      </div>
 
-        <button type="button" className="mf-sidebar-footer-row" onClick={() => onProfileAction("settings")}><Icon name="settings" size={15} /><span>{copy.settings}</span></button>
-        <button type="button" className="mf-sidebar-footer-row" onClick={() => onProfileAction("tutorial")}><Icon name="help" size={15} /><span>{copy.help}</span></button>
-        <button type="button" className="mf-sidebar-footer-row" onClick={() => setTheme?.(theme === "dark" ? "light" : "dark")}>
-          <Icon name="moon" size={15} /><span>{copy.darkMode}</span><span className="mf-sidebar-switch" data-active={theme === "dark" ? "true" : "false"}><i /></span>
+      <div className="sidebar-wide-section">
+        <div className="sidebar-wide-section-head"><span>{copy.workspace}</span></div>
+        <div className="sidebar-wide-list">
+          <NavRow icon="notebook" label={t.notebook} active={notesOpen} onClick={() => openUtility("notes")} />
+          <NavRow icon="chat" label={t.drByte} active={drByteOpen} onClick={() => openUtility("drbyte")} />
+          <NavRow icon="book" label={copy.examSets} active={false} onClick={() => navigate("mcq", { contentType: "examSet" })} />
+        </div>
+      </div>
+
+      <div className="sidebar-wide-profile" style={{ position: "relative" }}>
+        <button type="button" className="sidebar-wide-profile-button" aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}>
+          <span className="sidebar-wide-avatar">{userInitial}</span>
+          <span className="sidebar-wide-profile-copy" style={{ minWidth: 0, flex: 1 }}>
+            <span className="sidebar-wide-profile-name" style={{ display: "block" }}>{displayName}</span>
+            <span className="sidebar-wide-profile-meta" style={{ display: "block" }}>{moduleLabel}</span>
+          </span>
+          <span className="sidebar-wide-profile-chevron"><Icon name="right" size={13} /></span>
         </button>
+
+        {profileOpen && (
+          <div role="menu" className="sidebar-profile-menu" style={{ position: "fixed", zIndex: 1200, insetInlineStart: "calc(var(--app-sidebar-width) + 10px)", bottom: 16, width: 220, padding: 8, borderRadius: 14, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg }}>
+            {profileActions.map(([action, icon, label]) => (
+              <button key={action} type="button" role="menuitem" className="sidebar-menu-item" onClick={() => onProfileAction(action)} style={{ width: "100%", minHeight: 38, display: "flex", alignItems: "center", gap: 9, padding: "0 10px", border: 0, borderRadius: 9, background: "transparent", color: action === "logout" || action === "signout" ? c.red : c.secondary, fontSize: 10, fontWeight: 720, textAlign: "start" }}>
+                <Icon name={icon} size={14} />
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </aside>
   );
@@ -29885,8 +28753,6 @@ useEffect(() => {
         setProfileOpen={setProfileOpen}
         dueCount={sidebarDueCount}
         isAdmin={isAdmin}
-        theme={theme}
-        setTheme={setTheme}
         onNavigate={(target, options) => {
           if (target === "mcq") {
             setSessionScope(
@@ -29924,12 +28790,12 @@ useEffect(() => {
 
       {calendarOpen && (
         <div
-          className={`${calendarClosing ? "calendar-fullscreen-exit" : "calendar-fullscreen-enter"} calendar-workspace-overlay`}
+          className={calendarClosing ? "calendar-fullscreen-exit" : "calendar-fullscreen-enter"}
           style={{
             position: "fixed",
             top: 0,
             bottom: 0,
-            insetInlineStart: "var(--app-sidebar-width)",
+            insetInlineStart: 74,
             insetInlineEnd: 0,
             zIndex: 999,
             background: c.panel,
@@ -29961,7 +28827,7 @@ useEffect(() => {
         >
           <main
             ref={scrollContainerRef}
-            className={`content-padding content-route-${route}`}
+            className="content-padding"
             style={{
               minWidth: 0,
               flex: 1,
@@ -29976,6 +28842,7 @@ useEffect(() => {
                 user={user}
                 language={language}
                 spacedData={spacedData}
+                onResetAllProgress={setSpacedData}
                 importedQuestions={importedQuestions}
 onOpenCalendar={() => {
   setCalendarClosing(false);
@@ -30079,13 +28946,37 @@ onNavigate={(target, options) => {
               </>
             )}
           </main>
-          {notesOpen && (
-            <div className="utility-workspace-overlay">
-              <Notebook c={c} t={t} language={language} onClose={() => setNotesOpen(false)} />
-            </div>
-          )}
-          {drByteOpen && (
-            <div className="utility-workspace-overlay">
+
+          <div
+            className={notesOpen ? "notes-open" : ""}
+            style={{
+              width: notesOpen ? 430 : 0,
+              height: "100%",
+              flexShrink: 0,
+              overflow: "hidden",
+              opacity: notesOpen ? 1 : 0,
+              transition: "width 280ms ease,opacity 190ms ease",
+            }}
+          >
+            {notesOpen && (
+              <Notebook c={c} t={t} onClose={() => setNotesOpen(false)} />
+            )}
+          </div>
+
+
+          <div
+            className={drByteOpen ? "notes-open" : ""}
+            style={{
+              width: drByteOpen ? 380 : 0,
+              height: "100%",
+              flexShrink: 0,
+              overflow: "hidden",
+              opacity: drByteOpen ? 1 : 0,
+              borderInlineStart: drByteOpen ? `1px solid ${c.border}` : "none",
+              transition: "width 280ms ease,opacity 190ms ease",
+            }}
+          >
+            {drByteOpen && (
               <DrByteChat
                 c={c}
                 t={t}
@@ -30104,8 +28995,8 @@ onNavigate={(target, options) => {
                   });
                 }}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
