@@ -1445,8 +1445,8 @@ function WeekCalendar({
               {Array.from({ length: endHour - startHour + 1 }, (_, index) => (
                 <span key={index} className="calendar-week-hour-line" style={{ top: index * hourHeight }} />
               ))}
-              {Array.from({ length: (endHour - startHour) * 2 }, (_, index) => (
-                <span key={index} className="calendar-week-half-line" style={{ top: index * (hourHeight / 2) }} />
+              {Array.from({ length: endHour - startHour }, (_, index) => (
+                <span key={index} className="calendar-week-half-line" style={{ top: index * hourHeight + hourHeight / 2 }} />
               ))}
               {isToday && nowTop >= 0 && nowTop <= totalHeight && (
                 <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>
@@ -6505,97 +6505,131 @@ select.ui-control {
   height: 100%;
   min-height: 565px;
   display: grid;
-  grid-template-columns: 66px minmax(0, 1fr);
+  grid-template-columns: 76px minmax(0, 1fr);
   overflow: auto;
   background: var(--ui-panel);
 }
 
 .home-day-times {
   position: relative;
-  border-inline-end: 1px solid var(--ui-border);
+  min-width: 76px;
+  border-inline-end: 1px solid color-mix(in srgb, var(--ui-border) 72%, transparent);
+  background: var(--ui-panel);
 }
 
 .home-day-time {
-  height: 56px;
-  padding: 7px 11px 0 0;
+  position: absolute;
+  inset-inline: 0 12px;
+  z-index: 2;
+  transform: translateY(-50%);
   color: var(--ui-muted);
   font-size: 9px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
   text-align: end;
-  border-top: 1px solid var(--ui-border);
+  pointer-events: none;
+}
+
+.home-day-gutter-line,
+.home-day-hour-line,
+.home-day-half-line {
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+  pointer-events: none;
+}
+
+.home-day-gutter-line,
+.home-day-hour-line {
+  background: color-mix(in srgb, var(--ui-border) 62%, transparent);
+}
+
+.home-day-half-line {
+  background: color-mix(in srgb, var(--ui-border) 30%, transparent);
 }
 
 .home-day-grid {
   position: relative;
   min-width: 520px;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 55px,
-    var(--ui-border) 55px,
-    var(--ui-border) 56px
-  );
+  background: var(--ui-panel);
+  cursor: crosshair;
+  transition: background 130ms ease;
 }
 
 .home-day-grid:hover {
-  background-color: color-mix(in srgb, var(--ui-blue-soft) 14%, transparent);
+  background: color-mix(in srgb, var(--ui-blue-soft) 7%, var(--ui-panel));
 }
 
 .home-day-event {
   position: absolute;
-  inset-inline: 15px;
+  z-index: 5;
+  min-height: 28px;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  padding: 9px 12px;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 10px;
   overflow: hidden;
-  border: 1px solid;
-  border-inline-start-width: 3px;
-  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--home-event-accent) 24%, var(--ui-border));
+  border-inline-start: 2px solid var(--home-event-accent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--home-event-surface) 42%, var(--ui-panel));
+  color: var(--ui-text);
   text-align: start;
   outline: none;
-  cursor: pointer;
-  transition: filter 150ms ease, box-shadow 150ms ease;
+  cursor: grab;
+  box-shadow: none;
+  box-sizing: border-box;
+  transition: background 120ms ease, border-color 120ms ease, opacity 120ms ease;
 }
 
 .home-day-event:hover {
-  filter: brightness(.99);
-  box-shadow: var(--ui-shadow-sm);
+  z-index: 8;
+  border-color: color-mix(in srgb, var(--home-event-accent) 38%, var(--ui-border));
+  background: color-mix(in srgb, var(--home-event-surface) 55%, var(--ui-panel));
+}
+
+.home-day-event:active {
+  cursor: grabbing;
 }
 
 .home-day-event:focus-visible {
-  box-shadow: 0 0 0 3px var(--ui-ring), var(--ui-shadow-sm);
+  box-shadow: 0 0 0 3px var(--ui-ring);
 }
 
-.home-day-event-icon {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--ui-panel) 78%, transparent);
+.home-day-event[data-complete="true"] {
+  opacity: .52;
 }
 
 .home-day-event-time {
-  color: var(--ui-muted);
-  font-size: 8px;
-  font-weight: 760;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ui-secondary);
+  font-size: 8.5px;
+  font-weight: 690;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .home-day-event-title {
-  margin-top: 3px;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
   color: var(--ui-text);
   font-size: 10.5px;
-  font-weight: 820;
-  overflow: hidden;
+  font-weight: 760;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .home-day-now-line {
   position: absolute;
-  z-index: 6;
+  z-index: 10;
   inset-inline: 0;
   height: 1px;
   background: var(--ui-blue);
@@ -6605,7 +6639,7 @@ select.ui-control {
 .home-day-now-line::before {
   content: "";
   position: absolute;
-  inset-inline-start: -4px;
+  inset-inline-start: -3px;
   top: -3px;
   width: 7px;
   height: 7px;
@@ -7309,14 +7343,12 @@ select.ui-control {
 
 .calendar-week-hour-line {
   z-index: 1;
-  background: var(--ui-border-strong);
-  opacity: .76;
+  background: color-mix(in srgb, var(--ui-border) 62%, transparent);
 }
 
 .calendar-week-half-line {
   z-index: 0;
-  background: var(--ui-border);
-  opacity: .48;
+  background: color-mix(in srgb, var(--ui-border) 28%, transparent);
 }
 
 .calendar-week-now-line {
@@ -7325,16 +7357,15 @@ select.ui-control {
   inset-inline: 0;
   height: 1px;
   background: var(--ui-blue);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ui-blue) 15%, transparent);
   pointer-events: none;
 }
 
 .calendar-week-now-line i {
   position: absolute;
-  inset-inline-start: -4px;
-  top: -4px;
-  width: 8px;
-  height: 8px;
+  inset-inline-start: -3px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--ui-blue);
 }
@@ -7346,42 +7377,27 @@ select.ui-control {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-start;
-  gap: 2px;
-  padding: 5px 7px;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 8px;
   overflow: hidden;
-  border: 1px solid var(--ui-border-strong);
-  border-inline-start: 3px solid var(--calendar-event-accent);
+  border: 1px solid color-mix(in srgb, var(--calendar-event-accent) 24%, var(--ui-border));
+  border-inline-start: 2px solid var(--calendar-event-accent);
   border-radius: 7px;
-  background: color-mix(
-    in srgb,
-    var(--calendar-event-surface) 64%,
-    var(--ui-panel)
-  );
+  background: color-mix(in srgb, var(--calendar-event-surface) 42%, var(--ui-panel));
   color: var(--ui-text);
   box-shadow: none;
   text-align: start;
   cursor: grab;
   outline: none;
   box-sizing: border-box;
-  transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    opacity 120ms ease;
+  transition: background 120ms ease, border-color 120ms ease, opacity 120ms ease;
 }
 
 .calendar-week-event:hover {
   z-index: 15;
-  border-color: color-mix(
-    in srgb,
-    var(--calendar-event-accent) 42%,
-    var(--ui-border-strong)
-  );
-  background: color-mix(
-    in srgb,
-    var(--calendar-event-surface) 82%,
-    var(--ui-panel)
-  );
+  border-color: color-mix(in srgb, var(--calendar-event-accent) 38%, var(--ui-border));
+  background: color-mix(in srgb, var(--calendar-event-surface) 55%, var(--ui-panel));
 }
 
 .calendar-week-event:active {
@@ -7401,10 +7417,10 @@ select.ui-control {
   max-width: 100%;
   overflow: hidden;
   color: var(--ui-secondary);
-  font-size: 8px;
+  font-size: 8.25px;
   font-weight: 680;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -7413,9 +7429,9 @@ select.ui-control {
   max-width: 100%;
   overflow: hidden;
   color: var(--ui-text);
-  font-size: 9.5px;
+  font-size: 9.75px;
   font-weight: 760;
-  line-height: 1.25;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -8573,6 +8589,61 @@ select.ui-control {
   align-items: center;
   gap: 5px;
   font-weight: 800;
+}
+
+.plan-progress-status-stack {
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+}
+
+.plan-progress-completion-toggle {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 9px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 9px;
+  background: var(--ui-panel);
+  color: var(--ui-secondary);
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.plan-progress-completion-toggle:hover {
+  border-color: var(--ui-blue-border);
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.plan-progress-completion-toggle[data-checked="true"] {
+  border-color: var(--ui-green-border);
+  background: var(--ui-green-soft);
+  color: var(--ui-green);
+}
+
+.plan-progress-completion-box {
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  opacity: .72;
+}
+
+.plan-progress-completion-toggle[data-checked="false"] .plan-progress-completion-box svg {
+  opacity: 0;
+}
+
+.plan-progress-secondary-status {
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 700;
 }
 
 .plan-progress-table-row[data-status="complete"] .plan-progress-status { color: var(--ui-green); }
@@ -12588,7 +12659,7 @@ function calendarEventMetaFields(event) {
     "endTime", "description", "location", "url", "lectureId", "lectureIds",
     "source", "importedSchedule", "completedAt", "status", "needsScheduling",
     "questionCount", "lectureUnits", "allDay", "createdByUser", "colorKey",
-    "returnedToQueueAt",
+    "returnedToQueueAt", "manualIncompleteAt",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -12648,6 +12719,29 @@ function calendarReturnLectureToQueue(event, todayKeyString) {
     status: "unscheduled",
     needsScheduling: true,
     returnedToQueueAt: Date.now(),
+    manualIncompleteAt: Date.now(),
+  };
+}
+
+function calendarLectureIds(event) {
+  if (Array.isArray(event?.lectureIds) && event.lectureIds.length) return event.lectureIds;
+  return event?.lectureId ? [event.lectureId] : [];
+}
+
+function calendarStudyPlanLectureId(moduleName, lectureId) {
+  return `studyplan-${moduleName}-lecture-${lectureId}`;
+}
+
+function calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existingEvent = null }) {
+  return {
+    id: existingEvent?.id || calendarStudyPlanLectureId(moduleName, lecture.id),
+    title: existingEvent?.title || `${lecture.id} · ${lecture.title}`,
+    date: todayKeyString,
+    time: "",
+    type: existingEvent?.type || "study",
+    planModuleId: moduleName,
+    lectureCount: 1,
+    estimatedHours: Math.max(.5, Number(existingEvent?.estimatedHours) || Number(lecture.parts) || 1),
   };
 }
 
@@ -13302,11 +13396,11 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
 
   useEffect(() => {
     const completedImportedIds = mergedEvents
-      .filter((event) => event.planModuleId === module && event.importedSchedule && event.lectureId && calendarEventEndTimestamp(event) <= Date.now())
+      .filter((event) => event.planModuleId === module && event.importedSchedule && event.lectureId && !event.manualIncompleteAt && calendarEventEndTimestamp(event) <= Date.now())
       .map((event) => event.lectureId);
     if (!completedImportedIds.length || !plans[module]) return;
     const nextIds = [...new Set([...(plans[module].doneLectureIds || []), ...completedImportedIds])];
-    const completedImportedEvents = mergedEvents.filter((event) => event.planModuleId === module && event.importedSchedule && event.lectureId && calendarEventEndTimestamp(event) <= Date.now() && !event.completedAt);
+    const completedImportedEvents = mergedEvents.filter((event) => event.planModuleId === module && event.importedSchedule && event.lectureId && !event.manualIncompleteAt && calendarEventEndTimestamp(event) <= Date.now() && !event.completedAt);
     if (completedImportedEvents.length) {
       setEventMeta((previous) => {
         const next = { ...previous };
@@ -13374,15 +13468,33 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
   }
 
   function toggleEventComplete(event) {
-    const completedAt = event.completedAt ? null : new Date().toISOString();
-    setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), completedAt, status: completedAt ? "completed" : "planned" } }));
-    if (!event.planModuleId || !(event.lectureIds || []).length || !plans[event.planModuleId]) return;
+    const completing = !event.completedAt;
+    const lectureIds = calendarLectureIds(event);
+    const completedAt = completing ? new Date().toISOString() : null;
+
+    if (!completing && event.source === "study-plan" && lectureIds.length) {
+      const queued = calendarReturnLectureToQueue(event, todayKey);
+      setEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, date: queued.date, time: "" } : item));
+      setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...calendarEventMetaFields(queued) } }));
+    } else {
+      setEventMeta((previous) => ({
+        ...previous,
+        [event.id]: {
+          ...(previous[event.id] || {}),
+          completedAt,
+          status: completedAt ? "completed" : "planned",
+          manualIncompleteAt: completedAt ? null : Date.now(),
+        },
+      }));
+    }
+
+    if (!event.planModuleId || !lectureIds.length || !plans[event.planModuleId]) return;
     setPlans((previous) => {
       const plan = previous[event.planModuleId];
       const current = new Set(plan.doneLectureIds || []);
-      (event.lectureIds || []).forEach((id) => completedAt ? current.add(id) : current.delete(id));
+      lectureIds.forEach((id) => completing ? current.add(id) : current.delete(id));
       const questionDelta = Number(event.questionCount) || 0;
-      const completedExamQuestions = Math.max(0, (Number(plan.completedExamQuestions) || 0) + (completedAt ? questionDelta : -questionDelta));
+      const completedExamQuestions = Math.max(0, (Number(plan.completedExamQuestions) || 0) + (completing ? questionDelta : -questionDelta));
       return { ...previous, [event.planModuleId]: { ...plan, doneLectureIds: [...current], completedExamQuestions, updatedAt: Date.now() } };
     });
   }
@@ -16533,53 +16645,92 @@ function HomeDaySchedule({
   onSlotClick,
   onMoveEvent,
 }) {
-  const hours = Array.from({ length: 14 }, (_, index) => index + 7);
-  const startHour = hours[0];
-  const rowHeight = 56;
-  const totalHeight = hours.length * rowHeight;
+  const startHour = 7;
+  const endHour = 21;
+  const hourHeight = 60;
+  const totalHeight = (endHour - startHour) * hourHeight;
   const dateString = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
   const dragIdRef = useRef(null);
   const gridRef = useRef(null);
 
   const palette = {
-    exam: { color: c.red, background: c.redSoft, icon: "flag" },
-    study: { color: c.blue, background: c.blueSoft, icon: "book" },
-    review: { color: c.green, background: c.greenSoft, icon: "check" },
-    other: { color: c.purple, background: c.purpleSoft, icon: "notebook" },
+    exam: { color: c.red, background: c.redSoft },
+    study: { color: c.blue, background: c.blueSoft },
+    review: { color: c.green, background: c.greenSoft },
+    other: { color: c.purple, background: c.purpleSoft },
   };
 
-  const positionedEvents = events
-    .filter((event) => event.date === dateString && event.time)
-    .map((event) => {
-      const minutes = timeToMinutes(event.time);
-      const top = Math.max(0, ((minutes - startHour * 60) / 60) * rowHeight);
-      const durationHours = Math.max(0.75, Number(event.estimatedHours) || 1);
-      const height = Math.max(44, durationHours * rowHeight - 6);
-      return { event, top, height };
-    })
-    .filter((item) => item.top < totalHeight);
+  function eventDurationMinutes(event) {
+    const start = timeToMinutes(event.time);
+    const end = timeToMinutes(event.endTime);
+    if (start != null && end != null && end > start) return end - start;
+    return Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60));
+  }
+
+  function layoutDayEvents(dayEvents) {
+    const items = dayEvents
+      .filter((event) => event.time)
+      .map((event) => {
+        const start = timeToMinutes(event.time);
+        const end = start + eventDurationMinutes(event);
+        return { event, start, end, lane: 0, laneCount: 1 };
+      })
+      .sort((a, b) => a.start - b.start || b.end - a.end);
+
+    const groups = [];
+    let active = [];
+    let activeEnd = -1;
+    items.forEach((item) => {
+      if (active.length && item.start >= activeEnd) {
+        groups.push(active);
+        active = [];
+        activeEnd = -1;
+      }
+      active.push(item);
+      activeEnd = Math.max(activeEnd, item.end);
+    });
+    if (active.length) groups.push(active);
+
+    groups.forEach((group) => {
+      const laneEnds = [];
+      group.forEach((item) => {
+        let lane = laneEnds.findIndex((value) => value <= item.start);
+        if (lane < 0) lane = laneEnds.length;
+        laneEnds[lane] = item.end;
+        item.lane = lane;
+      });
+      group.forEach((item) => { item.laneCount = Math.max(1, laneEnds.length); });
+    });
+    return items;
+  }
+
+  const positionedEvents = layoutDayEvents(events.filter((event) => event.date === dateString));
 
   function timeFromPointer(clientY) {
     if (!gridRef.current) return `${String(startHour).padStart(2, "0")}:00`;
     const rect = gridRef.current.getBoundingClientRect();
     const relative = Math.max(0, Math.min(totalHeight - 1, clientY - rect.top));
-    const rawMinutes = startHour * 60 + (relative / rowHeight) * 60;
-    const rounded = Math.round(rawMinutes / 15) * 15;
-    return minutesToTime(rounded);
+    const rawMinutes = startHour * 60 + (relative / hourHeight) * 60;
+    return minutesToTime(Math.round(rawMinutes / 15) * 15);
   }
 
   const today = new Date();
   const isToday = dateString === dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
-  const nowTop = ((nowMinutes - startHour * 60) / 60) * rowHeight;
+  const nowTop = ((nowMinutes - startHour * 60) / 60) * hourHeight;
+  const hourLines = Array.from({ length: endHour - startHour + 1 }, (_, index) => ({
+    hour: startHour + index,
+    top: index * hourHeight,
+  }));
 
   return (
-    <div className="home-day-schedule">
-      <div className="home-day-times" aria-hidden="true">
-        {hours.map((hour) => (
-          <div key={hour} className="home-day-time">
-            {String(hour).padStart(2, "0")}:00
-          </div>
+    <div className="home-day-schedule" style={{ "--home-hour-height": `${hourHeight}px` }}>
+      <div className="home-day-times" style={{ height: totalHeight }} aria-hidden="true">
+        {hourLines.map(({ hour, top }) => (
+          <React.Fragment key={hour}>
+            <span className="home-day-gutter-line" style={{ top }} />
+            <span className="home-day-time" style={{ top }}>{String(hour).padStart(2, "0")}:00</span>
+          </React.Fragment>
         ))}
       </div>
 
@@ -16588,7 +16739,7 @@ function HomeDaySchedule({
         className="home-day-grid"
         style={{ height: totalHeight }}
         onClick={(event) => {
-          if (event.target !== event.currentTarget) return;
+          if (event.target.closest('.home-day-event')) return;
           onSlotClick(dateString, timeFromPointer(event.clientY));
         }}
         onDragOver={(event) => event.preventDefault()}
@@ -16601,49 +16752,51 @@ function HomeDaySchedule({
           dragIdRef.current = null;
         }}
       >
+        {hourLines.map(({ hour, top }) => <span key={`hour-${hour}`} className="home-day-hour-line" style={{ top }} />)}
+        {Array.from({ length: endHour - startHour }, (_, index) => (
+          <span key={`half-${index}`} className="home-day-half-line" style={{ top: index * hourHeight + hourHeight / 2 }} />
+        ))}
+
         {isToday && nowTop >= 0 && nowTop <= totalHeight && (
           <div className="home-day-now-line" style={{ top: nowTop }} />
         )}
 
-        {positionedEvents.map(({ event, top, height }) => {
+        {positionedEvents.map(({ event, start, end, lane, laneCount }) => {
           const tone = palette[event.type] || palette.other;
-          const endMinutes = timeToMinutes(event.time) + Math.round((Number(event.estimatedHours) || 1) * 60);
+          const top = ((start - startHour * 60) / 60) * hourHeight;
+          const height = Math.max(28, ((end - start) / 60) * hourHeight - 3);
+          if (top + height < 0 || top > totalHeight) return null;
+          const width = `calc(${100 / laneCount}% - 10px)`;
+          const left = `calc(${lane * (100 / laneCount)}% + 5px)`;
           return (
             <button
               key={event.id}
               type="button"
               draggable
               className="home-day-event"
+              data-complete={event.completedAt ? "true" : "false"}
               onDragStart={(domEvent) => {
                 dragIdRef.current = event.id;
+                domEvent.dataTransfer.effectAllowed = "move";
                 domEvent.dataTransfer.setData("text/plain", event.id);
               }}
-              onDragEnd={() => {
-                dragIdRef.current = null;
-              }}
+              onDragEnd={() => { dragIdRef.current = null; }}
               onClick={(domEvent) => {
                 domEvent.stopPropagation();
                 onEventClick(event);
               }}
               style={{
-                top,
+                top: top + 1,
                 height,
-                borderColor: tone.color,
-                background: tone.background,
-                color: tone.color,
+                width,
+                insetInlineStart: left,
+                "--home-event-accent": tone.color,
+                "--home-event-surface": tone.background,
               }}
+              title={`${event.time}–${minutesToTime(end)} ${event.title}`}
             >
-              <span className="home-day-event-icon">
-                <Icon name={tone.icon} size={13} />
-              </span>
-              <span style={{ minWidth: 0, flex: 1 }}>
-                <span className="home-day-event-time">
-                  {event.time} – {minutesToTime(endMinutes)}
-                </span>
-                <span className="home-day-event-title" style={{ display: "block" }}>
-                  {event.title}
-                </span>
-              </span>
+              <span className="home-day-event-time">{event.time}–{minutesToTime(end)}</span>
+              <span className="home-day-event-title">{event.title}</span>
             </button>
           );
         })}
@@ -16731,18 +16884,30 @@ function CalendarDailyPlanner({ c, language, todayEvents, missedEvents, onSaveTo
   );
 }
 
-function PlanProgressPage({ c, language, moduleName, plan, lectures, events, onBack }) {
+function PlanProgressPage({ c, language, moduleName, plan, lectures, events, onBack, onToggleLecture }) {
   const copy = ({
-    da: { title: "Studieforløb", subtitle: "Datoer, planlagte forelæsninger og gennemførelse", back: "Tilbage til Hjem", lectures: "Forelæsninger", completed: "Gennemført", planned: "Planlagt", overdue: "Overskredet", unscheduled: "Ikke placeret", date: "Dato", status: "Status", source: "Kilde", planSource: "Studieplan", importSource: "Importeret skema", none: "Ingen dato", daysLeft: "dage til eksamen", upcoming: "Kommende", past: "Tidligere" },
-    en: { title: "Study journey", subtitle: "Dates, scheduled lectures and completion", back: "Back to Home", lectures: "Lectures", completed: "Completed", planned: "Planned", overdue: "Overdue", unscheduled: "Unscheduled", date: "Date", status: "Status", source: "Source", planSource: "Study plan", importSource: "Imported schedule", none: "No date", daysLeft: "days to exam", upcoming: "Upcoming", past: "Past" },
-    ar: { title: "مسار الدراسة", subtitle: "التواريخ والمحاضرات المجدولة والإنجاز", back: "العودة للرئيسية", lectures: "المحاضرات", completed: "مكتمل", planned: "مخطط", overdue: "متأخر", unscheduled: "غير محدد", date: "التاريخ", status: "الحالة", source: "المصدر", planSource: "خطة الدراسة", importSource: "جدول مستورد", none: "بدون تاريخ", daysLeft: "أيام للامتحان", upcoming: "القادمة", past: "السابقة" },
+    da: { title: "Studieforløb", subtitle: "Datoer, planlagte forelæsninger og gennemførelse", back: "Tilbage til Hjem", lectures: "Forelæsninger", completed: "Gennemført", planned: "Planlagt", overdue: "Overskredet", unscheduled: "Ikke placeret", date: "Dato", status: "Status", source: "Kilde", planSource: "Studieplan", importSource: "Importeret skema", none: "Ingen dato", daysLeft: "dage til eksamen", markDone: "Markér gennemgået", undoDone: "Fjern markering" },
+    en: { title: "Study journey", subtitle: "Dates, scheduled lectures and completion", back: "Back to Home", lectures: "Lectures", completed: "Completed", planned: "Planned", overdue: "Overdue", unscheduled: "Unscheduled", date: "Date", status: "Status", source: "Source", planSource: "Study plan", importSource: "Imported schedule", none: "No date", daysLeft: "days to exam", markDone: "Mark reviewed", undoDone: "Undo completion" },
+    ar: { title: "مسار الدراسة", subtitle: "التواريخ والمحاضرات المجدولة والإنجاز", back: "العودة للرئيسية", lectures: "المحاضرات", completed: "مكتمل", planned: "مخطط", overdue: "متأخر", unscheduled: "غير محدد", date: "التاريخ", status: "الحالة", source: "المصدر", planSource: "خطة الدراسة", importSource: "جدول مستورد", none: "بدون تاريخ", daysLeft: "أيام للامتحان", markDone: "تحديد كمراجع", undoDone: "إلغاء الاكتمال" },
   })[language] || {};
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === "Escape") onBack();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onBack]);
+
   const doneIds = new Set(plan?.doneLectureIds || []);
   const now = Date.now();
   const eventByLecture = {};
-  events.forEach((event) => (event.lectureIds || (event.lectureId ? [event.lectureId] : [])).forEach((id) => {
-    if (!eventByLecture[id] || `${event.date}${event.time || ""}` < `${eventByLecture[id].date}${eventByLecture[id].time || ""}`) eventByLecture[id] = event;
+  events.forEach((event) => calendarLectureIds(event).forEach((id) => {
+    const current = eventByLecture[id];
+    const prefersStudyPlan = event.source === "study-plan" && current?.source !== "study-plan";
+    const earlier = !current || `${event.date}${event.time || ""}` < `${current.date}${current.time || ""}`;
+    if (!current || prefersStudyPlan || (event.source === current.source && earlier)) eventByLecture[id] = event;
   }));
   const rows = lectures.map((lecture) => {
     const event = eventByLecture[lecture.id];
@@ -16770,14 +16935,29 @@ function PlanProgressPage({ c, language, moduleName, plan, lectures, events, onB
       <section className="plan-progress-table-card">
         <div className="plan-progress-table-head"><span>{copy.lectures}</span><span>{copy.date}</span><span>{copy.source}</span><span>{copy.status}</span></div>
         <div className="plan-progress-table-body">
-          {rows.map(({ lecture, event, completed, overdue }) => (
-            <div key={lecture.id} className="plan-progress-table-row" data-status={completed ? "complete" : overdue ? "overdue" : event ? "planned" : "unscheduled"}>
-              <span className="plan-progress-lecture"><i>{lecture.id}</i><strong>{lecture.title}</strong></span>
-              <span>{event ? new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }) : copy.none}{event?.time ? <small>{event.time}</small> : null}</span>
-              <span>{event?.importedSchedule ? copy.importSource : event ? copy.planSource : "—"}</span>
-              <span className="plan-progress-status"><Icon name={completed ? "check" : overdue ? "flag" : event ? "clock" : "minus"} size={12} />{completed ? copy.completed : overdue ? copy.overdue : event?.time ? copy.planned : copy.unscheduled}</span>
-            </div>
-          ))}
+          {rows.map(({ lecture, event, completed, overdue }) => {
+            const secondaryStatus = completed ? copy.completed : overdue ? copy.overdue : event?.time ? copy.planned : copy.unscheduled;
+            return (
+              <div key={lecture.id} className="plan-progress-table-row" data-status={completed ? "complete" : overdue ? "overdue" : event ? "planned" : "unscheduled"}>
+                <span className="plan-progress-lecture"><i>{lecture.id}</i><strong>{lecture.title}</strong></span>
+                <span>{event ? new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }) : copy.none}{event?.time ? <small>{event.time}</small> : null}</span>
+                <span>{event?.importedSchedule ? copy.importSource : event ? copy.planSource : "—"}</span>
+                <span className="plan-progress-status-stack">
+                  <button
+                    type="button"
+                    className="plan-progress-completion-toggle"
+                    data-checked={completed ? "true" : "false"}
+                    aria-pressed={completed}
+                    onClick={() => onToggleLecture(lecture, event, completed)}
+                  >
+                    <span className="plan-progress-completion-box"><Icon name="check" size={11} /></span>
+                    <span>{completed ? copy.undoDone : copy.markDone}</span>
+                  </button>
+                  <small className="plan-progress-secondary-status">{secondaryStatus}</small>
+                </span>
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>
@@ -16800,6 +16980,7 @@ function Dashboard({
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [calendarDailyPlanner, setCalendarDailyPlanner] = useStoredState(STORAGE.calendarDailyPlanner, {});
+  const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
   const [editingPlanEvent, setEditingPlanEvent] = useState(null);
@@ -17052,11 +17233,11 @@ function Dashboard({
   useEffect(() => {
     if (!activePlan) return;
     const completedImported = mergedCalendarEvents
-      .filter((event) => event.planModuleId === currentModule && event.importedSchedule && event.lectureId && calendarEventEndTimestamp(event) <= Date.now())
+      .filter((event) => event.planModuleId === currentModule && event.importedSchedule && event.lectureId && !event.manualIncompleteAt && calendarEventEndTimestamp(event) <= Date.now())
       .map((event) => event.lectureId);
     if (!completedImported.length) return;
     const next = [...new Set([...(activePlan.doneLectureIds || []), ...completedImported])];
-    const completedImportedEvents = mergedCalendarEvents.filter((event) => event.planModuleId === currentModule && event.importedSchedule && event.lectureId && calendarEventEndTimestamp(event) <= Date.now() && !event.completedAt);
+    const completedImportedEvents = mergedCalendarEvents.filter((event) => event.planModuleId === currentModule && event.importedSchedule && event.lectureId && !event.manualIncompleteAt && calendarEventEndTimestamp(event) <= Date.now() && !event.completedAt);
     if (completedImportedEvents.length) {
       setCalendarEventMeta((previous) => {
         const meta = { ...previous };
@@ -17193,18 +17374,99 @@ function Dashboard({
     setEditingPlanEvent(null);
   }
 
-  function togglePlanEventComplete(event) {
-    const completedAt = event.completedAt ? null : new Date().toISOString();
-    setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), completedAt, status: completedAt ? "completed" : "planned" } }));
-    if (!(event.lectureIds || []).length || !activePlan) return;
+  function applyLectureCompletion(lecture, event, completed) {
+    if (!lecture || !activePlan) return;
+    const lectureId = lecture.id;
+    const related = mergedCalendarEvents.filter((item) => item.planModuleId === currentModule && calendarLectureIds(item).includes(lectureId));
+    const studyEvent = related.find((item) => item.source === "study-plan") || (event?.source === "study-plan" ? event : null);
+    const stableExisting = mergedCalendarEvents.find((item) => item.id === calendarStudyPlanLectureId(currentModule, lectureId)) || studyEvent;
+    const base = calendarQueuedLectureBase({ moduleName: currentModule, lecture, todayKeyString: todayKey, existingEvent: stableExisting });
+
     setPlansGlobal((previous) => {
       const plan = previous[currentModule];
       if (!plan) return previous;
       const ids = new Set(plan.doneLectureIds || []);
-      event.lectureIds.forEach((id) => completedAt ? ids.add(id) : ids.delete(id));
-      const questionDelta = Number(event.questionCount) || 0;
+      if (completed) ids.add(lectureId);
+      else ids.delete(lectureId);
+      return { ...previous, [currentModule]: { ...plan, doneLectureIds: [...ids], updatedAt: Date.now() } };
+    });
+
+    const lectureProgressKey = `${currentModule}:${lectureId}`;
+    setLectureProgress((previous) => {
+      const current = previous[lectureProgressKey] || { viewed: false, viewCount: 0, mastery: "unrated" };
+      const count = completed
+        ? current.viewed ? Number(current.viewCount) || 0 : (Number(current.viewCount) || 0) + 1
+        : current.viewed ? Math.max(0, (Number(current.viewCount) || 0) - 1) : Number(current.viewCount) || 0;
+      return {
+        ...previous,
+        [lectureProgressKey]: {
+          ...current,
+          viewed: completed,
+          viewCount: count,
+          lastViewedAt: completed ? Date.now() : count > 0 ? current.lastViewedAt || null : null,
+        },
+      };
+    });
+
+    setCalendarEvents((previous) => {
+      const exists = previous.some((item) => item.id === base.id);
+      if (completed) return exists ? previous : [...previous, base];
+      if (exists) return previous.map((item) => item.id === base.id ? { ...item, date: todayKey, time: "" } : item);
+      return [...previous, base];
+    });
+
+    setCalendarEventMeta((previous) => {
+      const next = { ...previous };
+      const ids = new Set(related.map((item) => item.id));
+      ids.add(base.id);
+      ids.forEach((id) => {
+        const current = next[id] || {};
+        next[id] = completed
+          ? { ...current, completedAt: current.completedAt || new Date().toISOString(), status: "completed", manualIncompleteAt: null, needsScheduling: false }
+          : {
+              ...current,
+              completedAt: null,
+              status: id === base.id ? "unscheduled" : "planned",
+              manualIncompleteAt: Date.now(),
+              missedResolvedAt: null,
+              needsScheduling: id === base.id ? true : current.needsScheduling,
+              lectureId,
+              lectureIds: [lectureId],
+              source: id === base.id ? "study-plan" : current.source,
+              returnedToQueueAt: id === base.id ? Date.now() : current.returnedToQueueAt,
+            };
+      });
+      return next;
+    });
+  }
+
+  function togglePlanEventComplete(event) {
+    const completed = !event.completedAt;
+    const lectureId = calendarLectureIds(event)[0];
+    const lecture = lectureId ? planLectures.find((item) => item.id === lectureId) : null;
+    if (lecture) {
+      applyLectureCompletion(lecture, event, completed);
+      return;
+    }
+
+    const completedAt = completed ? new Date().toISOString() : null;
+    setCalendarEventMeta((previous) => ({
+      ...previous,
+      [event.id]: {
+        ...(previous[event.id] || {}),
+        completedAt,
+        status: completedAt ? "completed" : "planned",
+        manualIncompleteAt: completedAt ? null : Date.now(),
+      },
+    }));
+
+    if (!activePlan) return;
+    const questionDelta = Number(event.questionCount) || 0;
+    setPlansGlobal((previous) => {
+      const plan = previous[currentModule];
+      if (!plan) return previous;
       const completedExamQuestions = Math.max(0, Math.min(examSetTotalCount, (Number(plan.completedExamQuestions) || 0) + (completedAt ? questionDelta : -questionDelta)));
-      return { ...previous, [currentModule]: { ...plan, doneLectureIds: [...ids], completedExamQuestions, updatedAt: Date.now() } };
+      return { ...previous, [currentModule]: { ...plan, completedExamQuestions, updatedAt: Date.now() } };
     });
   }
 
@@ -17258,7 +17520,18 @@ function Dashboard({
   }
 
   if (progressDetailsOpen) {
-    return <PlanProgressPage c={c} language={language} moduleName={currentModule} plan={activePlan} lectures={planLectures} events={mergedCalendarEvents.filter((event) => event.planModuleId === currentModule)} onBack={() => setProgressDetailsOpen(false)} />;
+    return (
+      <PlanProgressPage
+        c={c}
+        language={language}
+        moduleName={currentModule}
+        plan={activePlan}
+        lectures={planLectures}
+        events={mergedCalendarEvents.filter((event) => event.planModuleId === currentModule)}
+        onBack={() => setProgressDetailsOpen(false)}
+        onToggleLecture={(lecture, event, completed) => applyLectureCompletion(lecture, event, !completed)}
+      />
+    );
   }
 
   return (
@@ -27289,6 +27562,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
   const [lectureNotes, setLectureNotes] = useStoredState(STORAGE.lectureNotes, {});
   const [sharedNotes] = useStoredState(STORAGE.sharedLectureNotes, {});
   const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
+  const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
+  const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
+  const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const uploadRef = useRef(null);
 
   const copy = ({
@@ -27428,21 +27704,91 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
     return definitions[value] || definitions.unrated;
   }
 
+  function syncLectureCompletion(lectureId, completed) {
+    if (!isLectureLibrary || !moduleName) return;
+    const lecture = lectures.find((item) => item.id === lectureId);
+    if (!lecture) return;
+
+    const today = new Date();
+    const todayKeyString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+    const merged = mergeCalendarEventMeta(calendarEvents, calendarEventMeta);
+    const related = merged.filter((event) => event.planModuleId === moduleName && calendarLectureIds(event).includes(lectureId));
+    const studyEvent = related.find((event) => event.source === "study-plan") || null;
+    const stableId = calendarStudyPlanLectureId(moduleName, lectureId);
+    const stableExisting = merged.find((event) => event.id === stableId) || studyEvent;
+    const base = calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existingEvent: stableExisting });
+
+    setStudyPlans((previous) => {
+      const plan = previous[moduleName];
+      if (!plan) return previous;
+      const ids = new Set(plan.doneLectureIds || []);
+      if (completed) ids.add(lectureId);
+      else ids.delete(lectureId);
+      return { ...previous, [moduleName]: { ...plan, doneLectureIds: [...ids], updatedAt: Date.now() } };
+    });
+
+    setCalendarEvents((previous) => {
+      const exists = previous.some((event) => event.id === base.id);
+      if (completed) return exists ? previous : [...previous, base];
+      if (exists) {
+        return previous.map((event) => event.id === base.id
+          ? { ...event, date: todayKeyString, time: "" }
+          : event
+        );
+      }
+      return [...previous, base];
+    });
+
+    setCalendarEventMeta((previous) => {
+      const next = { ...previous };
+      const relatedIds = new Set(related.map((event) => event.id));
+      relatedIds.add(base.id);
+      relatedIds.forEach((id) => {
+        const existing = next[id] || {};
+        next[id] = completed
+          ? {
+              ...existing,
+              completedAt: existing.completedAt || new Date().toISOString(),
+              status: "completed",
+              manualIncompleteAt: null,
+              needsScheduling: false,
+            }
+          : {
+              ...existing,
+              completedAt: null,
+              status: id === base.id ? "unscheduled" : "planned",
+              manualIncompleteAt: Date.now(),
+              missedResolvedAt: null,
+              needsScheduling: id === base.id ? true : existing.needsScheduling,
+              lectureId,
+              lectureIds: [lectureId],
+              source: id === base.id ? "study-plan" : existing.source,
+              returnedToQueueAt: id === base.id ? Date.now() : existing.returnedToQueueAt,
+            };
+      });
+      return next;
+    });
+  }
+
   function toggleLectureViewed(lectureId) {
     const key = lectureProgressKey(lectureId);
-    setLectureProgress((current) => {
-      const previous = current[key] || { viewed: false, viewCount: 0, mastery: "unrated" };
-      const viewed = !previous.viewed;
-      return {
-        ...current,
-        [key]: {
-          ...previous,
-          viewed,
-          viewCount: viewed ? (Number(previous.viewCount) || 0) + 1 : Number(previous.viewCount) || 0,
-          lastViewedAt: viewed ? Date.now() : previous.lastViewedAt || null,
-        },
-      };
-    });
+    const previous = getLectureProgress(lectureId);
+    const viewed = !previous.viewed;
+    const nextCount = viewed
+      ? (Number(previous.viewCount) || 0) + 1
+      : Math.max(0, (Number(previous.viewCount) || 0) - 1);
+
+    setLectureProgress((current) => ({
+      ...current,
+      [key]: {
+        ...(current[key] || previous),
+        viewed,
+        viewCount: nextCount,
+        lastViewedAt: viewed ? Date.now() : nextCount > 0 ? previous.lastViewedAt || null : null,
+      },
+    }));
+
+    syncLectureCompletion(lectureId, viewed);
   }
 
   function cycleLectureMastery(lectureId) {
