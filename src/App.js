@@ -47,6 +47,11 @@ const STORAGE = {
   calendarDailyPlanner: "medlearn-calendar-daily-planner",
   calendarPlanHistory: "medlearn-calendar-plan-history",
   aiSettings: "medlearn-ai-settings",
+  navigationRoute: "medlearn-navigation-route",
+  navigationScroll: "medlearn-navigation-scroll",
+  workspaceState: "medlearn-workspace-state",
+  lectureNotes: "medlearn-lecture-notes",
+  sharedLectureNotes: "medlearn-shared-lecture-notes",
 };
 
 const LANGUAGES = [
@@ -3739,6 +3744,38 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
         <path d="M7 3.5c0 .9-.6 1.1-.6 2S7 6.6 7 7.5M11 3.5c0 .9-.6 1.1-.6 2s.6 1.1.6 2" />
       </>
     ),
+    search: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-4-4" />
+      </>
+    ),
+    file: (
+      <>
+        <path d="M6 2h8l4 4v16H6Z" />
+        <path d="M14 2v5h5M9 12h6M9 16h6" />
+      </>
+    ),
+    upload: (
+      <>
+        <path d="M12 16V4" />
+        <path d="m7 9 5-5 5 5" />
+        <path d="M5 20h14" />
+      </>
+    ),
+    share: (
+      <>
+        <circle cx="18" cy="5" r="2.5" />
+        <circle cx="6" cy="12" r="2.5" />
+        <circle cx="18" cy="19" r="2.5" />
+        <path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5" />
+      </>
+    ),
+    folder: (
+      <>
+        <path d="M3 6h7l2 2h9v11H3Z" />
+      </>
+    ),
   };
 
   return <svg {...props}>{icons[name]}</svg>;
@@ -3747,6 +3784,8 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
 function GlobalStyles({ c }) {  
   return (
     <style>{`
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Share+Tech+Mono&family=Space+Mono:wght@400;700&display=swap");
+
       /* --------------------------------------------------------------
          KALENDER-TEMA (WeekCalendar)
          Kalenderen er en selvbygget React-komponent (WeekCalendar) i stedet
@@ -9684,6 +9723,400 @@ select.ui-control {
 }
   
 }
+
+/* ============================================================
+   SEGMENT 1 — APP SHELL, NAVIGATION & DOCUMENT WORKSPACES
+   ============================================================ */
+.app-sidebar {
+  width: var(--app-sidebar-width) !important;
+  min-width: var(--app-sidebar-width);
+  box-shadow: none !important;
+}
+
+.sidebar-nav-group {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.sidebar-divider {
+  width: 24px;
+  height: 1px;
+  margin: 9px 0;
+  background: var(--ui-border);
+}
+
+.sidebar-nav-btn {
+  box-shadow: none !important;
+}
+
+.sidebar-nav-btn:hover {
+  transform: none;
+  background: var(--ui-soft) !important;
+  color: var(--ui-text) !important;
+}
+
+.sidebar-nav-btn[data-active="true"],
+.sidebar-nav-btn[data-active="true"]:hover {
+  background: var(--ui-blue-soft) !important;
+  color: var(--ui-blue) !important;
+  border-color: var(--ui-blue-border) !important;
+}
+
+.sidebar-nav-btn:hover .sidebar-nav-icon,
+.sidebar-nav-btn:active .sidebar-nav-icon {
+  transform: none;
+}
+
+.sidebar-nav-btn:active {
+  transform: scale(.96);
+}
+
+.sidebar-badge {
+  position: absolute;
+  top: -4px;
+  inset-inline-end: -5px;
+  min-width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  border: 2px solid var(--ui-panel);
+  border-radius: 999px;
+  background: var(--ui-red);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.sidebar-tooltip {
+  inset-inline-start: 55px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  transition-delay: 280ms;
+}
+
+.sidebar-nav-btn:focus-visible .sidebar-tooltip {
+  transition-delay: 0ms;
+}
+
+.sidebar-logo:hover {
+  transform: none;
+  filter: none;
+  box-shadow: 0 8px 18px rgba(22,101,234,.25) !important;
+}
+
+.sidebar-profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 9px 11px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.sidebar-profile-summary > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.sidebar-profile-summary div { min-width: 0; }
+.sidebar-profile-summary strong,
+.sidebar-profile-summary small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-profile-summary strong { color: var(--ui-text); font-size: 11.5px; }
+.sidebar-profile-summary small { margin-top: 2px; color: var(--ui-muted); font-size: 9px; }
+
+.sidebar-menu-item {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 720;
+  text-align: start;
+}
+
+.sidebar-menu-item:hover { transform: none; background: var(--ui-soft) !important; }
+
+.topbar-shell {
+  height: 64px !important;
+  box-shadow: none !important;
+}
+
+.topbar-page-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.topbar-page-context:hover .topbar-page-icon { transform: none; box-shadow: none; }
+
+.topbar-pomodoro-trigger {
+  box-shadow: none !important;
+}
+
+.topbar-pomodoro-trigger:hover {
+  transform: none;
+  border-color: var(--ui-border-strong) !important;
+}
+
+.topbar-pomodoro-trigger[data-active="true"] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-blue) 7%, transparent) !important;
+}
+
+.topbar-pomodoro-icon { box-shadow: none !important; animation: none !important; }
+
+.topbar-pomodoro-time,
+.pomodoro-digital-time {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+.pomodoro-popover {
+  border-radius: 16px !important;
+  box-shadow: var(--ui-shadow) !important;
+}
+
+.pomodoro-font-option {
+  outline: none;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+.pomodoro-font-option:hover { border-color: var(--ui-border-strong) !important; }
+.pomodoro-font-option:focus-visible { box-shadow: 0 0 0 3px var(--ui-ring); }
+
+.app-main-area {
+  min-width: 0;
+}
+
+.content-padding {
+  width: 100%;
+  scroll-behavior: smooth;
+}
+
+.content-padding > * {
+  margin-inline: auto;
+}
+
+.workspace-shell {
+  animation: workspaceEnter 200ms cubic-bezier(.16,1,.3,1) both;
+}
+.workspace-shell--closing { animation: workspaceExit 180ms ease both; }
+@keyframes workspaceEnter { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes workspaceExit { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(8px); } }
+
+.document-workspace {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-page);
+  color: var(--ui-text);
+}
+
+.document-workspace-header {
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+}
+
+.document-workspace-title-block,
+.document-workspace-header-actions,
+.document-workspace-title-block > span:last-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.document-workspace-title-block { gap: 10px; }
+.document-workspace-title-block > span:last-child { align-items: flex-start; flex-direction: column; }
+.document-workspace-title-block strong { font-size: 13px; font-weight: 850; }
+.document-workspace-title-block small { max-width: 430px; margin-top: 2px; overflow: hidden; color: var(--ui-muted); font-size: 9.5px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.document-workspace-mark { width: 34px; height: 34px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid var(--ui-blue-border); border-radius: 10px; background: var(--ui-blue-soft); color: var(--ui-blue); }
+.document-workspace-header-actions { gap: 8px; }
+.document-upload-button { min-height: 38px !important; padding-inline: 13px !important; }
+
+.document-workspace-grid {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  overflow: hidden;
+}
+.document-workspace-grid--notes { grid-template-columns: 280px minmax(360px, 1fr) 330px; }
+
+.document-library-panel,
+.lecture-notes-panel {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-panel);
+}
+.document-library-panel { border-inline-end: 1px solid var(--ui-border); }
+.lecture-notes-panel { border-inline-start: 1px solid var(--ui-border); }
+
+.document-search-box {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px;
+  padding: 0 11px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  background: var(--ui-soft);
+  color: var(--ui-muted);
+}
+.document-search-box:focus-within { border-color: var(--ui-blue-border); box-shadow: 0 0 0 3px var(--ui-ring); background: var(--ui-panel); }
+.document-search-box input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--ui-text); font-size: 11px; }
+
+.document-library-list { min-height: 0; flex: 1; overflow-y: auto; padding: 0 8px 10px; }
+.document-library-row {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ui-text);
+  text-align: start;
+}
+.document-library-row:hover { background: var(--ui-soft); }
+.document-library-row[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); }
+.document-library-code { width: 33px; height: 33px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-blue); font-size: 9px; font-weight: 900; }
+.document-library-copy { min-width: 0; flex: 1; }
+.document-library-copy strong,
+.document-library-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.document-library-copy strong { font-size: 10.5px; font-weight: 780; }
+.document-library-copy small { margin-top: 3px; color: var(--ui-muted); font-size: 8.5px; font-weight: 650; }
+.document-library-file-state { width: 25px; height: 25px; display: grid; place-items: center; flex-shrink: 0; border-radius: 7px; color: var(--ui-muted); }
+.document-library-file-state[data-ready="true"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.document-library-empty { padding: 28px 15px; color: var(--ui-muted); font-size: 10.5px; line-height: 1.55; text-align: center; }
+.document-session-note { padding: 9px 12px; border-top: 1px solid var(--ui-border); color: var(--ui-muted); font-size: 8.5px; line-height: 1.45; }
+
+.document-viewer-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: #eef1f5; }
+.document-viewer-toolbar { height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 13px; border-bottom: 1px solid var(--ui-border); background: var(--ui-panel); }
+.document-viewer-toolbar > span { min-width: 0; display: inline-flex; align-items: center; gap: 7px; color: var(--ui-secondary); }
+.document-viewer-toolbar strong { max-width: 480px; overflow: hidden; color: var(--ui-text); font-size: 10.5px; text-overflow: ellipsis; white-space: nowrap; }
+.document-viewer-toolbar button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-blue); font-size: 9.5px; font-weight: 750; }
+.document-viewer-toolbar button:hover { background: var(--ui-blue-soft); }
+.document-viewer-canvas { min-height: 0; flex: 1; padding: 14px; }
+.document-viewer-canvas iframe { width: 100%; height: 100%; display: block; border: 0; border-radius: 6px; background: #fff; box-shadow: 0 6px 20px rgba(20,35,60,.10); }
+.document-viewer-empty { height: 100%; display: grid; place-items: center; align-content: center; gap: 11px; padding: 24px; border: 1px dashed var(--ui-border-strong); border-radius: 10px; background: var(--ui-panel); color: var(--ui-muted); text-align: center; }
+.document-viewer-empty > span { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-soft); color: var(--ui-blue); }
+.document-viewer-empty strong { max-width: 360px; color: var(--ui-secondary); font-size: 11px; line-height: 1.5; }
+
+.lecture-notes-tabs { height: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 7px; border-bottom: 1px solid var(--ui-border); }
+.lecture-notes-tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 8px; background: transparent; color: var(--ui-muted); font-size: 9.5px; font-weight: 780; }
+.lecture-notes-tabs button:hover { background: var(--ui-soft); color: var(--ui-text); }
+.lecture-notes-tabs button[data-active="true"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-notes-panel textarea { min-height: 0; flex: 1; padding: 16px; border: 0; outline: 0; resize: none; background: var(--ui-panel); color: var(--ui-text); font-size: 12px; line-height: 1.7; }
+.shared-notes-placeholder { min-height: 0; flex: 1; display: grid; place-items: center; align-content: center; gap: 9px; padding: 24px; color: var(--ui-muted); text-align: center; }
+.shared-notes-placeholder strong { color: var(--ui-text); font-size: 12px; }
+.shared-notes-placeholder p { max-width: 250px; margin: 0; font-size: 10px; line-height: 1.6; }
+
+.mobile-bottom-nav { display: none; }
+
+@media (max-width: 1180px) {
+  .document-workspace-grid--notes { grid-template-columns: 250px minmax(330px, 1fr) 290px; }
+}
+
+@media (max-width: 940px) {
+  .document-workspace-grid--notes { grid-template-columns: 240px minmax(0, 1fr); }
+  .lecture-notes-panel { position: absolute; top: 64px; bottom: 0; inset-inline-end: 0; width: min(330px, 42vw); z-index: 4; box-shadow: var(--ui-shadow-lg); }
+}
+
+@media (max-width: 760px) {
+  :root { --app-sidebar-width: 0px; }
+  .app-sidebar { display: none !important; }
+  .workspace-shell { inset-inline-start: 0 !important; inset-inline-end: 0 !important; bottom: 64px !important; }
+  .app-main-area { padding-bottom: 64px; }
+  .content-padding { padding: 18px 14px 82px !important; }
+  .drbyte-panel-open { position: fixed !important; top: 0 !important; bottom: 64px !important; inset-inline: 0 !important; z-index: 1100 !important; width: 100vw !important; }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    z-index: 1300;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 64px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 5px max(5px, env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom)) max(5px, env(safe-area-inset-left));
+    box-shadow: 0 -8px 24px rgba(20,35,60,.06);
+  }
+  .mobile-bottom-nav > button,
+  .mobile-more-wrap > button {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 3px;
+    padding: 3px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+  }
+  .mobile-bottom-nav button > span { position: relative; display: grid; place-items: center; }
+  .mobile-bottom-nav button small { max-width: 64px; overflow: hidden; font-size: 8px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-bottom-nav button[data-active="true"] { background: var(--ui-blue-soft); }
+  .mobile-bottom-nav em { position: absolute; top: -7px; right: -10px; min-width: 15px; height: 15px; display: grid; place-items: center; padding: 0 3px; border-radius: 999px; background: var(--ui-red); color: #fff; font-size: 7px; font-style: normal; font-weight: 900; }
+  .mobile-more-wrap { position: relative; min-width: 0; }
+  .mobile-more-sheet { position: fixed; left: 10px; right: 10px; bottom: 72px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; padding: 9px; border-radius: 14px; }
+  .mobile-more-sheet button { min-height: 42px; display: flex; align-items: center; gap: 9px; padding: 0 11px; border: 0; border-radius: 9px; background: transparent; color: var(--ui-text); font-size: 10px; font-weight: 730; text-align: start; }
+  .mobile-more-sheet button:hover { background: var(--ui-soft); }
+
+  .topbar-shell { height: 58px !important; }
+  .topbar-pomodoro-trigger { max-width: calc(100vw - 82px) !important; min-height: 42px !important; }
+  .pomodoro-popover { left: 10px !important; right: 10px !important; top: 68px !important; width: auto !important; max-height: calc(100vh - 144px) !important; }
+
+  .document-workspace-header { height: 58px; padding: 0 10px; }
+  .document-workspace-title-block small { display: none; }
+  .document-upload-button { width: 38px; padding: 0 !important; font-size: 0 !important; }
+  .document-workspace-grid,
+  .document-workspace-grid--notes { grid-template-columns: 1fr; position: relative; }
+  .document-library-panel { position: absolute; z-index: 5; top: 0; bottom: 0; inset-inline-start: 0; width: min(280px, 82vw); box-shadow: var(--ui-shadow-lg); }
+  .document-viewer-canvas { padding: 8px; }
+  .lecture-notes-panel { top: 0; width: min(310px, 88vw); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-shell,
+  .workspace-shell--closing { animation: none !important; }
+}
+
     `}</style>
   );
 }
@@ -10961,6 +11394,7 @@ function Timer({
       focus: 25,
       pause: 5,
       sessions: 0,
+      fontStyle: "plex",
     }
   );
 
@@ -11062,6 +11496,10 @@ function Timer({
         "sessioner",
       resetDescription:
         "Afslut den aktuelle session og nulstil timeren.",
+      clockFace: "Urdesign",
+      clockPlex: "Præcis",
+      clockSpace: "Klassisk",
+      clockTech: "Digital",
     },
 
     en: {
@@ -11117,6 +11555,10 @@ function Timer({
         "sessions",
       resetDescription:
         "End the current session and reset the timer.",
+      clockFace: "Clock style",
+      clockPlex: "Precise",
+      clockSpace: "Classic",
+      clockTech: "Digital",
     },
 
     ar: {
@@ -11172,6 +11614,10 @@ function Timer({
         "جلسات",
       resetDescription:
         "إنهاء الجلسة الحالية وإعادة ضبط المؤقت.",
+      clockFace: "نمط الساعة",
+      clockPlex: "دقيق",
+      clockSpace: "كلاسيكي",
+      clockTech: "رقمي",
     },
   }[language] || {
     homeSubtitle:
@@ -11226,6 +11672,10 @@ function Timer({
       "sessioner",
     resetDescription:
       "Afslut den aktuelle session og nulstil timeren.",
+    clockFace: "Urdesign",
+    clockPlex: "Præcis",
+    clockSpace: "Klassisk",
+    clockTech: "Digital",
   };
 
   const locale =
@@ -11309,6 +11759,13 @@ function Timer({
     running
       ? copy.running
       : copy.paused;
+
+  const timerFontOptions = [
+    { id: "plex", label: copy.clockPlex, family: '"IBM Plex Mono", "SFMono-Regular", Consolas, monospace' },
+    { id: "space", label: copy.clockSpace, family: '"Space Mono", "SFMono-Regular", Consolas, monospace' },
+    { id: "tech", label: copy.clockTech, family: '"Share Tech Mono", "SFMono-Regular", Consolas, monospace' },
+  ];
+  const timerFont = timerFontOptions.find((item) => item.id === settings.fontStyle) || timerFontOptions[0];
 
   const routeData =
     route === "mcq"
@@ -11646,14 +12103,14 @@ function Timer({
       }
       style={{
         position: "relative",
-        height: 70,
+        height: 64,
         flexShrink: 0,
         display: "grid",
         gridTemplateColumns:
           "minmax(0, 1fr) auto minmax(0, 1fr)",
         alignItems: "center",
         gap: 14,
-        padding: "0 18px",
+        padding: "0 16px",
         background: c.panel,
         borderBottom: `1px solid ${c.border}`,
       }}
@@ -11764,14 +12221,14 @@ function Timer({
           className="topbar-pomodoro-trigger"
           style={{
             minWidth: active
-              ? 244
-              : 220,
-            minHeight: 48,
+              ? 220
+              : 198,
+            minHeight: 44,
             display: "flex",
             alignItems: "center",
             gap: 10,
-            padding: "6px 11px",
-            borderRadius: 15,
+            padding: "5px 9px",
+            borderRadius: 12,
             border: `1px solid ${
               active
                 ? accentBorder
@@ -11790,12 +12247,12 @@ function Timer({
             aria-hidden="true"
             className="topbar-pomodoro-icon"
             style={{
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               flexShrink: 0,
               display: "grid",
               placeItems: "center",
-              borderRadius: 11,
+              borderRadius: 9,
               background: active
                 ? c.panel
                 : c.blueSoft,
@@ -11836,11 +12293,11 @@ function Timer({
                   ? accent
                   : c.text,
                 fontFamily:
-                  '"Space Mono", "SFMono-Regular", Consolas, monospace',
+                  timerFont.family,
                 fontSize: active
-                  ? 20
-                  : 19,
-                fontWeight: 750,
+                  ? 19
+                  : 18,
+                fontWeight: timerFont.id === "tech" ? 400 : 700,
                 letterSpacing: ".015em",
                 lineHeight: 1,
                 fontVariantNumeric:
@@ -12006,9 +12463,9 @@ function Timer({
               top: "calc(100% + 11px)",
               left: "50%",
               width:
-                "min(520px, calc(100vw - 112px))",
-              padding: 17,
-              borderRadius: 21,
+                "min(470px, calc(100vw - 112px))",
+              padding: 16,
+              borderRadius: 16,
               background: c.panel,
               border: `1px solid ${c.border}`,
               boxShadow: c.shadowLg,
@@ -12187,10 +12644,10 @@ function Timer({
                       marginTop: 17,
                       color: accent,
                       fontFamily:
-                        '"Space Mono", "SFMono-Regular", Consolas, monospace',
+                        timerFont.family,
                       fontSize:
                         "clamp(38px, 8vw, 54px)",
-                      fontWeight: 750,
+                      fontWeight: timerFont.id === "tech" ? 400 : 700,
                       letterSpacing: "-.035em",
                       lineHeight: 1,
                       textAlign: "center",
@@ -12408,6 +12865,40 @@ function Timer({
                       </div>
                     )
                   )}
+                </div>
+
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ marginBottom: 7, color: c.muted, fontSize: 8.5, fontWeight: 850, letterSpacing: ".08em", textTransform: "uppercase" }}>
+                    {copy.clockFace}
+                  </div>
+                  <div className="pomodoro-font-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7 }}>
+                    {timerFontOptions.map((option) => {
+                      const selected = timerFont.id === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => setSettings((current) => ({ ...current, fontStyle: option.id }))}
+                          className="pomodoro-font-option"
+                          style={{
+                            minHeight: 52,
+                            display: "grid",
+                            placeItems: "center",
+                            gap: 3,
+                            padding: "7px 8px",
+                            borderRadius: 10,
+                            border: `1px solid ${selected ? c.blueBorder : c.border}`,
+                            background: selected ? c.blueSoft : c.soft,
+                            color: selected ? c.blue : c.secondary,
+                          }}
+                        >
+                          <span style={{ fontFamily: option.family, fontSize: option.id === "tech" ? 19 : 16, fontWeight: option.id === "tech" ? 400 : 700, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>12:45</span>
+                          <span style={{ fontSize: 8.5, fontWeight: 800 }}>{option.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div
@@ -27981,120 +28472,383 @@ aria-pressed={selected}
 }
 
 
+
+
+const DOCUMENT_SESSION_CACHE = {
+  lectures: [],
+  examSets: [],
+};
+
+function WorkspaceShell({ c, label, drByteOpen = false, closing = false, children }) {
+  return (
+    <section
+      className={`workspace-shell ${closing ? "workspace-shell--closing" : ""}`}
+      aria-label={label}
+      style={{
+        position: "fixed",
+        top: 0,
+        bottom: 0,
+        insetInlineStart: "var(--app-sidebar-width)",
+        insetInlineEnd: drByteOpen ? 380 : 0,
+        zIndex: 998,
+        minWidth: 0,
+        overflow: "hidden",
+        background: c.panel,
+        borderInlineStart: `1px solid ${c.border}`,
+        transition: "inset-inline-end 260ms cubic-bezier(.16,1,.3,1)",
+      }}
+    >
+      {children}
+    </section>
+  );
+}
+
+function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
+  const isLectureLibrary = kind === "lectures";
+  const cacheKey = isLectureLibrary ? "lectures" : "examSets";
+  const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
+  const [query, setQuery] = useState("");
+  const [noteMode, setNoteMode] = useState("own");
+  const [workspaceState, setWorkspaceState] = useStoredState(STORAGE.workspaceState, {});
+  const [lectureNotes, setLectureNotes] = useStoredState(STORAGE.lectureNotes, {});
+  const [sharedNotes] = useStoredState(STORAGE.sharedLectureNotes, {});
+  const uploadRef = useRef(null);
+
+  const copy = ({
+    da: {
+      lectures: "Forelæsninger",
+      examSets: "Eksamenssæt",
+      lectureSubtitle: "PDF-bibliotek, viewer og forelæsningsnoter",
+      examSubtitle: "Samling og gennemgang af tidligere eksamenssæt",
+      searchLectures: "Søg efter forelæsning…",
+      searchExamSets: "Søg efter fil eller år…",
+      upload: "Tilføj PDF",
+      replace: "Udskift PDF",
+      noPdf: "Der er endnu ikke knyttet en PDF til dette element.",
+      selectItem: "Vælg et element i listen for at åbne arbejdsfladen.",
+      ownNotes: "Egne noter",
+      sharedNotes: "Delte noter",
+      sharedReady: "Det delte noteområde er klargjort til Supabase-synkronisering i det senere forelæsningssegment.",
+      notesPlaceholder: "Skriv noter til denne forelæsning…",
+      sessionOnly: "PDF-filer beholdes i denne browsersession i denne første workspace-version.",
+      pdfViewer: "PDF-viewer",
+      noLectures: "Ingen forelæsninger findes til det valgte modul.",
+      noExamSets: "Ingen eksamenssæt er tilføjet endnu.",
+      openSeparate: "Åbn separat",
+      close: "Luk workspace",
+    },
+    en: {
+      lectures: "Lectures",
+      examSets: "Exam sets",
+      lectureSubtitle: "PDF library, viewer and lecture notes",
+      examSubtitle: "Collection and review of previous exam sets",
+      searchLectures: "Search lectures…",
+      searchExamSets: "Search file or year…",
+      upload: "Add PDF",
+      replace: "Replace PDF",
+      noPdf: "No PDF is linked to this item yet.",
+      selectItem: "Select an item in the list to open the workspace.",
+      ownNotes: "My notes",
+      sharedNotes: "Shared notes",
+      sharedReady: "The shared-note area is prepared for Supabase synchronization in the later lecture segment.",
+      notesPlaceholder: "Write notes for this lecture…",
+      sessionOnly: "PDF files remain available for this browser session in this first workspace version.",
+      pdfViewer: "PDF viewer",
+      noLectures: "No lectures are available for the selected module.",
+      noExamSets: "No exam sets have been added yet.",
+      openSeparate: "Open separately",
+      close: "Close workspace",
+    },
+    ar: {
+      lectures: "المحاضرات",
+      examSets: "مجموعات الامتحان",
+      lectureSubtitle: "مكتبة PDF وعارض وملاحظات المحاضرات",
+      examSubtitle: "مجموعة ومراجعة نماذج الامتحانات السابقة",
+      searchLectures: "ابحث في المحاضرات…",
+      searchExamSets: "ابحث باسم الملف أو السنة…",
+      upload: "إضافة PDF",
+      replace: "استبدال PDF",
+      noPdf: "لا يوجد ملف PDF مرتبط بهذا العنصر بعد.",
+      selectItem: "اختر عنصرًا من القائمة لفتح مساحة العمل.",
+      ownNotes: "ملاحظاتي",
+      sharedNotes: "ملاحظات مشتركة",
+      sharedReady: "تم تجهيز مساحة الملاحظات المشتركة لمزامنة Supabase في قسم المحاضرات لاحقًا.",
+      notesPlaceholder: "اكتب ملاحظات لهذه المحاضرة…",
+      sessionOnly: "تبقى ملفات PDF متاحة خلال جلسة المتصفح الحالية في هذه النسخة الأولى.",
+      pdfViewer: "عارض PDF",
+      noLectures: "لا توجد محاضرات للوحدة المختارة.",
+      noExamSets: "لم تتم إضافة مجموعات امتحان بعد.",
+      openSeparate: "فتح منفصل",
+      close: "إغلاق مساحة العمل",
+    },
+  })[language] || {};
+
+  const lectures = isLectureLibrary ? (MODULE_LECTURES[moduleName] || []) : [];
+  const selectedStateKey = isLectureLibrary ? "selectedLectureId" : "selectedExamDocumentId";
+  const initialLectureId = lectures[0]?.id || null;
+  const selectedId = workspaceState[selectedStateKey] || (isLectureLibrary ? initialLectureId : documents[0]?.id || null);
+
+  useEffect(() => {
+    if (selectedId) return;
+    const fallback = isLectureLibrary ? initialLectureId : documents[0]?.id;
+    if (fallback) setWorkspaceState((current) => ({ ...current, [selectedStateKey]: fallback }));
+  }, [selectedId, initialLectureId, documents.length, isLectureLibrary, selectedStateKey, setWorkspaceState]);
+
+  const selectedLecture = isLectureLibrary ? lectures.find((lecture) => lecture.id === selectedId) || lectures[0] : null;
+  const activeDocument = isLectureLibrary
+    ? documents.find((document) => document.lectureId === selectedLecture?.id) || null
+    : documents.find((document) => document.id === selectedId) || documents[0] || null;
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredLectures = lectures.filter((lecture) => `${lecture.id} ${lecture.title} ${lecture.group}`.toLowerCase().includes(normalizedQuery));
+  const filteredDocuments = documents.filter((document) => `${document.name} ${document.year || ""}`.toLowerCase().includes(normalizedQuery));
+  const noteKey = selectedLecture ? `${moduleName || "module"}:${selectedLecture.id}` : null;
+
+  function updateDocuments(next) {
+    DOCUMENT_SESSION_CACHE[cacheKey] = next;
+    setDocuments([...next]);
+  }
+
+  function handleUpload(event) {
+    const files = Array.from(event.target.files || []).filter((file) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"));
+    if (!files.length) return;
+    const additions = files.map((file, index) => ({
+      id: `pdf-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
+      name: file.name,
+      url: URL.createObjectURL(file),
+      size: file.size,
+      lectureId: isLectureLibrary ? selectedLecture?.id || null : null,
+      year: (file.name.match(/(?:19|20)\d{2}/) || [])[0] || "",
+      addedAt: Date.now(),
+    }));
+
+    let next;
+    if (isLectureLibrary && selectedLecture) {
+      const replaced = documents.find((document) => document.lectureId === selectedLecture.id);
+      if (replaced?.url) URL.revokeObjectURL(replaced.url);
+      next = [...documents.filter((document) => document.lectureId !== selectedLecture.id), additions[0]];
+    } else {
+      next = [...documents, ...additions];
+    }
+    updateDocuments(next);
+    const nextSelected = isLectureLibrary ? selectedLecture?.id : additions[0]?.id;
+    if (nextSelected) setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextSelected }));
+    event.target.value = "";
+  }
+
+  const title = isLectureLibrary ? copy.lectures : copy.examSets;
+  const subtitle = isLectureLibrary ? copy.lectureSubtitle : copy.examSubtitle;
+
+  return (
+    <div className="document-workspace" dir={language === "ar" ? "rtl" : "ltr"}>
+      <header className="document-workspace-header">
+        <div className="document-workspace-title-block">
+          <span className="document-workspace-mark"><Icon name={isLectureLibrary ? "book" : "cards"} size={18} /></span>
+          <span>
+            <strong>{title}</strong>
+            <small>{subtitle}</small>
+          </span>
+        </div>
+        <div className="document-workspace-header-actions">
+          <input ref={uploadRef} type="file" accept="application/pdf,.pdf" multiple={!isLectureLibrary} onChange={handleUpload} hidden />
+          <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && !selectedLecture}>
+            <Icon name="upload" size={14} />
+            {activeDocument && isLectureLibrary ? copy.replace : copy.upload}
+          </button>
+          <IconButton c={c} title={copy.close} onClick={onClose} style={{ border: `1px solid ${c.border}`, background: c.soft }}><Icon name="close" size={16} /></IconButton>
+        </div>
+      </header>
+
+      <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : ""}`}>
+        <aside className="document-library-panel">
+          <label className="document-search-box">
+            <Icon name="search" size={14} />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} />
+          </label>
+          <div className="document-library-list">
+            {isLectureLibrary ? (
+              filteredLectures.length ? filteredLectures.map((lecture) => {
+                const selected = lecture.id === selectedLecture?.id;
+                const hasPdf = documents.some((document) => document.lectureId === lecture.id);
+                return (
+                  <button key={lecture.id} type="button" className="document-library-row" data-active={selected ? "true" : "false"} onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }))}>
+                    <span className="document-library-code">{lecture.id}</span>
+                    <span className="document-library-copy"><strong>{lecture.title}</strong><small>{lecture.group}</small></span>
+                    <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"}><Icon name={hasPdf ? "file" : "plus"} size={12} /></span>
+                  </button>
+                );
+              }) : <div className="document-library-empty">{copy.noLectures}</div>
+            ) : (
+              filteredDocuments.length ? filteredDocuments.map((document) => (
+                <button key={document.id} type="button" className="document-library-row" data-active={document.id === activeDocument?.id ? "true" : "false"} onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: document.id }))}>
+                  <span className="document-library-code"><Icon name="file" size={14} /></span>
+                  <span className="document-library-copy"><strong>{document.name}</strong><small>{document.year || "PDF"}</small></span>
+                </button>
+              )) : <div className="document-library-empty">{copy.noExamSets}</div>
+            )}
+          </div>
+          <div className="document-session-note">{copy.sessionOnly}</div>
+        </aside>
+
+        <main className="document-viewer-panel">
+          <div className="document-viewer-toolbar">
+            <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong></span>
+            {activeDocument && <button type="button" onClick={() => window.open(activeDocument.url, "_blank", "noopener,noreferrer")}><Icon name="expand" size={13} />{copy.openSeparate}</button>}
+          </div>
+          <div className="document-viewer-canvas">
+            {activeDocument ? (
+              <iframe title={activeDocument.name} src={activeDocument.url} />
+            ) : (
+              <div className="document-viewer-empty">
+                <span><Icon name="file" size={24} /></span>
+                <strong>{isLectureLibrary && !selectedLecture ? copy.selectItem : copy.noPdf}</strong>
+                <button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && !selectedLecture}><Icon name="upload" size={14} />{copy.upload}</button>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {isLectureLibrary && (
+          <aside className="lecture-notes-panel">
+            <div className="lecture-notes-tabs">
+              <button type="button" data-active={noteMode === "own" ? "true" : "false"} onClick={() => setNoteMode("own")}>{copy.ownNotes}</button>
+              <button type="button" data-active={noteMode === "shared" ? "true" : "false"} onClick={() => setNoteMode("shared")}><Icon name="share" size={12} />{copy.sharedNotes}</button>
+            </div>
+            {noteMode === "own" ? (
+              <textarea
+                value={noteKey ? lectureNotes[noteKey] || "" : ""}
+                disabled={!noteKey}
+                onChange={(event) => noteKey && setLectureNotes((current) => ({ ...current, [noteKey]: event.target.value }))}
+                placeholder={copy.notesPlaceholder}
+              />
+            ) : (
+              <div className="shared-notes-placeholder">
+                <Icon name="share" size={18} />
+                <strong>{copy.sharedNotes}</strong>
+                <p>{noteKey && sharedNotes[noteKey] ? sharedNotes[noteKey] : copy.sharedReady}</p>
+              </div>
+            )}
+          </aside>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MobileBottomNav({ c, t, language, route, activeWorkspace, onNavigate, onWorkspace, drByteOpen, setDrByteOpen, onProfileAction, dueCount = 0 }) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef(null);
+  const copy = ({
+    da: { more: "Mere", lectures: "Forelæsninger", examSets: "Eksamenssæt", review: "Repetition", studyPlan: "Studieplan" },
+    en: { more: "More", lectures: "Lectures", examSets: "Exam sets", review: "Review", studyPlan: "Study plan" },
+    ar: { more: "المزيد", lectures: "المحاضرات", examSets: "مجموعات الامتحان", review: "المراجعة", studyPlan: "خطة الدراسة" },
+  })[language] || {};
+
+  useEffect(() => {
+    if (!moreOpen) return undefined;
+    function handlePointer(event) { if (!moreRef.current?.contains(event.target)) setMoreOpen(false); }
+    function handleKey(event) { if (event.key === "Escape") setMoreOpen(false); }
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => { document.removeEventListener("mousedown", handlePointer); document.removeEventListener("keydown", handleKey); };
+  }, [moreOpen]);
+
+  function action(callback) { setMoreOpen(false); callback(); }
+  const primary = [
+    ["home", "home", t.home, () => onNavigate("home"), route === "home" && !activeWorkspace],
+    ["mcq", "clipboard", t.clinicalMcq, () => onNavigate("mcq"), route === "mcq" && !activeWorkspace],
+    ["calendar", "calendar", t.calendar, () => onWorkspace("calendar"), activeWorkspace === "calendar"],
+    ["notes", "notebook", t.notebook, () => onWorkspace("notes"), activeWorkspace === "notes"],
+  ];
+
+  return (
+    <nav className="mobile-bottom-nav" aria-label="Mobil navigation" style={{ background: c.panel, borderTop: `1px solid ${c.border}` }}>
+      {primary.map(([id, icon, label, callback, active]) => (
+        <button key={id} type="button" data-active={active ? "true" : "false"} onClick={callback} style={{ color: active ? c.blue : c.secondary }}>
+          <span><Icon name={icon} size={18} />{id === "mcq" && dueCount > 0 && <em>{dueCount > 9 ? "9+" : dueCount}</em>}</span>
+          <small>{label}</small>
+        </button>
+      ))}
+      <div ref={moreRef} className="mobile-more-wrap">
+        <button type="button" data-active={moreOpen ? "true" : "false"} onClick={() => setMoreOpen((value) => !value)} style={{ color: moreOpen ? c.blue : c.secondary }}><span><Icon name="more" size={18} /></span><small>{copy.more}</small></button>
+        {moreOpen && (
+          <div className="mobile-more-sheet" style={{ background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg }}>
+            {[
+              ["reset", copy.review, () => onNavigate("mcq", { mode: "due" })],
+              ["chart", t.insights, () => onNavigate("insights")],
+              ["book", copy.lectures, () => onWorkspace("lectures")],
+              ["target", copy.studyPlan, () => onNavigate("study-plan")],
+              ["cards", copy.examSets, () => onWorkspace("examSets")],
+              ["chat", t.drByte, () => setDrByteOpen(!drByteOpen)],
+              ["settings", t.settings, () => onProfileAction("settings")],
+              ["globe", t.language, () => onProfileAction("language")],
+            ].map(([icon, label, callback]) => (
+              <button key={label} type="button" onClick={() => action(callback)}><Icon name={icon} size={15} /><span>{label}</span></button>
+            ))}
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}
+
 function Sidebar({
   c,
   t,
   language,
   user,
   route,
-  setRoute,
   onNavigate,
   isAdmin,
-  notesOpen,
-  setNotesOpen,
-  calendarOpen,
-  setCalendarOpen,
-  onCloseCalendar,
+  activeWorkspace,
+  onWorkspace,
   drByteOpen,
   setDrByteOpen,
   profileOpen,
   setProfileOpen,
   onProfileAction,
   dueCount = 0,
+  planAttentionCount = 0,
+  calendarAttentionCount = 0,
 }) {
   const displayName = String(user?.name || t.profile || "MedFLUEN").trim();
   const userInitial = displayName.slice(0, 1).toUpperCase() || "M";
   const moduleLabel = String(user?.module || "").trim();
   const menuDirection = language === "ar" ? "rtl" : "ltr";
-  const [quickAccessOrder] = useStoredState(
-    STORAGE.quickAccessOrder,
-    ["mcq", "repeat", "insights"]
-  );
+  const profileButtonRef = useRef(null);
+  const profileMenuRef = useRef(null);
+  const [quickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, ["mcq", "repeat", "insights"]);
 
   const copy = ({
-    da: {
-      repetition: "Repetition",
-      lectures: "Forelæsninger",
-      examSets: "Eksamenssæt",
-      studyPlan: "Studieplan",
-    },
-    en: {
-      repetition: "Review",
-      lectures: "Lectures",
-      examSets: "Exam sets",
-      studyPlan: "Study plan",
-    },
-    ar: {
-      repetition: "المراجعة",
-      lectures: "المحاضرات",
-      examSets: "مجموعات الامتحان",
-      studyPlan: "خطة الدراسة",
-    },
+    da: { repetition: "Repetition", lectures: "Forelæsninger", examSets: "Eksamenssæt", studyPlan: "Studieplan" },
+    en: { repetition: "Review", lectures: "Lectures", examSets: "Exam sets", studyPlan: "Study plan" },
+    ar: { repetition: "المراجعة", lectures: "المحاضرات", examSets: "مجموعات الامتحان", studyPlan: "خطة الدراسة" },
   })[language] || {};
 
-  function closeUtilityPanels() {
-    setNotesOpen(false);
-    setCalendarOpen(false);
-    setDrByteOpen(false);
-    setProfileOpen(false);
-  }
+  useEffect(() => {
+    if (!profileOpen) return undefined;
+    function handlePointerDown(event) {
+      if (!profileButtonRef.current?.contains(event.target) && !profileMenuRef.current?.contains(event.target)) setProfileOpen(false);
+    }
+    function handleKeyDown(event) { if (event.key === "Escape") setProfileOpen(false); }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => { document.removeEventListener("mousedown", handlePointerDown); document.removeEventListener("keydown", handleKeyDown); };
+  }, [profileOpen, setProfileOpen]);
 
   function navigate(target, options) {
-    closeUtilityPanels();
-    if (onNavigate) onNavigate(target, options);
-    else setRoute(target);
-  }
-
-  function openUtility(type) {
-    if (type === "calendar" && calendarOpen) {
-      onCloseCalendar();
-      return;
-    }
-    setNotesOpen(type === "notes" ? !notesOpen : false);
-    setCalendarOpen(type === "calendar" ? !calendarOpen : false);
-    setDrByteOpen(type === "drbyte" ? !drByteOpen : false);
+    onWorkspace(null);
+    setDrByteOpen(false);
     setProfileOpen(false);
+    onNavigate(target, options);
   }
 
-  const quickDefinitions = {
-    mcq: {
-      icon: "clipboard",
-      label: t.clinicalMcq,
-      badge: 0,
-      active: route === "mcq",
-      action: () => navigate("mcq"),
-    },
-    repeat: {
-      icon: "reset",
-      label: copy.repetition,
-      badge: dueCount,
-      active: false,
-      action: () => navigate("mcq", { mode: "due" }),
-    },
-    insights: {
-      icon: "chart",
-      label: t.insights,
-      badge: 0,
-      active: route === "insights",
-      action: () => navigate("insights"),
-    },
-  };
+  function openWorkspace(type) {
+    setProfileOpen(false);
+    onWorkspace(activeWorkspace === type ? null : type);
+  }
 
-  const safeQuickOrder = [
-    ...quickAccessOrder.filter((id) => quickDefinitions[id]),
-    ...["mcq", "repeat", "insights"].filter(
-      (id) => !quickAccessOrder.includes(id)
-    ),
-  ];
-
-  function NavButton({
-    icon,
-    title,
-    active,
-    onClick,
-    badge = 0,
-    isRoute = false,
-  }) {
+  function NavButton({ icon, title, active, onClick, badge = 0, isRoute = false }) {
     return (
       <button
         type="button"
@@ -28107,81 +28861,35 @@ function Sidebar({
         className="sidebar-nav-btn"
         style={{
           position: "relative",
-          width: 44,
-          height: 44,
+          width: 42,
+          height: 42,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
           padding: 0,
           border: `1px solid ${active ? c.blueBorder : "transparent"}`,
-          borderRadius: 13,
+          borderRadius: 10,
           background: active ? c.blueSoft : "transparent",
           color: active ? c.blue : c.secondary,
         }}
       >
-        <span
-          className="sidebar-nav-icon"
-          style={{
-            width: 30,
-            height: 30,
-            display: "grid",
-            placeItems: "center",
-            borderRadius: 9,
-          }}
-        >
-          <Icon name={icon} size={18} stroke={active ? 2.35 : 2.05} />
+        <span className="sidebar-nav-icon" style={{ width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 8 }}>
+          <Icon name={icon} size={18} stroke={active ? 2.3 : 2.05} />
         </span>
-
-        {active && (
-          <span
-            aria-hidden="true"
-            className="sidebar-active-dot"
-            style={{
-              position: "absolute",
-              insetInlineStart: -8,
-              top: "50%",
-              width: 3,
-              height: 19,
-              borderRadius: 99,
-              background: c.blue,
-              transform: "translateY(-50%)",
-            }}
-          />
-        )}
-
-        {badge > 0 && (
-          <span
-            aria-label={`${badge}`}
-            style={{
-              position: "absolute",
-              top: -4,
-              insetInlineEnd: -4,
-              minWidth: 18,
-              height: 18,
-              display: "grid",
-              placeItems: "center",
-              padding: "0 4px",
-              borderRadius: 99,
-              background: c.red,
-              color: "#fff",
-              border: `2px solid ${c.panel}`,
-              fontSize: 8.5,
-              fontWeight: 900,
-              lineHeight: 1,
-            }}
-          >
-            {badge > 99 ? "99+" : badge}
-          </span>
-        )}
-
-        <span aria-hidden="true" className="sidebar-tooltip">
-          {title}
-        </span>
+        {active && <span aria-hidden="true" className="sidebar-active-dot" style={{ position: "absolute", insetInlineStart: -10, top: "50%", width: 2, height: 20, borderRadius: 99, background: c.blue, transform: "translateY(-50%)" }} />}
+        {badge > 0 && <span className="sidebar-badge" aria-label={`${badge}`}>{badge > 99 ? "99+" : badge}</span>}
+        <span aria-hidden="true" className="sidebar-tooltip">{title}</span>
       </button>
     );
   }
 
+  const quickDefinitions = {
+    mcq: { icon: "clipboard", label: t.clinicalMcq, badge: 0, active: route === "mcq" && !activeWorkspace, action: () => navigate("mcq") },
+    repeat: { icon: "reset", label: copy.repetition, badge: dueCount, active: false, action: () => navigate("mcq", { mode: "due" }) },
+    insights: { icon: "chart", label: t.insights, badge: 0, active: route === "insights" && !activeWorkspace, action: () => navigate("insights") },
+  };
+  const safeQuickOrder = [...quickAccessOrder.filter((id) => quickDefinitions[id]), ...["mcq", "repeat", "insights"].filter((id) => !quickAccessOrder.includes(id))];
   const profileActions = [
     ["settings", "settings", t.settings],
     ["language", "globe", t.language],
@@ -28192,326 +28900,36 @@ function Sidebar({
   ];
 
   return (
-    <aside
-      data-tour="sidebar"
-      className="app-sidebar app-surface"
-      aria-label={
-        language === "en"
-          ? "Primary navigation"
-          : language === "ar"
-            ? "التنقل الرئيسي"
-            : "Primær navigation"
-      }
-      style={{
-        width: 74,
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        flexShrink: 0,
-        padding: "14px 0 12px",
-        background: c.panel,
-        borderInlineEnd: `1px solid ${c.border}`,
-        boxShadow: "6px 0 22px rgba(22,50,90,.025)",
-        direction: "ltr",
-        overflow: "visible",
-      }}
-    >
-      <button
-        type="button"
-        title="MedFLUEN"
-        aria-label={
-          language === "en"
-            ? "Go to home"
-            : language === "ar"
-              ? "الانتقال إلى الصفحة الرئيسية"
-              : "Gå til Hjem"
-        }
-        onClick={() => navigate("home")}
-        className="sidebar-logo"
-        style={{
-          width: 42,
-          height: 42,
-          display: "grid",
-          placeItems: "center",
-          flexShrink: 0,
-          marginBottom: 14,
-          padding: 0,
-          border: 0,
-          borderRadius: 13,
-          background: c.blueGradient,
-          color: "#fff",
-          boxShadow: "0 9px 20px rgba(22,101,234,.24)",
-        }}
-      >
-        <Icon name="logo" size={21} stroke={2.2} />
-      </button>
+    <aside data-tour="sidebar" className="app-sidebar app-surface" aria-label={language === "en" ? "Primary navigation" : language === "ar" ? "التنقل الرئيسي" : "Primær navigation"} style={{ width: 74, height: "100%", display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, padding: "12px 0 10px", background: c.panel, borderInlineEnd: `1px solid ${c.border}`, direction: "ltr", overflow: "visible" }}>
+      <button type="button" title="MedFLUEN" aria-label={language === "en" ? "Go to home" : language === "ar" ? "الانتقال إلى الصفحة الرئيسية" : "Gå til Hjem"} onClick={() => navigate("home")} className="sidebar-logo" style={{ width: 40, height: 40, display: "grid", placeItems: "center", flexShrink: 0, marginBottom: 13, padding: 0, border: 0, borderRadius: 11, background: c.blueGradient, color: "#fff", boxShadow: "0 7px 16px rgba(22,101,234,.20)" }}><Icon name="logo" size={20} stroke={2.2} /></button>
 
-      <nav
-        aria-label={
-          language === "en"
-            ? "Main study navigation"
-            : language === "ar"
-              ? "التنقل الدراسي الرئيسي"
-              : "Primær studienavigation"
-        }
-        className="sidebar-nav-group"
-        style={{
-          display: "grid",
-          gap: 2,
-          padding: 3,
-          borderRadius: 16,
-          background: c.soft,
-          border: `1px solid ${c.border}`,
-        }}
-      >
-        <NavButton
-          icon="home"
-          title={t.home}
-          active={route === "home"}
-          isRoute
-          onClick={() => navigate("home")}
-        />
-        {safeQuickOrder.map((id) => {
-          const item = quickDefinitions[id];
-          return (
-            <NavButton
-              key={id}
-              icon={item.icon}
-              title={item.label}
-              active={item.active}
-              badge={item.badge}
-              isRoute={id !== "repeat"}
-              onClick={item.action}
-            />
-          );
-        })}
+      <nav className="sidebar-nav-group" aria-label="Primær studienavigation">
+        <NavButton icon="home" title={t.home} active={route === "home" && !activeWorkspace} isRoute onClick={() => navigate("home")} />
+        {safeQuickOrder.map((id) => { const item = quickDefinitions[id]; return <NavButton key={id} icon={item.icon} title={item.label} active={item.active} badge={item.badge} isRoute={id !== "repeat"} onClick={item.action} />; })}
       </nav>
 
-      <div
-        aria-hidden="true"
-        style={{
-          width: 26,
-          height: 1,
-          margin: "11px 0",
-          background: c.borderStrong,
-          opacity: .7,
-        }}
-      />
+      <div className="sidebar-divider" aria-hidden="true" />
 
-      <nav
-        aria-label={
-          language === "en"
-            ? "Planning tools"
-            : language === "ar"
-              ? "أدوات التخطيط"
-              : "Planlægningsværktøjer"
-        }
-        className="sidebar-nav-group"
-        style={{
-          display: "grid",
-          gap: 2,
-          padding: 3,
-          borderRadius: 16,
-          background: c.soft,
-          border: `1px solid ${c.border}`,
-        }}
-      >
-        <NavButton
-          icon="book"
-          title={copy.lectures}
-          active={false}
-          onClick={() => navigate("mcq", { contentType: "lectures" })}
-        />
-        <NavButton
-          icon="target"
-          title={copy.studyPlan}
-          active={route === "study-plan"}
-          isRoute
-          onClick={() => navigate("study-plan")}
-        />
-        <NavButton
-          icon="calendar"
-          title={t.calendar}
-          active={calendarOpen}
-          onClick={() => openUtility("calendar")}
-        />
+      <nav className="sidebar-nav-group" aria-label="Planlægning og dokumenter">
+        <NavButton icon="book" title={copy.lectures} active={activeWorkspace === "lectures"} onClick={() => openWorkspace("lectures")} />
+        <NavButton icon="target" title={copy.studyPlan} active={route === "study-plan" && !activeWorkspace} badge={planAttentionCount} isRoute onClick={() => navigate("study-plan")} />
+        <NavButton icon="calendar" title={t.calendar} active={activeWorkspace === "calendar"} badge={calendarAttentionCount} onClick={() => openWorkspace("calendar")} />
+        <NavButton icon="notebook" title={t.notebook} active={activeWorkspace === "notes"} onClick={() => openWorkspace("notes")} />
+        <NavButton icon="cards" title={copy.examSets} active={activeWorkspace === "examSets"} onClick={() => openWorkspace("examSets")} />
       </nav>
 
-      <div
-        aria-hidden="true"
-        style={{
-          width: 26,
-          height: 1,
-          margin: "11px 0",
-          background: c.borderStrong,
-          opacity: .7,
-        }}
-      />
+      <div className="sidebar-divider" aria-hidden="true" />
 
-      <nav
-        aria-label={
-          language === "en"
-            ? "Workspace tools"
-            : language === "ar"
-              ? "أدوات مساحة العمل"
-              : "Workspace-værktøjer"
-        }
-        className="sidebar-nav-group"
-        style={{
-          display: "grid",
-          gap: 2,
-          padding: 3,
-          borderRadius: 16,
-          background: c.soft,
-          border: `1px solid ${c.border}`,
-        }}
-      >
-        <NavButton
-          icon="notebook"
-          title={t.notebook}
-          active={notesOpen}
-          onClick={() => openUtility("notes")}
-        />
-        <NavButton
-          icon="chat"
-          title={t.drByte}
-          active={drByteOpen}
-          onClick={() => openUtility("drbyte")}
-        />
-        <NavButton
-          icon="cards"
-          title={copy.examSets}
-          active={false}
-          onClick={() => navigate("mcq", { contentType: "examSet" })}
-        />
+      <nav className="sidebar-nav-group" aria-label="Assistent">
+        <NavButton icon="chat" title={t.drByte} active={drByteOpen} onClick={() => { setProfileOpen(false); setDrByteOpen((value) => !value); }} />
       </nav>
 
-      <div style={{ position: "relative", marginTop: "auto", paddingTop: 12 }}>
-        <button
-          type="button"
-          title={t.profile}
-          aria-label={t.profile}
-          aria-expanded={profileOpen}
-          aria-haspopup="menu"
-          onClick={() => setProfileOpen((value) => !value)}
-          className="sidebar-profile-btn"
-          style={{
-            width: 42,
-            height: 42,
-            display: "grid",
-            placeItems: "center",
-            padding: 0,
-            borderRadius: 13,
-            border: `1px solid ${profileOpen ? c.blueBorder : c.border}`,
-            background: profileOpen ? c.blueSoft : c.soft,
-            color: profileOpen ? c.blue : c.text,
-            fontSize: 12.5,
-            fontWeight: 900,
-          }}
-        >
-          {userInitial}
-        </button>
-
+      <div style={{ position: "relative", marginTop: "auto", paddingTop: 10 }}>
+        <button ref={profileButtonRef} type="button" title={t.profile} aria-label={t.profile} aria-expanded={profileOpen} aria-haspopup="menu" onClick={() => setProfileOpen((value) => !value)} className="sidebar-profile-btn" style={{ width: 40, height: 40, display: "grid", placeItems: "center", padding: 0, borderRadius: 11, border: `1px solid ${profileOpen ? c.blueBorder : c.border}`, background: profileOpen ? c.blueSoft : c.soft, color: profileOpen ? c.blue : c.text, fontSize: 12, fontWeight: 900 }}>{userInitial}</button>
         {profileOpen && (
-          <div
-            role="menu"
-            className="sidebar-profile-menu"
-            style={{
-              position: "fixed",
-              zIndex: 1200,
-              left: 86,
-              bottom: 14,
-              width: 250,
-              padding: 8,
-              borderRadius: 16,
-              background: c.panel,
-              border: `1px solid ${c.border}`,
-              boxShadow: c.shadowLg,
-              direction: menuDirection,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "9px 9px 11px",
-                marginBottom: 5,
-                borderBottom: `1px solid ${c.border}`,
-              }}
-            >
-              <span
-                style={{
-                  width: 34,
-                  height: 34,
-                  display: "grid",
-                  placeItems: "center",
-                  flexShrink: 0,
-                  borderRadius: 10,
-                  background: c.blueSoft,
-                  color: c.blue,
-                  fontSize: 11,
-                  fontWeight: 900,
-                }}
-              >
-                {userInitial}
-              </span>
-              <span style={{ minWidth: 0 }}>
-                <strong
-                  style={{
-                    display: "block",
-                    overflow: "hidden",
-                    color: c.text,
-                    fontSize: 11.5,
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {displayName}
-                </strong>
-                <small
-                  style={{
-                    display: "block",
-                    marginTop: 2,
-                    overflow: "hidden",
-                    color: c.muted,
-                    fontSize: 9,
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {moduleLabel}
-                </small>
-              </span>
-            </div>
-
-            {profileActions.map(([action, icon, label]) => (
-              <button
-                key={action}
-                type="button"
-                role="menuitem"
-                onClick={() => onProfileAction(action)}
-                style={{
-                  width: "100%",
-                  minHeight: 38,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 9,
-                  padding: "0 10px",
-                  border: 0,
-                  borderRadius: 9,
-                  background: "transparent",
-                  color: action === "signout" ? c.red : c.text,
-                  fontSize: 11,
-                  fontWeight: 720,
-                  textAlign: "start",
-                }}
-              >
-                <Icon name={icon} size={14} />
-                {label}
-              </button>
-            ))}
+          <div ref={profileMenuRef} role="menu" className="sidebar-profile-menu" style={{ position: "fixed", zIndex: 1200, insetInlineStart: 86, bottom: 12, width: 258, padding: 8, borderRadius: 14, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg, direction: menuDirection }}>
+            <div className="sidebar-profile-summary"><span>{userInitial}</span><div><strong>{displayName}</strong><small>{moduleLabel}</small></div></div>
+            {profileActions.map(([action, icon, label]) => <button key={action} type="button" role="menuitem" className="sidebar-menu-item" onClick={() => onProfileAction(action)} style={{ color: action === "signout" ? c.red : c.text }}><Icon name={icon} size={14} /><span>{label}</span></button>)}
           </div>
         )}
       </div>
@@ -29906,17 +30324,30 @@ useCloudSync(session?.user?.id);
   // State is local and synchronous; avoid an artificial loading screen on every visit.
   const [stage, setStage] = useState(() => user ? "app" : "onboarding");
   const [leaving, setLeaving] = useState(false);
-  const [route, setRoute] = useState("home");
-  const [notesOpen, setNotesOpen] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [route, setRoute] = useStoredState(STORAGE.navigationRoute, "home");
+  const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [calendarClosing, setCalendarClosing] = useState(false);
 
-  function closeCalendarWithAnimation() {
-    setCalendarClosing(true);
-    setTimeout(() => {
-      setCalendarOpen(false);
-      setCalendarClosing(false);
-    }, 220);
+  function closeWorkspace() {
+    if (activeWorkspace === "calendar") {
+      setCalendarClosing(true);
+      setTimeout(() => {
+        setActiveWorkspace(null);
+        setCalendarClosing(false);
+      }, 220);
+      return;
+    }
+    setActiveWorkspace(null);
+  }
+
+  function openWorkspace(type) {
+    if (!type) {
+      closeWorkspace();
+      return;
+    }
+    setCalendarClosing(false);
+    setActiveWorkspace((current) => current === type ? null : type);
+    setProfileOpen(false);
   }
   const [drByteOpen, setDrByteOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -29950,6 +30381,8 @@ useEffect(() => {
   }
 }, [adminError]);
   const [spacedData, setSpacedData] = useStoredState(STORAGE.spacedRepetition, {});
+  const [shellCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
+  const [shellCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [deckSettingsById] = useStoredState(STORAGE.deckSettings, { default: SM2_DEFAULT_DECK_SETTINGS });
   const deckSettingsFor = (deckId) => deckSettingsById[deckId] || deckSettingsById.default || SM2_DEFAULT_DECK_SETTINGS;
   const [importedQuestions, setImportedQuestions] = useStoredState(STORAGE.importedQuestions, []);
@@ -29963,6 +30396,19 @@ useEffect(() => {
   const [battery, setBattery] = useState(null);
   const fsHideTimerRef = useRef(null);
   const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || activeWorkspace) return undefined;
+    const positions = loadStorage(STORAGE.navigationScroll, {});
+    window.requestAnimationFrame(() => { container.scrollTop = Number(positions[route]) || 0; });
+    function rememberScroll() {
+      const current = loadStorage(STORAGE.navigationScroll, {});
+      localStorage.setItem(STORAGE.navigationScroll, JSON.stringify({ ...current, [route]: container.scrollTop }));
+    }
+    container.addEventListener("scroll", rememberScroll, { passive: true });
+    return () => { rememberScroll(); container.removeEventListener("scroll", rememberScroll); };
+  }, [route, activeWorkspace]);
 
   useEffect(() => {
     function handleFsChange() {
@@ -30113,6 +30559,27 @@ useEffect(() => {
   const sidebarDueCount = sidebarModuleQuestions.filter(
     (q) => spacedData[q.id] && isDue(spacedData[q.id])
   ).length;
+  const shellMergedEvents = mergeCalendarEventMeta(shellCalendarEvents, shellCalendarMeta);
+  const shellToday = dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const sidebarCalendarAttentionCount = shellMergedEvents.filter((event) => event.date === shellToday && !event.completedAt).length;
+  const sidebarPlanAttentionCount = shellMergedEvents.filter((event) => event.source === "study-plan" && !event.completedAt && (event.needsScheduling || (event.date && event.date < shellToday))).length;
+
+  function navigateFromShell(target, options) {
+    setActiveWorkspace(null);
+    setDrByteOpen(false);
+    if (target === "mcq") {
+      setSessionScope(options ? { moduleId: user.module, groupFilter: null, lectureFilter: null, mode: options.mode || null, contentType: options.contentType || null } : null);
+    }
+    setRoute(target);
+  }
+
+  function handleProfileAction(action) {
+    setProfileOpen(false);
+    if (action === "admin" && !isAdmin) { setModal(null); return; }
+    if (action === "tutorial") { setActiveWorkspace(null); setRoute("home"); setTutorialActive(true); }
+    else if (action === "signout") supabase.auth.signOut();
+    else setModal(action);
+  }
 
   return (
     <div
@@ -30237,69 +30704,42 @@ useEffect(() => {
         language={language}
         user={user}
         route={route}
-        setRoute={setRoute}
-        notesOpen={notesOpen}
-        setNotesOpen={setNotesOpen}
-        calendarOpen={calendarOpen}
-        setCalendarOpen={setCalendarOpen}
-        onCloseCalendar={closeCalendarWithAnimation}
+        activeWorkspace={activeWorkspace}
+        onWorkspace={openWorkspace}
         drByteOpen={drByteOpen}
         setDrByteOpen={setDrByteOpen}
         profileOpen={profileOpen}
         setProfileOpen={setProfileOpen}
         dueCount={sidebarDueCount}
+        planAttentionCount={sidebarPlanAttentionCount}
+        calendarAttentionCount={sidebarCalendarAttentionCount}
         isAdmin={isAdmin}
-        onNavigate={(target, options) => {
-          if (target === "mcq") {
-            setSessionScope(
-              options
-                ? {
-                    moduleId: user.module,
-                    groupFilter: null,
-                    lectureFilter: null,
-                    mode: options.mode || null,
-                    contentType: options.contentType || null,
-                  }
-                : null
-            );
-          }
-          setRoute(target);
-        }}
- onProfileAction={(action) => {
-  setProfileOpen(false);
-
-  if (action === "admin" && !isAdmin) {
-    setModal(null);
-    return;
-  }
-
-  if (action === "tutorial") {
-    setRoute("home");
-    setTutorialActive(true);
-  } else if (action === "signout") {
-    supabase.auth.signOut();
-  } else {
-    setModal(action);
-  }
-}}
+        onNavigate={navigateFromShell}
+        onProfileAction={handleProfileAction}
       />
 
-      {calendarOpen && (
-        <div
-          className={calendarClosing ? "calendar-fullscreen-exit" : "calendar-fullscreen-enter"}
-          style={{
-            position: "fixed",
-            top: 0,
-            bottom: 0,
-            insetInlineStart: 74,
-            insetInlineEnd: 0,
-            zIndex: 999,
-            background: c.panel,
-          }}
+      {activeWorkspace && (
+        <WorkspaceShell
+          c={c}
+          label={activeWorkspace}
+          drByteOpen={drByteOpen}
+          closing={calendarClosing}
         >
-          <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} onClose={closeCalendarWithAnimation} />
-        </div>
+          {activeWorkspace === "calendar" && (
+            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} onClose={closeWorkspace} />
+          )}
+          {activeWorkspace === "notes" && (
+            <Notebook c={c} t={t} onClose={closeWorkspace} />
+          )}
+          {activeWorkspace === "lectures" && (
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} />
+          )}
+          {activeWorkspace === "examSets" && (
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} />
+          )}
+        </WorkspaceShell>
       )}
+
 
       <div
         dir={languageData.dir}
@@ -30311,7 +30751,7 @@ useEffect(() => {
           flexDirection: "column",
         }}
       >
-        <Timer c={c} t={t} language={language} user={user} setUser={setUser} route={route} />
+        {!activeWorkspace && <Timer c={c} t={t} language={language} user={user} setUser={setUser} route={route} />}
 
         <div className="app-main-area"
           style={{
@@ -30340,29 +30780,8 @@ useEffect(() => {
                 spacedData={spacedData}
                 onResetAllProgress={setSpacedData}
                 importedQuestions={importedQuestions}
-onOpenCalendar={() => {
-  setCalendarClosing(false);
-  setCalendarOpen(true);
-  setNotesOpen(false);
-  setDrByteOpen(false);
-  setProfileOpen(false);
-}}
-onNavigate={(target, options) => {
-                  if (target === "mcq") {
-                    setSessionScope(
-                      options
-                        ? {
-                            moduleId: user.module,
-                            groupFilter: null,
-                            lectureFilter: null,
-                            mode: options.mode || null,
-                            contentType: options.contentType || null,
-                          }
-                        : null
-                    );
-                  }
-                  setRoute(target);
-                }}
+onOpenCalendar={() => openWorkspace("calendar")}
+onNavigate={navigateFromShell}
               />
             ) : (
               <>
@@ -30443,32 +30862,22 @@ onNavigate={(target, options) => {
             )}
           </main>
 
-          <div
-            className={notesOpen ? "notes-open" : ""}
-            style={{
-              width: notesOpen ? 385 : 0,
-              height: "100%",
-              flexShrink: 0,
-              overflow: "hidden",
-              opacity: notesOpen ? 1 : 0,
-              transition: "width 280ms ease,opacity 190ms ease",
-            }}
-          >
-            {notesOpen && (
-              <Notebook c={c} t={t} onClose={() => setNotesOpen(false)} />
-            )}
-          </div>
-
 
           <div
-            className={drByteOpen ? "notes-open" : ""}
+            className={drByteOpen ? "notes-open drbyte-panel-open" : ""}
             style={{
+              position: activeWorkspace && drByteOpen ? "fixed" : "relative",
+              top: activeWorkspace && drByteOpen ? 0 : undefined,
+              bottom: activeWorkspace && drByteOpen ? 0 : undefined,
+              insetInlineEnd: activeWorkspace && drByteOpen ? 0 : undefined,
+              zIndex: activeWorkspace && drByteOpen ? 1001 : undefined,
               width: drByteOpen ? 380 : 0,
               height: "100%",
               flexShrink: 0,
               overflow: "hidden",
               opacity: drByteOpen ? 1 : 0,
               borderInlineStart: drByteOpen ? `1px solid ${c.border}` : "none",
+              background: c.panel,
               transition: "width 280ms ease,opacity 190ms ease",
             }}
           >
@@ -30481,6 +30890,7 @@ onNavigate={(target, options) => {
                 onClose={() => setDrByteOpen(false)}
                 onOpenQuestion={(question) => {
                   setDrByteOpen(false);
+                  setActiveWorkspace(null);
                   setRoute("mcq");
                   setSessionScope({
                     moduleId: question.moduleId,
@@ -30495,6 +30905,20 @@ onNavigate={(target, options) => {
           </div>
         </div>
       </div>
+
+      <MobileBottomNav
+        c={c}
+        t={t}
+        language={language}
+        route={route}
+        activeWorkspace={activeWorkspace}
+        onNavigate={navigateFromShell}
+        onWorkspace={openWorkspace}
+        drByteOpen={drByteOpen}
+        setDrByteOpen={setDrByteOpen}
+        onProfileAction={handleProfileAction}
+        dueCount={sidebarDueCount}
+      />
 
       {modal === "settings" && (
         <SettingsModal
@@ -30623,7 +31047,7 @@ onNavigate={(target, options) => {
         />
       )}
 
-      {preferences.mascotEnabled !== false && route === "home" && !notesOpen && !calendarOpen && (
+      {preferences.mascotEnabled !== false && route === "home" && !activeWorkspace && (
         <MascotAssistant
           c={c}
           user={user}
@@ -30631,7 +31055,7 @@ onNavigate={(target, options) => {
           tutorialActive={tutorialActive}
           spacedData={spacedData}
           importedQuestions={importedQuestions}
-          onNavigate={setRoute}
+          onNavigate={navigateFromShell}
           hidden={drByteOpen}
         />
       )}
