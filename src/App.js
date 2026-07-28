@@ -43,6 +43,9 @@ const STORAGE = {
   mascotState: "medlearn-mascot-state",
   dailyChecklist: "medlearn-daily-checklist",
   quickAccessOrder: "medlearn-quickaccess-order",
+  calendarEventMeta: "medlearn-calendar-event-meta",
+  calendarDailyPlanner: "medlearn-calendar-daily-planner",
+  calendarPlanHistory: "medlearn-calendar-plan-history",
   aiSettings: "medlearn-ai-settings",
 };
 
@@ -1271,176 +1274,229 @@ function minutesToTime(minutes) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function WeekCalendar({ c, events, weekStart, daysCount = 7, onMoveEvent, onSlotClick, onEventClick, weekdayLabels }) {
+function WeekCalendar({
+  c,
+  events,
+  weekStart,
+  daysCount = 7,
+  onMoveEvent,
+  onSlotClick,
+  onEventClick,
+  weekdayLabels,
+}) {
   const days = Array.from({ length: daysCount }, (_, index) => addDays(weekStart, index));
-  const startHour = 7;
-  const endHour = 22;
-  const hourHeight = 62;
-  const totalHeight = (endHour - startHour) * hourHeight;
   const [dragId, setDragId] = useState(null);
   const [hoverDay, setHoverDay] = useState(null);
-  const dayRefs = useRef({});
-
-  const palette = {
-    exam: { color: c.red, background: c.redSoft, icon: 'flag' },
-    study: { color: c.blue, background: c.blueSoft, icon: 'book' },
-    review: { color: c.green, background: c.greenSoft, icon: 'reset' },
-    other: { color: c.purple, background: c.purpleSoft, icon: 'notebook' },
-  };
-
-  const eventsByDate = events.reduce((map, event) => {
-    if (!map[event.date]) map[event.date] = [];
-    map[event.date].push(event);
-    return map;
-  }, {});
-
-  function pointerToTime(dayKeyStr, clientY) {
-    const node = dayRefs.current[dayKeyStr];
-    if (!node) return '09:00';
-    const rect = node.getBoundingClientRect();
-    const offset = Math.max(0, Math.min(totalHeight - 1, clientY - rect.top));
-    const rawMinutes = startHour * 60 + (offset / hourHeight) * 60;
-    return minutesToTime(Math.round(rawMinutes / 15) * 15);
-  }
-
-  function moveDraggedEvent(dayKeyStr, clientY) {
-    if (!dragId) return;
-    const source = events.find((event) => event.id === dragId);
-    if (!source) return;
-    onMoveEvent({
-      ...source,
-      date: dayKeyStr,
-      time: pointerToTime(dayKeyStr, clientY),
-    });
-    setDragId(null);
-    setHoverDay(null);
-  }
-
+  const scrollRef = useRef(null);
+  const startHour = 7;
+  const endHour = 22;
+  const hourHeight = 64;
+  const totalHeight = (endHour - startHour) * hourHeight;
   const today = new Date();
-  const todayKeyStr = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = ((nowMinutes - startHour * 60) / 60) * hourHeight;
+  const typeTone = {
+    exam: { color: c.red, background: c.redSoft, icon: "flag" },
+    study: { color: c.blue, background: c.blueSoft, icon: "book" },
+    review: { color: c.green, background: c.greenSoft, icon: "reset" },
+    other: { color: c.purple, background: c.purpleSoft, icon: "notebook" },
+  };
+
+  useEffect(() => {
+    const currentHour = Math.max(startHour, Math.min(endHour - 1, new Date().getHours()));
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = Math.max(0, (currentHour - startHour - 1) * hourHeight);
+    }
+  }, [weekStart, daysCount]);
+
+  function durationMinutes(event) {
+    const start = timeToMinutes(event.time);
+    const explicitEnd = timeToMinutes(event.endTime);
+    if (start != null && explicitEnd != null && explicitEnd > start) return explicitEnd - start;
+    return Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60));
+  }
+
+  function layoutEvents(dayEvents) {
+    const items = dayEvents
+      .filter((event) => event.time)
+      .map((event) => {
+        const start = timeToMinutes(event.time);
+        const end = start + durationMinutes(event);
+        return { event, start, end, lane: 0, laneCount: 1 };
+      })
+      .sort((a, b) => a.start - b.start || b.end - a.end);
+
+    const groups = [];
+    let activeGroup = [];
+    let groupEnd = -1;
+    items.forEach((item) => {
+      if (activeGroup.length && item.start >= groupEnd) {
+        groups.push(activeGroup);
+        activeGroup = [];
+        groupEnd = -1;
+      }
+      activeGroup.push(item);
+      groupEnd = Math.max(groupEnd, item.end);
+    });
+    if (activeGroup.length) groups.push(activeGroup);
+
+    groups.forEach((group) => {
+      const laneEnds = [];
+      group.forEach((item) => {
+        let lane = laneEnds.findIndex((endMinute) => endMinute <= item.start);
+        if (lane < 0) lane = laneEnds.length;
+        laneEnds[lane] = item.end;
+        item.lane = lane;
+      });
+      const laneCount = Math.max(1, laneEnds.length);
+      group.forEach((item) => { item.laneCount = laneCount; });
+    });
+    return items;
+  }
+
+  function pointerTime(event, dayElement) {
+    const rect = dayElement.getBoundingClientRect();
+    const relative = Math.max(0, Math.min(totalHeight - 1, event.clientY - rect.top));
+    const raw = startHour * 60 + (relative / hourHeight) * 60;
+    return minutesToTime(Math.round(raw / 15) * 15);
+  }
 
   return (
-    <div className="week-calendar-polished">
-      <div
-        className="week-calendar-polished-header"
-        style={{ gridTemplateColumns: `64px repeat(${daysCount}, minmax(118px, 1fr))` }}
-      >
-        <div className="week-calendar-polished-corner" />
+    <div
+      ref={scrollRef}
+      className="calendar-week-scroll"
+      style={{ "--calendar-days": daysCount, "--calendar-hour-height": `${hourHeight}px` }}
+    >
+      <div className="calendar-week-header">
+        <div className="calendar-week-gutter calendar-week-gutter--header" aria-hidden="true" />
         {days.map((day, index) => {
           const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
-          const isToday = key === todayKeyStr;
+          const isToday = key === todayString;
+          const unscheduled = events.filter((event) => event.date === key && !event.time && !event.completedAt);
           return (
-            <div key={key} className="week-calendar-polished-day-head" data-today={isToday ? 'true' : 'false'}>
-              <span>{weekdayLabels[index]}</span>
-              <strong>{day.getDate()}</strong>
+            <div
+              key={key}
+              className="calendar-week-day-header"
+              data-today={isToday ? "true" : "false"}
+            >
+              <button type="button" className="calendar-week-day-button" onClick={() => onSlotClick(key, "09:00")}>
+                <span className="calendar-week-day-name">{weekdayLabels[index]}</span>
+                <span className="calendar-week-day-number">{day.getDate()}</span>
+              </button>
+              {unscheduled.length > 0 && (
+                <button type="button" className="calendar-week-unscheduled" onClick={() => onEventClick(unscheduled[0])} title={unscheduled.map((event) => event.title).join("\n")}>
+                  {unscheduled.length} ikke placeret
+                </button>
+              )}
             </div>
           );
         })}
       </div>
 
-      <div className="week-calendar-polished-scroll">
-        <div
-          className="week-calendar-polished-body"
-          style={{ gridTemplateColumns: `64px repeat(${daysCount}, minmax(118px, 1fr))`, minWidth: daysCount === 7 ? 920 : 0 }}
-        >
-          <div className="week-calendar-polished-times" style={{ height: totalHeight }} aria-hidden="true">
-            {Array.from({ length: endHour - startHour + 1 }, (_, index) => startHour + index).map((hour) => (
-              <span key={hour} style={{ top: (hour - startHour) * hourHeight - 6 }}>
-                {String(hour).padStart(2, '0')}:00
-              </span>
-            ))}
-          </div>
-
-          {days.map((day) => {
-            const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
-            const dayEvents = [...(eventsByDate[key] || [])]
-              .filter((event) => event.time)
-              .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-            const isToday = key === todayKeyStr;
-
+      <div className="calendar-week-body" style={{ height: totalHeight }}>
+        <div className="calendar-week-gutter">
+          {Array.from({ length: endHour - startHour + 1 }, (_, index) => {
+            const hour = startHour + index;
             return (
-              <div
-                key={key}
-                ref={(node) => { if (node) dayRefs.current[key] = node; }}
-                className="week-calendar-polished-day"
-                data-today={isToday ? 'true' : 'false'}
-                data-drop-active={hoverDay === key ? 'true' : 'false'}
-                style={{ height: totalHeight }}
-                onClick={(event) => {
-                  if (event.target !== event.currentTarget) return;
-                  onSlotClick(key, pointerToTime(key, event.clientY));
-                }}
-                onDragOver={(event) => {
-                  event.preventDefault();
-                  setHoverDay(key);
-                }}
-                onDragLeave={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget)) setHoverDay(null);
-                }}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  moveDraggedEvent(key, event.clientY);
-                }}
-              >
-                {isToday && nowTop >= 0 && nowTop <= totalHeight && (
-                  <div className="week-calendar-polished-now" style={{ top: nowTop }} />
-                )}
-
-                {dayEvents.map((event) => {
-                  const startMinutes = timeToMinutes(event.time);
-                  const durationMinutes = Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60));
-                  const top = ((startMinutes - startHour * 60) / 60) * hourHeight;
-                  const height = Math.max(38, (durationMinutes / 60) * hourHeight - 5);
-                  if (top < 0 || top >= totalHeight) return null;
-                  const tone = palette[event.type] || palette.other;
-                  const endTime = minutesToTime(startMinutes + durationMinutes);
-
-                  return (
-                    <button
-                      key={event.id}
-                      type="button"
-                      draggable
-                      className="week-calendar-polished-event"
-                      title={`${event.time}–${endTime} · ${event.title}`}
-                      onDragStart={(domEvent) => {
-                        setDragId(event.id);
-                        domEvent.dataTransfer.effectAllowed = 'move';
-                        domEvent.dataTransfer.setData('text/plain', event.id);
-                      }}
-                      onDragEnd={() => {
-                        setDragId(null);
-                        setHoverDay(null);
-                      }}
-                      onClick={(domEvent) => {
-                        domEvent.stopPropagation();
-                        onEventClick(event);
-                      }}
-                      style={{
-                        top,
-                        height,
-                        borderColor: tone.color,
-                        background: tone.background,
-                        color: tone.color,
-                      }}
-                    >
-                      <span className="week-calendar-polished-event-icon"><Icon name={tone.icon} size={12} /></span>
-                      <span className="week-calendar-polished-event-copy">
-                        <span className="week-calendar-polished-event-time">{event.time}–{endTime}</span>
-                        <span className="week-calendar-polished-event-title">{event.title}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <span key={hour} className="calendar-week-time-label" style={{ top: index * hourHeight }}>
+                {String(hour).padStart(2, "0")}:00
+              </span>
             );
           })}
         </div>
+
+        {days.map((day) => {
+          const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
+          const positioned = layoutEvents(events.filter((event) => event.date === key));
+          const isToday = key === todayString;
+          return (
+            <div
+              key={key}
+              className="calendar-week-day-column"
+              data-hovered={hoverDay === key ? "true" : "false"}
+              onClick={(event) => {
+                if (event.target !== event.currentTarget) return;
+                onSlotClick(key, pointerTime(event, event.currentTarget));
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setHoverDay(key);
+              }}
+              onDragLeave={() => setHoverDay((value) => value === key ? null : value)}
+              onDrop={(event) => {
+                event.preventDefault();
+                const id = dragId || event.dataTransfer.getData("text/plain");
+                const source = events.find((item) => item.id === id);
+                if (!source) return;
+                onMoveEvent({ ...source, date: key, time: pointerTime(event, event.currentTarget) });
+                setDragId(null);
+                setHoverDay(null);
+              }}
+              style={{ height: totalHeight }}
+            >
+              {Array.from({ length: endHour - startHour + 1 }, (_, index) => (
+                <span key={index} className="calendar-week-hour-line" style={{ top: index * hourHeight }} />
+              ))}
+              {Array.from({ length: (endHour - startHour) * 2 }, (_, index) => (
+                <span key={index} className="calendar-week-half-line" style={{ top: index * (hourHeight / 2) }} />
+              ))}
+              {isToday && nowTop >= 0 && nowTop <= totalHeight && (
+                <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>
+              )}
+
+              {positioned.map(({ event, start, end, lane, laneCount }) => {
+                const tone = typeTone[event.type] || typeTone.other;
+                const top = ((start - startHour * 60) / 60) * hourHeight;
+                const height = Math.max(38, ((end - start) / 60) * hourHeight - 5);
+                if (top + height < 0 || top > totalHeight) return null;
+                const width = `calc(${100 / laneCount}% - 8px)`;
+                const left = `calc(${lane * (100 / laneCount)}% + 4px)`;
+                return (
+                  <button
+                    key={event.id}
+                    type="button"
+                    draggable
+                    className="calendar-week-event"
+                    data-complete={event.completedAt ? "true" : "false"}
+                    onDragStart={(domEvent) => {
+                      setDragId(event.id);
+                      domEvent.dataTransfer.effectAllowed = "move";
+                      domEvent.dataTransfer.setData("text/plain", event.id);
+                    }}
+                    onDragEnd={() => setDragId(null)}
+                    onClick={(domEvent) => {
+                      domEvent.stopPropagation();
+                      onEventClick(event);
+                    }}
+                    style={{
+                      top,
+                      height,
+                      width,
+                      insetInlineStart: left,
+                      borderColor: tone.color,
+                      background: tone.background,
+                      color: tone.color,
+                    }}
+                    title={`${event.time || ""} ${event.title}`.trim()}
+                  >
+                    <span className="calendar-week-event-icon"><Icon name={tone.icon} size={12} /></span>
+                    <span className="calendar-week-event-copy">
+                      <span className="calendar-week-event-time">{event.time}–{minutesToTime(end)}</span>
+                      <span className="calendar-week-event-title">{event.title}</span>
+                      {event.location && <span className="calendar-week-event-meta">{event.location}</span>}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
+
 function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, weekdayLabels }) {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
@@ -7060,1042 +7116,1259 @@ select.ui-control {
 
 
 /* ============================================================
-   MEDFLUEN POLISH SYSTEM — APP(4) BASELINE
-   Keeps the existing information architecture and functionality.
+   CALENDAR WORKSPACE — FUNCTIONAL POLISH
    ============================================================ */
-:root {
-  --app-sidebar-width: 224px;
-  --mf-radius-control: 10px;
-  --mf-radius-row: 12px;
-  --mf-radius-panel: 16px;
-  --mf-radius-modal: 18px;
-  --mf-shadow-panel: 0 1px 2px rgba(16,24,40,.025), 0 10px 30px rgba(16,24,40,.045);
-  --mf-shadow-popover: 0 18px 48px rgba(16,24,40,.16);
-  --mf-transition: 150ms cubic-bezier(.2,.8,.2,1);
-}
-
-button:not(:disabled):hover,
-button:not(:disabled):active {
-  filter: none;
-}
-
-.ui-card,
-.dashboard-section-card,
-.home-v2-summary,
-.home-v2-workspace,
-.home-v2-bottom {
-  border-color: var(--ui-border) !important;
-  box-shadow: var(--mf-shadow-panel) !important;
-}
-
-.ui-card {
-  border-radius: var(--mf-radius-panel);
-}
-
-.ui-card::after,
-.dashboard-section-card::after,
-.dashboard-hero::after,
-.dashboard-metric-card::after,
-.dashboard-focus-card::after {
-  box-shadow: none;
-}
-
-.ui-card--interactive:hover {
-  transform: none;
-  border-color: var(--ui-border-strong) !important;
-  box-shadow: 0 1px 2px rgba(16,24,40,.03), 0 12px 34px rgba(16,24,40,.06) !important;
-}
-
-.ui-button {
-  min-height: 40px;
-  padding: 0 15px;
-  border-radius: var(--mf-radius-control);
-  font-size: 11.5px;
-  font-weight: 760;
-  letter-spacing: 0;
-}
-
-.ui-button:not(:disabled):hover,
-.ui-button:not(:disabled):active {
-  transform: none;
-}
-
-.ui-button--primary {
-  background: var(--ui-blue);
-  box-shadow: 0 4px 12px rgba(22,101,234,.18);
-}
-
-.ui-button--primary:not(:disabled):hover {
-  background: color-mix(in srgb, var(--ui-blue) 92%, #000);
-  box-shadow: 0 6px 16px rgba(22,101,234,.22);
-}
-
-.ui-button--secondary {
-  box-shadow: none;
-}
-
-.ui-button--secondary:not(:disabled):hover,
-.ui-button--ghost:not(:disabled):hover {
-  box-shadow: none;
-}
-
-.ui-icon-button {
-  border-radius: var(--mf-radius-control) !important;
-}
-
-.ui-icon-button:not(:disabled):hover,
-.ui-icon-button:not(:disabled):active {
-  transform: none;
-}
-
-.ui-control {
-  min-height: 42px;
-  border-radius: var(--mf-radius-control);
-  border-color: var(--ui-border);
-  background: var(--ui-panel);
-  box-shadow: none;
-}
-
-.ui-control:hover:not(:disabled) {
-  border-color: var(--ui-border-strong) !important;
-}
-
-.ui-control:focus {
-  border-color: var(--ui-blue) !important;
-  box-shadow: 0 0 0 3px var(--ui-ring) !important;
-}
-
-.ui-choice-card {
-  border-radius: var(--mf-radius-control) !important;
-}
-
-.ui-choice-card:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-.ui-modal-surface {
-  border-radius: var(--mf-radius-modal) !important;
-  box-shadow: var(--mf-shadow-popover) !important;
-}
-
-.ui-empty-state,
-.ui-loading-state {
-  border-radius: var(--mf-radius-panel);
-  background: color-mix(in srgb, var(--ui-soft) 76%, var(--ui-panel));
-}
-
-/* Sidebar: same structure, sharper rhythm and less visual noise. */
-.app-sidebar {
-  width: var(--app-sidebar-width) !important;
-  padding: 14px 0 12px !important;
-  box-shadow: 1px 0 0 var(--ui-border) !important;
-}
-
-.sidebar-wide-brand {
-  min-height: 46px;
-  padding: 0 15px;
-  margin-bottom: 8px;
-}
-
-.sidebar-wide-brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  font-size: 12px;
-  box-shadow: 0 4px 12px rgba(22,101,234,.18);
-}
-
-.sidebar-wide-brand-name {
-  font-size: 15px;
-  font-weight: 820;
-}
-
-.sidebar-wide-section {
-  padding: 0 10px;
-  margin-top: 10px;
-}
-
-.sidebar-wide-section-head {
-  min-height: 24px;
-  padding: 0 9px;
-  font-size: 7.5px;
-  letter-spacing: .1em;
-}
-
-.sidebar-wide-list {
-  gap: 2px;
-}
-
-.sidebar-wide-row {
+.calendar-week-scroll {
   position: relative;
-  min-height: 38px;
-  padding: 0 10px;
-  border-radius: 9px;
-  transition: background var(--mf-transition), color var(--mf-transition), border-color var(--mf-transition);
-}
-
-.sidebar-wide-row:hover {
-  background: color-mix(in srgb, var(--ui-soft) 78%, transparent);
-}
-
-.sidebar-wide-row[data-active="true"] {
-  border-color: transparent;
-  background: var(--ui-blue-soft);
-  color: var(--ui-blue);
-}
-
-.sidebar-wide-row[data-active="true"]::before {
-  content: "";
-  position: absolute;
-  inset-block: 9px;
-  inset-inline-start: 0;
-  width: 2px;
-  border-radius: 99px;
-  background: var(--ui-blue);
-}
-
-.sidebar-wide-row-icon {
-  width: 21px;
-  height: 21px;
-}
-
-.sidebar-wide-row-label {
-  font-size: 10.5px;
-  font-weight: 690;
-}
-
-.sidebar-wide-row-badge {
-  min-width: 19px;
-  height: 18px;
-  border-radius: 7px;
-}
-
-.sidebar-wide-profile {
-  width: calc(100% - 20px);
-  margin-inline: 10px;
-}
-
-.sidebar-wide-profile-button {
-  min-height: 46px;
-  border-radius: 10px;
-}
-
-.sidebar-wide-profile-button:hover {
-  background: var(--ui-soft);
-}
-
-.sidebar-profile-menu {
-  border-radius: 14px !important;
-  box-shadow: var(--mf-shadow-popover) !important;
-}
-
-.sidebar-menu-item:hover {
-  background: var(--ui-soft) !important;
-}
-
-/* Topbar: quieter, aligned, and intentionally utilitarian. */
-.topbar-shell {
-  min-height: 68px !important;
-  padding-inline: 16px !important;
-  border-bottom: 1px solid var(--ui-border) !important;
-  box-shadow: none !important;
-}
-
-.topbar-page-icon,
-.topbar-pomodoro-icon,
-.topbar-quick-control,
-.topbar-module-btn {
-  border-radius: 10px !important;
-}
-
-.topbar-pomodoro-trigger,
-.topbar-module-btn,
-.topbar-quick-control {
-  box-shadow: none !important;
-}
-
-.topbar-pomodoro-trigger:hover,
-.topbar-module-btn:hover,
-.topbar-quick-control:hover {
-  transform: none !important;
-  border-color: var(--ui-border-strong) !important;
-  background: var(--ui-soft) !important;
-}
-
-/* Home: preserve current calendar-first vibe, improve density and hierarchy. */
-.home-v2 {
-  width: min(1360px, 100%);
-  gap: 14px;
-}
-
-.home-v2-heading {
-  padding: 1px 2px 2px;
-}
-
-.home-v2-greeting {
-  font-size: clamp(24px, 2vw, 30px);
-  font-weight: 800;
-  letter-spacing: -.035em;
-}
-
-.home-v2-module {
-  margin-top: 6px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.home-v2-summary {
-  grid-template-columns: repeat(4, minmax(100px, 1fr)) minmax(250px, 1.4fr);
-  border-radius: var(--mf-radius-panel);
-  overflow: hidden;
-}
-
-.home-v2-stat,
-.home-v2-recommendation {
-  min-height: 72px;
-  gap: 10px;
-  padding: 11px 13px;
-}
-
-.home-v2-stat:hover,
-.home-v2-recommendation:hover {
-  background: color-mix(in srgb, var(--ui-soft) 74%, var(--ui-panel));
-}
-
-.home-v2-stat-icon,
-.home-v2-recommendation-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
-}
-
-.home-v2-stat-value {
-  font-size: 18px;
-}
-
-.home-v2-stat-label {
-  font-size: 9.5px;
-  font-weight: 700;
-}
-
-.home-v2-stat-meta,
-.home-v2-recommendation-meta {
-  font-size: 8.5px;
-}
-
-.home-v2-recommendation-label {
-  font-size: 11px;
-  font-weight: 780;
-}
-
-.home-v2-recommendation-badge {
-  border-radius: 8px;
-  border: 1px solid var(--ui-blue-border);
-}
-
-.home-v2-workspace {
-  min-height: 620px;
-  grid-template-columns: minmax(0, 1fr) 244px;
-  border-radius: var(--mf-radius-panel);
-}
-
-.home-v2-panel-header {
-  min-height: 70px;
-  padding: 12px 16px;
-}
-
-.home-v2-panel-title {
-  font-size: 13.5px;
-  font-weight: 800;
-}
-
-.home-v2-calendar-nav {
-  margin-top: 6px;
-}
-
-.home-v2-mini-button,
-.home-v2-view-button {
-  min-height: 30px;
-  border-radius: 8px;
-  background: var(--ui-panel);
-  box-shadow: none;
-}
-
-.home-v2-view-switcher {
-  border-radius: 10px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-border) 45%, transparent);
-}
-
-.home-v2-view-button[data-active="true"] {
-  box-shadow: 0 1px 2px rgba(16,24,40,.08);
-}
-
-.home-v2-calendar-canvas {
-  min-height: 548px;
-}
-
-.home-day-schedule {
-  min-height: 548px;
-  grid-template-columns: 62px minmax(0, 1fr);
-}
-
-.home-day-time {
-  color: var(--ui-muted);
-  font-size: 8.5px;
-}
-
-.home-day-grid {
-  background-image:
-    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, color-mix(in srgb, var(--ui-border) 45%, transparent) 27px, color-mix(in srgb, var(--ui-border) 45%, transparent) 28px),
-    repeating-linear-gradient(to bottom, transparent 0, transparent 55px, var(--ui-border) 55px, var(--ui-border) 56px);
-}
-
-.home-day-grid:hover {
-  background-color: transparent;
-}
-
-.home-day-event {
-  inset-inline: 12px;
-  gap: 9px;
-  padding: 8px 10px;
-  border-inline-start-width: 3px;
-  border-radius: 9px;
-  box-shadow: 0 2px 7px rgba(16,24,40,.05);
-}
-
-.home-day-event:hover {
-  filter: none;
-  box-shadow: 0 5px 14px rgba(16,24,40,.09);
-}
-
-.home-day-event-icon {
-  width: 23px;
-  height: 23px;
-  border-radius: 7px;
-}
-
-.home-v2-rail {
-  gap: 10px;
-  padding: 12px;
-  background: color-mix(in srgb, var(--ui-soft) 58%, var(--ui-panel));
-}
-
-.home-v2-rail-card {
-  padding: 13px;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(16,24,40,.025);
-}
-
-.home-v2-exam-number {
-  font-size: 32px;
-}
-
-.home-v2-upcoming-item {
-  padding: 8px 1px;
-}
-
-.home-v2-upcoming-item:hover .home-v2-upcoming-title {
-  color: var(--ui-blue);
-}
-
-.home-v2-bottom {
-  border-radius: var(--mf-radius-panel);
-}
-
-.home-v2-bottom-header {
-  min-height: 48px;
-}
-
-.home-v2-tab {
-  border-radius: 8px;
-}
-
-.home-v2-activity-item,
-.home-v2-task-row {
-  border-radius: 10px;
-  box-shadow: none;
-}
-
-.home-v2-activity-item {
-  background: color-mix(in srgb, var(--ui-soft) 66%, var(--ui-panel));
-}
-
-.home-v2-badge {
-  border-radius: 8px;
-}
-
-/* Duration-aware week calendar */
-.week-calendar-polished {
+  width: 100%;
   height: 100%;
-  min-height: 500px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--ui-panel);
-}
-
-.week-calendar-polished-header {
-  flex-shrink: 0;
-  display: grid;
-  position: relative;
-  z-index: 4;
-  border-bottom: 1px solid var(--ui-border);
-  background: var(--ui-panel);
-}
-
-.week-calendar-polished-corner,
-.week-calendar-polished-day-head {
-  min-height: 52px;
-  border-inline-start: 1px solid var(--ui-border);
-}
-
-.week-calendar-polished-corner {
-  border-inline-start: 0;
-}
-
-.week-calendar-polished-day-head {
-  display: grid;
-  place-content: center;
-  gap: 3px;
-  color: var(--ui-muted);
-  text-align: center;
-}
-
-.week-calendar-polished-day-head span {
-  font-size: 8px;
-  font-weight: 780;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-}
-
-.week-calendar-polished-day-head strong {
-  color: var(--ui-text);
-  font-size: 12px;
-  font-weight: 820;
-}
-
-.week-calendar-polished-day-head[data-today="true"] {
-  background: color-mix(in srgb, var(--ui-blue-soft) 54%, var(--ui-panel));
-}
-
-.week-calendar-polished-day-head[data-today="true"] strong,
-.week-calendar-polished-day-head[data-today="true"] span {
-  color: var(--ui-blue);
-}
-
-.week-calendar-polished-scroll {
-  min-height: 0;
-  flex: 1;
+  min-height: 520px;
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  background: var(--ui-panel);
 }
 
-.week-calendar-polished-body {
+.calendar-week-header,
+.calendar-week-body {
+  min-width: max(100%, calc(64px + var(--calendar-days) * 148px));
   display: grid;
-  position: relative;
+  grid-template-columns: 64px repeat(var(--calendar-days), minmax(148px, 1fr));
 }
 
-.week-calendar-polished-times {
+.calendar-week-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: 72px;
+  border-bottom: 1px solid var(--ui-border-strong);
+  background: color-mix(in srgb, var(--ui-panel) 94%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 5px 18px rgba(23,35,58,.045);
+}
+
+.calendar-week-gutter {
   position: relative;
+  min-width: 64px;
   border-inline-end: 1px solid var(--ui-border);
   background: var(--ui-panel);
 }
 
-.week-calendar-polished-times span {
-  position: absolute;
-  inset-inline: 0 8px;
-  color: var(--ui-muted);
-  font-size: 8px;
-  font-weight: 690;
-  text-align: end;
+.calendar-week-gutter--header {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 32;
 }
 
-.week-calendar-polished-day {
-  position: relative;
+.calendar-week-day-header {
+  min-width: 0;
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  padding: 7px 8px;
   border-inline-start: 1px solid var(--ui-border);
-  background-image:
-    repeating-linear-gradient(to bottom, transparent 0, transparent 30px, color-mix(in srgb, var(--ui-border) 42%, transparent) 30px, color-mix(in srgb, var(--ui-border) 42%, transparent) 31px),
-    repeating-linear-gradient(to bottom, transparent 0, transparent 61px, var(--ui-border) 61px, var(--ui-border) 62px);
-  transition: background-color var(--mf-transition);
+  background: transparent;
+  color: var(--ui-secondary);
+  text-align: center;
 }
 
-.week-calendar-polished-day[data-today="true"] {
-  background-color: color-mix(in srgb, var(--ui-blue-soft) 12%, transparent);
+.calendar-week-day-header:hover {
+  background: var(--ui-soft);
 }
 
-.week-calendar-polished-day[data-drop-active="true"] {
-  background-color: color-mix(in srgb, var(--ui-blue-soft) 50%, transparent);
+.calendar-week-day-button {
+  display: grid;
+  gap: 4px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
 }
 
-.week-calendar-polished-event {
+.calendar-week-unscheduled {
+  min-height: 20px;
+  padding: 0 7px;
+  border: 1px solid var(--ui-blue-border);
+  border-radius: 7px;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+  font-size: 7.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.calendar-week-day-header[data-today="true"] {
+  background: color-mix(in srgb, var(--ui-blue-soft) 68%, var(--ui-panel));
+  color: var(--ui-blue);
+}
+
+.calendar-week-day-name {
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.calendar-week-day-number {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -.025em;
+  line-height: 1;
+}
+
+.calendar-week-body {
+  position: relative;
+  align-items: stretch;
+}
+
+.calendar-week-time-label {
   position: absolute;
-  inset-inline: 6px;
+  inset-inline: 0 9px;
   z-index: 2;
+  transform: translateY(-7px);
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  pointer-events: none;
+}
+
+.calendar-week-day-column {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border-inline-start: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+  cursor: crosshair;
+  transition: background 130ms ease;
+}
+
+.calendar-week-day-column[data-hovered="true"] {
+  background: color-mix(in srgb, var(--ui-blue-soft) 22%, var(--ui-panel));
+}
+
+.calendar-week-hour-line,
+.calendar-week-half-line {
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+  pointer-events: none;
+}
+
+.calendar-week-hour-line {
+  z-index: 1;
+  background: var(--ui-border-strong);
+  opacity: .76;
+}
+
+.calendar-week-half-line {
+  z-index: 0;
+  background: var(--ui-border);
+  opacity: .48;
+}
+
+.calendar-week-now-line {
+  position: absolute;
+  z-index: 12;
+  inset-inline: 0;
+  height: 1px;
+  background: var(--ui-blue);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ui-blue) 15%, transparent);
+  pointer-events: none;
+}
+
+.calendar-week-now-line i {
+  position: absolute;
+  inset-inline-start: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ui-blue);
+}
+
+.calendar-week-event {
+  position: absolute;
+  z-index: 8;
+  min-height: 38px;
   display: flex;
   align-items: flex-start;
-  gap: 7px;
+  gap: 8px;
+  padding: 8px 9px;
   overflow: hidden;
-  padding: 7px 8px;
   border: 1px solid;
   border-inline-start-width: 3px;
-  border-radius: 9px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(23,35,58,.07);
   text-align: start;
-  box-shadow: 0 2px 7px rgba(16,24,40,.05);
-  transition: box-shadow var(--mf-transition), opacity var(--mf-transition);
+  cursor: grab;
+  outline: none;
+  transition: transform 130ms ease, box-shadow 130ms ease, opacity 130ms ease;
 }
 
-.week-calendar-polished-event:hover {
-  box-shadow: 0 6px 16px rgba(16,24,40,.10);
+.calendar-week-event:hover {
+  z-index: 15;
+  transform: translateY(-1px);
+  box-shadow: 0 9px 20px rgba(23,35,58,.12);
 }
 
-.week-calendar-polished-event:active {
+.calendar-week-event:active {
   cursor: grabbing;
+}
+
+.calendar-week-event:focus-visible {
+  box-shadow: 0 0 0 3px var(--ui-ring), 0 9px 20px rgba(23,35,58,.12);
+}
+
+.calendar-week-event[data-complete="true"] {
+  opacity: .58;
+}
+
+.calendar-week-event-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: color-mix(in srgb, currentColor 9%, var(--ui-panel));
+}
+
+.calendar-week-event-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.calendar-week-event-time,
+.calendar-week-event-meta {
+  overflow: hidden;
+  font-size: 8.5px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   opacity: .78;
 }
 
-.week-calendar-polished-event-icon {
-  width: 21px;
-  height: 21px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--ui-panel) 82%, transparent);
-}
-
-.week-calendar-polished-event-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.week-calendar-polished-event-time {
-  display: block;
-  opacity: .72;
-  font-size: 7.5px;
-  font-weight: 760;
-}
-
-.week-calendar-polished-event-title {
-  display: block;
-  margin-top: 3px;
+.calendar-week-event-title {
   overflow: hidden;
   color: var(--ui-text);
-  font-size: 9px;
-  font-weight: 780;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.week-calendar-polished-now {
-  position: absolute;
-  z-index: 5;
-  inset-inline: 0;
-  height: 1px;
-  background: var(--ui-blue);
-  pointer-events: none;
+.calendar-workspace {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-page);
 }
 
-.week-calendar-polished-now::before {
-  content: "";
+.calendar-workspace-header {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+}
+
+.calendar-workspace-title,
+.calendar-workspace-toolbar,
+.calendar-workspace-title > span {
+  display: flex;
+  align-items: center;
+}
+
+.calendar-workspace-title {
+  min-width: 0;
+  gap: 10px;
+}
+
+.calendar-workspace-title > span {
+  width: 34px;
+  height: 34px;
+  justify-content: center;
+  border: 1px solid var(--ui-blue-border);
+  border-radius: 10px;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.calendar-workspace-title strong,
+.calendar-workspace-title small {
+  display: block;
+}
+
+.calendar-workspace-title strong {
+  color: var(--ui-text);
+  font-size: 14px;
+}
+
+.calendar-workspace-title small {
+  margin-top: 2px;
+  max-width: 300px;
+  overflow: hidden;
+  color: var(--ui-muted);
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-workspace-toolbar {
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.calendar-workspace-switcher {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+  background: var(--ui-soft);
+}
+
+.calendar-workspace-switcher button {
+  min-height: 31px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-secondary);
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.calendar-workspace-switcher button[data-active="true"] {
+  background: var(--ui-panel);
+  color: var(--ui-blue);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.calendar-workspace-label {
+  min-width: 110px;
+  color: var(--ui-secondary);
+  font-size: 10.5px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.calendar-import-feedback {
+  padding: 9px 18px;
+  border-bottom: 1px solid var(--ui-green-border);
+  background: var(--ui-green-soft);
+  color: var(--ui-green);
+  font-size: 10.5px;
+  font-weight: 750;
+}
+
+.calendar-import-feedback[data-error="true"] {
+  border-color: var(--ui-red-border);
+  background: var(--ui-red-soft);
+  color: var(--ui-red);
+}
+
+.calendar-workspace-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 14px;
+  padding: 14px;
+  overflow: hidden;
+}
+
+.calendar-workspace-canvas {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 16px;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.calendar-workspace-sidebar {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.calendar-side-section {
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  background: var(--ui-panel);
+}
+
+.calendar-side-header {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.calendar-side-header strong,
+.calendar-side-header small {
+  display: block;
+}
+
+.calendar-side-header strong {
+  color: var(--ui-text);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.calendar-side-header small {
+  margin-top: 2px;
+  color: var(--ui-muted);
+  font-size: 8.5px;
+}
+
+.calendar-side-list {
+  display: grid;
+}
+
+.calendar-side-list--scroll {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.calendar-side-event,
+.calendar-side-lecture {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 11px;
+  border: 0;
+  border-top: 1px solid var(--ui-border);
+  background: transparent;
+  color: var(--ui-text);
+  text-align: start;
+  outline: none;
+}
+
+.calendar-side-event {
+  grid-template-columns: 24px minmax(0, 1fr);
+}
+
+.calendar-side-event:first-child,
+.calendar-side-lecture:first-child {
+  border-top: 0;
+}
+
+.calendar-side-event:hover,
+.calendar-side-lecture:hover {
+  background: var(--ui-soft);
+}
+
+.calendar-side-event[data-complete="true"] {
+  opacity: .55;
+}
+
+.calendar-side-event strong,
+.calendar-side-event small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-side-event strong {
+  font-size: 10.5px;
+  font-weight: 780;
+}
+
+.calendar-side-event small {
+  margin-top: 3px;
+  color: var(--ui-muted);
+  font-size: 8.5px;
+}
+
+.calendar-side-check {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 8px;
+  background: var(--ui-panel);
+  color: var(--ui-muted);
+}
+
+.calendar-side-event:hover .calendar-side-check {
+  border-color: var(--ui-green-border);
+  background: var(--ui-green-soft);
+  color: var(--ui-green);
+}
+
+.calendar-side-collapse {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border: 0;
+  background: var(--ui-panel);
+  color: var(--ui-text);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.calendar-side-collapse span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.calendar-side-lecture {
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+}
+
+.calendar-side-lecture > span {
+  color: var(--ui-blue);
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.calendar-side-lecture strong {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Notion-inspired event editor */
+.calendar-editor {
+  margin: -10px;
+}
+
+.calendar-editor-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 8px 20px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.calendar-editor-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ui-blue-border);
+  border-radius: 12px;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.calendar-editor-kicker {
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.calendar-editor-title {
+  width: 100%;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-text);
+  font-size: 23px;
+  font-weight: 850;
+  letter-spacing: -.03em;
+  outline: none;
+}
+
+.calendar-editor-title::placeholder {
+  color: var(--ui-muted);
+}
+
+.calendar-editor-body {
+  display: grid;
+  gap: 0;
+}
+
+.calendar-editor-section {
+  padding: 18px 8px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.calendar-editor-section-title {
+  margin-bottom: 11px;
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.calendar-editor-property {
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.calendar-editor-property-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ui-secondary);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.calendar-editor-segmented {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.calendar-editor-segmented button,
+.calendar-editor-status {
+  min-height: 35px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-soft);
+  color: var(--ui-secondary);
+  font-size: 9.5px;
+  font-weight: 750;
+}
+
+.calendar-editor-segmented button[data-active="true"] {
+  border-color: var(--ui-blue-border);
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.calendar-editor-status {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.calendar-editor-status[data-complete="true"] {
+  border-color: var(--ui-green-border);
+  background: var(--ui-green-soft);
+  color: var(--ui-green);
+}
+
+.calendar-editor-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.calendar-editor-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.calendar-editor-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.calendar-editor-duration {
+  margin-top: 9px;
+  color: var(--ui-muted);
+  font-size: 9.5px;
+}
+
+.calendar-editor-notes {
+  min-height: 120px !important;
+  background: var(--ui-panel) !important;
+}
+
+.calendar-editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 8px 4px;
+}
+
+/* Daily planning sheet inside the Home calendar only */
+.home-v2-calendar-canvas {
+  position: relative;
+}
+
+.daily-planner-overlay {
   position: absolute;
-  inset-inline-start: -4px;
-  top: -3px;
+  z-index: 70;
+  inset: 0;
+  display: grid;
+  align-items: start;
+  padding: 18px;
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--ui-panel) 78%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.daily-planner-card {
+  width: min(700px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 16px;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow-lg);
+}
+
+.daily-planner-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 16px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.daily-planner-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ui-blue-border);
+  border-radius: 11px;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+}
+
+.daily-planner-header h2,
+.daily-planner-header p {
+  margin: 0;
+}
+
+.daily-planner-header h2 {
+  color: var(--ui-text);
+  font-size: 15px;
+}
+
+.daily-planner-header p {
+  margin-top: 3px;
+  color: var(--ui-muted);
+  font-size: 10px;
+}
+
+.daily-planner-header > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.daily-planner-missed,
+.daily-planner-today {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.daily-planner-missed {
+  background: color-mix(in srgb, var(--ui-red-soft) 42%, var(--ui-panel));
+}
+
+.daily-planner-section-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 9px;
+  color: var(--ui-secondary);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.daily-planner-section-title > span {
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--ui-panel);
+  font-size: 8px;
+}
+
+.daily-planner-section-title > button {
+  margin-inline-start: auto;
+  border: 0;
+  background: transparent;
+  color: var(--ui-blue);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.daily-planner-missed-list,
+.daily-planner-event-list {
+  display: grid;
+  gap: 7px;
+}
+
+.daily-planner-missed-item,
+.daily-planner-event-row {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+  background: var(--ui-panel);
+}
+
+.daily-planner-missed-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.daily-planner-missed-item strong,
+.daily-planner-missed-item small,
+.daily-planner-event-row strong,
+.daily-planner-event-row small {
+  display: block;
+}
+
+.daily-planner-missed-item strong,
+.daily-planner-event-row strong {
+  color: var(--ui-text);
+  font-size: 10.5px;
+}
+
+.daily-planner-missed-item small,
+.daily-planner-event-row small {
+  margin-top: 2px;
+  color: var(--ui-muted);
+  font-size: 8.5px;
+}
+
+.daily-planner-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.daily-planner-actions button {
+  min-height: 28px;
+  padding: 0 7px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-soft);
+  color: var(--ui-secondary);
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.daily-planner-event-row {
+  grid-template-columns: 7px minmax(0, 1fr) 100px;
+}
+
+.daily-planner-event-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--ui-blue);
 }
 
-/* Notebook: OneNote-inspired within the existing utility panel. */
-.notebook-polished {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-inline-start: 1px solid var(--ui-border);
-  background: var(--ui-panel);
+.daily-planner-event-row input {
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 9px;
+  background: var(--ui-soft);
   color: var(--ui-text);
+  font-size: 10px;
+  font-weight: 750;
 }
 
-.notebook-polished-header {
-  min-height: 62px;
-  flex-shrink: 0;
+.daily-planner-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 13px 16px;
+}
+
+.home-v2-rail-card--clickable {
+  outline: none;
+  cursor: pointer;
+}
+
+.home-v2-rail-card--clickable:hover {
+  border-color: var(--ui-blue-border);
+}
+
+.home-v2-rail-card--clickable:focus-visible {
+  box-shadow: 0 0 0 3px var(--ui-ring);
+}
+
+.home-v2-rail-link {
+  float: inline-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ui-blue);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.home-v2-upcoming-check {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 8px;
+  background: var(--ui-panel);
+  color: var(--ui-muted);
+}
+
+.home-v2-upcoming-check:hover {
+  border-color: var(--ui-green-border);
+  background: var(--ui-green-soft);
+  color: var(--ui-green);
+}
+
+/* Study plan activation */
+.study-plan-activation {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 12px 0 14px;
-  border-bottom: 1px solid var(--ui-border);
+  gap: 16px;
+  padding: 15px 16px;
+  border: 1px solid var(--ui-blue-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ui-blue-soft) 54%, var(--ui-panel));
 }
 
-.notebook-polished-brand,
-.notebook-polished-header-actions {
+.study-plan-activation > div:first-child {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 11px;
 }
 
-.notebook-polished-brand-icon {
-  width: 31px;
-  height: 31px;
+.study-plan-activation-icon,
+.study-plan-confirm-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 9px;
   border: 1px solid var(--ui-blue-border);
-  background: var(--ui-blue-soft);
+  border-radius: 11px;
+  background: var(--ui-panel);
   color: var(--ui-blue);
 }
 
-.notebook-polished-brand strong,
-.notebook-polished-brand small {
+.study-plan-activation strong,
+.study-plan-activation small {
   display: block;
 }
 
-.notebook-polished-brand strong {
-  font-size: 12.5px;
-  font-weight: 790;
+.study-plan-activation strong {
+  color: var(--ui-text);
+  font-size: 11.5px;
 }
 
-.notebook-polished-brand small {
+.study-plan-activation small {
+  margin-top: 3px;
+  color: var(--ui-secondary);
+  font-size: 9.5px;
+}
+
+.study-plan-activation[data-active="true"] {
+  border-color: var(--ui-green-border);
+  background: color-mix(in srgb, var(--ui-green-soft) 54%, var(--ui-panel));
+}
+
+.study-plan-confirm {
+  text-align: center;
+}
+
+.study-plan-confirm-icon {
+  margin: 0 auto 12px;
+  width: 44px;
+  height: 44px;
+}
+
+.study-plan-confirm h2 {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: 18px;
+}
+
+.study-plan-confirm p {
+  margin: 8px 0 18px;
+  color: var(--ui-secondary);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.study-plan-confirm > div:last-child {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Dedicated progress page */
+.plan-progress-page {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.plan-progress-page-header {
+  display: grid;
+  gap: 12px;
+}
+
+.plan-progress-page-header h1,
+.plan-progress-page-header p {
+  margin: 0;
+}
+
+.plan-progress-page-header h1 {
+  color: var(--ui-text);
+  font-size: 26px;
+  letter-spacing: -.035em;
+}
+
+.plan-progress-page-header p {
+  margin-top: 5px;
+  color: var(--ui-secondary);
+  font-size: 11px;
+}
+
+.plan-progress-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 15px;
+  background: var(--ui-panel);
+}
+
+.plan-progress-summary > div {
+  padding: 15px;
+  border-inline-start: 1px solid var(--ui-border);
+}
+
+.plan-progress-summary > div:first-child {
+  border-inline-start: 0;
+}
+
+.plan-progress-summary span,
+.plan-progress-summary strong {
+  display: block;
+}
+
+.plan-progress-summary span {
+  color: var(--ui-muted);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.plan-progress-summary strong {
+  margin-top: 5px;
+  color: var(--ui-text);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.plan-progress-table-card {
+  overflow: hidden;
+  border: 1px solid var(--ui-border);
+  border-radius: 15px;
+  background: var(--ui-panel);
+}
+
+.plan-progress-table-head,
+.plan-progress-table-row {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.5fr) minmax(150px, .7fr) minmax(130px, .6fr) minmax(120px, .5fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.plan-progress-table-head {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--ui-border-strong);
+  background: var(--ui-soft);
+  color: var(--ui-muted);
+  font-size: 8.5px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.plan-progress-table-row {
+  min-height: 56px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--ui-border);
+  color: var(--ui-secondary);
+  font-size: 10px;
+}
+
+.plan-progress-table-row:first-child {
+  border-top: 0;
+}
+
+.plan-progress-table-row:hover {
+  background: var(--ui-soft);
+}
+
+.plan-progress-lecture {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-progress-lecture i {
+  min-width: 34px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-soft);
+  color: var(--ui-blue);
+  font-size: 8.5px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.plan-progress-lecture strong {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 10.5px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-progress-table-row small {
+  display: block;
   margin-top: 2px;
   color: var(--ui-muted);
   font-size: 8px;
-  font-weight: 650;
 }
 
-.notebook-polished-body {
-  min-height: 0;
-  flex: 1;
-  display: grid;
-  grid-template-columns: 126px minmax(0, 1fr);
-}
-
-.notebook-polished-list-pane {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 10px 8px;
-  border-inline-end: 1px solid var(--ui-border);
-  background: color-mix(in srgb, var(--ui-soft) 60%, var(--ui-panel));
-}
-
-.notebook-polished-search {
-  min-height: 34px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 8px;
-  border: 1px solid var(--ui-border);
-  border-radius: 9px;
-  background: var(--ui-panel);
-  color: var(--ui-muted);
-}
-
-.notebook-polished-search input {
-  min-width: 0;
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--ui-text);
-  font-size: 9px;
-}
-
-.notebook-polished-note-list {
-  min-height: 0;
-  flex: 1;
-  display: grid;
-  align-content: start;
-  gap: 3px;
-  margin-top: 8px;
-  overflow-y: auto;
-}
-
-.notebook-polished-note-row {
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  min-height: 48px;
-  display: flex;
-  gap: 7px;
-  padding: 7px 7px 7px 8px;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--ui-secondary);
-  text-align: start;
-}
-
-.notebook-polished-note-row:hover {
-  background: var(--ui-panel);
-  border-color: var(--ui-border);
-}
-
-.notebook-polished-note-row[data-active="true"] {
-  border-color: var(--ui-blue-border);
-  background: var(--ui-panel);
-  color: var(--ui-text);
-  box-shadow: 0 1px 2px rgba(16,24,40,.04);
-}
-
-.notebook-polished-note-indicator {
-  width: 2px;
-  align-self: stretch;
-  border-radius: 99px;
-  background: transparent;
-}
-
-.notebook-polished-note-row[data-active="true"] .notebook-polished-note-indicator {
-  background: var(--ui-blue);
-}
-
-.notebook-polished-note-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.notebook-polished-note-copy strong,
-.notebook-polished-note-copy small {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.notebook-polished-note-copy strong {
-  font-size: 9.5px;
-  font-weight: 760;
-}
-
-.notebook-polished-note-copy small {
-  margin-top: 4px;
-  color: var(--ui-muted);
-  font-size: 7.5px;
-  font-weight: 600;
-}
-
-.notebook-polished-add {
-  min-height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  margin-top: 8px;
-  border: 1px dashed var(--ui-border-strong);
-  border-radius: 9px;
-  background: transparent;
-  color: var(--ui-secondary);
-  font-size: 8.5px;
-  font-weight: 700;
-}
-
-.notebook-polished-add:hover {
-  border-color: var(--ui-blue-border);
-  color: var(--ui-blue);
-  background: var(--ui-blue-soft);
-}
-
-.notebook-polished-editor-pane {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.notebook-polished-titlebar {
-  min-height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px 8px 12px;
-  border-bottom: 1px solid var(--ui-border);
-}
-
-.notebook-polished-title-wrap {
-  min-width: 0;
-  flex: 1;
-}
-
-.notebook-polished-title-wrap > span {
-  display: block;
-  margin-top: 3px;
-  color: var(--ui-muted);
-  font-size: 7.5px;
-  font-weight: 650;
-}
-
-.notebook-polished-title-button,
-.notebook-polished-title-input {
-  width: 100%;
-  overflow: hidden;
-  padding: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--ui-text);
-  font-size: 13px;
-  font-weight: 790;
-  text-align: start;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.notebook-polished-document-actions {
-  display: flex;
-  gap: 2px;
-}
-
-.notebook-polished-ribbon {
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 5px 8px;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--ui-border);
-  background: color-mix(in srgb, var(--ui-soft) 55%, var(--ui-panel));
-}
-
-.notebook-polished-ribbon select,
-.notebook-polished-ribbon button {
-  height: 30px;
-  min-width: 30px;
-  display: inline-grid;
-  place-items: center;
-  padding: 0 7px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ui-secondary);
-  font-size: 9px;
-}
-
-.notebook-polished-ribbon select {
-  min-width: 72px;
-  border-color: var(--ui-border);
-  background: var(--ui-panel);
-}
-
-.notebook-polished-ribbon button:hover {
-  border-color: var(--ui-border);
-  background: var(--ui-panel);
-  color: var(--ui-text);
-}
-
-.notebook-polished-ribbon-divider {
-  width: 1px;
-  height: 20px;
-  margin-inline: 3px;
-  background: var(--ui-border);
-}
-
-.notebook-polished-paper-scroll {
-  min-height: 0;
-  flex: 1;
-  overflow-y: auto;
-  background: color-mix(in srgb, var(--ui-page) 60%, var(--ui-panel));
-}
-
-.notebook-polished-paper {
-  min-height: calc(100% - 24px);
-  margin: 12px;
-  padding: 22px 20px 80px;
-  border: 1px solid var(--ui-border);
-  border-radius: 10px;
-  outline: 0;
-  background: var(--ui-panel);
-  color: var(--ui-text);
-  box-shadow: 0 1px 2px rgba(16,24,40,.025), 0 8px 22px rgba(16,24,40,.04);
-  font-size: 13px;
-  line-height: 1.72;
-}
-
-.notebook-polished-paper h2 {
-  margin: 1.2em 0 .45em;
-  font-size: 19px;
-  letter-spacing: -.025em;
-}
-
-.notebook-polished-footer {
-  min-height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 11px;
-  border-top: 1px solid var(--ui-border);
-  color: var(--ui-muted);
-  font-size: 7.5px;
-  font-weight: 650;
-}
-
-.notebook-polished-footer span:first-child {
+.plan-progress-status {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  font-weight: 800;
 }
 
-.notebook-polished-saved-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--ui-green);
-}
+.plan-progress-table-row[data-status="complete"] .plan-progress-status { color: var(--ui-green); }
+.plan-progress-table-row[data-status="overdue"] .plan-progress-status { color: var(--ui-red); }
+.plan-progress-table-row[data-status="planned"] .plan-progress-status { color: var(--ui-blue); }
 
-/* Insights: same content, now visibly part of MedFLUEN. */
-.insights-polished {
-  border-radius: 18px !important;
-  border-color: var(--ui-border) !important;
-  background: var(--ui-panel) !important;
-  color: var(--ui-text) !important;
-  box-shadow: var(--mf-shadow-panel) !important;
-}
-
-.insights-polished:not(.insights-polished-empty) {
-  padding: clamp(28px, 4vw, 48px) clamp(24px, 5vw, 56px) 48px !important;
-}
-
-.insights-polished article > button {
-  border-radius: 10px !important;
-  transition: background var(--mf-transition);
-}
-
-.insights-polished article > button:hover {
-  background: var(--ui-soft) !important;
-}
-
-.insights-polished select,
-.insights-polished input {
-  border-radius: 9px !important;
-}
-
-@media (max-width: 1180px) {
-  .home-v2-summary {
-    grid-template-columns: repeat(4, minmax(92px, 1fr));
+@media (max-width: 980px) {
+  .calendar-workspace-layout {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
   }
 
-  .home-v2-recommendation {
-    grid-column: 1 / -1;
-    border-inline-start: 0;
-    border-top: 1px solid var(--ui-border);
+  .calendar-workspace-canvas {
+    min-height: 640px;
+  }
+
+  .calendar-workspace-sidebar {
+    overflow: visible;
+  }
+
+  .calendar-editor-grid--3 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .plan-progress-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .plan-progress-table-card {
+    overflow-x: auto;
+  }
+
+  .plan-progress-table-head,
+  .plan-progress-table-row {
+    min-width: 800px;
   }
 }
 
-@media (max-width: 900px) {
-  .home-v2-workspace {
+@media (max-width: 680px) {
+  .calendar-workspace-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calendar-workspace-toolbar {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .calendar-workspace-label {
+    order: -1;
+    width: 100%;
+    text-align: start;
+  }
+
+  .calendar-editor-property {
     grid-template-columns: 1fr;
   }
 
-  .home-v2-rail {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-inline-start: 0;
-    border-top: 1px solid var(--ui-border);
+  .calendar-editor-grid--2,
+  .calendar-editor-grid--3,
+  .calendar-editor-segmented {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .notebook-polished-body {
-    grid-template-columns: 110px minmax(0, 1fr);
+  .daily-planner-missed-item {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-planner-event-row {
+    grid-template-columns: 7px minmax(0, 1fr);
+  }
+
+  .daily-planner-event-row input {
+    grid-column: 2;
+  }
+
+  .daily-planner-footer,
+  .study-plan-activation,
+  .calendar-editor-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .plan-progress-summary {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -12192,29 +12465,28 @@ function Timer({
 
 function Notebook({ c, t, onClose }) {
   const [tabs, setTabs] = useStoredState(STORAGE.notes, [
-    { id: 'note-1', title: 'Noter', content: '' },
+    { id: "note-1", title: "Noter", content: "" },
   ]);
-  const [activeId, setActiveId] = useStoredState(STORAGE.activeNote, 'note-1');
+  const [activeId, setActiveId] = useStoredState(STORAGE.activeNote, "note-1");
   const [renamingId, setRenamingId] = useState(null);
-  const [draft, setDraft] = useState('');
-  const [search, setSearch] = useState('');
-  const [savedAt, setSavedAt] = useState(() => Date.now());
+  const [draft, setDraft] = useState("");
   const editorRef = useRef(null);
   const renameRef = useRef(null);
 
   const activeTab = tabs.find((tab) => tab.id === activeId) || tabs[0];
-  const normalizedSearch = search.trim().toLowerCase();
-  const visibleTabs = normalizedSearch
-    ? tabs.filter((tab) => `${tab.title} ${String(tab.content || '').replace(/<[^>]*>/g, ' ')}`.toLowerCase().includes(normalizedSearch))
-    : tabs;
 
   useEffect(() => {
-    if (!tabs.some((tab) => tab.id === activeId) && tabs[0]) setActiveId(tabs[0].id);
+    if (!tabs.some((tab) => tab.id === activeId) && tabs[0]) {
+      setActiveId(tabs[0].id);
+    }
   }, [tabs, activeId, setActiveId]);
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== (activeTab?.content || '')) {
-      editorRef.current.innerHTML = activeTab?.content || '';
+    if (
+      editorRef.current &&
+      editorRef.current.innerHTML !== (activeTab?.content || "")
+    ) {
+      editorRef.current.innerHTML = activeTab?.content || "";
     }
   }, [activeId, activeTab?.content]);
 
@@ -12226,190 +12498,343 @@ function Notebook({ c, t, onClose }) {
   }, [renamingId]);
 
   function updateContent(content) {
-    setTabs((previous) => previous.map((tab) => tab.id === activeId ? { ...tab, content } : tab));
-    setSavedAt(Date.now());
+    setTabs((previous) =>
+      previous.map((tab) => (tab.id === activeId ? { ...tab, content } : tab))
+    );
   }
 
   function command(commandName, value) {
     editorRef.current?.focus();
     document.execCommand(commandName, false, value);
-    updateContent(editorRef.current?.innerHTML || '');
+    updateContent(editorRef.current?.innerHTML || "");
   }
 
   function addNote() {
     const id = `note-${Date.now()}`;
     const title = `${t.note} ${tabs.length + 1}`;
-    setTabs((previous) => [...previous, { id, title, content: '' }]);
+
+    setTabs((previous) => [...previous, { id, title, content: "" }]);
     setActiveId(id);
     setDraft(title);
     setRenamingId(id);
   }
 
-  function duplicateNote() {
-    if (!activeTab) return;
-    const id = `note-${Date.now()}`;
-    const title = `${activeTab.title} · kopi`;
-    setTabs((previous) => [...previous, { id, title, content: activeTab.content || '' }]);
-    setActiveId(id);
-  }
-
   function deleteNote(id) {
     if (tabs.length === 1) {
-      setTabs([{ id: 'note-1', title: t.notebook, content: '' }]);
-      setActiveId('note-1');
+      setTabs([{ id: "note-1", title: t.notebook, content: "" }]);
+      setActiveId("note-1");
       return;
     }
-    const tabIndex = tabs.findIndex((tab) => tab.id === id);
-    const remaining = tabs.filter((tab) => tab.id !== id);
-    setTabs(remaining);
-    if (activeId === id) setActiveId(remaining[Math.max(0, tabIndex - 1)].id);
-    if (renamingId === id) setRenamingId(null);
-  }
 
-  function beginRename(tab) {
-    setDraft(tab.title);
-    setRenamingId(tab.id);
+    const tabIndex = tabs.findIndex((tab) => tab.id === id);
+    const remainingTabs = tabs.filter((tab) => tab.id !== id);
+
+    setTabs(remainingTabs);
+
+    if (activeId === id) {
+      setActiveId(remainingTabs[Math.max(0, tabIndex - 1)].id);
+    }
+
+    if (renamingId === id) setRenamingId(null);
   }
 
   function saveRename() {
     if (!renamingId) return;
+
     const title = draft.trim() || t.untitledNote;
-    setTabs((previous) => previous.map((tab) => tab.id === renamingId ? { ...tab, title } : tab));
+
+    setTabs((previous) =>
+      previous.map((tab) => (tab.id === renamingId ? { ...tab, title } : tab))
+    );
+
     setRenamingId(null);
-    setSavedAt(Date.now());
   }
 
-  function plainText(html) {
-    return String(html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  }
+  const plainText = (activeTab?.content || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
-  const activePlainText = plainText(activeTab?.content);
-  const wordCount = activePlainText ? activePlainText.split(' ').length : 0;
+  const wordCount = plainText ? plainText.split(" ").length : 0;
 
   return (
-    <aside className="notebook-polished" style={{ '--notebook-border': c.border }}>
-      <header className="notebook-polished-header">
-        <div className="notebook-polished-brand">
-          <span className="notebook-polished-brand-icon"><Icon name="notebook" size={16} /></span>
-          <span>
-            <strong>{t.notebook}</strong>
-            <small>{tabs.length} {tabs.length === 1 ? t.note : t.notebook.toLowerCase()}</small>
+    <aside
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background: c.panel,
+        borderInlineStart: `1px solid ${c.border}`,
+      }}
+    >
+      <header
+        style={{
+          height: 66,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 14px",
+          flexShrink: 0,
+          borderBottom: `1px solid ${c.border}`,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              display: "grid",
+              placeItems: "center",
+              borderRadius: 10,
+              background: c.blueSoft,
+              color: c.blue,
+            }}
+          >
+            <Icon name="notebook" size={16} />
+          </div>
+
+          <span style={{ color: c.text, fontWeight: 750, fontSize: 14 }}>
+            {t.notebook}
           </span>
         </div>
-        <div className="notebook-polished-header-actions">
-          <IconButton c={c} title={t.newNote} onClick={addNote}><Icon name="plus" size={16} /></IconButton>
-          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={16} /></IconButton>
+
+        <div style={{ display: "flex", gap: 2 }}>
+          <IconButton c={c} title={t.newNote} onClick={addNote}>
+            <Icon name="plus" size={17} />
+          </IconButton>
+
+          <IconButton c={c} title={t.close} onClick={onClose}>
+            <Icon name="close" size={17} />
+          </IconButton>
         </div>
       </header>
 
-      <div className="notebook-polished-body">
-        <aside className="notebook-polished-list-pane">
-          <label className="notebook-polished-search">
-            <Icon name="cards" size={13} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`${t.notebook}…`} />
-          </label>
+      <div
+        style={{
+          display: "flex",
+          gap: 5,
+          overflowX: "auto",
+          padding: "10px 10px 0",
+          flexShrink: 0,
+          borderBottom: `1px solid ${c.border}`,
+        }}
+      >
+        {tabs.map((tab) => {
+          const selected = tab.id === activeId;
+          const editing = tab.id === renamingId;
 
-          <div className="notebook-polished-note-list">
-            {visibleTabs.map((tab) => {
-              const selected = tab.id === activeId;
-              const preview = plainText(tab.content).slice(0, 56);
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className="notebook-polished-note-row"
-                  data-active={selected ? 'true' : 'false'}
-                  onClick={() => setActiveId(tab.id)}
-                  onDoubleClick={() => beginRename(tab)}
-                >
-                  <span className="notebook-polished-note-indicator" />
-                  <span className="notebook-polished-note-copy">
-                    <strong>{tab.title}</strong>
-                    <small>{preview || t.notesPlaceholder}</small>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <button type="button" className="notebook-polished-add" onClick={addNote}>
-            <Icon name="plus" size={14} /> {t.newNote}
-          </button>
-        </aside>
-
-        <section className="notebook-polished-editor-pane">
-          <div className="notebook-polished-titlebar">
-            <div className="notebook-polished-title-wrap">
-              {renamingId === activeTab?.id ? (
+          return (
+            <div
+              key={tab.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                minWidth: 0,
+                maxWidth: 145,
+                marginBottom: -1,
+                borderRadius: "10px 10px 0 0",
+                border: `1px solid ${selected ? c.border : "transparent"}`,
+                borderBottom: selected
+                  ? `1px solid ${c.panel}`
+                  : "1px solid transparent",
+                color: selected ? c.text : c.secondary,
+                background: selected ? c.panel : "transparent",
+              }}
+            >
+              {editing ? (
                 <input
                   ref={renameRef}
-                  className="notebook-polished-title-input"
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
                   onBlur={saveRename}
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter') { event.preventDefault(); saveRename(); }
-                    if (event.key === 'Escape') setRenamingId(null);
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      saveRename();
+                    }
+                    if (event.key === "Escape") setRenamingId(null);
+                  }}
+                  style={{
+                    width: 104,
+                    padding: "9px 8px",
+                    border: 0,
+                    outline: 0,
+                    background: "transparent",
+                    color: c.text,
+                    fontSize: 12,
+                    fontWeight: 650,
                   }}
                 />
               ) : (
-                <button type="button" className="notebook-polished-title-button" onClick={() => activeTab && beginRename(activeTab)}>
-                  {activeTab?.title || t.untitledNote}
+                <button
+                  type="button"
+                  title={selected ? t.renameHint : tab.title}
+                  onClick={() => {
+                    if (tab.id === activeId) {
+                      setDraft(tab.title);
+                      setRenamingId(tab.id);
+                    } else {
+                      setActiveId(tab.id);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    overflow: "hidden",
+                    padding: "9px 9px",
+                    border: 0,
+                    background: "transparent",
+                    color: "inherit",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    textAlign: "start",
+                    fontSize: 12,
+                    fontWeight: 650,
+                    cursor: "pointer",
+                  }}
+                >
+                  {tab.title}
                 </button>
               )}
-              <span>{wordCount} {t.words}</span>
+
+              <button
+                type="button"
+                title={t.deleteNote}
+                onClick={() => deleteNote(tab.id)}
+                style={{
+                  width: 26,
+                  height: 30,
+                  display: "grid",
+                  placeItems: "center",
+                  flexShrink: 0,
+                  border: 0,
+                  background: "transparent",
+                  color: c.muted,
+                  cursor: "pointer",
+                }}
+              >
+                <Icon name="close" size={13} />
+              </button>
             </div>
-            <div className="notebook-polished-document-actions">
-              <IconButton c={c} title="Duplikér" onClick={duplicateNote}><Icon name="cards" size={15} /></IconButton>
-              <IconButton c={c} title={t.deleteNote} onClick={() => activeTab && deleteNote(activeTab.id)} style={{ color: c.red }}><Icon name="trash" size={15} /></IconButton>
-            </div>
-          </div>
-
-          <div className="notebook-polished-ribbon" role="toolbar" aria-label={t.notebook}>
-            <select
-              aria-label={t.font}
-              defaultValue="default"
-              onChange={(event) => {
-                if (event.target.value !== 'default') command('fontName', event.target.value);
-                event.target.value = 'default';
-              }}
-            >
-              <option value="default">{t.font}</option>
-              <option value="Arial">Arial</option>
-              <option value="Georgia">Georgia</option>
-              <option value="Courier New">Mono</option>
-            </select>
-            <span className="notebook-polished-ribbon-divider" />
-            <button type="button" onClick={() => command('bold')} aria-label="Bold"><strong>B</strong></button>
-            <button type="button" onClick={() => command('italic')} aria-label="Italic"><em>I</em></button>
-            <button type="button" onClick={() => command('underline')} aria-label="Underline"><u>U</u></button>
-            <span className="notebook-polished-ribbon-divider" />
-            <button type="button" onClick={() => command('formatBlock', 'H2')} aria-label="Heading">H2</button>
-            <button type="button" onClick={() => command('insertUnorderedList')} aria-label="Bulleted list"><Icon name="list" size={15} /></button>
-            <button type="button" onClick={() => command('insertOrderedList')} aria-label="Numbered list">1.</button>
-            <button type="button" onClick={() => command('removeFormat')} aria-label="Clear formatting"><Icon name="reset" size={14} /></button>
-          </div>
-
-          <div className="notebook-polished-paper-scroll">
-            <div
-              ref={editorRef}
-              contentEditable
-              suppressContentEditableWarning
-              className="rich-editor notebook-polished-paper"
-              data-placeholder={t.notesPlaceholder}
-              onInput={(event) => updateContent(event.currentTarget.innerHTML)}
-            />
-          </div>
-
-          <footer className="notebook-polished-footer">
-            <span><span className="notebook-polished-saved-dot" /> Gemmes automatisk</span>
-            <span>{new Date(savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-          </footer>
-        </section>
+          );
+        })}
       </div>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 3,
+          padding: 8,
+          flexShrink: 0,
+          borderBottom: `1px solid ${c.border}`,
+        }}
+      >
+        <select
+          defaultValue="default"
+          onChange={(event) => {
+            if (event.target.value !== "default") {
+              command("fontName", event.target.value);
+            }
+            event.target.value = "default";
+          }}
+          style={{
+            height: 34,
+            maxWidth: 88,
+            padding: "0 7px",
+            borderRadius: 9,
+            border: `1px solid ${c.border}`,
+            background: c.soft,
+            color: c.secondary,
+            fontSize: 11,
+          }}
+        >
+          <option value="default">{t.font}</option>
+          <option value="Arial">Arial</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Courier New">Mono</option>
+        </select>
+
+        <IconButton
+          c={c}
+          title="Bold"
+          onClick={() => command("bold")}
+          style={{ color: c.text, fontWeight: 800 }}
+        >
+          B
+        </IconButton>
+
+        <IconButton
+          c={c}
+          title="Italic"
+          onClick={() => command("italic")}
+          style={{ color: c.text, fontStyle: "italic", fontWeight: 750 }}
+        >
+          I
+        </IconButton>
+
+        <IconButton
+          c={c}
+          title="Underline"
+          onClick={() => command("underline")}
+          style={{
+            color: c.text,
+            textDecoration: "underline",
+            fontWeight: 750,
+          }}
+        >
+          U
+        </IconButton>
+
+        <IconButton
+          c={c}
+          title="List"
+          onClick={() => command("insertUnorderedList")}
+        >
+          <Icon name="list" size={16} />
+        </IconButton>
+      </div>
+
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          className="rich-editor"
+          data-placeholder={t.notesPlaceholder}
+          onInput={(event) => updateContent(event.currentTarget.innerHTML)}
+          style={{
+            minHeight: "100%",
+            padding: 18,
+            outline: 0,
+            color: c.text,
+            fontSize: 15,
+            lineHeight: 1.7,
+          }}
+        />
+      </div>
+
+      <footer
+        style={{
+          height: 42,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 14px",
+          flexShrink: 0,
+          color: c.muted,
+          fontSize: 11,
+          borderTop: `1px solid ${c.border}`,
+        }}
+      >
+        <span>
+          {wordCount} {t.words}
+        </span>
+      </footer>
     </aside>
   );
 }
+
+
 
 function getMonthMatrix(year, month) {
   const first = new Date(year, month, 1);
@@ -12487,7 +12912,6 @@ function computeEarnedBadges({ streakCurrent, totalQuestionsAnswered, totalPomod
     return false;
   });
 }
-
 
 /* ------------------------------------------------------------------------
    LECTURE LINE RACE + POMODORO CALENDAR HEATMAP (ECharts)
@@ -12688,228 +13112,468 @@ function PomodoroCalendarHeatmap({ pomodoroMinutesLog, ink, year, emptyLabel }) 
 
   return <EChart option={option} height={360} />;
 }
-function parseICalToEvents(icsText) {
-  // Minimal VEVENT-parser: understøtter DTSTART/DTEND/SUMMARY i både heldags-
-  // (VALUE=DATE) og tidsstemplet (UTC "Z" eller lokal) format. Dækker det,
-  // de fleste universitets-/LMS-kalendere (f.eks. Outlook, Google Calendar,
-  // Absalon/Canvas) eksporterer for forelæsningsskemaer.
+function calendarNormalizeMatchText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9æøå]+/g, " ")
+    .trim();
+}
+
+function matchCalendarLecture(title, lectures) {
+  const normalized = calendarNormalizeMatchText(title);
+  if (!normalized) return null;
+  const idMatch = lectures.find((lecture) => {
+    const escaped = String(lecture.id).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|\\s)${escaped.toLowerCase()}($|\\s)`).test(normalized);
+  });
+  if (idMatch) return idMatch;
+
+  const titleWords = new Set(normalized.split(/\s+/).filter((word) => word.length >= 4));
+  let best = null;
+  let bestScore = 0;
+  lectures.forEach((lecture) => {
+    const words = calendarNormalizeMatchText(lecture.title).split(/\s+/).filter((word) => word.length >= 4);
+    if (!words.length) return;
+    const matches = words.filter((word) => titleWords.has(word)).length;
+    const score = matches / Math.max(2, Math.min(words.length, titleWords.size || 1));
+    if (score > bestScore) {
+      bestScore = score;
+      best = lecture;
+    }
+  });
+  return bestScore >= 0.34 ? best : null;
+}
+
+function calendarEventMetaFields(event) {
+  const fields = [
+    "endTime", "description", "location", "url", "lectureId", "lectureIds",
+    "source", "importedSchedule", "completedAt", "status", "needsScheduling",
+    "questionCount", "lectureUnits", "allDay", "createdByUser", "colorKey",
+  ];
+  return fields.reduce((result, key) => {
+    if (event && event[key] !== undefined) result[key] = event[key];
+    return result;
+  }, {});
+}
+
+function mergeCalendarEventMeta(events, metadata) {
+  return (events || []).map((event) => ({ ...event, ...(metadata?.[event.id] || {}) }));
+}
+
+function calendarEventEndTimestamp(event) {
+  if (!event?.date) return null;
+  const startMinutes = timeToMinutes(event.time || "00:00") || 0;
+  const explicitEnd = timeToMinutes(event.endTime);
+  const duration = explicitEnd != null && explicitEnd > startMinutes
+    ? explicitEnd - startMinutes
+    : Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60));
+  const date = new Date(`${event.date}T00:00:00`);
+  date.setMinutes(startMinutes + duration);
+  return date.getTime();
+}
+
+function parseICalToEvents(icsText, options = {}) {
+  const { moduleName = "", lectures = [] } = options;
   const lines = icsText.split(/\r?\n/);
   const unfolded = [];
   lines.forEach((line) => {
-    if (line.startsWith(" ") && unfolded.length) {
-      unfolded[unfolded.length - 1] += line.slice(1);
-    } else {
-      unfolded.push(line);
-    }
+    if (/^[ \t]/.test(line) && unfolded.length) unfolded[unfolded.length - 1] += line.slice(1);
+    else unfolded.push(line);
   });
-  const events = [];
+  const rawEvents = [];
   let current = null;
   unfolded.forEach((line) => {
-    if (line.startsWith("BEGIN:VEVENT")) {
-      current = {};
-      return;
-    }
-    if (line.startsWith("END:VEVENT")) {
-      if (current && current.dtstart) events.push(current);
+    if (line === "BEGIN:VEVENT") { current = {}; return; }
+    if (line === "END:VEVENT") {
+      if (current?.dtstart) rawEvents.push(current);
       current = null;
       return;
     }
     if (!current) return;
-    const [rawKey, ...rest] = line.split(":");
-    const value = rest.join(":");
+    const separator = line.indexOf(":");
+    if (separator < 0) return;
+    const rawKey = line.slice(0, separator);
+    const value = line.slice(separator + 1).replace(/\\n/gi, "\n").replace(/\\,/g, ",");
     const key = rawKey.split(";")[0];
     if (key === "SUMMARY") current.summary = value;
     if (key === "DTSTART") current.dtstart = value;
     if (key === "DTEND") current.dtend = value;
+    if (key === "DESCRIPTION") current.description = value;
+    if (key === "LOCATION") current.location = value;
+    if (key === "URL") current.url = value;
+    if (key === "UID") current.uid = value;
   });
 
   function parseIcsDate(raw) {
     if (!raw) return null;
-    const clean = raw.replace("Z", "");
-    const y = clean.slice(0, 4);
-    const mo = clean.slice(4, 6);
-    const d = clean.slice(6, 8);
-    if (clean.length <= 8) return { date: `${y}-${mo}-${d}`, time: "" };
-    const h = clean.slice(9, 11);
-    const mi = clean.slice(11, 13);
-    return { date: `${y}-${mo}-${d}`, time: `${h}:${mi}` };
+    const utc = raw.endsWith("Z");
+    const clean = raw.replace(/Z$/, "");
+    const year = Number(clean.slice(0, 4));
+    const month = Number(clean.slice(4, 6));
+    const day = Number(clean.slice(6, 8));
+    if (clean.length <= 8) return { date: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`, time: "", timestamp: new Date(year, month - 1, day).getTime() };
+    const hour = Number(clean.slice(9, 11));
+    const minute = Number(clean.slice(11, 13));
+    const date = utc ? new Date(Date.UTC(year, month - 1, day, hour, minute)) : new Date(year, month - 1, day, hour, minute);
+    return {
+      date: dateKey(date.getFullYear(), date.getMonth(), date.getDate()),
+      time: `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`,
+      timestamp: date.getTime(),
+    };
   }
 
-  return events.map((event, i) => {
-    const start = parseIcsDate(event.dtstart);
+  return rawEvents.map((raw, index) => {
+    const start = parseIcsDate(raw.dtstart);
+    const end = parseIcsDate(raw.dtend);
+    const lecture = matchCalendarLecture(raw.summary, lectures);
+    const durationMinutes = start?.timestamp != null && end?.timestamp != null
+      ? Math.max(15, Math.round((end.timestamp - start.timestamp) / 60000))
+      : 60;
     return {
-      id: `ical-${Date.now()}-${i}`,
-      title: event.summary || "Forelæsning",
-      date: start ? start.date : "",
-      time: start ? start.time : "",
-      type: "study",
+      id: raw.uid ? `ical-${String(raw.uid).replace(/[^a-z0-9_-]+/gi, "-")}` : `ical-${Date.now()}-${index}`,
+      title: raw.summary || "Forelæsning",
+      date: start?.date || "",
+      time: start?.time || "",
+      endTime: end?.date === start?.date ? end?.time || "" : "",
+      estimatedHours: durationMinutes / 60,
+      type: lecture ? "study" : "other",
+      description: raw.description || "",
+      location: raw.location || "",
+      url: raw.url || "",
+      lectureId: lecture?.id || null,
+      lectureIds: lecture ? [lecture.id] : [],
+      planModuleId: lecture ? moduleName : null,
+      importedSchedule: true,
+      source: "ical",
+      status: "planned",
     };
   }).filter((event) => event.date);
 }
 
+function CalendarEventEditor({
+  c,
+  t,
+  language,
+  event,
+  moduleName,
+  lectures = [],
+  exists = false,
+  onChange,
+  onSave,
+  onDelete,
+  onClose,
+}) {
+  const copy = ({
+    da: {
+      details: "Detaljer", schedule: "Tidspunkt", relation: "Tilknytning", notes: "Noter",
+      duration: "Varighed", end: "Slutter", location: "Sted", link: "Link",
+      lecture: "Forelæsning", noLecture: "Ingen forelæsning", completed: "Færdig",
+      planned: "Planlagt", description: "Tilføj noter, pensum eller forberedelse…",
+      title: "Ny kalenderaktivitet", edit: "Redigér kalenderaktivitet",
+    },
+    en: {
+      details: "Details", schedule: "Schedule", relation: "Relation", notes: "Notes",
+      duration: "Duration", end: "Ends", location: "Location", link: "Link",
+      lecture: "Lecture", noLecture: "No lecture", completed: "Completed",
+      planned: "Planned", description: "Add notes, reading or preparation…",
+      title: "New calendar activity", edit: "Edit calendar activity",
+    },
+    ar: {
+      details: "التفاصيل", schedule: "الوقت", relation: "الارتباط", notes: "ملاحظات",
+      duration: "المدة", end: "ينتهي", location: "المكان", link: "الرابط",
+      lecture: "المحاضرة", noLecture: "بدون محاضرة", completed: "مكتمل",
+      planned: "مخطط", description: "أضف ملاحظات أو تحضيرًا…",
+      title: "نشاط تقويم جديد", edit: "تعديل نشاط التقويم",
+    },
+  })[language] || {};
+  const startMinutes = timeToMinutes(event.time);
+  const endMinutes = timeToMinutes(event.endTime);
+  const duration = startMinutes != null && endMinutes != null && endMinutes > startMinutes
+    ? endMinutes - startMinutes
+    : Math.round((Number(event.estimatedHours) || 1) * 60);
+
+  return (
+    <Modal c={c} onClose={onClose} size="large">
+      <div className="calendar-editor" dir={language === "ar" ? "rtl" : "ltr"}>
+        <header className="calendar-editor-header">
+          <span className="calendar-editor-icon"><Icon name={event.type === "exam" ? "flag" : event.type === "review" ? "reset" : event.type === "other" ? "notebook" : "calendar"} size={19} /></span>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div className="calendar-editor-kicker">{exists ? copy.edit : copy.title}</div>
+            <input
+              className="calendar-editor-title"
+              value={event.title || ""}
+              onChange={(domEvent) => onChange({ ...event, title: domEvent.target.value })}
+              placeholder={t.calendarEventTitlePlaceholder}
+              autoFocus
+            />
+          </div>
+          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
+        </header>
+
+        <div className="calendar-editor-body">
+          <section className="calendar-editor-section">
+            <div className="calendar-editor-section-title">{copy.details}</div>
+            <div className="calendar-editor-property">
+              <span className="calendar-editor-property-label"><Icon name="cards" size={14} />{t.calendarEventType}</span>
+              <div className="calendar-editor-segmented">
+                {[["study", t.calendarTypeStudy], ["review", t.calendarTypeReview], ["exam", t.calendarTypeExam], ["other", t.calendarTypeOther]].map(([value, label]) => (
+                  <button key={value} type="button" data-active={event.type === value ? "true" : "false"} onClick={() => onChange({ ...event, type: value })}>{label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="calendar-editor-property">
+              <span className="calendar-editor-property-label"><Icon name="check" size={14} />Status</span>
+              <button type="button" className="calendar-editor-status" data-complete={event.completedAt ? "true" : "false"} onClick={() => onChange({ ...event, completedAt: event.completedAt ? null : new Date().toISOString(), status: event.completedAt ? "planned" : "completed" })}>
+                <Icon name={event.completedAt ? "check" : "clock"} size={13} />
+                {event.completedAt ? copy.completed : copy.planned}
+              </button>
+            </div>
+          </section>
+
+          <section className="calendar-editor-section">
+            <div className="calendar-editor-section-title">{copy.schedule}</div>
+            <div className="calendar-editor-grid calendar-editor-grid--3">
+              <label className="ui-field"><span className="ui-field-label">{t.calendarEventDate}</span><input type="date" className="ui-control" value={event.date || ""} onChange={(domEvent) => onChange({ ...event, date: domEvent.target.value })} /></label>
+              <label className="ui-field"><span className="ui-field-label">{t.calendarEventTime}</span><input type="time" className="ui-control" value={event.time || ""} onChange={(domEvent) => onChange({ ...event, time: domEvent.target.value })} /></label>
+              <label className="ui-field"><span className="ui-field-label">{copy.end}</span><input type="time" className="ui-control" value={event.endTime || ""} onChange={(domEvent) => onChange({ ...event, endTime: domEvent.target.value, estimatedHours: event.time && domEvent.target.value ? Math.max(.25, (timeToMinutes(domEvent.target.value) - timeToMinutes(event.time)) / 60) : event.estimatedHours })} /></label>
+            </div>
+            <div className="calendar-editor-duration">{copy.duration}: <strong>{Math.max(15, duration)} min</strong></div>
+          </section>
+
+          <section className="calendar-editor-section">
+            <div className="calendar-editor-section-title">{copy.relation}</div>
+            <div className="calendar-editor-grid calendar-editor-grid--2">
+              <label className="ui-field"><span className="ui-field-label">{t.currentModule}</span><input className="ui-control" value={event.planModuleId || moduleName || ""} readOnly /></label>
+              <label className="ui-field"><span className="ui-field-label">{copy.lecture}</span><select className="ui-control" value={event.lectureId || ""} onChange={(domEvent) => { const lectureId = domEvent.target.value || null; onChange({ ...event, lectureId, lectureIds: lectureId ? [lectureId] : [], planModuleId: lectureId ? moduleName : event.planModuleId }); }}><option value="">{copy.noLecture}</option>{lectures.map((lecture) => <option key={lecture.id} value={lecture.id}>{lecture.id} · {lecture.title}</option>)}</select></label>
+              <label className="ui-field"><span className="ui-field-label">{copy.location}</span><input className="ui-control" value={event.location || ""} onChange={(domEvent) => onChange({ ...event, location: domEvent.target.value })} placeholder="Lokale, Zoom eller klinik" /></label>
+              <label className="ui-field"><span className="ui-field-label">{copy.link}</span><input className="ui-control" value={event.url || ""} onChange={(domEvent) => onChange({ ...event, url: domEvent.target.value })} placeholder="https://" /></label>
+            </div>
+          </section>
+
+          <section className="calendar-editor-section">
+            <div className="calendar-editor-section-title">{copy.notes}</div>
+            <textarea className="ui-control calendar-editor-notes" value={event.description || ""} onChange={(domEvent) => onChange({ ...event, description: domEvent.target.value })} placeholder={copy.description} />
+          </section>
+        </div>
+
+        <footer className="calendar-editor-footer">
+          <div>{exists && <button type="button" className="ui-button ui-button--ghost" onClick={onDelete} style={{ color: c.red }}><Icon name="trash" size={14} />{t.calendarDelete}</button>}</div>
+          <div style={{ display: "flex", gap: 8 }}><SecondaryButton onClick={onClose}>{t.calendarCancel}</SecondaryButton><PrimaryButton disabled={!event.title?.trim() || !event.date} onClick={onSave}><Icon name="check" size={14} />{t.calendarSave}</PrimaryButton></div>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+
+function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTotal = 0, fromDate = new Date() }) {
+  if (!plan?.examDate || !moduleName) return { events: [], metadata: {} };
+  const start = new Date(fromDate);
+  start.setHours(0, 0, 0, 0);
+  const exam = new Date(`${plan.examDate}T00:00:00`);
+  const days = Math.max(0, Math.ceil((exam - start) / 86400000));
+  if (days <= 0) return { events: [], metadata: {} };
+  const excluded = new Set(plan.excludedDates || []);
+  const doneIds = new Set(plan.doneLectureIds || []);
+  const pending = (lectures || []).filter((lecture) => !doneIds.has(lecture.id));
+  const lectureUnits = plan.mode === "lectures"
+    ? pending.flatMap((lecture) => Array.from({ length: lecture.parts || 1 }, (_, index) => ({ ...lecture, part: (lecture.parts || 1) > 1 ? index + 1 : null })))
+    : [];
+  const dates = Array.from({ length: days }, (_, index) => addDays(start, index));
+  const available = dates.map((date, index) => ({ date, index, key: dateKey(date.getFullYear(), date.getMonth(), date.getDate()) })).filter((item) => !excluded.has(item.key));
+  const bucketCount = Math.max(1, available.length);
+  const distribute = (total) => {
+    const base = Math.floor(total / bucketCount);
+    const remainder = total % bucketCount;
+    return Array.from({ length: bucketCount }, (_, index) => base + (index < remainder ? 1 : 0));
+  };
+  const lectureCounts = distribute(lectureUnits.length);
+  const questionCounts = distribute(questionTotal);
+  let lectureCursor = 0;
+  const events = [];
+  const metadata = {};
+
+  available.forEach((item, position) => {
+    const units = lectureUnits.slice(lectureCursor, lectureCursor + lectureCounts[position]);
+    lectureCursor += lectureCounts[position];
+    const questions = questionCounts[position] || 0;
+    if (!units.length && !questions) return;
+    const lectureIds = [...new Set(units.map((unit) => unit.id))];
+    const unitLabel = units.map((unit) => `${unit.id}${unit.part ? `.${unit.part}` : ""} ${unit.title}`).join(" · ");
+    const title = unitLabel || `${questions} MCQ`;
+    const id = `studyplan-${moduleName}-${item.key}`;
+    const event = {
+      id,
+      title,
+      date: item.key,
+      time: "",
+      type: "study",
+      planModuleId: moduleName,
+      lectureCount: lectureIds.length || null,
+      estimatedHours: Math.max(.5, Math.min(Number(plan.hoursPerDay) || 2, units.length * (Number(plan.hoursPerLecture) || 1) + questions * .04)),
+    };
+    events.push(event);
+    metadata[id] = {
+      source: "study-plan",
+      status: "planned",
+      needsScheduling: true,
+      lectureIds,
+      lectureUnits: units.map((unit) => ({ id: unit.id, part: unit.part || null, title: unit.title })),
+      questionCount: questions,
+      createdByUser: true,
+    };
+  });
+
+  const examId = `studyplan-exam-${moduleName}`;
+  events.push({ id: examId, title: `${moduleName} · Eksamen`, date: plan.examDate, time: "", type: "exam", planModuleId: moduleName, estimatedHours: 1 });
+  metadata[examId] = { source: "study-plan", status: "planned", needsScheduling: false, createdByUser: true, lectureIds: [] };
+  return { events, metadata };
+}
+
 function CalendarPanel({ c, t, language, theme, module, onClose }) {
   const [events, setEvents] = useStoredState(STORAGE.calendarEvents, []);
-  const [plans] = useStoredState(STORAGE.studyPlans, {});
-
-  // Robusthedsfix: hver gang kalenderen åbnes, tjekkes om den gemte
-  // studieplan for det aktuelle modul allerede er repræsenteret i
-  // kalenderevents. Hvis planen findes, men dens blokke mangler (fx fordi
-  // de blev skrevet, mens kalenderen ikke lyttede), gen-genereres de her,
-  // så "Studieplan" og "Kalender" aldrig kan gå ud af sync.
-  useEffect(() => {
-    const plan = plans[module];
-    if (!plan) return;
-    const alreadySynced = events.some((event) => event.planModuleId === module);
-    if (alreadySynced) return;
-    const lectures = MODULE_LECTURES[module] || [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const exam = plan.examDate ? new Date(`${plan.examDate}T00:00:00`) : null;
-    const days = exam ? Math.max(0, Math.ceil((exam - today) / 86400000)) : 0;
-    if (days <= 0) return;
-    const doneLectureIds = plan.doneLectureIds || [];
-    const pending = lectures.filter((item) => !doneLectureIds.includes(item.id));
-    const lectureUnits = plan.mode === "lectures"
-      ? pending.flatMap((item) => Array.from({ length: item.parts || 1 }, (_, i) => ({ ...item, part: (item.parts || 1) > 1 ? i + 1 : null })))
-      : [];
-    const excludedDates = plan.excludedDates || [];
-    const dayDateKeys = Array.from({ length: days }, (_, i) => {
-      const d = addDays(today, i);
-      return dateKey(d.getFullYear(), d.getMonth(), d.getDate());
-    });
-    const availableDayIndices = Array.from({ length: days }, (_, i) => i).filter(
-      (i) => !excludedDates.includes(dayDateKeys[i] || "")
-    );
-    const availableDaysCount = Math.max(1, availableDayIndices.length);
-    const base = Math.floor(lectureUnits.length / availableDaysCount);
-    const remainder = lectureUnits.length % availableDaysCount;
-    const counts = Array.from({ length: availableDaysCount }, (_, i) => base + (i < remainder ? 1 : 0));
-    const starts = [];
-    let running = 0;
-    for (let i = 0; i < counts.length; i++) { starts.push(running); running += counts[i]; }
-    const unitForDay = (dayIndex) => {
-      const posInAvailable = availableDayIndices.indexOf(dayIndex);
-      if (posInAvailable === -1) return [];
-      return lectureUnits.slice(starts[posInAvailable] ?? 0, (starts[posInAvailable] ?? 0) + (counts[posInAvailable] ?? 0));
-    };
-    const newEvents = Array.from({ length: days }, (_, index) => {
-      const date = addDays(today, index);
-      const units = unitForDay(index);
-      const title = units.length
-        ? `${module} \u00b7 ${units.map((u) => u.title).join(", ")}`
-        : `${module} \u00b7 studieblok`;
-      return {
-        id: `studyplan-${module}-${index}`,
-        title,
-        date: dateKey(date.getFullYear(), date.getMonth(), date.getDate()),
-        time: "18:00",
-        type: "study",
-        planModuleId: module,
-      };
-    });
-    setEvents((previous) => [...previous.filter((event) => event.planModuleId !== module), ...newEvents]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [module]);
+  const [eventMeta, setEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
+  const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
+  const mergedEvents = mergeCalendarEventMeta(events, eventMeta);
   const today = new Date();
-  const [view, setView] = useState("week"); // "day" | "week" | "month"
+  const [view, setView] = useState("week");
   const [weekStart, setWeekStart] = useState(startOfWeek(today));
   const [monthDate, setMonthDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [dayDate, setDayDate] = useState(today);
-  const [selectedDate, setSelectedDate] = useState(
-    dateKey(today.getFullYear(), today.getMonth(), today.getDate())
-  );
+  const [selectedDate, setSelectedDate] = useState(dateKey(today.getFullYear(), today.getMonth(), today.getDate()));
   const [editingEvent, setEditingEvent] = useState(null);
   const [showLectures, setShowLectures] = useState(false);
   const [importError, setImportError] = useState("");
+  const [importSummary, setImportSummary] = useState(null);
   const fileInputRef = useRef(null);
-
-  const typeColors = {
-    exam: { bg: c.redSoft, color: c.red },
-    study: { bg: c.blueSoft, color: c.blue },
-    review: { bg: c.greenSoft, color: c.green },
-    other: { bg: c.soft, color: c.secondary },
-  };
-
+  const moduleLectures = MODULE_LECTURES[module] || [];
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
 
-  const eventsByDate = {};
-  events.forEach((event) => {
-    if (!eventsByDate[event.date]) eventsByDate[event.date] = [];
-    eventsByDate[event.date].push(event);
-  });
-
-  function saveEvent(event) {
-    // Krav 6: alt, der oprettes eller redigeres via kalenderen, og som ikke
-    // eksplicit har fået en anden type, tagges automatisk som "study", så det
-    // altid optræder i "Dagens plan".
-    const normalized = { ...event, type: event.type || "study" };
+  useEffect(() => {
+    const plan = plans[module];
+    if (!plan) return;
+    const questionTotal = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === module).length;
+    const bundle = buildStudyPlanCalendarBundle({ moduleName: module, plan, lectures: moduleLectures, questionTotal });
+    if (!bundle.events.length) return;
     setEvents((previous) => {
-      const exists = previous.some((item) => item.id === normalized.id);
-      return exists
-        ? previous.map((item) => (item.id === normalized.id ? normalized : item))
-        : [...previous, normalized];
+      const existingById = Object.fromEntries(previous.filter((event) => event.planModuleId === module && String(event.id).startsWith("studyplan-")).map((event) => [event.id, event]));
+      const generated = bundle.events.map((event) => {
+        const existing = existingById[event.id];
+        return existing ? { ...event, date: existing.date || event.date, time: existing.time || event.time, estimatedHours: existing.estimatedHours || event.estimatedHours } : event;
+      });
+      return [...previous.filter((event) => event.planModuleId !== module || !String(event.id).startsWith("studyplan-")), ...generated];
     });
+    setEventMeta((previous) => {
+      const next = { ...previous };
+      Object.entries(bundle.metadata).forEach(([id, generatedMeta]) => {
+        const existingMeta = previous[id] || {};
+        next[id] = {
+          ...generatedMeta,
+          ...(existingMeta.completedAt ? { completedAt: existingMeta.completedAt, status: existingMeta.status || "completed" } : {}),
+          ...(existingMeta.missedResolvedAt ? { missedResolvedAt: existingMeta.missedResolvedAt } : {}),
+          needsScheduling: events.find((event) => event.id === id)?.time ? false : generatedMeta.needsScheduling,
+        };
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [module]);
+
+  useEffect(() => {
+    const completedImportedIds = mergedEvents
+      .filter((event) => event.planModuleId === module && event.importedSchedule && event.lectureId && calendarEventEndTimestamp(event) <= Date.now())
+      .map((event) => event.lectureId);
+    if (!completedImportedIds.length || !plans[module]) return;
+    const nextIds = [...new Set([...(plans[module].doneLectureIds || []), ...completedImportedIds])];
+    const completedImportedEvents = mergedEvents.filter((event) => event.planModuleId === module && event.importedSchedule && event.lectureId && calendarEventEndTimestamp(event) <= Date.now() && !event.completedAt);
+    if (completedImportedEvents.length) {
+      setEventMeta((previous) => {
+        const next = { ...previous };
+        completedImportedEvents.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), completedAt: new Date(calendarEventEndTimestamp(event)).toISOString(), status: "completed" }; });
+        return next;
+      });
+    }
+    if (nextIds.length === (plans[module].doneLectureIds || []).length) return;
+    setPlans((previous) => ({ ...previous, [module]: { ...previous[module], doneLectureIds: nextIds, updatedAt: Date.now() } }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events, eventMeta, module]);
+
+  const eventsByDate = mergedEvents.reduce((result, event) => {
+    (result[event.date] = result[event.date] || []).push(event);
+    return result;
+  }, {});
+  const selectedEvents = (eventsByDate[selectedDate] || []).sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
+  const upcoming = mergedEvents
+    .filter((event) => event.date >= todayKey && !event.completedAt)
+    .sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`))
+    .slice(0, 8);
+
+  function saveEvent(nextEvent) {
+    const clean = { ...nextEvent, type: nextEvent.type || "study" };
+    const metadata = calendarEventMetaFields(clean);
+    setEvents((previous) => {
+      const base = { ...clean };
+      Object.keys(metadata).forEach((key) => delete base[key]);
+      const exists = previous.some((item) => item.id === base.id);
+      return exists ? previous.map((item) => item.id === base.id ? base : item) : [...previous, base];
+    });
+    setEventMeta((previous) => ({ ...previous, [clean.id]: { ...(previous[clean.id] || {}), ...metadata } }));
     setEditingEvent(null);
   }
 
   function deleteEvent(id) {
     setEvents((previous) => previous.filter((item) => item.id !== id));
+    setEventMeta((previous) => { const next = { ...previous }; delete next[id]; return next; });
     setEditingEvent(null);
   }
 
   function moveEvent(updatedEvent) {
-    setEvents((previous) => previous.map((item) => (item.id === updatedEvent.id ? updatedEvent : item)));
+    setEvents((previous) => previous.map((item) => item.id === updatedEvent.id ? { ...item, date: updatedEvent.date, time: updatedEvent.time } : item));
+    setEventMeta((previous) => ({ ...previous, [updatedEvent.id]: { ...(previous[updatedEvent.id] || {}), needsScheduling: false } }));
   }
 
-  function handleSlotClick(dayKeyStr, time) {
-    setSelectedDate(dayKeyStr);
-    setEditingEvent({ id: `event-${Date.now()}`, title: "", date: dayKeyStr, time, type: "study" });
-  }
-
-  function handleWeekShift(delta) {
-    setWeekStart((prev) => addDays(prev, delta * 7));
-  }
-
-  function handleMonthShift(delta) {
-    setMonthDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
-  }
-
-  function handleDayShift(delta) {
-    setDayDate((prev) => addDays(prev, delta));
-  }
-
-  function goToToday() {
-    const now = new Date();
-    setWeekStart(startOfWeek(now));
-    setMonthDate(new Date(now.getFullYear(), now.getMonth(), 1));
-    setDayDate(now);
-    setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate()));
-  }
-
-  function addLectureToCalendar(lecture) {
-    setEditingEvent({
-      id: `event-${Date.now()}`,
-      title: lecture.title,
-      date: selectedDate,
-      time: "",
-      type: "study",
-      lectureId: lecture.id,
+  function toggleEventComplete(event) {
+    const completedAt = event.completedAt ? null : new Date().toISOString();
+    setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), completedAt, status: completedAt ? "completed" : "planned" } }));
+    if (!event.planModuleId || !(event.lectureIds || []).length || !plans[event.planModuleId]) return;
+    setPlans((previous) => {
+      const plan = previous[event.planModuleId];
+      const current = new Set(plan.doneLectureIds || []);
+      (event.lectureIds || []).forEach((id) => completedAt ? current.add(id) : current.delete(id));
+      const questionDelta = Number(event.questionCount) || 0;
+      const completedExamQuestions = Math.max(0, (Number(plan.completedExamQuestions) || 0) + (completedAt ? questionDelta : -questionDelta));
+      return { ...previous, [event.planModuleId]: { ...plan, doneLectureIds: [...current], completedExamQuestions, updatedAt: Date.now() } };
     });
   }
 
+  function handleSlotClick(dayKeyString, time) {
+    setSelectedDate(dayKeyString);
+    setEditingEvent({ id: `event-${Date.now()}`, title: "", date: dayKeyString, time, endTime: minutesToTime((timeToMinutes(time) || 0) + 60), type: "study", estimatedHours: 1, planModuleId: module, createdByUser: true });
+  }
+
   function handleICalFile(fileEvent) {
-    const file = fileEvent.target.files && fileEvent.target.files[0];
+    const file = fileEvent.target.files?.[0];
     if (!file) return;
     setImportError("");
+    setImportSummary(null);
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const parsed = parseICalToEvents(String(reader.result || ""));
-        if (!parsed.length) {
-          setImportError(t.calendarICalEmpty || "Ingen hændelser fundet i filen.");
-          return;
-        }
-        setEvents((previous) => [...previous, ...parsed]);
+        const parsed = parseICalToEvents(String(reader.result || ""), { moduleName: module, lectures: moduleLectures });
+        if (!parsed.length) { setImportError(t.calendarICalEmpty || "Ingen hændelser fundet i filen."); return; }
+        const recognized = parsed.filter((event) => event.lectureId).length;
+        setEvents((previous) => {
+          const known = new Set(previous.map((event) => event.id));
+          return [...previous, ...parsed.filter((event) => !known.has(event.id)).map((event) => {
+            const base = { ...event }; Object.keys(calendarEventMetaFields(event)).forEach((key) => delete base[key]); return base;
+          })];
+        });
+        setEventMeta((previous) => ({ ...previous, ...Object.fromEntries(parsed.map((event) => [event.id, calendarEventMetaFields(event)])) }));
+        setImportSummary({ total: parsed.length, recognized });
       } catch (error) {
         setImportError(t.calendarICalError || "Kunne ikke læse iCal-filen.");
       }
@@ -12918,467 +13582,65 @@ function CalendarPanel({ c, t, language, theme, module, onClose }) {
     fileEvent.target.value = "";
   }
 
-  const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
+  function currentLabel() {
+    const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
+    if (view === "month") return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(monthDate);
+    if (view === "day") return new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(dayDate);
+    return `${weekStart.getDate()}/${weekStart.getMonth() + 1} – ${addDays(weekStart, 6).getDate()}/${addDays(weekStart, 6).getMonth() + 1}`;
+  }
 
-  const selectedEvents = (eventsByDate[selectedDate] || []).sort((a, b) =>
-    (a.time || "").localeCompare(b.time || "")
-  );
+  function shift(delta) {
+    if (view === "month") setMonthDate((previous) => new Date(previous.getFullYear(), previous.getMonth() + delta, 1));
+    else if (view === "day") setDayDate((previous) => addDays(previous, delta));
+    else setWeekStart((previous) => addDays(previous, delta * 7));
+  }
 
-  const upcoming = events
-    .filter((event) => event.date >= todayKey)
-    .sort((a, b) => (a.date + (a.time || "")).localeCompare(b.date + (b.time || "")))
-    .slice(0, 5);
-
-  const moduleLectures = MODULE_LECTURES[module] || [];
-  const weekLabel = `${weekStart.getDate()}/${weekStart.getMonth() + 1} – ${addDays(weekStart, 6).getDate()}/${addDays(weekStart, 6).getMonth() + 1}`;
-  const monthLabel = new Intl.DateTimeFormat(language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB", { month: "long", year: "numeric" }).format(monthDate);
-  const dayLabel = new Intl.DateTimeFormat(language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB", { weekday: "long", day: "numeric", month: "long" }).format(dayDate);
-  const currentLabel = view === "month" ? monthLabel : view === "day" ? dayLabel : weekLabel;
+  function goToday() {
+    const now = new Date(); setWeekStart(startOfWeek(now)); setMonthDate(new Date(now.getFullYear(), now.getMonth(), 1)); setDayDate(now); setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate()));
+  }
 
   return (
-    <div
-      className="fade-up"
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        background: c.panel,
-      }}
-    >
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "18px 28px",
-          borderBottom: `1px solid ${c.border}`,
-          flexShrink: 0,
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Icon name="calendar" size={19} />
-          <span style={{ color: c.text, fontWeight: 750, fontSize: 16 }}>{t.calendarTitle}</span>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", gap: 3, padding: 3, borderRadius: 10, background: c.soft, border: `1px solid ${c.border}` }}>
-            {[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setView(value)}
-                style={{
-                  height: 28, padding: "0 10px", borderRadius: 7, border: "none",
-                  background: view === value ? c.blueGradient : "transparent",
-                  color: view === value ? "#fff" : c.secondary,
-                  fontWeight: 750, fontSize: 11, cursor: "pointer",
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => (view === "month" ? handleMonthShift(-1) : view === "day" ? handleDayShift(-1) : handleWeekShift(-1))}
-            style={{ width: 32, height: 32, borderRadius: 9, border: `1px solid ${c.border}`, background: c.soft, color: c.secondary, cursor: "pointer", display: "grid", placeItems: "center" }}
-          >
-            <Icon name="left" size={15} />
-          </button>
-          <span style={{ fontSize: 12, fontWeight: 750, color: c.text, minWidth: 120, textAlign: "center", textTransform: "capitalize" }}>{currentLabel}</span>
-          <button
-            type="button"
-            onClick={() => (view === "month" ? handleMonthShift(1) : view === "day" ? handleDayShift(1) : handleWeekShift(1))}
-            style={{ width: 32, height: 32, borderRadius: 9, border: `1px solid ${c.border}`, background: c.soft, color: c.secondary, cursor: "pointer", display: "grid", placeItems: "center" }}
-          >
-            <Icon name="right" size={15} />
-          </button>
-          <button
-            type="button"
-            onClick={goToToday}
-            style={{ height: 32, padding: "0 12px", borderRadius: 9, border: `1px solid ${c.blueBorder}`, background: c.blueSoft, color: c.blue, fontWeight: 750, fontSize: 11, cursor: "pointer" }}
-          >
-            {t.calendarToday}
-          </button>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input ref={fileInputRef} type="file" accept=".ics,text/calendar" style={{ display: "none" }} onChange={handleICalFile} />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current && fileInputRef.current.click()}
-            style={{
-              height: 34, padding: "0 12px", borderRadius: 9, border: `1px solid ${c.borderStrong}`,
-              background: "transparent", color: c.text, fontWeight: 700, fontSize: 11, cursor: "pointer",
-              display: "flex", alignItems: "center", gap: 6,
-            }}
-          >
-            <Icon name="calendar" size={14} />
-            {t.calendarImportICal}
-          </button>
-          <IconButton c={c} title={t.close} onClick={onClose}>
-            <Icon name="close" size={18} />
-          </IconButton>
+    <div className="calendar-workspace fade-up" data-theme={theme}>
+      <header className="calendar-workspace-header">
+        <div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module}</small></div></div>
+        <div className="calendar-workspace-toolbar">
+          <div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div>
+          <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button>
+          <span className="calendar-workspace-label">{currentLabel()}</span>
+          <button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button>
+          <SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
+          <input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} />
+          <SecondaryButton onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />{t.calendarImportICal}</SecondaryButton>
+          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
         </div>
       </header>
 
-      {importError && (
-        <div style={{ padding: "8px 28px", background: c.redSoft, color: c.red, fontSize: 12, fontWeight: 700 }}>
-          {importError}
-        </div>
-      )}
+      {(importError || importSummary) && <div className="calendar-import-feedback" data-error={importError ? "true" : "false"}>{importError || `${importSummary.total} aktiviteter importeret · ${importSummary.recognized} forelæsninger genkendt`}</div>}
 
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          display: "flex",
-          gap: 24,
-          padding: 24,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            flex: "1 1 auto",
-            minWidth: 0,
-            minHeight: 640,
-            borderRadius: 16,
-            border: `1px solid ${c.border}`,
-            overflow: "hidden",
-            display: "flex",
-          }}
-        >
-          {view === "month" ? (
-            <MonthCalendar
-              c={c}
-              events={events}
-              monthDate={monthDate}
-              weekdayLabels={weekdayLabels}
-              onDayClick={(dayKeyStr) => {
-                setSelectedDate(dayKeyStr);
-                setView("day");
-                setDayDate(new Date(`${dayKeyStr}T00:00:00`));
-              }}
-              onEventClick={(event) => {
-                setSelectedDate(event.date);
-                setEditingEvent(event);
-              }}
-            />
-          ) : (
-            <WeekCalendar
-              c={c}
-              events={events}
-              weekStart={view === "day" ? dayDate : weekStart}
-              daysCount={view === "day" ? 1 : 7}
-              weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels}
-              onMoveEvent={moveEvent}
-              onSlotClick={handleSlotClick}
-              onEventClick={(event) => {
-                setSelectedDate(event.date);
-                setEditingEvent(event);
-              }}
-            />
-          )}
-        </div>
+      <div className="calendar-workspace-layout">
+        <main className="calendar-workspace-canvas">
+          {view === "month" ? <MonthCalendar c={c} events={mergedEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setDayDate(new Date(`${key}T12:00:00`)); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} /> : <WeekCalendar c={c} events={mergedEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onSlotClick={handleSlotClick} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} />}
+        </main>
 
-        <div
-          style={{
-            width: 340,
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: 20,
-            overflowY: "auto",
-            paddingRight: 4,
-          }}
-        >
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <span style={{ color: c.text, fontWeight: 700, fontSize: 12 }}>{selectedDate}</span>
-              <button
-                type="button"
-                onClick={() =>
-                  setEditingEvent({
-                    id: `event-${Date.now()}`,
-                    title: "",
-                    date: selectedDate,
-                    time: "",
-                    type: "study",
-                  })
-                }
-                style={{
-                  border: `1px dashed ${c.borderStrong}`,
-                  borderRadius: 8,
-                  background: "transparent",
-                  color: c.blue,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  padding: "5px 9px",
-                }}
-              >
-                + {t.calendarAddEvent}
-              </button>
-            </div>
+        <aside className="calendar-workspace-sidebar">
+          <section className="calendar-side-section">
+            <div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(language === "da" ? "da-DK" : "en-GB", { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => handleSlotClick(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div>
+            <div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setEditingEvent(event)}><span className="calendar-side-check" onClick={(domEvent) => { domEvent.stopPropagation(); toggleEventComplete(event); }}><Icon name={event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || "Ikke placeret"}{event.lectureId ? ` · ${event.lectureId}` : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div>
+          </section>
 
-            {selectedEvents.length === 0 ? (
-  <EmptyState
-    compact
-    symbol={
-      <Icon
-        name="calendar"
-        size={16}
-      />
-    }
-    title={t.calendarNoEvents}
-  />
-) : (
-              <div style={{ display: "grid", gap: 7 }}>
-                {selectedEvents.map((event) => {
-                  const palette = typeColors[event.type] || typeColors.other;
-                  return (
-                    <button
-                      key={event.id}
-                      type="button"
-                      onClick={() => setEditingEvent(event)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "9px 11px",
-                        borderRadius: 10,
-                        border: `1px solid ${c.border}`,
-                        background: palette.bg,
-                        cursor: "pointer",
-                        textAlign: "start",
-                      }}
-                    >
-                      <span style={{ width: 6, height: 6, borderRadius: 99, background: palette.color, flexShrink: 0 }} />
-                      <span style={{ flex: 1, fontSize: 12, fontWeight: 650, color: c.text }}>{event.title}</span>
-                      {event.time && (
-                        <span style={{ fontSize: 11, color: c.secondary, fontWeight: 700 }}>{event.time}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <section className="calendar-side-section">
+            <button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>
+            {showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: lecture.title, date: selectedDate, time: "09:00", endTime: "10:00", type: "study", estimatedHours: 1, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], createdByUser: true })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}
+          </section>
 
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowLectures((prev) => !prev)}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "9px 11px", borderRadius: 10, border: `1px solid ${c.border}`, background: c.soft,
-                color: c.text, fontWeight: 700, fontSize: 12, cursor: "pointer", marginBottom: showLectures ? 10 : 0,
-              }}
-            >
-              {t.calendarLecturesTitle}
-              <Icon name={showLectures ? "up" : "down"} size={14} />
-            </button>
-            {showLectures && (
-              <div style={{ display: "grid", gap: 6, maxHeight: 220, overflowY: "auto" }}>
-                {moduleLectures.length === 0 ? (
-                  <p style={{ color: c.muted, fontSize: 11 }}>{t.calendarNoLectures}</p>
-                ) : (
-                  moduleLectures.map((lecture) => (
-                    <button
-                      key={lecture.id}
-                      type="button"
-                      onClick={() => addLectureToCalendar(lecture)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 8, padding: "7px 9px", borderRadius: 8,
-                        border: `1px solid ${c.border}`, background: "transparent", color: c.secondary,
-                        fontSize: 11, fontWeight: 650, cursor: "pointer", textAlign: "start",
-                      }}
-                    >
-                      <Icon name="plus" size={12} />
-                      {lecture.title}
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <div style={{ color: c.text, fontWeight: 700, fontSize: 12, marginBottom: 10 }}>
-              {t.calendarUpcoming}
-            </div>
-            {upcoming.length === 0 ? (
-  <EmptyState
-    compact
-    symbol={
-      <Icon
-        name="calendar"
-        size={16}
-      />
-    }
-    title={t.calendarNoUpcoming}
-  />
-) : (
-              <div style={{ display: "grid", gap: 7 }}>
-                {upcoming.map((event) => {
-                  const palette = typeColors[event.type] || typeColors.other;
-                  return (
-                    <div
-                      key={event.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "8px 10px",
-                        borderRadius: 10,
-                        background: c.soft,
-                      }}
-                    >
-                      <span style={{ width: 6, height: 6, borderRadius: 99, background: palette.color, flexShrink: 0 }} />
-                      <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: c.text }}>{event.title}</span>
-                      <span style={{ fontSize: 10, color: c.muted, fontWeight: 700 }}>{event.date}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+          <section className="calendar-side-section">
+            <div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div>
+            <div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setEditingEvent(event)}><span className="calendar-side-check" onClick={(domEvent) => { domEvent.stopPropagation(); toggleEventComplete(event); }}><Icon name="check" size={12} /></span><span><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : " · Ikke placeret"}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div>
+          </section>
+        </aside>
       </div>
 
-      {editingEvent && (
-        <Modal c={c} onClose={() => setEditingEvent(null)}>
-          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div style={{ color: c.text, fontWeight: 750, fontSize: 15 }}>
-              {events.some((e) => e.id === editingEvent.id) ? t.calendarEditEvent : t.calendarAddEvent}
-            </div>
-            <IconButton c={c} title={t.close} onClick={() => setEditingEvent(null)}>
-              <Icon name="close" size={17} />
-            </IconButton>
-          </header>
-
-          <div style={{ display: "grid", gap: 12 }}>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-                {t.calendarEventTitle}
-              </label>
-              <input
-                value={editingEvent.title}
-                onChange={(event) => setEditingEvent((prev) => ({ ...prev, title: event.target.value }))}
-                placeholder={t.calendarEventTitlePlaceholder}
-                style={{
-                  width: "100%", height: 40, padding: "0 10px", borderRadius: 10,
-                  border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 13,
-                }}
-              />
-            </div>
-
-            <div style={{ display: "flex", gap: 10 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-                  {t.calendarEventDate}
-                </label>
-                <input
-                  type="date"
-                  value={editingEvent.date}
-                  onChange={(event) => setEditingEvent((prev) => ({ ...prev, date: event.target.value }))}
-                  style={{
-                    width: "100%", height: 40, padding: "0 10px", borderRadius: 10,
-                    border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 13,
-                  }}
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-                  {t.calendarEventTime}
-                </label>
-                <input
-                  type="time"
-                  value={editingEvent.time}
-                  onChange={(event) => setEditingEvent((prev) => ({ ...prev, time: event.target.value }))}
-                  style={{
-                    width: "100%", height: 40, padding: "0 10px", borderRadius: 10,
-                    border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 13,
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 700, color: c.secondary, display: "block", marginBottom: 4 }}>
-                {t.calendarEventType}
-              </label>
-              <div style={{ display: "flex", gap: 6 }}>
-                {[
-                  ["exam", t.calendarTypeExam],
-                  ["study", t.calendarTypeStudy],
-                  ["review", t.calendarTypeReview],
-                  ["other", t.calendarTypeOther],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setEditingEvent((prev) => ({ ...prev, type: value }))}
-                    style={{
-                      flex: 1,
-                      height: 36,
-                      borderRadius: 9,
-                      border: `1px solid ${editingEvent.type === value ? c.blueBorder : c.border}`,
-                      background: editingEvent.type === value ? c.blueSoft : c.soft,
-                      color: editingEvent.type === value ? c.blue : c.secondary,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 6 }}>
-              {events.some((e) => e.id === editingEvent.id) ? (
-                <button
-                  type="button"
-                  onClick={() => deleteEvent(editingEvent.id)}
-                  style={{
-                    height: 40, padding: "0 14px", border: `1px solid ${c.red}`, borderRadius: 10,
-                    background: c.redSoft, color: c.red, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  {t.calendarDelete}
-                </button>
-              ) : <div />}
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => setEditingEvent(null)}
-                  style={{
-                    height: 40, padding: "0 14px", border: `1px solid ${c.borderStrong}`, borderRadius: 10,
-                    background: "transparent", color: c.text, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  {t.calendarCancel}
-                </button>
-                <PrimaryButton
-                  onClick={() => {
-                    if (!editingEvent.title.trim() || !editingEvent.date) return;
-                    saveEvent(editingEvent);
-                  }}
-                >
-                  {t.calendarSave}
-                </PrimaryButton>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
+      {editingEvent && <CalendarEventEditor c={c} t={t} language={language} event={editingEvent} moduleName={module} lectures={moduleLectures} exists={events.some((event) => event.id === editingEvent.id)} onChange={setEditingEvent} onSave={() => saveEvent(editingEvent)} onDelete={() => deleteEvent(editingEvent.id)} onClose={() => setEditingEvent(null)} />}
     </div>
   );
 }
@@ -15262,17 +15524,17 @@ function Insights({ c, t, language, user }) {
   // (lys/mørk), så indsigterne altid er tydelige og læsbare. Accentfarver (grøn/blå/rød)
   // følger stadig samme betydning som resten af appen.
   const ink = {
-    page: c.panel,
-    text: c.text,
-    secondary: c.secondary,
-    muted: c.muted,
-    line: c.border,
-    lineStrong: c.borderStrong,
-    blue: c.blue,
-    blueSoft: c.blueSoft,
-    green: c.green,
-    red: c.red,
-    redSoft: c.redSoft,
+    page: "#ffffff",
+    text: "#0f172a",
+    secondary: "#475569",
+    muted: "#94a3b8",
+    line: "#e2e8f0",
+    lineStrong: "#cbd5e1",
+    blue: "#1665ea",
+    blueSoft: "#eaf2ff",
+    green: "#0e9a68",
+    red: "#dc2626",
+    redSoft: "#fef2f2",
   };
 
   const x = ({
@@ -15456,7 +15718,7 @@ function Insights({ c, t, language, user }) {
 
   if (!sessions.length) {
     return (
-      <section className="fade-up insights-polished insights-polished-empty" style={{ maxWidth: 640, margin: "40px auto", padding: "60px 40px", textAlign: "center", background: ink.page, borderRadius: 20, border: `1px solid ${ink.line}` }}>
+      <section className="fade-up" style={{ maxWidth: 640, margin: "40px auto", padding: "60px 40px", textAlign: "center", background: ink.page, borderRadius: 20, border: `1px solid ${ink.line}` }}>
         <Icon name="chart" size={26} />
         <h1 style={{ marginTop: 18, color: ink.text, fontSize: 24, fontWeight: 700 }}>{x.noData}</h1>
         <p style={{ marginTop: 8, color: ink.secondary, fontSize: 13.5, lineHeight: 1.6 }}>{x.noDataText}</p>
@@ -15586,7 +15848,7 @@ getFullQuestionBank(
 
   return (
     <div
-      className="fade-up insights-polished"
+      className="fade-up"
       style={{
         width: "min(1200px, 100%)",
         margin: "0 auto",
@@ -16052,6 +16314,7 @@ function WorkloadVisualizer({ c, copy, hoursPerDay, estimatedMinutes, capacityMi
 function StudyPlan({ c, language, user, setUser }) {
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
+  const [, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const existing = plans[user.module];
   const [step, setStep] = useState(existing ? 9 : 1);
   const [level, setLevel] = useState(user.level || "Kandidat");
@@ -16071,6 +16334,8 @@ function StudyPlan({ c, language, user, setUser }) {
   const [timelineView, setTimelineView] = useState("list");
   const [reveal, setReveal] = useState(null);
   const [confirmDeletePlan, setConfirmDeletePlan] = useState(false);
+  const [confirmActivatePlan, setConfirmActivatePlan] = useState(false);
+  const [saveNotice, setSaveNotice] = useState("");
   const revealTimerRef = useRef(null);
   useEffect(() => () => { if (revealTimerRef.current) clearTimeout(revealTimerRef.current); }, []);
 
@@ -16159,12 +16424,37 @@ function StudyPlan({ c, language, user, setUser }) {
   const field = { width:"100%", height:48, padding:"0 13px", borderRadius:12, border:`1px solid ${c.borderStrong}`, background:c.soft, color:c.text, fontSize:13, outline:0 };
   const setModule = (value) => { setModuleName(value); const saved = plans[value]; setDone(saved?.doneLectureIds || []); setExamDate(saved?.examDate || ""); setMode(saved?.mode || "lectures"); setHoursPerDay(saved?.hoursPerDay || 2); setHoursPerLecture(saved?.hoursPerLecture || 1); setQuestionDistribution(saved?.questionDistribution || "spread"); setReviewMethod(saved?.reviewMethod || null); setExcludedDates(saved?.excludedDates || []); setDifficultyEnabled(saved?.difficultyEnabled || false); setDifficulty(saved?.difficulty || {}); setPlanSaved(Boolean(saved)); };
   const toggle = (id) => setDone((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+  const activationCopy = ({
+    da: { activate: "Gem og aktivér i kalenderen", update: "Gem ændringer i kalenderen", confirmTitle: "Aktivér studieplan?", confirmText: "Planens studieblokke oprettes i kalenderen. Du vælger selv de præcise tidspunkter i dagens plan, når du åbner Hjem.", confirm: "Aktivér plan", active: "Planen er aktiv og synkroniseret med kalenderen", saved: "Studieplanen er gemt og aktiveret" },
+    en: { activate: "Save and activate in calendar", update: "Save calendar changes", confirmTitle: "Activate study plan?", confirmText: "The plan's study blocks are created in your calendar. You choose the exact times from today's plan on Home.", confirm: "Activate plan", active: "The plan is active and synchronized with the calendar", saved: "Study plan saved and activated" },
+    ar: { activate: "حفظ وتفعيل في التقويم", update: "حفظ التغييرات في التقويم", confirmTitle: "تفعيل خطة الدراسة؟", confirmText: "سيتم إنشاء جلسات الخطة في التقويم ويمكنك اختيار أوقاتها من خطة اليوم.", confirm: "تفعيل الخطة", active: "الخطة مفعّلة ومتزامنة مع التقويم", saved: "تم حفظ الخطة وتفعيلها" },
+  })[language] || {};
+
   const save = () => {
-    setPlans((old) => ({ ...old, [moduleName]: { examDate, mode, doneLectureIds: done, hoursPerDay, hoursPerLecture, questionDistribution, reviewMethod, excludedDates, difficultyEnabled, difficulty, createdAt: existing?.createdAt || Date.now() } }));
+    const planRecord = {
+      examDate,
+      mode,
+      doneLectureIds: done,
+      hoursPerDay,
+      hoursPerLecture,
+      questionDistribution,
+      reviewMethod,
+      excludedDates,
+      difficultyEnabled,
+      difficulty,
+      createdAt: existing?.createdAt || Date.now(),
+      activatedAt: existing?.activatedAt || Date.now(),
+      updatedAt: Date.now(),
+      status: "active",
+    };
+    setPlans((old) => ({ ...old, [moduleName]: planRecord }));
     setUser((old) => ({ ...old, level, module: moduleName }));
+    syncPlanToCalendar(planRecord);
     setPlanSaved(true);
     setStep(9);
-    syncPlanToCalendar();
+    setConfirmActivatePlan(false);
+    setSaveNotice(activationCopy.saved);
+    window.setTimeout(() => setSaveNotice(""), 3200);
   };
   const toggleExceptionDate = () => {
     if (!newExceptionDate) return;
@@ -16173,28 +16463,43 @@ function StudyPlan({ c, language, user, setUser }) {
   };
   const removeExceptionDate = (date) => setExcludedDates((old) => old.filter((d) => d !== date));
   const setLectureDifficulty = (id, level2) => setDifficulty((old) => ({ ...old, [id]: level2 }));
-  function syncPlanToCalendar() {
+
+  function syncPlanToCalendar(planOverride) {
+    const planRecord = planOverride || {
+      examDate, mode, doneLectureIds: done, hoursPerDay, hoursPerLecture,
+      questionDistribution, reviewMethod, excludedDates, difficultyEnabled, difficulty,
+    };
+    const bundle = buildStudyPlanCalendarBundle({
+      moduleName,
+      plan: planRecord,
+      lectures,
+      questionTotal,
+      fromDate: today,
+    });
     const stored = JSON.parse(localStorage.getItem(STORAGE.calendarEvents) || "[]");
-    const withoutOldPlan = stored.filter((event) => event.planModuleId !== moduleName);
-    const newEvents = timelineDays.slice(0, Math.max(days, 0)).map((date, index) => {
-      const units = unitForDay(index);
-      const title = units.length
-        ? `${moduleName} \u00b7 ${units.map((u) => u.title).join(", ")}`
-        : `${moduleName} \u00b7 ${questionsForDayIndex(index)} MCQ`;
-      const y = date.getFullYear();
-      const m = date.getMonth();
-      const d = date.getDate();
-      return {
-        id: `studyplan-${moduleName}-${index}`,
-        title,
-        date: dateKey(y, m, d),
-        time: "18:00",
-        type: "study",
-        planModuleId: moduleName,
+    const existingById = Object.fromEntries(stored.filter((event) => event.planModuleId === moduleName && String(event.id).startsWith("studyplan-")).map((event) => [event.id, event]));
+    const withoutOldPlan = stored.filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-"));
+    const mergedPlanEvents = bundle.events.map((event) => {
+      const existingEvent = existingById[event.id];
+      return existingEvent ? { ...event, date: existingEvent.date || event.date, time: existingEvent.time || event.time, estimatedHours: existingEvent.estimatedHours || event.estimatedHours } : event;
+    });
+    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify([...withoutOldPlan, ...mergedPlanEvents]));
+
+    const storedMeta = JSON.parse(localStorage.getItem(STORAGE.calendarEventMeta) || "{}");
+    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id]) => !String(id).startsWith(`studyplan-${moduleName}`)));
+    Object.entries(bundle.metadata).forEach(([id, generatedMeta]) => {
+      const previousMeta = storedMeta[id] || {};
+      nextMeta[id] = {
+        ...generatedMeta,
+        ...(previousMeta.completedAt ? { completedAt: previousMeta.completedAt, status: previousMeta.status || "completed" } : {}),
+        ...(previousMeta.missedResolvedAt ? { missedResolvedAt: previousMeta.missedResolvedAt } : {}),
+        needsScheduling: existingById[id]?.time ? false : generatedMeta.needsScheduling,
       };
     });
-    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify([...withoutOldPlan, ...newEvents]));
+    localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(nextMeta));
+    setCalendarEventMeta(nextMeta);
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEvents } }));
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEventMeta } }));
   }
 
   function deletePlan() {
@@ -16209,7 +16514,12 @@ function StudyPlan({ c, language, user, setUser }) {
     const stored = JSON.parse(localStorage.getItem(STORAGE.calendarEvents) || "[]");
     const withoutPlan = stored.filter((event) => event.planModuleId !== moduleName);
     localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(withoutPlan));
+    const storedMeta = JSON.parse(localStorage.getItem(STORAGE.calendarEventMeta) || "{}");
+    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id]) => !String(id).startsWith(`studyplan-${moduleName}`)));
+    localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(nextMeta));
+    setCalendarEventMeta(nextMeta);
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEvents } }));
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEventMeta } }));
     setPlanSaved(false);
     setDone([]);
     setStep(1);
@@ -16321,8 +16631,18 @@ function StudyPlan({ c, language, user, setUser }) {
       {step===8&&<div><div style={{ display:"flex",alignItems:"center",gap:14,marginBottom:22 }}><input type="range" min="0.5" max="10" step="0.5" value={hoursPerDay} onChange={(e)=>setHoursPerDay(Number(e.target.value))} style={{ flex:1, accentColor:c.blue }}/><span style={{ minWidth:64,padding:"9px 12px",borderRadius:11,background:c.blueSoft,color:c.blue,fontFamily:'"Space Mono",monospace',fontSize:15,fontWeight:800,textAlign:"center" }}>{hoursPerDay}t</span></div><WorkloadVisualizer c={c} copy={copy} hoursPerDay={hoursPerDay} estimatedMinutes={estimatedMinutes} capacityMinutes={capacityMinutes} days={Math.max(days,1)} reviewIntervals={REVIEW_METHODS[reviewMethod]?.intervals || [1,3,7]} lectureUnitsCount={lectureUnits.length} language={language}/></div>}
 
       <footer style={{ display:"flex",justifyContent:"space-between",gap:10,marginTop:25 }}><button type="button" onClick={()=>setStep((value)=>Math.max(1,value-1))} disabled={step===1} style={{ height:42,padding:"0 14px",borderRadius:10,border:`1px solid ${c.borderStrong}`,background:c.panel,color:c.secondary,fontSize:12,fontWeight:800,cursor:step===1?"default":"pointer",opacity:step===1?.4:1 }}>{copy.back}</button>{step===2?<PrimaryButton disabled={!examDate} onClick={()=>triggerReveal("examDate",3)}>{copy.next}</PrimaryButton>:step===5?<PrimaryButton onClick={()=> totalLecturesCount>0 ? triggerReveal("lectureCount",6) : setStep(6)}>{copy.next}</PrimaryButton>:step<9?<PrimaryButton disabled={(step===1&&!moduleName)||(step===3&&!reviewMethod)} onClick={()=>setStep((value)=>value+1)}>{copy.next}</PrimaryButton>:<PrimaryButton disabled={!moduleName||!examDate} onClick={save}>{copy.generate}</PrimaryButton>}</footer></section></>}
-    {step===9&&<><section style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(165px,1fr))",borderRadius:17,overflow:"hidden",background:c.panel,border:`1px solid ${c.border}`,boxShadow:c.shadow }}>{[[days,copy.days],[mode === "questions" ? questionTotal : lectureUnits.length,mode === "questions" ? "MCQ\u2019er i alt" : copy.remaining],[questionsPerDay,copy.questionsDay],[`${Math.round(estimatedMinutes)} ${copy.minutes}`,copy.workload]].map(([value,label])=><div key={label} style={{ padding:"17px 18px",borderInlineEnd:`1px solid ${c.border}` }}><div style={{ color:c.text,fontFamily:'"Space Mono",monospace',fontSize:24,fontWeight:700 }}>{value}</div><div style={{ marginTop:6,color:c.muted,fontSize:10,fontWeight:800,letterSpacing:".06em",textTransform:"uppercase" }}>{label}</div></div>)}</section><section style={{ padding:"16px 18px",borderRadius:14,background:c.blueSoft,border:`1px solid ${c.blueBorder}`,color:c.secondary,fontSize:12,lineHeight:1.6 }}>{copy.planNote}{mode === "questions" && <strong style={{display:"block",marginTop:7,color:c.text}}>{questionsPerDay} {copy.questionsLabel.toLowerCase()}.</strong>}</section><section style={{ width:"calc(100% + 32px)", marginInline:"-16px", borderRadius:0,overflow:"hidden",background:c.panel,borderTop:`1px solid ${c.border}`,borderBottom:`1px solid ${c.border}`,boxShadow:c.shadow }}><header style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"19px max(21px, calc((100vw - 1100px) / 2))",borderBottom:`1px solid ${c.border}` }}><h2 style={{ margin:0,color:c.text,fontSize:16 }}>{copy.timeline}</h2><div style={{display:"flex",gap:7}}><div style={{display:"flex",padding:3,borderRadius:9,background:c.soft,border:`1px solid ${c.border}`}}>{[["list",copy.list],["graph",copy.graph]].map(([id,label])=><button key={id} type="button" onClick={()=>setTimelineView(id)} style={{height:28,padding:"0 9px",border:0,borderRadius:6,background:timelineView===id?c.panel:"transparent",color:timelineView===id?c.text:c.muted,fontSize:10,fontWeight:800,cursor:"pointer"}}>{label}</button>)}</div><button type="button" onClick={exportCalendar} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.blueBorder}`,background:c.blueSoft,color:c.blue,fontSize:11,fontWeight:800,cursor:"pointer" }}>Google Calendar (.ics)</button><button type="button" onClick={exportPlanAsJSON} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.borderStrong}`,background:c.panel,color:c.secondary,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.exportPlan}</button><button type="button" onClick={()=>setConfirmDeletePlan(true)} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.red}`,background:c.redSoft,color:c.red,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.deletePlan}</button></div></header>{timelineView === "list" ? <div style={{ display:"grid",gap:0 }}>{timelineDays.map((date,index)=>{const isExam=index===days;const units=unitForDay(index);const tasks=[];if(!isExam){units.forEach(unit=>tasks.push({type:"lecture",text:`${unit.title}${unit.part?` (${unit.part}/${unit.parts})`:""}`}));const count=questionsForDayIndex(index);if(count)tasks.push({type:"questions",text:`${count} ${copy.questionsLabel}`});(REVIEW_METHODS[reviewMethod]?.intervals || [1,3,7]).forEach(interval=>{if(index>=interval&&unitForDay(index-interval).length)tasks.push({type:"review",text:`${copy.review} \u00b7 ${unitForDay(index-interval).map(x=>x.title).join(", ")}`})})}return <article key={date.toISOString()} style={{ display:"grid",gridTemplateColumns:"125px minmax(0,1fr)",gap:17,padding:"16px 21px",borderBottom:index===timelineDays.length-1?0:`1px solid ${c.border}`,background:index===0?`${c.blueSoft}55`:"transparent" }}><div><div style={{ color:index===0?c.blue:c.text,fontSize:12,fontWeight:800 }}>{isExam?copy.examDay:index===0?copy.today:dateShort(date)}</div><div style={{ marginTop:4,color:c.muted,fontFamily:'"Space Mono",monospace',fontSize:10 }}>{date.toLocaleDateString(language==="da"?"da-DK":"en-GB",{day:"2-digit",month:"2-digit"})}</div></div><div style={{ display:"grid",gap:6 }}>{isExam?<span style={{ color:c.red,fontSize:12,fontWeight:800 }}>{copy.examDay}</span>:tasks.map((task,i)=>{const [color,bg]=typeStyle(task.type);return <div key={i} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:8,background:bg,color:c.text,fontSize:11,fontWeight:650 }}><span style={{ width:6,height:6,borderRadius:"50%",background:color,flexShrink:0 }}/>{task.text}</div>})}</div></article>})}</div> : <AdvancedPlanTimeline c={c} language={language} copy={copy} today={today} exam={exam} timelineDays={timelineDays} mode={mode} questionTotal={questionTotal} questionsForDayIndex={questionsForDayIndex} unitForDay={unitForDay} reviewIntervals={REVIEW_METHODS[reviewMethod]?.intervals}/>}</section></>}
+    {step===9&&<><section style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(165px,1fr))",borderRadius:17,overflow:"hidden",background:c.panel,border:`1px solid ${c.border}`,boxShadow:c.shadow }}>{[[days,copy.days],[mode === "questions" ? questionTotal : lectureUnits.length,mode === "questions" ? "MCQ\u2019er i alt" : copy.remaining],[questionsPerDay,copy.questionsDay],[`${Math.round(estimatedMinutes)} ${copy.minutes}`,copy.workload]].map(([value,label])=><div key={label} style={{ padding:"17px 18px",borderInlineEnd:`1px solid ${c.border}` }}><div style={{ color:c.text,fontFamily:'"Space Mono",monospace',fontSize:24,fontWeight:700 }}>{value}</div><div style={{ marginTop:6,color:c.muted,fontSize:10,fontWeight:800,letterSpacing:".06em",textTransform:"uppercase" }}>{label}</div></div>)}</section><section style={{ padding:"16px 18px",borderRadius:14,background:c.blueSoft,border:`1px solid ${c.blueBorder}`,color:c.secondary,fontSize:12,lineHeight:1.6 }}>{copy.planNote}{mode === "questions" && <strong style={{display:"block",marginTop:7,color:c.text}}>{questionsPerDay} {copy.questionsLabel.toLowerCase()}.</strong>}</section><section className="study-plan-activation" data-active={planSaved ? "true" : "false"}><div><span className="study-plan-activation-icon"><Icon name={planSaved ? "check" : "calendar"} size={16} /></span><div><strong>{planSaved ? activationCopy.active : activationCopy.confirmTitle}</strong><small>{planSaved ? copy.saved : activationCopy.confirmText}</small></div></div><PrimaryButton onClick={() => setConfirmActivatePlan(true)}><Icon name="calendar" size={14} />{planSaved ? activationCopy.update : activationCopy.activate}</PrimaryButton></section>{saveNotice && <div className="ui-feedback" data-tone="success"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content"><div className="ui-feedback-title">{saveNotice}</div></div></div>}<section style={{ width:"calc(100% + 32px)", marginInline:"-16px", borderRadius:0,overflow:"hidden",background:c.panel,borderTop:`1px solid ${c.border}`,borderBottom:`1px solid ${c.border}`,boxShadow:c.shadow }}><header style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"19px max(21px, calc((100vw - 1100px) / 2))",borderBottom:`1px solid ${c.border}` }}><h2 style={{ margin:0,color:c.text,fontSize:16 }}>{copy.timeline}</h2><div style={{display:"flex",gap:7}}><div style={{display:"flex",padding:3,borderRadius:9,background:c.soft,border:`1px solid ${c.border}`}}>{[["list",copy.list],["graph",copy.graph]].map(([id,label])=><button key={id} type="button" onClick={()=>setTimelineView(id)} style={{height:28,padding:"0 9px",border:0,borderRadius:6,background:timelineView===id?c.panel:"transparent",color:timelineView===id?c.text:c.muted,fontSize:10,fontWeight:800,cursor:"pointer"}}>{label}</button>)}</div><button type="button" onClick={exportCalendar} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.blueBorder}`,background:c.blueSoft,color:c.blue,fontSize:11,fontWeight:800,cursor:"pointer" }}>Google Calendar (.ics)</button><button type="button" onClick={exportPlanAsJSON} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.borderStrong}`,background:c.panel,color:c.secondary,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.exportPlan}</button><button type="button" onClick={()=>setConfirmDeletePlan(true)} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.red}`,background:c.redSoft,color:c.red,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.deletePlan}</button></div></header>{timelineView === "list" ? <div style={{ display:"grid",gap:0 }}>{timelineDays.map((date,index)=>{const isExam=index===days;const units=unitForDay(index);const tasks=[];if(!isExam){units.forEach(unit=>tasks.push({type:"lecture",text:`${unit.title}${unit.part?` (${unit.part}/${unit.parts})`:""}`}));const count=questionsForDayIndex(index);if(count)tasks.push({type:"questions",text:`${count} ${copy.questionsLabel}`});(REVIEW_METHODS[reviewMethod]?.intervals || [1,3,7]).forEach(interval=>{if(index>=interval&&unitForDay(index-interval).length)tasks.push({type:"review",text:`${copy.review} \u00b7 ${unitForDay(index-interval).map(x=>x.title).join(", ")}`})})}return <article key={date.toISOString()} style={{ display:"grid",gridTemplateColumns:"125px minmax(0,1fr)",gap:17,padding:"16px 21px",borderBottom:index===timelineDays.length-1?0:`1px solid ${c.border}`,background:index===0?`${c.blueSoft}55`:"transparent" }}><div><div style={{ color:index===0?c.blue:c.text,fontSize:12,fontWeight:800 }}>{isExam?copy.examDay:index===0?copy.today:dateShort(date)}</div><div style={{ marginTop:4,color:c.muted,fontFamily:'"Space Mono",monospace',fontSize:10 }}>{date.toLocaleDateString(language==="da"?"da-DK":"en-GB",{day:"2-digit",month:"2-digit"})}</div></div><div style={{ display:"grid",gap:6 }}>{isExam?<span style={{ color:c.red,fontSize:12,fontWeight:800 }}>{copy.examDay}</span>:tasks.map((task,i)=>{const [color,bg]=typeStyle(task.type);return <div key={i} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:8,background:bg,color:c.text,fontSize:11,fontWeight:650 }}><span style={{ width:6,height:6,borderRadius:"50%",background:color,flexShrink:0 }}/>{task.text}</div>})}</div></article>})}</div> : <AdvancedPlanTimeline c={c} language={language} copy={copy} today={today} exam={exam} timelineDays={timelineDays} mode={mode} questionTotal={questionTotal} questionsForDayIndex={questionsForDayIndex} unitForDay={unitForDay} reviewIntervals={REVIEW_METHODS[reviewMethod]?.intervals}/>}</section></>}
   </div>
+  {confirmActivatePlan && (
+    <Modal c={c} onClose={() => setConfirmActivatePlan(false)}>
+      <div className="study-plan-confirm">
+        <span className="study-plan-confirm-icon"><Icon name="calendar" size={20} /></span>
+        <h2>{activationCopy.confirmTitle}</h2>
+        <p>{activationCopy.confirmText}</p>
+        <div><SecondaryButton onClick={() => setConfirmActivatePlan(false)}>{copy.cancel}</SecondaryButton><PrimaryButton onClick={save}><Icon name="check" size={14} />{activationCopy.confirm}</PrimaryButton></div>
+      </div>
+    </Modal>
+  )}
   {confirmDeletePlan && (
     <Modal c={c} onClose={() => setConfirmDeletePlan(false)}>
       <h2 style={{ display: "flex", alignItems: "center", gap: 9, color: c.text, fontSize: 15, marginBottom: 10 }}>
@@ -16481,6 +16801,138 @@ function HomeDaySchedule({
   );
 }
 
+function CalendarDailyPlanner({ c, language, todayEvents, missedEvents, onSaveToday, onResolveMissed, onDismiss }) {
+  const copy = ({
+    da: { title: "Dagens plan", subtitle: "Placér dagens studieblokke, før du går i gang.", missed: "Ikke afsluttet fra tidligere", auto: "Fordel automatisk", save: "Gem dagens placering", dismiss: "Behold placeringen", noTime: "Vælg tidspunkt", today: "Flyt til i dag", tomorrow: "Flyt til i morgen", done: "Markér færdig", keep: "Behold på datoen", duration: "varighed" },
+    en: { title: "Today's plan", subtitle: "Place today's study blocks before you begin.", missed: "Unfinished from earlier", auto: "Auto-place", save: "Save today's schedule", dismiss: "Keep current schedule", noTime: "Choose time", today: "Move to today", tomorrow: "Move to tomorrow", done: "Mark complete", keep: "Keep on date", duration: "duration" },
+    ar: { title: "خطة اليوم", subtitle: "حدّد أوقات جلسات اليوم قبل البدء.", missed: "غير مكتمل من الأيام السابقة", auto: "توزيع تلقائي", save: "حفظ جدول اليوم", dismiss: "الاحتفاظ بالجدول", noTime: "اختر الوقت", today: "نقل إلى اليوم", tomorrow: "نقل إلى الغد", done: "وضع علامة مكتمل", keep: "الاحتفاظ بالتاريخ", duration: "المدة" },
+  })[language] || {};
+  const [draft, setDraft] = useState({});
+
+  useEffect(() => {
+    const next = {};
+    let cursor = 9 * 60;
+    todayEvents.forEach((event) => {
+      const value = event.time || minutesToTime(cursor);
+      next[event.id] = value;
+      cursor = Math.max(cursor + Math.round((Number(event.estimatedHours) || 1) * 60), (timeToMinutes(value) || cursor) + Math.round((Number(event.estimatedHours) || 1) * 60));
+    });
+    setDraft(next);
+  }, [todayEvents.map((event) => `${event.id}:${event.time}`).join("|")]);
+
+  function autoPlace() {
+    let cursor = 9 * 60;
+    const next = {};
+    todayEvents.forEach((event) => {
+      next[event.id] = minutesToTime(cursor);
+      cursor += Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60)) + 15;
+    });
+    setDraft(next);
+  }
+
+  return (
+    <div className="daily-planner-overlay">
+      <div className="daily-planner-card">
+        <header className="daily-planner-header">
+          <span className="daily-planner-icon"><Icon name="calendar" size={18} /></span>
+          <div><h2>{copy.title}</h2><p>{copy.subtitle}</p></div>
+          <IconButton c={c} title={copy.dismiss} onClick={onDismiss}><Icon name="close" size={16} /></IconButton>
+        </header>
+
+        {missedEvents.length > 0 && (
+          <section className="daily-planner-missed">
+            <div className="daily-planner-section-title"><Icon name="reset" size={14} />{copy.missed}<span>{missedEvents.length}</span></div>
+            <div className="daily-planner-missed-list">
+              {missedEvents.slice(0, 5).map((event) => (
+                <article key={event.id} className="daily-planner-missed-item">
+                  <div><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : ""}</small></div>
+                  <div className="daily-planner-actions">
+                    <button type="button" onClick={() => onResolveMissed(event, "today")}>{copy.today}</button>
+                    <button type="button" onClick={() => onResolveMissed(event, "tomorrow")}>{copy.tomorrow}</button>
+                    <button type="button" onClick={() => onResolveMissed(event, "complete")}>{copy.done}</button>
+                    <button type="button" onClick={() => onResolveMissed(event, "keep")}>{copy.keep}</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="daily-planner-today">
+          <div className="daily-planner-section-title"><Icon name="clock" size={14} />{copy.title}<button type="button" onClick={autoPlace}>{copy.auto}</button></div>
+          <div className="daily-planner-event-list">
+            {todayEvents.map((event) => (
+              <label key={event.id} className="daily-planner-event-row">
+                <span className="daily-planner-event-dot" />
+                <span><strong>{event.title}</strong><small>{Math.round((Number(event.estimatedHours) || 1) * 60)} min {copy.duration}</small></span>
+                <input type="time" value={draft[event.id] || ""} onChange={(domEvent) => setDraft((previous) => ({ ...previous, [event.id]: domEvent.target.value }))} aria-label={`${event.title}: ${copy.noTime}`} />
+              </label>
+            ))}
+          </div>
+        </section>
+
+        <footer className="daily-planner-footer">
+          <SecondaryButton onClick={onDismiss}>{copy.dismiss}</SecondaryButton>
+          <PrimaryButton disabled={todayEvents.some((event) => !draft[event.id])} onClick={() => onSaveToday(draft)}><Icon name="check" size={14} />{copy.save}</PrimaryButton>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function PlanProgressPage({ c, language, moduleName, plan, lectures, events, onBack }) {
+  const copy = ({
+    da: { title: "Studieforløb", subtitle: "Datoer, planlagte forelæsninger og gennemførelse", back: "Tilbage til Hjem", lectures: "Forelæsninger", completed: "Gennemført", planned: "Planlagt", overdue: "Overskredet", unscheduled: "Ikke placeret", date: "Dato", status: "Status", source: "Kilde", planSource: "Studieplan", importSource: "Importeret skema", none: "Ingen dato", daysLeft: "dage til eksamen", upcoming: "Kommende", past: "Tidligere" },
+    en: { title: "Study journey", subtitle: "Dates, scheduled lectures and completion", back: "Back to Home", lectures: "Lectures", completed: "Completed", planned: "Planned", overdue: "Overdue", unscheduled: "Unscheduled", date: "Date", status: "Status", source: "Source", planSource: "Study plan", importSource: "Imported schedule", none: "No date", daysLeft: "days to exam", upcoming: "Upcoming", past: "Past" },
+    ar: { title: "مسار الدراسة", subtitle: "التواريخ والمحاضرات المجدولة والإنجاز", back: "العودة للرئيسية", lectures: "المحاضرات", completed: "مكتمل", planned: "مخطط", overdue: "متأخر", unscheduled: "غير محدد", date: "التاريخ", status: "الحالة", source: "المصدر", planSource: "خطة الدراسة", importSource: "جدول مستورد", none: "بدون تاريخ", daysLeft: "أيام للامتحان", upcoming: "القادمة", past: "السابقة" },
+  })[language] || {};
+  const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
+  const doneIds = new Set(plan?.doneLectureIds || []);
+  const now = Date.now();
+  const eventByLecture = {};
+  events.forEach((event) => (event.lectureIds || (event.lectureId ? [event.lectureId] : [])).forEach((id) => {
+    if (!eventByLecture[id] || `${event.date}${event.time || ""}` < `${eventByLecture[id].date}${eventByLecture[id].time || ""}`) eventByLecture[id] = event;
+  }));
+  const rows = lectures.map((lecture) => {
+    const event = eventByLecture[lecture.id];
+    const completed = doneIds.has(lecture.id) || Boolean(event?.completedAt);
+    const overdue = !completed && event && calendarEventEndTimestamp(event) < now;
+    return { lecture, event, completed, overdue };
+  });
+  const completedCount = rows.filter((row) => row.completed).length;
+  const scheduledCount = rows.filter((row) => row.event).length;
+  const exam = plan?.examDate ? new Date(`${plan.examDate}T00:00:00`) : null;
+  const daysLeft = exam ? Math.max(0, Math.ceil((exam - new Date()) / 86400000)) : null;
+
+  return (
+    <div className="plan-progress-page fade-up">
+      <header className="plan-progress-page-header">
+        <button type="button" className="ui-button ui-button--ghost" onClick={onBack}><Icon name="left" size={14} />{copy.back}</button>
+        <div><h1>{copy.title}</h1><p>{moduleName} · {copy.subtitle}</p></div>
+      </header>
+      <section className="plan-progress-summary">
+        <div><span>{copy.completed}</span><strong>{completedCount}/{lectures.length}</strong></div>
+        <div><span>{copy.planned}</span><strong>{scheduledCount}/{lectures.length}</strong></div>
+        <div><span>{copy.overdue}</span><strong>{rows.filter((row) => row.overdue).length}</strong></div>
+        <div><span>{copy.daysLeft}</span><strong>{daysLeft ?? "—"}</strong></div>
+      </section>
+      <section className="plan-progress-table-card">
+        <div className="plan-progress-table-head"><span>{copy.lectures}</span><span>{copy.date}</span><span>{copy.source}</span><span>{copy.status}</span></div>
+        <div className="plan-progress-table-body">
+          {rows.map(({ lecture, event, completed, overdue }) => (
+            <div key={lecture.id} className="plan-progress-table-row" data-status={completed ? "complete" : overdue ? "overdue" : event ? "planned" : "unscheduled"}>
+              <span className="plan-progress-lecture"><i>{lecture.id}</i><strong>{lecture.title}</strong></span>
+              <span>{event ? new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }) : copy.none}{event?.time ? <small>{event.time}</small> : null}</span>
+              <span>{event?.importedSchedule ? copy.importSource : event ? copy.planSource : "—"}</span>
+              <span className="plan-progress-status"><Icon name={completed ? "check" : overdue ? "flag" : event ? "clock" : "minus"} size={12} />{completed ? copy.completed : overdue ? copy.overdue : event?.time ? copy.planned : copy.unscheduled}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function Dashboard({
   c,
   t,
@@ -16495,12 +16947,15 @@ function Dashboard({
   const [checklist, setChecklist] = useStoredState(STORAGE.dailyChecklist, {});
   const [history] = useStoredState(STORAGE.quizHistory, []);
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
+  const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [calendarDailyPlanner, setCalendarDailyPlanner] = useStoredState(STORAGE.calendarDailyPlanner, {});
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
   const [editingPlanEvent, setEditingPlanEvent] = useState(null);
   const [calendarView, setCalendarView] = useState("day");
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [bottomTab, setBottomTab] = useState("activity");
+  const [progressDetailsOpen, setProgressDetailsOpen] = useState(false);
 
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
   const direction = language === "ar" ? "rtl" : "ltr";
@@ -16510,6 +16965,7 @@ function Dashboard({
   today.setHours(0, 0, 0, 0);
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const selectedKey = dateKey(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate());
+  const mergedCalendarEvents = mergeCalendarEventMeta(calendarEvents, calendarEventMeta);
 
   const copy = ({
     da: {
@@ -16654,8 +17110,37 @@ function Dashboard({
   const reviewCount = scopedQuestions.filter((question) => safeSpacedData[question.id] && isDue(safeSpacedData[question.id])).length;
   const newCount = scopedQuestions.filter((question) => !safeSpacedData[question.id]).length;
   const questionCount = scopedQuestions.length;
+
+  useEffect(() => {
+    if (!activePlan || !currentModule) return;
+    const bundle = buildStudyPlanCalendarBundle({ moduleName: currentModule, plan: activePlan, lectures: planLectures, questionTotal: questionCount, fromDate: today });
+    if (!bundle.events.length) return;
+    setCalendarEvents((previous) => {
+      const existingById = Object.fromEntries(previous.filter((event) => event.planModuleId === currentModule && String(event.id).startsWith("studyplan-")).map((event) => [event.id, event]));
+      const generated = bundle.events.map((event) => {
+        const existing = existingById[event.id];
+        return existing ? { ...event, date: existing.date || event.date, time: existing.time || event.time, estimatedHours: existing.estimatedHours || event.estimatedHours } : event;
+      });
+      return [...previous.filter((event) => event.planModuleId !== currentModule || !String(event.id).startsWith("studyplan-")), ...generated];
+    });
+    setCalendarEventMeta((previous) => {
+      const next = { ...previous };
+      Object.entries(bundle.metadata).forEach(([id, generatedMeta]) => {
+        const existingMeta = previous[id] || {};
+        const existingBase = calendarEvents.find((event) => event.id === id);
+        next[id] = {
+          ...generatedMeta,
+          ...(existingMeta.completedAt ? { completedAt: existingMeta.completedAt, status: existingMeta.status || "completed" } : {}),
+          ...(existingMeta.missedResolvedAt ? { missedResolvedAt: existingMeta.missedResolvedAt } : {}),
+          needsScheduling: existingBase?.time ? false : generatedMeta.needsScheduling,
+        };
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentModule, activePlan?.updatedAt, activePlan?.activatedAt]);
   const planExamQuestions = scopedQuestions.filter((question) => !question.lectureId);
-  const examSetDoneCount = planExamQuestions.filter((question) => safeSpacedData[question.id]).length;
+  const examSetDoneCount = Math.min(planExamQuestions.length, Math.max(planExamQuestions.filter((question) => safeSpacedData[question.id]).length, Number(activePlan?.completedExamQuestions) || 0));
   const examSetTotalCount = planExamQuestions.length;
   const lectureFraction = planLectures.length ? doneLectureCount / planLectures.length : 0;
   const examFraction = examSetTotalCount ? examSetDoneCount / examSetTotalCount : 0;
@@ -16674,13 +17159,39 @@ function Dashboard({
 
   const examDate = activePlan?.examDate ? new Date(`${activePlan.examDate}T00:00:00`) : null;
   const daysRemaining = examDate ? Math.max(0, Math.ceil((examDate - today) / 86400000)) : null;
-  const selectedEvents = calendarEvents
+  const selectedEvents = mergedCalendarEvents
     .filter((event) => event.date === selectedKey)
-    .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
-  const upcomingEvents = calendarEvents
-    .filter((event) => event.date >= todayKey)
-    .sort((a, b) => `${a.date} ${a.time || ""}`.localeCompare(`${b.date} ${b.time || ""}`))
-    .slice(0, 4);
+    .sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
+  const upcomingEvents = mergedCalendarEvents
+    .filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date >= todayKey && event.type !== "exam" && !event.completedAt)
+    .sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`))
+    .slice(0, 6);
+  const todaysPlanEvents = mergedCalendarEvents
+    .filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date === todayKey && event.type !== "exam" && !event.completedAt);
+  const missedPlanEvents = mergedCalendarEvents
+    .filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date < todayKey && event.type !== "exam" && !event.completedAt && !event.missedResolvedAt)
+    .sort((a, b) => `${b.date} ${b.time || ""}`.localeCompare(`${a.date} ${a.time || ""}`));
+  const shouldShowDailyPlanner = Boolean(activePlan && !calendarDailyPlanner[todayKey]?.confirmed && (todaysPlanEvents.length || missedPlanEvents.length));
+
+  useEffect(() => {
+    if (!activePlan) return;
+    const completedImported = mergedCalendarEvents
+      .filter((event) => event.planModuleId === currentModule && event.importedSchedule && event.lectureId && calendarEventEndTimestamp(event) <= Date.now())
+      .map((event) => event.lectureId);
+    if (!completedImported.length) return;
+    const next = [...new Set([...(activePlan.doneLectureIds || []), ...completedImported])];
+    const completedImportedEvents = mergedCalendarEvents.filter((event) => event.planModuleId === currentModule && event.importedSchedule && event.lectureId && calendarEventEndTimestamp(event) <= Date.now() && !event.completedAt);
+    if (completedImportedEvents.length) {
+      setCalendarEventMeta((previous) => {
+        const meta = { ...previous };
+        completedImportedEvents.forEach((event) => { meta[event.id] = { ...(meta[event.id] || {}), completedAt: new Date(calendarEventEndTimestamp(event)).toISOString(), status: "completed" }; });
+        return meta;
+      });
+    }
+    if (next.length === (activePlan.doneLectureIds || []).length) return;
+    setPlansGlobal((previous) => ({ ...previous, [currentModule]: { ...previous[currentModule], doneLectureIds: next, updatedAt: Date.now() } }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarEvents, calendarEventMeta, currentModule]);
 
   const totalQuestionsAnswered = history.reduce((sum, session) => sum + (session.answered || 0), 0);
   const bestSessionAccuracy = history.reduce((best, session) => Math.max(best, session.score || 0), 0);
@@ -16770,9 +17281,11 @@ function Dashboard({
     if (!editingPlanEvent?.title?.trim() || !editingPlanEvent.date) return;
     const cleanEvent = { ...editingPlanEvent };
     delete cleanEvent.__new;
-    setCalendarEvents((previous) => editingPlanEvent.__new
-      ? [...previous, cleanEvent]
-      : previous.map((item) => item.id === cleanEvent.id ? cleanEvent : item));
+    const metadata = calendarEventMetaFields(cleanEvent);
+    const base = { ...cleanEvent };
+    Object.keys(metadata).forEach((key) => delete base[key]);
+    setCalendarEvents((previous) => editingPlanEvent.__new ? [...previous, base] : previous.map((item) => item.id === base.id ? base : item));
+    setCalendarEventMeta((previous) => ({ ...previous, [cleanEvent.id]: { ...(previous[cleanEvent.id] || {}), ...metadata, needsScheduling: false } }));
     setEditingPlanEvent(null);
   }
 
@@ -16780,8 +17293,49 @@ function Dashboard({
     if (!editingPlanEvent) return;
     if (!editingPlanEvent.__new) {
       setCalendarEvents((previous) => previous.filter((item) => item.id !== editingPlanEvent.id));
+      setCalendarEventMeta((previous) => { const next = { ...previous }; delete next[editingPlanEvent.id]; return next; });
     }
     setEditingPlanEvent(null);
+  }
+
+  function togglePlanEventComplete(event) {
+    const completedAt = event.completedAt ? null : new Date().toISOString();
+    setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), completedAt, status: completedAt ? "completed" : "planned" } }));
+    if (!(event.lectureIds || []).length || !activePlan) return;
+    setPlansGlobal((previous) => {
+      const plan = previous[currentModule];
+      if (!plan) return previous;
+      const ids = new Set(plan.doneLectureIds || []);
+      event.lectureIds.forEach((id) => completedAt ? ids.add(id) : ids.delete(id));
+      const questionDelta = Number(event.questionCount) || 0;
+      const completedExamQuestions = Math.max(0, Math.min(examSetTotalCount, (Number(plan.completedExamQuestions) || 0) + (completedAt ? questionDelta : -questionDelta)));
+      return { ...previous, [currentModule]: { ...plan, doneLectureIds: [...ids], completedExamQuestions, updatedAt: Date.now() } };
+    });
+  }
+
+  function saveTodaySchedule(draft) {
+    setCalendarEvents((previous) => previous.map((event) => draft[event.id] ? { ...event, date: todayKey, time: draft[event.id] } : event));
+    setCalendarEventMeta((previous) => {
+      const next = { ...previous };
+      Object.entries(draft).forEach(([id]) => { next[id] = { ...(next[id] || {}), needsScheduling: false, status: "planned" }; });
+      return next;
+    });
+    setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { confirmed: true, confirmedAt: Date.now() } }));
+  }
+
+  function resolveMissedEvent(event, action) {
+    if (action === "complete") {
+      togglePlanEventComplete(event);
+      setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), missedResolvedAt: Date.now() } }));
+      return;
+    }
+    if (action === "keep") {
+      setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), missedResolvedAt: Date.now() } }));
+      return;
+    }
+    const target = action === "tomorrow" ? dateKey(addDays(today, 1).getFullYear(), addDays(today, 1).getMonth(), addDays(today, 1).getDate()) : todayKey;
+    setCalendarEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, date: target, time: action === "today" ? item.time || "17:00" : item.time || "09:00" } : item));
+    setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), missedResolvedAt: Date.now(), needsScheduling: action === "today" ? !event.time : false } }));
   }
 
   function toggleChecklistItem(id) {
@@ -16806,6 +17360,10 @@ function Dashboard({
     setPlansGlobal((old) => old[currentModule]
       ? { ...old, [currentModule]: { ...old[currentModule], createdAt: Date.now() } }
       : old);
+  }
+
+  if (progressDetailsOpen) {
+    return <PlanProgressPage c={c} language={language} moduleName={currentModule} plan={activePlan} lectures={planLectures} events={mergedCalendarEvents.filter((event) => event.planModuleId === currentModule)} onBack={() => setProgressDetailsOpen(false)} />;
   }
 
   return (
@@ -16873,7 +17431,7 @@ function Dashboard({
               <HomeDaySchedule
                 c={c}
                 date={calendarDate}
-                events={calendarEvents}
+                events={mergedCalendarEvents}
                 onEventClick={setEditingPlanEvent}
                 onSlotClick={createEvent}
                 onMoveEvent={(updated) => setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? updated : item))}
@@ -16881,7 +17439,7 @@ function Dashboard({
             ) : calendarView === "week" ? (
               <WeekCalendar
                 c={c}
-                events={calendarEvents}
+                events={mergedCalendarEvents}
                 weekStart={startOfWeek(calendarDate)}
                 daysCount={7}
                 weekdayLabels={weekdayLabels}
@@ -16892,7 +17450,7 @@ function Dashboard({
             ) : (
               <MonthCalendar
                 c={c}
-                events={calendarEvents}
+                events={mergedCalendarEvents}
                 monthDate={calendarDate}
                 weekdayLabels={weekdayLabels}
                 onDayClick={(key) => {
@@ -16900,6 +17458,17 @@ function Dashboard({
                   setCalendarView("day");
                 }}
                 onEventClick={setEditingPlanEvent}
+              />
+            )}
+            {shouldShowDailyPlanner && (
+              <CalendarDailyPlanner
+                c={c}
+                language={language}
+                todayEvents={todaysPlanEvents}
+                missedEvents={missedPlanEvents}
+                onSaveToday={saveTodaySchedule}
+                onResolveMissed={resolveMissedEvent}
+                onDismiss={() => setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { confirmed: true, confirmedAt: Date.now(), dismissed: true } }))}
               />
             )}
           </div>
@@ -16922,8 +17491,8 @@ function Dashboard({
             )}
           </div>
 
-          <div className="home-v2-rail-card">
-            <div className="home-v2-rail-title">{copy.moduleStatus}</div>
+          <div className="home-v2-rail-card home-v2-rail-card--clickable" role="button" tabIndex={0} onClick={() => setProgressDetailsOpen(true)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setProgressDetailsOpen(true); }}>
+            <div className="home-v2-rail-title">{copy.moduleStatus}<span className="home-v2-rail-link">{copy.viewAll} <Icon name="right" size={11} /></span></div>
             <div className="home-v2-progress-row"><span>{copy.lectures}</span><strong>{doneLectureCount}/{planLectures.length}</strong></div>
             <div className="home-v2-progress-track"><div className="home-v2-progress-fill" style={{ width: `${lectureFraction * 100}%` }} /></div>
             <div className="home-v2-progress-row"><span>{copy.examSets}</span><strong>{examSetDoneCount}/{examSetTotalCount}</strong></div>
@@ -16944,10 +17513,10 @@ function Dashboard({
               <div className="home-v2-upcoming-list">
                 {upcomingEvents.map((event) => (
                   <button key={event.id} type="button" className="home-v2-upcoming-item" onClick={() => setEditingPlanEvent(event)}>
-                    <span className="home-v2-upcoming-icon"><Icon name={event.type === "review" ? "check" : event.type === "exam" ? "flag" : "calendar"} size={12} /></span>
+                    <span className="home-v2-upcoming-check" role="checkbox" aria-checked="false" tabIndex={0} onClick={(domEvent) => { domEvent.stopPropagation(); togglePlanEventComplete(event); }} onKeyDown={(domEvent) => { if (domEvent.key === "Enter" || domEvent.key === " ") { domEvent.preventDefault(); domEvent.stopPropagation(); togglePlanEventComplete(event); } }}><Icon name="check" size={11} /></span>
                     <span style={{ minWidth: 0 }}>
                       <span className="home-v2-upcoming-title" style={{ display: "block" }}>{event.title}</span>
-                      <span className="home-v2-upcoming-meta" style={{ display: "block" }}>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : ""}</span>
+                      <span className="home-v2-upcoming-meta" style={{ display: "block" }}>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : " · Ikke placeret"}</span>
                     </span>
                   </button>
                 ))}
@@ -17021,53 +17590,19 @@ function Dashboard({
       </section>
 
       {editingPlanEvent && (
-        <Modal c={c} onClose={() => setEditingPlanEvent(null)}>
-          <div style={{ padding: 22 }}>
-            <div className="ui-section-heading">
-              <div>
-                <h2 className="ui-section-title">{editingPlanEvent.__new ? t.calendarAddEvent : t.calendarEditEvent}</h2>
-              </div>
-              <IconButton c={c} title={t.close} onClick={() => setEditingPlanEvent(null)}><Icon name="close" size={16} /></IconButton>
-            </div>
-
-            <div style={{ display: "grid", gap: 12 }}>
-              <label className="ui-field">
-                <span className="ui-field-label">{t.calendarEventTitle}</span>
-                <input className="ui-control" value={editingPlanEvent.title || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, title: event.target.value }))} placeholder={t.calendarEventTitlePlaceholder} autoFocus />
-              </label>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <label className="ui-field">
-                  <span className="ui-field-label">{t.calendarEventDate}</span>
-                  <input type="date" className="ui-control" value={editingPlanEvent.date || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, date: event.target.value }))} />
-                </label>
-                <label className="ui-field">
-                  <span className="ui-field-label">{t.calendarEventTime}</span>
-                  <input type="time" className="ui-control" value={editingPlanEvent.time || ""} onChange={(event) => setEditingPlanEvent((previous) => ({ ...previous, time: event.target.value }))} />
-                </label>
-              </div>
-
-              <div className="ui-field">
-                <span className="ui-field-label">{t.calendarEventType}</span>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-                  {[["exam", t.calendarTypeExam], ["study", t.calendarTypeStudy], ["review", t.calendarTypeReview], ["other", t.calendarTypeOther]].map(([value, label]) => (
-                    <button key={value} type="button" className="ui-choice-card" data-selected={editingPlanEvent.type === value ? "true" : "false"} onClick={() => setEditingPlanEvent((previous) => ({ ...previous, type: value }))} style={{ minHeight: 38, border: `1px solid ${editingPlanEvent.type === value ? c.blueBorder : c.border}`, borderRadius: 9, background: editingPlanEvent.type === value ? c.blueSoft : c.soft, color: editingPlanEvent.type === value ? c.blue : c.secondary, fontSize: 9.5, fontWeight: 750 }}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 18 }}>
-              <button type="button" className="ui-button ui-button--ghost" onClick={deleteEditingEvent} style={{ color: c.red }}>{editingPlanEvent.__new ? t.calendarCancel : t.calendarDelete}</button>
-              <div style={{ display: "flex", gap: 8 }}>
-                <SecondaryButton onClick={() => setEditingPlanEvent(null)}>{t.calendarCancel}</SecondaryButton>
-                <PrimaryButton onClick={saveEditingEvent}>{t.calendarSave}</PrimaryButton>
-              </div>
-            </div>
-          </div>
-        </Modal>
+        <CalendarEventEditor
+          c={c}
+          t={t}
+          language={language}
+          event={editingPlanEvent}
+          moduleName={currentModule}
+          lectures={planLectures}
+          exists={!editingPlanEvent.__new && calendarEvents.some((event) => event.id === editingPlanEvent.id)}
+          onChange={setEditingPlanEvent}
+          onSave={saveEditingEvent}
+          onDelete={deleteEditingEvent}
+          onClose={() => setEditingPlanEvent(null)}
+        />
       )}
     </div>
   );
@@ -26936,7 +27471,7 @@ function Sidebar({
       className="app-sidebar app-surface"
       aria-label={language === "en" ? "Primary navigation" : language === "ar" ? "التنقل الرئيسي" : "Primær navigation"}
       style={{
-        width: 224,
+        width: 238,
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -28950,7 +29485,7 @@ onNavigate={(target, options) => {
           <div
             className={notesOpen ? "notes-open" : ""}
             style={{
-              width: notesOpen ? 430 : 0,
+              width: notesOpen ? 385 : 0,
               height: "100%",
               flexShrink: 0,
               overflow: "hidden",
