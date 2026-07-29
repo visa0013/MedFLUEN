@@ -56,6 +56,8 @@ const STORAGE = {
   lectureProgress: "medlearn-lecture-progress",
   dashboardPreferences: "medlearn-dashboard-preferences",
   dashboardDayClose: "medlearn-dashboard-day-close",
+  fsrsSettings: "medlearn-fsrs-settings",
+  studyPlanDraft: "medlearn-study-plan-draft",
 };
 
 const LANGUAGES = [
@@ -1595,7 +1597,7 @@ function WeekCalendar({
               {isToday && nowTop >= 0 && nowTop <= totalHeight && <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>}
 
               {positioned.map(({ event, start, end, lane, laneCount }) => {
-                const tone = typeTone[event.type] || typeTone.other;
+                const tone = event.source === "fsrs-review" ? { color: "#7667d8", background: "rgba(118,103,216,.11)" } : (typeTone[event.type] || typeTone.other);
                 const top = ((start - startHour * 60) / 60) * hourHeight;
                 const height = Math.max(25, ((end - start) / 60) * hourHeight - 2);
                 if (top + height < 0 || top > totalHeight) return null;
@@ -1607,6 +1609,7 @@ function WeekCalendar({
                     draggable
                     className="calendar-week-event"
                     data-complete={event.completedAt ? "true" : "false"}
+                    data-source={event.source || "other"}
                     data-conflict={hasConflict ? "true" : "false"}
                     onDragStart={(domEvent) => beginDrag(domEvent, event.id)}
                     onDragEnd={() => setDragId(null)}
@@ -2047,6 +2050,198 @@ const SM2_MIN_EASE = 1.3;
 const SM2_MS_PER_MIN = 60 * 1000;
 const SM2_MS_PER_DAY = 24 * 60 * SM2_MS_PER_MIN;
 
+
+/* =============================================================================
+   OFFICIAL FSRS-6 RUNTIME — ts-fsrs 5.4.1
+   ---------------------------------------------------------------------------
+   Interval math and card-state transitions are delegated to the official
+   open-spaced-repetition TypeScript implementation used to build Anki-style
+   FSRS review flows. It is version-pinned and loaded as an ESM module at
+   runtime because this project currently ships as a single App.js file.
+
+   The older SM-2 implementation below remains only as a compatibility/offline
+   fallback for existing cards and for the brief moment before the module has
+   loaded. Once FSRS is available, all new ratings are committed by FSRS-6.
+   ========================================================================== */
+const FSRS_RUNTIME_VERSION = "ts-fsrs@5.4.1 / FSRS-6";
+const FSRS_ESM_URL = "https://cdn.jsdelivr.net/npm/ts-fsrs@5.4.1/+esm";
+const FSRS_DEFAULT_SETTINGS = Object.freeze({
+  requestRetention: 0.9,
+  maximumInterval: 36500,
+  enableFuzz: true,
+  enableShortTerm: true,
+  learningSteps: ["1m", "10m"],
+  relearningSteps: ["10m"],
+});
+let officialFsrsPromise = null;
+let officialFsrsModule = null;
+
+function loadOfficialFsrs() {
+  if (officialFsrsModule) return Promise.resolve(officialFsrsModule);
+  if (!officialFsrsPromise) {
+    officialFsrsPromise = import(/* webpackIgnore: true */ FSRS_ESM_URL)
+      .then((module) => {
+        officialFsrsModule = module;
+        return module;
+      })
+      .catch((error) => {
+        officialFsrsPromise = null;
+        throw new Error(`FSRS kunne ikke indlæses: ${error?.message || error}`);
+      });
+  }
+  return officialFsrsPromise;
+}
+
+function fsrsReadSettings() {
+  const stored = loadStorage(STORAGE.fsrsSettings, FSRS_DEFAULT_SETTINGS);
+  const retention = Number(stored?.requestRetention);
+  return {
+    requestRetention: Number.isFinite(retention) ? Math.max(.7, Math.min(.99, retention)) : .9,
+    maximumInterval: Math.max(1, Math.min(36500, Number(stored?.maximumInterval) || 36500)),
+    enableFuzz: stored?.enableFuzz !== false,
+    enableShortTerm: stored?.enableShortTerm !== false,
+    learningSteps: Array.isArray(stored?.learningSteps) && stored.learningSteps.length ? stored.learningSteps : ["1m", "10m"],
+    relearningSteps: Array.isArray(stored?.relearningSteps) && stored.relearningSteps.length ? stored.relearningSteps : ["10m"],
+  };
+}
+
+function fsrsSchedulerFromModule(module, override) {
+  const settings = { ...fsrsReadSettings(), ...(override || {}) };
+  return module.fsrs({
+    request_retention: settings.requestRetention,
+    maximum_interval: settings.maximumInterval,
+    enable_fuzz: settings.enableFuzz,
+    enable_short_term: settings.enableShortTerm,
+    learning_steps: settings.learningSteps,
+    relearning_steps: settings.relearningSteps,
+  });
+}
+
+function fsrsSerializeDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function fsrsSerializeCard(card) {
+  return {
+    ...card,
+    due: fsrsSerializeDate(card.due),
+    last_review: fsrsSerializeDate(card.last_review),
+  };
+}
+
+function fsrsSerializeLog(log) {
+  return {
+    ...log,
+    due: fsrsSerializeDate(log?.due),
+    review: fsrsSerializeDate(log?.review),
+  };
+}
+
+function fsrsReviveDate(value, fallback) {
+  const date = value ? new Date(value) : fallback;
+  return date instanceof Date && !Number.isNaN(date.getTime()) ? date : fallback;
+}
+
+function fsrsStateName(state) {
+  return ({ 0: "new", 1: "learning", 2: "review", 3: "relearning" })[Number(state)] || "new";
+}
+
+function fsrsReviveCard(storedCard, questionId, module, now = new Date()) {
+  const persisted = storedCard?.fsrs?.card;
+  if (persisted) {
+    return {
+      ...persisted,
+      due: fsrsReviveDate(persisted.due, now),
+      last_review: persisted.last_review ? fsrsReviveDate(persisted.last_review, null) : undefined,
+    };
+  }
+
+  const fresh = module.createEmptyCard(now);
+  if (!storedCard?.dueDate && !storedCard?.sm2) return fresh;
+
+  // A legacy SM-2 card has no complete FSRS review history. We preserve its
+  // due date and approximate its first memory state, then let FSRS take over.
+  const intervalDays = Math.max(0, Number(storedCard?.interval ?? storedCard?.sm2?.intervalDays) || 0);
+  const reps = Math.max(0, Number(storedCard?.repetitions ?? storedCard?.sm2?.repsCorrectInARow) || 0);
+  return {
+    ...fresh,
+    due: fsrsReviveDate(storedCard?.dueDate || storedCard?.sm2?.due, now),
+    stability: Math.max(.1, intervalDays || .1),
+    difficulty: 5,
+    elapsed_days: 0,
+    scheduled_days: Math.round(intervalDays),
+    reps,
+    lapses: Math.max(0, Number(storedCard?.sm2?.lapses) || 0),
+    state: reps > 0 ? module.State.Review : module.State.New,
+    last_review: storedCard?.sm2?.lastReviewedAt ? new Date(storedCard.sm2.lastReviewedAt) : undefined,
+  };
+}
+
+function fsrsResultToStored(result, previous, rating, questionId) {
+  const card = result.card;
+  const dueDate = fsrsSerializeDate(card.due);
+  const previousReviews = Array.isArray(previous?.fsrs?.reviews) ? previous.fsrs.reviews : [];
+  return {
+    interval: Math.max(0, Number(card.scheduled_days) || 0),
+    easeFactor: null,
+    repetitions: Math.max(0, Number(card.reps) || 0),
+    dueDate,
+    lastResult: rating !== SM2_RATING.AGAIN,
+    id: questionId,
+    fsrs: {
+      version: FSRS_RUNTIME_VERSION,
+      migration: previous?.fsrs?.migration || (previous?.sm2 ? "legacy-sm2-compat" : null),
+      card: fsrsSerializeCard(card),
+      reviews: [...previousReviews, fsrsSerializeLog(result.log)].slice(-500),
+      lastRating: rating,
+      updatedAt: Date.now(),
+    },
+  };
+}
+
+async function fsrsPreviewOfficial(storedCard, questionId, nowMs = Date.now()) {
+  const module = await loadOfficialFsrs();
+  const now = new Date(nowMs);
+  const scheduler = fsrsSchedulerFromModule(module);
+  const card = fsrsReviveCard(storedCard, questionId, module, now);
+  const preview = scheduler.repeat(card, now);
+  const ratingMap = {
+    [SM2_RATING.AGAIN]: module.Rating.Again,
+    [SM2_RATING.HARD]: module.Rating.Hard,
+    [SM2_RATING.GOOD]: module.Rating.Good,
+    [SM2_RATING.EASY]: module.Rating.Easy,
+  };
+  return Object.fromEntries(Object.entries(ratingMap).map(([localRating, officialRating]) => {
+    const item = preview[officialRating];
+    const due = item?.card?.due instanceof Date ? item.card.due : new Date(item?.card?.due || now);
+    return [Number(localRating), {
+      ...item,
+      dueAt: due.getTime(),
+      delayMs: Math.max(0, due.getTime() - nowMs),
+      newState: fsrsStateName(item?.card?.state),
+      newIntervalDays: Number(item?.card?.scheduled_days) || 0,
+      isLeech: false,
+    }];
+  }));
+}
+
+async function fsrsApplyOfficial(storedCard, rating, questionId, nowMs = Date.now()) {
+  const module = await loadOfficialFsrs();
+  const now = new Date(nowMs);
+  const scheduler = fsrsSchedulerFromModule(module);
+  const card = fsrsReviveCard(storedCard, questionId, module, now);
+  const officialRating = ({
+    [SM2_RATING.AGAIN]: module.Rating.Again,
+    [SM2_RATING.HARD]: module.Rating.Hard,
+    [SM2_RATING.GOOD]: module.Rating.Good,
+    [SM2_RATING.EASY]: module.Rating.Easy,
+  })[rating];
+  const result = scheduler.next(card, now, officialRating);
+  return fsrsResultToStored(result, storedCard, rating, questionId);
+}
+
 function sm2CreateNewCard(id, deckId = "default") {
   return {
     id,
@@ -2346,12 +2541,25 @@ function sm2ToLegacyShape(sm2Card) {
 }
 
 function sm2FromLegacyOrFresh(legacyOrSm2Card, questionId) {
+  if (legacyOrSm2Card?.fsrs?.card) {
+    const card = legacyOrSm2Card.fsrs.card;
+    return {
+      id: questionId,
+      state: fsrsStateName(card.state),
+      intervalDays: Number(card.scheduled_days) || 0,
+      ease: null,
+      repsCorrectInARow: Number(card.reps) || 0,
+      lapses: Number(card.lapses) || 0,
+      due: card.due ? new Date(card.due).getTime() : null,
+      lastReviewedAt: card.last_review ? new Date(card.last_review).getTime() : null,
+      isLeech: false,
+      reviewLog: legacyOrSm2Card.fsrs.reviews || [],
+    };
+  }
   if (legacyOrSm2Card && legacyOrSm2Card.sm2 && legacyOrSm2Card.sm2.state) {
     return legacyOrSm2Card.sm2;
   }
-  if (legacyOrSm2Card && legacyOrSm2Card.state) {
-    return legacyOrSm2Card;
-  }
+  if (legacyOrSm2Card && legacyOrSm2Card.state) return legacyOrSm2Card;
   return sm2CreateNewCard(questionId);
 }
 
@@ -2368,6 +2576,10 @@ function previewCardSM2(storedCard, rating, questionId, deckSettings = SM2_DEFAU
 
 function isDue(card) {
   if (!card) return true;
+  if (card?.fsrs?.card) {
+    const due = new Date(card.fsrs.card.due).getTime();
+    return Number.isFinite(due) ? due <= Date.now() : true;
+  }
   const sm2Card = sm2FromLegacyOrFresh(card, card.id || "unknown");
   if (sm2Card.state === SM2_CARD_STATE.SUSPENDED) return false;
   if (!card.dueDate) return true;
@@ -2376,6 +2588,11 @@ function isDue(card) {
 
 function cardStatus(card) {
   if (!card) return "new";
+  if (card?.fsrs?.card) {
+    const state = fsrsStateName(card.fsrs.card.state);
+    if (state === "learning" || state === "relearning") return state;
+    return isDue(card) ? "due" : "learned";
+  }
   const sm2Card = card.sm2;
   if (sm2Card) {
     if (sm2Card.state === SM2_CARD_STATE.SUSPENDED) return "suspended";
@@ -2440,159 +2657,119 @@ function SM2AnswerFooter({
   spacedData,
   setSpacedData,
   wrongChoiceSelected,
-  deckSettings,
   onRated,
 }) {
-  const settings = deckSettings || SM2_DEFAULT_DECK_SETTINGS;
   const [submitting, setSubmitting] = useState(false);
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState(null);
-  const [hintsOpen, setHintsOpen] = useState(false);
+  const [previews, setPreviews] = useState({});
+  const [engineState, setEngineState] = useState("loading");
   const inFlightRef = useRef(false);
-  const idemKeyRef = useRef(sm2MakeIdempotencyKey(questionId, Date.now()));
   const nowMsRef = useRef(Date.now());
-
-  const storedCard = (spacedData && spacedData[questionId]) || null;
+  const storedCard = spacedData?.[questionId] || null;
+  const suggestedDefault = wrongChoiceSelected ? SM2_RATING.AGAIN : SM2_RATING.GOOD;
 
   useEffect(() => {
+    let cancelled = false;
     nowMsRef.current = Date.now();
-    idemKeyRef.current = sm2MakeIdempotencyKey(questionId, nowMsRef.current);
     setSelected(null);
     setSubmitting(false);
     setError(null);
+    setEngineState("loading");
     inFlightRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questionId]);
-
-  const previews = {};
-  SM2_RATING_ORDER.forEach((r) => {
-    previews[r.key] = previewCardSM2(storedCard, r.key, questionId, settings, nowMsRef.current);
-  });
-
-  const suggestedDefault = wrongChoiceSelected ? SM2_RATING.AGAIN : SM2_RATING.GOOD;
-  const willBecomeLeech = !!(previews[SM2_RATING.AGAIN] && previews[SM2_RATING.AGAIN].isLeech);
+    fsrsPreviewOfficial(storedCard, questionId, nowMsRef.current)
+      .then((next) => {
+        if (cancelled) return;
+        setPreviews(next);
+        setEngineState("ready");
+      })
+      .catch((loadError) => {
+        if (cancelled) return;
+        // Offline fallback preserves the ability to answer, but makes it clear
+        // that the official FSRS engine was not available for this review.
+        const fallback = {};
+        SM2_RATING_ORDER.forEach((entry) => {
+          fallback[entry.key] = previewCardSM2(storedCard, entry.key, questionId, SM2_DEFAULT_DECK_SETTINGS, nowMsRef.current);
+        });
+        setPreviews(fallback);
+        setEngineState("fallback");
+        setError(`FSRS er offline. Midlertidig kompatibilitetsplan bruges. ${loadError?.message || ""}`.trim());
+      });
+    return () => { cancelled = true; };
+  }, [questionId, storedCard?.dueDate, storedCard?.fsrs?.updatedAt]);
 
   useEffect(() => {
-    function onKeyDown(e) {
-      if (submitting) return;
+    function onKeyDown(event) {
+      if (submitting || engineState === "loading") return;
       const map = { "1": SM2_RATING.AGAIN, "2": SM2_RATING.HARD, "3": SM2_RATING.GOOD, "4": SM2_RATING.EASY };
-      if (map[e.key] != null) {
-        e.preventDefault();
-        handleSelect(map[e.key]);
-      } else if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
+      if (map[event.key] != null) {
+        event.preventDefault();
+        handleSelect(map[event.key]);
+      } else if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
         handleSelect(SM2_RATING.GOOD);
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submitting, storedCard, settings, questionId]);
+  }, [submitting, engineState, storedCard, questionId]);
 
-  function handleSelect(rating) {
-    if (submitting || inFlightRef.current) return;
+  async function handleSelect(rating) {
+    if (submitting || inFlightRef.current || engineState === "loading") return;
     inFlightRef.current = true;
     setSubmitting(true);
     setSelected(rating);
     setError(null);
     try {
-      const nowMs = nowMsRef.current;
-      const updated = scheduleCardSM2(storedCard, rating, questionId, settings, nowMs);
-      // Persist before navigation: a second click, reload, or retry can never create a second review.
+      const updated = engineState === "ready"
+        ? await fsrsApplyOfficial(storedCard, rating, questionId, nowMsRef.current)
+        : scheduleCardSM2(storedCard, rating, questionId, SM2_DEFAULT_DECK_SETTINGS, nowMsRef.current);
       const persisted = { ...(spacedData || {}), [questionId]: updated };
       localStorage.setItem(STORAGE.spacedRepetition, JSON.stringify(persisted));
       window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.spacedRepetition } }));
       setSpacedData(persisted);
       onRated(updated, rating);
-    } catch (err) {
+    } catch (saveError) {
       setSubmitting(false);
       setSelected(null);
       inFlightRef.current = false;
-      setError("Kunne ikke gemme vurderingen. Prøv igen.");
-      // eslint-disable-next-line no-console
-      console.error("scheduleCardSM2 failed", err);
+      setError(`Kunne ikke gemme FSRS-vurderingen. ${saveError?.message || "Prøv igen."}`);
     }
   }
 
   return (
-    <div role="group" aria-label="Vurdér dit svar" style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-      {willBecomeLeech && (
-        <div
-          role="alert"
-          style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10,
-            background: c.redSoft, border: `1px solid ${c.red}55`, color: c.red, fontSize: 12, fontWeight: 700,
-          }}
-        >
-          <span aria-hidden="true">⚠️</span>
-          <span>Dette kort når leech-tærsklen ved Igen — det bliver markeret og suspenderet.</span>
+    <div className="fsrs-answer-footer" role="group" aria-label="Vurdér dit svar med FSRS">
+      <div className="fsrs-answer-heading">
+        <div>
+          <strong>FSRS repetition</strong>
+          <span>{engineState === "ready" ? "FSRS-6 intervalmotor" : engineState === "loading" ? "Indlæser intervalmotor…" : "Kompatibilitetstilstand"}</span>
         </div>
-      )}
-      {error && (
-        <div
-          role="alert"
-          style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10,
-            background: c.redSoft, border: `1px solid ${c.red}55`, color: c.red, fontSize: 12, fontWeight: 700,
-          }}
-        >
-          <span aria-hidden="true">⚠️</span>
-          <span style={{ flex: 1 }}>{error}</span>
-          <button
-            type="button"
-            onClick={() => selected != null && handleSelect(selected)}
-            style={{ fontWeight: 800, textDecoration: "underline", background: "none", border: "none", cursor: "pointer", color: c.red }}
-          >
-            Prøv igen
-          </button>
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
-        {SM2_RATING_ORDER.map((r) => {
-          const accent = sm2RatingVisual(c, r.key);
-          const preview = previews[r.key];
-          const isDefault = r.key === suggestedDefault;
-          const isSelected = selected === r.key;
+        <span className="fsrs-engine-pill">{engineState === "ready" ? "FSRS-6" : engineState === "loading" ? "…" : "Offline"}</span>
+      </div>
+      {error && <div className="fsrs-inline-warning" role="status">{error}</div>}
+      <div className="fsrs-rating-grid">
+        {SM2_RATING_ORDER.map((entry) => {
+          const preview = previews[entry.key];
+          const isDefault = entry.key === suggestedDefault;
+          const isSelected = selected === entry.key;
           return (
             <button
-              key={r.key}
+              key={entry.key}
               type="button"
-              disabled={submitting}
-              onClick={() => handleSelect(r.key)}
-              aria-keyshortcuts={r.shortcut}
-              aria-pressed={isSelected}
-              aria-label={`${r.label}, ${preview ? sm2FormatIntervalDa(preview.delayMs || 0) : ""}. ${r.hint}`}
-              title={r.hint}
-              style={{
-                display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "space-between",
-                gap: 8, minHeight: 70, padding: "10px", borderRadius: 11,
-                border: `1px solid ${isSelected || isDefault ? c.blueBorder : c.border}`,
-                background: isSelected || isDefault ? c.blueSoft : c.panel,
-                cursor: submitting ? "default" : "pointer",
-                opacity: submitting && !isSelected ? 0.45 : 1,
-                boxShadow: isSelected ? `0 0 0 2px ${c.ring}` : "none",
-                transform: "none",
-                transition: "border-color 120ms ease, background 120ms ease",
-              }}
+              disabled={submitting || engineState === "loading"}
+              onClick={() => handleSelect(entry.key)}
+              data-rating={entry.key}
+              data-default={isDefault ? "true" : "false"}
+              data-selected={isSelected ? "true" : "false"}
+              aria-keyshortcuts={entry.shortcut}
             >
-              <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0, fontSize: 12, fontWeight: 800, color: c.text }}>
-                  <span aria-hidden="true" style={{ display: "inline-grid", placeItems: "center", width: 22, height: 22, flexShrink: 0, borderRadius: 7, fontSize: 12, background: c.blueSoft, color: c.blue, border: `1px solid ${c.blueBorder}` }}>{accent.icon}</span>
-                  <span>{r.label}</span>
-                </span>
-                <kbd style={{ minWidth: 18, padding: "2px 4px", borderRadius: 5, border: `1px solid ${c.border}`, color: c.secondary, background: c.panel, fontSize: 9, fontFamily: "inherit", fontWeight: 800, textAlign: "center" }}>{r.shortcut}</kbd>
-              </span>
-              <span style={{ display: "flex", alignItems: "end", justifyContent: "space-between", gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 850, letterSpacing: "-.01em", color: c.blue }}>{preview ? sm2FormatIntervalDa(preview.delayMs || 0) : "…"}</span>
-                <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: 99, background: c.blue, opacity: isDefault ? 1 : .32 }} />
-              </span>
+              <span className="fsrs-rating-top"><b>{entry.label}</b><kbd>{entry.shortcut}</kbd></span>
+              <span className="fsrs-rating-interval">{preview ? sm2FormatIntervalDa(preview.delayMs || 0) : "…"}</span>
+              <small>{entry.hint.replace(" = ", ": ")}</small>
             </button>
           );
         })}
       </div>
-
-
     </div>
   );
 }
@@ -2702,65 +2879,41 @@ function sm2NextDueQuestionIndex(pool, spacedData, answered, currentIndex, nowMs
   return unseen >= 0 ? unseen : null;
 }
 
-function buildQuestionPool(
-  scope,
-  spacedData,
-  extraQuestions,
-  buried
-) {
-  const allQuestions = getFullQuestionBank(
-    extraQuestions
-  ).filter(
-    (q) => !(buried && buried[q.id])
-  );
+function buildQuestionPool(scope, spacedData, extraQuestions, buried) {
+  const allQuestions = getFullQuestionBank(extraQuestions).filter((question) => !(buried && buried[question.id]));
   if (!scope) return allQuestions;
-  const { moduleId, groupFilter, lectureFilter, mode, contentType } = scope;
-  let pool = allQuestions.filter((q) => q.moduleId === moduleId);
+  const { moduleId, groupFilter, lectureFilter, mode, contentType, questionIds } = scope;
+  const exactIds = Array.isArray(questionIds) && questionIds.length ? new Set(questionIds) : null;
+  let pool = exactIds
+    ? allQuestions.filter((question) => exactIds.has(question.id))
+    : allQuestions.filter((question) => question.moduleId === moduleId);
 
-  if (contentType === "examSet") {
-    pool = pool.filter((q) => !q.lectureId);
-  } else if (contentType === "lectures") {
-    pool = pool.filter((q) => Boolean(q.lectureId));
+  if (!exactIds) {
+    if (contentType === "examSet") pool = pool.filter((question) => !question.lectureId);
+    else if (contentType === "lectures") pool = pool.filter((question) => Boolean(question.lectureId));
+
+    if (lectureFilter) pool = pool.filter((question) => question.lectureId === lectureFilter);
+    else if (groupFilter) {
+      const idsInGroup = (MODULE_LECTURES[moduleId] || []).filter((lecture) => lecture.group === groupFilter).map((lecture) => lecture.id);
+      pool = pool.filter((question) => idsInGroup.includes(question.lectureId));
+    }
+    if (!pool.length && !contentType) pool = allQuestions.filter((question) => question.moduleId === moduleId);
   }
 
-  if (lectureFilter) {
-    pool = pool.filter((q) => q.lectureId === lectureFilter);
-  } else if (groupFilter) {
-    const idsInGroup = (MODULE_LECTURES[moduleId] || [])
-      .filter((l) => l.group === groupFilter)
-      .map((l) => l.id);
-    pool = pool.filter((q) => idsInGroup.includes(q.lectureId));
-  }
-
-  if (pool.length === 0 && !contentType) pool = allQuestions.filter((q) => q.moduleId === moduleId);
-  if (pool.length === 0 && !contentType) pool = allQuestions;
-
-  // Keep same-day learning/relearning steps in this active MCQ queue even while
-  // their precise minute due time is pending. A card leaves only when its planned
-  // due time is tomorrow or later; it then returns on that due day.
-  pool = pool.filter((q) => sm2IsInTodayQueue(spacedData[q.id]));
-
-  if (mode === "due") {
-    // Minute learning steps are part of today's active queue; future day reviews are not.
-    const duePool = pool.filter((q) => {
-      const card = spacedData[q.id];
-      const state = sm2FromLegacyOrFresh(card, q.id).state;
+  pool = pool.filter((question) => sm2IsInTodayQueue(spacedData[question.id]));
+  if (mode === "due" || exactIds) {
+    pool = pool.filter((question) => {
+      const card = spacedData[question.id];
+      if (!card) return false;
+      const state = sm2FromLegacyOrFresh(card, question.id).state;
       return state === SM2_CARD_STATE.LEARNING || state === SM2_CARD_STATE.RELEARNING || isDue(card);
     });
-    // "Kun due" must be genuinely empty when no cards are due; do not silently
-    // switch to a different set. The user can choose "Alle" for new cards.
-    pool = duePool;
   }
 
   return pool
-    .map((q) => ({
-      q,
-      due: spacedData[q.id] && spacedData[q.id].dueDate
-        ? new Date(spacedData[q.id].dueDate).getTime()
-        : 0,
-    }))
-    .sort((a, b) => sm2QueuePriority(spacedData[a.q.id]) - sm2QueuePriority(spacedData[b.q.id]) || a.due - b.due)
-    .map((item) => item.q);
+    .map((question) => ({ question, due: spacedData[question.id]?.dueDate ? new Date(spacedData[question.id].dueDate).getTime() : 0 }))
+    .sort((a, b) => sm2QueuePriority(spacedData[a.question.id]) - sm2QueuePriority(spacedData[b.question.id]) || a.due - b.due)
+    .map((item) => item.question);
 }
 
 const DR_BYTE_STOPWORDS = {
@@ -10558,6 +10711,184 @@ select.ui-control {
 .study-plan-duration-note { margin: -8px 0 18px; padding: 10px 12px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 10.5px; line-height: 1.55; }
 @media (max-width: 760px) { .calendar-week-unscheduled-grid { min-width: max(100%, calc(64px + var(--calendar-days) * 148px)); grid-template-columns: 64px repeat(var(--calendar-days), minmax(148px, 1fr)); } .daily-planner-event-row { grid-template-columns: 8px minmax(0,1fr) !important; } .daily-planner-event-row label { grid-column: 2; } .calendar-quick-two-cols { grid-template-columns: 1fr; } }
 
+
+
+/* ============================================================
+   SEGMENT 4.0 — PHASED STUDY PLAN + FSRS CALENDAR QUEUE
+   ============================================================ */
+.study-plan-v4 { max-width: 1280px; margin: 0 auto; padding-bottom: 42px; color: var(--ui-text); }
+.study-plan-v4-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+.study-plan-v4-header > div:first-child { min-width: 0; }
+.study-plan-v4-header span { color: var(--ui-blue); font-size: 9px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.study-plan-v4-header h1 { margin: 5px 0 0; font-size: clamp(25px,3vw,34px); font-weight: 900; letter-spacing: -.045em; }
+.study-plan-v4-header p { margin: 7px 0 0; color: var(--ui-secondary); font-size: 12px; font-weight: 620; }
+.study-plan-v4-active-pill { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid var(--ui-green-border); border-radius: 999px; background: var(--ui-green-soft); color: var(--ui-green) !important; font-size: 10px !important; letter-spacing: 0 !important; text-transform: none !important; }
+.study-plan-v4-active-pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--ui-green); box-shadow: 0 0 0 4px color-mix(in srgb,var(--ui-green) 13%,transparent); }
+.study-plan-v4-shell { display: grid; grid-template-columns: 238px minmax(0,1fr); min-height: 680px; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 20px; background: var(--ui-panel); box-shadow: var(--ui-shadow); }
+.study-plan-v4-steps { display: flex; flex-direction: column; gap: 4px; padding: 18px 12px; border-inline-end: 1px solid var(--ui-border); background: color-mix(in srgb,var(--ui-soft) 76%,var(--ui-panel)); }
+.study-plan-v4-steps button { width: 100%; min-height: 58px; display: grid; grid-template-columns: 30px minmax(0,1fr); align-items: center; gap: 10px; padding: 8px 9px; border: 0; border-radius: 11px; background: transparent; color: var(--ui-secondary); text-align: start; }
+.study-plan-v4-steps button:hover { background: var(--ui-panel); }
+.study-plan-v4-steps button[data-active="true"] { background: var(--ui-panel); color: var(--ui-text); box-shadow: var(--ui-shadow-sm); }
+.study-plan-v4-steps button > span { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--ui-border-strong); border-radius: 9px; background: var(--ui-panel); color: var(--ui-muted); font-size: 10px; font-weight: 850; }
+.study-plan-v4-steps button[data-active="true"] > span { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.study-plan-v4-steps button[data-complete="true"] > span { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.study-plan-v4-steps button div { min-width: 0; display: grid; gap: 3px; }
+.study-plan-v4-steps strong { color: inherit; font-size: 11px; font-weight: 820; }
+.study-plan-v4-steps small { overflow: hidden; color: var(--ui-muted); font-size: 8.5px; font-weight: 620; text-overflow: ellipsis; white-space: nowrap; }
+.study-plan-v4-main { min-width: 0; display: flex; flex-direction: column; }
+.study-plan-v4-step { flex: 1; padding: 24px; animation: studyPlanStepIn 260ms cubic-bezier(.16,1,.3,1) both; }
+.study-plan-v4-step[data-direction="-1"] { animation-name: studyPlanStepBack; }
+@keyframes studyPlanStepIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes studyPlanStepBack { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+.study-plan-v4-grid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(300px,.75fr); gap: 16px; align-items: start; }
+.study-plan-v4-card { min-width: 0; padding: 18px; border: 1px solid var(--ui-border); border-radius: 15px; background: var(--ui-panel); box-shadow: var(--ui-shadow-sm); }
+.study-plan-v4-card h2 { margin: 0; font-size: 14px; font-weight: 860; letter-spacing: -.02em; }
+.study-plan-v4-card > p, .study-plan-v4-card-heading p { margin: 6px 0 16px; color: var(--ui-secondary); font-size: 10.5px; font-weight: 610; line-height: 1.55; }
+.study-plan-v4-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.study-plan-v4-card-heading > span { flex-shrink: 0; padding: 5px 8px; border-radius: 999px; background: var(--ui-blue-soft); color: var(--ui-blue); font-size: 9px; font-weight: 850; }
+.study-plan-v4-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; }
+.study-plan-v4-fields label, .study-plan-v4-inline-field, .study-plan-v4-step-row label { display: grid; gap: 6px; }
+.study-plan-v4-fields label > span, .study-plan-v4-inline-field > span, .study-plan-v4-step-row label > span { color: var(--ui-secondary); font-size: 9.5px; font-weight: 760; }
+.study-plan-v4-phase-card { min-height: 100%; }
+.study-plan-v4-phases { position: relative; display: grid; gap: 7px; }
+.study-plan-v4-phases > div { min-height: 49px; display: grid; grid-template-columns: 5px minmax(0,1fr); gap: 10px; align-items: stretch; padding: 8px 10px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-soft); }
+.study-plan-v4-phases i { border-radius: 99px; background: var(--phase-tone); }
+.study-plan-v4-phases span { display: grid; align-content: center; gap: 3px; }
+.study-plan-v4-phases strong { font-size: 10.5px; font-weight: 820; }
+.study-plan-v4-phases small { color: var(--ui-muted); font-size: 8.5px; font-weight: 650; }
+.study-plan-v4-lecture-list { max-height: 500px; overflow-y: auto; display: grid; gap: 13px; padding-inline-end: 3px; }
+.study-plan-v4-lecture-group { display: grid; gap: 5px; }
+.study-plan-v4-lecture-group h3 { margin: 0 0 2px; color: var(--ui-muted); font-size: 8.5px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.study-plan-v4-lecture-row { display: grid; grid-template-columns: 27px minmax(0,1fr) 82px auto 28px; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); opacity: .62; transition: border-color 150ms ease, background 150ms ease, transform 150ms var(--ui-ease); }
+.study-plan-v4-lecture-row:hover { border-color: var(--ui-border-strong); transform: translateY(-1px); }
+.study-plan-v4-lecture-row[data-included="true"] { background: var(--ui-panel); opacity: 1; }
+.study-plan-v4-check { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid var(--ui-border-strong); border-radius: 8px; background: var(--ui-panel); color: var(--ui-blue); font-size: 11px; font-weight: 900; }
+.study-plan-v4-lecture-row > div { min-width: 0; display: grid; gap: 2px; }
+.study-plan-v4-lecture-row strong { overflow: hidden; font-size: 10px; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
+.study-plan-v4-lecture-row small { color: var(--ui-muted); font-size: 8px; }
+.study-plan-v4-lecture-row label { display: flex; align-items: center; gap: 5px; color: var(--ui-secondary); font-size: 8.5px; font-weight: 700; }
+.study-plan-v4-difficulty { width: 82px; height: 29px; padding: 0 7px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 8.5px; font-weight: 750; }
+.study-plan-v4-more { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ui-muted); }
+.study-plan-v4-more:hover { border-color: var(--ui-border); background: var(--ui-soft); color: var(--ui-text); }
+.study-plan-v4-reserve { display: grid; gap: 7px; margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--ui-border); }
+.study-plan-v4-reserve > span { display: flex; justify-content: space-between; color: var(--ui-secondary); font-size: 9.5px; font-weight: 750; }
+.study-plan-v4-reserve strong { color: #7667d8; }
+.study-plan-v4-reserve input { accent-color: #7667d8; }
+.study-plan-v4-reserve small { color: var(--ui-muted); font-size: 8.5px; line-height: 1.45; }
+.study-plan-v4-context { position: fixed; z-index: 2600; width: 220px; display: grid; gap: 4px; padding: 7px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); animation: uiModalIn 140ms var(--ui-ease) both; }
+.study-plan-v4-context > strong { padding: 7px 8px; overflow: hidden; border-bottom: 1px solid var(--ui-border); color: var(--ui-text); font-size: 9.5px; text-overflow: ellipsis; white-space: nowrap; }
+.study-plan-v4-context > span { padding: 5px 8px 1px; color: var(--ui-muted); font-size: 7.5px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.study-plan-v4-context > button { min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ui-secondary); text-align: start; font-size: 9px; font-weight: 720; }
+.study-plan-v4-context > button:hover { background: var(--ui-soft); color: var(--ui-text); }
+.study-plan-v4-context > div { display: grid; grid-template-columns: repeat(3,1fr); gap: 4px; }
+.study-plan-v4-context > div button { min-height: 29px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 8px; font-weight: 750; }
+.study-plan-v4-context > div button[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.study-plan-v4-activate { display: grid; gap: 14px; }
+.study-plan-v4-activate-hero { background: linear-gradient(145deg,color-mix(in srgb,var(--ui-blue) 5%,var(--ui-panel)),var(--ui-panel)); }
+.study-plan-v4-activate-hero h2 { margin: 9px 0 5px; font-size: 21px; letter-spacing: -.035em; }
+.study-plan-v4-activate-hero > p { max-width: 720px; margin-bottom: 14px; }
+.study-plan-v4-activate-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; }
+.study-plan-v4-activate-stats span { display: grid; gap: 3px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 8.5px; }
+.study-plan-v4-activate-stats b { color: var(--ui-text); font-size: 15px; }
+.study-plan-v4-confirm-list { display: grid; gap: 7px; margin-top: 11px; }
+.study-plan-v4-confirm-list > span { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 9px; align-items: center; padding: 9px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); color: var(--ui-blue); }
+.study-plan-v4-confirm-list i { display: grid; gap: 2px; font-style: normal; }
+.study-plan-v4-confirm-list strong { color: var(--ui-text); font-size: 9.5px; }
+.study-plan-v4-confirm-list small { color: var(--ui-muted); font-size: 8.5px; }
+.study-plan-v4-fsrs-proof { display: grid; gap: 5px; margin-top: 12px; padding: 12px; border: 1px solid color-mix(in srgb,#7667d8 25%,var(--ui-border)); border-radius: 11px; background: color-mix(in srgb,#7667d8 6%,var(--ui-panel)); }
+.study-plan-v4-fsrs-proof strong { color: #7667d8; font-size: 10px; }
+.study-plan-v4-fsrs-proof span { color: var(--ui-text); font-size: 9px; font-weight: 750; }
+.study-plan-v4-fsrs-proof small { color: var(--ui-muted); font-size: 8px; line-height: 1.45; }
+.study-plan-v4-note { margin-top: 12px; padding: 9px 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 9.5px; line-height: 1.5; }
+.study-plan-v4-week-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 7px; margin-bottom: 14px; }
+.study-plan-v4-week-grid label { display: grid; gap: 5px; padding: 9px 6px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); text-align: center; }
+.study-plan-v4-week-grid span { color: var(--ui-secondary); font-size: 8.5px; font-weight: 800; }
+.study-plan-v4-week-grid input { width: 100%; height: 34px; border: 1px solid var(--ui-border-strong); border-radius: 8px; background: var(--ui-panel); color: var(--ui-text); text-align: center; font-size: 11px; font-weight: 800; }
+.study-plan-v4-week-grid small { color: var(--ui-muted); font-size: 7.5px; }
+.study-plan-v4-inline-field { grid-template-columns: minmax(0,1fr) 90px; align-items: center; }
+.study-plan-v4-add-date { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+.study-plan-v4-date-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.study-plan-v4-date-chips button { min-height: 28px; padding: 0 9px; border: 1px solid var(--ui-border); border-radius: 999px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 8.5px; font-weight: 700; }
+.study-plan-v4-date-chips > span { color: var(--ui-muted); font-size: 9.5px; }
+.study-plan-v4-choice-list { display: grid; gap: 8px; }
+.study-plan-v4-choice-list > label { min-height: 58px; display: grid; grid-template-columns: minmax(0,1fr) minmax(120px,.55fr); align-items: center; gap: 12px; padding: 9px 10px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); }
+.study-plan-v4-choice-list label > span { display: grid; gap: 3px; }
+.study-plan-v4-choice-list strong { font-size: 10px; font-weight: 800; }
+.study-plan-v4-choice-list small { color: var(--ui-muted); font-size: 8.5px; }
+.study-plan-v4-choice-list input[type="checkbox"] { width: 18px; height: 18px; justify-self: end; accent-color: var(--ui-blue); }
+.study-plan-v4-fsrs-card { border-color: color-mix(in srgb,#7667d8 28%,var(--ui-border)); background: linear-gradient(180deg,color-mix(in srgb,#7667d8 5%,var(--ui-panel)),var(--ui-panel)); }
+.study-plan-v4-retention { display: grid; gap: 8px; margin-top: 10px; }
+.study-plan-v4-retention > span { display: flex; justify-content: space-between; color: var(--ui-secondary); font-size: 10px; font-weight: 750; }
+.study-plan-v4-retention strong { color: #7667d8; font-size: 13px; }
+.study-plan-v4-retention input { accent-color: #7667d8; }
+.study-plan-v4-retention small { color: var(--ui-muted); font-size: 8.5px; }
+.study-plan-v4-step-row { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 14px; }
+.study-plan-v4-preview { display: grid; gap: 14px; }
+.study-plan-v4-preview-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 2px 2px 5px; }
+.study-plan-v4-preview-top h2 { margin: 7px 0 4px; font-size: 20px; font-weight: 880; letter-spacing: -.035em; }
+.study-plan-v4-preview-top p { margin: 0; color: var(--ui-secondary); font-size: 10.5px; }
+.study-plan-v4-status { display: inline-flex; padding: 5px 8px; border-radius: 999px; font-size: 8.5px; font-weight: 850; }
+.study-plan-v4-status[data-status="realistic"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.study-plan-v4-status[data-status="demanding"] { background: color-mix(in srgb,#d59a3c 13%,var(--ui-panel)); color: #a06a1f; }
+.study-plan-v4-status[data-status="unrealistic"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.study-plan-v4-capacity { min-width: 150px; display: grid; gap: 2px; padding: 11px 12px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-soft); }
+.study-plan-v4-capacity strong { font-size: 18px; font-weight: 900; }
+.study-plan-v4-capacity span, .study-plan-v4-capacity small { color: var(--ui-muted); font-size: 8px; font-weight: 700; }
+.study-plan-v4-week-bars { display: grid; gap: 8px; }
+.study-plan-v4-week-bars > div { display: grid; grid-template-columns: 65px minmax(0,1fr) 42px; align-items: center; gap: 9px; }
+.study-plan-v4-week-bars span, .study-plan-v4-week-bars strong { color: var(--ui-secondary); font-size: 8.5px; font-weight: 750; }
+.study-plan-v4-week-bars > div > div { height: 6px; overflow: hidden; border-radius: 99px; background: var(--ui-border); }
+.study-plan-v4-week-bars i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--ui-blue),#7667d8); }
+.study-plan-v4-issues { display: grid; gap: 6px; }
+.study-plan-v4-issues > div { display: flex; align-items: flex-start; gap: 8px; padding: 8px 9px; border: 1px solid color-mix(in srgb,#d59a3c 28%,var(--ui-border)); border-radius: 9px; background: color-mix(in srgb,#d59a3c 7%,var(--ui-panel)); color: var(--ui-secondary); font-size: 9.5px; line-height: 1.45; }
+.study-plan-v4-success { display: flex; align-items: center; gap: 8px; padding: 9px; border-radius: 9px; background: var(--ui-green-soft); color: var(--ui-green); font-size: 10px; font-weight: 750; }
+.study-plan-v4-suggestions { display: grid; gap: 4px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ui-border); }
+.study-plan-v4-suggestions strong { font-size: 9.5px; }
+.study-plan-v4-suggestions span { color: var(--ui-muted); font-size: 9px; line-height: 1.5; }
+.study-plan-v4-change-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.study-plan-v4-change-grid span { display: flex; align-items: baseline; gap: 5px; padding: 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 8.5px; }
+.study-plan-v4-change-grid b { color: var(--ui-text); font-size: 12px; }
+.study-plan-v4-footer { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-top: 1px solid var(--ui-border); background: color-mix(in srgb,var(--ui-panel) 94%,transparent); }
+.study-plan-v4-footer > div { display: flex; align-items: center; gap: 8px; }
+.study-plan-v4-saved { color: var(--ui-green); font-size: 9.5px; font-weight: 750; }
+.study-plan-v4-modal { position: fixed; inset: 0; z-index: 2400; display: grid; place-items: center; padding: 20px; background: var(--ui-overlay); }
+.study-plan-v4-modal > div { width: min(430px,100%); padding: 20px; border: 1px solid var(--ui-border); border-radius: 16px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); }
+.study-plan-v4-modal h2 { margin: 0; font-size: 16px; }
+.study-plan-v4-modal p { color: var(--ui-secondary); font-size: 10px; line-height: 1.55; }
+.study-plan-v4-modal > div > div { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.fsrs-answer-footer { display: grid; gap: 9px; margin-bottom: 16px; }
+.fsrs-answer-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fsrs-answer-heading > div { display: grid; gap: 2px; }
+.fsrs-answer-heading strong { font-size: 11px; font-weight: 830; }
+.fsrs-answer-heading span { color: var(--ui-muted); font-size: 8.5px; }
+.fsrs-engine-pill { padding: 4px 7px; border-radius: 999px; background: color-mix(in srgb,#7667d8 12%,var(--ui-panel)); color: #7667d8 !important; font-size: 8px !important; font-weight: 850; }
+.fsrs-inline-warning { padding: 7px 9px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 8.5px; line-height: 1.45; }
+.fsrs-rating-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; }
+.fsrs-rating-grid button { min-height: 70px; display: grid; align-content: space-between; gap: 5px; padding: 9px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); color: var(--ui-text); text-align: start; }
+.fsrs-rating-grid button:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--ui-border-strong); box-shadow: var(--ui-shadow-sm); }
+.fsrs-rating-grid button[data-default="true"] { border-color: color-mix(in srgb,#7667d8 35%,var(--ui-border)); background: color-mix(in srgb,#7667d8 6%,var(--ui-panel)); }
+.fsrs-rating-grid button[data-selected="true"] { box-shadow: 0 0 0 3px color-mix(in srgb,#7667d8 16%,transparent); }
+.fsrs-rating-top { display: flex; justify-content: space-between; align-items: center; }
+.fsrs-rating-top b { font-size: 10px; }
+.fsrs-rating-top kbd { padding: 2px 4px; border: 1px solid var(--ui-border); border-radius: 5px; background: var(--ui-soft); color: var(--ui-muted); font-family: inherit; font-size: 7.5px; }
+.fsrs-rating-interval { color: #7667d8; font-size: 12px; font-weight: 880; }
+.fsrs-rating-grid small { color: var(--ui-muted); font-size: 7.5px; line-height: 1.25; }
+.home-day-fsrs-queue { grid-column: 1 / -1; display: grid; grid-template-columns: 210px minmax(0,1fr); gap: 10px; align-items: center; padding: 9px 11px; border-bottom: 1px solid color-mix(in srgb,#7667d8 22%,var(--ui-border)); background: color-mix(in srgb,#7667d8 5%,var(--ui-panel)); }
+.home-day-fsrs-queue > div:first-child { display: grid; gap: 2px; }
+.home-day-fsrs-queue > div:first-child span { color: #7667d8; font-size: 8px; font-weight: 880; text-transform: uppercase; letter-spacing: .06em; }
+.home-day-fsrs-queue > div:first-child strong { font-size: 10px; }
+.home-day-fsrs-queue > div:first-child small { color: var(--ui-muted); font-size: 8px; }
+.home-day-fsrs-queue > div:last-child { min-width: 0; display: flex; gap: 6px; overflow-x: auto; }
+.home-day-fsrs-item { display: inline-flex; align-items: center; gap: 4px; }
+.home-day-fsrs-chip { max-width: 220px; height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid color-mix(in srgb,#7667d8 28%,var(--ui-border)); border-radius: 7px; background: var(--ui-panel); color: var(--ui-text); }
+.home-day-fsrs-chip strong { color: #7667d8; font-size: 8px; }
+.home-day-fsrs-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8.5px; font-weight: 750; }
+.home-day-fsrs-start { height: 30px; padding: 0 9px; border: 0; border-radius: 7px; background: #7667d8; color: #fff; font-size: 8px; font-weight: 820; }
+.home-day-event[data-source="fsrs-review"], .calendar-week-event[data-source="fsrs-review"] { border-inline-start-color: #7667d8 !important; }
+@media (max-width: 950px) { .study-plan-v4-shell { grid-template-columns: 1fr; } .study-plan-v4-steps { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); border-inline-end: 0; border-bottom: 1px solid var(--ui-border); overflow-x: auto; } .study-plan-v4-steps button { min-width: 105px; grid-template-columns: 25px minmax(0,1fr); } .study-plan-v4-steps button > span { width: 24px; height: 24px; } .study-plan-v4-steps small { display: none; } }
+@media (max-width: 760px) { .study-plan-v4-grid { grid-template-columns: 1fr; } .study-plan-v4-step { padding: 15px; } .study-plan-v4-fields, .study-plan-v4-step-row { grid-template-columns: 1fr; } .study-plan-v4-week-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } .study-plan-v4-lecture-row { grid-template-columns: 27px minmax(0,1fr) 76px 28px; } .study-plan-v4-lecture-row label { grid-column: 2 / 4; } .study-plan-v4-activate-stats { grid-template-columns: repeat(2,minmax(0,1fr)); } .study-plan-v4-footer { align-items: stretch; flex-direction: column-reverse; } .study-plan-v4-footer > div { justify-content: space-between; } .fsrs-rating-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .home-day-fsrs-queue { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .study-plan-v4-step { animation: none !important; } .fsrs-rating-grid button { transition: none !important; } }
+
     `}
 
 </style>
@@ -13138,135 +13469,241 @@ function CalendarEventEditor({
   );
 }
 
-function buildStudyPlanCalendarBundle({
-  moduleName,
-  plan,
-  lectures,
-  questionTotal = 0,
-  fromDate = new Date(),
-}) {
-  if (!plan?.examDate || !moduleName) return { events: [], metadata: {} };
+function studyPlanDate(value) {
+  const date = value instanceof Date ? new Date(value) : new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
 
-  const start = new Date(fromDate);
-  start.setHours(0, 0, 0, 0);
-  const exam = new Date(`${plan.examDate}T00:00:00`);
-  const days = Math.max(0, Math.ceil((exam - start) / 86400000));
-  if (days <= 0) return { events: [], metadata: {} };
+function studyPlanDateKey(value) {
+  const date = studyPlanDate(value);
+  return date ? dateKey(date.getFullYear(), date.getMonth(), date.getDate()) : "";
+}
 
+function studyPlanDaysBetween(startValue, endValue) {
+  const start = studyPlanDate(startValue);
+  const end = studyPlanDate(endValue);
+  if (!start || !end) return 0;
+  return Math.max(0, Math.round((end - start) / 86400000));
+}
+
+function studyPlanLectureMinutes(lecture, difficulty) {
+  const base = difficulty === "hard" ? 90 : difficulty === "easy" ? 45 : 60;
+  const parts = Math.max(1, Number(lecture?.parts) || 1);
+  return base + Math.max(0, parts - 1) * 25;
+}
+
+function studyPlanPhaseTone(phase) {
+  return ({ lecture: "#2f6fec", consolidation: "#7468d6", exam: "#b87a2c", targeted: "#2f9470", buffer: "#7e8796" })[phase] || "#7e8796";
+}
+
+function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Date() }) {
+  const today = studyPlanDate(fromDate);
+  const exam = studyPlanDate(plan?.examDate);
+  if (!today || !exam || exam <= today) return { valid: false, realism: "unrealistic", issues: ["Eksamensdatoen skal ligge i fremtiden."], phases: [], assignments: [], weeklyLoads: [], unassigned: [], lectureRequired: 0, lectureCapacity: 0, consolidationRequired: 0, consolidationCapacity: 0, examRequired: 0, examCapacity: 0, targetedRequired: 0, targetedCapacity: 0, fsrsReserveMinutes: 0, requiredTotal: 0, capacityTotal: 0, pendingCount: 0, examSetCount: 0, bufferDays: 0 };
+
+  const bufferDays = Math.max(1, Math.min(14, Number(plan.bufferDays) || 4));
+  const bufferStart = addDays(exam, -bufferDays);
+  const lectureDeadline = studyPlanDate(plan.lectureDeadline) || addDays(bufferStart, -21);
+  const examSetStart = studyPlanDate(plan.examSetStartDate) || addDays(bufferStart, -14);
+  const lectureEnd = lectureDeadline;
+  const consolidationStart = addDays(lectureEnd, 1);
+  const consolidationEnd = addDays(examSetStart, -1);
+  const examWindowStart = examSetStart;
+  const examWindowEnd = addDays(bufferStart, -1);
+  const examWindowSpan = examWindowEnd >= examWindowStart ? Math.floor((examWindowEnd - examWindowStart) / 86400000) + 1 : 0;
+  const targetedSpan = Math.max(1, Math.floor(examWindowSpan * .35));
+  const targetedStart = examWindowSpan > 1 ? addDays(examWindowEnd, -(targetedSpan - 1)) : examWindowStart;
+  const examRunEnd = addDays(targetedStart, -1);
   const excluded = new Set(plan.excludedDates || []);
-  const doneIds = new Set(plan.doneLectureIds || []);
-  const pendingLectures = (lectures || []).filter(
-    (lecture) => !doneIds.has(lecture.id)
-  );
-  const dates = Array.from({ length: days }, (_, index) => addDays(start, index));
-  const available = dates
-    .map((date) => ({
-      date,
-      key: dateKey(date.getFullYear(), date.getMonth(), date.getDate()),
-    }))
-    .filter((item) => !excluded.has(item.key));
+  const done = new Set(plan.doneLectureIds || []);
+  const included = new Set(Array.isArray(plan.includedLectureIds) && plan.includedLectureIds.length ? plan.includedLectureIds : (lectures || []).map((lecture) => lecture.id));
+  const pending = (lectures || []).filter((lecture) => included.has(lecture.id) && !done.has(lecture.id));
+  const allIncluded = (lectures || []).filter((lecture) => included.has(lecture.id));
+  const weekdayHours = plan.weekdayHours || { 0: 0, 1: 2, 2: 2, 3: 2, 4: 2, 5: 1, 6: 3 };
+  const maxLectures = Math.max(1, Math.min(8, Number(plan.maxLecturesPerDay) || 3));
+  const mcqReserve = Math.max(.1, Math.min(.4, (Number(plan.mcqReservePercent) || 20) / 100));
 
-  if (!available.length) return { events: [], metadata: {} };
+  function rawCapacityFor(date) {
+    const key = studyPlanDateKey(date);
+    if (excluded.has(key)) return 0;
+    return Math.max(0, Number(weekdayHours[date.getDay()]) || 0) * 60;
+  }
+  function planCapacityFor(date) { return Math.floor(rawCapacityFor(date) * (1 - mcqReserve)); }
+  function daysInRange(startDate, endDate) {
+    if (!startDate || !endDate || endDate < startDate) return [];
+    const result = [];
+    for (let cursor = new Date(startDate); cursor <= endDate; cursor = addDays(cursor, 1)) result.push(new Date(cursor));
+    return result;
+  }
+  function makeRows(startDate, endDate) {
+    return daysInRange(startDate, endDate).map((date) => ({ date, key: studyPlanDateKey(date), rawCapacity: rawCapacityFor(date), capacity: planCapacityFor(date), used: 0, count: 0, items: [] }));
+  }
+  function allocate(items, rows, options = {}) {
+    const unassignedItems = [];
+    items.forEach((item) => {
+      const minutes = Math.max(15, Number(item.minutes) || 30);
+      const eligible = rows.filter((row) => row.capacity > 0 && (!options.maxItems || row.count < options.maxItems));
+      const fitting = eligible.filter((row) => row.used + minutes <= row.capacity).sort((a, b) => (a.used / Math.max(1, a.capacity)) - (b.used / Math.max(1, b.capacity)) || a.date - b.date)[0];
+      if (!fitting) { unassignedItems.push(item); return; }
+      fitting.items.push(item); fitting.used += minutes; fitting.count += 1;
+    });
+    return unassignedItems;
+  }
+
+  const priority = plan.lecturePriority || {};
+  const sortedLectures = [...pending].sort((a, b) => (Number(priority[b.id]) || 0) - (Number(priority[a.id]) || 0) || String(a.id).localeCompare(String(b.id), undefined, { numeric: true }));
+  const lectureRows = makeRows(today, lectureEnd);
+  const lectureItems = sortedLectures.map((lecture) => ({ kind: "lecture", lecture, minutes: studyPlanLectureMinutes(lecture, plan.difficulty?.[lecture.id]) }));
+  const unassignedLectures = allocate(lectureItems, lectureRows, { maxItems: maxLectures });
+
+  const consolidationRows = makeRows(consolidationStart, consolidationEnd);
+  const consolidationItems = allIncluded.map((lecture) => ({ kind: "consolidation", lecture, minutes: plan.difficulty?.[lecture.id] === "hard" ? 45 : plan.difficulty?.[lecture.id] === "easy" ? 20 : 30 }));
+  const unassignedConsolidation = allocate(consolidationItems, consolidationRows);
+
+  const examRows = makeRows(examWindowStart, examRunEnd);
+  const targetedRows = makeRows(targetedStart, examWindowEnd);
+  const examSetCount = Math.max(0, Math.min(30, Number(plan.examSetCount) || 0));
+  const examItems = Array.from({ length: examSetCount }, (_, index) => ({ kind: "exam", index: index + 1, minutes: Math.max(30, Number(plan.examSetMinutes) || 120) }));
+  const unassignedExam = allocate(examItems, examRows);
+  const targetedItems = [
+    ...Array.from({ length: examSetCount }, (_, index) => ({ kind: "exam-review", index: index + 1, minutes: Math.max(20, Number(plan.errorReviewMinutes) || 60) })),
+    ...allIncluded.filter((lecture) => plan.difficulty?.[lecture.id] === "hard").map((lecture) => ({ kind: "targeted-lecture", lecture, minutes: 35 })),
+  ];
+  const unassignedTargeted = allocate(targetedItems, targetedRows);
+
+  const assignments = [];
+  lectureRows.forEach((row) => row.items.forEach(({ lecture, minutes }) => assignments.push({ id: `studyplan-${moduleName}-lecture-${lecture.id}`, phase: "lecture", date: row.key, lectureId: lecture.id, lectureIds: [lecture.id], title: `${lecture.id} · ${lecture.title}`, loadMinutes: minutes, needsScheduling: true, type: "study" })));
+  consolidationRows.forEach((row) => row.items.forEach(({ lecture, minutes }) => assignments.push({ id: `studyplan-${moduleName}-consolidation-${lecture.id}`, phase: "consolidation", date: row.key, lectureId: lecture.id, lectureIds: [lecture.id], title: `Første repetition · ${lecture.id} · ${lecture.title}`, loadMinutes: minutes, needsScheduling: true, type: "review" })));
+  examRows.forEach((row) => row.items.forEach(({ index, minutes }) => assignments.push({ id: `studyplan-${moduleName}-examset-${index}`, phase: "exam", date: row.key, title: `Eksamenssæt ${index}`, loadMinutes: minutes, needsScheduling: true, type: "review", examSetIndex: index })));
+  targetedRows.forEach((row) => row.items.forEach((item) => {
+    if (item.kind === "exam-review") assignments.push({ id: `studyplan-${moduleName}-examset-review-${item.index}`, phase: "targeted", date: row.key, title: `Fejlgennemgang · Eksamenssæt ${item.index}`, loadMinutes: item.minutes, needsScheduling: true, type: "review", examSetIndex: item.index });
+    if (item.kind === "targeted-lecture") assignments.push({ id: `studyplan-${moduleName}-targeted-${item.lecture.id}`, phase: "targeted", date: row.key, lectureId: item.lecture.id, lectureIds: [item.lecture.id], title: `Målrettet repetition · ${item.lecture.id} · ${item.lecture.title}`, loadMinutes: item.minutes, needsScheduling: true, type: "review" });
+  }));
+
+  const phases = [
+    { id: "lecture", label: "Forelæsninger", start: studyPlanDateKey(today), end: studyPlanDateKey(lectureEnd), tone: studyPlanPhaseTone("lecture") },
+    { id: "consolidation", label: "Første repetition", start: studyPlanDateKey(consolidationStart), end: studyPlanDateKey(consolidationEnd), tone: studyPlanPhaseTone("consolidation") },
+    { id: "exam", label: "Eksamenssæt", start: studyPlanDateKey(examWindowStart), end: studyPlanDateKey(examRunEnd), tone: studyPlanPhaseTone("exam") },
+    { id: "targeted", label: "Fejl og svage emner", start: studyPlanDateKey(targetedStart), end: studyPlanDateKey(examWindowEnd), tone: studyPlanPhaseTone("targeted") },
+    { id: "buffer", label: "Buffer og let repetition", start: studyPlanDateKey(bufferStart), end: studyPlanDateKey(addDays(exam, -1)), tone: studyPlanPhaseTone("buffer") },
+  ].filter((phase) => phase.start && phase.end && phase.end >= phase.start);
+
+  const lectureRequired = lectureItems.reduce((sum, item) => sum + item.minutes, 0);
+  const lectureCapacity = lectureRows.reduce((sum, row) => sum + row.capacity, 0);
+  const consolidationRequired = consolidationItems.reduce((sum, item) => sum + item.minutes, 0);
+  const consolidationCapacity = consolidationRows.reduce((sum, row) => sum + row.capacity, 0);
+  const examRequired = examItems.reduce((sum, item) => sum + item.minutes, 0);
+  const examCapacity = examRows.reduce((sum, row) => sum + row.capacity, 0);
+  const targetedRequired = targetedItems.reduce((sum, item) => sum + item.minutes, 0);
+  const targetedCapacity = targetedRows.reduce((sum, row) => sum + row.capacity, 0);
+  const allPlanDays = makeRows(today, addDays(exam, -1));
+  const fsrsReserveMinutes = allPlanDays.reduce((sum, row) => sum + Math.max(0, row.rawCapacity - row.capacity), 0);
+
+  const issues = [];
+  if (lectureDeadline < today) issues.push("Forelæsningsfristen kan ikke ligge før planens start.");
+  if (lectureDeadline >= examSetStart) issues.push("Forelæsningsfristen skal ligge før eksamenssætfasen.");
+  if (examSetStart >= bufferStart) issues.push("Eksamenssæt skal starte før bufferperioden.");
+  if (examWindowSpan < 3 && examSetCount > 0) issues.push("Eksamenssætfasen er for kort til både sæt og fejlgennemgang.");
+  if (unassignedLectures.length) issues.push(`${unassignedLectures.length} forelæsning${unassignedLectures.length === 1 ? "" : "er"} kan ikke placeres inden fristen.`);
+  if (unassignedConsolidation.length) issues.push(`${unassignedConsolidation.length} første repetition${unassignedConsolidation.length === 1 ? "" : "er"} mangler kapacitet.`);
+  if (unassignedExam.length) issues.push(`${unassignedExam.length} eksamenssæt kan ikke placeres i eksamenssætfasen.`);
+  if (unassignedTargeted.length) issues.push(`${unassignedTargeted.length} målrettet${unassignedTargeted.length === 1 ? " aktivitet" : "e aktiviteter"} mangler plads før bufferperioden.`);
+  if (bufferDays < 3) issues.push("Bufferperioden er kortere end tre dage.");
+
+  const requiredTotal = lectureRequired + consolidationRequired + examRequired + targetedRequired;
+  const capacityTotal = lectureCapacity + consolidationCapacity + examCapacity + targetedCapacity;
+  const loadRatio = capacityTotal ? requiredTotal / capacityTotal : 99;
+  const blocking = issues.some((issue) => /kan ikke|skal ligge|mangler kapacitet|mangler plads|for kort/.test(issue));
+  const realism = blocking ? "unrealistic" : loadRatio > .82 ? "demanding" : "realistic";
+
+  const weeklyMap = new Map();
+  assignments.forEach((assignment) => {
+    const date = studyPlanDate(assignment.date);
+    const start = startOfWeek(date);
+    const key = studyPlanDateKey(start);
+    const row = weeklyMap.get(key) || { weekStart: key, minutes: 0, items: 0, phases: new Set() };
+    row.minutes += assignment.loadMinutes || 0; row.items += 1; row.phases.add(assignment.phase); weeklyMap.set(key, row);
+  });
+  const weeklyLoads = [...weeklyMap.values()].sort((a, b) => a.weekStart.localeCompare(b.weekStart)).map((row) => ({ ...row, phases: [...row.phases] }));
+
+  return {
+    valid: !issues.some((issue) => /skal ligge|kan ikke ligge/.test(issue)), realism, issues, phases, assignments, weeklyLoads,
+    unassigned: [...unassignedLectures, ...unassignedConsolidation, ...unassignedExam, ...unassignedTargeted],
+    lectureRequired, lectureCapacity, consolidationRequired, consolidationCapacity, examRequired, examCapacity,
+    targetedRequired, targetedCapacity, fsrsReserveMinutes, requiredTotal, capacityTotal,
+    pendingCount: pending.length, examSetCount, bufferDays,
+  };
+}
+
+function buildFsrsCalendarReviewBundle({ spacedData, questions, moduleName, fromDate = new Date() }) {
+  const today = studyPlanDate(fromDate);
+  const todayKey = studyPlanDateKey(today);
+  const questionById = new Map((questions || []).map((question) => [question.id, question]));
+  const groups = new Map();
+  Object.entries(spacedData || {}).forEach(([questionId, storedCard]) => {
+    const question = questionById.get(questionId);
+    if (!question || (moduleName && question.moduleId !== moduleName) || !storedCard?.dueDate) return;
+    const due = new Date(storedCard.dueDate);
+    if (Number.isNaN(due.getTime())) return;
+    const dueDay = new Date(due); dueDay.setHours(0, 0, 0, 0);
+    const calendarDate = dueDay < today ? todayKey : studyPlanDateKey(dueDay);
+    const lectureId = question.lectureId || "exam-set";
+    const groupKey = `${calendarDate}|${lectureId}`;
+    const group = groups.get(groupKey) || { date: calendarDate, lectureId, questionIds: [], earliestDue: due.getTime() };
+    group.questionIds.push(questionId);
+    group.earliestDue = Math.min(group.earliestDue, due.getTime());
+    groups.set(groupKey, group);
+  });
 
   const events = [];
   const metadata = {};
-
-  if (plan.mode === "lectures") {
-    pendingLectures.forEach((lecture, index) => {
-      const dateIndex = Math.min(
-        available.length - 1,
-        Math.floor(
-          (index * available.length) /
-            Math.max(1, pendingLectures.length)
-        )
-      );
-      const item = available[dateIndex];
-      const id = `studyplan-${moduleName}-lecture-${lecture.id}`;
-      const parts = Math.max(1, Number(lecture.parts) || 1);
-
-      events.push({
-        id,
-        title: `${lecture.id} · ${lecture.title}`,
-        date: item.key,
-        time: "",
-        type: "study",
-        planModuleId: moduleName,
-        lectureCount: 1,
-        estimatedHours: null,
-      });
-
-      metadata[id] = {
-        source: "study-plan",
-        status: "planned",
-        needsScheduling: true,
-        lectureId: lecture.id,
-        lectureIds: [lecture.id],
-        lectureUnits: [
-          {
-            id: lecture.id,
-            part: null,
-            parts,
-            title: lecture.title,
-          },
-        ],
-        questionCount: 0,
-        createdByUser: true,
-      };
-    });
-  } else {
-    const base = Math.floor(questionTotal / available.length);
-    const remainder = questionTotal % available.length;
-
-    available.forEach((item, index) => {
-      const questions = base + (index < remainder ? 1 : 0);
-      if (!questions) return;
-      const id = `studyplan-${moduleName}-questions-${item.key}`;
-
-      events.push({
-        id,
-        title: `${questions} MCQ`,
-        date: item.key,
-        time: "",
-        type: "review",
-        planModuleId: moduleName,
-        lectureCount: null,
-        estimatedHours: Math.max(
-          .5,
-          Math.min(Number(plan.hoursPerDay) || 2, questions * .04)
-        ),
-      });
-
-      metadata[id] = {
-        source: "study-plan",
-        status: "planned",
-        needsScheduling: true,
-        lectureIds: [],
-        lectureUnits: [],
-        questionCount: questions,
-        createdByUser: true,
-      };
-    });
-  }
-
-  const examId = `studyplan-exam-${moduleName}`;
-  events.push({
-    id: examId,
-    title: `${moduleName} · Eksamen`,
-    date: plan.examDate,
-    time: "",
-    type: "exam",
-    planModuleId: moduleName,
-    estimatedHours: 1,
+  groups.forEach((group) => {
+    const id = `fsrs-review-${moduleName || "all"}-${group.lectureId}-${group.date}`;
+    const count = group.questionIds.length;
+    const label = group.lectureId === "exam-set" ? "Eksamenssæt" : group.lectureId;
+    events.push({ id, title: `FSRS · ${label} · ${count} MCQ`, date: group.date, time: "", type: "review", planModuleId: moduleName || null, estimatedHours: Math.max(.25, Math.min(2, count * .03)) });
+    metadata[id] = { source: "fsrs-review", status: "due", needsScheduling: true, questionIds: group.questionIds, questionCount: count, lectureId: group.lectureId === "exam-set" ? null : group.lectureId, earliestDue: group.earliestDue, fsrsVersion: FSRS_RUNTIME_VERSION, createdByUser: false };
   });
-  metadata[examId] = {
-    source: "study-plan",
-    status: "planned",
-    needsScheduling: false,
-    createdByUser: true,
-    lectureIds: [],
-  };
-
   return { events, metadata };
+}
+
+function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTotal = 0, fromDate = new Date() }) {
+  if (!plan?.examDate || !moduleName) return { events: [], metadata: {}, strategy: null };
+  const strategy = buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate });
+  const events = [];
+  const metadata = {};
+  strategy.assignments.forEach((assignment) => {
+    events.push({
+      id: assignment.id,
+      title: assignment.title,
+      date: assignment.date,
+      time: "",
+      type: assignment.type,
+      planModuleId: moduleName,
+      lectureCount: assignment.lectureId ? 1 : null,
+      estimatedHours: assignment.loadMinutes ? assignment.loadMinutes / 60 : null,
+    });
+    metadata[assignment.id] = {
+      source: "study-plan",
+      status: "planned",
+      needsScheduling: assignment.needsScheduling !== false,
+      phase: assignment.phase,
+      phaseLabel: strategy.phases.find((phase) => phase.id === assignment.phase)?.label || assignment.phase,
+      lectureId: assignment.lectureId || null,
+      lectureIds: assignment.lectureIds || (assignment.lectureId ? [assignment.lectureId] : []),
+      lectureUnits: assignment.lectureId ? [{ id: assignment.lectureId, title: assignment.title }] : [],
+      questionCount: assignment.questionCount || 0,
+      loadMinutes: assignment.loadMinutes || null,
+      examSetIndex: assignment.examSetIndex || null,
+      createdByUser: true,
+    };
+  });
+  const examId = `studyplan-exam-${moduleName}`;
+  events.push({ id: examId, title: `${moduleName} · Eksamen`, date: plan.examDate, time: "", type: "exam", planModuleId: moduleName, estimatedHours: 1 });
+  metadata[examId] = { source: "study-plan", status: "planned", needsScheduling: false, phase: "exam-day", createdByUser: true, lectureIds: [] };
+  return { events, metadata, strategy };
 }
 
 function reconcileStudyPlanCalendarEvents({
@@ -16228,410 +16665,233 @@ function StudyPlan({ c, language, user, setUser }) {
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const [, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
-  const existing = plans[user.module];
-  const [step, setStep] = useState(existing ? 9 : 1);
-  const [level, setLevel] = useState(user.level || "Kandidat");
-  const [moduleName, setModuleName] = useState(user.module || "");
-  const [examDate, setExamDate] = useState(existing?.examDate || "");
-  const [mode, setMode] = useState(existing?.mode || "lectures");
-  const [done, setDone] = useState(existing?.doneLectureIds || []);
-  const [hoursPerDay, setHoursPerDay] = useState(existing?.hoursPerDay || 2);
-  const [questionDistribution, setQuestionDistribution] = useState(existing?.questionDistribution || "spread");
-  const [reviewMethod, setReviewMethod] = useState(existing?.reviewMethod || null);
-  const [excludedDates, setExcludedDates] = useState(existing?.excludedDates || []);
-  const [newExceptionDate, setNewExceptionDate] = useState("");
-  const [difficultyEnabled, setDifficultyEnabled] = useState(existing?.difficultyEnabled || false);
-  const [difficulty, setDifficulty] = useState(existing?.difficulty || {});
-  const [planSaved, setPlanSaved] = useState(Boolean(existing));
-  const [timelineView, setTimelineView] = useState("list");
-  const [reveal, setReveal] = useState(null);
-  const [confirmDeletePlan, setConfirmDeletePlan] = useState(false);
-  const [confirmActivatePlan, setConfirmActivatePlan] = useState(false);
-  const [saveNotice, setSaveNotice] = useState("");
-  const revealTimerRef = useRef(null);
-  useEffect(() => () => { if (revealTimerRef.current) clearTimeout(revealTimerRef.current); }, []);
-
-  // Robusthedsfix: garanterer at studieplanens blokke altid findes i
-  // kalenderen, uanset i hvilken rækkefølge komponenterne monteres. Uden
-  // dette kunne kalenderen vise forældede/manglende data, hvis den blev
-  // åbnet i et andet browserfaneblad, eller hvis "medlearn-storage-update"
-  // eventet blev udsendt før CalendarPanel/Dashboard var monteret og
-  // lyttede efter det. Kører kun når der allerede findes en gemt plan
-  // (dvs. brugeren er på oversigtstrinnet), og kun én gang ved montering.
-  useEffect(() => {
-    if (existing) {
-      syncPlanToCalendar();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  function triggerReveal(type, nextStep) {
-    setReveal(type);
-    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-    revealTimerRef.current = setTimeout(() => { setReveal(null); setStep(nextStep); }, 2600);
-  }
+  const [fsrsSettings, setFsrsSettings] = useStoredState(STORAGE.fsrsSettings, FSRS_DEFAULT_SETTINGS);
+  const moduleName = user?.module || "";
+  const existing = plans[moduleName];
   const lectures = MODULE_LECTURES[moduleName] || [];
-  const totalLecturesCount = lectures.length;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const exam = examDate ? new Date(`${examDate}T00:00:00`) : null;
-  const days = exam ? Math.max(0, Math.ceil((exam - today) / 86400000)) : 0;
-  const pending = lectures.filter((item) => !done.includes(item.id));
-  const lectureUnits = mode === "lectures" ? pending.flatMap((item) => Array.from({ length: item.parts || 1 }, (_, i) => ({ ...item, part: (item.parts || 1) > 1 ? i + 1 : null }))) : [];
-  const questionTotal =
-  getFullQuestionBank(
-    importedQuestions
-  ).filter(
-    (question) =>
-      question.moduleId === moduleName
-  ).length;
-  const activeDays = Math.max(1, days);
-  const dayDateKeys = Array.from({ length: activeDays }, (_, i) => { const d = new Date(today); d.setDate(d.getDate() + i); return dateKey(d.getFullYear(), d.getMonth(), d.getDate()); });
-  const isExcludedDay = (dayIndex) => excludedDates.includes(dayDateKeys[dayIndex] || "");
-  const availableDayIndices = Array.from({ length: activeDays }, (_, i) => i).filter((i) => !isExcludedDay(i));
-  const availableDaysCount = Math.max(1, availableDayIndices.length);
-  const difficultyWeight = (level2) => level2 === "hard" ? 1.6 : level2 === "easy" ? 0.7 : 1;
+  const todayKey = studyPlanDateKey(new Date());
+  const defaultExam = existing?.examDate || studyPlanDateKey(addDays(new Date(), 56));
+  const defaultLectureDeadline = existing?.lectureDeadline || studyPlanDateKey(addDays(new Date(`${defaultExam}T00:00:00`), -21));
+  const defaultExamSetStart = existing?.examSetStartDate || studyPlanDateKey(addDays(new Date(`${defaultExam}T00:00:00`), -14));
+  const [step, setStep] = useState(existing ? 5 : 1);
+  const [direction, setDirection] = useState(1);
+  const [savedNotice, setSavedNotice] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [lectureContext, setLectureContext] = useState(null);
+  const [draft, setDraft] = useState(() => ({
+    version: 4,
+    status: existing?.status || "draft",
+    examDate: defaultExam,
+    lectureDeadline: defaultLectureDeadline,
+    examSetStartDate: defaultExamSetStart,
+    bufferDays: existing?.bufferDays ?? 4,
+    includedLectureIds: existing?.includedLectureIds || lectures.map((lecture) => lecture.id),
+    doneLectureIds: existing?.doneLectureIds || [],
+    weekdayHours: existing?.weekdayHours || { 0: 0, 1: 2, 2: 2, 3: 2, 4: 2, 5: 1, 6: 3 },
+    excludedDates: existing?.excludedDates || [],
+    maxLecturesPerDay: existing?.maxLecturesPerDay || 3,
+    difficulty: existing?.difficulty || {},
+    lecturePriority: existing?.lecturePriority || {},
+    examSetCount: existing?.examSetCount ?? 4,
+    examSetMinutes: existing?.examSetMinutes || 120,
+    errorReviewMinutes: existing?.errorReviewMinutes || 60,
+    missedPolicy: existing?.missedPolicy || "ask",
+    freezeDays: existing?.freezeDays ?? 2,
+    preserveManualTimes: existing?.preserveManualTimes !== false,
+    desiredRetention: existing?.desiredRetention || fsrsSettings.requestRetention || .9,
+    mcqReservePercent: existing?.mcqReservePercent ?? 20,
+    learningSteps: existing?.learningSteps || fsrsSettings.learningSteps || ["1m", "10m"],
+    relearningSteps: existing?.relearningSteps || fsrsSettings.relearningSteps || ["10m"],
+  }));
+  const [exceptionDate, setExceptionDate] = useState("");
+  const strategy = buildStudyPlanStrategy({ moduleName, plan: draft, lectures, fromDate: new Date() });
+  const questionCount = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === moduleName).length;
+  const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+  const days = language === "en" ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
+  const copy = language === "en" ? {
+    title: "Study plan", subtitle: "Build a complete strategy before the exam", steps: ["Goal", "Content", "Capacity", "Strategy", "Preview", "Activate"], next: "Continue", back: "Back", activate: "Save and activate", edit: "Edit plan", active: "Active plan", delete: "Delete plan",
+  } : {
+    title: "Studieplan", subtitle: "Byg en samlet strategi frem mod eksamen", steps: ["Mål", "Indhold", "Kapacitet", "Strategi", "Forhåndsvisning", "Aktivér"], next: "Fortsæt", back: "Tilbage", activate: "Gem og aktivér", edit: "Redigér plan", active: "Aktiv studieplan", delete: "Slet plan",
+  };
 
-  function distributeEvenly(totalItems, bucketCount) {
-    const buckets = Math.max(1, bucketCount);
-    const base = Math.floor(totalItems / buckets);
-    const remainder = totalItems % buckets;
-    return Array.from({ length: buckets }, (_, i) => base + (i < remainder ? 1 : 0));
+  function update(field, value) { setDraft((previous) => ({ ...previous, [field]: value })); }
+  function nextStep(next) { setDirection(next > step ? 1 : -1); setStep(next); }
+  function toggleIncluded(id) { update("includedLectureIds", draft.includedLectureIds.includes(id) ? draft.includedLectureIds.filter((item) => item !== id) : [...draft.includedLectureIds, id]); }
+  function toggleDone(id) { update("doneLectureIds", draft.doneLectureIds.includes(id) ? draft.doneLectureIds.filter((item) => item !== id) : [...draft.doneLectureIds, id]); }
+  function addException() { if (!exceptionDate || draft.excludedDates.includes(exceptionDate)) return; update("excludedDates", [...draft.excludedDates, exceptionDate].sort()); setExceptionDate(""); }
+  function setLectureDifficulty(id, value) { update("difficulty", { ...draft.difficulty, [id]: value }); }
+  function prioritizeLecture(id) {
+    const current = Number(draft.lecturePriority?.[id]) || 0;
+    update("lecturePriority", { ...draft.lecturePriority, [id]: current + 1 });
+    setSavedNotice(`${id} prioriteres tidligere i planen.`);
+    window.setTimeout(() => setSavedNotice(""), 1800);
   }
-  function cumulativeStarts(counts) {
-    const starts = [];
-    let running = 0;
-    for (let i = 0; i < counts.length; i++) { starts.push(running); running += counts[i]; }
-    return starts;
+  function openLectureContext(event, lecture) {
+    event.preventDefault();
+    const width = 220;
+    const height = 284;
+    setLectureContext({
+      lecture,
+      x: Math.max(8, Math.min(event.clientX + 6, window.innerWidth - width - 8)),
+      y: Math.max(8, Math.min(event.clientY + 6, window.innerHeight - height - 8)),
+    });
   }
+  function runLectureContext(action) {
+    const lecture = lectureContext?.lecture;
+    if (!lecture) return;
+    if (action === "priority") prioritizeLecture(lecture.id);
+    if (["easy", "normal", "hard"].includes(action)) setLectureDifficulty(lecture.id, action);
+    if (action === "done") toggleDone(lecture.id);
+    if (action === "include") toggleIncluded(lecture.id);
+    setLectureContext(null);
+  }
+  useEffect(() => {
+    if (!lectureContext) return undefined;
+    const close = () => setLectureContext(null);
+    const escape = (event) => { if (event.key === "Escape") close(); };
+    window.addEventListener("pointerdown", close);
+    window.addEventListener("keydown", escape);
+    return () => { window.removeEventListener("pointerdown", close); window.removeEventListener("keydown", escape); };
+  }, [lectureContext]);
 
-  const lecturesPerDayCounts = distributeEvenly(lectureUnits.length, availableDaysCount);
-  const lecturesPerDayStarts = cumulativeStarts(lecturesPerDayCounts);
-  const lecturesPerDay = lecturesPerDayCounts.length ? Math.max(...lecturesPerDayCounts) : 0;
-  const crammWindowDays = Math.min(availableDaysCount, 14);
-  const crammStartIndex = Math.max(0, availableDayIndices.length - crammWindowDays);
-  const useCramming = mode === "lectures" && questionDistribution === "cram";
-  const questionsPerDayCounts = useCramming
-    ? distributeEvenly(questionTotal, crammWindowDays)
-    : distributeEvenly(questionTotal, availableDaysCount);
-  const questionsPerDayStarts = cumulativeStarts(questionsPerDayCounts);
-  const questionsPerDay = questionsPerDayCounts.length ? Math.max(...questionsPerDayCounts) : 0;
-  const questionsForDayIndex = (dayIndex) => {
-    if (isExcludedDay(dayIndex)) return 0;
-    const posInAvailable = availableDayIndices.indexOf(dayIndex);
-    if (posInAvailable === -1) return 0;
-    if (useCramming) {
-      const posInCramWindow = posInAvailable - crammStartIndex;
-      if (posInCramWindow < 0 || posInCramWindow >= questionsPerDayCounts.length) return 0;
-      return questionsPerDayCounts[posInCramWindow];
-    }
-    return questionsPerDayCounts[posInAvailable] || 0;
-  };
-  const totalDifficultyWeight = lectureUnits.reduce((sum, u) => sum + difficultyWeight(difficulty[u.id]), 0);
-  const avgWeight = lectureUnits.length ? totalDifficultyWeight / lectureUnits.length : 1;
-  const capacityMinutes = Math.round(hoursPerDay * 60);
-  const estimatedMinutes = capacityMinutes;
-  const copy = ({ da: { title:"Studieplan", intro:"Opsæt en plan frem mod eksamen", next:"Fortsæt", back:"Tilbage", setup:"Opsætning", module:"Modul", level:"Niveau", exam:"Eksamensdato", examHint:"Datoen bruges til at fordele indholdet frem mod eksamen.", pathway:"Indhold og metode", lectures:"Forelæsninger + eksamenssæt", lecturesText:"Fordeler resterende forelæsninger og eksamensspørgsmål.", questions:"Kun eksamenssæt", questionsText:"Planlægger eksamensspørgsmål og repetition uden forelæsninger.", prior:"Gennemgået indhold", priorText:"Markér forelæsninger, du allerede har set. De indgår ikke som nye opgaver.", generate:"Opret studieplan", edit:"Redigér opsætning", overview:"Planoversigt", days:"dage til eksamen", hours:"timer pr. dag", workload:"Forventet arbejdsbyrde", minutes:"minutter pr. dag", lecturesDay:"forelæsningsdele pr. dag", questionsDay:"MCQ'er pr. dag", timeline:"Tidslinje", today:"I dag", examDay:"Eksamen", lecture:"Forelæsning", questionsLabel:"Nye MCQ'er", review:"Repetition", noLectures:"Der er endnu ikke tilføjet forelæsninger for dette modul.", select:"Vælg modul", saved:"Studieplan opdateret", planNote:"Planen fordeler nyt indhold tidligt og lægger repetition efter de valgte intervaller, når der er tid før eksamen.", done:"Gennemgået", remaining:"resterende", list:"Liste", graph:"Planoversigt", mcqOnly:"Kun eksamenssæt: nye MCQ'er fordeles jævnt over dagene før eksamen.", daysUntilExamLabel:"dage til din eksamen", stepExamDate:"Eksamensdato", stepReviewMethod:"Repetitionsmetode", stepQuestionTiming:"Eksamenssæt-fordeling", stepWorkload:"Daglig arbejdsbyrde", reviewStepHint:"Vælg hvordan dit gennemgåede indhold skal repeteres frem mod eksamen.", method2357Name:"2-3-5-7 metoden", method2357Desc:"Bedst 1-2 uger før eksamen. Hurtig, intensiv repetition.", method137Name:"1-3-7-14-30 reglen", method137Desc:"Bedst 1+ måned før eksamen. Langsigtet hukommelsesopbygning.", recommended:"Anbefalet til dig", intervalsLabel:"Repeteres efter", questionTimingHint:"Skal eksamenssættet øves løbende sammen med hver forelæsning, eller samlet op til et par uger før eksamen?", spreadName:"Løbende", spreadDesc:"Nye MCQ'er fordeles jævnt hver dag fra start til eksamen.", crammName:"Op til eksamen", crammDesc:"MCQ'er samles i de sidste 14 dage (eller færre) op til eksamen.", lecturesInModule:"forelæsninger i dette modul", minutesUnit:"min", livePreviewTitle:"Live forhåndsvisning", perDayHours:"timer/dag", reviewsFit:"repetitioner du kan nå", capacityWarning:"Din daglige tid dækker ikke helt det planlagte indhold — overvej flere timer.", capacityOk:"Din tid pr. dag dækker planen godt.", waterLevelHint:"Vandstanden viser hvor godt din tid dækker dagens indhold.", exceptionDays:"Undtagelsesdage", exceptionDaysHint:"Markér dage hvor du ikke kan studere. Planen fordeler indholdet uden om disse dage.", addExceptionDay:"Tilføj dag", noExceptionDays:"Ingen undtagelsesdage tilføjet", removeExceptionDay:"Fjern", difficultyStep:"Sværhedsgrad (valgfrit)", difficultyToggleLabel:"Brug selvvurderet sværhedsgrad", difficultyToggleHint:"Marker forelæsninger som lette, middel eller svære. Planen giver mere tid til svære forelæsninger.", difficultyEasy:"Let", difficultyMedium:"Middel", difficultyHard:"Svær", difficultySkippedHint:"Denne funktion er slået fra. Alle forelæsninger får lige meget tid.", catchUpTitle:"Indhent forsinkelse", catchUpText:"Du er bagud med planen. Vil du omfordele det resterende indhold over de dage, der er tilbage?", catchUpButton:"Indhent nu", catchUpDone:"Planen er opdateret", lectureProgress:"Forelæsninger", examSetProgress:"Eksamenssæt", ofTotal:"af", checklistTitle:"Dagens opgaver", checklistEmpty:"Intet planlagt for i dag", checklistDone:"Færdig", markDone:"Markér som færdig", exportPlan:"Eksportér studieplan", exportPlanDone:"Studieplan eksporteret", checkAll:"Marker alle", uncheckAll:"Fjern alle", checkGroup:"Marker emne", uncheckGroup:"Fjern emne", ungrouped:"Øvrige", deletePlan:"Slet plan", deletePlanConfirmTitle:"Slet studieplan?", deletePlanConfirmText:"Dette fjerner planen permanent og rydder alle tilhørende blokke i kalenderen. Denne handling kan ikke fortrydes.", cancel:"Annuller" }, en: { title:"Study plan", intro:"Set up a plan towards your exam", next:"Continue", back:"Back", setup:"Setup", module:"Module", level:"Level", exam:"Exam date", examHint:"The date distributes content up to the exam.", pathway:"Content and method", lectures:"Lectures + exam sets", lecturesText:"Distributes remaining lectures and exam questions.", questions:"Exam sets only", questionsText:"Plans exam questions and review without lectures.", prior:"Completed content", priorText:"Mark lectures you have already watched.", generate:"Create study plan", edit:"Edit setup", overview:"Plan overview", days:"days to exam", hours:"hours per day", workload:"Expected workload", minutes:"minutes per day", lecturesDay:"lecture units per day", questionsDay:"MCQs per day", timeline:"Timeline", today:"Today", examDay:"Exam", lecture:"Lecture", questionsLabel:"New MCQs", review:"Review", noLectures:"Lectures have not been added for this module yet.", select:"Select module", saved:"Study plan updated", planNote:"The plan places new content early and schedules review after the chosen intervals when time allows.", done:"Completed", remaining:"remaining", list:"List", graph:"Plan overview", mcqOnly:"Exam sets only: new MCQs are distributed across the days before the exam.", daysUntilExamLabel:"days until your exam", stepExamDate:"Exam date", stepReviewMethod:"Review method", stepQuestionTiming:"Exam set timing", stepWorkload:"Daily workload", reviewStepHint:"Choose how your completed content should be reviewed towards the exam.", method2357Name:"The 2-3-5-7 Method", method2357Desc:"Best for 1-2 weeks before an exam. Fast, intensive review.", method137Name:"The 1-3-7-14-30 Rule", method137Desc:"Best for 1+ month before an exam. Long-term retention.", recommended:"Recommended for you", intervalsLabel:"Reviewed after", questionTimingHint:"Should the exam set be practiced continuously alongside each lecture, or bundled a couple of weeks before the exam?", spreadName:"Continuous", spreadDesc:"New MCQs are spread evenly from start to exam day.", crammName:"Close to exam", crammDesc:"MCQs are bundled into the last 14 days (or fewer) before the exam.", lecturesInModule:"lectures in this module", minutesUnit:"min", livePreviewTitle:"Live preview", perDayHours:"hours/day", reviewsFit:"reviews you can fit", capacityWarning:"Your daily time doesn't quite cover the planned content — consider more hours.", capacityOk:"Your daily time covers the plan well.", waterLevelHint:"The water level shows how well your time covers today's content.", exceptionDays:"Exception days", exceptionDaysHint:"Mark days you can't study. The plan distributes content around these days.", addExceptionDay:"Add day", noExceptionDays:"No exception days added", removeExceptionDay:"Remove", difficultyStep:"Difficulty (optional)", difficultyToggleLabel:"Use self-rated difficulty", difficultyToggleHint:"Mark lectures as easy, medium, or hard. The plan allocates more time to hard lectures.", difficultyEasy:"Easy", difficultyMedium:"Medium", difficultyHard:"Hard", difficultySkippedHint:"This feature is turned off. All lectures get equal time.", catchUpTitle:"Catch up on delay", catchUpText:"You're behind on your plan. Redistribute the remaining content over the days left?", catchUpButton:"Catch up now", catchUpDone:"Plan updated", lectureProgress:"Lectures", examSetProgress:"Exam set", ofTotal:"of", checklistTitle:"Today's tasks", checklistEmpty:"Nothing planned for today", checklistDone:"Done", markDone:"Mark as done", exportPlan:"Export study plan", exportPlanDone:"Study plan exported", checkAll:"Check all", uncheckAll:"Uncheck all", checkGroup:"Check topic", uncheckGroup:"Uncheck topic", ungrouped:"Other", deletePlan:"Delete plan", deletePlanConfirmTitle:"Delete study plan?", deletePlanConfirmText:"This permanently removes the plan and clears all related blocks from the calendar. This action cannot be undone.", cancel:"Cancel" } })[language] || {};
-  const field = { width:"100%", height:48, padding:"0 13px", borderRadius:12, border:`1px solid ${c.borderStrong}`, background:c.soft, color:c.text, fontSize:13, outline:0 };
-  const setModule = (value) => { setModuleName(value); const saved = plans[value]; setDone(saved?.doneLectureIds || []); setExamDate(saved?.examDate || ""); setMode(saved?.mode || "lectures"); setHoursPerDay(saved?.hoursPerDay || 2); setQuestionDistribution(saved?.questionDistribution || "spread"); setReviewMethod(saved?.reviewMethod || null); setExcludedDates(saved?.excludedDates || []); setDifficultyEnabled(saved?.difficultyEnabled || false); setDifficulty(saved?.difficulty || {}); setPlanSaved(Boolean(saved)); };
-  const toggle = (id) => setDone((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
-  const activationCopy = ({
-    da: { activate: "Gem og aktivér i kalenderen", update: "Gem ændringer i kalenderen", confirmTitle: "Aktivér studieplan?", confirmText: "Planens studieblokke oprettes i kalenderen. Du vælger selv de præcise tidspunkter i dagens plan, når du åbner Hjem.", confirm: "Aktivér plan", active: "Planen er aktiv og synkroniseret med kalenderen", saved: "Studieplanen er gemt og aktiveret" },
-    en: { activate: "Save and activate in calendar", update: "Save calendar changes", confirmTitle: "Activate study plan?", confirmText: "The plan's study blocks are created in your calendar. You choose the exact times from today's plan on Home.", confirm: "Activate plan", active: "The plan is active and synchronized with the calendar", saved: "Study plan saved and activated" },
-    ar: { activate: "حفظ وتفعيل في التقويم", update: "حفظ التغييرات في التقويم", confirmTitle: "تفعيل خطة الدراسة؟", confirmText: "سيتم إنشاء جلسات الخطة في التقويم ويمكنك اختيار أوقاتها من خطة اليوم.", confirm: "تفعيل الخطة", active: "الخطة مفعّلة ومتزامنة مع التقويم", saved: "تم حفظ الخطة وتفعيلها" },
-  })[language] || {};
-
-  const save = () => {
-    const planRecord = {
-      examDate,
-      mode,
-      doneLectureIds: done,
-      hoursPerDay,
-      questionDistribution,
-      reviewMethod,
-      excludedDates,
-      difficultyEnabled,
-      difficulty,
-      createdAt: existing?.createdAt || Date.now(),
-      activatedAt: existing?.activatedAt || Date.now(),
-      updatedAt: Date.now(),
-      status: "active",
-    };
-    setPlans((old) => ({ ...old, [moduleName]: planRecord }));
-    setUser((old) => ({ ...old, level, module: moduleName }));
-    syncPlanToCalendar(planRecord);
-    setPlanSaved(true);
-    setStep(9);
-    setConfirmActivatePlan(false);
-    setSaveNotice(activationCopy.saved);
-    window.setTimeout(() => setSaveNotice(""), 3200);
-  };
-  const toggleExceptionDate = () => {
-    if (!newExceptionDate) return;
-    setExcludedDates((old) => old.includes(newExceptionDate) ? old : [...old, newExceptionDate].sort());
-    setNewExceptionDate("");
-  };
-  const removeExceptionDate = (date) => setExcludedDates((old) => old.filter((d) => d !== date));
-  const setLectureDifficulty = (id, level2) => setDifficulty((old) => ({ ...old, [id]: level2 }));
-
-  function syncPlanToCalendar(planOverride) {
-    const planRecord = planOverride || {
-      examDate, mode, doneLectureIds: done, hoursPerDay,
-      questionDistribution, reviewMethod, excludedDates, difficultyEnabled, difficulty,
-    };
-    const bundle = buildStudyPlanCalendarBundle({
-      moduleName,
-      plan: planRecord,
-      lectures,
-      questionTotal,
-      fromDate: today,
-    });
-    const stored = JSON.parse(
-      localStorage.getItem(STORAGE.calendarEvents) || "[]"
-    );
-    const storedMeta = JSON.parse(
-      localStorage.getItem(STORAGE.calendarEventMeta) || "{}"
-    );
-    const withoutOldPlan = stored.filter(
-      (event) =>
-        event.planModuleId !== moduleName ||
-        !String(event.id).startsWith("studyplan-")
-    );
-    const mergedPlanEvents = reconcileStudyPlanCalendarEvents({
-      moduleName,
-      generatedEvents: bundle.events,
-      generatedMetadata: bundle.metadata,
-      previousEvents: stored,
-      previousMetadata: storedMeta,
-    });
-    localStorage.setItem(
-      STORAGE.calendarEvents,
-      JSON.stringify([...withoutOldPlan, ...mergedPlanEvents])
-    );
-
-
+  function syncPlanToCalendar(planRecord) {
+    const bundle = buildStudyPlanCalendarBundle({ moduleName, plan: planRecord, lectures, questionTotal: questionCount, fromDate: new Date() });
+    const storedEvents = loadStorage(STORAGE.calendarEvents, []);
+    const storedMeta = loadStorage(STORAGE.calendarEventMeta, {});
+    const withoutPlan = storedEvents.filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-"));
+    const reconciled = reconcileStudyPlanCalendarEvents({ moduleName, generatedEvents: bundle.events, generatedMetadata: bundle.metadata, previousEvents: storedEvents, previousMetadata: storedMeta });
+    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify([...withoutPlan, ...reconciled]));
     const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id]) => !String(id).startsWith(`studyplan-${moduleName}`)));
-    Object.entries(bundle.metadata).forEach(([id, generatedMeta]) => {
-      const previousMeta = storedMeta[id] || {};
-      nextMeta[id] = {
-        ...generatedMeta,
-        ...(previousMeta.completedAt ? { completedAt: previousMeta.completedAt, status: previousMeta.status || "completed" } : {}),
-        ...(previousMeta.missedResolvedAt ? { missedResolvedAt: previousMeta.missedResolvedAt } : {}),
-        needsScheduling: mergedPlanEvents.find((event) => event.id === id)?.time ? false : generatedMeta.needsScheduling,
-      };
+    Object.entries(bundle.metadata).forEach(([id, generated]) => {
+      const previous = storedMeta[id] || {};
+      const event = reconciled.find((item) => item.id === id);
+      nextMeta[id] = { ...generated, ...(previous.completedAt ? { completedAt: previous.completedAt, status: "completed" } : {}), ...(previous.missedResolvedAt ? { missedResolvedAt: previous.missedResolvedAt } : {}), needsScheduling: event?.time ? false : generated.needsScheduling };
     });
     localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(nextMeta));
     setCalendarEventMeta(nextMeta);
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEvents } }));
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEventMeta } }));
+  }
+
+  function activatePlan() {
+    if (!strategy.valid || strategy.realism === "unrealistic") { setStep(5); return; }
+    const planRecord = { ...draft, status: "active", createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now(), activatedAt: existing?.activatedAt || Date.now(), strategySnapshot: { phases: strategy.phases, realism: strategy.realism, issues: strategy.issues } };
+    setPlans((previous) => ({ ...previous, [moduleName]: planRecord }));
+    setUser((previous) => ({ ...previous, module: moduleName }));
+    setFsrsSettings((previous) => ({ ...previous, requestRetention: draft.desiredRetention, learningSteps: draft.learningSteps, relearningSteps: draft.relearningSteps, maximumInterval: 36500, enableFuzz: true, enableShortTerm: true }));
+    syncPlanToCalendar(planRecord);
+    setSavedNotice("Studieplan og FSRS-indstillinger er aktiveret.");
+    setStep(6);
+    window.setTimeout(() => setSavedNotice(""), 3500);
   }
 
   function deletePlan() {
-    // Fjerner selve planen fra STORAGE.studyPlans, og rydder samtidig alle
-    // kalenderevents, der stammer fra denne plan (planModuleId), så
-    // kalenderen ikke efterlader "spøgelses-blokke" fra en slettet plan.
-    setPlans((old) => {
-      const next = { ...old };
-      delete next[moduleName];
-      return next;
-    });
-    const stored = JSON.parse(localStorage.getItem(STORAGE.calendarEvents) || "[]");
-    const withoutPlan = stored.filter((event) => event.planModuleId !== moduleName);
-    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(withoutPlan));
-    const storedMeta = JSON.parse(localStorage.getItem(STORAGE.calendarEventMeta) || "{}");
-    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id]) => !String(id).startsWith(`studyplan-${moduleName}`)));
-    localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(nextMeta));
-    setCalendarEventMeta(nextMeta);
+    setPlans((previous) => { const next = { ...previous }; delete next[moduleName]; return next; });
+    const events = loadStorage(STORAGE.calendarEvents, []).filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-"));
+    const meta = Object.fromEntries(Object.entries(loadStorage(STORAGE.calendarEventMeta, {})).filter(([id]) => !String(id).startsWith(`studyplan-${moduleName}`)));
+    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(events));
+    localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(meta));
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEvents } }));
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEventMeta } }));
-    setPlanSaved(false);
-    setDone([]);
-    setStep(1);
-  }
-  const addDays = (date, count) => { const value = new Date(date); value.setDate(value.getDate() + count); return value; };
-  const dateShort = (date) => new Intl.DateTimeFormat(language === "da" ? "da-DK" : "en-GB", { weekday:"short", day:"numeric", month:"short" }).format(date);
-  const timelineDays = Array.from({ length: Math.max(days + 1, 1) }, (_, i) => addDays(today, i));
-  const unitForDay = (dayIndex) => {
-    if (isExcludedDay(dayIndex)) return [];
-    const posInAvailable = availableDayIndices.indexOf(dayIndex);
-    if (posInAvailable === -1) return [];
-    const start = lecturesPerDayStarts[posInAvailable] ?? 0;
-    const count = lecturesPerDayCounts[posInAvailable] ?? 0;
-    return lectureUnits.slice(start, start + count);
-  };
-  const typeStyle = (type) => type === "lecture" ? [c.blue, c.blueSoft] : type === "review" ? [c.blue, `${c.blue}14`] : [c.green, c.greenSoft];
-  const stepTitles = [copy.setup, copy.stepExamDate, copy.stepReviewMethod, copy.stepQuestionTiming, copy.prior, copy.exceptionDays, copy.difficultyStep, copy.stepWorkload, copy.timeline];
-  const totalWizardSteps = 9;
-  const stepTitle = stepTitles[step - 1];
-  function exportCalendar() {
-    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-    const formatICS = (date, hour) => { const d = new Date(date); d.setHours(hour,0,0,0); return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); };
-    const events = timelineDays.flatMap((date,index) => { if (index >= days) return []; const units=unitForDay(index); const title = units.length ? `MedLearn \u00b7 ${units.map(x=>x.title).join(", ")}` : `MedLearn \u00b7 ${questionsForDayIndex(index)} MCQ`; const start=formatICS(date,18); const end=formatICS(date,Math.min(23,18+Math.max(1,Math.ceil(estimatedMinutes/60)))); return [`BEGIN:VEVENT\r\nUID:medlearn-${moduleName}-${index}@local\r\nDTSTAMP:${stamp}\r\nDTSTART:${start}\r\nDTEND:${end}\r\nSUMMARY:${title}\r\nDESCRIPTION:Study plan for ${moduleName}\r\nEND:VEVENT`]; });
-    const content=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//MedLearn//Study Plan//EN\r\n${events.join("\r\n")}\r\nEND:VCALENDAR`;
-    const url=URL.createObjectURL(new Blob([content],{type:"text/calendar;charset=utf-8"})); const link=document.createElement("a"); link.href=url; link.download=`MedLearn-${moduleName.replace(/[^a-z0-9]+/gi,"-")}.ics`; link.click(); URL.revokeObjectURL(url);
-  }
-  function exportPlanAsJSON() {
-    const dayRows = timelineDays.slice(0, Math.max(days, 0)).map((date, index) => {
-      const units = unitForDay(index);
-      const y = date.getFullYear(); const m = date.getMonth(); const d = date.getDate();
-      return {
-        date: dateKey(y, m, d),
-        excluded: isExcludedDay(index),
-        lectures: units.map((u) => ({ id: u.id, title: u.title, part: u.part, difficulty: difficulty[u.id] || "medium" })),
-        questions: questionsForDayIndex(index),
-      };
-    });
-    const payload = {
-      module: moduleName,
-      level,
-      examDate,
-      mode,
-      reviewMethod,
-      hoursPerDay,
-      questionDistribution,
-      excludedDates,
-      difficultyEnabled,
-      exportedAt: new Date().toISOString(),
-      days: dayRows,
-    };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `MedLearn-studieplan-${moduleName.replace(/[^a-z0-9]+/gi, "-")}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    setConfirmDelete(false); setStep(1); setSavedNotice("Studieplanen er slettet.");
   }
 
-  if (reveal === "examDate") {
-    return <StepReveal c={c} icon="calendar" number={days} label={copy.daysUntilExamLabel} />;
+  const canContinue = step === 1 ? Boolean(draft.examDate && draft.lectureDeadline && draft.examSetStartDate) : step === 2 ? draft.includedLectureIds.length > 0 : true;
+  const realismLabel = strategy.realism === "realistic" ? "Realistisk" : strategy.realism === "demanding" ? "Krævende" : "Ikke realistisk";
+
+  function StepGoal() {
+    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Fastlæg dine faser</h2><p>Stop nyt stof i god tid, så der er plads til repetition, eksamenssæt og buffer.</p><div className="study-plan-v4-fields"><label><span>Eksamensdato</span><input className="ui-control" type="date" min={todayKey} value={draft.examDate} onChange={(event) => update("examDate", event.target.value)} /></label><label><span>Færdig med forelæsninger</span><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={draft.lectureDeadline} onChange={(event) => update("lectureDeadline", event.target.value)} /></label><label><span>Eksamenssæt starter</span><input className="ui-control" type="date" min={draft.lectureDeadline || todayKey} max={draft.examDate} value={draft.examSetStartDate} onChange={(event) => update("examSetStartDate", event.target.value)} /></label><label><span>Buffer før eksamen</span><select className="ui-control" value={draft.bufferDays} onChange={(event) => update("bufferDays", Number(event.target.value))}>{[2,3,4,5,7,10].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label></div></section><PhaseTimeline phases={strategy.phases} /></div>;
   }
-  if (reveal === "lectureCount") {
-    return <StepReveal c={c} icon="book" number={totalLecturesCount} label={copy.lecturesInModule} />;
+
+  function StepContent() {
+    const groups = [...new Set(lectures.map((lecture) => lecture.group || "Andet"))];
+    const difficultyCopy = { easy: "Let", normal: "Normal", hard: "Tung" };
+    return <div className="study-plan-v4-grid">
+      <section className="study-plan-v4-card">
+        <div className="study-plan-v4-card-heading"><div><h2>Vælg pensum og belastning</h2><p>Medtag det relevante pensum, markér allerede gennemgåede forelæsninger og vurder belastningen. Belastningen bruges til fordelingen — ikke som en låst varighed.</p></div><span>{draft.includedLectureIds.length}/{lectures.length}</span></div>
+        <div className="study-plan-v4-lecture-list">{groups.map((group) => <div key={group} className="study-plan-v4-lecture-group"><h3>{group}</h3>{lectures.filter((lecture) => (lecture.group || "Andet") === group).map((lecture) => {
+          const included = draft.includedLectureIds.includes(lecture.id);
+          const difficulty = draft.difficulty?.[lecture.id] || "normal";
+          return <div key={lecture.id} className="study-plan-v4-lecture-row" data-included={included ? "true" : "false"} onContextMenu={(event) => openLectureContext(event, lecture)}>
+            <button type="button" className="study-plan-v4-check" onClick={() => toggleIncluded(lecture.id)} aria-label={included ? "Ekskludér forelæsning" : "Medtag forelæsning"}>{included ? "✓" : ""}</button>
+            <div><strong>{lecture.id} · {lecture.title}</strong><small>{lecture.parts ? `${lecture.parts} dele` : "1 forelæsning"} · anslået {studyPlanLectureMinutes(lecture, difficulty)} min belastning</small></div>
+            <select className="study-plan-v4-difficulty" value={difficulty} disabled={!included} onChange={(event) => setLectureDifficulty(lecture.id, event.target.value)} aria-label={`Belastning for ${lecture.id}`}>{Object.entries(difficultyCopy).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
+            <label><input type="checkbox" checked={draft.doneLectureIds.includes(lecture.id)} onChange={() => toggleDone(lecture.id)} />Gennemgået</label>
+            <button type="button" className="study-plan-v4-more" aria-label={`Flere valg for ${lecture.id}`} onClick={(event) => openLectureContext({ preventDefault: () => {}, clientX: event.clientX, clientY: event.clientY }, lecture)}><Icon name="more" size={14} /></button>
+          </div>;
+        })}</div>)}</div>
+      </section>
+      <section className="study-plan-v4-card"><h2>Eksamenssæt</h2><p>Et sæt er først færdigt, når både besvarelsen og fejlgennemgangen er gennemført.</p><div className="study-plan-v4-fields"><label><span>Antal sæt</span><input className="ui-control" type="number" min="0" max="30" value={draft.examSetCount} onChange={(event) => update("examSetCount", Number(event.target.value))} /></label><label><span>Tid til hvert sæt</span><select className="ui-control" value={draft.examSetMinutes} onChange={(event) => update("examSetMinutes", Number(event.target.value))}>{[60,90,120,180].map((value) => <option key={value} value={value}>{value} min</option>)}</select></label><label><span>Fejlgennemgang</span><select className="ui-control" value={draft.errorReviewMinutes} onChange={(event) => update("errorReviewMinutes", Number(event.target.value))}>{[30,45,60,90].map((value) => <option key={value} value={value}>{value} min</option>)}</select></label></div><div className="study-plan-v4-note">Hvert sæt oprettes som to separate planobjekter: selve eksamenssættet og målrettet fejlgennemgang.</div></section>
+    </div>;
   }
 
-  return <>
-  <div className="fade-up" style={{ width:"min(1080px,100%)", margin:"0 auto", display:"grid", gap:16 }}>
-    <header style={{ display:"flex", alignItems:"end", justifyContent:"space-between", gap:16, padding:"7px 1px", flexWrap:"wrap" }}><div><div style={{ color:c.muted, fontSize:10, fontWeight:800, letterSpacing:".1em", textTransform:"uppercase" }}>{copy.intro}</div><h1 style={{ margin:"7px 0 0", color:c.text, fontSize:31, letterSpacing:"-.04em" }}>{copy.title}</h1></div>{planSaved && <button type="button" onClick={()=>setStep(1)} style={{ height:35, padding:"0 12px", borderRadius:9, border:`1px solid ${c.borderStrong}`, background:c.panel, color:c.secondary, fontSize:11, fontWeight:800, cursor:"pointer" }}>{copy.edit}</button>}</header>
-    {step < 9 && <><section style={{ display:"flex", alignItems:"center", gap:6, padding:"0 2px" }}>{Array.from({length:totalWizardSteps},(_, i)=>i+1).map((number) => <div key={number} style={{ display:"flex", alignItems:"center", gap:6, flex:number<totalWizardSteps?1:0 }}><span style={{ width:22,height:22,display:"grid",placeItems:"center",borderRadius:"50%",background:number<=step?c.blue:c.soft,color:number<=step?"#fff":c.muted,fontFamily:'"Space Mono",monospace',fontSize:9,fontWeight:700 }}>{number}</span>{number<totalWizardSteps&&<span style={{ height:1,flex:1,background:number<step?c.blue:c.border }}/>}</div>)}</section><section style={{ padding:"26px clamp(20px,4vw,34px)", borderRadius:18, background:c.panel, border:`1px solid ${c.border}`, boxShadow:c.shadow }}><div style={{ marginBottom:23 }}><div style={{ color:c.muted,fontSize:10,fontWeight:800,letterSpacing:".1em",textTransform:"uppercase" }}>{step}/{totalWizardSteps}</div><h2 style={{ margin:"7px 0 0",color:c.text,fontSize:21,letterSpacing:"-.025em" }}>{stepTitle}</h2></div>
+  function StepCapacity() {
+    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Din normale uge</h2><p>Angiv realistisk studiekapacitet. Planen bruger det til fordelingen, men klokkeslættet vælges først på dagen.</p><div className="study-plan-v4-week-grid">{days.map((label, dayIndex) => <label key={dayIndex}><span>{label}</span><input type="number" min="0" max="12" step=".5" value={draft.weekdayHours[dayIndex] ?? 0} onChange={(event) => update("weekdayHours", { ...draft.weekdayHours, [dayIndex]: Number(event.target.value) })} /><small>timer</small></label>)}</div><label className="study-plan-v4-inline-field"><span>Maks. forelæsninger pr. dag</span><input className="ui-control" type="number" min="1" max="8" value={draft.maxLecturesPerDay} onChange={(event) => update("maxLecturesPerDay", Number(event.target.value))} /></label></section><section className="study-plan-v4-card"><h2>Undtagelsesdage</h2><div className="study-plan-v4-add-date"><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={exceptionDate} onChange={(event) => setExceptionDate(event.target.value)} /><button type="button" className="ui-button ui-button--secondary" onClick={addException}>Tilføj</button></div><div className="study-plan-v4-date-chips">{draft.excludedDates.length ? draft.excludedDates.map((date) => <button key={date} type="button" onClick={() => update("excludedDates", draft.excludedDates.filter((item) => item !== date))}>{new Date(`${date}T00:00:00`).toLocaleDateString(locale)} ×</button>) : <span>Ingen undtagelser.</span>}</div></section></div>;
+  }
 
-      {step===1&&<div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:15 }}><label style={{ color:c.secondary,fontSize:11,fontWeight:800 }}>{copy.level}<select value={level} onChange={(e)=>{setLevel(e.target.value);setModule("")}} style={{ ...field,marginTop:8 }}><option value="Bachelor">Bachelor</option><option value="Kandidat">Kandidat</option></select></label><label style={{ color:c.secondary,fontSize:11,fontWeight:800 }}>{copy.module}<select value={moduleName} onChange={(e)=>setModule(e.target.value)} style={{ ...field,marginTop:8 }}><option value="">{copy.select}</option>{(MODULES[language]?.[level]||MODULES.da[level]).map((item)=><option key={item} value={item}>{item}</option>)}</select></label></div>}
+  function StepStrategy() {
+    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Planadfærd</h2><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard næste dag?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer valgt i kalenderen overskrives ikke.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></section><section className="study-plan-v4-card study-plan-v4-fsrs-card"><div className="study-plan-v4-card-heading"><div><h2>FSRS-repetition</h2><p>MCQ-kort kommer først i kalenderen, når FSRS har beregnet en ny forfaldsdato.</p></div><span>FSRS-6</span></div><label className="study-plan-v4-retention"><span>Ønsket fastholdelse <strong>{Math.round(draft.desiredRetention * 100)}%</strong></span><input type="range" min="0.8" max="0.97" step="0.01" value={draft.desiredRetention} onChange={(event) => update("desiredRetention", Number(event.target.value))} /><small>Højere fastholdelse giver hyppigere repetition. 90% er standard.</small></label><div className="study-plan-v4-step-row"><label><span>Læringstrin</span><input className="ui-control" value={draft.learningSteps.join(", ")} onChange={(event) => update("learningSteps", event.target.value.split(",").map((value) => value.trim()).filter(Boolean))} /></label><label><span>Genlæringstrin</span><input className="ui-control" value={draft.relearningSteps.join(", ")} onChange={(event) => update("relearningSteps", event.target.value.split(",").map((value) => value.trim()).filter(Boolean))} /></label></div><label className="study-plan-v4-reserve"><span>Reserver daglig kapacitet til MCQ <strong>{draft.mcqReservePercent}%</strong></span><input type="range" min="10" max="40" step="5" value={draft.mcqReservePercent} onChange={(event) => update("mcqReservePercent", Number(event.target.value))} /><small>Denne del af din kapacitet holdes fri til dynamiske FSRS-køer, så forelæsningsplanen ikke fylder hele dagen.</small></label><div className="study-plan-v4-note">Igen = forkert, Svær = korrekt med stor tøven, God = korrekt med indsats, Nem = umiddelbart korrekt.</div></section></div>;
+  }
 
-      {step===2&&<div><label style={{ color:c.secondary,fontSize:11,fontWeight:800 }}>{copy.exam}<input type="date" value={examDate} min={new Date().toISOString().slice(0,10)} onChange={(e)=>setExamDate(e.target.value)} style={{ ...field,marginTop:8, colorScheme:"light" }}/><span style={{ display:"block",marginTop:7,color:c.muted,fontSize:10,lineHeight:1.4 }}>{copy.examHint}</span></label></div>}
+  function StepPreview() {
+    const maxWeekly = Math.max(1, ...strategy.weeklyLoads.map((week) => week.minutes));
+    return <div className="study-plan-v4-preview"><div className="study-plan-v4-preview-top"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Din eksamensstrategi</h2><p>{strategy.pendingCount} resterende forelæsninger, {draft.examSetCount} eksamenssæt og {draft.bufferDays} bufferdage.</p></div><div className="study-plan-v4-capacity"><strong>{Math.round(strategy.requiredTotal / 60)} t</strong><span>samlet planbelastning</span><small>{Math.round(strategy.capacityTotal / 60)} t plan-kapacitet · {Math.round(strategy.fsrsReserveMinutes / 60)} t MCQ-reserve</small></div></div><PhaseTimeline phases={strategy.phases} /><section className="study-plan-v4-card"><h2>Ugebelastning</h2><div className="study-plan-v4-week-bars">{strategy.weeklyLoads.map((week) => <div key={week.weekStart}><span>{new Date(`${week.weekStart}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}</span><div><i style={{ width: `${Math.max(3, (week.minutes / maxWeekly) * 100)}%` }} /></div><strong>{Math.round(week.minutes / 60 * 10) / 10} t</strong></div>)}</div></section><section className="study-plan-v4-card"><h2>Kritisk kontrol</h2>{strategy.issues.length ? <div className="study-plan-v4-issues">{strategy.issues.map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div> : <div className="study-plan-v4-success"><Icon name="check" size={15} />Planen har plads til alle faser.</div>}<div className="study-plan-v4-suggestions"><strong>Mulige justeringer</strong><span>Flyt forelæsningsfristen, øg timer på enkelte ugedage, reducer antal eksamenssæt eller forlæng fasen før buffer.</span></div></section>{existing && <section className="study-plan-v4-card"><h2>Ved opdatering</h2><div className="study-plan-v4-change-grid"><span><b>{strategy.assignments.length}</b> fremtidige planobjekter</span><span><b>{draft.doneLectureIds.length}</b> gennemførte bevares</span><span><b>{draft.preserveManualTimes ? "Ja" : "Nej"}</b> bevar manuelle tider</span><span><b>{draft.freezeDays}</b> frosne dage</span></div></section>}</div>;
+  }
 
-      {step===3&&<div><p style={{ margin:"0 0 18px",color:c.secondary,fontSize:12,lineHeight:1.55 }}>{copy.reviewStepHint}</p><div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14 }}>{Object.entries(REVIEW_METHODS).map(([key,methodDef])=>{const selected=reviewMethod===key;const isRecommended=days>0&&(key==="2357"?days<=14:days>14);const name=key==="2357"?copy.method2357Name:copy.method137Name;const desc=key==="2357"?copy.method2357Desc:copy.method137Desc;return <button key={key} type="button" onClick={()=>setReviewMethod(key)} style={{ position:"relative",minHeight:190,padding:20,borderRadius:16,border:`1px solid ${selected?c.blueBorder:c.border}`,background:selected?c.blueSoft:c.soft,color:c.text,textAlign:"start",cursor:"pointer" }}>{isRecommended&&<span className="pulse-soft" style={{ position:"absolute",top:14,insetInlineEnd:14,padding:"4px 9px",borderRadius:99,background:c.green,color:"#fff",fontSize:9,fontWeight:800,letterSpacing:".04em",textTransform:"uppercase" }}>{copy.recommended}</span>}<Icon name="target" size={22}/><strong style={{ display:"block",marginTop:16,fontSize:15,color:selected?c.blue:c.text }}>{name}</strong><span style={{ display:"block",marginTop:7,color:c.secondary,fontSize:11.5,lineHeight:1.55 }}>{desc}</span><div style={{ display:"flex",gap:6,marginTop:14,flexWrap:"wrap" }}>{methodDef.intervals.map((interval)=><span key={interval} style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",minWidth:26,height:26,padding:"0 7px",borderRadius:8,background:c.panel,color:selected?c.blue:c.secondary,fontFamily:'"Space Mono",monospace',fontSize:11,fontWeight:800,border:`1px solid ${c.border}` }}>{interval}</span>)}</div><span style={{ display:"block",marginTop:9,color:c.muted,fontSize:9.5,fontWeight:700 }}>{copy.intervalsLabel} {methodDef.intervals.join(", ")} {language==="da"?"dage":"days"}</span></button>})}</div></div>}
+  function PhaseTimeline({ phases }) { return <section className="study-plan-v4-card study-plan-v4-phase-card"><div className="study-plan-v4-card-heading"><div><h2>Faseplan</h2><p>Nyt stof stopper ved din valgte frist.</p></div></div><div className="study-plan-v4-phases">{phases.map((phase) => <div key={phase.id} style={{ "--phase-tone": phase.tone }}><i /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })} – {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}</small></span></div>)}</div></section>; }
 
-      {step===4&&<div><div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:12,marginBottom:16 }}><button type="button" onClick={()=>setMode("lectures")} style={{ minHeight:120,padding:18,borderRadius:14,border:`1px solid ${mode==="lectures"?c.blueBorder:c.border}`,background:mode==="lectures"?c.blueSoft:c.soft,color:c.text,textAlign:"start",cursor:"pointer" }}><Icon name="book" size={21}/><strong style={{ display:"block",marginTop:16,fontSize:14,color:mode==="lectures"?c.blue:c.text }}>{copy.lectures}</strong><span style={{ display:"block",marginTop:6,color:c.secondary,fontSize:11,lineHeight:1.5 }}>{copy.lecturesText}</span></button><button type="button" onClick={()=>setMode("questions")} style={{ minHeight:120,padding:18,borderRadius:14,border:`1px solid ${mode==="questions"?c.blueBorder:c.border}`,background:mode==="questions"?c.blueSoft:c.soft,color:c.text,textAlign:"start",cursor:"pointer" }}><Icon name="clipboard" size={21}/><strong style={{ display:"block",marginTop:16,fontSize:14,color:mode==="questions"?c.blue:c.text }}>{copy.questions}</strong><span style={{ display:"block",marginTop:6,color:c.secondary,fontSize:11,lineHeight:1.5 }}>{copy.questionsText}</span></button></div>{mode==="lectures"&&<div><p style={{ margin:"0 0 14px",color:c.secondary,fontSize:12,lineHeight:1.55 }}>{copy.questionTimingHint}</p><div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12 }}>{[["spread",copy.spreadName,copy.spreadDesc],["cram",copy.crammName,copy.crammDesc]].map(([key,name,desc])=>{const selected=questionDistribution===key;return <button key={key} type="button" onClick={()=>setQuestionDistribution(key)} style={{ minHeight:100,padding:16,borderRadius:13,border:`1px solid ${selected?c.blueBorder:c.border}`,background:selected?c.blueSoft:c.soft,color:c.text,textAlign:"start",cursor:"pointer" }}><strong style={{ display:"block",fontSize:13,color:selected?c.blue:c.text }}>{name}</strong><span style={{ display:"block",marginTop:6,color:c.secondary,fontSize:11,lineHeight:1.5 }}>{desc}</span></button>})}</div></div>}</div>}
-
-      {step===5&&<><p style={{ margin:"0 0 14px",color:c.secondary,fontSize:12,lineHeight:1.55 }}>{copy.priorText}</p>{lectures.length ? <>
-  <div style={{ display:"flex",gap:8,marginBottom:14,flexWrap:"wrap" }}>
-    <button type="button" onClick={()=>setDone(lectures.map((l)=>l.id))} style={{ height:34,padding:"0 12px",borderRadius:9,border:`1px solid ${c.blueBorder}`,background:c.blueSoft,color:c.blue,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.checkAll}</button>
-    <button type="button" onClick={()=>setDone([])} style={{ height:34,padding:"0 12px",borderRadius:9,border:`1px solid ${c.borderStrong}`,background:c.panel,color:c.secondary,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.uncheckAll}</button>
-  </div>
-  <div style={{ display:"grid",gap:16,maxHeight:420,overflowY:"auto",paddingInlineEnd:4 }}>
-    {Object.entries(lectures.reduce((groups,item)=>{const key=item.group||copy.ungrouped;(groups[key]=groups[key]||[]).push(item);return groups;},{})).map(([groupName,groupItems])=>{
-      const groupIds=groupItems.map((l)=>l.id);
-      const allChecked=groupIds.every((id)=>done.includes(id));
-      const someChecked=groupIds.some((id)=>done.includes(id));
-      return <div key={groupName}>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8 }}>
-          <span style={{ color:c.muted,fontSize:10,fontWeight:800,letterSpacing:".05em",textTransform:"uppercase" }}>{groupName}</span>
-          <button type="button" onClick={()=>setDone((old)=>allChecked?old.filter((id)=>!groupIds.includes(id)):[...new Set([...old,...groupIds])])} style={{ height:26,padding:"0 10px",borderRadius:7,border:`1px solid ${someChecked?c.blueBorder:c.border}`,background:someChecked?c.blueSoft:c.soft,color:someChecked?c.blue:c.secondary,fontSize:10,fontWeight:800,cursor:"pointer" }}>{allChecked?copy.uncheckGroup:copy.checkGroup}</button>
-        </div>
-        <div style={{ display:"grid",gap:7 }}>
-          {groupItems.map((item)=><label key={item.id} style={{ display:"flex",alignItems:"center",gap:11,padding:"11px 12px",borderRadius:10,background:done.includes(item.id)?c.blueSoft:c.soft,border:`1px solid ${done.includes(item.id)?c.blueBorder:"transparent"}`,cursor:"pointer" }}><input type="checkbox" checked={done.includes(item.id)} onChange={()=>toggle(item.id)} style={{ accentColor:c.blue }}/><span style={{ color:done.includes(item.id)?c.blue:c.text,fontFamily:'"Space Mono",monospace',fontSize:11,fontWeight:700 }}>{item.id}:</span><span style={{ flex:1,color:done.includes(item.id)?c.blue:c.text,fontSize:12,fontWeight:650 }}>{item.title}</span>{item.parts>1&&<span style={{color:c.muted,fontSize:10}}>({item.parts})</span>}</label>)}
-        </div>
-      </div>;
-    })}
-  </div>
-</> : <p style={{color:c.secondary,fontSize:13}}>{copy.noLectures}</p>}</>}
-
-      {step===6&&<div><p style={{ margin:"0 0 16px",color:c.secondary,fontSize:12,lineHeight:1.55 }}>{copy.exceptionDaysHint}</p><div style={{ display:"flex",gap:8,marginBottom:16 }}><input type="date" value={newExceptionDate} onChange={(e)=>setNewExceptionDate(e.target.value)} style={{ ...field, flex:1 }}/><button type="button" onClick={toggleExceptionDate} disabled={!newExceptionDate} style={{ height:42,padding:"0 16px",borderRadius:10,border:"none",background:c.blue,color:"#fff",fontSize:12,fontWeight:800,cursor:newExceptionDate?"pointer":"default",opacity:newExceptionDate?1:.5 }}>{copy.addExceptionDay}</button></div>{excludedDates.length ? <div style={{ display:"grid",gap:7 }}>{excludedDates.map((d)=><div key={d} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",borderRadius:10,background:c.soft }}><span style={{ fontSize:12,fontWeight:650,color:c.text }}>{new Date(`${d}T00:00:00`).toLocaleDateString()}</span><button type="button" onClick={()=>removeExceptionDate(d)} style={{ border:"none",background:"transparent",color:c.red,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.removeExceptionDay}</button></div>)}</div> : <p style={{color:c.muted,fontSize:12}}>{copy.noExceptionDays}</p>}</div>}
-
-      {step===7&&<div><label style={{ display:"flex",alignItems:"center",gap:11,padding:"12px 14px",borderRadius:11,background:difficultyEnabled?c.blueSoft:c.soft,border:`1px solid ${difficultyEnabled?c.blueBorder:"transparent"}`,cursor:"pointer",marginBottom:14 }}><input type="checkbox" checked={difficultyEnabled} onChange={(e)=>setDifficultyEnabled(e.target.checked)} style={{ accentColor:c.blue }}/><span style={{ fontSize:12,fontWeight:700,color:difficultyEnabled?c.blue:c.text }}>{copy.difficultyToggleLabel}</span></label><p style={{ margin:"0 0 16px",color:c.secondary,fontSize:12,lineHeight:1.55 }}>{difficultyEnabled?copy.difficultyToggleHint:copy.difficultySkippedHint}</p>{difficultyEnabled&&lectures.length ? <div style={{ display:"grid",gap:7,maxHeight:340,overflowY:"auto",paddingInlineEnd:4 }}>{lectures.map((item)=>{const lvl=difficulty[item.id]||"medium";return <div key={item.id} style={{ display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,background:c.soft }}><span style={{ flex:1,fontSize:12,fontWeight:650,color:c.text }}>{item.id}: {item.title}</span><div style={{ display:"flex",gap:4 }}>{["easy","medium","hard"].map((opt)=><button key={opt} type="button" onClick={()=>setLectureDifficulty(item.id,opt)} style={{ padding:"5px 9px",borderRadius:7,border:"none",fontSize:10,fontWeight:800,cursor:"pointer",background:lvl===opt?(opt==="hard"?c.red:opt==="easy"?c.green:c.blue):c.panel,color:lvl===opt?"#fff":c.secondary }}>{opt==="easy"?copy.difficultyEasy:opt==="hard"?copy.difficultyHard:copy.difficultyMedium}</button>)}</div></div>})}</div> : null}</div>}
-
-      {step===8&&<div><div style={{ display:"flex",alignItems:"center",gap:14,marginBottom:22 }}><input type="range" min="0.5" max="10" step="0.5" value={hoursPerDay} onChange={(e)=>setHoursPerDay(Number(e.target.value))} style={{ flex:1, accentColor:c.blue }}/><span style={{ minWidth:64,padding:"9px 12px",borderRadius:11,background:c.blueSoft,color:c.blue,fontFamily:'"Space Mono",monospace',fontSize:15,fontWeight:800,textAlign:"center" }}>{hoursPerDay}t</span></div><p className="study-plan-duration-note">Forelæsninger placeres på datoen uden fast klokkeslæt. Varighed og starttid vælges i dagens planlægning.</p><WorkloadVisualizer c={c} copy={copy} hoursPerDay={hoursPerDay} estimatedMinutes={estimatedMinutes} capacityMinutes={capacityMinutes} days={Math.max(days,1)} reviewIntervals={REVIEW_METHODS[reviewMethod]?.intervals || [1,3,7]} lectureUnitsCount={lectureUnits.length} language={language}/></div>}
-
-      <footer style={{ display:"flex",justifyContent:"space-between",gap:10,marginTop:25 }}><button type="button" onClick={()=>setStep((value)=>Math.max(1,value-1))} disabled={step===1} style={{ height:42,padding:"0 14px",borderRadius:10,border:`1px solid ${c.borderStrong}`,background:c.panel,color:c.secondary,fontSize:12,fontWeight:800,cursor:step===1?"default":"pointer",opacity:step===1?.4:1 }}>{copy.back}</button>{step===2?<PrimaryButton disabled={!examDate} onClick={()=>triggerReveal("examDate",3)}>{copy.next}</PrimaryButton>:step===5?<PrimaryButton onClick={()=> totalLecturesCount>0 ? triggerReveal("lectureCount",6) : setStep(6)}>{copy.next}</PrimaryButton>:step<9?<PrimaryButton disabled={(step===1&&!moduleName)||(step===3&&!reviewMethod)} onClick={()=>setStep((value)=>value+1)}>{copy.next}</PrimaryButton>:<PrimaryButton disabled={!moduleName||!examDate} onClick={save}>{copy.generate}</PrimaryButton>}</footer></section></>}
-    {step===9&&<><section style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(165px,1fr))",borderRadius:17,overflow:"hidden",background:c.panel,border:`1px solid ${c.border}`,boxShadow:c.shadow }}>{[[days,copy.days],[mode === "questions" ? questionTotal : lectureUnits.length,mode === "questions" ? "MCQ\u2019er i alt" : copy.remaining],[questionsPerDay,copy.questionsDay],[`${Math.round(estimatedMinutes)} ${copy.minutes}`,copy.workload]].map(([value,label])=><div key={label} style={{ padding:"17px 18px",borderInlineEnd:`1px solid ${c.border}` }}><div style={{ color:c.text,fontFamily:'"Space Mono",monospace',fontSize:24,fontWeight:700 }}>{value}</div><div style={{ marginTop:6,color:c.muted,fontSize:10,fontWeight:800,letterSpacing:".06em",textTransform:"uppercase" }}>{label}</div></div>)}</section><section style={{ padding:"16px 18px",borderRadius:14,background:c.blueSoft,border:`1px solid ${c.blueBorder}`,color:c.secondary,fontSize:12,lineHeight:1.6 }}>{copy.planNote}{mode === "questions" && <strong style={{display:"block",marginTop:7,color:c.text}}>{questionsPerDay} {copy.questionsLabel.toLowerCase()}.</strong>}</section><section className="study-plan-activation" data-active={planSaved ? "true" : "false"}><div><span className="study-plan-activation-icon"><Icon name={planSaved ? "check" : "calendar"} size={16} /></span><div><strong>{planSaved ? activationCopy.active : activationCopy.confirmTitle}</strong><small>{planSaved ? copy.saved : activationCopy.confirmText}</small></div></div><PrimaryButton onClick={() => setConfirmActivatePlan(true)}><Icon name="calendar" size={14} />{planSaved ? activationCopy.update : activationCopy.activate}</PrimaryButton></section>{saveNotice && <div className="ui-feedback" data-tone="success"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content"><div className="ui-feedback-title">{saveNotice}</div></div></div>}<section style={{ width:"calc(100% + 32px)", marginInline:"-16px", borderRadius:0,overflow:"hidden",background:c.panel,borderTop:`1px solid ${c.border}`,borderBottom:`1px solid ${c.border}`,boxShadow:c.shadow }}><header style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"19px max(21px, calc((100vw - 1100px) / 2))",borderBottom:`1px solid ${c.border}` }}><h2 style={{ margin:0,color:c.text,fontSize:16 }}>{copy.timeline}</h2><div style={{display:"flex",gap:7}}><div style={{display:"flex",padding:3,borderRadius:9,background:c.soft,border:`1px solid ${c.border}`}}>{[["list",copy.list],["graph",copy.graph]].map(([id,label])=><button key={id} type="button" onClick={()=>setTimelineView(id)} style={{height:28,padding:"0 9px",border:0,borderRadius:6,background:timelineView===id?c.panel:"transparent",color:timelineView===id?c.text:c.muted,fontSize:10,fontWeight:800,cursor:"pointer"}}>{label}</button>)}</div><button type="button" onClick={exportCalendar} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.blueBorder}`,background:c.blueSoft,color:c.blue,fontSize:11,fontWeight:800,cursor:"pointer" }}>Google Calendar (.ics)</button><button type="button" onClick={exportPlanAsJSON} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.borderStrong}`,background:c.panel,color:c.secondary,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.exportPlan}</button><button type="button" onClick={()=>setConfirmDeletePlan(true)} style={{ height:34,padding:"0 11px",borderRadius:8,border:`1px solid ${c.red}`,background:c.redSoft,color:c.red,fontSize:11,fontWeight:800,cursor:"pointer" }}>{copy.deletePlan}</button></div></header>{timelineView === "list" ? <div style={{ display:"grid",gap:0 }}>{timelineDays.map((date,index)=>{const isExam=index===days;const units=unitForDay(index);const tasks=[];if(!isExam){units.forEach(unit=>tasks.push({type:"lecture",text:`${unit.title}${unit.part?` (${unit.part}/${unit.parts})`:""}`}));const count=questionsForDayIndex(index);if(count)tasks.push({type:"questions",text:`${count} ${copy.questionsLabel}`});(REVIEW_METHODS[reviewMethod]?.intervals || [1,3,7]).forEach(interval=>{if(index>=interval&&unitForDay(index-interval).length)tasks.push({type:"review",text:`${copy.review} \u00b7 ${unitForDay(index-interval).map(x=>x.title).join(", ")}`})})}return <article key={date.toISOString()} style={{ display:"grid",gridTemplateColumns:"125px minmax(0,1fr)",gap:17,padding:"16px 21px",borderBottom:index===timelineDays.length-1?0:`1px solid ${c.border}`,background:index===0?`${c.blueSoft}55`:"transparent" }}><div><div style={{ color:index===0?c.blue:c.text,fontSize:12,fontWeight:800 }}>{isExam?copy.examDay:index===0?copy.today:dateShort(date)}</div><div style={{ marginTop:4,color:c.muted,fontFamily:'"Space Mono",monospace',fontSize:10 }}>{date.toLocaleDateString(language==="da"?"da-DK":"en-GB",{day:"2-digit",month:"2-digit"})}</div></div><div style={{ display:"grid",gap:6 }}>{isExam?<span style={{ color:c.red,fontSize:12,fontWeight:800 }}>{copy.examDay}</span>:tasks.map((task,i)=>{const [color,bg]=typeStyle(task.type);return <div key={i} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:8,background:bg,color:c.text,fontSize:11,fontWeight:650 }}><span style={{ width:6,height:6,borderRadius:"50%",background:color,flexShrink:0 }}/>{task.text}</div>})}</div></article>})}</div> : <AdvancedPlanTimeline c={c} language={language} copy={copy} today={today} exam={exam} timelineDays={timelineDays} mode={mode} questionTotal={questionTotal} questionsForDayIndex={questionsForDayIndex} unitForDay={unitForDay} reviewIntervals={REVIEW_METHODS[reviewMethod]?.intervals}/>}</section></>}
-  </div>
-  {confirmActivatePlan && (
-    <Modal c={c} onClose={() => setConfirmActivatePlan(false)}>
-      <div className="study-plan-confirm">
-        <span className="study-plan-confirm-icon"><Icon name="calendar" size={20} /></span>
-        <h2>{activationCopy.confirmTitle}</h2>
-        <p>{activationCopy.confirmText}</p>
-        <div><SecondaryButton onClick={() => setConfirmActivatePlan(false)}>{copy.cancel}</SecondaryButton><PrimaryButton onClick={save}><Icon name="check" size={14} />{activationCopy.confirm}</PrimaryButton></div>
+  function StepActivate() {
+    const counts = strategy.assignments.reduce((result, item) => ({ ...result, [item.phase]: (result[item.phase] || 0) + 1 }), {});
+    return <div className="study-plan-v4-activate">
+      <section className="study-plan-v4-card study-plan-v4-activate-hero"><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Planen er klar til aktivering</h2><p>Kontrollér de endelige regler. Aktivering opretter fremtidige planobjekter, mens gennemførte forelæsninger og manuelle kalenderplaceringer bevares efter dine valg.</p><div className="study-plan-v4-activate-stats"><span><b>{counts.lecture || 0}</b> forelæsninger</span><span><b>{counts.consolidation || 0}</b> første repetitioner</span><span><b>{counts.exam || 0}</b> eksamenssæt</span><span><b>{counts.targeted || 0}</b> målrettede blokke</span></div></section>
+      <div className="study-plan-v4-grid">
+        <section className="study-plan-v4-card"><h2>Planregler</h2><div className="study-plan-v4-confirm-list"><span><Icon name="calendar" size={15} /><i><strong>Nyt stof stopper</strong><small>{new Date(`${draft.lectureDeadline}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></i></span><span><Icon name="cards" size={15} /><i><strong>FSRS fastholdelse</strong><small>{Math.round(draft.desiredRetention * 100)}% · {draft.mcqReservePercent}% daglig reserve</small></i></span><span><Icon name="clock" size={15} /><i><strong>Missede aktiviteter</strong><small>{draft.missedPolicy === "ask" ? "Spørg altid" : draft.missedPolicy === "buffer" ? "Flyt til buffer" : draft.missedPolicy === "next-capacity" ? "Næste dag med kapacitet" : "Behold forsinket"}</small></i></span><span><Icon name="check" size={15} /><i><strong>Manuelle tider</strong><small>{draft.preserveManualTimes ? "Bevares ved opdatering" : "Må omfordeles"}</small></i></span></div></section>
+        <section className="study-plan-v4-card"><h2>FSRS i kalenderen</h2><p>MCQ-køer oprettes ikke som faste daglige opgaver. De kommer automatisk frem i den lilla repetitionsboks på den dato, hvor FSRS beregner, at kortene skal ses igen.</p><div className="study-plan-v4-fsrs-proof"><strong>{FSRS_RUNTIME_VERSION}</strong><span>Again · Hard · Good · Easy</span><small>Intervalmotoren er versionslåst. Ved manglende netværksadgang vises en tydelig fallback-status i MCQ-sessionen.</small></div></section>
       </div>
-    </Modal>
-  )}
-  {confirmDeletePlan && (
-    <Modal c={c} onClose={() => setConfirmDeletePlan(false)}>
-      <h2 style={{ display: "flex", alignItems: "center", gap: 9, color: c.text, fontSize: 15, marginBottom: 10 }}>
-        <Icon name="flag" size={18} />
-        {copy.deletePlanConfirmTitle}
-      </h2>
-      <p style={{ color: c.secondary, fontSize: 13, lineHeight: 1.6, marginBottom: 18 }}>
-        {copy.deletePlanConfirmText}
-      </p>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-        <button
-          type="button"
-          onClick={() => setConfirmDeletePlan(false)}
-          style={{ height: 40, padding: "0 14px", border: `1px solid ${c.borderStrong}`, borderRadius: 10, background: "transparent", color: c.text, fontSize: 12, fontWeight: 700, cursor: "pointer" }}
-        >
-          {copy.cancel}
-        </button>
-        <button
-          type="button"
-          onClick={() => { setConfirmDeletePlan(false); deletePlan(); }}
-          style={{ height: 40, padding: "0 14px", border: `1px solid ${c.red}`, borderRadius: 10, background: c.red, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
-        >
-          {copy.deletePlan}
-        </button>
+      {strategy.issues.length > 0 && <section className="study-plan-v4-card"><h2>Kontrollér før aktivering</h2><div className="study-plan-v4-issues">{strategy.issues.map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div></section>}
+    </div>;
+  }
+
+  const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
+  return (
+    <div className="study-plan-v4">
+      <header className="study-plan-v4-header"><div><span>Segment 4 · strategi</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <div className="study-plan-v4-shell">
+        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && nextStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "FSRS og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
+        <main className="study-plan-v4-main"><div key={step} className="study-plan-v4-step" data-direction={direction}>{stepContent}</div><footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmDelete(true)}>{copy.delete}</button>}</div><div>{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={!canContinue || (step === 5 && (!strategy.valid || strategy.realism === "unrealistic"))} onClick={() => nextStep(step + 1)}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid || strategy.realism === "unrealistic"} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
       </div>
-    </Modal>
-  )}
-  </>;
+      {lectureContext && <div className="study-plan-v4-context" style={{ left: lectureContext.x, top: lectureContext.y }} onPointerDown={(event) => event.stopPropagation()}><strong>{lectureContext.lecture.id} · {lectureContext.lecture.title}</strong><button type="button" onClick={() => runLectureContext("priority")}>Prioritér tidligere</button><span>Belastning</span><div><button type="button" data-active={(draft.difficulty?.[lectureContext.lecture.id] || "normal") === "easy" ? "true" : "false"} onClick={() => runLectureContext("easy")}>Let</button><button type="button" data-active={(draft.difficulty?.[lectureContext.lecture.id] || "normal") === "normal" ? "true" : "false"} onClick={() => runLectureContext("normal")}>Normal</button><button type="button" data-active={draft.difficulty?.[lectureContext.lecture.id] === "hard" ? "true" : "false"} onClick={() => runLectureContext("hard")}>Tung</button></div><button type="button" onClick={() => runLectureContext("done")}>{draft.doneLectureIds.includes(lectureContext.lecture.id) ? "Fortryd gennemgået" : "Markér gennemgået"}</button><button type="button" onClick={() => runLectureContext("include")}>{draft.includedLectureIds.includes(lectureContext.lecture.id) ? "Ekskludér fra planen" : "Medtag i planen"}</button></div>}
+      {confirmDelete && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Slet studieplan?</h2><p>Planobjekter fjernes fra kalenderen. MCQ-reviewhistorik og noter beholdes.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmDelete(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={deletePlan}>Slet plan</button></div></div></div>}
+    </div>
+  );
 }
 
 
-function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onMoveEvent, onContextRequest }) {
-  const startHour = 7;
-  const endHour = 21;
-  const hourHeight = 60;
+function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onMoveEvent, onContextRequest, onStartReview }) {
+  const startHour = 7, endHour = 21, hourHeight = 60;
   const totalHeight = (endHour - startHour) * hourHeight;
   const dateString = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
   const dragIdRef = useRef(null);
   const gridRef = useRef(null);
-  const palette = { exam: { color: "#c9822f", background: "rgba(201,130,47,.11)" }, study: { color: c.blue, background: c.blueSoft }, review: { color: c.green, background: c.greenSoft }, other: { color: c.secondary, background: c.soft } };
   const dayEvents = events.filter((event) => event.date === dateString);
-  const unscheduled = dayEvents.filter((event) => !event.time && !event.completedAt && event.type !== "exam");
-
-  function layoutDayEvents(items2) {
-    const items = items2.filter((event) => event.time).map((event) => { const start = timeToMinutes(event.time); return { event, start, end: start + calendarDurationMinutes(event), lane: 0, laneCount: 1 }; }).sort((a, b) => a.start - b.start || b.end - a.end);
-    const groups = []; let active = []; let activeEnd = -1;
-    items.forEach((item) => { if (active.length && item.start >= activeEnd) { groups.push(active); active = []; activeEnd = -1; } active.push(item); activeEnd = Math.max(activeEnd, item.end); });
-    if (active.length) groups.push(active);
-    groups.forEach((group) => { const laneEnds = []; group.forEach((item) => { let lane = laneEnds.findIndex((value) => value <= item.start); if (lane < 0) lane = laneEnds.length; laneEnds[lane] = item.end; item.lane = lane; }); group.forEach((item) => { item.laneCount = Math.max(1, laneEnds.length); }); });
-    return items;
-  }
+  const fsrsQueue = dayEvents.filter((event) => !event.time && !event.completedAt && event.source === "fsrs-review");
+  const unscheduled = dayEvents.filter((event) => !event.time && !event.completedAt && event.type !== "exam" && event.source !== "fsrs-review");
+  const palette = { exam: { color: "#c9822f", background: "rgba(201,130,47,.11)" }, study: { color: c.blue, background: c.blueSoft }, review: { color: c.green, background: c.greenSoft }, other: { color: c.secondary, background: c.soft } };
+  function toneFor(event) { return event.source === "fsrs-review" ? { color: "#7667d8", background: "rgba(118,103,216,.11)" } : (palette[event.type] || palette.other); }
+  function layoutDayEvents(items2) { const items = items2.filter((event) => event.time).map((event) => { const start = timeToMinutes(event.time); return { event, start, end: start + calendarDurationMinutes(event), lane: 0, laneCount: 1 }; }).sort((a, b) => a.start - b.start || b.end - a.end); const groups=[]; let active=[]; let activeEnd=-1; items.forEach((item)=>{ if(active.length&&item.start>=activeEnd){groups.push(active);active=[];activeEnd=-1;} active.push(item);activeEnd=Math.max(activeEnd,item.end);}); if(active.length)groups.push(active); groups.forEach((group)=>{const laneEnds=[];group.forEach((item)=>{let lane=laneEnds.findIndex((value)=>value<=item.start);if(lane<0)lane=laneEnds.length;laneEnds[lane]=item.end;item.lane=lane;});group.forEach((item)=>{item.laneCount=Math.max(1,laneEnds.length);});}); return items; }
   const positionedEvents = layoutDayEvents(dayEvents);
-  function timeFromPointer(clientY) { if (!gridRef.current) return `${String(startHour).padStart(2, "0")}:00`; const rect = gridRef.current.getBoundingClientRect(); const relative = Math.max(0, Math.min(totalHeight - 1, clientY - rect.top)); return minutesToTime(Math.round((startHour * 60 + (relative / hourHeight) * 60) / 15) * 15); }
-  const today = new Date();
-  const isToday = dateString === dateKey(today.getFullYear(), today.getMonth(), today.getDate());
-  const nowTop = (((today.getHours() * 60 + today.getMinutes()) - startHour * 60) / 60) * hourHeight;
-  const hourLines = Array.from({ length: endHour - startHour + 1 }, (_, index) => ({ hour: startHour + index, top: index * hourHeight }));
-
-  return (
-    <div className="home-day-schedule" style={{ "--home-hour-height": `${hourHeight}px` }}>
-      {unscheduled.length > 0 && <div className="home-day-unscheduled"><span>Ikke placeret</span><div>{unscheduled.map((event) => <button key={event.id} type="button" draggable onDragStart={(e) => { dragIdRef.current = event.id; e.dataTransfer.setData("text/plain", event.id); }} onDragEnd={() => { dragIdRef.current = null; }} onClick={() => onEventClick(event)} onContextMenu={(e) => { e.preventDefault(); onContextRequest?.({ kind: "unscheduled", event, date: dateString, x: e.clientX, y: e.clientY }); }}><strong>{event.lectureId || "•"}</strong><span>{event.title}</span></button>)}</div></div>}
-      <div className="home-day-times" style={{ height: totalHeight }} aria-hidden="true">{hourLines.map(({ hour, top }) => <React.Fragment key={hour}><span className="home-day-gutter-line" style={{ top }} /><span className="home-day-time" style={{ top }}>{String(hour).padStart(2, "0")}:00</span></React.Fragment>)}</div>
-      <div ref={gridRef} className="home-day-grid" style={{ height: totalHeight }} onClick={(event) => { if (event.target.closest('.home-day-event')) return; onSlotClick(dateString, timeFromPointer(event.clientY)); }} onContextMenu={(event) => { if (event.target.closest('.home-day-event')) return; event.preventDefault(); onContextRequest?.({ kind: "slot", date: dateString, time: timeFromPointer(event.clientY), x: event.clientX, y: event.clientY }); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const id = dragIdRef.current || event.dataTransfer.getData("text/plain"); const source = events.find((item) => item.id === id); if (!source) return; const time = timeFromPointer(event.clientY); const duration = calendarDurationMinutes(source); onMoveEvent({ ...source, date: dateString, time, endTime: minutesToTime((timeToMinutes(time) || 0) + duration), estimatedHours: duration / 60 }); dragIdRef.current = null; }}>
-        {hourLines.map(({ hour, top }) => <span key={`hour-${hour}`} className="home-day-hour-line" style={{ top }} />)}
-        {Array.from({ length: endHour - startHour }, (_, index) => <span key={`half-${index}`} className="home-day-half-line" style={{ top: index * hourHeight + hourHeight / 2 }} />)}
-        {isToday && nowTop >= 0 && nowTop <= totalHeight && <div className="home-day-now-line" style={{ top: nowTop }} />}
-        {positionedEvents.map(({ event, start, end, lane, laneCount }) => { const tone = palette[event.type] || palette.other; const top = ((start - startHour * 60) / 60) * hourHeight; const height = Math.max(28, ((end - start) / 60) * hourHeight - 2); if (top + height < 0 || top > totalHeight) return null; return <button key={event.id} type="button" draggable className="home-day-event" data-complete={event.completedAt ? "true" : "false"} data-conflict={events.some((other) => calendarEventsConflict(event, other)) ? "true" : "false"} onDragStart={(e) => { dragIdRef.current = event.id; e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", event.id); }} onDragEnd={() => { dragIdRef.current = null; }} onClick={(e) => { e.stopPropagation(); onEventClick(event); }} onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onContextRequest?.({ kind: "event", event, date: dateString, x: e.clientX, y: e.clientY }); }} style={{ top: top + 1, height, width: `calc(${100 / laneCount}% - 10px)`, insetInlineStart: `calc(${lane * (100 / laneCount)}% + 5px)`, "--home-event-accent": tone.color, "--home-event-surface": tone.background }} title={`${event.time}–${minutesToTime(end)} ${event.title}`}><span className="home-day-event-time">{event.time}–{minutesToTime(end)}</span><span className="home-day-event-title">{event.title}</span>{event.deliveryStatus === "held" && <small>Afholdt</small>}</button>; })}
-      </div>
+  function timeFromPointer(clientY) { if (!gridRef.current) return "07:00"; const rect=gridRef.current.getBoundingClientRect(); const relative=Math.max(0,Math.min(totalHeight-1,clientY-rect.top)); return minutesToTime(Math.round((startHour*60+(relative/hourHeight)*60)/15)*15); }
+  function dragButton(event, className) { return <button key={event.id} type="button" draggable className={className} onDragStart={(domEvent)=>{dragIdRef.current=event.id;domEvent.dataTransfer.setData("text/plain",event.id);}} onDragEnd={()=>{dragIdRef.current=null;}} onClick={()=>event.source==="fsrs-review"&&onStartReview?onStartReview(event):onEventClick(event)} onContextMenu={(domEvent)=>{domEvent.preventDefault();onContextRequest?.({kind:"unscheduled",event,date:dateString,x:domEvent.clientX,y:domEvent.clientY});}}><strong>{event.source === "fsrs-review" ? `${event.questionCount || event.questionIds?.length || 0}` : (event.lectureId || "•")}</strong><span>{event.title}</span></button>; }
+  const today=new Date(); const isToday=dateString===dateKey(today.getFullYear(),today.getMonth(),today.getDate()); const nowTop=(((today.getHours()*60+today.getMinutes())-startHour*60)/60)*hourHeight; const hourLines=Array.from({length:endHour-startHour+1},(_,index)=>({hour:startHour+index,top:index*hourHeight}));
+  return <div className="home-day-schedule" style={{"--home-hour-height":`${hourHeight}px`}}>
+    {fsrsQueue.length>0&&<div className="home-day-fsrs-queue"><div><span>FSRS repetition</span><strong>{fsrsQueue.reduce((sum,event)=>sum+(event.questionCount||event.questionIds?.length||0),0)} MCQ forfalder</strong><small>Træk en kø ned på tidslinjen eller start den nu.</small></div><div>{fsrsQueue.map((event)=><div key={event.id} className="home-day-fsrs-item">{dragButton(event,"home-day-fsrs-chip")}<button type="button" className="home-day-fsrs-start" onClick={()=>onStartReview?.(event)}>Start</button></div>)}</div></div>}
+    {unscheduled.length>0&&<div className="home-day-unscheduled"><span>Ikke placeret</span><div>{unscheduled.map((event)=>dragButton(event,""))}</div></div>}
+    <div className="home-day-times" style={{height:totalHeight}} aria-hidden="true">{hourLines.map(({hour,top})=><React.Fragment key={hour}><span className="home-day-gutter-line" style={{top}}/><span className="home-day-time" style={{top}}>{String(hour).padStart(2,"0")}:00</span></React.Fragment>)}</div>
+    <div ref={gridRef} className="home-day-grid" style={{height:totalHeight}} onClick={(event)=>{if(event.target.closest('.home-day-event'))return;onSlotClick(dateString,timeFromPointer(event.clientY));}} onContextMenu={(event)=>{if(event.target.closest('.home-day-event'))return;event.preventDefault();onContextRequest?.({kind:"slot",date:dateString,time:timeFromPointer(event.clientY),x:event.clientX,y:event.clientY});}} onDragOver={(event)=>event.preventDefault()} onDrop={(event)=>{event.preventDefault();const id=dragIdRef.current||event.dataTransfer.getData("text/plain");const source=events.find((item)=>item.id===id);if(!source)return;const time=timeFromPointer(event.clientY);const duration=calendarDurationMinutes(source);onMoveEvent({...source,date:dateString,time,endTime:minutesToTime((timeToMinutes(time)||0)+duration),estimatedHours:duration/60});dragIdRef.current=null;}}>
+      {hourLines.map(({hour,top})=><span key={`hour-${hour}`} className="home-day-hour-line" style={{top}}/>)}{Array.from({length:endHour-startHour},(_,index)=><span key={`half-${index}`} className="home-day-half-line" style={{top:index*hourHeight+hourHeight/2}}/>)}{isToday&&nowTop>=0&&nowTop<=totalHeight&&<div className="home-day-now-line" style={{top:nowTop}}/>}
+      {positionedEvents.map(({event,start,end,lane,laneCount})=>{const tone=toneFor(event);const top=((start-startHour*60)/60)*hourHeight;const height=Math.max(28,((end-start)/60)*hourHeight-2);if(top+height<0||top>totalHeight)return null;return <button key={event.id} type="button" draggable className="home-day-event" data-source={event.source||"other"} data-complete={event.completedAt?"true":"false"} data-conflict={events.some((other)=>calendarEventsConflict(event,other))?"true":"false"} onDragStart={(domEvent)=>{dragIdRef.current=event.id;domEvent.dataTransfer.effectAllowed="move";domEvent.dataTransfer.setData("text/plain",event.id);}} onDragEnd={()=>{dragIdRef.current=null;}} onClick={(domEvent)=>{domEvent.stopPropagation();event.source==="fsrs-review"&&onStartReview?onStartReview(event):onEventClick(event);}} onContextMenu={(domEvent)=>{domEvent.preventDefault();domEvent.stopPropagation();onContextRequest?.({kind:"event",event,date:dateString,x:domEvent.clientX,y:domEvent.clientY});}} style={{top:top+1,height,width:`calc(${100/laneCount}% - 10px)`,insetInlineStart:`calc(${lane*(100/laneCount)}% + 5px)`,"--home-event-accent":tone.color,"--home-event-surface":tone.background}} title={`${event.time}–${minutesToTime(end)} ${event.title}`}><span className="home-day-event-time">{event.time}–{minutesToTime(end)}</span><span className="home-day-event-title">{event.title}</span>{event.source==="fsrs-review"&&<small>FSRS · {event.questionCount||event.questionIds?.length||0} kort</small>}{event.deliveryStatus==="held"&&<small>Afholdt</small>}</button>;})}
     </div>
-  );
+  </div>;
 }
 
 function CalendarDailyPlanner({ c, language, todayEvents, missedEvents, onSaveToday, onResolveMissed, onDismiss }) {
@@ -16747,6 +17007,7 @@ function Dashboard({
   language,
   spacedData,
   importedQuestions,
+  onStartFsrsReview,
 }) {
   const [studyPlans, setPlansGlobal] = useStoredState(STORAGE.studyPlans, {});
   const [checklist, setChecklist] = useStoredState(STORAGE.dailyChecklist, {});
@@ -17674,6 +17935,7 @@ function Dashboard({
                 onSlotClick={createEvent}
                 onMoveEvent={dashboardMoveEvent}
                 onContextRequest={setCalendarContextMenu}
+                onStartReview={onStartFsrsReview}
               />
             ) : calendarView === "week" ? (
               <WeekCalendar
@@ -29644,11 +29906,33 @@ useEffect(() => {
   }
 }, [adminError]);
   const [spacedData, setSpacedData] = useStoredState(STORAGE.spacedRepetition, {});
-  const [shellCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
-  const [shellCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [shellCalendarEvents, setShellCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
+  const [shellCalendarMeta, setShellCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [deckSettingsById] = useStoredState(STORAGE.deckSettings, { default: SM2_DEFAULT_DECK_SETTINGS });
   const deckSettingsFor = (deckId) => deckSettingsById[deckId] || deckSettingsById.default || SM2_DEFAULT_DECK_SETTINGS;
   const [importedQuestions, setImportedQuestions] = useStoredState(STORAGE.importedQuestions, []);
+
+
+  useEffect(() => {
+    if (!user?.module) return;
+    const bundle = buildFsrsCalendarReviewBundle({ spacedData, questions: importedQuestions, moduleName: user.module, fromDate: new Date() });
+    const existingById = new Map(shellCalendarEvents.map((event) => [event.id, event]));
+    const nonFsrs = shellCalendarEvents.filter((event) => !String(event.id).startsWith("fsrs-review-"));
+    const mergedFsrs = bundle.events.map((generated) => {
+      const previous = existingById.get(generated.id);
+      return previous ? { ...generated, time: previous.time || "", endTime: previous.endTime || "", estimatedHours: previous.estimatedHours || generated.estimatedHours } : generated;
+    });
+    const nextEvents = [...nonFsrs, ...mergedFsrs];
+    const nonFsrsMeta = Object.fromEntries(Object.entries(shellCalendarMeta).filter(([id]) => !String(id).startsWith("fsrs-review-")));
+    const nextMeta = { ...nonFsrsMeta };
+    Object.entries(bundle.metadata).forEach(([id, generated]) => {
+      const previous = shellCalendarMeta[id] || {};
+      const event = mergedFsrs.find((item) => item.id === id);
+      nextMeta[id] = { ...generated, time: event?.time || "", needsScheduling: !event?.time, ...(previous.dismissedAt ? { dismissedAt: previous.dismissedAt } : {}) };
+    });
+    if (JSON.stringify(nextEvents) !== JSON.stringify(shellCalendarEvents)) setShellCalendarEvents(nextEvents);
+    if (JSON.stringify(nextMeta) !== JSON.stringify(shellCalendarMeta)) setShellCalendarMeta(nextMeta);
+  }, [spacedData, importedQuestions, user?.module]);
   const [buriedCards, setBuriedCards] = useStoredState(STORAGE.buriedCards, {});
   const [sessionScope, setSessionScope] = useState(null);
   const [lectureMenu, setLectureMenu] = useState(null);
@@ -30043,6 +30327,11 @@ useEffect(() => {
                 spacedData={spacedData}
                 onResetAllProgress={setSpacedData}
                 importedQuestions={importedQuestions}
+                onStartFsrsReview={(event) => {
+                  const questionIds = event.questionIds || shellCalendarMeta[event.id]?.questionIds || [];
+                  setSessionScope({ moduleId: user.module, groupFilter: null, lectureFilter: event.lectureId || null, mode: "due", contentType: null, questionIds });
+                  setRoute("mcq");
+                }}
 onOpenCalendar={() => openWorkspace("calendar")}
 onOpenWorkspace={openWorkspace}
 onNavigate={navigateFromShell}
