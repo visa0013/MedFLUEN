@@ -1354,6 +1354,10 @@ function calendarContextCopy(language) {
 
 function CalendarContextMenu({ c, menu, items, onClose }) {
   const menuRef = useRef(null);
+  const [position, setPosition] = useState({ key: "", left: 8, top: 8 });
+  const visibleItems = items.filter(Boolean);
+  const menuKey = menu ? `${menu.x}:${menu.y}:${visibleItems.length}` : "";
+
   useEffect(() => {
     if (!menu) return undefined;
     function handlePointer(event) {
@@ -1362,20 +1366,39 @@ function CalendarContextMenu({ c, menu, items, onClose }) {
     function handleKey(event) {
       if (event.key === "Escape") onClose();
     }
+    function placeAtCursor() {
+      const gap = 7;
+      const margin = 8;
+      const rect = menuRef.current?.getBoundingClientRect();
+      const width = rect?.width || 224;
+      const height = rect?.height || Math.min(430, visibleItems.length * 39 + 18);
+      let left = menu.x + gap;
+      let top = menu.y + gap;
+      if (left + width > window.innerWidth - margin) left = menu.x - width - gap;
+      if (top + height > window.innerHeight - margin) top = menu.y - height - gap;
+      left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+      top = Math.max(margin, Math.min(top, window.innerHeight - height - margin));
+      setPosition({ key: menuKey, left, top });
+    }
+    const frame = window.requestAnimationFrame(placeAtCursor);
+    window.addEventListener("resize", placeAtCursor);
     window.addEventListener("pointerdown", handlePointer);
     window.addEventListener("keydown", handleKey);
     return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", placeAtCursor);
       window.removeEventListener("pointerdown", handlePointer);
       window.removeEventListener("keydown", handleKey);
     };
-  }, [menu, onClose]);
+  }, [menu, menuKey, onClose, visibleItems.length]);
+
   if (!menu) return null;
-  const width = 224;
-  const left = Math.max(8, Math.min(menu.x, window.innerWidth - width - 8));
-  const top = Math.max(8, Math.min(menu.y, window.innerHeight - Math.min(430, items.length * 39 + 18)));
+  const fallbackLeft = Math.max(8, Math.min(menu.x + 7, window.innerWidth - 232));
+  const fallbackTop = Math.max(8, Math.min(menu.y + 7, window.innerHeight - 80));
+  const resolved = position.key === menuKey ? position : { left: fallbackLeft, top: fallbackTop };
   return (
-    <div ref={menuRef} className="calendar-context-menu" style={{ left, top, width }} role="menu">
-      {items.filter(Boolean).map((item, index) => item.separator ? (
+    <div ref={menuRef} className="calendar-context-menu" style={{ left: resolved.left, top: resolved.top, width: 224 }} role="menu">
+      {visibleItems.map((item, index) => item.separator ? (
         <span key={`separator-${index}`} className="calendar-context-separator" />
       ) : (
         <button
@@ -10469,7 +10492,7 @@ select.ui-control {
    ============================================================ */
 .calendar-week-sticky-head { position: sticky; top: 0; z-index: 8; background: var(--ui-panel); border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent); }
 .calendar-week-header { position: relative !important; top: auto !important; border-bottom: 0 !important; }
-.calendar-week-unscheduled-grid { display: grid; grid-template-columns: 56px repeat(var(--calendar-days), minmax(0, 1fr)); min-height: 38px; background: var(--ui-panel); }
+.calendar-week-unscheduled-grid { min-width: max(100%, calc(64px + var(--calendar-days) * 148px)); display: grid; grid-template-columns: 64px repeat(var(--calendar-days), minmax(148px, 1fr)); min-height: 38px; background: var(--ui-panel); }
 .calendar-week-unscheduled-label { position: static !important; height: auto !important; display: flex; align-items: center; justify-content: flex-end; padding: 7px 8px 7px 2px; color: var(--ui-muted); font-size: 8px; font-weight: 800; line-height: 1.15; text-transform: uppercase; letter-spacing: .05em; }
 .calendar-week-unscheduled-cell { min-width: 0; display: flex; gap: 4px; align-items: center; overflow-x: auto; padding: 5px; border-inline-start: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent); }
 .calendar-week-unscheduled-cell[data-empty="true"] { justify-content: center; }
@@ -10486,13 +10509,14 @@ select.ui-control {
 .calendar-week-event-title, .home-day-event-title { width: 100%; font-size: 10px !important; line-height: 1.25 !important; font-weight: 780 !important; color: var(--ui-text) !important; }
 .calendar-week-event-state, .home-day-event > small { color: var(--ui-muted); font-size: 8px; font-weight: 700; }
 .calendar-week-event[data-conflict="true"]::after, .home-day-event[data-conflict="true"]::after { content: ""; position: absolute; inset-block-start: 4px; inset-inline-end: 4px; width: 5px; height: 5px; border-radius: 50%; background: #d59a3c; }
-.home-day-unscheduled { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; align-items: start; padding: 7px 8px; border-bottom: 1px solid var(--ui-border); background: var(--ui-panel); }
-.home-day-unscheduled > span { padding-top: 6px; color: var(--ui-muted); font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
-.home-day-unscheduled > div { min-width: 0; display: flex; gap: 5px; overflow-x: auto; }
+.home-day-unscheduled { grid-column: 1 / -1; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 0; align-items: stretch; padding: 0; border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 58%, transparent); background: var(--ui-panel); }
+.home-day-unscheduled > span { min-height: 40px; display: flex; align-items: center; justify-content: flex-end; padding: 7px 12px 7px 4px; border-inline-end: 1px solid color-mix(in srgb, var(--ui-border) 58%, transparent); color: var(--ui-muted); font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
+.home-day-unscheduled > div { min-width: 0; min-height: 40px; display: flex; align-items: center; gap: 5px; overflow-x: auto; padding: 6px 8px; }
 .home-day-unscheduled button { min-width: 0; max-width: 220px; height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-text); }
 .home-day-unscheduled button strong { color: var(--ui-blue); font-size: 8px; }
 .home-day-unscheduled button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; font-weight: 750; }
-.calendar-context-menu { position: fixed; z-index: 2200; overflow: hidden; padding: 5px; border: 1px solid var(--ui-border-strong); border-radius: 10px; background: color-mix(in srgb, var(--ui-panel) 96%, transparent); box-shadow: 0 14px 38px rgba(20,30,48,.18); backdrop-filter: blur(16px); }
+.calendar-context-menu { position: fixed; z-index: 2200; overflow: hidden; padding: 5px; border: 1px solid var(--ui-border-strong); border-radius: 10px; background: color-mix(in srgb, var(--ui-panel) 96%, transparent); box-shadow: 0 14px 38px rgba(20,30,48,.18); backdrop-filter: blur(16px); transform-origin: top left; animation: calendarContextIn 110ms ease-out both; }
+@keyframes calendarContextIn { from { opacity: 0; transform: translateY(-2px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .calendar-context-item { width: 100%; min-height: 34px; display: grid; grid-template-columns: 20px minmax(0,1fr) auto; align-items: center; gap: 7px; padding: 0 9px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-text); text-align: start; font-size: 11px; font-weight: 700; }
 .calendar-context-item:hover:not(:disabled) { background: var(--ui-soft); }
 .calendar-context-item[data-danger="true"] { color: var(--ui-red); }
@@ -10532,7 +10556,7 @@ select.ui-control {
 .daily-planner-event-row label small { color: var(--ui-muted); font-size: 8px; font-weight: 800; text-transform: uppercase; }
 .daily-planner-event-row select, .daily-planner-event-row input { width: 100%; min-height: 34px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-text); padding: 0 8px; font-size: 10px; }
 .study-plan-duration-note { margin: -8px 0 18px; padding: 10px 12px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 10.5px; line-height: 1.55; }
-@media (max-width: 760px) { .calendar-week-unscheduled-grid { grid-template-columns: 48px repeat(var(--calendar-days), minmax(110px, 1fr)); } .daily-planner-event-row { grid-template-columns: 8px minmax(0,1fr) !important; } .daily-planner-event-row label { grid-column: 2; } .calendar-quick-two-cols { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .calendar-week-unscheduled-grid { min-width: max(100%, calc(64px + var(--calendar-days) * 148px)); grid-template-columns: 64px repeat(var(--calendar-days), minmax(148px, 1fr)); } .daily-planner-event-row { grid-template-columns: 8px minmax(0,1fr) !important; } .daily-planner-event-row label { grid-column: 2; } .calendar-quick-two-cols { grid-template-columns: 1fr; } }
 
     `}
 
@@ -12942,8 +12966,14 @@ function calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existi
     title: existingEvent?.title || `${lecture.id} · ${lecture.title}`,
     date: todayKeyString,
     time: "",
+    endTime: "",
     type: existingEvent?.type || "study",
     planModuleId: moduleName,
+    lectureId: lecture.id,
+    lectureIds: [lecture.id],
+    source: "study-plan",
+    status: "unscheduled",
+    needsScheduling: true,
     lectureCount: 1,
     estimatedHours: null,
   };
@@ -17071,7 +17101,20 @@ function Dashboard({
   const missedPlanEvents = mergedCalendarEvents
     .filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date < todayKey && event.type !== "exam" && !event.completedAt && !event.missedResolvedAt)
     .sort((a, b) => `${b.date} ${b.time || ""}`.localeCompare(`${a.date} ${a.time || ""}`));
-  const shouldShowDailyPlanner = Boolean(activePlan && !calendarDailyPlanner[todayKey]?.confirmed && (todaysPlanEvents.length || missedPlanEvents.length));
+  const plannerQueueEvents = [
+    ...todaysPlanEvents.filter((event) => !event.time || event.needsScheduling),
+    ...missedPlanEvents,
+  ];
+  const dailyPlannerFingerprint = plannerQueueEvents
+    .map((event) => `${event.id}:${event.date}`)
+    .sort()
+    .join("|");
+  const plannerTodayState = calendarDailyPlanner[todayKey] || {};
+  const shouldShowDailyPlanner = Boolean(
+    activePlan &&
+    plannerQueueEvents.length &&
+    (!plannerTodayState.confirmed || plannerTodayState.fingerprint !== dailyPlannerFingerprint)
+  );
   const dashboardVisible = { stats: true, recommendation: true, quick: true, exam: true, progress: true, upcoming: true, bottom: true, ...(dashboardPreferences.visible || {}) };
   const dashboardRailOrder = Array.isArray(dashboardPreferences.railOrder) && dashboardPreferences.railOrder.length
     ? dashboardPreferences.railOrder.filter((id) => ["exam", "progress", "upcoming"].includes(id))
@@ -17283,8 +17326,24 @@ function Dashboard({
     setCalendarEvents((previous) => {
       const exists = previous.some((item) => item.id === base.id);
       if (completed) return exists ? previous : [...previous, base];
-      if (exists) return previous.map((item) => item.id === base.id ? { ...item, date: todayKey, time: "" } : item);
-      return [...previous, base];
+      if (exists) {
+        return previous.map((item) => item.id === base.id
+          ? {
+              ...item,
+              ...base,
+              date: todayKey,
+              time: "",
+              endTime: "",
+              estimatedHours: null,
+              source: "study-plan",
+              lectureId,
+              lectureIds: [lectureId],
+              planModuleId: currentModule,
+            }
+          : item
+        );
+      }
+      return [...previous, { ...base, source: "study-plan", lectureId, lectureIds: [lectureId] }];
     });
 
     setCalendarEventMeta((previous) => {
@@ -17355,7 +17414,14 @@ function Dashboard({
       Object.entries(draft).forEach(([id, entry]) => { next[id] = { ...(next[id] || {}), needsScheduling: !entry.time, status: entry.time ? "planned" : "unscheduled" }; });
       return next;
     });
-    setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { confirmed: true, confirmedAt: Date.now() } }));
+    setCalendarDailyPlanner((previous) => ({
+      ...previous,
+      [todayKey]: {
+        confirmed: true,
+        confirmedAt: Date.now(),
+        fingerprint: dailyPlannerFingerprint,
+      },
+    }));
   }
 
   function resolveMissedEvent(event, action) {
@@ -17643,7 +17709,15 @@ function Dashboard({
                 missedEvents={missedPlanEvents}
                 onSaveToday={saveTodaySchedule}
                 onResolveMissed={resolveMissedEvent}
-                onDismiss={() => setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { confirmed: true, confirmedAt: Date.now(), dismissed: true } }))}
+                onDismiss={() => setCalendarDailyPlanner((previous) => ({
+                  ...previous,
+                  [todayKey]: {
+                    confirmed: true,
+                    confirmedAt: Date.now(),
+                    dismissed: true,
+                    fingerprint: dailyPlannerFingerprint,
+                  },
+                }))}
               />
             )}
           </div>
