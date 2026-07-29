@@ -2693,7 +2693,7 @@ function SM2AnswerFooter({
         });
         setPreviews(fallback);
         setEngineState("fallback");
-        setError(`FSRS er offline. Midlertidig kompatibilitetsplan bruges. ${loadError?.message || ""}`.trim());
+        setError("Automatisk repetition er midlertidigt offline. Kortet gemmes stadig med en sikker reserveplan.");
       });
     return () => { cancelled = true; };
   }, [questionId, storedCard?.dueDate, storedCard?.fsrs?.updatedAt]);
@@ -2733,18 +2733,18 @@ function SM2AnswerFooter({
       setSubmitting(false);
       setSelected(null);
       inFlightRef.current = false;
-      setError(`Kunne ikke gemme FSRS-vurderingen. ${saveError?.message || "Prøv igen."}`);
+      setError("Kunne ikke gemme repetitionen. Prøv igen.");
     }
   }
 
   return (
-    <div className="fsrs-answer-footer" role="group" aria-label="Vurdér dit svar med FSRS">
+    <div className="fsrs-answer-footer" role="group" aria-label="Vurdér dit svar">
       <div className="fsrs-answer-heading">
         <div>
-          <strong>FSRS repetition</strong>
-          <span>{engineState === "ready" ? "FSRS-6 intervalmotor" : engineState === "loading" ? "Indlæser intervalmotor…" : "Kompatibilitetstilstand"}</span>
+          <strong>Repetition af flashcards</strong>
+          <span>{engineState === "ready" ? "Automatisk intervalplan" : engineState === "loading" ? "Indlæser intervalmotor…" : "Kompatibilitetstilstand"}</span>
         </div>
-        <span className="fsrs-engine-pill">{engineState === "ready" ? "FSRS-6" : engineState === "loading" ? "…" : "Offline"}</span>
+        <span className="fsrs-engine-pill">{engineState === "ready" ? "Automatisk" : engineState === "loading" ? "…" : "Reserve"}</span>
       </div>
       {error && <div className="fsrs-inline-warning" role="status">{error}</div>}
       <div className="fsrs-rating-grid">
@@ -10741,7 +10741,7 @@ select.ui-control {
 @keyframes studyPlanStepIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes studyPlanStepBack { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
 .study-plan-v4-grid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(300px,.75fr); gap: 16px; align-items: start; }
-.study-plan-v4-card { min-width: 0; padding: 18px; border: 1px solid var(--ui-border); border-radius: 15px; background: var(--ui-panel); box-shadow: var(--ui-shadow-sm); }
+.study-plan-v4-card { min-width: 0; padding: 14px 18px 18px; border: 1px solid var(--ui-border); border-radius: 15px; background: var(--ui-panel); box-shadow: var(--ui-shadow-sm); }
 .study-plan-v4-card h2 { margin: 0; font-size: 14px; font-weight: 860; letter-spacing: -.02em; }
 .study-plan-v4-card > p, .study-plan-v4-card-heading p { margin: 6px 0 16px; color: var(--ui-secondary); font-size: 10.5px; font-weight: 610; line-height: 1.55; }
 .study-plan-v4-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
@@ -10823,6 +10823,51 @@ select.ui-control {
 .study-plan-v4-retention input { accent-color: #7667d8; }
 .study-plan-v4-retention small { color: var(--ui-muted); font-size: 8.5px; }
 .study-plan-v4-step-row { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 14px; }
+.study-plan-v4-flashcard-card { border-color: color-mix(in srgb,#7667d8 20%,var(--ui-border)); background: color-mix(in srgb,#7667d8 3%,var(--ui-panel)); }
+.study-plan-v4-review-modes { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-soft); }
+.study-plan-v4-review-modes > strong, .study-plan-v4-reserve-friendly > strong { font-size: 10px; }
+.study-plan-v4-review-modes > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.study-plan-v4-review-modes span { padding: 5px 8px; border: 1px solid var(--ui-border); border-radius: 999px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 8.5px; font-weight: 750; }
+.study-plan-v4-review-modes small { color: var(--ui-muted); font-size: 8.5px; line-height: 1.45; }
+.study-plan-v4-reserve-friendly { display: grid; gap: 9px; margin-top: 12px; }
+.study-plan-v4-reserve-friendly > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.study-plan-v4-reserve-friendly button { min-height: 64px; display: grid; align-content: center; gap: 4px; padding: 9px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); color: var(--ui-text); text-align: start; }
+.study-plan-v4-reserve-friendly button[data-active="true"] { border-color: color-mix(in srgb,#7667d8 38%,var(--ui-border)); background: color-mix(in srgb,#7667d8 8%,var(--ui-panel)); box-shadow: 0 0 0 2px color-mix(in srgb,#7667d8 10%,transparent); }
+.study-plan-v4-reserve-friendly b { font-size: 9.5px; }
+.study-plan-v4-reserve-friendly small { color: var(--ui-muted); font-size: 8px; line-height: 1.35; }
+.study-plan-v4-distribution-control { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin-bottom: 14px; }
+.study-plan-v4-distribution-control button { min-height: 56px; display: grid; gap: 3px; align-content: center; padding: 8px 10px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); color: var(--ui-text); text-align: start; }
+.study-plan-v4-distribution-control button[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); }
+.study-plan-v4-distribution-control strong { font-size: 9.5px; }
+.study-plan-v4-distribution-control small { color: var(--ui-muted); font-size: 7.8px; line-height: 1.35; }
+.study-plan-v4-final-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.study-plan-v4-final-summary h2 { margin-top: 7px; font-size: 19px; }
+.study-plan-v4-final-summary p { max-width: 620px; }
+.study-plan-v4-final-numbers { display: grid; grid-template-columns: repeat(2,minmax(110px,1fr)); gap: 7px; }
+.study-plan-v4-final-numbers span { padding: 9px 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 8.5px; }
+.study-plan-v4-final-numbers b { color: var(--ui-text); font-size: 13px; }
+.study-plan-v4-final-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.study-plan-v4-final-detail-list { display: grid; gap: 0; }
+.study-plan-v4-final-detail-list > span { display: flex; justify-content: space-between; gap: 18px; padding: 9px 0; border-bottom: 1px solid var(--ui-border); }
+.study-plan-v4-final-detail-list > span:last-child { border-bottom: 0; }
+.study-plan-v4-final-detail-list b { font-size: 9.5px; }
+.study-plan-v4-final-detail-list small { max-width: 58%; color: var(--ui-secondary); font-size: 8.5px; text-align: end; line-height: 1.4; }
+.study-plan-v4-final-phase-list { display: grid; gap: 7px; }
+.study-plan-v4-final-phase-list > div { display: grid; grid-template-columns: 5px minmax(0,1fr); gap: 9px; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
+.study-plan-v4-final-phase-list i { border-radius: 99px; }
+.study-plan-v4-final-phase-list span { display: grid; gap: 2px; }
+.study-plan-v4-final-phase-list strong { font-size: 9.5px; }
+.study-plan-v4-final-phase-list small { color: var(--ui-muted); font-size: 8px; }
+.study-plan-v4-week-overview > div:last-child { max-height: 430px; overflow-y: auto; display: grid; gap: 10px; padding-inline-end: 3px; }
+.study-plan-v4-week-overview article { overflow: hidden; border: 1px solid var(--ui-border); border-radius: 11px; }
+.study-plan-v4-week-overview article > header { display: flex; justify-content: space-between; padding: 9px 11px; background: var(--ui-soft); }
+.study-plan-v4-week-overview article > header strong { font-size: 10px; }
+.study-plan-v4-week-overview article > header small { color: var(--ui-muted); font-size: 8.5px; }
+.study-plan-v4-week-overview article > div { display: grid; }
+.study-plan-v4-week-overview article span { display: grid; grid-template-columns: 82px minmax(0,1fr) 120px; gap: 10px; align-items: center; padding: 8px 11px; border-top: 1px solid var(--ui-border); }
+.study-plan-v4-week-overview time { color: var(--ui-muted); font-size: 8px; font-weight: 700; }
+.study-plan-v4-week-overview b { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.study-plan-v4-week-overview article span small { color: var(--ui-secondary); font-size: 8px; text-align: end; }
 .study-plan-v4-preview { display: grid; gap: 14px; }
 .study-plan-v4-preview-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 2px 2px 5px; }
 .study-plan-v4-preview-top h2 { margin: 7px 0 4px; font-size: 20px; font-weight: 880; letter-spacing: -.035em; }
@@ -13498,6 +13543,16 @@ function studyPlanPhaseTone(phase) {
   return ({ lecture: "#2f6fec", consolidation: "#7468d6", exam: "#b87a2c", targeted: "#2f9470", buffer: "#7e8796" })[phase] || "#7e8796";
 }
 
+function studyPlanIsoWeekNumber(value) {
+  const date = studyPlanDate(value);
+  if (!date) return null;
+  const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const weekday = utc.getUTCDay() || 7;
+  utc.setUTCDate(utc.getUTCDate() + 4 - weekday);
+  const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+  return Math.ceil((((utc - yearStart) / 86400000) + 1) / 7);
+}
+
 function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Date() }) {
   const today = studyPlanDate(fromDate);
   const exam = studyPlanDate(plan?.examDate);
@@ -13545,7 +13600,12 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
     items.forEach((item) => {
       const minutes = Math.max(15, Number(item.minutes) || 30);
       const eligible = rows.filter((row) => row.capacity > 0 && (!options.maxItems || row.count < options.maxItems));
-      const fitting = eligible.filter((row) => row.used + minutes <= row.capacity).sort((a, b) => (a.used / Math.max(1, a.capacity)) - (b.used / Math.max(1, b.capacity)) || a.date - b.date)[0];
+      const distributionMode = plan.distributionMode || "balanced";
+      const fitting = eligible.filter((row) => row.used + minutes <= row.capacity).sort((a, b) => {
+        if (distributionMode === "early") return a.date - b.date;
+        if (distributionMode === "even") return a.used - b.used || a.count - b.count || a.date - b.date;
+        return (a.used / Math.max(1, a.capacity)) - (b.used / Math.max(1, b.capacity)) || a.date - b.date;
+      })[0];
       if (!fitting) { unassignedItems.push(item); return; }
       fitting.items.push(item); fitting.used += minutes; fitting.count += 1;
     });
@@ -13663,7 +13723,7 @@ function buildFsrsCalendarReviewBundle({ spacedData, questions, moduleName, from
     const id = `fsrs-review-${moduleName || "all"}-${group.lectureId}-${group.date}`;
     const count = group.questionIds.length;
     const label = group.lectureId === "exam-set" ? "Eksamenssæt" : group.lectureId;
-    events.push({ id, title: `FSRS · ${label} · ${count} MCQ`, date: group.date, time: "", type: "review", planModuleId: moduleName || null, estimatedHours: Math.max(.25, Math.min(2, count * .03)) });
+    events.push({ id, title: `Flashcards · ${label} · ${count} MCQ`, date: group.date, time: "", type: "review", planModuleId: moduleName || null, estimatedHours: Math.max(.25, Math.min(2, count * .03)) });
     metadata[id] = { source: "fsrs-review", status: "due", needsScheduling: true, questionIds: group.questionIds, questionCount: count, lectureId: group.lectureId === "exam-set" ? null : group.lectureId, earliestDue: group.earliestDue, fsrsVersion: FSRS_RUNTIME_VERSION, createdByUser: false };
   });
   return { events, metadata };
@@ -14488,6 +14548,7 @@ function MCQ({
   const [sessionCardPosition, setSessionCardPosition] = useState(() => Math.min((savedResume?.index || 0) + 1, pool.length || 1));
   const [sessionReviews, setSessionReviews] = useState([]);
   const cardShownAtRef = useRef(Date.now());
+  const examFsrsCommittedRef = useRef(false);
   const [, setDuePulse] = useState(0);
 
   useEffect(() => {
@@ -14603,12 +14664,33 @@ function MCQ({
   const formatSessionTime = (seconds) => seconds >= 60 ? `${Math.floor(seconds / 60)} min ${seconds % 60} sek` : `${seconds} sek`;
   const ratingCounts = SM2_RATING_ORDER.reduce((counts, item) => ({ ...counts, [item.key]: sessionReviews.filter((review) => review.rating === item.key).length }), {});
 
+  async function commitExamModeToSpacedRepetition() {
+    if (!isExamMode || examFsrsCommittedRef.current) return;
+    examFsrsCommittedRef.current = true;
+    let next = { ...(spacedData || {}) };
+    for (const item of pool) {
+      const answer = answers[item.id];
+      const rating = answer === item.correct ? SM2_RATING.GOOD : SM2_RATING.AGAIN;
+      try {
+        next[item.id] = await fsrsApplyOfficial(next[item.id] || null, rating, item.id, Date.now());
+      } catch {
+        next[item.id] = scheduleCardSM2(next[item.id] || null, rating, item.id, SM2_DEFAULT_DECK_SETTINGS, Date.now());
+      }
+    }
+    localStorage.setItem(STORAGE.spacedRepetition, JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.spacedRepetition } }));
+    setSpacedData(next);
+  }
+
   function finishSession() {
     if (!savedSession) {
+      if (isExamMode) commitExamModeToSpacedRepetition();
       const session = {
         id: `session-${Date.now()}`,
         completedAt: new Date().toISOString(),
         module: user?.module || "",
+        studyMode: isExamMode ? "exam" : isRecallMode ? "recall" : "flashcard",
+        contributesToSpacedRepetition: true,
         total,
         answered,
         correct,
@@ -16702,6 +16784,7 @@ function StudyPlan({ c, language, user, setUser }) {
     mcqReservePercent: existing?.mcqReservePercent ?? 20,
     learningSteps: existing?.learningSteps || fsrsSettings.learningSteps || ["1m", "10m"],
     relearningSteps: existing?.relearningSteps || fsrsSettings.relearningSteps || ["10m"],
+    distributionMode: existing?.distributionMode || "balanced",
   }));
   const [exceptionDate, setExceptionDate] = useState("");
   const strategy = buildStudyPlanStrategy({ moduleName, plan: draft, lectures, fromDate: new Date() });
@@ -16780,7 +16863,7 @@ function StudyPlan({ c, language, user, setUser }) {
     setUser((previous) => ({ ...previous, module: moduleName }));
     setFsrsSettings((previous) => ({ ...previous, requestRetention: draft.desiredRetention, learningSteps: draft.learningSteps, relearningSteps: draft.relearningSteps, maximumInterval: 36500, enableFuzz: true, enableShortTerm: true }));
     syncPlanToCalendar(planRecord);
-    setSavedNotice("Studieplan og FSRS-indstillinger er aktiveret.");
+    setSavedNotice("Studieplan og automatisk repetition er aktiveret.");
     setStep(6);
     window.setTimeout(() => setSavedNotice(""), 3500);
   }
@@ -16830,24 +16913,57 @@ function StudyPlan({ c, language, user, setUser }) {
   }
 
   function StepStrategy() {
-    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Planadfærd</h2><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard næste dag?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer valgt i kalenderen overskrives ikke.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></section><section className="study-plan-v4-card study-plan-v4-fsrs-card"><div className="study-plan-v4-card-heading"><div><h2>FSRS-repetition</h2><p>MCQ-kort kommer først i kalenderen, når FSRS har beregnet en ny forfaldsdato.</p></div><span>FSRS-6</span></div><label className="study-plan-v4-retention"><span>Ønsket fastholdelse <strong>{Math.round(draft.desiredRetention * 100)}%</strong></span><input type="range" min="0.8" max="0.97" step="0.01" value={draft.desiredRetention} onChange={(event) => update("desiredRetention", Number(event.target.value))} /><small>Højere fastholdelse giver hyppigere repetition. 90% er standard.</small></label><div className="study-plan-v4-step-row"><label><span>Læringstrin</span><input className="ui-control" value={draft.learningSteps.join(", ")} onChange={(event) => update("learningSteps", event.target.value.split(",").map((value) => value.trim()).filter(Boolean))} /></label><label><span>Genlæringstrin</span><input className="ui-control" value={draft.relearningSteps.join(", ")} onChange={(event) => update("relearningSteps", event.target.value.split(",").map((value) => value.trim()).filter(Boolean))} /></label></div><label className="study-plan-v4-reserve"><span>Reserver daglig kapacitet til MCQ <strong>{draft.mcqReservePercent}%</strong></span><input type="range" min="10" max="40" step="5" value={draft.mcqReservePercent} onChange={(event) => update("mcqReservePercent", Number(event.target.value))} /><small>Denne del af din kapacitet holdes fri til dynamiske FSRS-køer, så forelæsningsplanen ikke fylder hele dagen.</small></label><div className="study-plan-v4-note">Igen = forkert, Svær = korrekt med stor tøven, God = korrekt med indsats, Nem = umiddelbart korrekt.</div></section></div>;
+    const reserveOptions = [
+      { value: 15, label: "Let", detail: "Lidt plads til repetition på travle dage" },
+      { value: 20, label: "Anbefalet", detail: "En balanceret mængde daglig repetition" },
+      { value: 30, label: "Ekstra", detail: "Mere plads til svære emner og mange kort" },
+    ];
+    return <div className="study-plan-v4-grid">
+      <section className="study-plan-v4-card"><h2>Planadfærd</h2><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard næste dag?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer valgt i kalenderen overskrives ikke.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></section>
+      <section className="study-plan-v4-card study-plan-v4-flashcard-card">
+        <div className="study-plan-v4-card-heading"><div><h2>Repetition af flashcards</h2><p>MedFLUEN finder automatisk ud af, hvornår et spørgsmål bør ses igen. Du behøver ikke indstille en teknisk algoritme.</p></div><span>Automatisk</span></div>
+        <div className="study-plan-v4-review-modes"><strong>Det tæller med, når du arbejder i:</strong><div><span>Almindelig MCQ</span><span>Flashcard mode</span><span>Active recall</span><span>Eksamensmode</span></div><small>Rigtige, forkerte og ubesvarede spørgsmål påvirker, hvornår kortene kommer tilbage.</small></div>
+        <div className="study-plan-v4-reserve-friendly"><strong>Hvor meget plads skal dagsplanen holde fri til flashcards?</strong><div>{reserveOptions.map((option) => <button key={option.value} type="button" data-active={draft.mcqReservePercent === option.value ? "true" : "false"} onClick={() => update("mcqReservePercent", option.value)}><b>{option.label}</b><small>{option.detail}</small></button>)}</div></div>
+        <div className="study-plan-v4-note">Når kort skal repeteres, vises de automatisk i kalenderens separate flashcard-boks. Du kan starte dem med det samme eller placere dem på et klokkeslæt.</div>
+      </section>
+    </div>;
   }
 
   function StepPreview() {
     const maxWeekly = Math.max(1, ...strategy.weeklyLoads.map((week) => week.minutes));
-    return <div className="study-plan-v4-preview"><div className="study-plan-v4-preview-top"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Din eksamensstrategi</h2><p>{strategy.pendingCount} resterende forelæsninger, {draft.examSetCount} eksamenssæt og {draft.bufferDays} bufferdage.</p></div><div className="study-plan-v4-capacity"><strong>{Math.round(strategy.requiredTotal / 60)} t</strong><span>samlet planbelastning</span><small>{Math.round(strategy.capacityTotal / 60)} t plan-kapacitet · {Math.round(strategy.fsrsReserveMinutes / 60)} t MCQ-reserve</small></div></div><PhaseTimeline phases={strategy.phases} /><section className="study-plan-v4-card"><h2>Ugebelastning</h2><div className="study-plan-v4-week-bars">{strategy.weeklyLoads.map((week) => <div key={week.weekStart}><span>{new Date(`${week.weekStart}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}</span><div><i style={{ width: `${Math.max(3, (week.minutes / maxWeekly) * 100)}%` }} /></div><strong>{Math.round(week.minutes / 60 * 10) / 10} t</strong></div>)}</div></section><section className="study-plan-v4-card"><h2>Kritisk kontrol</h2>{strategy.issues.length ? <div className="study-plan-v4-issues">{strategy.issues.map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div> : <div className="study-plan-v4-success"><Icon name="check" size={15} />Planen har plads til alle faser.</div>}<div className="study-plan-v4-suggestions"><strong>Mulige justeringer</strong><span>Flyt forelæsningsfristen, øg timer på enkelte ugedage, reducer antal eksamenssæt eller forlæng fasen før buffer.</span></div></section>{existing && <section className="study-plan-v4-card"><h2>Ved opdatering</h2><div className="study-plan-v4-change-grid"><span><b>{strategy.assignments.length}</b> fremtidige planobjekter</span><span><b>{draft.doneLectureIds.length}</b> gennemførte bevares</span><span><b>{draft.preserveManualTimes ? "Ja" : "Nej"}</b> bevar manuelle tider</span><span><b>{draft.freezeDays}</b> frosne dage</span></div></section>}</div>;
+    const distributionOptions = [
+      { value: "even", label: "Mest jævnt", detail: "Fordeler timerne så ens som muligt" },
+      { value: "balanced", label: "Efter kapacitet", detail: "Tager højde for dine forskellige ugedage" },
+      { value: "early", label: "Tidligt fokus", detail: "Lægger mere arbejde tidligt og skaber luft senere" },
+    ];
+    return <div className="study-plan-v4-preview">
+      <div className="study-plan-v4-preview-top"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Din eksamensstrategi</h2><p>{strategy.pendingCount} resterende forelæsninger, {draft.examSetCount} eksamenssæt og {draft.bufferDays} bufferdage.</p></div><div className="study-plan-v4-capacity"><strong>{Math.round(strategy.requiredTotal / 60)} t</strong><span>samlet planbelastning</span><small>{Math.round(strategy.capacityTotal / 60)} t tilgængelig plan-kapacitet</small></div></div>
+      <PhaseTimeline phases={strategy.phases} />
+      <section className="study-plan-v4-card study-plan-v4-load-card"><div className="study-plan-v4-card-heading"><div><h2>Ugebelastning</h2><p>Vælg hvordan arbejdsbyrden skal fordeles. Planen opdateres med det samme.</p></div></div><div className="study-plan-v4-distribution-control">{distributionOptions.map((option) => <button key={option.value} type="button" data-active={draft.distributionMode === option.value ? "true" : "false"} onClick={() => update("distributionMode", option.value)}><strong>{option.label}</strong><small>{option.detail}</small></button>)}</div><div className="study-plan-v4-week-bars">{strategy.weeklyLoads.map((week) => { const weekNumber = studyPlanIsoWeekNumber(week.weekStart); return <div key={week.weekStart}><span>Uge {weekNumber ?? "—"}</span><div><i style={{ width: `${Math.max(3, (week.minutes / maxWeekly) * 100)}%` }} /></div><strong>{Math.round(week.minutes / 60 * 10) / 10} t</strong></div>; })}</div></section>
+      <section className="study-plan-v4-card"><h2>Kritisk kontrol</h2>{strategy.issues.length ? <div className="study-plan-v4-issues">{strategy.issues.map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div> : <div className="study-plan-v4-success"><Icon name="check" size={15} />Planen har plads til alle faser.</div>}<div className="study-plan-v4-suggestions"><strong>Mulige justeringer</strong><span>Skift belastningsfordeling ovenfor, flyt forelæsningsfristen, øg timer på enkelte ugedage eller reducer antal eksamenssæt.</span></div></section>
+      {existing && <section className="study-plan-v4-card"><h2>Ved opdatering</h2><div className="study-plan-v4-change-grid"><span><b>{strategy.assignments.length}</b> fremtidige planobjekter</span><span><b>{draft.doneLectureIds.length}</b> gennemførte bevares</span><span><b>{draft.preserveManualTimes ? "Ja" : "Nej"}</b> bevar manuelle tider</span><span><b>{draft.freezeDays}</b> frosne dage</span></div></section>}
+    </div>;
   }
 
   function PhaseTimeline({ phases }) { return <section className="study-plan-v4-card study-plan-v4-phase-card"><div className="study-plan-v4-card-heading"><div><h2>Faseplan</h2><p>Nyt stof stopper ved din valgte frist.</p></div></div><div className="study-plan-v4-phases">{phases.map((phase) => <div key={phase.id} style={{ "--phase-tone": phase.tone }}><i /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })} – {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}</small></span></div>)}</div></section>; }
 
   function StepActivate() {
     const counts = strategy.assignments.reduce((result, item) => ({ ...result, [item.phase]: (result[item.phase] || 0) + 1 }), {});
-    return <div className="study-plan-v4-activate">
-      <section className="study-plan-v4-card study-plan-v4-activate-hero"><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Planen er klar til aktivering</h2><p>Kontrollér de endelige regler. Aktivering opretter fremtidige planobjekter, mens gennemførte forelæsninger og manuelle kalenderplaceringer bevares efter dine valg.</p><div className="study-plan-v4-activate-stats"><span><b>{counts.lecture || 0}</b> forelæsninger</span><span><b>{counts.consolidation || 0}</b> første repetitioner</span><span><b>{counts.exam || 0}</b> eksamenssæt</span><span><b>{counts.targeted || 0}</b> målrettede blokke</span></div></section>
-      <div className="study-plan-v4-grid">
-        <section className="study-plan-v4-card"><h2>Planregler</h2><div className="study-plan-v4-confirm-list"><span><Icon name="calendar" size={15} /><i><strong>Nyt stof stopper</strong><small>{new Date(`${draft.lectureDeadline}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></i></span><span><Icon name="cards" size={15} /><i><strong>FSRS fastholdelse</strong><small>{Math.round(draft.desiredRetention * 100)}% · {draft.mcqReservePercent}% daglig reserve</small></i></span><span><Icon name="clock" size={15} /><i><strong>Missede aktiviteter</strong><small>{draft.missedPolicy === "ask" ? "Spørg altid" : draft.missedPolicy === "buffer" ? "Flyt til buffer" : draft.missedPolicy === "next-capacity" ? "Næste dag med kapacitet" : "Behold forsinket"}</small></i></span><span><Icon name="check" size={15} /><i><strong>Manuelle tider</strong><small>{draft.preserveManualTimes ? "Bevares ved opdatering" : "Må omfordeles"}</small></i></span></div></section>
-        <section className="study-plan-v4-card"><h2>FSRS i kalenderen</h2><p>MCQ-køer oprettes ikke som faste daglige opgaver. De kommer automatisk frem i den lilla repetitionsboks på den dato, hvor FSRS beregner, at kortene skal ses igen.</p><div className="study-plan-v4-fsrs-proof"><strong>{FSRS_RUNTIME_VERSION}</strong><span>Again · Hard · Good · Easy</span><small>Intervalmotoren er versionslåst. Ved manglende netværksadgang vises en tydelig fallback-status i MCQ-sessionen.</small></div></section>
+    const assignmentsByWeek = strategy.assignments.reduce((groups, assignment) => {
+      const weekStart = studyPlanDateKey(startOfWeek(studyPlanDate(assignment.date)));
+      if (!groups[weekStart]) groups[weekStart] = [];
+      groups[weekStart].push(assignment);
+      return groups;
+    }, {});
+    const weekRows = Object.entries(assignmentsByWeek).sort(([a], [b]) => a.localeCompare(b));
+    const missedCopy = draft.missedPolicy === "ask" ? "Spørg altid" : draft.missedPolicy === "buffer" ? "Flyt til buffer" : draft.missedPolicy === "next-capacity" ? "Næste dag med kapacitet" : "Behold forsinket";
+    return <div className="study-plan-v4-activate study-plan-v4-activate-detailed">
+      <section className="study-plan-v4-card study-plan-v4-final-summary"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Kontrollér din samlede plan</h2><p>Her er den konkrete fordeling, der bliver oprettet i kalenderen. Forelæsningerne får en dato, mens klokkeslæt vælges på dagen.</p></div><div className="study-plan-v4-final-numbers"><span><b>{counts.lecture || 0}</b> forelæsninger</span><span><b>{counts.consolidation || 0}</b> første repetitioner</span><span><b>{counts.exam || 0}</b> eksamenssæt</span><span><b>{counts.targeted || 0}</b> fejl-/fokusblokke</span></div></section>
+      <div className="study-plan-v4-final-grid">
+        <section className="study-plan-v4-card"><h2>Nøgledatoer og regler</h2><div className="study-plan-v4-final-detail-list"><span><b>Planstart</b><small>{new Date().toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Færdig med forelæsninger</b><small>{new Date(`${draft.lectureDeadline}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamenssæt starter</b><small>{new Date(`${draft.examSetStartDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamen</b><small>{new Date(`${draft.examDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Missede aktiviteter</b><small>{missedCopy}</small></span><span><b>Flashcard-repetition</b><small>Planlægges automatisk på tværs af alle MCQ- og flashcard-tilstande</small></span><span><b>Manuelle tider</b><small>{draft.preserveManualTimes ? "Bevares ved senere opdateringer" : "Må omfordeles"}</small></span></div></section>
+        <section className="study-plan-v4-card"><h2>Faseoverblik</h2><div className="study-plan-v4-final-phase-list">{strategy.phases.map((phase) => <div key={phase.id}><i style={{ background: phase.tone }} /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })} – {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })}</small></span></div>)}</div></section>
       </div>
+      <section className="study-plan-v4-card study-plan-v4-week-overview"><div className="study-plan-v4-card-heading"><div><h2>Plan uge for uge</h2><p>En konkret oversigt over de aktiviteter, der bliver oprettet.</p></div><span>{strategy.assignments.length} aktiviteter</span></div><div>{weekRows.map(([weekStart, assignments]) => { const weekNumber = studyPlanIsoWeekNumber(weekStart); const sorted = [...assignments].sort((a,b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title)); return <article key={weekStart}><header><strong>Uge {weekNumber ?? "—"}</strong><small>{sorted.length} aktiviteter · {Math.round(sorted.reduce((sum,item)=>sum+(item.loadMinutes||0),0)/60*10)/10} t</small></header><div>{sorted.map((item) => <span key={item.id}><time>{new Date(`${item.date}T00:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}</time><b>{item.title}</b><small>{Math.round((item.loadMinutes || 0) / 15) * 15} min · {item.phase === "lecture" ? "Forelæsning" : item.phase === "consolidation" ? "Repetition" : item.phase === "exam" ? "Eksamenssæt" : "Fokusblok"}</small></span>)}</div></article>; })}</div></section>
       {strategy.issues.length > 0 && <section className="study-plan-v4-card"><h2>Kontrollér før aktivering</h2><div className="study-plan-v4-issues">{strategy.issues.map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div></section>}
     </div>;
   }
@@ -16857,7 +16973,7 @@ function StudyPlan({ c, language, user, setUser }) {
     <div className="study-plan-v4">
       <header className="study-plan-v4-header"><div><span>Segment 4 · strategi</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
-        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && nextStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "FSRS og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
+        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && nextStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main"><div key={step} className="study-plan-v4-step" data-direction={direction}>{stepContent}</div><footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmDelete(true)}>{copy.delete}</button>}</div><div>{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={!canContinue || (step === 5 && (!strategy.valid || strategy.realism === "unrealistic"))} onClick={() => nextStep(step + 1)}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid || strategy.realism === "unrealistic"} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
       </div>
       {lectureContext && <div className="study-plan-v4-context" style={{ left: lectureContext.x, top: lectureContext.y }} onPointerDown={(event) => event.stopPropagation()}><strong>{lectureContext.lecture.id} · {lectureContext.lecture.title}</strong><button type="button" onClick={() => runLectureContext("priority")}>Prioritér tidligere</button><span>Belastning</span><div><button type="button" data-active={(draft.difficulty?.[lectureContext.lecture.id] || "normal") === "easy" ? "true" : "false"} onClick={() => runLectureContext("easy")}>Let</button><button type="button" data-active={(draft.difficulty?.[lectureContext.lecture.id] || "normal") === "normal" ? "true" : "false"} onClick={() => runLectureContext("normal")}>Normal</button><button type="button" data-active={draft.difficulty?.[lectureContext.lecture.id] === "hard" ? "true" : "false"} onClick={() => runLectureContext("hard")}>Tung</button></div><button type="button" onClick={() => runLectureContext("done")}>{draft.doneLectureIds.includes(lectureContext.lecture.id) ? "Fortryd gennemgået" : "Markér gennemgået"}</button><button type="button" onClick={() => runLectureContext("include")}>{draft.includedLectureIds.includes(lectureContext.lecture.id) ? "Ekskludér fra planen" : "Medtag i planen"}</button></div>}
@@ -16884,12 +17000,12 @@ function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onMoveEve
   function dragButton(event, className) { return <button key={event.id} type="button" draggable className={className} onDragStart={(domEvent)=>{dragIdRef.current=event.id;domEvent.dataTransfer.setData("text/plain",event.id);}} onDragEnd={()=>{dragIdRef.current=null;}} onClick={()=>event.source==="fsrs-review"&&onStartReview?onStartReview(event):onEventClick(event)} onContextMenu={(domEvent)=>{domEvent.preventDefault();onContextRequest?.({kind:"unscheduled",event,date:dateString,x:domEvent.clientX,y:domEvent.clientY});}}><strong>{event.source === "fsrs-review" ? `${event.questionCount || event.questionIds?.length || 0}` : (event.lectureId || "•")}</strong><span>{event.title}</span></button>; }
   const today=new Date(); const isToday=dateString===dateKey(today.getFullYear(),today.getMonth(),today.getDate()); const nowTop=(((today.getHours()*60+today.getMinutes())-startHour*60)/60)*hourHeight; const hourLines=Array.from({length:endHour-startHour+1},(_,index)=>({hour:startHour+index,top:index*hourHeight}));
   return <div className="home-day-schedule" style={{"--home-hour-height":`${hourHeight}px`}}>
-    {fsrsQueue.length>0&&<div className="home-day-fsrs-queue"><div><span>FSRS repetition</span><strong>{fsrsQueue.reduce((sum,event)=>sum+(event.questionCount||event.questionIds?.length||0),0)} MCQ forfalder</strong><small>Træk en kø ned på tidslinjen eller start den nu.</small></div><div>{fsrsQueue.map((event)=><div key={event.id} className="home-day-fsrs-item">{dragButton(event,"home-day-fsrs-chip")}<button type="button" className="home-day-fsrs-start" onClick={()=>onStartReview?.(event)}>Start</button></div>)}</div></div>}
+    {fsrsQueue.length>0&&<div className="home-day-fsrs-queue"><div><span>Flashcard-repetition</span><strong>{fsrsQueue.reduce((sum,event)=>sum+(event.questionCount||event.questionIds?.length||0),0)} MCQ forfalder</strong><small>Træk en kø ned på tidslinjen eller start den nu.</small></div><div>{fsrsQueue.map((event)=><div key={event.id} className="home-day-fsrs-item">{dragButton(event,"home-day-fsrs-chip")}<button type="button" className="home-day-fsrs-start" onClick={()=>onStartReview?.(event)}>Start</button></div>)}</div></div>}
     {unscheduled.length>0&&<div className="home-day-unscheduled"><span>Ikke placeret</span><div>{unscheduled.map((event)=>dragButton(event,""))}</div></div>}
     <div className="home-day-times" style={{height:totalHeight}} aria-hidden="true">{hourLines.map(({hour,top})=><React.Fragment key={hour}><span className="home-day-gutter-line" style={{top}}/><span className="home-day-time" style={{top}}>{String(hour).padStart(2,"0")}:00</span></React.Fragment>)}</div>
     <div ref={gridRef} className="home-day-grid" style={{height:totalHeight}} onClick={(event)=>{if(event.target.closest('.home-day-event'))return;onSlotClick(dateString,timeFromPointer(event.clientY));}} onContextMenu={(event)=>{if(event.target.closest('.home-day-event'))return;event.preventDefault();onContextRequest?.({kind:"slot",date:dateString,time:timeFromPointer(event.clientY),x:event.clientX,y:event.clientY});}} onDragOver={(event)=>event.preventDefault()} onDrop={(event)=>{event.preventDefault();const id=dragIdRef.current||event.dataTransfer.getData("text/plain");const source=events.find((item)=>item.id===id);if(!source)return;const time=timeFromPointer(event.clientY);const duration=calendarDurationMinutes(source);onMoveEvent({...source,date:dateString,time,endTime:minutesToTime((timeToMinutes(time)||0)+duration),estimatedHours:duration/60});dragIdRef.current=null;}}>
       {hourLines.map(({hour,top})=><span key={`hour-${hour}`} className="home-day-hour-line" style={{top}}/>)}{Array.from({length:endHour-startHour},(_,index)=><span key={`half-${index}`} className="home-day-half-line" style={{top:index*hourHeight+hourHeight/2}}/>)}{isToday&&nowTop>=0&&nowTop<=totalHeight&&<div className="home-day-now-line" style={{top:nowTop}}/>}
-      {positionedEvents.map(({event,start,end,lane,laneCount})=>{const tone=toneFor(event);const top=((start-startHour*60)/60)*hourHeight;const height=Math.max(28,((end-start)/60)*hourHeight-2);if(top+height<0||top>totalHeight)return null;return <button key={event.id} type="button" draggable className="home-day-event" data-source={event.source||"other"} data-complete={event.completedAt?"true":"false"} data-conflict={events.some((other)=>calendarEventsConflict(event,other))?"true":"false"} onDragStart={(domEvent)=>{dragIdRef.current=event.id;domEvent.dataTransfer.effectAllowed="move";domEvent.dataTransfer.setData("text/plain",event.id);}} onDragEnd={()=>{dragIdRef.current=null;}} onClick={(domEvent)=>{domEvent.stopPropagation();event.source==="fsrs-review"&&onStartReview?onStartReview(event):onEventClick(event);}} onContextMenu={(domEvent)=>{domEvent.preventDefault();domEvent.stopPropagation();onContextRequest?.({kind:"event",event,date:dateString,x:domEvent.clientX,y:domEvent.clientY});}} style={{top:top+1,height,width:`calc(${100/laneCount}% - 10px)`,insetInlineStart:`calc(${lane*(100/laneCount)}% + 5px)`,"--home-event-accent":tone.color,"--home-event-surface":tone.background}} title={`${event.time}–${minutesToTime(end)} ${event.title}`}><span className="home-day-event-time">{event.time}–{minutesToTime(end)}</span><span className="home-day-event-title">{event.title}</span>{event.source==="fsrs-review"&&<small>FSRS · {event.questionCount||event.questionIds?.length||0} kort</small>}{event.deliveryStatus==="held"&&<small>Afholdt</small>}</button>;})}
+      {positionedEvents.map(({event,start,end,lane,laneCount})=>{const tone=toneFor(event);const top=((start-startHour*60)/60)*hourHeight;const height=Math.max(28,((end-start)/60)*hourHeight-2);if(top+height<0||top>totalHeight)return null;return <button key={event.id} type="button" draggable className="home-day-event" data-source={event.source||"other"} data-complete={event.completedAt?"true":"false"} data-conflict={events.some((other)=>calendarEventsConflict(event,other))?"true":"false"} onDragStart={(domEvent)=>{dragIdRef.current=event.id;domEvent.dataTransfer.effectAllowed="move";domEvent.dataTransfer.setData("text/plain",event.id);}} onDragEnd={()=>{dragIdRef.current=null;}} onClick={(domEvent)=>{domEvent.stopPropagation();event.source==="fsrs-review"&&onStartReview?onStartReview(event):onEventClick(event);}} onContextMenu={(domEvent)=>{domEvent.preventDefault();domEvent.stopPropagation();onContextRequest?.({kind:"event",event,date:dateString,x:domEvent.clientX,y:domEvent.clientY});}} style={{top:top+1,height,width:`calc(${100/laneCount}% - 10px)`,insetInlineStart:`calc(${lane*(100/laneCount)}% + 5px)`,"--home-event-accent":tone.color,"--home-event-surface":tone.background}} title={`${event.time}–${minutesToTime(end)} ${event.title}`}><span className="home-day-event-time">{event.time}–{minutesToTime(end)}</span><span className="home-day-event-title">{event.title}</span>{event.source==="fsrs-review"&&<small>Flashcards · {event.questionCount||event.questionIds?.length||0} kort</small>}{event.deliveryStatus==="held"&&<small>Afholdt</small>}</button>;})}
     </div>
   </div>;
 }
