@@ -9,30 +9,142 @@
  */
 
 const MODULE_CATALOG = Object.freeze({
-  "B1 Celler og væv": { aliases: ["b1", "celler og væv"], uva: ["S100103101", "S100100101", "S100096101", "S100039101"] },
-  "B2 Bevægeapparatet": { aliases: ["b2", "bevægeapparatet"], uva: ["S100047101"] },
-  "B3 Molekylær medicin": { aliases: ["b3", "molekylær medicin"], uva: ["S100108101", "S100049101"] },
-  "B4 Genetik": { aliases: ["b4", "genetik"], uva: ["S100052101"] },
-  "B5 Kredsløb og respiration": { aliases: ["b5", "kredsløb og respiration"], uva: ["S100094101", "S100071101"] },
-  "B6 Ernæring og vækst": { aliases: ["b6", "ernæring og vækst"], uva: ["S100057101"] },
-  "B7 Reproduktion og farmakodynamik": { aliases: ["b7", "reproduktion og farmakodynamik"], uva: ["S100060101"] },
-  "B8 Homeostase": { aliases: ["b8", "homeostase"], uva: ["S100095101", "S100074101"] },
-  "B9 Hjerne og sanser": { aliases: ["b9", "hjerne og sanser"], uva: ["S100063101"] },
-  "B10 Angreb og forsvar": { aliases: ["b10", "angreb og forsvar"], uva: ["S100067101"] },
-  "B11 Bachelorprojektet": { aliases: ["b11", "bachelorprojekt", "bachelorprojektet"], uva: ["S100044101"] },
-  "B12 Fra rask til syg": { aliases: ["b12", "fra rask til syg"], uva: ["S100069101"] },
-  "K1 Hjerte, lunger og nyrer": { aliases: ["k1", "hjerte", "lunger", "luftveje", "ønh"], uva: ["S150080101", "S150014101"] },
-  "K2 Bevægeapparatet og bloddannende organer": { aliases: ["k2", "bevægeapparatet", "bloddannende organer"], uva: ["S150081101", "S150002101"] },
-  "K3 Fordøjelseskanalen, ernæring og metabolisme": { aliases: ["k3", "fordøjelseskanalen", "ernæring og metabolisme"], uva: ["S150090101", "S150082101", "S150000101"] },
-  "K5 Nervesystem og psykiatri": { aliases: ["k5", "nervesystem", "psykiatri", "somatiske og psykiske sygdomme"], uva: ["S150100101", "S150083101", "S150004101"] },
-  "K6 Retsmedicin, nyrer, urinveje og kræft": { aliases: ["k6", "retsmedicin", "nyrer", "urinveje", "kræft"], uva: ["S150115101", "S150005101"] },
-  "K8 Mor og barn": { aliases: ["k8", "mor og barn", "kvinde mor og barn"], uva: ["S150085101", "S150019101"] },
-  "K9 Hud, øjne, farmakologi og ældre": { aliases: ["k9", "hud", "øjne", "farmakologi", "ældre"], uva: ["S150102101", "S150030101"] },
-  "K10 Forberedelse til KBU": { aliases: ["k10", "forberedelse til kbu"], uva: ["S150103101", "S150068101"] },
+  "B1 Celler og væv": {
+    code: "B1",
+    level: "Bachelor",
+    aliases: ["celler og væv", "cells and tissue"],
+  },
+  "B2 Bevægeapparatet": {
+    code: "B2",
+    level: "Bachelor",
+    aliases: ["bevægeapparatet", "musculoskeletal system"],
+  },
+  "B3 Molekylær medicin": {
+    code: "B3",
+    level: "Bachelor",
+    aliases: ["molekylær medicin", "molecular medicine"],
+  },
+  "B4 Genetik": {
+    code: "B4",
+    level: "Bachelor",
+    aliases: ["genetik", "genetics"],
+  },
+  "B5 Kredsløb og respiration": {
+    code: "B5",
+    level: "Bachelor",
+    aliases: ["kredsløb og respiration", "circulation and respiration"],
+  },
+  "B6 Ernæring og vækst": {
+    code: "B6",
+    level: "Bachelor",
+    aliases: ["ernæring og vækst", "nutrition and growth", "fordøjelsessystemet", "digestive system"],
+  },
+  "B7 Reproduktion og farmakodynamik": {
+    code: "B7",
+    level: "Bachelor",
+    aliases: [
+      "reproduktion og farmakodynamik",
+      "reproduction and pharmacodynamics",
+      "endokrinologi reproduktion og toksikologi",
+    ],
+  },
+  "B8 Homeostase": {
+    code: "B8",
+    level: "Bachelor",
+    aliases: ["homeostase", "homeostasis", "nyrefysiologi og farmakologi"],
+  },
+  "B9 Hjerne og sanser": {
+    code: "B9",
+    level: "Bachelor",
+    aliases: ["hjerne og sanser", "brain and senses"],
+  },
+  "B10 Angreb og forsvar": {
+    code: "B10",
+    level: "Bachelor",
+    aliases: ["angreb og forsvar", "infection and immunity", "immunologi og mikrobiologi"],
+  },
+  "B11 Bachelorprojektet": {
+    code: "B11",
+    level: "Bachelor",
+    aliases: ["bachelorprojekt", "bachelorprojektet", "bachelor project"],
+  },
+  "B12 Fra rask til syg": {
+    code: "B12",
+    level: "Bachelor",
+    aliases: ["fra rask til syg", "from healthy to ill"],
+  },
+  "K1 Hjerte, lunger og nyrer": {
+    code: "K1",
+    level: "Kandidat",
+    aliases: ["hjerte lunger og nyrer", "hjerte luftveje og ønh", "heart lungs and kidneys"],
+  },
+  "K2 Bevægeapparatet og bloddannende organer": {
+    code: "K2",
+    level: "Kandidat",
+    aliases: ["bevægeapparatet og bloddannende organer", "musculoskeletal and hematological systems"],
+  },
+  "K3 Fordøjelseskanalen, ernæring og metabolisme": {
+    code: "K3",
+    level: "Kandidat",
+    aliases: ["fordøjelseskanalen ernæring og metabolisme", "gastrointestinal system nutrition and metabolism"],
+  },
+  "K5 Nervesystem og psykiatri": {
+    code: "K5",
+    level: "Kandidat",
+    aliases: [
+      "nervesystem og psykiatri",
+      "nervesystem somatiske og psykiske sygdomme",
+      "nervous system somatic and psychiatric disorders",
+    ],
+  },
+  "K6 Retsmedicin, nyrer, urinveje og kræft": {
+    code: "K6",
+    level: "Kandidat",
+    aliases: ["retsmedicin nyrer urinveje og kræft", "forensics kidneys urinary tract and cancer"],
+  },
+  "K8 Mor og barn": {
+    code: "K8",
+    level: "Kandidat",
+    aliases: ["mor og barn", "kvinde mor og barn", "mother and child"],
+  },
+  "K9 Hud, øjne, farmakologi og ældre": {
+    code: "K9",
+    level: "Kandidat",
+    aliases: ["hud øjne farmakologi og ældre", "hud øjne anvendt farmakologi og ældre"],
+  },
+  "K10 Forberedelse til KBU": {
+    code: "K10",
+    level: "Kandidat",
+    aliases: ["forberedelse til kbu", "preparation for internship"],
+  },
+});
+
+const PROGRAM_SOURCES = Object.freeze({
+  Bachelor: {
+    publicStructureUrl:
+      "https://www.sdu.dk/da/uddannelse/bachelor/medicin-odense/uddannelsens_opbygning",
+    studyRegulationsUrl:
+      "https://mitsdu.dk/da/mit_studie/bachelor/medicin_bachelor/uddannelsens_opbygning/studieordninger",
+    fallbackOverviewUrls: [
+      "https://odin.sdu.dk/sitecore/?a=view&kode=FB14999",
+    ],
+  },
+  Kandidat: {
+    publicStructureUrl:
+      "https://www.sdu.dk/da/uddannelse/kandidat/medicin/uddannelsens_opbygning",
+    studyRegulationsUrl:
+      "https://mitsdu.dk/da/mit_studie/kandidat/medicin_kandidat/uddannelsens_opbygning/studieordninger",
+    fallbackOverviewUrls: [
+      "https://odin.sdu.dk/sitecore/?a=view&kode=FB14998",
+    ],
+  },
 });
 
 const TERM_RE = /^[EF]\d{2}$/i;
 const FETCH_TIMEOUT_MS = 16000;
+const DISCOVERY_FETCH_TIMEOUT_MS = 9000;
+const MAX_COURSE_PAGES = 72;
+const DISCOVERY_CONCURRENCY = 6;
 
 function send(res, status, payload) {
   res.status(status);
@@ -41,8 +153,20 @@ function send(res, status, payload) {
   res.json(payload);
 }
 
-function normalizeText(value) {
+function decodeHtml(value) {
   return String(value || "")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;|&#34;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, number) => String.fromCodePoint(Number(number)));
+}
+
+function normalizeText(value) {
+  return decodeHtml(value)
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -51,27 +175,29 @@ function normalizeText(value) {
 }
 
 function stripHtml(html) {
-  return String(html || "")
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/\s+/g, " ")
-    .trim();
+  return normalizeWhitespace(
+    decodeHtml(
+      String(html || "")
+        .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+    )
+  );
+}
+
+function normalizeWhitespace(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
 }
 
 function resolveModule(input) {
   const direct = MODULE_CATALOG[input];
   if (direct) return { name: input, ...direct };
   const normalized = normalizeText(input);
-  const modulePrefix = normalized.match(/^(b\d+|k\d+)/)?.[1] || "";
+  const modulePrefix = normalized.match(/^(b\d+|k\d+)/)?.[1]?.toUpperCase() || "";
   const hit = Object.entries(MODULE_CATALOG).find(([name, config]) => {
-    const nameNormalized = normalizeText(name);
-    if (modulePrefix && nameNormalized.startsWith(modulePrefix)) return true;
-    return config.aliases.some((alias) => normalized.includes(normalizeText(alias)));
+    if (modulePrefix && config.code === modulePrefix) return true;
+    const searchable = [name, ...(config.aliases || [])].map(normalizeText);
+    return searchable.some((alias) => alias && (normalized.includes(alias) || alias.includes(normalized)));
   });
   return hit ? { name: hit[0], ...hit[1] } : null;
 }
@@ -91,12 +217,18 @@ function termBounds(term) {
   };
 }
 
+function termLabel(term) {
+  const normalized = String(term).toUpperCase();
+  const year = 2000 + Number(normalized.slice(1));
+  return `${normalized.startsWith("E") ? "Efterår" : "Forår"} ${year}`;
+}
+
 function assertAllowedTerm(term) {
   if (!TERM_RE.test(term)) return { ok: false, reason: "INVALID_TERM" };
   const bounds = termBounds(term);
   const now = new Date();
   const oldestAllowed = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 1));
-  const newestAllowed = new Date(Date.UTC(now.getUTCFullYear() + 2, 11, 31));
+  const newestAllowed = new Date(Date.UTC(now.getUTCFullYear() + 3, 11, 31));
   if (bounds.end < oldestAllowed) return { ok: false, reason: "PAST_TERM" };
   if (bounds.start > newestAllowed) return { ok: false, reason: "TERM_TOO_FAR_AHEAD" };
   return { ok: true, bounds };
@@ -109,8 +241,10 @@ async function fetchText(url, options = {}) {
     const response = await fetch(url, {
       redirect: "follow",
       headers: {
-        "User-Agent": "MedFLUEN-SDU-Schedule/1.0",
-        Accept: options.accept || "text/html,application/xhtml+xml,text/calendar,application/json;q=0.9,*/*;q=0.8",
+        "User-Agent": "MedFLUEN-SDU-Schedule/2.0",
+        Accept:
+          options.accept ||
+          "text/html,application/xhtml+xml,text/calendar,application/json;q=0.9,*/*;q=0.8",
       },
       signal: controller.signal,
     });
@@ -134,11 +268,307 @@ function extractUrls(html, baseUrl) {
   patterns.forEach((pattern) => {
     let match;
     while ((match = pattern.exec(html))) {
-      const raw = (match[1] || match[0]).replace(/\\\//g, "/").replace(/&amp;/g, "&");
-      try { urls.add(baseUrl ? new URL(raw, baseUrl).toString() : new URL(raw).toString()); } catch { /* ignore malformed URL */ }
+      const raw = decodeHtml(match[1] || match[0]).replace(/\\\//g, "/");
+      try {
+        urls.add(baseUrl ? new URL(raw, baseUrl).toString() : new URL(raw).toString());
+      } catch {
+        // Ignore malformed URLs from inline scripts.
+      }
     }
   });
   return [...urls];
+}
+
+function extractLinks(html, baseUrl) {
+  const links = [];
+  const anchorRe = /<a\b([^>]*)href\s*=\s*["']([^"']+)["']([^>]*)>([\s\S]*?)<\/a>/gi;
+  let match;
+  while ((match = anchorRe.exec(String(html || "")))) {
+    try {
+      links.push({
+        url: new URL(decodeHtml(match[2]), baseUrl).toString(),
+        text: stripHtml(match[4]),
+        context: stripHtml(String(html).slice(Math.max(0, match.index - 240), anchorRe.lastIndex + 240)),
+      });
+    } catch {
+      // Ignore malformed links.
+    }
+  }
+  return links;
+}
+
+function isOdinCourseUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === "odin.sdu.dk" &&
+      (/\ba=fagbesk\b/i.test(parsed.search) || /\ba=searchfagbesk\b/i.test(parsed.search))
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isOdinOverviewUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === "odin.sdu.dk" &&
+      (/\ba=view\b/i.test(parsed.search) || /\ba=sto\b/i.test(parsed.search))
+    );
+  } catch {
+    return false;
+  }
+}
+
+function moduleCodeAppears(value, code) {
+  const raw = decodeHtml(value)
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+  const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const exact = new RegExp(`(?:^|[^A-Z0-9])(?:MODUL\\s+)?${escaped}(?:\\s*:|[^A-Z0-9]|$)`, "i");
+  const range = new RegExp(
+    `(?:${escaped}\\s*[-–/]\\s*[BK]\\d+|[BK]\\d+\\s*[-–/]\\s*${escaped})`,
+    "i"
+  );
+  return exact.test(raw) && !range.test(raw);
+}
+
+function titleSimilarity(title, moduleConfig) {
+  const stopwords = new Set([
+    "modul", "module", "og", "and", "i", "of", "the", "til", "for", "samt", "somatiske", "sygdomme",
+  ]);
+  const titleTokens = new Set(
+    normalizeText(title)
+      .split(" ")
+      .filter((token) => token.length > 2 && !stopwords.has(token) && token.toUpperCase() !== moduleConfig.code)
+  );
+  const aliases = [moduleConfig.name, ...(moduleConfig.aliases || [])];
+  let best = 0;
+  aliases.forEach((alias) => {
+    const aliasTokens = normalizeText(alias)
+      .split(" ")
+      .filter((token) => token.length > 2 && !stopwords.has(token) && token.toUpperCase() !== moduleConfig.code);
+    if (!aliasTokens.length) return;
+    const matched = aliasTokens.filter((token) => titleTokens.has(token)).length;
+    best = Math.max(best, matched / aliasTokens.length);
+  });
+  return best;
+}
+
+function exactTermEvidence(html, text, term) {
+  const normalizedTerm = String(term).toUpperCase();
+  const label = termLabel(normalizedTerm);
+  const termRe = new RegExp(`(?:^|[^A-Z0-9])${normalizedTerm}(?:[^A-Z0-9]|$)`, "i");
+  const labelRe = new RegExp(label.replace(" ", "\\s+"), "i");
+  const headerSlice = stripHtml(String(html || "").slice(0, 9000));
+  if (labelRe.test(headerSlice)) return 3;
+  if (labelRe.test(text)) return 2;
+  if (termRe.test(text)) return 1;
+  return 0;
+}
+
+function parseApprovalDate(text) {
+  const match = String(text || "").match(/Godkendelsesdato\s*:?\s*(\d{2})[-./](\d{2})[-./](\d{4})/i);
+  if (!match) return 0;
+  return Date.UTC(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+}
+
+function parseCoursePage(result, moduleConfig, term) {
+  const html = result.text;
+  const text = stripHtml(html);
+  const heading = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1];
+  const titleFromField = text.match(/Fagets navn\s+(.+?)(?:UVA-kode|STADS ID|ECTS-point|Ansvarligt studienævn)/i)?.[1];
+  const title = normalizeWhitespace(stripHtml(heading || titleFromField || ""));
+  const uvaCode =
+    text.match(/(?:UVA-kode|STADS ID\s*\(UVA\)|Fagnummer)\s*:?\s*([A-Z]\d{9})/i)?.[1]?.toUpperCase() ||
+    result.url.match(/[?&]uva=([A-Z]\d{9})/i)?.[1]?.toUpperCase() ||
+    result.url.match(/[?&]bbcourseid=([A-Z]\d{9})-/i)?.[1]?.toUpperCase() ||
+    null;
+  const level = text.match(/Niveau\s*:?\s*(Bachelor|Kandidat)/i)?.[1] || "";
+  const cities = text.match(/Udbudssteder\s*:?\s*([^#]+?)(?:Niveau|Udbudsterminer|Varighed|Formål)/i)?.[1] || "";
+  const archived = /Version\s*:?\s*Arkiv/i.test(text);
+  const moduleCodeMatch = moduleCodeAppears(title || text.slice(0, 500), moduleConfig.code);
+  const similarity = titleSimilarity(title, moduleConfig);
+  const termEvidence = exactTermEvidence(html, text, term);
+  const medicineBoard = /Studienævn for medicin/i.test(text);
+  const odense = /Odense/i.test(cities || text.slice(0, 1800));
+  const correctLevel = normalizeText(level).startsWith(normalizeText(moduleConfig.level));
+
+  let score = 0;
+  if (moduleCodeMatch) score += 60;
+  score += Math.round(similarity * 35);
+  score += termEvidence * 30;
+  if (medicineBoard) score += 12;
+  if (correctLevel) score += 12;
+  if (odense) score += 8;
+  if (archived) score -= 80;
+
+  return {
+    title,
+    uvaCode,
+    odinUrl: result.url,
+    level,
+    cities: normalizeWhitespace(cities),
+    archived,
+    moduleCodeMatch,
+    titleSimilarity: similarity,
+    termEvidence,
+    approvalDate: parseApprovalDate(text),
+    medicineBoard,
+    odense,
+    correctLevel,
+    score,
+    valid:
+      Boolean(uvaCode) &&
+      moduleCodeMatch &&
+      termEvidence > 0 &&
+      medicineBoard &&
+      correctLevel &&
+      odense &&
+      !archived,
+  };
+}
+
+function inlineUvaCourseUrls(html, baseUrl, moduleConfig) {
+  const urls = new Set();
+  const raw = String(html || "");
+  const uvaRe = /[A-Z]\d{9}/gi;
+  let match;
+  while ((match = uvaRe.exec(raw))) {
+    const context = stripHtml(raw.slice(Math.max(0, match.index - 500), match.index + 500));
+    if (!moduleCodeAppears(context, moduleConfig.code)) continue;
+    const uva = match[0].toUpperCase();
+    urls.add(`https://odin.sdu.dk/sitecore/index.php?a=searchfagbesk&lang=da&periode=&uva=${uva.toLowerCase()}`);
+  }
+
+  extractUrls(raw, baseUrl)
+    .filter(isOdinCourseUrl)
+    .forEach((url) => {
+      let needle = "";
+      try {
+        const parsed = new URL(url);
+        needle =
+          parsed.searchParams.get("id") ||
+          parsed.searchParams.get("uva") ||
+          parsed.searchParams.get("bbcourseid") ||
+          "";
+      } catch {
+        return;
+      }
+      if (!needle) return;
+      const index = raw.toLowerCase().indexOf(String(needle).toLowerCase());
+      if (index < 0) return;
+      const context = stripHtml(raw.slice(Math.max(0, index - 650), index + 650));
+      if (moduleCodeAppears(context, moduleConfig.code)) urls.add(url);
+    });
+
+  return [...urls];
+}
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      try {
+        results[index] = await mapper(items[index], index);
+      } catch (error) {
+        results[index] = { error };
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
+  return results;
+}
+
+async function discoverOfficialCourseCandidates(moduleConfig, term) {
+  const program = PROGRAM_SOURCES[moduleConfig.level];
+  const checkedDiscoveryPages = [];
+  const discoveryPages = [program.publicStructureUrl, program.studyRegulationsUrl];
+  const overviewUrls = new Set(program.fallbackOverviewUrls);
+  const courseLinkMap = new Map();
+
+  for (const sourceUrl of discoveryPages) {
+    try {
+      const result = await fetchText(sourceUrl, { timeout: DISCOVERY_FETCH_TIMEOUT_MS });
+      checkedDiscoveryPages.push({ url: result.url, ok: true });
+      const links = extractLinks(result.text, result.url);
+      links.filter((link) => isOdinOverviewUrl(link.url)).forEach((link) => overviewUrls.add(link.url));
+      links
+        .filter((link) => isOdinCourseUrl(link.url))
+        .forEach((link) => {
+          const relevant = moduleCodeAppears(`${link.text} ${link.context}`, moduleConfig.code);
+          const previous = courseLinkMap.get(link.url);
+          courseLinkMap.set(link.url, { ...link, relevant: relevant || previous?.relevant || false });
+        });
+      inlineUvaCourseUrls(result.text, result.url, moduleConfig).forEach((url) => {
+        if (!courseLinkMap.has(url)) courseLinkMap.set(url, { url, text: "", context: "", relevant: true });
+      });
+    } catch (error) {
+      checkedDiscoveryPages.push({ url: sourceUrl, ok: false, error: error?.message || String(error) });
+    }
+  }
+
+  for (const overviewUrl of [...overviewUrls].slice(0, 10)) {
+    try {
+      const result = await fetchText(overviewUrl, { timeout: DISCOVERY_FETCH_TIMEOUT_MS });
+      checkedDiscoveryPages.push({ url: result.url, ok: true, overview: true });
+      const links = extractLinks(result.text, result.url);
+      links
+        .filter((link) => isOdinCourseUrl(link.url))
+        .forEach((link) => {
+          const relevant = moduleCodeAppears(`${link.text} ${link.context}`, moduleConfig.code);
+          const previous = courseLinkMap.get(link.url);
+          courseLinkMap.set(link.url, { ...link, relevant: relevant || previous?.relevant || false });
+        });
+      inlineUvaCourseUrls(result.text, result.url, moduleConfig).forEach((url) => {
+        if (!courseLinkMap.has(url)) courseLinkMap.set(url, { url, text: "", context: "", relevant: true });
+      });
+    } catch (error) {
+      checkedDiscoveryPages.push({ url: overviewUrl, ok: false, overview: true, error: error?.message || String(error) });
+    }
+  }
+
+  const links = [...courseLinkMap.values()]
+    .sort((a, b) => Number(b.relevant) - Number(a.relevant))
+    .slice(0, MAX_COURSE_PAGES);
+
+  const fetched = await mapWithConcurrency(links, DISCOVERY_CONCURRENCY, async (link) => {
+    const result = await fetchText(link.url, { timeout: DISCOVERY_FETCH_TIMEOUT_MS });
+    return { link, result, candidate: parseCoursePage(result, moduleConfig, term) };
+  });
+
+  const candidates = fetched
+    .filter((item) => item?.candidate)
+    .map((item) => item.candidate)
+    .sort((a, b) => b.score - a.score || b.approvalDate - a.approvalDate);
+
+  return {
+    candidates,
+    checkedDiscoveryPages,
+    checkedCoursePages: fetched.map((item, index) => {
+      if (item?.candidate) {
+        const candidate = item.candidate;
+        return {
+          url: candidate.odinUrl,
+          title: candidate.title,
+          uvaCode: candidate.uvaCode,
+          score: candidate.score,
+          valid: candidate.valid,
+          termEvidence: candidate.termEvidence,
+        };
+      }
+      return {
+        url: links[index]?.url,
+        error: item?.error?.message || String(item?.error || "Unknown error"),
+      };
+    }),
+  };
 }
 
 function exactTermScheduleLinks(html, term, uva, baseUrl = "https://odin.sdu.dk/") {
@@ -150,36 +580,65 @@ function exactTermScheduleLinks(html, term, uva, baseUrl = "https://odin.sdu.dk/
   return [...new Set(links)];
 }
 
-async function resolveOfficialOffering(moduleConfig, term) {
-  const checked = [];
-  for (const candidate of moduleConfig.uva) {
-    const urls = [
-      `https://odin.sdu.dk/sitecore/index.php?a=searchfagbesk&uva=${candidate.toLowerCase()}&lang=da&periode`,
-      `https://odinlister.sdu.dk/fagbesk/uva/${candidate}/da`,
-    ];
-    for (const url of urls) {
-      try {
-        const result = await fetchText(url);
-        const text = stripHtml(result.text);
-        const declaredUva = text.match(/UVA-kode\s*:?\s*(S\d{9})/i)?.[1]?.toUpperCase() || candidate;
-        const scheduleLinks = exactTermScheduleLinks(result.text, term, declaredUva, result.url);
-        checked.push({ uva: declaredUva, url: result.url, scheduleTerms: extractUrls(result.text, result.url).filter((item) => /skemaplan\.sdu\.dk|mitsdu\.sdu\.dk\/skema\/activity/i.test(item)).map((item) => item.match(/\/(e|f)\d{2}(?:[/?&#]|$)/i)?.[0]?.replace(/[/?&#]/g, "").toUpperCase()).filter(Boolean) });
-        if (scheduleLinks.length) {
-          return {
-            uvaCode: declaredUva,
-            odinUrl: result.url,
-            scheduleUrl: scheduleLinks[0],
-            scheduleLinks,
-            checked,
-          };
-        }
-      } catch (error) {
-        checked.push({ uva: candidate, url, error: error?.message || String(error) });
-      }
-    }
-  }
-  return { checked };
+function directSkemaplanUrl(uva, term) {
+  return `https://skemaplan.sdu.dk/${encodeURIComponent(String(uva).toUpperCase())}/${String(term).toLowerCase()}`;
 }
+
+async function resolveOfficialOffering(moduleConfig, term) {
+  const discovery = await discoverOfficialCourseCandidates(moduleConfig, term);
+  const valid = discovery.candidates.filter((candidate) => candidate.valid);
+  if (!valid.length) {
+    return {
+      discoveryMode: "dynamic-official-discovery",
+      checked: discovery.checkedDiscoveryPages,
+      checkedCoursePages: discovery.checkedCoursePages,
+      candidates: discovery.candidates.slice(0, 8),
+    };
+  }
+
+  const best = valid[0];
+  const second = valid[1];
+  const ambiguous =
+    second &&
+    second.uvaCode !== best.uvaCode &&
+    Math.abs(best.score - second.score) <= 8 &&
+    best.termEvidence === second.termEvidence;
+
+  if (ambiguous) {
+    return {
+      ambiguous: true,
+      discoveryMode: "dynamic-official-discovery",
+      candidates: valid.slice(0, 5),
+      checked: discovery.checkedDiscoveryPages,
+      checkedCoursePages: discovery.checkedCoursePages,
+    };
+  }
+
+  let courseHtml = "";
+  try {
+    courseHtml = (await fetchText(best.odinUrl, { timeout: DISCOVERY_FETCH_TIMEOUT_MS })).text;
+  } catch {
+    // The candidate was already validated. A second fetch is only used to find
+    // an explicit Skemaplan link, so direct UVA/term lookup remains available.
+  }
+  const officialLinks = exactTermScheduleLinks(courseHtml, term, best.uvaCode, best.odinUrl);
+  const scheduleUrl = officialLinks[0] || directSkemaplanUrl(best.uvaCode, term);
+
+  return {
+    uvaCode: best.uvaCode,
+    odinUrl: best.odinUrl,
+    officialTitle: best.title,
+    scheduleUrl,
+    scheduleLinks: officialLinks.length ? officialLinks : [scheduleUrl],
+    scheduleLinkMode: officialLinks.length ? "official-link" : "direct-uva-term",
+    discoveryMode: "dynamic-official-discovery",
+    selectedCandidate: best,
+    candidates: valid.slice(0, 5),
+    checked: discovery.checkedDiscoveryPages,
+    checkedCoursePages: discovery.checkedCoursePages,
+  };
+}
+
 
 function unfoldIcs(text) {
   const rows = String(text || "").split(/\r?\n/);
@@ -346,15 +805,23 @@ function validateEventsForTerm(events, term) {
 function sourceCandidates(scheduleUrl, uva, term, html) {
   const candidates = new Set();
   const add = (value) => { try { candidates.add(new URL(value, scheduleUrl).toString()); } catch { /* ignore */ } };
+  const scheduleOrigin = new URL(scheduleUrl).origin;
+
   extractUrls(html || "", scheduleUrl).forEach((url) => {
-    if (/\.ics(?:[?#]|$)|ical|calendar|subscribe|subscription|export|download/i.test(url)) add(url);
+    let parsed;
+    try { parsed = new URL(url); } catch { return; }
+    const exportLike = /\.ics(?:[?#]|$)|\.csv(?:[?#]|$)|ical|calendar|subscribe|subscription|export|download|timeedit/i.test(url);
+    const skemaplanResource = parsed.hostname === "skemaplan.sdu.dk" && /\.(?:js|json)(?:[?#]|$)/i.test(parsed.pathname);
+    if (exportLike || skemaplanResource) add(url);
   });
+
   [
     `${scheduleUrl}?format=ics`, `${scheduleUrl}?format=ical`, `${scheduleUrl}?download=ics`,
     `${scheduleUrl.replace(/\/$/, "")}/calendar.ics`, `${scheduleUrl.replace(/\/$/, "")}/export.ics`,
-    `https://mitsdu.sdu.dk/skema/activity/${uva}/${term.toLowerCase()}`,
+    `${scheduleOrigin}/appsettings.json`, `${scheduleOrigin}/manifest.json`, `${scheduleOrigin}/_framework/blazor.boot.json`,
+    `https://mitsdu.sdu.dk/skema/activity/${encodeURIComponent(uva)}/${term.toLowerCase()}`,
   ].forEach(add);
-  return [...candidates].slice(0, 30);
+  return [...candidates].slice(0, 45);
 }
 
 async function fetchScheduleEvents({ scheduleUrl, uvaCode, term }) {
@@ -403,7 +870,7 @@ async function fetchScheduleEvents({ scheduleUrl, uvaCode, term }) {
       extractUrls(result.text, result.url).forEach((url) => {
         let parsed;
         try { parsed = new URL(url); } catch { return; }
-        const scheduleRelated = /\.ics(?:[?#]|$)|ical|calendar|subscribe|subscription|export|download|reservation|timetable|schedule/i.test(url);
+        const scheduleRelated = /\.ics(?:[?#]|$)|\.csv(?:[?#]|$)|ical|calendar|subscribe|subscription|export|download|reservation|timetable|schedule|timeedit/i.test(url);
         const sameSkemaplanScript = parsed.hostname === "skemaplan.sdu.dk" && /\.(?:js|json)(?:[?#]|$)/i.test(parsed.pathname);
         if ((scheduleRelated || sameSkemaplanScript) && !visited.has(url) && queue.length < 60) queue.push(url);
       });
@@ -442,14 +909,29 @@ export default async function handler(req, res) {
 
   try {
     const offering = await resolveOfficialOffering(moduleConfig, term);
+    if (offering.ambiguous) {
+      return send(res, 409, {
+        ok: false,
+        code: "AMBIGUOUS_MODULE_OFFERING",
+        message: `SDU viser flere mulige fagversioner for ${moduleConfig.name} i ${term}. MedFLUEN importerer ikke automatisk, før én version kan identificeres entydigt.`,
+        module: moduleConfig.name,
+        term,
+        discoveryMode: offering.discoveryMode,
+        candidates: offering.candidates,
+        checked: offering.checked,
+      });
+    }
     if (!offering.scheduleUrl) {
       return send(res, 404, {
         ok: false,
-        code: "SCHEDULE_NOT_PUBLISHED",
-        message: `SDU har endnu ikke offentliggjort et skema for ${moduleConfig.name} i ${term}. Ingen ældre termin er blevet anvendt.`,
+        code: "MODULE_OFFERING_NOT_FOUND",
+        message: `SDU har ikke en entydig, officiel fagversion for ${moduleConfig.name} i ${term}. Ingen tidligere UVA-kode eller ældre termin er blevet anvendt.`,
         module: moduleConfig.name,
         term,
+        discoveryMode: offering.discoveryMode,
+        candidates: offering.candidates,
         checked: offering.checked,
+        checkedCoursePages: offering.checkedCoursePages,
       });
     }
 
@@ -457,14 +939,18 @@ export default async function handler(req, res) {
     const deduped = dedupeEvents(fetched.events);
     const validation = validateEventsForTerm(deduped, term);
     if (!validation.valid) {
-      return send(res, 502, {
+      const directLookup = offering.scheduleLinkMode === "direct-uva-term";
+      return send(res, directLookup ? 404 : 502, {
         ok: false,
-        code: "SCHEDULE_DATA_UNAVAILABLE",
-        message: `Det officielle ${term}-link blev fundet, men kalenderaktiviteterne kunne ikke læses sikkert. Ingen gamle aktiviteter er importeret.`,
+        code: directLookup ? "SCHEDULE_NOT_PUBLISHED" : "SCHEDULE_DATA_UNAVAILABLE",
+        message: directLookup
+          ? `Skemaplan blev kontrolleret direkte med UVA ${offering.uvaCode} og termin ${term}, men der blev ikke fundet aktiviteter i den termin. Ingen ældre aktiviteter er importeret.`
+          : `Det officielle ${term}-link blev fundet, men kalenderaktiviteterne kunne ikke læses sikkert. Ingen gamle aktiviteter er importeret.`,
         module: moduleConfig.name,
         term,
         uvaCode: offering.uvaCode,
         scheduleUrl: offering.scheduleUrl,
+        scheduleLinkMode: offering.scheduleLinkMode,
         checkedSources: fetched.checkedSources,
       });
     }
@@ -475,8 +961,11 @@ export default async function handler(req, res) {
       module: moduleConfig.name,
       term,
       uvaCode: offering.uvaCode,
+      officialTitle: offering.officialTitle,
       odinUrl: offering.odinUrl,
       scheduleUrl: offering.scheduleUrl,
+      scheduleLinkMode: offering.scheduleLinkMode,
+      discoveryMode: offering.discoveryMode,
       fetchedAt: new Date().toISOString(),
       summary: { ...summarize(events), rejectedOutsideTerm: validation.outOfTerm },
       events,
