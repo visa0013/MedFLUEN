@@ -1257,7 +1257,7 @@ function EChart({ option, height = 300 }) {
    Den er visuelt stylet efter appens blå gradient-tema i stedet for at læne
    sig på et eksternt bibliotek.
    ------------------------------------------------------------------------ */
-const CAL_HOURS = Array.from({ length: 15 }, (_, i) => i + 7); // 07:00–21:00
+const CAL_HOURS = Array.from({ length: 18 }, (_, i) => i + 5); // 05:00–22:00
 
 function startOfWeek(date) {
   const d = new Date(date);
@@ -1437,8 +1437,8 @@ function WeekCalendar({
   const [dragId, setDragId] = useState(null);
   const [hoverDay, setHoverDay] = useState(null);
   const scrollRef = useRef(null);
-  const startHour = 7;
-  const endHour = 22;
+  const startHour = 5;
+  const endHour = 23;
   const hourHeight = 60;
   const totalHeight = (endHour - startHour) * hourHeight;
   const today = new Date();
@@ -7483,6 +7483,8 @@ select.ui-control {
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  scroll-padding-top: 112px;
+  isolation: isolate;
   background: var(--ui-panel);
 }
 
@@ -7491,6 +7493,11 @@ select.ui-control {
   min-width: max(100%, calc(64px + var(--calendar-days) * 148px));
   display: grid;
   grid-template-columns: 64px repeat(var(--calendar-days), minmax(148px, 1fr));
+}
+
+.calendar-week-body {
+  position: relative;
+  z-index: 1;
 }
 
 .calendar-week-header {
@@ -10665,8 +10672,28 @@ select.ui-control {
 /* ============================================================
    SEGMENT 3.0 — CALENDAR, UNSCHEDULED QUEUE & CONTEXT MENUS
    ============================================================ */
-.calendar-week-sticky-head { position: sticky; top: 0; z-index: 8; background: var(--ui-panel); border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent); }
-.calendar-week-header { position: relative !important; top: auto !important; border-bottom: 0 !important; }
+.calendar-week-sticky-head {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  isolation: isolate;
+  background: var(--ui-panel);
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 78%, transparent);
+  box-shadow: 0 8px 20px rgba(23,35,58,.08);
+}
+.calendar-week-sticky-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ui-panel);
+}
+.calendar-week-header { position: relative !important; top: auto !important; z-index: 2; border-bottom: 0 !important; background: var(--ui-panel) !important; }
+.calendar-week-body { z-index: 1; }
+.calendar-week-day-header,
+.calendar-week-unscheduled-grid,
+.calendar-week-unscheduled-cell,
+.calendar-week-unscheduled-label { background-color: var(--ui-panel); }
 .calendar-week-unscheduled-grid { min-width: max(100%, calc(64px + var(--calendar-days) * 148px)); display: grid; grid-template-columns: 64px repeat(var(--calendar-days), minmax(148px, 1fr)); min-height: 38px; background: var(--ui-panel); }
 .calendar-week-unscheduled-label { position: static !important; height: auto !important; display: flex; align-items: center; justify-content: flex-end; padding: 7px 8px 7px 2px; color: var(--ui-muted); font-size: 8px; font-weight: 800; line-height: 1.15; text-transform: uppercase; letter-spacing: .05em; }
 .calendar-week-unscheduled-cell { min-width: 0; display: flex; gap: 4px; align-items: center; overflow-x: auto; padding: 5px; border-inline-start: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent); }
@@ -13634,7 +13661,7 @@ function matchCalendarLecture(title, lectures) {
   lectures.forEach((lecture) => {
     const words = calendarNormalizeMatchText(lecture.title).split(/\s+/).filter((word) => word.length >= 4);
     if (!words.length) return;
-    const matches = words.filter((word) => titleWords.has(word)).length;
+    const matches = words.filter((word) => [...titleWords].some((titleWord) => wordsAreRelated(word, titleWord) > 0)).length;
     const score = matches / Math.max(2, Math.min(words.length, titleWords.size || 1));
     if (score > bestScore) {
       bestScore = score;
@@ -13652,7 +13679,8 @@ function calendarEventMetaFields(event) {
     "returnedToQueueAt", "manualIncompleteAt", "deliveryStatus", "reminderMinutes",
     "recurrence", "attachmentLabel", "attachmentUrl", "splitFromId", "conflictDismissedAt",
     "sourceId", "term", "uvaCode", "activityType", "importBatchId", "importedAt",
-    "lastSyncedAt", "teacher", "building", "rawTitle", "sourceUrl", "odinUrl",
+    "lastSyncedAt", "teacher", "building", "rawTitle", "summaryTitle", "comment",
+    "titleSource", "sourceUrl", "odinUrl",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -14680,9 +14708,11 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
       const start = timeToMinutes(sourceEvent.time);
       const end = timeToMinutes(sourceEvent.endTime);
       const estimatedHours = start != null && end != null && end > start ? (end - start) / 60 : sourceEvent.allDay ? null : 1;
+      const resolvedTitle = sourceEvent.comment || sourceEvent.title || sourceEvent.rawTitle || "SDU-aktivitet";
+      const matchedLecture = matchCalendarLecture(resolvedTitle, moduleLectures);
       return {
         id,
-        title: sourceEvent.title,
+        title: resolvedTitle,
         date: sourceEvent.date,
         time: sourceEvent.time || "",
         type: "other",
@@ -14703,10 +14733,15 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
           importedAt: existing?.importedAt || importedAt,
           lastSyncedAt: importedAt,
           teacher: sourceEvent.teacher || "",
-          rawTitle: sourceEvent.rawTitle || sourceEvent.title,
+          rawTitle: sourceEvent.rawTitle || sourceEvent.summaryTitle || sourceEvent.title,
+          summaryTitle: sourceEvent.summaryTitle || sourceEvent.rawTitle || "",
+          comment: sourceEvent.comment || "",
+          titleSource: sourceEvent.titleSource || (sourceEvent.comment ? "comment" : "summary"),
           sourceUrl: sourceEvent.sourceUrl || payload.scheduleUrl || "",
           odinUrl: payload.odinUrl || "",
           allDay: Boolean(sourceEvent.allDay),
+          lectureId: matchedLecture?.id || "",
+          lectureIds: matchedLecture ? [matchedLecture.id] : [],
           status: "planned",
           needsScheduling: false,
           createdByUser: false,
