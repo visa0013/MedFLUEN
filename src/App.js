@@ -45,6 +45,7 @@ const STORAGE = {
   dailyChecklist: "medlearn-daily-checklist",
   quickAccessOrder: "medlearn-quickaccess-order",
   calendarEventMeta: "medlearn-calendar-event-meta",
+  calendarLayers: "medlearn-calendar-layers",
   calendarDailyPlanner: "medlearn-calendar-daily-planner",
   calendarPlanHistory: "medlearn-calendar-plan-history",
   aiSettings: "medlearn-ai-settings",
@@ -1444,12 +1445,6 @@ function WeekCalendar({
   const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = ((nowMinutes - startHour * 60) / 60) * hourHeight;
-  const typeTone = {
-    exam: { color: "#c9822f", background: "rgba(201,130,47,.11)" },
-    study: { color: c.blue, background: c.blueSoft },
-    review: { color: c.green, background: c.greenSoft },
-    other: { color: c.secondary, background: c.soft },
-  };
 
   useEffect(() => {
     const currentHour = Math.max(startHour, Math.min(endHour - 1, new Date().getHours()));
@@ -1597,7 +1592,7 @@ function WeekCalendar({
               {isToday && nowTop >= 0 && nowTop <= totalHeight && <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>}
 
               {positioned.map(({ event, start, end, lane, laneCount }) => {
-                const tone = event.source === "fsrs-review" ? { color: "#7667d8", background: "rgba(118,103,216,.11)" } : (typeTone[event.type] || typeTone.other);
+                const tone = calendarVisualTone(c, event);
                 const top = ((start - startHour * 60) / 60) * hourHeight;
                 const height = Math.max(25, ((end - start) / 60) * hourHeight - 2);
                 if (top + height < 0 || top > totalHeight) return null;
@@ -1650,7 +1645,6 @@ function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, onConte
   const todayKeyStr = dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
   const eventsByDate = {};
   events.forEach((event) => { (eventsByDate[event.date] = eventsByDate[event.date] || []).push(event); });
-  const tone = { exam: "#c9822f", study: c.blue, review: c.green, other: c.secondary };
   return (
     <div className="calendar-month-root">
       <div className="calendar-month-weekdays">
@@ -1685,7 +1679,7 @@ function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, onConte
                     className="calendar-month-event"
                     data-unscheduled={!event.time ? "true" : "false"}
                     data-complete={event.completedAt ? "true" : "false"}
-                    style={{ "--calendar-month-accent": tone[event.type] || tone.other }}
+                    style={{ "--calendar-month-accent": calendarVisualTone(c, event).color }}
                     onClick={(domEvent) => { domEvent.stopPropagation(); onEventClick(event); }}
                     onContextMenu={(domEvent) => {
                       domEvent.preventDefault(); domEvent.stopPropagation();
@@ -1764,6 +1758,10 @@ const CLOUD_SYNCED_KEYS = {
   [STORAGE.calendarEvents]: {
     table: "calendar_events",
     type: "array_by_id",
+  },
+  [STORAGE.calendarEventMeta]: {
+    table: "calendar_events",
+    type: "metadata_companion",
   },
 };
 async function pullQuestionBankIntoLocalStorage() {
@@ -1866,11 +1864,19 @@ async function pullCloudDataIntoLocalStorage(userId) {
       lectureCount: row.lecture_count,
       estimatedHours: row.estimated_hours,
     }));
+    const metadataObject = Object.fromEntries(
+      (events || [])
+        .filter((row) => row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata))
+        .map((row) => [row.id, row.metadata])
+    );
 
     localStorage.setItem(
       STORAGE.calendarEvents,
       JSON.stringify(eventsArray)
     );
+    if (Object.keys(metadataObject).length) {
+      localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(metadataObject));
+    }
 
     window.dispatchEvent(
       new CustomEvent("medlearn-storage-update", {
@@ -1879,6 +1885,9 @@ async function pullCloudDataIntoLocalStorage(userId) {
         },
       })
     );
+    if (Object.keys(metadataObject).length) {
+      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEventMeta } }));
+    }
   } catch (error) {
     console.error(
       "Kunne ikke hente cloud-data fra Supabase:",
@@ -1910,8 +1919,9 @@ async function pushLocalStorageKeyToCloud(key, userId) {
       if (rows.length > 0) {
         await supabase.from("study_plans").upsert(rows, { onConflict: "user_id,module_name" });
       }
-    } else if (key === STORAGE.calendarEvents) {
+    } else if (key === STORAGE.calendarEvents || key === STORAGE.calendarEventMeta) {
       const eventsArray = loadStorage(STORAGE.calendarEvents, []);
+      const metadataObject = loadStorage(STORAGE.calendarEventMeta, {});
       const rows = eventsArray.map((event) => ({
         id: event.id,
         user_id: userId,
@@ -1922,15 +1932,20 @@ async function pushLocalStorageKeyToCloud(key, userId) {
         plan_module_id: event.planModuleId || null,
         lecture_count: event.lectureCount || null,
         estimated_hours: event.estimatedHours || null,
+        metadata: metadataObject[event.id] || {},
       }));
-       if (rows.length > 0) {
-    await supabase
-      .from("calendar_events")
-      .upsert(rows, {
-        onConflict: "id",
-      });
-  }
-}
+      if (rows.length > 0) {
+        const result = await supabase.from("calendar_events").upsert(rows, { onConflict: "id" });
+        // Older installations may not yet have the metadata column. Preserve
+        // calendar sync instead of breaking it while the supplied migration is pending.
+        if (result.error && /metadata|column/i.test(result.error.message || "")) {
+          const legacyRows = rows.map(({ metadata, ...row }) => row);
+          await supabase.from("calendar_events").upsert(legacyRows, { onConflict: "id" });
+        } else if (result.error) {
+          throw result.error;
+        }
+      }
+    }
 } catch (error) {
   console.error(
     "Kunne ikke skrive data til Supabase:",
@@ -4013,6 +4028,13 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
       <>
         <path d="M12 16V4" />
         <path d="m7 9 5-5 5 5" />
+        <path d="M5 20h14" />
+      </>
+    ),
+    download: (
+      <>
+        <path d="M12 4v12" />
+        <path d="m7 11 5 5 5-5" />
         <path d="M5 20h14" />
       </>
     ),
@@ -11203,7 +11225,104 @@ select.ui-control {
 @media (max-width: 760px) { .study-plan-v4-grid { grid-template-columns: 1fr; } .study-plan-v4-step { padding: 15px; } .study-plan-v4-fields, .study-plan-v4-step-row { grid-template-columns: 1fr; } .study-plan-v4-week-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } .study-plan-v4-lecture-row { grid-template-columns: 27px minmax(0,1fr) 76px 28px; } .study-plan-v4-lecture-row label { grid-column: 2 / 4; } .study-plan-v4-activate-stats { grid-template-columns: repeat(2,minmax(0,1fr)); } .study-plan-v4-footer { align-items: stretch; flex-direction: column-reverse; } .study-plan-v4-footer > div { justify-content: space-between; } .fsrs-rating-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .home-day-fsrs-queue { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .study-plan-v4-step { animation: none !important; } .fsrs-rating-grid button { transition: none !important; } }
 
+/* Segment 4.4 — SDU timetable import */
+.calendar-layer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+}
+.calendar-layer-toggles,
+.calendar-sdu-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.calendar-layer-toggle {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 10px;
+  border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft);
+  color: var(--ui-secondary); font-size: 10.5px; font-weight: 800;
+}
+.calendar-layer-toggle i { width: 8px; height: 8px; border-radius: 50%; background: var(--ui-muted); }
+.calendar-layer-toggle[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-text); }
+.calendar-layer-toggle[data-layer="sdu"] i { background: var(--ui-blue); }
+.calendar-layer-toggle[data-layer="studyPlan"] i { background: var(--ui-green); }
+.calendar-layer-toggle[data-layer="own"] i { background: var(--ui-secondary); }
+.calendar-sdu-legend span { display: inline-flex; align-items: center; gap: 5px; color: var(--ui-muted); font-size: 9.5px; font-weight: 750; }
+.calendar-sdu-legend i { width: 7px; height: 7px; border-radius: 2px; }
+.calendar-sdu-legend [data-type="lecture"] i { background: var(--ui-blue); }
+.calendar-sdu-legend [data-type="class"] i { background: var(--ui-green); }
+.calendar-sdu-legend [data-type="tbl"] i { background: ${c.purple}; }
+.calendar-sdu-legend [data-type="other"] i { background: #c9822f; }
+
+.sdu-import-overlay {
+  position: fixed; z-index: 3000; inset: 0; display: grid; place-items: center;
+  padding: 22px; background: var(--ui-overlay); backdrop-filter: blur(8px);
+}
+.sdu-import-modal {
+  width: min(980px, 96vw); max-height: min(860px, 94vh); display: flex; flex-direction: column;
+  overflow: hidden; border: 1px solid var(--ui-border-strong); border-radius: 22px;
+  background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); animation: uiFeedbackIn 190ms var(--ui-ease) both;
+}
+.sdu-import-header, .sdu-import-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 18px; border-bottom: 1px solid var(--ui-border); }
+.sdu-import-footer { justify-content: flex-end; border-top: 1px solid var(--ui-border); border-bottom: 0; }
+.sdu-import-heading { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.sdu-import-heading > div { display: grid; gap: 2px; }
+.sdu-import-heading strong { color: var(--ui-text); font-size: 14px; font-weight: 850; }
+.sdu-import-heading small { color: var(--ui-muted); font-size: 10.5px; font-weight: 650; }
+.sdu-import-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: var(--ui-blue-soft); color: var(--ui-blue); }
+.sdu-import-body { min-height: 0; overflow-y: auto; display: grid; gap: 14px; padding: 17px 18px 20px; }
+.sdu-import-search-row { display: grid; grid-template-columns: minmax(230px, 1fr) 170px auto; align-items: end; gap: 10px; }
+.sdu-import-static-value { min-height: 40px; display: flex; align-items: center; padding: 0 12px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-soft); color: var(--ui-text); font-size: 12px; font-weight: 750; }
+.sdu-import-find { min-width: 156px; }
+.sdu-import-safety { display: flex; align-items: center; gap: 7px; color: var(--ui-secondary); font-size: 10.5px; font-weight: 700; }
+.sdu-import-safety svg { color: var(--ui-green); }
+.sdu-import-summary { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.sdu-import-summary > div { display: grid; gap: 3px; padding: 10px 11px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-soft); }
+.sdu-import-summary span { color: var(--ui-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.sdu-import-summary strong { overflow: hidden; color: var(--ui-text); font-size: 11.5px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.sdu-import-type-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.sdu-import-type-grid > div { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid var(--ui-border); border-radius: 10px; color: var(--ui-secondary); font-size: 10.5px; font-weight: 750; }
+.sdu-import-type-grid i { width: 8px; height: 8px; border-radius: 2px; }
+.sdu-import-type-grid span { flex: 1; }
+.sdu-import-type-grid [data-type="lecture"] i { background: var(--ui-blue); }
+.sdu-import-type-grid [data-type="class"] i { background: var(--ui-green); }
+.sdu-import-type-grid [data-type="tbl"] i { background: ${c.purple}; }
+.sdu-import-type-grid [data-type="other"] i { background: #c9822f; }
+.sdu-import-diff-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.sdu-import-diff-row span, .sdu-import-row em { padding: 3px 7px; border-radius: 99px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 9.5px; font-style: normal; font-weight: 800; }
+.sdu-import-diff-row [data-status="new"], .sdu-import-row em[data-status="new"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.sdu-import-diff-row [data-status="changed"], .sdu-import-row em[data-status="changed"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
+.sdu-import-diff-row [data-status="removed"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.sdu-import-list-header { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+.sdu-import-list-header > div:first-child { display: grid; gap: 2px; }
+.sdu-import-list-header strong { color: var(--ui-text); font-size: 12px; font-weight: 850; }
+.sdu-import-list-header small { color: var(--ui-muted); font-size: 9.5px; font-weight: 650; }
+.sdu-import-list-header > div:last-child { display: flex; gap: 6px; }
+.sdu-import-list-header button { border: 0; background: transparent; color: var(--ui-blue); font-size: 10px; font-weight: 800; }
+.sdu-import-list { max-height: 360px; overflow-y: auto; display: grid; gap: 5px; padding-right: 3px; }
+.sdu-import-row { display: grid; grid-template-columns: 18px 5px 92px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 9px 10px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); transition: border-color 150ms ease, background 150ms ease; }
+.sdu-import-row[data-selected="true"] { border-color: var(--ui-blue-border); background: color-mix(in srgb, var(--ui-blue-soft) 38%, var(--ui-panel)); }
+.sdu-import-row > i { align-self: stretch; border-radius: 99px; }
+.sdu-import-date, .sdu-import-event { min-width: 0; display: grid; gap: 2px; }
+.sdu-import-date strong, .sdu-import-event strong { overflow: hidden; color: var(--ui-text); font-size: 10.5px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.sdu-import-date small, .sdu-import-event small { overflow: hidden; color: var(--ui-muted); font-size: 9.5px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.sdu-import-remove-missing { display: flex; align-items: flex-start; gap: 9px; padding: 10px 11px; border: 1px solid var(--ui-red-border); border-radius: 11px; background: var(--ui-red-soft); }
+.sdu-import-remove-missing span { display: grid; gap: 2px; }
+.sdu-import-remove-missing strong { color: var(--ui-red); font-size: 10.5px; font-weight: 800; }
+.sdu-import-remove-missing small { color: var(--ui-secondary); font-size: 9.5px; font-weight: 650; }
+@media (max-width: 850px) {
+  .calendar-layer-bar { align-items: flex-start; flex-direction: column; }
+  .sdu-import-search-row { grid-template-columns: 1fr 1fr; }
+  .sdu-import-module-field { grid-column: 1 / -1; }
+  .sdu-import-find { grid-column: 1 / -1; }
+  .sdu-import-summary, .sdu-import-type-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .sdu-import-row { grid-template-columns: 18px 5px 80px minmax(0,1fr); }
+  .sdu-import-row em { grid-column: 4; justify-self: start; }
+}
+
     `}
+
+
 
 </style>
   );
@@ -13532,6 +13651,8 @@ function calendarEventMetaFields(event) {
     "questionCount", "lectureUnits", "allDay", "createdByUser", "colorKey",
     "returnedToQueueAt", "manualIncompleteAt", "deliveryStatus", "reminderMinutes",
     "recurrence", "attachmentLabel", "attachmentUrl", "splitFromId", "conflictDismissedAt",
+    "sourceId", "term", "uvaCode", "activityType", "importBatchId", "importedAt",
+    "lastSyncedAt", "teacher", "building", "rawTitle", "sourceUrl", "odinUrl",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -14085,6 +14206,239 @@ function reconcileStudyPlanCalendarEvents({
   });
 }
 
+/* =============================================================================
+   SEGMENT 4.4 — SDU SKEMAPLAN IMPORT + CALENDAR LAYERS
+   ========================================================================== */
+
+function calendarVisualTone(c, event) {
+  if (event?.source === "sdu-schedule") {
+    const sduTones = {
+      lecture: { color: c.blue, background: c.blueSoft },
+      class: { color: c.green, background: c.greenSoft },
+      tbl: { color: c.purple, background: c.purpleSoft },
+      other: { color: "#c9822f", background: "rgba(201,130,47,.12)" },
+    };
+    return sduTones[event.activityType] || sduTones.other;
+  }
+  if (event?.source === "fsrs-review") return { color: "#7667d8", background: "rgba(118,103,216,.11)" };
+  const typeTones = {
+    exam: { color: "#c9822f", background: "rgba(201,130,47,.11)" },
+    study: { color: c.blue, background: c.blueSoft },
+    review: { color: c.green, background: c.greenSoft },
+    other: { color: c.secondary, background: c.soft },
+  };
+  return typeTones[event?.type] || typeTones.other;
+}
+
+function calendarEventLayer(event) {
+  if (event?.source === "sdu-schedule") return "sdu";
+  if (event?.source === "study-plan" || String(event?.id || "").startsWith("studyplan-")) return "studyPlan";
+  return "own";
+}
+
+function sduTermOptions(referenceDate = new Date()) {
+  const year = referenceDate.getFullYear();
+  const month = referenceDate.getMonth();
+  const shortYear = String(year).slice(-2);
+  if (month <= 5) {
+    return [
+      { value: `F${shortYear}`, label: `Forår ${year}` },
+      { value: `E${shortYear}`, label: `Efterår ${year}` },
+    ];
+  }
+  return [
+    { value: `E${shortYear}`, label: `Efterår ${year}` },
+    { value: `F${String(year + 1).slice(-2)}`, label: `Forår ${year + 1}` },
+  ];
+}
+
+function sduEventFingerprint(event) {
+  return [
+    event?.title || "", event?.date || "", event?.time || "", event?.endTime || "",
+    event?.location || "", event?.description || "", event?.activityType || "other",
+  ].join("|");
+}
+
+function sduActivityCopy(language) {
+  return ({
+    da: { lecture: "Forelæsning", class: "Holdtime", tbl: "TBL", other: "Andet" },
+    en: { lecture: "Lecture", class: "Class", tbl: "TBL", other: "Other" },
+    ar: { lecture: "محاضرة", class: "حصة", tbl: "TBL", other: "أخرى" },
+  })[language] || { lecture: "Forelæsning", class: "Holdtime", tbl: "TBL", other: "Andet" };
+}
+
+function SduScheduleImportModal({ c, language, moduleName, existingEvents, onClose, onImport }) {
+  const terms = sduTermOptions();
+  const [term, setTerm] = useState(terms[0]?.value || "");
+  const [state, setState] = useState("idle");
+  const [error, setError] = useState("");
+  const [preview, setPreview] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [removeMissing, setRemoveMissing] = useState(true);
+  const activityCopy = sduActivityCopy(language);
+  const copy = ({
+    da: {
+      title: "Importer SDU-skema", subtitle: "Henter kun den valgte kommende termin fra SDU",
+      term: "Semester", find: "Find skema", searching: "Kontrollerer UVA og skema…",
+      noOld: "MedFLUEN anvender aldrig et ældre semester som reserve.",
+      preview: "Forhåndsvisning", module: "Modul", uva: "UVA-kode", period: "Periode",
+      activities: "aktiviteter", new: "nye", changed: "ændrede", unchanged: "uændrede", removed: "fjernet hos SDU",
+      selectAll: "Vælg alle", clear: "Fravælg alle", removeMissing: "Fjern tidligere importerede aktiviteter, som ikke længere findes hos SDU",
+      confirm: "Bekræft import", close: "Annuller", location: "Sted ikke angivet", allDay: "Hele dagen",
+      sourceChecked: "Officiel termin kontrolleret", rejected: "aktiviteter uden for terminen blev afvist",
+      emptySelection: "Vælg mindst én aktivitet, eller vælg at fjerne udgåede aktiviteter.",
+    },
+    en: {
+      title: "Import SDU timetable", subtitle: "Only fetches the selected upcoming SDU term",
+      term: "Term", find: "Find timetable", searching: "Checking UVA and timetable…",
+      noOld: "MedFLUEN never falls back to an older term.",
+      preview: "Preview", module: "Module", uva: "UVA code", period: "Period",
+      activities: "activities", new: "new", changed: "changed", unchanged: "unchanged", removed: "removed by SDU",
+      selectAll: "Select all", clear: "Clear all", removeMissing: "Remove previously imported activities no longer present at SDU",
+      confirm: "Confirm import", close: "Cancel", location: "No location", allDay: "All day",
+      sourceChecked: "Official term verified", rejected: "out-of-term activities were rejected",
+      emptySelection: "Select at least one activity, or choose to remove discontinued activities.",
+    },
+    ar: {
+      title: "استيراد جدول SDU", subtitle: "يتم جلب الفصل القادم المحدد فقط",
+      term: "الفصل", find: "البحث عن الجدول", searching: "جارٍ التحقق من رمز UVA والجدول…",
+      noOld: "لا يستخدم MedFLUEN فصلاً قديماً كبديل.",
+      preview: "معاينة", module: "الوحدة", uva: "رمز UVA", period: "الفترة",
+      activities: "أنشطة", new: "جديدة", changed: "معدلة", unchanged: "بدون تغيير", removed: "حذفها SDU",
+      selectAll: "تحديد الكل", clear: "إلغاء الكل", removeMissing: "حذف الأنشطة المستوردة التي لم تعد موجودة لدى SDU",
+      confirm: "تأكيد الاستيراد", close: "إلغاء", location: "المكان غير محدد", allDay: "طوال اليوم",
+      sourceChecked: "تم التحقق من الفصل الرسمي", rejected: "تم رفض أنشطة خارج الفصل",
+      emptySelection: "اختر نشاطاً واحداً على الأقل أو اختر حذف الأنشطة الملغاة.",
+    },
+  })[language] || {};
+
+  const importedForTerm = (existingEvents || []).filter((event) => event.source === "sdu-schedule" && event.planModuleId === moduleName && event.term === term);
+  const existingBySource = new Map(importedForTerm.map((event) => [event.sourceId, event]));
+  const previewSourceIds = new Set((preview?.events || []).map((event) => event.sourceId));
+  const missingExisting = importedForTerm.filter((event) => !previewSourceIds.has(event.sourceId));
+
+  const rows = (preview?.events || []).map((event) => {
+    const existing = existingBySource.get(event.sourceId);
+    const status = !existing ? "new" : sduEventFingerprint(existing) === sduEventFingerprint(event) ? "unchanged" : "changed";
+    return { event, status };
+  });
+  const statusCounts = rows.reduce((result, row) => ({ ...result, [row.status]: (result[row.status] || 0) + 1 }), { new: 0, changed: 0, unchanged: 0 });
+
+  async function fetchPreview() {
+    setState("loading");
+    setError("");
+    setPreview(null);
+    setSelectedIds([]);
+    try {
+      const response = await fetch(`/api/sdu-timetable?module=${encodeURIComponent(moduleName)}&term=${encodeURIComponent(term)}`, {
+        headers: { Accept: "application/json" },
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.ok) throw new Error(payload.message || "SDU-skemaet kunne ikke hentes.");
+      setPreview(payload);
+      setSelectedIds((payload.events || []).map((event) => event.sourceId));
+      setState("ready");
+    } catch (fetchError) {
+      setError(fetchError?.message || "SDU-skemaet kunne ikke hentes.");
+      setState("error");
+    }
+  }
+
+  function toggle(sourceId) {
+    setSelectedIds((previous) => previous.includes(sourceId) ? previous.filter((id) => id !== sourceId) : [...previous, sourceId]);
+  }
+
+  function confirmImport() {
+    const selected = rows.filter(({ event }) => selectedIds.includes(event.sourceId)).map(({ event }) => event);
+    if (!selected.length && !(removeMissing && missingExisting.length)) {
+      setError(copy.emptySelection);
+      return;
+    }
+    onImport({
+      payload: preview,
+      selected,
+      removeIds: removeMissing ? missingExisting.map((event) => event.id) : [],
+      statusCounts,
+    });
+  }
+
+  return (
+    <div className="sdu-import-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="sdu-import-modal" role="dialog" aria-modal="true" aria-label={copy.title}>
+        <header className="sdu-import-header">
+          <div className="sdu-import-heading">
+            <span className="sdu-import-mark"><Icon name="calendar" size={18} /></span>
+            <div><strong>{copy.title}</strong><small>{copy.subtitle}</small></div>
+          </div>
+          <IconButton c={c} title={copy.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
+        </header>
+
+        <div className="sdu-import-body">
+          <div className="sdu-import-search-row">
+            <div className="ui-field sdu-import-module-field"><span className="ui-field-label">{copy.module}</span><div className="sdu-import-static-value">{moduleName}</div></div>
+            <label className="ui-field"><span className="ui-field-label">{copy.term}</span><select className="ui-control ui-control--compact" value={term} onChange={(event) => { setTerm(event.target.value); setPreview(null); setState("idle"); setError(""); }}>{terms.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+            <button type="button" className="ui-button ui-button--primary sdu-import-find" onClick={fetchPreview} disabled={state === "loading"}>{state === "loading" ? <><span className="ui-loading-spinner ui-loading-spinner--small" />{copy.searching}</> : <><Icon name="search" size={14} />{copy.find}</>}</button>
+          </div>
+          <div className="sdu-import-safety"><Icon name="check" size={13} /><span>{copy.noOld}</span></div>
+
+          {error && <div className="ui-feedback" data-tone="error" role="alert"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content"><div className="ui-feedback-title">SDU-skema</div>{error}</div></div>}
+          {state === "loading" && <div className="ui-loading-state"><div className="ui-loading-content"><span className="ui-loading-spinner" />{copy.searching}</div></div>}
+
+          {preview && state === "ready" && (
+            <>
+              <div className="sdu-import-summary">
+                <div><span>{copy.uva}</span><strong>{preview.uvaCode}</strong></div>
+                <div><span>{copy.term}</span><strong>{preview.term}</strong></div>
+                <div><span>{copy.period}</span><strong>{preview.summary?.firstDate || "—"} – {preview.summary?.lastDate || "—"}</strong></div>
+                <div><span>{copy.activities}</span><strong>{preview.summary?.total || 0}</strong></div>
+              </div>
+
+              <div className="sdu-import-type-grid">
+                {Object.entries(activityCopy).map(([key, label]) => <div key={key} data-type={key}><i /><span>{label}</span><strong>{preview.summary?.counts?.[key] || 0}</strong></div>)}
+              </div>
+
+              <div className="sdu-import-diff-row">
+                <span data-status="new">{statusCounts.new} {copy.new}</span>
+                <span data-status="changed">{statusCounts.changed} {copy.changed}</span>
+                <span data-status="unchanged">{statusCounts.unchanged} {copy.unchanged}</span>
+                {missingExisting.length > 0 && <span data-status="removed">{missingExisting.length} {copy.removed}</span>}
+              </div>
+
+              <div className="sdu-import-list-header">
+                <div><strong>{copy.preview}</strong><small>{copy.sourceChecked}{preview.summary?.rejectedOutsideTerm ? ` · ${preview.summary.rejectedOutsideTerm} ${copy.rejected}` : ""}</small></div>
+                <div><button type="button" onClick={() => setSelectedIds(rows.map(({ event }) => event.sourceId))}>{copy.selectAll}</button><button type="button" onClick={() => setSelectedIds([])}>{copy.clear}</button></div>
+              </div>
+
+              <div className="sdu-import-list">
+                {rows.map(({ event, status }) => {
+                  const tone = calendarVisualTone(c, { source: "sdu-schedule", activityType: event.activityType });
+                  return (
+                    <label key={event.sourceId} className="sdu-import-row" data-selected={selectedIds.includes(event.sourceId) ? "true" : "false"}>
+                      <input type="checkbox" checked={selectedIds.includes(event.sourceId)} onChange={() => toggle(event.sourceId)} />
+                      <i style={{ background: tone.color }} />
+                      <span className="sdu-import-date"><strong>{event.date}</strong><small>{event.time || copy.allDay}{event.endTime ? `–${event.endTime}` : ""}</small></span>
+                      <span className="sdu-import-event"><strong>{event.title}</strong><small>{activityCopy[event.activityType] || activityCopy.other} · {event.location || copy.location}</small></span>
+                      <em data-status={status}>{status === "new" ? copy.new : status === "changed" ? copy.changed : copy.unchanged}</em>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {missingExisting.length > 0 && <label className="sdu-import-remove-missing"><input type="checkbox" checked={removeMissing} onChange={(event) => setRemoveMissing(event.target.checked)} /><span><strong>{copy.removeMissing}</strong><small>{missingExisting.length} {copy.removed}</small></span></label>}
+            </>
+          )}
+        </div>
+
+        <footer className="sdu-import-footer">
+          <button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button>
+          <button type="button" className="ui-button ui-button--primary" onClick={confirmImport} disabled={!preview || state !== "ready"}><Icon name="check" size={14} />{copy.confirm}{preview ? ` · ${selectedIds.length}` : ""}</button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+
 function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }) {
   const [events, setEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [eventMeta, setEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
@@ -14102,11 +14456,20 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
   const [showLectures, setShowLectures] = useState(false);
   const [importError, setImportError] = useState("");
   const [importSummary, setImportSummary] = useState(null);
+  const [showSduImport, setShowSduImport] = useState(false);
+  const [calendarLayers, setCalendarLayers] = useStoredState(STORAGE.calendarLayers, { sdu: true, studyPlan: true, own: true });
   const fileInputRef = useRef(null);
   const moduleLectures = MODULE_LECTURES[module] || [];
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
   const contextCopy = calendarContextCopy(language);
+  const layerCopy = ({
+    da: { sdu: "SDU-skema", studyPlan: "Studieplan", own: "Egne events", import: "Importer SDU-skema" },
+    en: { sdu: "SDU timetable", studyPlan: "Study plan", own: "Own events", import: "Import SDU timetable" },
+    ar: { sdu: "جدول SDU", studyPlan: "خطة الدراسة", own: "أحداثي", import: "استيراد جدول SDU" },
+  })[language] || {};
+  const activityCopy = sduActivityCopy(language);
+  const visibleEvents = mergedEvents.filter((event) => calendarLayers[calendarEventLayer(event)] !== false);
 
   useEffect(() => {
     const plan = plans[module];
@@ -14134,7 +14497,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
   // Imported timetable events become "held" when their end time passes. They are
   // deliberately not marked "reviewed"; the user controls reviewed completion.
   useEffect(() => {
-    const held = mergedEvents.filter((event) => event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
+    const held = mergedEvents.filter((event) => event.importedSchedule && (event.lectureId || event.source === "sdu-schedule") && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
     if (!held.length) return;
     setEventMeta((previous) => {
       const next = { ...previous };
@@ -14144,9 +14507,9 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, eventMeta]);
 
-  const eventsByDate = mergedEvents.reduce((result, event) => { (result[event.date] = result[event.date] || []).push(event); return result; }, {});
+  const eventsByDate = visibleEvents.reduce((result, event) => { (result[event.date] = result[event.date] || []).push(event); return result; }, {});
   const selectedEvents = (eventsByDate[selectedDate] || []).sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
-  const upcoming = mergedEvents.filter((event) => event.date >= todayKey && !event.completedAt).sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`)).slice(0, 8);
+  const upcoming = visibleEvents.filter((event) => event.date >= todayKey && !event.completedAt).sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`)).slice(0, 8);
 
   function saveEvent(nextEvent) {
     const clean = { ...nextEvent, type: nextEvent.type || "study", needsScheduling: !nextEvent.allDay && !nextEvent.time };
@@ -14301,6 +14664,84 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
     reader.readAsText(file); fileEvent.target.value = "";
   }
 
+
+  function importSduSchedule({ payload, selected, removeIds, statusCounts }) {
+    const importedAt = new Date().toISOString();
+    const batchId = `sdu-${payload.term}-${Date.now()}`;
+    const selectedSourceIds = new Set(selected.map((event) => event.sourceId));
+    const existingBySource = new Map(
+      mergedEvents
+        .filter((event) => event.source === "sdu-schedule" && event.planModuleId === module && event.term === payload.term)
+        .map((event) => [event.sourceId, event])
+    );
+    const normalized = selected.map((sourceEvent) => {
+      const existing = existingBySource.get(sourceEvent.sourceId);
+      const id = existing?.id || sourceEvent.stableId || `sdu-${String(sourceEvent.sourceId).replace(/[^a-z0-9_-]+/gi, "-")}`;
+      const start = timeToMinutes(sourceEvent.time);
+      const end = timeToMinutes(sourceEvent.endTime);
+      const estimatedHours = start != null && end != null && end > start ? (end - start) / 60 : sourceEvent.allDay ? null : 1;
+      return {
+        id,
+        title: sourceEvent.title,
+        date: sourceEvent.date,
+        time: sourceEvent.time || "",
+        type: "other",
+        planModuleId: module,
+        estimatedHours,
+        metadata: {
+          endTime: sourceEvent.endTime || "",
+          description: sourceEvent.description || "",
+          location: sourceEvent.location || "",
+          url: sourceEvent.url || payload.scheduleUrl || "",
+          source: "sdu-schedule",
+          importedSchedule: true,
+          sourceId: sourceEvent.sourceId,
+          term: payload.term,
+          uvaCode: payload.uvaCode,
+          activityType: sourceEvent.activityType || "other",
+          importBatchId: batchId,
+          importedAt: existing?.importedAt || importedAt,
+          lastSyncedAt: importedAt,
+          teacher: sourceEvent.teacher || "",
+          rawTitle: sourceEvent.rawTitle || sourceEvent.title,
+          sourceUrl: sourceEvent.sourceUrl || payload.scheduleUrl || "",
+          odinUrl: payload.odinUrl || "",
+          allDay: Boolean(sourceEvent.allDay),
+          status: "planned",
+          needsScheduling: false,
+          createdByUser: false,
+          colorKey: `sdu-${sourceEvent.activityType || "other"}`,
+          deliveryStatus: calendarEventEndTimestamp({ ...sourceEvent, estimatedHours }) <= Date.now() ? "held" : "planned",
+        },
+      };
+    });
+
+    setEvents((previous) => {
+      const removeSet = new Set(removeIds || []);
+      const selectedIds = new Set(normalized.map((event) => event.id));
+      const retained = previous.filter((event) => !removeSet.has(event.id) && !selectedIds.has(event.id));
+      return [...retained, ...normalized.map(({ metadata, ...base }) => base)];
+    });
+    setEventMeta((previous) => {
+      const next = { ...previous };
+      (removeIds || []).forEach((id) => { delete next[id]; });
+      normalized.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), ...event.metadata }; });
+      return next;
+    });
+    setImportError("");
+    setImportSummary({
+      total: normalized.length,
+      recognized: normalized.filter((event) => event.metadata.activityType !== "other").length,
+      sdu: true,
+      term: payload.term,
+      removed: (removeIds || []).length,
+      changed: statusCounts?.changed || 0,
+      newCount: statusCounts?.new || 0,
+    });
+    setCalendarLayers((previous) => ({ ...previous, sdu: true }));
+    setShowSduImport(false);
+  }
+
   function currentLabel() {
     const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
     if (view === "month") return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(monthDate);
@@ -14312,14 +14753,32 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
 
   return (
     <div className="calendar-workspace fade-up" data-theme={theme}>
-      <header className="calendar-workspace-header"><div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module}</small></div></div><div className="calendar-workspace-toolbar"><div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div><button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton><input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} /><SecondaryButton onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />{t.calendarImportICal}</SecondaryButton><IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton></div></header>
-      {(importError || importSummary) && <div className="calendar-import-feedback" data-error={importError ? "true" : "false"}>{importError || `${importSummary.total} aktiviteter importeret · ${importSummary.recognized} forelæsninger genkendt`}</div>}
-      <div className="calendar-workspace-layout"><main className="calendar-workspace-canvas">{view === "month" ? <MonthCalendar c={c} events={mergedEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setDayDate(new Date(`${key}T12:00:00`)); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} onContextRequest={handleContextRequest} /> : <WeekCalendar c={c} events={mergedEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onSlotClick={newEvent} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} onContextRequest={handleContextRequest} />}</main>
+      <header className="calendar-workspace-header">
+        <div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module}</small></div></div>
+        <div className="calendar-workspace-toolbar">
+          <div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div>
+          <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button>
+          <SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
+          <button type="button" className="ui-button ui-button--primary" onClick={() => setShowSduImport(true)}><Icon name="download" size={14} />{layerCopy.import}</button>
+          <input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} />
+          <SecondaryButton onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />{t.calendarImportICal}</SecondaryButton>
+          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
+        </div>
+      </header>
+      <div className="calendar-layer-bar">
+        <div className="calendar-layer-toggles">
+          {["sdu", "studyPlan", "own"].map((layer) => <button key={layer} type="button" className="calendar-layer-toggle" data-layer={layer} data-active={calendarLayers[layer] !== false ? "true" : "false"} onClick={() => setCalendarLayers((previous) => ({ ...previous, [layer]: previous[layer] === false }))}><i />{layerCopy[layer]}</button>)}
+        </div>
+        {calendarLayers.sdu !== false && <div className="calendar-sdu-legend">{Object.entries(activityCopy).map(([key, label]) => <span key={key} data-type={key}><i />{label}</span>)}</div>}
+      </div>
+      {(importError || importSummary) && <div className="calendar-import-feedback" data-error={importError ? "true" : "false"}>{importError || (importSummary.sdu ? `${importSummary.total} SDU-aktiviteter importeret · ${importSummary.term}${importSummary.removed ? ` · ${importSummary.removed} fjernet` : ""}` : `${importSummary.total} aktiviteter importeret · ${importSummary.recognized} forelæsninger genkendt`)}</div>}
+      <div className="calendar-workspace-layout"><main className="calendar-workspace-canvas">{view === "month" ? <MonthCalendar c={c} events={visibleEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setDayDate(new Date(`${key}T12:00:00`)); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} onContextRequest={handleContextRequest} /> : <WeekCalendar c={c} events={visibleEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onSlotClick={newEvent} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} onContextRequest={handleContextRequest} />}</main>
         <aside className="calendar-workspace-sidebar"><section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(language === "da" ? "da-DK" : "en-GB", { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setEditingEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name={event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || "Ikke placeret"}{event.deliveryStatus === "held" ? " · Afholdt" : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
           <section className="calendar-side-section"><button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>{showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: `${lecture.id} · ${lecture.title}`, date: selectedDate, time: "", endTime: "", type: "study", estimatedHours: null, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], createdByUser: true, needsScheduling: true })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}</section>
           <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setEditingEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name="check" size={12} /></span><span><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : " · Ikke placeret"}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section></aside></div>
       <CalendarContextMenu c={c} menu={contextMenu} items={contextItems()} onClose={() => setContextMenu(null)} />
       {editingEvent && <CalendarEventEditor c={c} t={t} language={language} event={editingEvent} moduleName={module} lectures={moduleLectures} allEvents={mergedEvents} exists={events.some((event) => event.id === editingEvent.id)} onChange={setEditingEvent} onSave={() => saveEvent(editingEvent)} onDelete={() => deleteEvent(editingEvent.id)} onClose={() => setEditingEvent(null)} />}
+      {showSduImport && <SduScheduleImportModal c={c} language={language} moduleName={module} existingEvents={mergedEvents} onClose={() => setShowSduImport(false)} onImport={importSduSchedule} />}
     </div>
   );
 }
