@@ -1,4 +1,4 @@
-/* 
+/*
  * MedFLUEN Segment 4.4 — SDU timetable resolver
  * Vercel serverless function. No npm dependency required.
  *
@@ -659,6 +659,60 @@ function decodeIcs(value) {
     .trim();
 }
 
+const SDU_TIME_ZONE = "Europe/Copenhagen";
+
+function timeZoneParts(date, timeZone = SDU_TIME_ZONE) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+  return Object.fromEntries(
+    formatter.formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
+}
+
+function timeZoneOffsetMs(date, timeZone = SDU_TIME_ZONE) {
+  const parts = timeZoneParts(date, timeZone);
+  const representedAsUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second)
+  );
+  return representedAsUtc - Math.floor(date.getTime() / 1000) * 1000;
+}
+
+function zonedDateTimeToInstant(year, month, day, hour, minute, second, timeZone = SDU_TIME_ZONE) {
+  const wallClockAsUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+  let instant = new Date(wallClockAsUtc);
+  for (let iteration = 0; iteration < 3; iteration += 1) {
+    const next = new Date(wallClockAsUtc - timeZoneOffsetMs(instant, timeZone));
+    if (next.getTime() === instant.getTime()) break;
+    instant = next;
+  }
+  return instant;
+}
+
+function localDateKey(date, timeZone = SDU_TIME_ZONE) {
+  const parts = timeZoneParts(date, timeZone);
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function localTime(date, timeZone = SDU_TIME_ZONE) {
+  const parts = timeZoneParts(date, timeZone);
+  return `${parts.hour}:${parts.minute}`;
+}
+
 function parseIcsDate(raw, params = "") {
   if (!raw) return null;
   const value = String(raw).trim();
@@ -670,30 +724,109 @@ function parseIcsDate(raw, params = "") {
   const day = Number(clean.slice(6, 8));
   if (![year, month, day].every(Number.isFinite)) return null;
   if (allDay) {
-    const date = new Date(Date.UTC(year, month - 1, day));
-    return { date, allDay: true };
+    const date = zonedDateTimeToInstant(year, month, day, 0, 0, 0, SDU_TIME_ZONE);
+    return {
+      date,
+      allDay: true,
+      dateKey: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      time: "",
+    };
   }
   const hour = Number(clean.slice(9, 11) || 0);
   const minute = Number(clean.slice(11, 13) || 0);
   const second = Number(clean.slice(13, 15) || 0);
+  const tzid = params.match(/(?:^|;)TZID=(?:"([^"]+)"|([^;]+))/i);
+  const sourceTimeZone = (tzid?.[1] || tzid?.[2] || SDU_TIME_ZONE).trim();
   const date = utc
     ? new Date(Date.UTC(year, month - 1, day, hour, minute, second))
-    : new Date(year, month - 1, day, hour, minute, second);
-  return Number.isNaN(date.getTime()) ? null : { date, allDay: false };
+    : zonedDateTimeToInstant(year, month, day, hour, minute, second, sourceTimeZone);
+  if (Number.isNaN(date.getTime())) return null;
+  return {
+    date,
+    allDay: false,
+    dateKey: localDateKey(date, SDU_TIME_ZONE),
+    time: localTime(date, SDU_TIME_ZONE),
+  };
 }
 
-function localDateKey(date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+function parseJsonDateValue(value, allDay = false) {
+  if (!value) return null;
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    return { date: value, allDay, dateKey: localDateKey(value), time: allDay ? "" : localTime(value) };
+  }
+  const raw = String(value).trim();
+  const localMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (localMatch) {
+    const [, y, m, d, h = "00", min = "00", sec = "00"] = localMatch;
+    const date = zonedDateTimeToInstant(Number(y), Number(m), Number(d), Number(h), Number(min), Number(sec));
+    return { date, allDay: allDay || !localMatch[4], dateKey: `${y}-${m}-${d}`, time: allDay || !localMatch[4] ? "" : `${h}:${min}` };
+  }
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+  return { date, allDay, dateKey: localDateKey(date), time: allDay ? "" : localTime(date) };
 }
 
-function localTime(date) {
-  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+function cleanSduComment(value) {
+  const lines = String(value || "")
+    .split(/\r?\n/)
+    .map((line) => normalizeWhitespace(line).replace(/^(?:kommentar|comment)\s*:\s*/i, ""))
+    .filter(Boolean);
+  return lines.find((line) => !/^https?:\/\//i.test(line)) || "";
+}
+
+function chooseSduEventTitle({ comment, summary, description }) {
+  const cleanedComment = cleanSduComment(comment);
+  if (cleanedComment) return { title: cleanedComment, titleSource: "comment" };
+  const cleanedSummary = normalizeWhitespace(summary || "");
+  const firstDescriptionLine = cleanSduComment(description);
+  if (
+    firstDescriptionLine &&
+    normalizeText(firstDescriptionLine) !== normalizeText(cleanedSummary) &&
+    firstDescriptionLine.length <= 180
+  ) {
+    return { title: firstDescriptionLine, titleSource: "description" };
+  }
+  if (cleanedSummary) return { title: cleanedSummary, titleSource: "summary" };
+  return { title: "SDU-aktivitet", titleSource: "fallback" };
+}
+
+function findJsonComment(raw) {
+  const direct = raw?.comment || raw?.comments || raw?.commentText || raw?.kommentar || raw?.extendedProps?.comment || raw?.extendedProperties?.comment;
+  if (direct) return direct;
+  const seen = new Set();
+  function visit(value, depth = 0) {
+    if (!value || depth > 4 || typeof value !== "object" || seen.has(value)) return "";
+    seen.add(value);
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const found = visit(item, depth + 1);
+        if (found) return found;
+      }
+      return "";
+    }
+    const identity = normalizeText(value.extId || value.extid || value.key || value.name || value.label || value.title || "");
+    if (/comment|kommentar|reservation comment/.test(identity)) {
+      const candidate = value.value ?? value.text ?? value.content ?? value.displayValue;
+      if (candidate != null && String(candidate).trim()) return candidate;
+    }
+    for (const [key, nested] of Object.entries(value)) {
+      if (/comment|kommentar/i.test(key) && nested != null && typeof nested !== "object" && String(nested).trim()) return nested;
+    }
+    for (const nested of Object.values(value)) {
+      const found = visit(nested, depth + 1);
+      if (found) return found;
+    }
+    return "";
+  }
+  return visit(raw);
 }
 
 function classifyActivity(event) {
-  const haystack = normalizeText(`${event.title} ${event.description} ${event.location}`);
+  const raw = `${event.title || ""} ${event.comment || ""} ${event.summaryTitle || ""} ${event.rawTitle || ""} ${event.description || ""} ${event.location || ""} ${event.category || ""}`;
+  const haystack = normalizeText(raw);
   if (/\b(tbl|irat|trat|tapp)\b|team based learning/.test(haystack)) return "tbl";
-  if (/forelæs|forelaes|lecture|miniforelæs|miniforelaes|plenum/.test(haystack)) return "lecture";
+  if (/forelæs|forelaes|lecture|miniforelæs|miniforelaes|plenum/.test(haystack) || /(?:^|[;,\s])f\.?(?:$|[;,\s])/.test(String(event.summaryTitle || event.rawTitle || "").toLowerCase())) return "lecture";
   if (/holdtime|holdundervis|klasse|class|gruppe|seminar|øvelse|ovelse|færdighed|faerdighed|klinik|case|workshop|demonstration|laborator/.test(haystack)) return "class";
   return "other";
 }
@@ -734,13 +867,18 @@ function parseIcs(text, sourceUrl) {
     const end = parseIcsDate(raw.DTEND, raw.DTEND_PARAMS);
     if (!start) return null;
     const uid = raw.UID || `${raw.SUMMARY || "event"}-${raw.DTSTART}-${index}`;
+    const comment = raw.COMMENT || raw["X-COMMENT"] || "";
+    const selectedTitle = chooseSduEventTitle({ comment, summary: raw.SUMMARY, description: raw.DESCRIPTION });
     const normalized = {
       sourceId: String(uid),
-      title: raw.SUMMARY || "SDU-aktivitet",
-      rawTitle: raw.SUMMARY || "SDU-aktivitet",
-      date: localDateKey(start.date),
-      time: start.allDay ? "" : localTime(start.date),
-      endTime: end && localDateKey(end.date) === localDateKey(start.date) && !end.allDay ? localTime(end.date) : "",
+      title: selectedTitle.title,
+      titleSource: selectedTitle.titleSource,
+      comment: cleanSduComment(comment),
+      summaryTitle: raw.SUMMARY || "",
+      rawTitle: raw.SUMMARY || selectedTitle.title,
+      date: start.dateKey,
+      time: start.time,
+      endTime: end && end.dateKey === start.dateKey && !end.allDay ? end.time : "",
       allDay: start.allDay,
       description: raw.DESCRIPTION || "",
       location: raw.LOCATION || "",
@@ -762,27 +900,37 @@ function parseJsonEvents(text, sourceUrl) {
   return candidates.map((raw, index) => {
     const startValue = raw.start || raw.startDate || raw.startTime || raw.from || raw.begin;
     const endValue = raw.end || raw.endDate || raw.endTime || raw.to;
-    const start = new Date(startValue);
-    const end = endValue ? new Date(endValue) : new Date(start.getTime() + 60 * 60 * 1000);
-    if (Number.isNaN(start.getTime())) return null;
-    const sourceId = String(raw.id || raw.uid || `${raw.title || raw.name}-${start.toISOString()}-${index}`);
+    const allDay = Boolean(raw.allDay);
+    const start = parseJsonDateValue(startValue, allDay);
+    if (!start) return null;
+    const end = endValue ? parseJsonDateValue(endValue, allDay) : null;
+    const fallbackEndDate = new Date(start.date.getTime() + 60 * 60 * 1000);
+    const endDate = end?.date || fallbackEndDate;
+    const summaryTitle = raw.title || raw.name || raw.summary || "";
+    const comment = findJsonComment(raw) || "";
+    const description = raw.description || raw.notes || raw.extendedProps?.description || "";
+    const selectedTitle = chooseSduEventTitle({ comment, summary: summaryTitle, description });
+    const sourceId = String(raw.id || raw.uid || `${summaryTitle || selectedTitle.title}-${start.date.toISOString()}-${index}`);
     const normalized = {
       sourceId,
-      title: raw.title || raw.name || raw.summary || "SDU-aktivitet",
-      rawTitle: raw.title || raw.name || raw.summary || "SDU-aktivitet",
-      date: localDateKey(start),
-      time: raw.allDay ? "" : localTime(start),
-      endTime: localDateKey(end) === localDateKey(start) && !raw.allDay ? localTime(end) : "",
-      allDay: Boolean(raw.allDay),
-      description: raw.description || raw.notes || "",
-      location: raw.location || raw.room || "",
+      title: selectedTitle.title,
+      titleSource: selectedTitle.titleSource,
+      comment: cleanSduComment(comment),
+      summaryTitle,
+      rawTitle: summaryTitle || selectedTitle.title,
+      date: start.dateKey,
+      time: start.time,
+      endTime: end && end.dateKey === start.dateKey && !allDay ? end.time : (!allDay && localDateKey(endDate) === start.dateKey ? localTime(endDate) : ""),
+      allDay,
+      description,
+      location: raw.location || raw.room || raw.extendedProps?.location || "",
       url: raw.url || sourceUrl,
       sourceUrl,
-      teacher: raw.teacher || raw.organizer || "",
-      startTimestamp: start.getTime(),
-      endTimestamp: end.getTime(),
+      teacher: raw.teacher || raw.organizer || raw.extendedProps?.teacher || "",
+      startTimestamp: start.date.getTime(),
+      endTimestamp: endDate.getTime(),
     };
-    return { ...normalized, activityType: classifyActivity(normalized), stableId: `sdu-${stableHash(`${sourceId}|${start.toISOString()}`)}` };
+    return { ...normalized, activityType: classifyActivity(normalized), stableId: `sdu-${stableHash(`${sourceId}|${start.date.toISOString()}`)}` };
   }).filter(Boolean);
 }
 
