@@ -1,4 +1,4 @@
-/*
+/* 
  * MedFLUEN Segment 4.4 — SDU timetable resolver
  * Vercel serverless function. No npm dependency required.
  *
