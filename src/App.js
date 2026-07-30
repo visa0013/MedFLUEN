@@ -10740,6 +10740,275 @@ select.ui-control {
 .study-plan-v4-step[data-direction="-1"] { animation-name: studyPlanStepBack; }
 @keyframes studyPlanStepIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes studyPlanStepBack { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+/* ============================================================
+   SEGMENT 4.3 — GUIDED PHASE TRANSITIONS + STUDY PLAN POLISH
+   ============================================================ */
+.study-plan-v4-step-context {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--ui-border);
+  border-radius: 13px;
+  background: color-mix(in srgb,var(--ui-soft) 72%,var(--ui-panel));
+}
+.study-plan-v4-step-context > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.study-plan-v4-step-context > div:first-child > span {
+  color: var(--ui-blue);
+  font-size: 8px;
+  font-weight: 880;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.study-plan-v4-step-context strong {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 12px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.study-plan-v4-step-context small {
+  color: var(--ui-secondary);
+  font-size: 9px;
+  font-weight: 620;
+  line-height: 1.45;
+}
+.study-plan-v4-step-context-status {
+  min-width: 108px;
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+}
+.study-plan-v4-step-context-status b {
+  color: var(--ui-text);
+  font-size: 10px;
+  font-weight: 850;
+}
+.study-plan-v4-step-context-status span {
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 720;
+}
+.study-plan-v4-step-context[data-valid="false"] {
+  border-color: color-mix(in srgb,#d59a3c 32%,var(--ui-border));
+  background: color-mix(in srgb,#d59a3c 6%,var(--ui-panel));
+}
+.study-plan-v4-step-context[data-valid="false"] .study-plan-v4-step-context-status b {
+  color: #b97a22;
+}
+.study-plan-v4-validation {
+  max-width: 330px;
+  color: #b2681d;
+  font-size: 9.5px;
+  font-weight: 760;
+  line-height: 1.4;
+  text-align: end;
+}
+.study-plan-v4-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: color-mix(in srgb,var(--ui-overlay) 88%,transparent);
+  backdrop-filter: blur(11px);
+  animation: studyPlanTransitionBackdropIn 220ms ease-out both;
+}
+.study-plan-v4-transition-card {
+  position: relative;
+  width: min(610px,100%);
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 20px;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow-lg);
+  animation: studyPlanTransitionCardIn 420ms cubic-bezier(.16,1,.3,1) both;
+}
+.study-plan-v4-transition-rail {
+  display: grid;
+  grid-template-columns: repeat(6,minmax(0,1fr));
+  gap: 5px;
+  margin-bottom: 24px;
+}
+.study-plan-v4-transition-rail i {
+  height: 4px;
+  border-radius: 99px;
+  background: var(--ui-border);
+}
+.study-plan-v4-transition-rail i[data-complete="true"] {
+  background: var(--ui-green);
+}
+.study-plan-v4-transition-rail i[data-active="true"] {
+  background: var(--ui-blue);
+  box-shadow: 0 0 0 4px var(--ui-blue-soft);
+}
+.study-plan-v4-transition-kicker {
+  display: block;
+  color: var(--ui-blue);
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.study-plan-v4-transition-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 9px;
+}
+.study-plan-v4-transition-value strong {
+  color: var(--ui-text);
+  font-size: clamp(38px,8vw,64px);
+  font-weight: 920;
+  letter-spacing: -.065em;
+  line-height: .95;
+  animation: studyPlanInsightValueIn 520ms 80ms cubic-bezier(.16,1,.3,1) both;
+}
+.study-plan-v4-transition-value span {
+  color: var(--ui-secondary);
+  font-size: 11px;
+  font-weight: 780;
+}
+.study-plan-v4-transition-card h2 {
+  margin: 18px 0 6px;
+  color: var(--ui-text);
+  font-size: 20px;
+  font-weight: 890;
+  letter-spacing: -.035em;
+}
+.study-plan-v4-transition-card > p {
+  max-width: 510px;
+  margin: 0;
+  color: var(--ui-secondary);
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.6;
+}
+.study-plan-v4-transition-metrics {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+  margin-top: 20px;
+}
+.study-plan-v4-transition-metrics > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  padding: 10px 11px;
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+  background: var(--ui-soft);
+}
+.study-plan-v4-transition-metrics b {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 12px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.study-plan-v4-transition-metrics span {
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.study-plan-v4-transition-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ui-border);
+}
+.study-plan-v4-transition-footer small {
+  color: var(--ui-muted);
+  font-size: 8.5px;
+  font-weight: 650;
+}
+.study-plan-v4-transition-footer button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-soft);
+  color: var(--ui-text);
+  font-size: 9px;
+  font-weight: 820;
+}
+.study-plan-v4-transition-progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 3px;
+  transform-origin: left;
+  background: linear-gradient(90deg,var(--ui-blue),#7667d8);
+  animation: studyPlanTransitionProgress 2600ms linear both;
+}
+@keyframes studyPlanTransitionBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes studyPlanTransitionCardIn {
+  from { opacity: 0; transform: translateY(14px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes studyPlanInsightValueIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes studyPlanTransitionProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (max-width: 760px) {
+  .study-plan-v4-step-context {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .study-plan-v4-step-context-status {
+    min-width: 0;
+    justify-items: start;
+  }
+  .study-plan-v4-step-context strong {
+    white-space: normal;
+  }
+  .study-plan-v4-transition {
+    padding: 12px;
+  }
+  .study-plan-v4-transition-card {
+    padding: 18px;
+    border-radius: 17px;
+  }
+  .study-plan-v4-transition-metrics {
+    grid-template-columns: 1fr;
+  }
+  .study-plan-v4-transition-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .study-plan-v4-transition-footer button {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .study-plan-v4-transition,
+  .study-plan-v4-transition-card,
+  .study-plan-v4-transition-value strong,
+  .study-plan-v4-transition-progress {
+    animation-duration: 1ms !important;
+  }
+}
 .study-plan-v4-grid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(300px,.75fr); gap: 16px; align-items: start; }
 .study-plan-v4-card { min-width: 0; padding: 14px 18px 18px; border: 1px solid var(--ui-border); border-radius: 15px; background: var(--ui-panel); box-shadow: var(--ui-shadow-sm); }
 .study-plan-v4-card h2 { margin: 0; font-size: 14px; font-weight: 860; letter-spacing: -.02em; }
@@ -16755,7 +17024,9 @@ function StudyPlan({ c, language, user, setUser }) {
   const defaultExam = existing?.examDate || studyPlanDateKey(addDays(new Date(), 56));
   const defaultLectureDeadline = existing?.lectureDeadline || studyPlanDateKey(addDays(new Date(`${defaultExam}T00:00:00`), -21));
   const defaultExamSetStart = existing?.examSetStartDate || studyPlanDateKey(addDays(new Date(`${defaultExam}T00:00:00`), -14));
-  const [step, setStep] = useState(existing ? 5 : 1);
+  const persistedStudyPlanDraft = loadStorage(STORAGE.studyPlanDraft, null);
+  const canResumeStudyPlanDraft = !existing && persistedStudyPlanDraft?.moduleName === moduleName && persistedStudyPlanDraft?.draft;
+  const [step, setStep] = useState(existing ? 5 : canResumeStudyPlanDraft ? Math.max(1, Math.min(5, Number(persistedStudyPlanDraft.step) || 1)) : 1);
   const [direction, setDirection] = useState(1);
   const [savedNotice, setSavedNotice] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -16785,8 +17056,12 @@ function StudyPlan({ c, language, user, setUser }) {
     learningSteps: existing?.learningSteps || fsrsSettings.learningSteps || ["1m", "10m"],
     relearningSteps: existing?.relearningSteps || fsrsSettings.relearningSteps || ["10m"],
     distributionMode: existing?.distributionMode || "balanced",
+    ...(canResumeStudyPlanDraft ? persistedStudyPlanDraft.draft : {}),
   }));
   const [exceptionDate, setExceptionDate] = useState("");
+  const [transition, setTransition] = useState(null);
+  const [validationMessage, setValidationMessage] = useState("");
+  const transitionTimerRef = useRef(null);
   const strategy = buildStudyPlanStrategy({ moduleName, plan: draft, lectures, fromDate: new Date() });
   const questionCount = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === moduleName).length;
   const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
@@ -16797,8 +17072,319 @@ function StudyPlan({ c, language, user, setUser }) {
     title: "Studieplan", subtitle: "Byg en samlet strategi frem mod eksamen", steps: ["Mål", "Indhold", "Kapacitet", "Strategi", "Forhåndsvisning", "Aktivér"], next: "Fortsæt", back: "Tilbage", activate: "Gem og aktivér", edit: "Redigér plan", active: "Aktiv studieplan", delete: "Slet plan",
   };
 
-  function update(field, value) { setDraft((previous) => ({ ...previous, [field]: value })); }
-  function nextStep(next) { setDirection(next > step ? 1 : -1); setStep(next); }
+  const MS_PER_STUDY_DAY = 24 * 60 * 60 * 1000;
+  const weeklyCapacityHours = Math.round(Object.values(draft.weekdayHours || {}).reduce((sum, value) => sum + (Number(value) || 0), 0) * 10) / 10;
+  const availableStudyDays = Object.values(draft.weekdayHours || {}).filter((value) => Number(value) > 0).length;
+  const selectedLectureCount = draft.includedLectureIds.length;
+  const pendingLectureCount = draft.includedLectureIds.filter((id) => !draft.doneLectureIds.includes(id)).length;
+  const selectedLectureMinutes = lectures
+    .filter((lecture) => draft.includedLectureIds.includes(lecture.id) && !draft.doneLectureIds.includes(lecture.id))
+    .reduce((sum, lecture) => sum + studyPlanLectureMinutes(lecture, draft.difficulty?.[lecture.id] || "normal"), 0);
+  const daysUntilExam = draft.examDate
+    ? Math.max(0, Math.ceil((studyPlanDate(draft.examDate).getTime() - studyPlanDate(todayKey).getTime()) / MS_PER_STUDY_DAY))
+    : 0;
+  const weeksUntilExam = Math.max(0, Math.ceil(daysUntilExam / 7));
+  const strategyRealismLabel = strategy.realism === "realistic"
+    ? (language === "en" ? "Realistic" : language === "ar" ? "واقعية" : "Realistisk")
+    : strategy.realism === "demanding"
+      ? (language === "en" ? "Demanding" : language === "ar" ? "مكثفة" : "Krævende")
+      : (language === "en" ? "Not realistic" : language === "ar" ? "غير واقعية" : "Ikke realistisk");
+
+  const polishCopy = language === "en" ? {
+    phase: "Phase",
+    of: "of",
+    ready: "Ready to continue",
+    autoSave: "Draft saved automatically",
+    continueNow: "Continue now",
+    autoContinue: "Continuing automatically",
+    days: "days",
+    weeks: "weeks",
+    bufferDays: "buffer days",
+    phases: "phases",
+    lectures: "lectures",
+    selected: "selected",
+    pending: "remaining",
+    studyHours: "estimated study hours",
+    examSets: "exam sets",
+    hoursWeek: "hours/week",
+    activeDays: "active study days",
+    exceptions: "exception days",
+    calendarCapacity: "total calendar capacity",
+    reviewReserve: "review reserve",
+    freezeDays: "frozen days",
+    manualTimes: "manual times",
+    preserved: "preserved",
+    flexible: "may move",
+    retention: "target retention",
+    activities: "calendar activities",
+    required: "required",
+    capacity: "capacity",
+    timeframeSet: "Your timeframe is set",
+    timeframeDescription: "The plan now has a fixed exam date and clear boundaries for new material, exam sets and buffer time.",
+    contentMapped: "Your syllabus is mapped",
+    contentDescription: "Included lectures and exam sets are now converted into a concrete workload.",
+    capacityMapped: "Your weekly capacity is mapped",
+    capacityDescription: "The plan can now distribute work across the days you actually have available.",
+    rulesSet: "Your plan rules are set",
+    rulesDescription: "Review capacity, missed work and manually placed times now have predictable behaviour.",
+    previewReady: "Your complete strategy is ready",
+    previewDescription: "The final check combines workload, available capacity and every calendar activity before activation.",
+  } : language === "ar" ? {
+    phase: "المرحلة",
+    of: "من",
+    ready: "جاهز للمتابعة",
+    autoSave: "تم حفظ المسودة تلقائيا",
+    continueNow: "متابعة الآن",
+    autoContinue: "سيتم الانتقال تلقائيا",
+    days: "يوما",
+    weeks: "أسابيع",
+    bufferDays: "أيام احتياطية",
+    phases: "مراحل",
+    lectures: "محاضرات",
+    selected: "مختارة",
+    pending: "متبقية",
+    studyHours: "ساعات دراسة مقدرة",
+    examSets: "نماذج امتحان",
+    hoursWeek: "ساعة/أسبوع",
+    activeDays: "أيام دراسة",
+    exceptions: "أيام مستثناة",
+    calendarCapacity: "السعة الكلية",
+    reviewReserve: "مساحة للمراجعة",
+    freezeDays: "أيام ثابتة",
+    manualTimes: "الأوقات اليدوية",
+    preserved: "محفوظة",
+    flexible: "قابلة للنقل",
+    retention: "هدف التذكر",
+    activities: "أنشطة التقويم",
+    required: "مطلوب",
+    capacity: "متاح",
+    timeframeSet: "تم تحديد الإطار الزمني",
+    timeframeDescription: "أصبح للخطة تاريخ امتحان ثابت وحدود واضحة للمادة الجديدة ونماذج الامتحان والوقت الاحتياطي.",
+    contentMapped: "تم تحديد محتوى المنهج",
+    contentDescription: "تم تحويل المحاضرات ونماذج الامتحان المختارة إلى عبء عمل واضح.",
+    capacityMapped: "تم تحديد سعتك الأسبوعية",
+    capacityDescription: "يمكن الآن توزيع العمل على الأيام المتاحة فعليا.",
+    rulesSet: "تم ضبط قواعد الخطة",
+    rulesDescription: "أصبحت المراجعة والمهام الفائتة والأوقات اليدوية ذات سلوك واضح.",
+    previewReady: "استراتيجيتك الكاملة جاهزة",
+    previewDescription: "يجمع الفحص النهائي بين عبء العمل والسعة المتاحة وجميع أنشطة التقويم قبل التفعيل.",
+  } : {
+    phase: "Fase",
+    of: "af",
+    ready: "Klar til at fortsætte",
+    autoSave: "Udkast gemmes automatisk",
+    continueNow: "Fortsæt nu",
+    autoContinue: "Fortsætter automatisk",
+    days: "dage",
+    weeks: "uger",
+    bufferDays: "bufferdage",
+    phases: "faser",
+    lectures: "forelæsninger",
+    selected: "valgt",
+    pending: "resterende",
+    studyHours: "anslåede studietimer",
+    examSets: "eksamenssæt",
+    hoursWeek: "timer/uge",
+    activeDays: "aktive studiedage",
+    exceptions: "undtagelsesdage",
+    calendarCapacity: "samlet kalenderkapacitet",
+    reviewReserve: "reserveret til repetition",
+    freezeDays: "frosne dage",
+    manualTimes: "manuelle tider",
+    preserved: "bevares",
+    flexible: "må flyttes",
+    retention: "mål for fastholdelse",
+    activities: "kalenderaktiviteter",
+    required: "krævet",
+    capacity: "kapacitet",
+    timeframeSet: "Din tidsramme er fastlagt",
+    timeframeDescription: "Planen har nu en fast eksamensdato og tydelige grænser for nyt stof, eksamenssæt og buffer.",
+    contentMapped: "Dit pensum er kortlagt",
+    contentDescription: "Valgte forelæsninger og eksamenssæt er nu omsat til en konkret arbejdsbelastning.",
+    capacityMapped: "Din ugekapacitet er kortlagt",
+    capacityDescription: "Planen kan nu fordele arbejdet på de dage, du reelt har til rådighed.",
+    rulesSet: "Planens regler er fastlagt",
+    rulesDescription: "Repetition, missede aktiviteter og manuelt placerede tider har nu en forudsigelig adfærd.",
+    previewReady: "Din samlede strategi er klar",
+    previewDescription: "Det sidste kontrolpunkt samler belastning, kapacitet og alle kalenderaktiviteter før aktivering.",
+  };
+
+  function validateStudyPlanStep(stepNumber) {
+    if (stepNumber === 1) {
+      if (!draft.examDate || !draft.lectureDeadline || !draft.examSetStartDate) {
+        return { ok: false, message: language === "en" ? "Choose all three key dates." : language === "ar" ? "اختر التواريخ الثلاثة الأساسية." : "Vælg alle tre nøgledatoer." };
+      }
+      if (draft.examDate < todayKey) {
+        return { ok: false, message: language === "en" ? "The exam date cannot be in the past." : language === "ar" ? "لا يمكن أن يكون تاريخ الامتحان في الماضي." : "Eksamensdatoen kan ikke ligge i fortiden." };
+      }
+      if (draft.lectureDeadline > draft.examDate) {
+        return { ok: false, message: language === "en" ? "The lecture deadline must be before the exam." : language === "ar" ? "يجب أن تنتهي المحاضرات قبل الامتحان." : "Forelæsningsfristen skal ligge før eksamen." };
+      }
+      if (draft.examSetStartDate < draft.lectureDeadline || draft.examSetStartDate > draft.examDate) {
+        return { ok: false, message: language === "en" ? "Exam sets must start between the lecture deadline and the exam." : language === "ar" ? "يجب أن تبدأ نماذج الامتحان بعد انتهاء المحاضرات وقبل الامتحان." : "Eksamenssæt skal starte mellem forelæsningsfristen og eksamen." };
+      }
+      if (daysUntilExam < Number(draft.bufferDays || 0)) {
+        return { ok: false, message: language === "en" ? "The buffer is longer than the remaining time." : language === "ar" ? "الفترة الاحتياطية أطول من الوقت المتبقي." : "Bufferen er længere end tiden frem til eksamen." };
+      }
+    }
+    if (stepNumber === 2) {
+      if (!draft.includedLectureIds.length) {
+        return { ok: false, message: language === "en" ? "Include at least one lecture." : language === "ar" ? "أضف محاضرة واحدة على الأقل." : "Medtag mindst én forelæsning." };
+      }
+      if (!Number.isFinite(Number(draft.examSetCount)) || Number(draft.examSetCount) < 0 || Number(draft.examSetCount) > 30) {
+        return { ok: false, message: language === "en" ? "Choose between 0 and 30 exam sets." : language === "ar" ? "اختر بين 0 و30 نموذجا." : "Vælg mellem 0 og 30 eksamenssæt." };
+      }
+    }
+    if (stepNumber === 3) {
+      if (weeklyCapacityHours <= 0) {
+        return { ok: false, message: language === "en" ? "Add study time to at least one weekday." : language === "ar" ? "أضف وقت دراسة ليوم واحد على الأقل." : "Tilføj studietid på mindst én ugedag." };
+      }
+      if (Object.values(draft.weekdayHours || {}).some((value) => Number(value) < 0 || Number(value) > 12)) {
+        return { ok: false, message: language === "en" ? "Daily capacity must be between 0 and 12 hours." : language === "ar" ? "يجب أن تكون السعة اليومية بين 0 و12 ساعة." : "Daglig kapacitet skal være mellem 0 og 12 timer." };
+      }
+      if (Number(draft.maxLecturesPerDay) < 1 || Number(draft.maxLecturesPerDay) > 8) {
+        return { ok: false, message: language === "en" ? "Choose 1–8 lectures per day." : language === "ar" ? "اختر من 1 إلى 8 محاضرات يوميا." : "Vælg 1–8 forelæsninger pr. dag." };
+      }
+    }
+    if (stepNumber === 4) {
+      if (![15, 20, 30].includes(Number(draft.mcqReservePercent))) {
+        return { ok: false, message: language === "en" ? "Choose a review reserve." : language === "ar" ? "اختر مساحة للمراجعة." : "Vælg, hvor meget der skal reserveres til repetition." };
+      }
+    }
+    if (stepNumber === 5 && (!strategy.valid || strategy.realism === "unrealistic")) {
+      return { ok: false, message: language === "en" ? "Adjust the plan until the critical check is resolved." : language === "ar" ? "عدّل الخطة حتى يتم حل المشكلات الحرجة." : "Justér planen, indtil den kritiske kontrol er løst." };
+    }
+    return { ok: true, message: polishCopy.ready };
+  }
+
+  const stepValidation = validateStudyPlanStep(step);
+  const phaseContexts = language === "en" ? [
+    { title: `${daysUntilExam} days until the exam`, detail: `${weeksUntilExam} weeks available · ${draft.bufferDays} buffer days` },
+    { title: `${pendingLectureCount} lectures remaining`, detail: `${selectedLectureCount} selected · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} estimated hours` },
+    { title: `${weeklyCapacityHours} hours per normal week`, detail: `${availableStudyDays} active days · ${draft.excludedDates.length} exceptions` },
+    { title: `${draft.mcqReservePercent}% reserved for review`, detail: `${draft.freezeDays} frozen days · manual times ${draft.preserveManualTimes ? "preserved" : "may move"}` },
+    { title: `${strategyRealismLabel} workload`, detail: `${Math.round(strategy.requiredTotal / 60)} required hours · ${Math.round(strategy.capacityTotal / 60)} available hours` },
+    { title: `${strategy.assignments.length} calendar activities`, detail: "Review the exact week-by-week plan before activation" },
+  ] : language === "ar" ? [
+    { title: `${daysUntilExam} يوما حتى الامتحان`, detail: `${weeksUntilExam} أسابيع متاحة · ${draft.bufferDays} أيام احتياطية` },
+    { title: `${pendingLectureCount} محاضرات متبقية`, detail: `${selectedLectureCount} مختارة · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} ساعات مقدرة` },
+    { title: `${weeklyCapacityHours} ساعة في الأسبوع المعتاد`, detail: `${availableStudyDays} أيام دراسة · ${draft.excludedDates.length} أيام مستثناة` },
+    { title: `${draft.mcqReservePercent}% مخصص للمراجعة`, detail: `${draft.freezeDays} أيام ثابتة · الأوقات اليدوية ${draft.preserveManualTimes ? "محفوظة" : "قابلة للنقل"}` },
+    { title: `الخطة ${strategyRealismLabel}`, detail: `${Math.round(strategy.requiredTotal / 60)} ساعة مطلوبة · ${Math.round(strategy.capacityTotal / 60)} ساعة متاحة` },
+    { title: `${strategy.assignments.length} نشاطا في التقويم`, detail: "راجع الخطة الأسبوعية الدقيقة قبل التفعيل" },
+  ] : [
+    { title: `${daysUntilExam} dage til eksamen`, detail: `${weeksUntilExam} uger til rådighed · ${draft.bufferDays} bufferdage` },
+    { title: `${pendingLectureCount} forelæsninger tilbage`, detail: `${selectedLectureCount} valgt · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} anslåede timer` },
+    { title: `${weeklyCapacityHours} timer i en normal uge`, detail: `${availableStudyDays} aktive studiedage · ${draft.excludedDates.length} undtagelser` },
+    { title: `${draft.mcqReservePercent}% reserveret til repetition`, detail: `${draft.freezeDays} frosne dage · manuelle tider ${draft.preserveManualTimes ? "bevares" : "må flyttes"}` },
+    { title: `${strategyRealismLabel} belastning`, detail: `${Math.round(strategy.requiredTotal / 60)} t krævet · ${Math.round(strategy.capacityTotal / 60)} t til rådighed` },
+    { title: `${strategy.assignments.length} kalenderaktiviteter`, detail: "Kontrollér den præcise ugeplan før aktivering" },
+  ];
+  const phaseContext = phaseContexts[step - 1] || phaseContexts[0];
+
+  function buildTransitionInsight(completedStep) {
+    const insights = [
+      {
+        kicker: copy.steps[0],
+        value: daysUntilExam,
+        unit: polishCopy.days,
+        title: polishCopy.timeframeSet,
+        description: polishCopy.timeframeDescription,
+        metrics: [
+          { value: weeksUntilExam, label: polishCopy.weeks },
+          { value: draft.bufferDays, label: polishCopy.bufferDays },
+          { value: strategy.phases.length, label: polishCopy.phases },
+        ],
+      },
+      {
+        kicker: copy.steps[1],
+        value: pendingLectureCount,
+        unit: polishCopy.lectures,
+        title: polishCopy.contentMapped,
+        description: polishCopy.contentDescription,
+        metrics: [
+          { value: selectedLectureCount, label: polishCopy.selected },
+          { value: `${Math.round(selectedLectureMinutes / 60 * 10) / 10} t`, label: polishCopy.studyHours },
+          { value: draft.examSetCount, label: polishCopy.examSets },
+        ],
+      },
+      {
+        kicker: copy.steps[2],
+        value: weeklyCapacityHours,
+        unit: polishCopy.hoursWeek,
+        title: polishCopy.capacityMapped,
+        description: polishCopy.capacityDescription,
+        metrics: [
+          { value: availableStudyDays, label: polishCopy.activeDays },
+          { value: draft.excludedDates.length, label: polishCopy.exceptions },
+          { value: `${Math.round(strategy.capacityTotal / 60)} t`, label: polishCopy.calendarCapacity },
+        ],
+      },
+      {
+        kicker: copy.steps[3],
+        value: `${draft.mcqReservePercent}%`,
+        unit: polishCopy.reviewReserve,
+        title: polishCopy.rulesSet,
+        description: polishCopy.rulesDescription,
+        metrics: [
+          { value: draft.freezeDays, label: polishCopy.freezeDays },
+          { value: draft.preserveManualTimes ? polishCopy.preserved : polishCopy.flexible, label: polishCopy.manualTimes },
+          { value: `${Math.round(Number(draft.desiredRetention || .9) * 100)}%`, label: polishCopy.retention },
+        ],
+      },
+      {
+        kicker: copy.steps[4],
+        value: strategyRealismLabel,
+        unit: "",
+        title: polishCopy.previewReady,
+        description: polishCopy.previewDescription,
+        metrics: [
+          { value: strategy.assignments.length, label: polishCopy.activities },
+          { value: `${Math.round(strategy.requiredTotal / 60)} t`, label: polishCopy.required },
+          { value: `${Math.round(strategy.capacityTotal / 60)} t`, label: polishCopy.capacity },
+        ],
+      },
+    ];
+    return insights[Math.max(0, Math.min(insights.length - 1, completedStep - 1))];
+  }
+
+  function completeTransition() {
+    if (!transition) return;
+    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
+    const target = transition.to;
+    setTransition(null);
+    nextStep(target);
+  }
+
+  function cancelTransition() {
+    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
+    setTransition(null);
+  }
+
+  function showPhaseTransition(targetStep) {
+    const validation = validateStudyPlanStep(step);
+    if (!validation.ok) {
+      setValidationMessage(validation.message);
+      return;
+    }
+    setValidationMessage("");
+    setTransition({ from: step, to: targetStep, insight: buildTransitionInsight(step) });
+  }
+
+  function requestNextStep() {
+    showPhaseTransition(Math.min(6, step + 1));
+  }
+
+  function navigateToStep(targetStep) {
+    if (targetStep === step) return;
+    if (targetStep < step) {
+      nextStep(targetStep);
+      return;
+    }
+    showPhaseTransition(targetStep);
+  }
+  function update(field, value) { setValidationMessage(""); setDraft((previous) => ({ ...previous, [field]: value })); }
+  function nextStep(next) { setValidationMessage(""); setDirection(next > step ? 1 : -1); setStep(next); }
   function toggleIncluded(id) { update("includedLectureIds", draft.includedLectureIds.includes(id) ? draft.includedLectureIds.filter((item) => item !== id) : [...draft.includedLectureIds, id]); }
   function toggleDone(id) { update("doneLectureIds", draft.doneLectureIds.includes(id) ? draft.doneLectureIds.filter((item) => item !== id) : [...draft.doneLectureIds, id]); }
   function addException() { if (!exceptionDate || draft.excludedDates.includes(exceptionDate)) return; update("excludedDates", [...draft.excludedDates, exceptionDate].sort()); setExceptionDate(""); }
@@ -16836,6 +17422,33 @@ function StudyPlan({ c, language, user, setUser }) {
     window.addEventListener("keydown", escape);
     return () => { window.removeEventListener("pointerdown", close); window.removeEventListener("keydown", escape); };
   }, [lectureContext]);
+  useEffect(() => {
+    if (existing || !moduleName) return;
+    localStorage.setItem(STORAGE.studyPlanDraft, JSON.stringify({
+      moduleName,
+      step: Math.min(step, 5),
+      draft,
+      updatedAt: Date.now(),
+    }));
+  }, [draft, step, moduleName, existing]);
+
+  useEffect(() => {
+    if (!transition) return undefined;
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    transitionTimerRef.current = window.setTimeout(completeTransition, reducedMotion ? 700 : 2600);
+    const handleTransitionKey = (event) => {
+      if (event.key === "Escape") cancelTransition();
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        completeTransition();
+      }
+    };
+    window.addEventListener("keydown", handleTransitionKey);
+    return () => {
+      if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
+      window.removeEventListener("keydown", handleTransitionKey);
+    };
+  }, [transition]);
 
   function syncPlanToCalendar(planRecord) {
     const bundle = buildStudyPlanCalendarBundle({ moduleName, plan: planRecord, lectures, questionTotal: questionCount, fromDate: new Date() });
@@ -16858,6 +17471,7 @@ function StudyPlan({ c, language, user, setUser }) {
 
   function activatePlan() {
     if (!strategy.valid || strategy.realism === "unrealistic") { setStep(5); return; }
+    localStorage.removeItem(STORAGE.studyPlanDraft);
     const planRecord = { ...draft, status: "active", createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now(), activatedAt: existing?.activatedAt || Date.now(), strategySnapshot: { phases: strategy.phases, realism: strategy.realism, issues: strategy.issues } };
     setPlans((previous) => ({ ...previous, [moduleName]: planRecord }));
     setUser((previous) => ({ ...previous, module: moduleName }));
@@ -16869,6 +17483,7 @@ function StudyPlan({ c, language, user, setUser }) {
   }
 
   function deletePlan() {
+    localStorage.removeItem(STORAGE.studyPlanDraft);
     setPlans((previous) => { const next = { ...previous }; delete next[moduleName]; return next; });
     const events = loadStorage(STORAGE.calendarEvents, []).filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-"));
     const meta = Object.fromEntries(Object.entries(loadStorage(STORAGE.calendarEventMeta, {})).filter(([id]) => !String(id).startsWith(`studyplan-${moduleName}`)));
@@ -16879,8 +17494,8 @@ function StudyPlan({ c, language, user, setUser }) {
     setConfirmDelete(false); setStep(1); setSavedNotice("Studieplanen er slettet.");
   }
 
-  const canContinue = step === 1 ? Boolean(draft.examDate && draft.lectureDeadline && draft.examSetStartDate) : step === 2 ? draft.includedLectureIds.length > 0 : true;
-  const realismLabel = strategy.realism === "realistic" ? "Realistisk" : strategy.realism === "demanding" ? "Krævende" : "Ikke realistisk";
+  const canContinue = stepValidation.ok;
+  const realismLabel = strategyRealismLabel;
 
   function StepGoal() {
     return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Fastlæg dine faser</h2><p>Stop nyt stof i god tid, så der er plads til repetition, eksamenssæt og buffer.</p><div className="study-plan-v4-fields"><label><span>Eksamensdato</span><input className="ui-control" type="date" min={todayKey} value={draft.examDate} onChange={(event) => update("examDate", event.target.value)} /></label><label><span>Færdig med forelæsninger</span><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={draft.lectureDeadline} onChange={(event) => update("lectureDeadline", event.target.value)} /></label><label><span>Eksamenssæt starter</span><input className="ui-control" type="date" min={draft.lectureDeadline || todayKey} max={draft.examDate} value={draft.examSetStartDate} onChange={(event) => update("examSetStartDate", event.target.value)} /></label><label><span>Buffer før eksamen</span><select className="ui-control" value={draft.bufferDays} onChange={(event) => update("bufferDays", Number(event.target.value))}>{[2,3,4,5,7,10].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label></div></section><PhaseTimeline phases={strategy.phases} /></div>;
@@ -16971,11 +17586,41 @@ function StudyPlan({ c, language, user, setUser }) {
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Segment 4 · strategi</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header"><div><span>Segment 4.3 · studieplan</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
-        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && nextStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
-        <main className="study-plan-v4-main"><div key={step} className="study-plan-v4-step" data-direction={direction}>{stepContent}</div><footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmDelete(true)}>{copy.delete}</button>}</div><div>{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={!canContinue || (step === 5 && (!strategy.valid || strategy.realism === "unrealistic"))} onClick={() => nextStep(step + 1)}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid || strategy.realism === "unrealistic"} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
+        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
+        <main className="study-plan-v4-main">
+          <div key={step} className="study-plan-v4-step" data-direction={direction}>
+            <div className="study-plan-v4-step-context" data-valid={stepValidation.ok ? "true" : "false"}>
+              <div>
+                <span>{polishCopy.phase} {step} {polishCopy.of} 6</span>
+                <strong>{phaseContext.title}</strong>
+                <small>{phaseContext.detail}</small>
+              </div>
+              <div className="study-plan-v4-step-context-status">
+                <b>{stepValidation.ok ? polishCopy.ready : stepValidation.message}</b>
+                <span>{polishCopy.autoSave}</span>
+              </div>
+            </div>
+            {stepContent}
+          </div>
+          <footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmDelete(true)}>{copy.delete}</button>}</div><div>{validationMessage && <span className="study-plan-v4-validation" role="alert">{validationMessage}</span>}{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={step === 5 && (!strategy.valid || strategy.realism === "unrealistic")} data-valid={canContinue ? "true" : "false"} onClick={requestNextStep}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid || strategy.realism === "unrealistic"} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
       </div>
+      {transition && <div className="study-plan-v4-transition" role="status" aria-live="polite" onPointerDown={(event) => { if (event.target === event.currentTarget) completeTransition(); }}>
+        <div className="study-plan-v4-transition-card">
+          <div className="study-plan-v4-transition-rail" aria-hidden="true">{copy.steps.map((_, index) => {
+            const number = index + 1;
+            return <i key={number} data-complete={number <= transition.from ? "true" : "false"} data-active={number === transition.to ? "true" : "false"} />;
+          })}</div>
+          <span className="study-plan-v4-transition-kicker">{transition.insight.kicker}</span>
+          <div className="study-plan-v4-transition-value"><strong>{transition.insight.value}</strong>{transition.insight.unit && <span>{transition.insight.unit}</span>}</div>
+          <h2>{transition.insight.title}</h2>
+          <p>{transition.insight.description}</p>
+          <div className="study-plan-v4-transition-metrics">{transition.insight.metrics.map((metric) => <div key={metric.label}><b>{metric.value}</b><span>{metric.label}</span></div>)}</div>
+          <div className="study-plan-v4-transition-footer"><small>{polishCopy.autoContinue} · Enter</small><button type="button" onClick={completeTransition}>{polishCopy.continueNow}</button></div>
+          <i className="study-plan-v4-transition-progress" aria-hidden="true" />
+        </div>
+      </div>}
       {lectureContext && <div className="study-plan-v4-context" style={{ left: lectureContext.x, top: lectureContext.y }} onPointerDown={(event) => event.stopPropagation()}><strong>{lectureContext.lecture.id} · {lectureContext.lecture.title}</strong><button type="button" onClick={() => runLectureContext("priority")}>Prioritér tidligere</button><span>Belastning</span><div><button type="button" data-active={(draft.difficulty?.[lectureContext.lecture.id] || "normal") === "easy" ? "true" : "false"} onClick={() => runLectureContext("easy")}>Let</button><button type="button" data-active={(draft.difficulty?.[lectureContext.lecture.id] || "normal") === "normal" ? "true" : "false"} onClick={() => runLectureContext("normal")}>Normal</button><button type="button" data-active={draft.difficulty?.[lectureContext.lecture.id] === "hard" ? "true" : "false"} onClick={() => runLectureContext("hard")}>Tung</button></div><button type="button" onClick={() => runLectureContext("done")}>{draft.doneLectureIds.includes(lectureContext.lecture.id) ? "Fortryd gennemgået" : "Markér gennemgået"}</button><button type="button" onClick={() => runLectureContext("include")}>{draft.includedLectureIds.includes(lectureContext.lecture.id) ? "Ekskludér fra planen" : "Medtag i planen"}</button></div>}
       {confirmDelete && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Slet studieplan?</h2><p>Planobjekter fjernes fra kalenderen. MCQ-reviewhistorik og noter beholdes.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmDelete(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={deletePlan}>Slet plan</button></div></div></div>}
     </div>
