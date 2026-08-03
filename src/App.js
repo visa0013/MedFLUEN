@@ -58,7 +58,6 @@ const STORAGE = {
   dashboardDayClose: "medlearn-dashboard-day-close",
   fsrsSettings: "medlearn-fsrs-settings",
   studyPlanDraft: "medlearn-study-plan-draft",
-  calendarPreferences: "medlearn-calendar-preferences",
 };
 
 const LANGUAGES = [
@@ -1286,40 +1285,11 @@ function minutesToTime(minutes) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function calendarEndFields(dateString, startMinutes, durationMinutes) {
-  const total = Math.max(0, Number(startMinutes) || 0) + Math.max(15, Number(durationMinutes) || 60);
-  const dayOffset = Math.floor(total / (24 * 60));
-  const endMinute = total % (24 * 60);
-  const baseDate = new Date(`${dateString}T12:00:00`);
-  const endDateObject = addDays(baseDate, dayOffset);
-  return {
-    endDate: dateKey(endDateObject.getFullYear(), endDateObject.getMonth(), endDateObject.getDate()),
-    endTime: minutesToTime(endMinute),
-  };
-}
-
-function calendarDateSpanDays(startDate, endDate) {
-  if (!startDate || !endDate || endDate <= startDate) return 0;
-  const start = new Date(`${startDate}T12:00:00`);
-  const end = new Date(`${endDate}T12:00:00`);
-  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 86400000));
-}
-
-
-function calendarShiftEventDate(event, targetDate) {
-  const spanDays = calendarDateSpanDays(event?.date, event?.endDate || event?.date);
-  const end = addDays(new Date(`${targetDate}T12:00:00`), spanDays);
-  return { ...event, date: targetDate, endDate: dateKey(end.getFullYear(), end.getMonth(), end.getDate()) };
-}
 
 function calendarDurationMinutes(event, fallbackMinutes = 60) {
   const start = timeToMinutes(event?.time);
   const end = timeToMinutes(event?.endTime);
-  if (start != null && end != null) {
-    if (end > start) return end - start;
-    if (event?.endDate && event.endDate > event.date) return (24 * 60 - start) + end;
-    if (end < start) return (24 * 60 - start) + end;
-  }
+  if (start != null && end != null && end > start) return end - start;
   const estimated = Number(event?.estimatedHours);
   return Number.isFinite(estimated) && estimated > 0
     ? Math.max(15, Math.round(estimated * 60))
@@ -1333,22 +1303,14 @@ function calendarEventRange(event) {
   return { start, end: start + calendarDurationMinutes(event) };
 }
 
-function calendarAbsoluteEventRange(event) {
-  if (!event?.date || !event.time || event.allDay) return null;
-  const start = new Date(`${event.date}T${event.time}:00`).getTime();
-  if (!Number.isFinite(start)) return null;
-  const duration = calendarDurationMinutes(event);
-  return { start, end: start + duration * 60000 };
-}
-
 function calendarEventsConflict(first, second) {
-  if (!first || !second || first.id === second.id) return false;
-  const a = calendarAbsoluteEventRange(first);
-  const b = calendarAbsoluteEventRange(second);
+  if (!first || !second || first.id === second.id || first.date !== second.date) return false;
+  const a = calendarEventRange(first);
+  const b = calendarEventRange(second);
   return Boolean(a && b && a.start < b.end && b.start < a.end);
 }
 
-function calendarFindNextFreeStart(event, events, dayStart = 0, dayEnd = 24 * 60) {
+function calendarFindNextFreeStart(event, events, dayStart = 7 * 60, dayEnd = 22 * 60) {
   const duration = calendarDurationMinutes(event);
   const occupied = (events || [])
     .filter((item) => item.id !== event.id && item.date === event.date && item.time)
@@ -1363,195 +1325,6 @@ function calendarFindNextFreeStart(event, events, dayStart = 0, dayEnd = 24 * 60
   return cursor + duration <= dayEnd ? minutesToTime(cursor) : null;
 }
 
-const CALENDAR_DEFAULT_PREFERENCES = Object.freeze({
-  layers: { sdu: true, studyPlan: true, own: true, fsrs: true },
-  density: "compact",
-  moduleScope: "all",
-  rememberScroll: true,
-  lastView: "week",
-  lastDate: "",
-});
-
-const CALENDAR_DENSITY_HEIGHT = Object.freeze({ compact: 38, standard: 48, comfortable: 60 });
-const CALENDAR_TIME_ZONE = "Europe/Copenhagen";
-
-function calendarEventLayer(event) {
-  if (event?.source === "sdu-schedule" || event?.source === "sdu" || event?.importedSchedule === "sdu") return "sdu";
-  if (event?.source === "study-plan") return "studyPlan";
-  if (event?.source === "fsrs-review") return "fsrs";
-  return "own";
-}
-
-function calendarFilterEvents(events, preferences, moduleName, search = "") {
-  const prefs = { ...CALENDAR_DEFAULT_PREFERENCES, ...(preferences || {}), layers: { ...CALENDAR_DEFAULT_PREFERENCES.layers, ...(preferences?.layers || {}) } };
-  const needle = calendarNormalizeMatchText(search);
-  return (events || []).filter((event) => {
-    const layer = calendarEventLayer(event);
-    if (prefs.layers[layer] === false) return false;
-    if (prefs.moduleScope === "current" && moduleName && event.planModuleId && event.planModuleId !== moduleName) return false;
-    if (!needle) return true;
-    const haystack = calendarNormalizeMatchText([event.title, event.description, event.location, event.lectureId, event.planModuleId, event.activityType].filter(Boolean).join(" "));
-    return haystack.includes(needle);
-  });
-}
-
-function calendarActivityTone(c, event) {
-  if (event?.source === "fsrs-review") return { color: "#7667d8", background: "rgba(118,103,216,.11)", label: "FSRS" };
-  if (calendarEventLayer(event) === "sdu") {
-    const type = event.activityType || event.colorKey || "other";
-    if (type === "lecture") return { color: c.blue, background: c.blueSoft, label: "Forelæsning" };
-    if (type === "class") return { color: c.green, background: c.greenSoft, label: "Holdtime" };
-    if (type === "tbl") return { color: c.purple, background: c.purpleSoft, label: "TBL" };
-    return { color: "#c9822f", background: "rgba(201,130,47,.11)", label: "Andet" };
-  }
-  const palette = {
-    exam: { color: "#c9822f", background: "rgba(201,130,47,.11)", label: "Eksamen" },
-    study: { color: c.blue, background: c.blueSoft, label: "Studieplan" },
-    review: { color: c.green, background: c.greenSoft, label: "Repetition" },
-    other: { color: c.secondary, background: c.soft, label: "Eget event" },
-  };
-  return palette[event?.type] || palette.other;
-}
-
-function calendarDateRangeContains(event, dateString) {
-  const start = event?.date || "";
-  const end = event?.endDate || start;
-  return Boolean(start && dateString >= start && dateString <= end);
-}
-
-function calendarEventsForDate(events, dateString) {
-  return (events || []).filter((event) => {
-    if (event.allDay) return calendarDateRangeContains(event, dateString);
-    if (event.date === dateString) return true;
-    if (!event.endDate || event.endDate === event.date || !event.time) return false;
-    return dateString > event.date && dateString <= event.endDate;
-  }).map((event) => {
-    if (event.date === dateString || event.allDay) return event;
-    return { ...event, _segmentContinuation: true, time: "00:00", endTime: dateString === event.endDate ? event.endTime || "23:59" : "23:59" };
-  });
-}
-
-function calendarRecurringDates(event, horizonDays = 365) {
-  if (!event?.recurrence || event.recurrence === "none" || !event.date) return [];
-  const start = new Date(`${event.date}T12:00:00`);
-  const until = event.recurrenceUntil ? new Date(`${event.recurrenceUntil}T12:00:00`) : addDays(start, horizonDays);
-  const excluded = new Set(event.exdates || []);
-  const dates = [];
-  let cursor = new Date(start);
-  while (dates.length < 730) {
-    if (event.recurrence === "daily") cursor = addDays(cursor, 1);
-    else if (event.recurrence === "weekly") cursor = addDays(cursor, 7);
-    else if (event.recurrence === "weekdays") {
-      do { cursor = addDays(cursor, 1); } while ([0, 6].includes(cursor.getDay()));
-    } else if (event.recurrence === "monthly") {
-      const wantedDay = start.getDate();
-      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1, 12);
-      cursor.setDate(Math.min(wantedDay, new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate()));
-    } else break;
-    if (cursor > until) break;
-    const key = dateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
-    if (!excluded.has(key)) dates.push(key);
-  }
-  return dates;
-}
-
-function calendarMaterializeRecurrence(event) {
-  const dates = calendarRecurringDates(event);
-  if (!dates.length) return [event];
-  const spanDays = calendarDateSpanDays(event.date, event.endDate || event.date);
-  const master = { ...event, recurrenceMaster: true };
-  const children = dates.map((date) => {
-    const childEnd = addDays(new Date(`${date}T12:00:00`), spanDays);
-    return {
-      ...event,
-      id: `${event.id}::${date}`,
-      date,
-      endDate: dateKey(childEnd.getFullYear(), childEnd.getMonth(), childEnd.getDate()),
-      recurrence: "none",
-      recurrenceParentId: event.id,
-      recurrenceMaster: false,
-    };
-  });
-  return [master, ...children];
-}
-
-function calendarUpcomingTerms(now = new Date()) {
-  const year = now.getFullYear();
-  const short = year % 100;
-  const current = now.getMonth() >= 6 ? { season: "E", year: short } : { season: "F", year: short };
-  const terms = [];
-  let season = current.season;
-  let termYear = current.year;
-  for (let index = 0; index < 5; index += 1) {
-    terms.push(`${season}${String(termYear).padStart(2, "0")}`);
-    if (season === "F") season = "E";
-    else { season = "F"; termYear += 1; }
-  }
-  return terms;
-}
-
-function calendarImportGroup(event) {
-  const layer = calendarEventLayer(event);
-  if (layer === "sdu") return `sdu:${event?.planModuleId || "unknown"}:${event?.term || "unknown"}`;
-  if (event?.source === "ical" || event?.importedSchedule === true) return `ical:${event?.importFeedId || event?.importSourceLabel || "default"}`;
-  return `${event?.source || layer || "other"}:${event?.importFeedId || "default"}`;
-}
-
-function calendarImportDiff(incoming, existing) {
-  const incomingGroups = new Set((incoming || []).map(calendarImportGroup));
-  const existingBySource = new Map((existing || [])
-    .filter((event) => incomingGroups.has(calendarImportGroup(event)))
-    .map((event) => [event.sourceId || event.id, event]));
-  const incomingKeys = new Set();
-  const rows = (incoming || []).map((event) => {
-    const key = event.sourceId || event.id;
-    incomingKeys.add(key);
-    const previous = existingBySource.get(key);
-    if (!previous) return { event, status: "new" };
-    const comparable = ["title", "date", "time", "endTime", "endDate", "location", "description", "activityType", "lectureId", "status"];
-    const changed = comparable.some((field) => String(previous[field] || "") !== String(event[field] || ""));
-    return { event, status: changed ? "changed" : "unchanged", previous };
-  });
-  const removed = [...existingBySource.entries()].filter(([key]) => !incomingKeys.has(key)).map(([, event]) => event);
-  return { rows, removed };
-}
-
-function calendarScrollTargetMinutes(events, dateStrings, now = new Date()) {
-  const todayString = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
-  if (dateStrings.includes(todayString)) return Math.max(0, now.getHours() * 60 + now.getMinutes() - 90);
-  const times = (events || []).filter((event) => dateStrings.includes(event.date) && event.time).map((event) => timeToMinutes(event.time)).filter((value) => value != null);
-  return times.length ? Math.max(0, Math.min(...times) - 60) : 7 * 60;
-}
-
-function calendarFormatDateTime(event, locale = "da-DK") {
-  if (!event?.date) return "";
-  const date = new Date(`${event.date}T12:00:00`);
-  const dateLabel = date.toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
-  if (event.allDay) return `${dateLabel} · Hele dagen`;
-  return `${dateLabel}${event.time ? ` · ${event.time}${event.endTime ? `–${event.endTime}` : ""}` : " · Ikke placeret"}`;
-}
-
-function calendarDownloadICal(events, filename = "medfluen-kalender.ics") {
-  const escape = (value) => String(value || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
-  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//MedFLUEN//Calendar//DA", "CALSCALE:GREGORIAN"];
-  (events || []).forEach((event) => {
-    if (!event.date) return;
-    const dateCompact = event.date.replace(/-/g, "");
-    const start = event.allDay || !event.time ? dateCompact : `${dateCompact}T${event.time.replace(":", "")}00`;
-    const rawEndDate = event.allDay || !event.time ? addDays(new Date(`${event.endDate || event.date}T12:00:00`), 1) : new Date(`${event.endDate || event.date}T12:00:00`);
-    const endDate = dateKey(rawEndDate.getFullYear(), rawEndDate.getMonth(), rawEndDate.getDate()).replace(/-/g, "");
-    const end = event.allDay || !event.time ? endDate : `${endDate}T${(event.endTime || calendarEndFields(event.date, timeToMinutes(event.time) || 0, calendarDurationMinutes(event)).endTime).replace(":", "")}00`;
-    lines.push("BEGIN:VEVENT", `UID:${escape(event.id)}@medfluen`, `DTSTAMP:${stamp}`, `${event.allDay || !event.time ? "DTSTART;VALUE=DATE" : `DTSTART;TZID=${CALENDAR_TIME_ZONE}`}:${start}`, `${event.allDay || !event.time ? "DTEND;VALUE=DATE" : `DTEND;TZID=${CALENDAR_TIME_ZONE}`}:${end}`, `SUMMARY:${escape(event.title)}`, `DESCRIPTION:${escape(event.description)}`, `LOCATION:${escape(event.location)}`, "END:VEVENT");
-  });
-  lines.push("END:VCALENDAR");
-  const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a"); anchor.href = url; anchor.download = filename; anchor.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-
 function calendarContextCopy(language) {
   return ({
     da: {
@@ -1560,7 +1333,7 @@ function calendarContextCopy(language) {
       duplicate: "Duplikér", split: "Del sessionen", openLecture: "Åbn forelæsning", remove: "Slet",
       place: "Placér i kalenderen", autoPlace: "Placér i næste ledige tid", moveDay: "Flyt til anden dag",
       create: "Nyt event her", placeLecture: "Placér ikke-planlagt forelæsning",
-      createStudy: "Opret studieblok", createReview: "Opret repetition", previousWeek: "Flyt 1 uge tilbage", nextWeek: "Flyt 1 uge frem", deleteOccurrence: "Slet denne forekomst", deleteFuture: "Slet denne og fremtidige", deleteSeries: "Slet hele serien",
+      createStudy: "Opret studieblok", createReview: "Opret repetition",
     },
     en: {
       edit: "Edit", complete: "Mark complete", incomplete: "Mark incomplete",
@@ -1568,7 +1341,7 @@ function calendarContextCopy(language) {
       duplicate: "Duplicate", split: "Split session", openLecture: "Open lecture", remove: "Delete",
       place: "Place in calendar", autoPlace: "Place in next free time", moveDay: "Move to another day",
       create: "New event here", placeLecture: "Place unscheduled lecture",
-      createStudy: "Create study block", createReview: "Create review", previousWeek: "Move 1 week back", nextWeek: "Move 1 week forward", deleteOccurrence: "Delete this occurrence", deleteFuture: "Delete this and future", deleteSeries: "Delete entire series",
+      createStudy: "Create study block", createReview: "Create review",
     },
     ar: {
       edit: "تعديل", complete: "وضع علامة مكتمل", incomplete: "وضع علامة غير مكتمل",
@@ -1576,7 +1349,7 @@ function calendarContextCopy(language) {
       duplicate: "تكرار", split: "تقسيم الجلسة", openLecture: "فتح المحاضرة", remove: "حذف",
       place: "وضع في التقويم", autoPlace: "وضع في الوقت المتاح التالي", moveDay: "نقل إلى يوم آخر",
       create: "حدث جديد هنا", placeLecture: "وضع محاضرة غير مجدولة",
-      createStudy: "إنشاء جلسة دراسة", createReview: "إنشاء مراجعة", previousWeek: "نقل أسبوعًا للخلف", nextWeek: "نقل أسبوعًا للأمام", deleteOccurrence: "حذف هذا التكرار", deleteFuture: "حذف هذا وما بعده", deleteSeries: "حذف السلسلة كاملة",
+      createStudy: "إنشاء جلسة دراسة", createReview: "إنشاء مراجعة",
     },
   })[language] || {};
 }
@@ -1657,53 +1430,38 @@ function WeekCalendar({
   onSlotClick,
   onEventClick,
   onContextRequest,
-  onStartReview,
   weekdayLabels,
-  density = "compact",
-  viewportMode = "workspace",
-  onResizeEvent,
 }) {
   const days = Array.from({ length: daysCount }, (_, index) => addDays(weekStart, index));
-  const dateStrings = days.map((day) => dateKey(day.getFullYear(), day.getMonth(), day.getDate()));
   const [dragId, setDragId] = useState(null);
   const [hoverDay, setHoverDay] = useState(null);
-  const [resizePreview, setResizePreview] = useState(null);
   const scrollRef = useRef(null);
-  const scrollSaveTimerRef = useRef(null);
-  const touchMovedRef = useRef(null);
-  const scrollStorageKey = `medlearn-calendar-scroll-${viewportMode}-${daysCount}`;
-  const startHour = 0;
-  const endHour = 24;
-  const hourHeight = CALENDAR_DENSITY_HEIGHT[density] || CALENDAR_DENSITY_HEIGHT.compact;
+  const startHour = 7;
+  const endHour = 22;
+  const hourHeight = 60;
   const totalHeight = (endHour - startHour) * hourHeight;
   const today = new Date();
   const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
-  const nowTop = (nowMinutes / 60) * hourHeight;
+  const nowTop = ((nowMinutes - startHour * 60) / 60) * hourHeight;
+  const typeTone = {
+    exam: { color: "#c9822f", background: "rgba(201,130,47,.11)" },
+    study: { color: c.blue, background: c.blueSoft },
+    review: { color: c.green, background: c.greenSoft },
+    other: { color: c.secondary, background: c.soft },
+  };
 
   useEffect(() => {
-    const stored = Number(sessionStorage.getItem(scrollStorageKey));
-    const targetMinutes = calendarScrollTargetMinutes(events, dateStrings, new Date());
-    const frame = window.requestAnimationFrame(() => {
-      if (!scrollRef.current) return;
-      scrollRef.current.scrollTop = Number.isFinite(stored) && stored >= 0 ? stored : Math.max(0, (targetMinutes / 60) * hourHeight);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [weekStart?.getTime?.(), daysCount, density, scrollStorageKey]);
-
-  function rememberScrollPosition(domEvent) {
-    window.clearTimeout(scrollSaveTimerRef.current);
-    const top = domEvent.currentTarget.scrollTop;
-    scrollSaveTimerRef.current = window.setTimeout(() => sessionStorage.setItem(scrollStorageKey, String(top)), 120);
-  }
+    const currentHour = Math.max(startHour, Math.min(endHour - 1, new Date().getHours()));
+    if (scrollRef.current) scrollRef.current.scrollTop = Math.max(0, (currentHour - startHour - 1) * hourHeight);
+  }, [weekStart, daysCount]);
 
   function layoutEvents(dayEvents) {
     const items = dayEvents
-      .filter((event) => event.time && !event.allDay)
+      .filter((event) => event.time)
       .map((event) => {
-        const start = timeToMinutes(event.time) || 0;
-        const previewEnd = resizePreview?.id === event.id ? resizePreview.endMinutes : null;
-        return { event, start, end: previewEnd ?? start + calendarDurationMinutes(event), lane: 0, laneCount: 1 };
+        const start = timeToMinutes(event.time);
+        return { event, start, end: start + calendarDurationMinutes(event), lane: 0, laneCount: 1 };
       })
       .sort((a, b) => a.start - b.start || b.end - a.end);
     const groups = [];
@@ -1735,7 +1493,7 @@ function WeekCalendar({
   function pointerTime(event, dayElement) {
     const rect = dayElement.getBoundingClientRect();
     const relative = Math.max(0, Math.min(totalHeight - 1, event.clientY - rect.top));
-    return minutesToTime(Math.round(((relative / hourHeight) * 60) / 15) * 15);
+    return minutesToTime(Math.round((startHour * 60 + (relative / hourHeight) * 60) / 15) * 15);
   }
 
   function beginDrag(domEvent, eventId) {
@@ -1744,95 +1502,13 @@ function WeekCalendar({
     domEvent.dataTransfer.setData("text/plain", eventId);
   }
 
-  function autoScrollDuringDrag(domEvent) {
-    const root = scrollRef.current;
-    if (!root) return;
-    const rect = root.getBoundingClientRect();
-    const edge = 72;
-    if (domEvent.clientY < rect.top + edge) root.scrollTop -= 18;
-    else if (domEvent.clientY > rect.bottom - edge) root.scrollTop += 18;
-  }
-
-  function startTouchDrag(domEvent, event) {
-    if (domEvent.pointerType === "mouse" || domEvent.button !== 0) return;
-    const pointerId = domEvent.pointerId;
-    let active = false;
-    let timer = window.setTimeout(() => { active = true; setDragId(event.id); }, 320);
-    const move = (moveEvent) => {
-      if (moveEvent.pointerId !== pointerId) return;
-      if (!active) return;
-      moveEvent.preventDefault();
-      autoScrollDuringDrag(moveEvent);
-      const column = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest?.(".calendar-week-day-column");
-      setHoverDay(column?.dataset?.calendarDate || null);
-    };
-    const finish = (upEvent) => {
-      if (upEvent.pointerId !== pointerId) return;
-      window.clearTimeout(timer);
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", finish);
-      window.removeEventListener("pointercancel", finish);
-      if (active) {
-        const column = document.elementFromPoint(upEvent.clientX, upEvent.clientY)?.closest?.(".calendar-week-day-column");
-        const targetDate = column?.dataset?.calendarDate;
-        if (column && targetDate) {
-          const time = pointerTime(upEvent, column);
-          const duration = calendarDurationMinutes(event);
-          touchMovedRef.current = event.id;
-          onMoveEvent?.({ ...event, date: targetDate, time, allDay: false, ...calendarEndFields(targetDate, timeToMinutes(time) || 0, duration), estimatedHours: duration / 60 });
-        }
-      }
-      setDragId(null); setHoverDay(null);
-    };
-    window.addEventListener("pointermove", move, { passive: false });
-    window.addEventListener("pointerup", finish);
-    window.addEventListener("pointercancel", finish);
-  }
-
-  function startResize(domEvent, event) {
-    domEvent.preventDefault();
-    domEvent.stopPropagation();
-    const startMinutes = timeToMinutes(event.time) || 0;
-    const initialDuration = calendarDurationMinutes(event);
-    const initialY = domEvent.clientY;
-    const move = (moveEvent) => {
-      const delta = Math.round((((moveEvent.clientY - initialY) / hourHeight) * 60) / 15) * 15;
-      const duration = Math.max(15, Math.min(24 * 60, initialDuration + delta));
-      setResizePreview({ id: event.id, endMinutes: startMinutes + duration, duration });
-    };
-    const up = (upEvent) => {
-      const delta = Math.round((((upEvent.clientY - initialY) / hourHeight) * 60) / 15) * 15;
-      const duration = Math.max(15, Math.min(24 * 60, initialDuration + delta));
-      const endFields = calendarEndFields(event.date, startMinutes, duration);
-      const updated = { ...event, ...endFields, estimatedHours: duration / 60 };
-      setResizePreview(null);
-      (onResizeEvent || onMoveEvent)?.(updated);
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up, { once: true });
-  }
-
-  function activateEvent(event) {
-    if (event.source === "fsrs-review" && onStartReview) onStartReview(event);
-    else onEventClick(event);
-  }
-
   return (
-    <div
-      ref={scrollRef}
-      className="calendar-week-scroll"
-      data-viewport={viewportMode}
-      data-density={density}
-      onScroll={rememberScrollPosition}
-      style={{ "--calendar-days": daysCount, "--calendar-hour-height": `${hourHeight}px` }}
-    >
+    <div ref={scrollRef} className="calendar-week-scroll" style={{ "--calendar-days": daysCount, "--calendar-hour-height": `${hourHeight}px` }}>
       <div className="calendar-week-sticky-head">
         <div className="calendar-week-header">
           <div className="calendar-week-gutter calendar-week-gutter--header" aria-hidden="true" />
           {days.map((day, index) => {
-            const key = dateStrings[index];
+            const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
             const isToday = key === todayString;
             return (
               <div key={key} className="calendar-week-day-header" data-today={isToday ? "true" : "false"}>
@@ -1844,29 +1520,11 @@ function WeekCalendar({
             );
           })}
         </div>
-
-        <div className="calendar-week-all-day-grid">
-          <div className="calendar-week-gutter calendar-week-row-label">Hele dagen</div>
-          {days.map((day, index) => {
-            const key = dateStrings[index];
-            const allDay = calendarEventsForDate(events, key).filter((event) => event.allDay);
-            return (
-              <div key={key} className="calendar-week-all-day-cell" data-empty={!allDay.length ? "true" : "false"}>
-                {allDay.length ? allDay.slice(0, 4).map((event) => {
-                  const tone = calendarActivityTone(c, event);
-                  return <button key={`${event.id}-${key}`} type="button" className="calendar-week-all-day-chip" style={{ "--calendar-event-accent": tone.color, "--calendar-event-surface": tone.background }} onClick={() => activateEvent(event)} title={event.title}>{event.title}</button>;
-                }) : <span className="calendar-week-unscheduled-empty">—</span>}
-                {allDay.length > 4 && <small>+{allDay.length - 4}</small>}
-              </div>
-            );
-          })}
-        </div>
-
         <div className="calendar-week-unscheduled-grid">
           <div className="calendar-week-gutter calendar-week-unscheduled-label">Ikke placeret</div>
-          {days.map((day, index) => {
-            const key = dateStrings[index];
-            const unscheduled = calendarEventsForDate(events, key).filter((event) => !event.time && !event.allDay && !event.completedAt && event.type !== "exam");
+          {days.map((day) => {
+            const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
+            const unscheduled = events.filter((event) => event.date === key && !event.time && !event.completedAt && event.type !== "exam");
             return (
               <div key={key} className="calendar-week-unscheduled-cell" data-empty={!unscheduled.length ? "true" : "false"}>
                 {unscheduled.length ? unscheduled.map((event) => (
@@ -1877,14 +1535,14 @@ function WeekCalendar({
                     className="calendar-week-unscheduled-chip"
                     onDragStart={(domEvent) => beginDrag(domEvent, event.id)}
                     onDragEnd={() => setDragId(null)}
-                    onClick={() => activateEvent(event)}
+                    onClick={() => onEventClick(event)}
                     onContextMenu={(domEvent) => {
                       domEvent.preventDefault();
                       onContextRequest?.({ kind: "unscheduled", event, date: key, x: domEvent.clientX, y: domEvent.clientY });
                     }}
                     title={event.title}
                   >
-                    <span>{event.source === "fsrs-review" ? (event.questionCount || "R") : (event.lectureId || "•")}</span><strong>{event.title}</strong>
+                    <span>{event.lectureId || "•"}</span><strong>{event.title}</strong>
                   </button>
                 )) : <span className="calendar-week-unscheduled-empty">—</span>}
               </div>
@@ -1893,28 +1551,23 @@ function WeekCalendar({
         </div>
       </div>
 
-      <div className="calendar-week-body" role="grid" aria-label={daysCount === 1 ? "Dagskalender" : "Ugekalender"} style={{ height: totalHeight }}>
-        <div className="calendar-week-gutter calendar-week-time-gutter">
-          {Array.from({ length: 25 }, (_, index) => (
-            <span key={index} className="calendar-week-time-label" style={{ top: index * hourHeight }}>{String(index).padStart(2, "0")}:00</span>
-          ))}
+      <div className="calendar-week-body" style={{ height: totalHeight }}>
+        <div className="calendar-week-gutter">
+          {Array.from({ length: endHour - startHour + 1 }, (_, index) => {
+            const hour = startHour + index;
+            return <span key={hour} className="calendar-week-time-label" style={{ top: index * hourHeight }}>{String(hour).padStart(2, "0")}:00</span>;
+          })}
         </div>
 
-        {days.map((day, index) => {
-          const key = dateStrings[index];
-          const dayEvents = calendarEventsForDate(events, key);
-          const positioned = layoutEvents(dayEvents);
+        {days.map((day) => {
+          const key = dateKey(day.getFullYear(), day.getMonth(), day.getDate());
+          const positioned = layoutEvents(events.filter((event) => event.date === key));
           const isToday = key === todayString;
           return (
             <div
               key={key}
               className="calendar-week-day-column"
-              data-calendar-date={key}
               data-hovered={hoverDay === key ? "true" : "false"}
-              role="gridcell"
-              tabIndex={0}
-              aria-label={`${weekdayLabels[index]} ${day.getDate()}. Tryk Enter for at oprette kl. 09:00`}
-              onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && event.target === event.currentTarget) { event.preventDefault(); onSlotClick(key, "09:00"); } }}
               onClick={(event) => {
                 if (event.target !== event.currentTarget) return;
                 onSlotClick(key, pointerTime(event, event.currentTarget));
@@ -1924,7 +1577,7 @@ function WeekCalendar({
                 event.preventDefault();
                 onContextRequest?.({ kind: "slot", date: key, time: pointerTime(event, event.currentTarget), x: event.clientX, y: event.clientY });
               }}
-              onDragOver={(event) => { event.preventDefault(); setHoverDay(key); autoScrollDuringDrag(event); }}
+              onDragOver={(event) => { event.preventDefault(); setHoverDay(key); }}
               onDragLeave={() => setHoverDay((value) => value === key ? null : value)}
               onDrop={(event) => {
                 event.preventDefault();
@@ -1933,37 +1586,34 @@ function WeekCalendar({
                 if (!source) return;
                 const time = pointerTime(event, event.currentTarget);
                 const duration = calendarDurationMinutes(source);
-                const endFields = calendarEndFields(key, timeToMinutes(time) || 0, duration);
-                onMoveEvent({ ...source, date: key, time, allDay: false, ...endFields, estimatedHours: duration / 60 });
+                onMoveEvent({ ...source, date: key, time, endTime: minutesToTime((timeToMinutes(time) || 0) + duration) });
                 setDragId(null);
                 setHoverDay(null);
               }}
               style={{ height: totalHeight }}
             >
-              {Array.from({ length: 25 }, (_, lineIndex) => <span key={lineIndex} className="calendar-week-hour-line" style={{ top: lineIndex * hourHeight }} />)}
-              {Array.from({ length: 24 }, (_, lineIndex) => <span key={lineIndex} className="calendar-week-half-line" style={{ top: lineIndex * hourHeight + hourHeight / 2 }} />)}
-              {isToday && <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>}
+              {Array.from({ length: endHour - startHour + 1 }, (_, index) => <span key={index} className="calendar-week-hour-line" style={{ top: index * hourHeight }} />)}
+              {Array.from({ length: endHour - startHour }, (_, index) => <span key={index} className="calendar-week-half-line" style={{ top: index * hourHeight + hourHeight / 2 }} />)}
+              {isToday && nowTop >= 0 && nowTop <= totalHeight && <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>}
 
               {positioned.map(({ event, start, end, lane, laneCount }) => {
-                const tone = calendarActivityTone(c, event);
-                const visibleStart = Math.max(0, start);
-                const visibleEnd = Math.min(24 * 60, end);
-                const top = (visibleStart / 60) * hourHeight;
-                const height = Math.max(24, ((visibleEnd - visibleStart) / 60) * hourHeight - 2);
+                const tone = event.source === "fsrs-review" ? { color: "#7667d8", background: "rgba(118,103,216,.11)" } : (typeTone[event.type] || typeTone.other);
+                const top = ((start - startHour * 60) / 60) * hourHeight;
+                const height = Math.max(25, ((end - start) / 60) * hourHeight - 2);
+                if (top + height < 0 || top > totalHeight) return null;
                 const hasConflict = events.some((other) => calendarEventsConflict(event, other));
                 return (
                   <button
-                    key={`${event.id}-${key}`}
+                    key={event.id}
                     type="button"
                     draggable
                     className="calendar-week-event"
                     data-complete={event.completedAt ? "true" : "false"}
-                    data-source={calendarEventLayer(event)}
+                    data-source={event.source || "other"}
                     data-conflict={hasConflict ? "true" : "false"}
                     onDragStart={(domEvent) => beginDrag(domEvent, event.id)}
                     onDragEnd={() => setDragId(null)}
-                    onPointerDown={(domEvent) => startTouchDrag(domEvent, event)}
-                    onClick={(domEvent) => { domEvent.stopPropagation(); if (touchMovedRef.current === event.id) { touchMovedRef.current = null; domEvent.preventDefault(); return; } activateEvent(event); }}
+                    onClick={(domEvent) => { domEvent.stopPropagation(); onEventClick(event); }}
                     onContextMenu={(domEvent) => {
                       domEvent.preventDefault();
                       domEvent.stopPropagation();
@@ -1979,11 +1629,9 @@ function WeekCalendar({
                     }}
                     title={`${event.time || ""} ${event.title}`.trim()}
                   >
-                    <span className="calendar-week-event-time">{event._segmentContinuation ? "Fortsætter" : `${event.time}–${event.endTime || calendarEndFields(event.date, start, end - start).endTime}`}</span>
+                    <span className="calendar-week-event-time">{event.time}–{minutesToTime(end)}</span>
                     <span className="calendar-week-event-title">{event.title}</span>
-                    <span className="calendar-week-event-meta">{event.location || tone.label}</span>
                     {event.deliveryStatus === "held" && <span className="calendar-week-event-state">Afholdt</span>}
-                    <span className="calendar-week-resize-handle" onPointerDown={(domEvent) => startResize(domEvent, event)} aria-hidden="true" />
                   </button>
                 );
               })}
@@ -1995,31 +1643,59 @@ function WeekCalendar({
   );
 }
 
-
 function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, onContextRequest, weekdayLabels }) {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
   const cells = getMonthMatrix(year, month);
   const todayKeyStr = dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const eventsByDate = {};
+  events.forEach((event) => { (eventsByDate[event.date] = eventsByDate[event.date] || []).push(event); });
+  const tone = { exam: "#c9822f", study: c.blue, review: c.green, other: c.secondary };
   return (
     <div className="calendar-month-root">
-      <div className="calendar-month-weekdays">{weekdayLabels.map((label) => <div key={label}>{label}</div>)}</div>
+      <div className="calendar-month-weekdays">
+        {weekdayLabels.map((label) => <div key={label}>{label}</div>)}
+      </div>
       <div className="calendar-month-grid">
         {cells.map((day, index) => {
           if (!day) return <div key={`empty-${index}`} className="calendar-month-cell calendar-month-cell--empty" />;
           const key = dateKey(year, month, day);
-          const dayEvents = calendarEventsForDate(events, key).sort((a, b) => (a.allDay === b.allDay ? (a.time || "99:99").localeCompare(b.time || "99:99") : a.allDay ? -1 : 1));
-          const unscheduled = dayEvents.filter((event) => !event.time && !event.allDay && !event.completedAt && event.type !== "exam");
+          const dayEvents = (eventsByDate[key] || []).sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
+          const timed = dayEvents.filter((event) => event.time);
+          const unscheduled = dayEvents.filter((event) => !event.time && !event.completedAt && event.type !== "exam");
           return (
-            <div key={key} className="calendar-month-cell" data-today={key === todayKeyStr ? "true" : "false"} onClick={() => onDayClick(key)} onContextMenu={(event) => { if (event.target !== event.currentTarget) return; event.preventDefault(); onContextRequest?.({ kind: "slot", date: key, time: "09:00", x: event.clientX, y: event.clientY }); }}>
+            <div
+              key={key}
+              className="calendar-month-cell"
+              data-today={key === todayKeyStr ? "true" : "false"}
+              onClick={() => onDayClick(key)}
+              onContextMenu={(event) => {
+                if (event.target !== event.currentTarget) return;
+                event.preventDefault();
+                onContextRequest?.({ kind: "slot", date: key, time: "09:00", x: event.clientX, y: event.clientY });
+              }}
+            >
               <span className="calendar-month-day-number">{day}</span>
               {unscheduled.length > 0 && <span className="calendar-month-unscheduled-count">{unscheduled.length} ikke placeret</span>}
               <div className="calendar-month-events">
-                {dayEvents.slice(0, 5).map((event) => {
-                  const tone = calendarActivityTone(c, event);
-                  return <button key={`${event.id}-${key}`} type="button" className="calendar-month-event" data-unscheduled={!event.time && !event.allDay ? "true" : "false"} data-complete={event.completedAt ? "true" : "false"} style={{ "--calendar-month-accent": tone.color }} onClick={(domEvent) => { domEvent.stopPropagation(); onEventClick(event); }} onContextMenu={(domEvent) => { domEvent.preventDefault(); domEvent.stopPropagation(); onContextRequest?.({ kind: event.time ? "event" : "unscheduled", event, date: key, x: domEvent.clientX, y: domEvent.clientY }); }}><span>{event.allDay ? "Hele dagen" : event.time || "Ikke placeret"}</span><strong>{event.title}</strong></button>;
-                })}
-                {dayEvents.length > 5 && <small className="calendar-month-more">+{dayEvents.length - 5}</small>}
+                {[...unscheduled, ...timed].slice(0, 4).map((event) => (
+                  <button
+                    key={event.id}
+                    type="button"
+                    className="calendar-month-event"
+                    data-unscheduled={!event.time ? "true" : "false"}
+                    data-complete={event.completedAt ? "true" : "false"}
+                    style={{ "--calendar-month-accent": tone[event.type] || tone.other }}
+                    onClick={(domEvent) => { domEvent.stopPropagation(); onEventClick(event); }}
+                    onContextMenu={(domEvent) => {
+                      domEvent.preventDefault(); domEvent.stopPropagation();
+                      onContextRequest?.({ kind: event.time ? "event" : "unscheduled", event, date: key, x: domEvent.clientX, y: domEvent.clientY });
+                    }}
+                  >
+                    <span>{event.time || "Ikke placeret"}</span><strong>{event.title}</strong>
+                  </button>
+                ))}
+                {dayEvents.length > 4 && <small className="calendar-month-more">+{dayEvents.length - 4}</small>}
               </div>
             </div>
           );
@@ -2028,7 +1704,6 @@ function MonthCalendar({ c, events, monthDate, onDayClick, onEventClick, onConte
     </div>
   );
 }
-
 
 function loadStorage(key, fallback) {
   try {
@@ -2081,114 +1756,192 @@ function useStoredState(key, fallback) {
 }
 
 const CLOUD_SYNCED_KEYS = {
-  [STORAGE.studyPlans]: { table: "study_plans", type: "keyed_object" },
-  [STORAGE.calendarEvents]: { table: "calendar_events", type: "calendar" },
-  [STORAGE.calendarEventMeta]: { table: "calendar_events", type: "calendar" },
-};
-const cloudSyncTimers = new Map();
+  [STORAGE.studyPlans]: {
+    table: "study_plans",
+    type: "keyed_object",
+  },
 
+  [STORAGE.calendarEvents]: {
+    table: "calendar_events",
+    type: "array_by_id",
+  },
+};
 async function pullQuestionBankIntoLocalStorage() {
   const { data, error } = await supabase
     .from("question_bank")
-    .select(`id,module_id,lecture_id,category,content,created_at`)
+    .select(
+      `
+        id,
+        module_id,
+        lecture_id,
+        category,
+        content,
+        created_at
+      `
+    )
     .eq("status", "published")
-    .order("created_at", { ascending: true });
-  if (error) throw error;
-  const questionsArray = (data || []).map((row) => {
-    const content = row.content && typeof row.content === "object" && !Array.isArray(row.content) ? row.content : {};
-    return normalizeImportedQuestion({ ...content, id: row.id, moduleId: row.module_id, lectureId: row.lecture_id, category: content.category || row.category || "Ukategoriseret" });
-  }).filter((question) => question.id && question.moduleId && question.question && question.options.length >= 2);
-  localStorage.setItem(STORAGE.importedQuestions, JSON.stringify(questionsArray));
-  window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.importedQuestions } }));
+    .order("created_at", {
+      ascending: true,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const questionsArray = (data || [])
+    .map((row) => {
+      const content =
+        row.content &&
+        typeof row.content === "object" &&
+        !Array.isArray(row.content)
+          ? row.content
+          : {};
+
+      return normalizeImportedQuestion({
+        ...content,
+
+        // Databasens kolonner er autoritative.
+        id: row.id,
+        moduleId: row.module_id,
+        lectureId: row.lecture_id,
+
+        category:
+          content.category ||
+          row.category ||
+          "Ukategoriseret",
+      });
+    })
+    .filter((question) => {
+      return (
+        question.id &&
+        question.moduleId &&
+        question.question &&
+        question.options.length >= 2
+      );
+    });
+
+  localStorage.setItem(
+    STORAGE.importedQuestions,
+    JSON.stringify(questionsArray)
+  );
+
+  window.dispatchEvent(
+    new CustomEvent("medlearn-storage-update", {
+      detail: {
+        key: STORAGE.importedQuestions,
+      },
+    })
+  );
+
   return questionsArray;
 }
 
-function calendarEmitSync(status, detail = "") {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(new CustomEvent("medlearn-calendar-sync", { detail: { status, detail, at: Date.now() } }));
-}
-
+// Henter alt data for den loggede-ind bruger fra Supabase, og skriver det
+// ind i localStorage under de rette STORAGE-nøgler, så alle eksisterende
+// useStoredState-instanser (StudyPlan, Dashboard, CalendarPanel osv.)
+// automatisk opdaterer sig via det eksisterende "medlearn-storage-update"
+// event - uden at deres kode skal ændres.
 async function pullCloudDataIntoLocalStorage(userId) {
   try {
-    calendarEmitSync("syncing", "Henter kalender");
+    // Hent den fælles spørgsmålsbank.
     await pullQuestionBankIntoLocalStorage();
-    const { data: events, error: eventsError } = await supabase.from("calendar_events").select("*").eq("user_id", userId);
-    if (eventsError) throw eventsError;
+
+    // Hent brugerens kalenderdata.
+    const { data: events, error: eventsError } = await supabase
+      .from("calendar_events")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (eventsError) {
+      throw eventsError;
+    }
+
     const eventsArray = (events || []).map((row) => ({
       id: row.id,
       title: row.title,
       date: row.date,
-      time: row.time || "",
-      type: row.type || "other",
-      planModuleId: row.plan_module_id || null,
-      lectureCount: row.lecture_count || null,
-      estimatedHours: row.estimated_hours || null,
+      time: row.time,
+      type: row.type,
+      planModuleId: row.plan_module_id,
+      lectureCount: row.lecture_count,
+      estimatedHours: row.estimated_hours,
     }));
-    const metadata = Object.fromEntries((events || []).map((row) => [row.id, row.metadata && typeof row.metadata === "object" ? row.metadata : {}]));
-    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(eventsArray));
-    localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(metadata));
-    [STORAGE.calendarEvents, STORAGE.calendarEventMeta].forEach((key) => window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key } })));
-    calendarEmitSync("synced", "Kalender hentet");
+
+    localStorage.setItem(
+      STORAGE.calendarEvents,
+      JSON.stringify(eventsArray)
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("medlearn-storage-update", {
+        detail: {
+          key: STORAGE.calendarEvents,
+        },
+      })
+    );
   } catch (error) {
-    calendarEmitSync("error", error?.message || "Synkronisering fejlede");
-    console.error("Kunne ikke hente cloud-data fra Supabase:", error);
+    console.error(
+      "Kunne ikke hente cloud-data fra Supabase:",
+      error
+    );
+
+    // Appen fortsætter med allerede gemte lokale data,
+    // hvis Supabase eller netværket er utilgængeligt.
   }
 }
 
-async function pushCalendarStateToCloud(userId) {
-  calendarEmitSync("syncing", "Gemmer kalender");
-  const eventsArray = loadStorage(STORAGE.calendarEvents, []);
-  const metadata = loadStorage(STORAGE.calendarEventMeta, {});
-  const rows = eventsArray.map((event) => ({
-    id: event.id,
-    user_id: userId,
-    title: event.title,
-    date: event.date,
-    time: event.time || null,
-    type: event.type || "other",
-    plan_module_id: event.planModuleId || null,
-    lecture_count: event.lectureCount || null,
-    estimated_hours: event.estimatedHours || null,
-    metadata: metadata[event.id] || {},
-    updated_at: new Date().toISOString(),
-  }));
-  if (rows.length) {
-    const { error } = await supabase.from("calendar_events").upsert(rows, { onConflict: "id" });
-    if (error) throw error;
-  }
-  const { data: remoteRows, error: selectError } = await supabase.from("calendar_events").select("id").eq("user_id", userId);
-  if (selectError) throw selectError;
-  const localIds = new Set(rows.map((row) => row.id));
-  const staleIds = (remoteRows || []).map((row) => row.id).filter((id) => !localIds.has(id));
-  if (staleIds.length) {
-    const { error: deleteError } = await supabase.from("calendar_events").delete().eq("user_id", userId).in("id", staleIds);
-    if (deleteError) throw deleteError;
-  }
-  calendarEmitSync("synced", "Kalender gemt");
-}
-
+// Skriver den aktuelle lokale tilstand for en given STORAGE-nøgle til den
+// tilsvarende Supabase-tabel. Kaldes hver gang localStorage opdateres for
+// Skriver personlig brugerdata til Supabase.
+// Den fælles spørgsmålsbank håndteres separat
+// og må ikke synkroniseres som personlig brugerdata.
 async function pushLocalStorageKeyToCloud(key, userId) {
   const config = CLOUD_SYNCED_KEYS[key];
   if (!config || !userId) return;
   try {
-    if (config.type === "calendar") {
-      await pushCalendarStateToCloud(userId);
-      return;
-    }
     if (key === STORAGE.studyPlans) {
       const plansObject = loadStorage(STORAGE.studyPlans, {});
-      const rows = Object.entries(plansObject).map(([moduleName, data]) => ({ user_id: userId, module_name: moduleName, data, updated_at: new Date().toISOString() }));
-      if (rows.length) {
-        const { error } = await supabase.from("study_plans").upsert(rows, { onConflict: "user_id,module_name" });
-        if (error) throw error;
+      const rows = Object.entries(plansObject).map(([moduleName, data]) => ({
+        user_id: userId,
+        module_name: moduleName,
+        data,
+        updated_at: new Date().toISOString(),
+      }));
+      if (rows.length > 0) {
+        await supabase.from("study_plans").upsert(rows, { onConflict: "user_id,module_name" });
       }
-    }
-  } catch (error) {
-    calendarEmitSync("error", error?.message || "Synkronisering fejlede");
-    console.error("Kunne ikke skrive data til Supabase:", error);
+    } else if (key === STORAGE.calendarEvents) {
+      const eventsArray = loadStorage(STORAGE.calendarEvents, []);
+      const rows = eventsArray.map((event) => ({
+        id: event.id,
+        user_id: userId,
+        title: event.title,
+        date: event.date,
+        time: event.time,
+        type: event.type,
+        plan_module_id: event.planModuleId || null,
+        lecture_count: event.lectureCount || null,
+        estimated_hours: event.estimatedHours || null,
+      }));
+       if (rows.length > 0) {
+    await supabase
+      .from("calendar_events")
+      .upsert(rows, {
+        onConflict: "id",
+      });
   }
 }
+} catch (error) {
+  console.error(
+    "Kunne ikke skrive data til Supabase:",
+    error
+  );
+}
+}
 
+// Lytter efter ændringer i brugerens personlige cloud-data
+// og sender studieplaner og kalenderhændelser til Supabase.
+// Den fælles spørgsmålsbank håndteres separat.
 function useCloudSync(userId) {
   useEffect(() => {
     if (!userId) return;
@@ -2199,25 +1952,14 @@ function useCloudSync(userId) {
     if (!userId) return;
     function handleUpdate(event) {
       const key = event.detail && event.detail.key;
-      if (!key || !CLOUD_SYNCED_KEYS[key]) return;
-      const timerKey = CLOUD_SYNCED_KEYS[key].type === "calendar" ? "calendar" : key;
-      window.clearTimeout(cloudSyncTimers.get(timerKey));
-      cloudSyncTimers.set(timerKey, window.setTimeout(() => pushLocalStorageKeyToCloud(key, userId), 350));
-    }
-    async function handleReconnect() {
-      calendarEmitSync("syncing", "Forbinder og sender lokale ændringer");
-      await pushLocalStorageKeyToCloud(STORAGE.calendarEvents, userId);
-      await pushLocalStorageKeyToCloud(STORAGE.studyPlans, userId);
+      if (key && CLOUD_SYNCED_KEYS[key]) {
+        pushLocalStorageKeyToCloud(key, userId);
+      }
     }
     window.addEventListener("medlearn-storage-update", handleUpdate);
-    window.addEventListener("online", handleReconnect);
-    return () => {
-      window.removeEventListener("medlearn-storage-update", handleUpdate);
-      window.removeEventListener("online", handleReconnect);
-    };
+    return () => window.removeEventListener("medlearn-storage-update", handleUpdate);
   }, [userId]);
 }
-
 
 function translate(value, language, fallback = "da") {
   if (typeof value === "string") return value;
@@ -4343,12 +4085,6 @@ function GlobalStyles({ c }) {
 
   --ui-blue-gradient:
     ${c.blueGradient};
-
-  --ui-purple:
-    ${c.purple};
-
-  --ui-purple-soft:
-    ${c.purpleSoft};
 
   --ui-green:
     ${c.green};
@@ -8096,28 +7832,6 @@ select.ui-control {
   overflow-y: auto;
 }
 
-.calendar-mini-month {
-  display: grid;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid var(--ui-border);
-  border-radius: 15px;
-  background: var(--ui-panel);
-  box-shadow: var(--ui-shadow-sm);
-}
-.calendar-mini-month > header { display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; gap: 6px; }
-.calendar-mini-month > header strong { text-align: center; color: var(--ui-text); font-size: 11.5px; text-transform: capitalize; }
-.calendar-mini-month > header button { width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--ui-secondary); }
-.calendar-mini-month > header button:hover { background: var(--ui-soft); color: var(--ui-blue); }
-.calendar-mini-weekdays, .calendar-mini-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
-.calendar-mini-weekdays span { text-align: center; color: var(--ui-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
-.calendar-mini-grid > span, .calendar-mini-grid > button { aspect-ratio: 1; min-width: 0; }
-.calendar-mini-grid > button { position: relative; display: grid; place-items: center; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ui-secondary); font-size: 10px; font-weight: 750; }
-.calendar-mini-grid > button:hover { background: var(--ui-soft); color: var(--ui-text); }
-.calendar-mini-grid > button[data-today="true"] { border-color: var(--ui-blue-border); color: var(--ui-blue); }
-.calendar-mini-grid > button[data-selected="true"] { background: var(--ui-blue); color: #fff; box-shadow: 0 4px 12px rgba(22,101,234,.22); }
-.calendar-mini-grid > button i { position: absolute; inset-block-end: 3px; width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .75; }
-
 .calendar-side-section {
   overflow: hidden;
   border: 1px solid var(--ui-border);
@@ -11489,192 +11203,8 @@ select.ui-control {
 @media (max-width: 760px) { .study-plan-v4-grid { grid-template-columns: 1fr; } .study-plan-v4-step { padding: 15px; } .study-plan-v4-fields, .study-plan-v4-step-row { grid-template-columns: 1fr; } .study-plan-v4-week-grid { grid-template-columns: repeat(4,minmax(0,1fr)); } .study-plan-v4-lecture-row { grid-template-columns: 27px minmax(0,1fr) 76px 28px; } .study-plan-v4-lecture-row label { grid-column: 2 / 4; } .study-plan-v4-activate-stats { grid-template-columns: repeat(2,minmax(0,1fr)); } .study-plan-v4-footer { align-items: stretch; flex-direction: column-reverse; } .study-plan-v4-footer > div { justify-content: space-between; } .fsrs-rating-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .home-day-fsrs-queue { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .study-plan-v4-step { animation: none !important; } .fsrs-rating-grid button { transition: none !important; } }
 
-/* ============================================================
-   SEGMENT 4.4 FINAL — UNIFIED PRODUCTIVITY CALENDAR
-   ============================================================ */
-.home-v2-workspace { min-height: 0 !important; grid-template-columns: minmax(0,1fr) 235px; }
-.home-v2-calendar-area { min-height: 0; }
-.home-v2-calendar-canvas { min-height: 0 !important; height: clamp(410px, 48vh, 520px); flex: none !important; overflow: hidden; }
-.home-v2-calendar-canvas > .calendar-week-scroll { height: 100%; min-height: 0; }
-.home-v2-calendar-canvas > .calendar-month-root { height: 100%; overflow: auto; }
-.home-v2-panel-header { min-height: 66px; padding: 11px 14px; }
-
-.calendar-control-strip { min-width: 0; display: flex; align-items: center; gap: 7px; padding: 8px 12px; border-bottom: 1px solid var(--ui-border); background: var(--ui-panel); }
-.home-v2-calendar-area > .calendar-control-strip { padding: 7px 12px; }
-.calendar-layer-buttons { min-width: 0; display: flex; align-items: center; gap: 4px; overflow-x: auto; scrollbar-width: none; }
-.calendar-layer-buttons::-webkit-scrollbar { display: none; }
-.calendar-layer-buttons button { min-height: 30px; display: inline-flex; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-muted); font-size: 9px; font-weight: 780; white-space: nowrap; }
-.calendar-layer-buttons button i { width: 7px; height: 7px; border-radius: 99px; opacity: .42; }
-.calendar-layer-buttons button[data-active="true"] { border-color: var(--ui-border-strong); color: var(--ui-text); background: var(--ui-soft); }
-.calendar-layer-buttons button[data-active="true"] i { opacity: 1; }
-.calendar-search-box { min-width: 150px; max-width: 260px; flex: 1; height: 31px; display: flex; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-muted); }
-.calendar-search-box input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: var(--ui-text); font-size: 9.5px; }
-.calendar-compact-select { height: 31px; max-width: 132px; padding: 0 26px 0 8px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 9px; font-weight: 740; }
-
-.calendar-week-scroll { height: 100% !important; min-height: 0 !important; overflow: auto; background: var(--ui-panel); scroll-behavior: smooth; contain: layout paint; }
-.calendar-week-scroll[data-viewport="workspace"] { height: 100%; }
-.calendar-week-scroll[data-viewport="home"] { height: 100%; }
-.calendar-week-sticky-head { position: sticky; inset-block-start: 0; z-index: 90; background: var(--ui-panel) !important; border-bottom: 1px solid var(--ui-border-strong); box-shadow: 0 6px 18px rgba(20,30,48,.08); isolation: isolate; }
-.calendar-week-header,
-.calendar-week-all-day-grid,
-.calendar-week-unscheduled-grid,
-.calendar-week-body { min-width: max(100%, calc(58px + var(--calendar-days) * 108px)) !important; grid-template-columns: 58px repeat(var(--calendar-days), minmax(108px,1fr)) !important; }
-.calendar-week-header { position: relative !important; min-height: 48px !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; background: var(--ui-panel) !important; }
-.calendar-week-day-header { padding: 5px 6px !important; min-height: 48px; }
-.calendar-week-day-name { font-size: 8px !important; }
-.calendar-week-day-number { font-size: 15px !important; }
-.calendar-week-gutter { min-width: 58px !important; }
-.calendar-week-gutter--header,
-.calendar-week-time-gutter { position: sticky !important; inset-inline-start: 0; z-index: 95; background: var(--ui-panel) !important; }
-.calendar-week-all-day-grid,
-.calendar-week-unscheduled-grid { display: grid; min-height: 31px; background: var(--ui-panel); }
-.calendar-week-row-label,
-.calendar-week-unscheduled-label { position: sticky !important; inset-inline-start: 0; z-index: 96; min-height: 31px; display: flex; align-items: center; justify-content: flex-end; padding: 5px 7px 5px 2px; color: var(--ui-muted); font-size: 7px; font-weight: 850; letter-spacing: .045em; text-transform: uppercase; }
-.calendar-week-all-day-cell,
-.calendar-week-unscheduled-cell { min-width: 0; min-height: 31px; display: flex; align-items: center; gap: 4px; padding: 3px 4px; overflow-x: auto; border-inline-start: 1px solid var(--ui-border); }
-.calendar-week-all-day-cell[data-empty="true"],
-.calendar-week-unscheduled-cell[data-empty="true"] { justify-content: center; }
-.calendar-week-all-day-chip { min-width: 0; max-width: 180px; height: 23px; overflow: hidden; padding: 0 7px; border: 1px solid color-mix(in srgb,var(--calendar-event-accent) 28%,var(--ui-border)); border-inline-start: 3px solid var(--calendar-event-accent); border-radius: 6px; background: color-mix(in srgb,var(--calendar-event-surface) 75%,var(--ui-panel)); color: var(--ui-text); font-size: 8px; font-weight: 760; text-overflow: ellipsis; white-space: nowrap; }
-.calendar-week-unscheduled-chip { height: 24px !important; max-width: 175px !important; border-radius: 6px !important; }
-.calendar-week-body { padding: 0 !important; gap: 0 !important; border: 0 !important; border-radius: 0 !important; background: var(--ui-panel) !important; }
-.calendar-week-day-column { border-inline-start: 1px solid var(--ui-border); background: var(--ui-panel) !important; }
-.calendar-week-time-label { inset-inline: 0 7px !important; font-size: 8px !important; color: var(--ui-muted) !important; transform: translateY(-50%); text-align: end; }
-.calendar-week-hour-line { border-top: 1px solid color-mix(in srgb,var(--ui-border) 70%,transparent) !important; }
-.calendar-week-half-line { border-top: 1px dashed color-mix(in srgb,var(--ui-border) 35%,transparent) !important; }
-.calendar-week-event { min-width: 0; overflow: hidden; border-radius: 6px !important; padding: 4px 6px 8px !important; box-shadow: none !important; }
-.calendar-week-event-time { font-size: 7.5px !important; }
-.calendar-week-event-title { font-size: 9.5px !important; line-height: 1.2 !important; }
-.calendar-week-event-meta { display: block; width: 100%; overflow: hidden; color: var(--ui-muted) !important; font-size: 7px !important; font-weight: 650 !important; text-overflow: ellipsis; white-space: nowrap; }
-.calendar-week-resize-handle { position: absolute; inset-inline: 6px; inset-block-end: 1px; height: 5px; border-radius: 99px; cursor: ns-resize; opacity: 0; }
-.calendar-week-resize-handle::after { content: ""; position: absolute; inset: 2px 35%; border-top: 1px solid var(--calendar-event-accent); }
-.calendar-week-event:hover .calendar-week-resize-handle,
-.calendar-week-event:focus-visible .calendar-week-resize-handle { opacity: .8; }
-@media (pointer: coarse) { .calendar-week-resize-handle { opacity: .7; height: 9px; } .calendar-week-event { touch-action: pan-y; } }
-.calendar-week-now-line { z-index: 12 !important; }
-
-.calendar-workspace-header { min-height: 62px; padding: 9px 13px; }
-.calendar-workspace-layout { gap: 10px; padding: 10px; }
-.calendar-workspace-canvas { height: 100%; }
-.calendar-workspace-sidebar { width: 100%; }
-.calendar-workspace-toolbar .ui-button { min-height: 32px; padding-inline: 10px; font-size: 9.5px; }
-.calendar-date-jump { width: 112px; height: 32px; padding: 0 7px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 8.5px; }
-.calendar-sync-pill { margin-inline-start: 5px; padding: 3px 6px; border-radius: 99px; background: var(--ui-soft); color: var(--ui-muted); font-size: 7.5px; font-style: normal; font-weight: 800; white-space: nowrap; }
-.calendar-sync-pill[data-status="synced"] { background: var(--ui-green-soft); color: var(--ui-green); }
-.calendar-sync-pill[data-status="syncing"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
-.calendar-sync-pill[data-status="offline"], .calendar-sync-pill[data-status="error"] { background: var(--ui-red-soft); color: var(--ui-red); }
-.calendar-more-menu { position: relative; }
-.calendar-more-menu > summary { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-secondary); list-style: none; cursor: pointer; }
-.calendar-more-menu > summary::-webkit-details-marker { display: none; }
-.calendar-more-menu[open] > div { position: absolute; z-index: 200; inset-block-start: 37px; inset-inline-end: 0; width: 220px; display: grid; gap: 3px; padding: 6px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); }
-.calendar-more-menu button { min-height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: var(--ui-secondary); font-size: 9.5px; font-weight: 730; text-align: start; }
-.calendar-more-menu button:hover { background: var(--ui-soft); color: var(--ui-text); }
-
-.calendar-popover-backdrop { position: fixed; inset: 0; z-index: 1500; display: grid; place-items: center; padding: 18px; background: rgba(8,14,24,.24); }
-.calendar-event-popover { width: min(430px,100%); overflow: hidden; border: 1px solid var(--ui-border); border-radius: 16px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); }
-.calendar-event-popover > header { display: grid; grid-template-columns: 5px minmax(0,1fr) auto; align-items: start; gap: 11px; padding: 15px; border-bottom: 1px solid var(--ui-border); }
-.calendar-event-popover > header > span { width: 5px; height: 100%; min-height: 42px; border-radius: 99px; background: var(--popover-accent); }
-.calendar-event-popover h3 { margin: 3px 0 0; color: var(--ui-text); font-size: 15px; line-height: 1.3; }
-.calendar-event-popover header small { color: var(--ui-muted); font-size: 8.5px; font-weight: 800; text-transform: uppercase; }
-.calendar-popover-details { display: grid; gap: 8px; padding: 14px 16px; }
-.calendar-popover-details p { margin: 0; display: flex; align-items: flex-start; gap: 8px; color: var(--ui-secondary); font-size: 10.5px; line-height: 1.5; }
-.calendar-popover-description { padding: 9px; border-radius: 9px; background: var(--ui-soft); }
-.calendar-event-popover > footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; padding: 11px 14px; border-top: 1px solid var(--ui-border); }
-.calendar-event-popover .ui-button { min-height: 34px; font-size: 9px; }
-
-.calendar-import-overlay,
-.calendar-tutorial-overlay { position: fixed; inset: 0; z-index: 1700; display: grid; place-items: center; padding: 20px; background: var(--ui-overlay); }
-.calendar-import-dialog,
-.calendar-sdu-dialog,
-.calendar-tutorial-card { width: min(820px,100%); max-height: min(780px,calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 18px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); }
-.calendar-sdu-dialog { width: min(500px,100%); gap: 14px; padding: 17px; }
-.calendar-import-dialog > header,
-.calendar-sdu-dialog > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 16px 17px; border-bottom: 1px solid var(--ui-border); }
-.calendar-sdu-dialog > header { padding: 0 0 13px; }
-.calendar-import-dialog header span,
-.calendar-sdu-dialog header span { color: var(--ui-blue); font-size: 8.5px; font-weight: 850; text-transform: uppercase; letter-spacing: .07em; }
-.calendar-import-dialog h2,
-.calendar-sdu-dialog h2 { margin: 4px 0; color: var(--ui-text); font-size: 17px; }
-.calendar-import-dialog header p,
-.calendar-sdu-dialog header p { margin: 0; color: var(--ui-muted); font-size: 9.5px; }
-.calendar-sdu-dialog > label { display: grid; gap: 5px; color: var(--ui-secondary); font-size: 10px; font-weight: 750; }
-.calendar-sdu-dialog select { height: 40px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); color: var(--ui-text); }
-.calendar-import-summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; padding: 12px 16px; }
-.calendar-import-summary-grid > div { display: grid; gap: 2px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); }
-.calendar-import-summary-grid strong { color: var(--ui-text); font-size: 16px; }
-.calendar-import-summary-grid span { color: var(--ui-muted); font-size: 8.5px; font-weight: 700; }
-.calendar-import-actions { display: flex; align-items: center; gap: 8px; padding: 0 16px 10px; }
-.calendar-import-actions button { border: 0; background: transparent; color: var(--ui-blue); font-size: 9px; font-weight: 760; }
-.calendar-import-actions span { margin-inline-start: auto; color: var(--ui-muted); font-size: 9px; }
-.calendar-import-list { min-height: 0; flex: 1; overflow-y: auto; display: grid; align-content: start; gap: 5px; padding: 0 16px 12px; }
-.calendar-import-row { display: grid; grid-template-columns: 18px 34px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 8px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); }
-.calendar-import-row[data-status="changed"] { border-color: #e3b36d; background: color-mix(in srgb,#e3b36d 7%,var(--ui-panel)); }
-.calendar-import-row > span:nth-of-type(2) { min-width: 0; }
-.calendar-import-row strong,
-.calendar-import-row small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.calendar-import-row strong { color: var(--ui-text); font-size: 10px; }
-.calendar-import-row small { margin-top: 3px; color: var(--ui-muted); font-size: 8.5px; }
-.calendar-import-row em { color: var(--ui-muted); font-size: 8px; font-style: normal; font-weight: 760; }
-.calendar-import-type { width: 31px; height: 25px; display: grid; place-items: center; border-radius: 7px; background: var(--ui-blue-soft); color: var(--ui-blue); font-size: 7px; font-weight: 900; }
-.calendar-import-type[data-type="class"] { background: var(--ui-green-soft); color: var(--ui-green); }
-.calendar-import-type[data-type="tbl"] { background: var(--ui-purple-soft,var(--ui-soft)); color: var(--ui-purple,#7667d8); }
-.calendar-import-type[data-type="other"] { background: color-mix(in srgb,#c9822f 12%,var(--ui-panel)); color: #c9822f; }
-.calendar-import-removed { margin: 0 16px 10px; padding: 8px 10px; border: 1px solid var(--ui-border); border-radius: 9px; color: var(--ui-secondary); font-size: 9px; }
-.calendar-import-removed div { margin-top: 4px; color: var(--ui-muted); }
-.calendar-import-dialog > footer,
-.calendar-sdu-dialog > footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--ui-border); }
-.calendar-sdu-dialog > footer { padding: 12px 0 0; }
-
-.calendar-tutorial-card { width: min(480px,100%); padding: 18px; text-align: center; }
-.calendar-tutorial-card > header { display: flex; justify-content: space-between; align-items: center; color: var(--ui-muted); font-size: 9px; font-weight: 800; }
-.calendar-tutorial-visual { width: 64px; height: 64px; display: grid; place-items: center; margin: 20px auto 10px; border-radius: 18px; background: var(--ui-blue-soft); color: var(--ui-blue); }
-.calendar-tutorial-card h2 { margin: 8px 0; color: var(--ui-text); font-size: 19px; }
-.calendar-tutorial-card p { min-height: 66px; margin: 0 auto; max-width: 390px; color: var(--ui-secondary); font-size: 11px; line-height: 1.6; }
-.calendar-tutorial-dots { display: flex; justify-content: center; gap: 5px; margin: 17px 0; }
-.calendar-tutorial-dots i { width: 6px; height: 6px; border-radius: 99px; background: var(--ui-border-strong); }
-.calendar-tutorial-dots i[data-active="true"] { width: 18px; background: var(--ui-blue); }
-.calendar-tutorial-card > footer { display: flex; justify-content: space-between; gap: 8px; }
-.calendar-undo-toast { position: fixed; z-index: 1900; inset-inline-start: 50%; inset-block-end: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-text); color: var(--ui-panel); box-shadow: var(--ui-shadow-lg); font-size: 9.5px; font-weight: 730; }
-.calendar-undo-toast button { border: 0; background: transparent; color: #7bb4ff; font-size: 9px; font-weight: 850; }
-.calendar-reminder-toast { position: fixed; z-index: 1950; inset-inline-end: 18px; inset-block-end: 18px; width: min(360px,calc(100vw - 36px)); display: grid; grid-template-columns: 34px minmax(0,1fr) 24px; align-items: center; gap: 9px; padding: 11px; border: 1px solid var(--ui-blue-border); border-radius: 13px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); animation: uiFeedbackIn 180ms var(--ui-ease) both; }
-.calendar-reminder-toast > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--ui-blue-soft); color: var(--ui-blue); }
-.calendar-reminder-toast div { min-width: 0; display: grid; gap: 2px; }
-.calendar-reminder-toast strong,.calendar-reminder-toast small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.calendar-reminder-toast strong { color: var(--ui-text); font-size: 10.5px; }
-.calendar-reminder-toast small { color: var(--ui-muted); font-size: 8.5px; }
-.calendar-reminder-toast button { border: 0; background: transparent; color: var(--ui-muted); font-size: 18px; }
-.calendar-quick-date-grid { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.calendar-quick-date-grid label { display: grid; gap: 3px; }
-.calendar-quick-date-grid small { color: var(--ui-muted); font-size: 8px; font-weight: 700; }
-
-@media (max-width: 1120px) {
-  .calendar-workspace-layout { grid-template-columns: minmax(0,1fr) 270px; }
-  .calendar-control-strip { flex-wrap: wrap; }
-  .calendar-search-box { order: 3; max-width: none; flex-basis: 100%; }
-}
-@media (max-width: 840px) {
-  .home-v2-workspace { grid-template-columns: 1fr; }
-  .home-v2-calendar-canvas { height: 440px; }
-  .calendar-workspace-layout { grid-template-columns: 1fr; overflow-y: auto; }
-  .calendar-workspace-canvas { min-height: 500px; }
-  .calendar-workspace-sidebar { max-height: none; overflow: visible; }
-  .calendar-week-header,.calendar-week-all-day-grid,.calendar-week-unscheduled-grid,.calendar-week-body { min-width: max(100%,calc(54px + var(--calendar-days) * 96px)) !important; grid-template-columns: 54px repeat(var(--calendar-days),minmax(96px,1fr)) !important; }
-}
-@media (max-width: 600px) {
-  .calendar-workspace-header { align-items: flex-start; flex-direction: column; }
-  .calendar-workspace-toolbar { width: 100%; justify-content: flex-start; }
-  .calendar-workspace-label { flex: 1; }
-  .calendar-control-strip { align-items: stretch; }
-  .calendar-layer-buttons { flex-basis: 100%; }
-  .calendar-compact-select { flex: 1; max-width: none; }
-  .home-v2-calendar-canvas { height: 410px; }
-  .calendar-import-summary-grid { grid-template-columns: 1fr 1fr; }
-  .calendar-import-row { grid-template-columns: 18px 30px minmax(0,1fr); }
-  .calendar-import-row em { grid-column: 3; }
-  .calendar-event-popover > footer { justify-content: stretch; }
-  .calendar-event-popover > footer .ui-button { flex: 1; }
-}
-
     `}
+
 </style>
   );
 }
@@ -13985,7 +13515,7 @@ function matchCalendarLecture(title, lectures) {
   lectures.forEach((lecture) => {
     const words = calendarNormalizeMatchText(lecture.title).split(/\s+/).filter((word) => word.length >= 4);
     if (!words.length) return;
-    const matches = words.filter((word) => [...titleWords].some((candidate) => candidate === word || (Math.min(candidate.length, word.length) >= 6 && levenshtein(candidate, word) <= 2))).length;
+    const matches = words.filter((word) => titleWords.has(word)).length;
     const score = matches / Math.max(2, Math.min(words.length, titleWords.size || 1));
     if (score > bestScore) {
       bestScore = score;
@@ -14001,11 +13531,7 @@ function calendarEventMetaFields(event) {
     "source", "importedSchedule", "completedAt", "status", "needsScheduling",
     "questionCount", "lectureUnits", "allDay", "createdByUser", "colorKey",
     "returnedToQueueAt", "manualIncompleteAt", "deliveryStatus", "reminderMinutes",
-    "recurrence", "recurrenceUntil", "recurrenceRule", "recurrenceParentId", "recurrenceMaster",
-    "attachmentLabel", "attachmentUrl", "splitFromId", "conflictDismissedAt", "endDate",
-    "sourceId", "activityType", "term", "uvaCode", "importBatchId", "importFeedId", "importedAt", "lastSyncedAt",
-    "originalTitle", "timeZone", "cancelled", "cancelledAt", "teacher", "exdates", "importSourceLabel", "testEvent", "phase", "phaseLabel",
-    "questionIds", "earliestDue", "fsrsVersion", "loadMinutes", "examSetIndex",
+    "recurrence", "attachmentLabel", "attachmentUrl", "splitFromId", "conflictDismissedAt",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -14019,8 +13545,14 @@ function mergeCalendarEventMeta(events, metadata) {
 
 function calendarEventEndTimestamp(event) {
   if (!event?.date) return null;
-  if (event.allDay) return new Date(`${event.endDate || event.date}T23:59:59`).getTime();
-  return calendarAbsoluteEventRange(event)?.end || new Date(`${event.date}T23:59:59`).getTime();
+  const startMinutes = timeToMinutes(event.time || "00:00") || 0;
+  const explicitEnd = timeToMinutes(event.endTime);
+  const duration = explicitEnd != null && explicitEnd > startMinutes
+    ? explicitEnd - startMinutes
+    : Math.max(30, Math.round((Number(event.estimatedHours) || 1) * 60));
+  const date = new Date(`${event.date}T00:00:00`);
+  date.setMinutes(startMinutes + duration);
+  return date.getTime();
 }
 
 function calendarIsUnfinishedStudyPlanLecture(event) {
@@ -14093,8 +13625,8 @@ function calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existi
 }
 
 function parseICalToEvents(icsText, options = {}) {
-  const { moduleName = "", lectures = [], importFeedId = "default" } = options;
-  const lines = String(icsText || "").split(/\r?\n/);
+  const { moduleName = "", lectures = [] } = options;
+  const lines = icsText.split(/\r?\n/);
   const unfolded = [];
   lines.forEach((line) => {
     if (/^[ \t]/.test(line) && unfolded.length) unfolded[unfolded.length - 1] += line.slice(1);
@@ -14103,7 +13635,7 @@ function parseICalToEvents(icsText, options = {}) {
   const rawEvents = [];
   let current = null;
   unfolded.forEach((line) => {
-    if (line === "BEGIN:VEVENT") { current = { exdates: [] }; return; }
+    if (line === "BEGIN:VEVENT") { current = {}; return; }
     if (line === "END:VEVENT") {
       if (current?.dtstart) rawEvents.push(current);
       current = null;
@@ -14113,119 +13645,48 @@ function parseICalToEvents(icsText, options = {}) {
     const separator = line.indexOf(":");
     if (separator < 0) return;
     const rawKey = line.slice(0, separator);
-    const rawValue = line.slice(separator + 1);
-    const [baseKey, ...params] = rawKey.split(";");
-    const key = baseKey.toUpperCase();
-    const parameterMap = Object.fromEntries(params.map((item) => {
-      const [name, ...valueParts] = item.split("=");
-      return [String(name || "").toUpperCase(), valueParts.join("=")];
-    }));
-    const value = rawValue.replace(/\\n/gi, "\n").replace(/\\,/g, ",").replace(/\\;/g, ";").replace(/\\\\/g, "\\");
-    const payload = { value, params: parameterMap };
+    const value = line.slice(separator + 1).replace(/\\n/gi, "\n").replace(/\\,/g, ",");
+    const key = rawKey.split(";")[0];
     if (key === "SUMMARY") current.summary = value;
-    if (key === "COMMENT") current.comment = value;
-    if (key === "DTSTART") current.dtstart = payload;
-    if (key === "DTEND") current.dtend = payload;
+    if (key === "DTSTART") current.dtstart = value;
+    if (key === "DTEND") current.dtend = value;
     if (key === "DESCRIPTION") current.description = value;
     if (key === "LOCATION") current.location = value;
     if (key === "URL") current.url = value;
     if (key === "UID") current.uid = value;
-    if (key === "STATUS") current.status = value;
-    if (key === "RRULE") current.rrule = value;
-    if (key === "RECURRENCE-ID") current.recurrenceId = payload;
-    if (key === "EXDATE") current.exdates.push(payload);
   });
 
-  function datePartsInZone(date, timeZone) {
-    const formatter = new Intl.DateTimeFormat("en-CA", {
-      timeZone,
-      year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
-    });
-    return Object.fromEntries(formatter.formatToParts(date).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
-  }
-
-  function zonedLocalToInstant(year, month, day, hour, minute, timeZone) {
-    let guess = Date.UTC(year, month - 1, day, hour, minute, 0);
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const parts = datePartsInZone(new Date(guess), timeZone);
-      const actual = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute), Number(parts.second || 0));
-      const wanted = Date.UTC(year, month - 1, day, hour, minute, 0);
-      const correction = wanted - actual;
-      guess += correction;
-      if (!correction) break;
-    }
-    return new Date(guess);
-  }
-
-  function parseIcsDate(payload) {
-    if (!payload?.value) return null;
-    const raw = payload.value;
-    const isDateOnly = payload.params?.VALUE === "DATE" || /^\d{8}$/.test(raw);
+  function parseIcsDate(raw) {
+    if (!raw) return null;
+    const utc = raw.endsWith("Z");
     const clean = raw.replace(/Z$/, "");
     const year = Number(clean.slice(0, 4));
     const month = Number(clean.slice(4, 6));
     const day = Number(clean.slice(6, 8));
-    if (isDateOnly) {
-      const dateString = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      return { date: dateString, time: "", timestamp: new Date(`${dateString}T12:00:00`).getTime(), allDay: true, timeZone: CALENDAR_TIME_ZONE };
-    }
+    if (clean.length <= 8) return { date: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`, time: "", timestamp: new Date(year, month - 1, day).getTime() };
     const hour = Number(clean.slice(9, 11));
     const minute = Number(clean.slice(11, 13));
-    const utc = raw.endsWith("Z");
-    const sourceZone = payload.params?.TZID || CALENDAR_TIME_ZONE;
-    let date;
-    try { date = utc ? new Date(Date.UTC(year, month - 1, day, hour, minute)) : zonedLocalToInstant(year, month, day, hour, minute, sourceZone); }
-    catch { date = new Date(Date.UTC(year, month - 1, day, hour, minute)); }
-    const parts = datePartsInZone(date, CALENDAR_TIME_ZONE);
+    const date = utc ? new Date(Date.UTC(year, month - 1, day, hour, minute)) : new Date(year, month - 1, day, hour, minute);
     return {
-      date: `${parts.year}-${parts.month}-${parts.day}`,
-      time: `${parts.hour}:${parts.minute}`,
+      date: dateKey(date.getFullYear(), date.getMonth(), date.getDate()),
+      time: `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`,
       timestamp: date.getTime(),
-      allDay: false,
-      timeZone: CALENDAR_TIME_ZONE,
-      sourceTimeZone: utc ? "UTC" : sourceZone,
     };
-  }
-
-  function parseRRule(value) {
-    if (!value) return { recurrence: "none" };
-    const entries = Object.fromEntries(String(value).split(";").map((part) => part.split("=")));
-    const recurrence = entries.FREQ === "DAILY" && entries.BYDAY === "MO,TU,WE,TH,FR" ? "weekdays" : entries.FREQ === "DAILY" ? "daily" : entries.FREQ === "WEEKLY" ? "weekly" : entries.FREQ === "MONTHLY" ? "monthly" : "none";
-    let recurrenceUntil = "";
-    if (entries.UNTIL) recurrenceUntil = parseIcsDate({ value: entries.UNTIL, params: {} })?.date || "";
-    return { recurrence, recurrenceUntil, recurrenceRule: value };
   }
 
   return rawEvents.map((raw, index) => {
     const start = parseIcsDate(raw.dtstart);
     const end = parseIcsDate(raw.dtend);
-    if (!start) return null;
-    const titleCandidate = String(raw.comment || "").trim();
-    const genericSummary = String(raw.summary || "").trim();
-    const title = titleCandidate && calendarNormalizeMatchText(titleCandidate) !== calendarNormalizeMatchText(moduleName)
-      ? titleCandidate
-      : genericSummary || titleCandidate || "SDU-aktivitet";
-    const lecture = matchCalendarLecture(`${title} ${genericSummary}`, lectures);
-    let durationMinutes = 60;
-    if (start.timestamp != null && end?.timestamp != null) durationMinutes = Math.max(15, Math.round((end.timestamp - start.timestamp) / 60000));
-    const allDay = Boolean(start.allDay);
-    let endDate = end?.date || start.date;
-    if (allDay && endDate > start.date) {
-      const exclusive = new Date(`${endDate}T12:00:00`);
-      exclusive.setDate(exclusive.getDate() - 1);
-      endDate = dateKey(exclusive.getFullYear(), exclusive.getMonth(), exclusive.getDate());
-    }
-    const recurrence = parseRRule(raw.rrule);
-    const uid = raw.uid || `ical-${Date.now()}-${index}`;
+    const lecture = matchCalendarLecture(raw.summary, lectures);
+    const durationMinutes = start?.timestamp != null && end?.timestamp != null
+      ? Math.max(15, Math.round((end.timestamp - start.timestamp) / 60000))
+      : 60;
     return {
-      id: `ical-${String(uid).replace(/[^a-z0-9_-]+/gi, "-")}${raw.recurrenceId ? `-${String(raw.recurrenceId.value).replace(/[^0-9A-Z]/gi, "")}` : ""}`,
-      sourceId: String(uid),
-      title,
-      originalTitle: genericSummary,
-      date: start.date,
-      endDate,
-      time: allDay ? "" : start.time,
-      endTime: !allDay && end?.date === start.date ? end.time || "" : (!allDay && end ? end.time || "" : ""),
+      id: raw.uid ? `ical-${String(raw.uid).replace(/[^a-z0-9_-]+/gi, "-")}` : `ical-${Date.now()}-${index}`,
+      title: raw.summary || "Forelæsning",
+      date: start?.date || "",
+      time: start?.time || "",
+      endTime: end?.date === start?.date ? end?.time || "" : "",
       estimatedHours: durationMinutes / 60,
       type: lecture ? "study" : "other",
       description: raw.description || "",
@@ -14236,18 +13697,10 @@ function parseICalToEvents(icsText, options = {}) {
       planModuleId: lecture ? moduleName : null,
       importedSchedule: true,
       source: "ical",
-      importFeedId,
-      status: String(raw.status || "").toUpperCase() === "CANCELLED" ? "cancelled" : "planned",
-      allDay,
-      timeZone: start.timeZone || CALENDAR_TIME_ZONE,
-      cancelled: String(raw.status || "").toUpperCase() === "CANCELLED",
-      cancelledAt: String(raw.status || "").toUpperCase() === "CANCELLED" ? new Date().toISOString() : null,
-      exdates: (raw.exdates || []).map(parseIcsDate).filter(Boolean).map((item) => item.date),
-      ...recurrence,
+      status: "planned",
     };
-  }).filter((event) => event?.date);
+  }).filter((event) => event.date);
 }
-
 
 function CalendarEventEditor({
   c,
@@ -14264,9 +13717,9 @@ function CalendarEventEditor({
   onClose,
 }) {
   const copy = ({
-    da: { end: "Slutter", endDate: "Slutdato", until: "Gentag til", location: "Sted", link: "Link", lecture: "Forelæsning", noLecture: "Ingen forelæsning", completed: "Gennemgået", description: "Beskrivelse eller forberedelse…", title: "Ny begivenhed", edit: "Redigér begivenhed", more: "Flere oplysninger", less: "Færre oplysninger", optional: "Valgfrit", allDay: "Hele dagen", reminder: "Påmindelse", recurrence: "Gentagelse", none: "Ingen", daily: "Dagligt", weekly: "Ugentligt", weekdays: "Hverdage", monthly: "Månedligt", attachment: "PDF eller note", conflict: "Tiden overlapper med en anden aktivitet.", suggest: "Find næste ledige tid", held: "Forelæsningen er afholdt", planned: "Planlagt", reviewed: "Gennemgået" },
-    en: { end: "Ends", endDate: "End date", until: "Repeat until", location: "Location", link: "Link", lecture: "Lecture", noLecture: "No lecture", completed: "Reviewed", description: "Description or preparation…", title: "New event", edit: "Edit event", more: "More options", less: "Fewer options", optional: "Optional", allDay: "All day", reminder: "Reminder", recurrence: "Repeat", none: "None", daily: "Daily", weekly: "Weekly", weekdays: "Weekdays", monthly: "Monthly", attachment: "PDF or note", conflict: "This time overlaps another activity.", suggest: "Find next free time", held: "Lecture held", planned: "Planned", reviewed: "Reviewed" },
-    ar: { end: "ينتهي", endDate: "تاريخ الانتهاء", until: "التكرار حتى", location: "المكان", link: "الرابط", lecture: "المحاضرة", noLecture: "بدون محاضرة", completed: "تمت المراجعة", description: "وصف أو تحضير…", title: "حدث جديد", edit: "تعديل الحدث", more: "المزيد", less: "أقل", optional: "اختياري", allDay: "طوال اليوم", reminder: "تذكير", recurrence: "تكرار", none: "لا شيء", daily: "يومي", weekly: "أسبوعي", weekdays: "أيام العمل", monthly: "شهري", attachment: "PDF أو ملاحظة", conflict: "يتداخل هذا الوقت مع نشاط آخر.", suggest: "العثور على الوقت المتاح التالي", held: "تمت المحاضرة", planned: "مخطط", reviewed: "تمت المراجعة" },
+    da: { end: "Slutter", location: "Sted", link: "Link", lecture: "Forelæsning", noLecture: "Ingen forelæsning", completed: "Gennemgået", description: "Beskrivelse eller forberedelse…", title: "Ny begivenhed", edit: "Redigér begivenhed", more: "Flere oplysninger", less: "Færre oplysninger", optional: "Valgfrit", allDay: "Hele dagen", reminder: "Påmindelse", recurrence: "Gentagelse", none: "Ingen", daily: "Dagligt", weekly: "Ugentligt", attachment: "PDF eller note", conflict: "Tiden overlapper med en anden aktivitet.", suggest: "Find næste ledige tid", held: "Forelæsningen er afholdt", planned: "Planlagt", reviewed: "Gennemgået" },
+    en: { end: "Ends", location: "Location", link: "Link", lecture: "Lecture", noLecture: "No lecture", completed: "Reviewed", description: "Description or preparation…", title: "New event", edit: "Edit event", more: "More options", less: "Fewer options", optional: "Optional", allDay: "All day", reminder: "Reminder", recurrence: "Repeat", none: "None", daily: "Daily", weekly: "Weekly", attachment: "PDF or note", conflict: "This time overlaps another activity.", suggest: "Find next free time", held: "Lecture held", planned: "Planned", reviewed: "Reviewed" },
+    ar: { end: "ينتهي", location: "المكان", link: "الرابط", lecture: "المحاضرة", noLecture: "بدون محاضرة", completed: "تمت المراجعة", description: "وصف أو تحضير…", title: "حدث جديد", edit: "تعديل الحدث", more: "المزيد", less: "أقل", optional: "اختياري", allDay: "طوال اليوم", reminder: "تذكير", recurrence: "تكرار", none: "لا شيء", daily: "يومي", weekly: "أسبوعي", attachment: "PDF أو ملاحظة", conflict: "يتداخل هذا الوقت مع نشاط آخر.", suggest: "العثور على الوقت المتاح التالي", held: "تمت المحاضرة", planned: "مخطط", reviewed: "تمت المراجعة" },
   })[language] || {};
   const [advancedOpen, setAdvancedOpen] = useState(Boolean(event.location || event.url || event.description || event.reminderMinutes || event.recurrence || event.attachmentUrl));
   const duration = calendarDurationMinutes(event);
@@ -14274,29 +13727,18 @@ function CalendarEventEditor({
 
   function updateStartTime(value) {
     const start = timeToMinutes(value);
-    if (start == null) {
-      onChange({ ...event, time: "", endTime: "", endDate: event.date, estimatedHours: duration / 60, needsScheduling: true });
-      return;
-    }
-    onChange({ ...event, time: value, ...calendarEndFields(event.date, start, duration), estimatedHours: duration / 60, needsScheduling: false });
+    onChange({ ...event, time: value, endTime: start == null ? "" : minutesToTime(start + duration), estimatedHours: duration / 60, needsScheduling: !value });
   }
   function updateEndTime(value) {
     const start = timeToMinutes(event.time);
     const end = timeToMinutes(value);
-    if (start == null || end == null) {
-      onChange({ ...event, endTime: value });
-      return;
-    }
-    const crossesMidnight = end <= start;
-    const nextDate = crossesMidnight ? addDays(new Date(`${event.date}T12:00:00`), 1) : new Date(`${event.date}T12:00:00`);
-    const updated = { ...event, endTime: value, endDate: dateKey(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate()) };
-    onChange({ ...updated, estimatedHours: calendarDurationMinutes(updated) / 60 });
+    onChange({ ...event, endTime: value, estimatedHours: start != null && end != null && end > start ? (end - start) / 60 : event.estimatedHours });
   }
   function suggestFreeTime() {
     const next = calendarFindNextFreeStart(event, allEvents);
     if (!next) return;
     const start = timeToMinutes(next);
-    onChange({ ...event, time: next, ...calendarEndFields(event.date, start, duration), needsScheduling: false });
+    onChange({ ...event, time: next, endTime: minutesToTime(start + duration), needsScheduling: false });
   }
 
   return (
@@ -14312,8 +13754,8 @@ function CalendarEventEditor({
         </header>
 
         <div className="calendar-quick-editor-body">
-          <label className="calendar-quick-all-day"><input type="checkbox" checked={Boolean(event.allDay)} onChange={(e) => onChange({ ...event, allDay: e.target.checked, endDate: event.endDate || event.date, time: e.target.checked ? "" : event.time, endTime: e.target.checked ? "" : event.endTime, needsScheduling: !e.target.checked && !event.time })} /><span>{copy.allDay}</span></label>
-          <div className="calendar-quick-editor-row"><Icon name="calendar" size={16} /><div className="calendar-quick-date-grid"><label><small>{t.calendarEventDate}</small><input type="date" className="calendar-quick-control" value={event.date || ""} onChange={(e) => onChange({ ...event, date: e.target.value, endDate: !event.endDate || event.endDate < e.target.value ? e.target.value : event.endDate })} /></label><label><small>{copy.endDate}</small><input type="date" className="calendar-quick-control" min={event.date || undefined} value={event.endDate || event.date || ""} onChange={(e) => onChange({ ...event, endDate: e.target.value })} /></label></div></div>
+          <label className="calendar-quick-all-day"><input type="checkbox" checked={Boolean(event.allDay)} onChange={(e) => onChange({ ...event, allDay: e.target.checked, time: e.target.checked ? "" : event.time, endTime: e.target.checked ? "" : event.endTime, needsScheduling: !e.target.checked && !event.time })} /><span>{copy.allDay}</span></label>
+          <div className="calendar-quick-editor-row"><Icon name="calendar" size={16} /><input type="date" className="calendar-quick-control" value={event.date || ""} onChange={(e) => onChange({ ...event, date: e.target.value })} /></div>
           {!event.allDay && <div className="calendar-quick-editor-row"><Icon name="clock" size={16} /><div className="calendar-quick-time-grid"><input type="time" className="calendar-quick-control" value={event.time || ""} onChange={(e) => updateStartTime(e.target.value)} /><span>–</span><input type="time" className="calendar-quick-control" value={event.endTime || ""} onChange={(e) => updateEndTime(e.target.value)} /><small>{duration} min</small></div></div>}
           <div className="calendar-quick-editor-row"><Icon name="cards" size={16} /><select className="calendar-quick-control" value={event.type || "study"} onChange={(e) => onChange({ ...event, type: e.target.value })}><option value="study">{t.calendarTypeStudy}</option><option value="review">{t.calendarTypeReview}</option><option value="exam">{t.calendarTypeExam}</option><option value="other">{t.calendarTypeOther}</option></select></div>
           {lectures.length > 0 && <div className="calendar-quick-editor-row"><Icon name="book" size={16} /><select className="calendar-quick-control" value={event.lectureId || ""} onChange={(e) => { const lectureId = e.target.value || null; onChange({ ...event, lectureId, lectureIds: lectureId ? [lectureId] : [], planModuleId: lectureId ? moduleName : event.planModuleId }); }}><option value="">{copy.noLecture}</option>{lectures.map((lecture) => <option key={lecture.id} value={lecture.id}>{lecture.id} · {lecture.title}</option>)}</select></div>}
@@ -14327,9 +13769,8 @@ function CalendarEventEditor({
             <label><span>{copy.link}</span><input className="calendar-quick-control" value={event.url || ""} onChange={(e) => onChange({ ...event, url: e.target.value })} placeholder="https://" /></label>
             <div className="calendar-quick-two-cols">
               <label><span>{copy.reminder}</span><select className="calendar-quick-control" value={event.reminderMinutes ?? ""} onChange={(e) => onChange({ ...event, reminderMinutes: e.target.value === "" ? null : Number(e.target.value) })}><option value="">{copy.none}</option><option value="10">10 min</option><option value="30">30 min</option><option value="60">1 time</option><option value="1440">1 dag</option></select></label>
-              <label><span>{copy.recurrence}</span><select className="calendar-quick-control" value={event.recurrence || "none"} onChange={(e) => onChange({ ...event, recurrence: e.target.value })}><option value="none">{copy.none}</option><option value="daily">{copy.daily}</option><option value="weekdays">{copy.weekdays}</option><option value="weekly">{copy.weekly}</option><option value="monthly">{copy.monthly}</option></select></label>
+              <label><span>{copy.recurrence}</span><select className="calendar-quick-control" value={event.recurrence || "none"} onChange={(e) => onChange({ ...event, recurrence: e.target.value })}><option value="none">{copy.none}</option><option value="daily">{copy.daily}</option><option value="weekly">{copy.weekly}</option></select></label>
             </div>
-            {event.recurrence && event.recurrence !== "none" && <label><span>{copy.until}</span><input type="date" className="calendar-quick-control" min={event.date || undefined} value={event.recurrenceUntil || ""} onChange={(e) => onChange({ ...event, recurrenceUntil: e.target.value })} /></label>}
             <label><span>{copy.attachment}</span><input className="calendar-quick-control" value={event.attachmentUrl || ""} onChange={(e) => onChange({ ...event, attachmentUrl: e.target.value })} placeholder="Link til PDF eller note" /></label>
             <label><span>{t.note}</span><textarea className="calendar-quick-control calendar-quick-notes" value={event.description || ""} onChange={(e) => onChange({ ...event, description: e.target.value })} placeholder={copy.description} /></label>
           </div>}
@@ -14644,284 +14085,28 @@ function reconcileStudyPlanCalendarEvents({
   });
 }
 
-function CalendarLayerControls({ preferences, setPreferences, search, setSearch, moduleName, inputRef }) {
-  const prefs = { ...CALENDAR_DEFAULT_PREFERENCES, ...(preferences || {}), layers: { ...CALENDAR_DEFAULT_PREFERENCES.layers, ...(preferences?.layers || {}) } };
-  const layerItems = [
-    ["sdu", "SDU-skema", "#5b8def"],
-    ["studyPlan", "Studieplan", "#2f9e78"],
-    ["own", "Egne events", "#7b8495"],
-    ["fsrs", "FSRS", "#7667d8"],
-  ];
-  function patch(next) { setPreferences((previous) => ({ ...CALENDAR_DEFAULT_PREFERENCES, ...(previous || {}), ...next, layers: { ...CALENDAR_DEFAULT_PREFERENCES.layers, ...(previous?.layers || {}), ...(next.layers || {}) } })); }
-  return (
-    <div className="calendar-control-strip" data-tour="calendar-filters">
-      <div className="calendar-layer-buttons" aria-label="Kalenderlag">
-        {layerItems.map(([key, label, color]) => (
-          <button key={key} type="button" data-active={prefs.layers[key] !== false ? "true" : "false"} onClick={() => patch({ layers: { [key]: prefs.layers[key] === false } })}>
-            <i style={{ background: color }} />{label}
-          </button>
-        ))}
-      </div>
-      <label className="calendar-search-box"><Icon name="search" size={13} /><input ref={inputRef} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Søg titel, lokale eller forelæsning" /></label>
-      <select className="calendar-compact-select" value={prefs.moduleScope || "all"} onChange={(event) => patch({ moduleScope: event.target.value })} title="Modulfilter">
-        <option value="all">Alle moduler</option>
-        <option value="current">Kun {moduleName || "aktuelt modul"}</option>
-      </select>
-      <select className="calendar-compact-select" value={prefs.density || "compact"} onChange={(event) => patch({ density: event.target.value })} title="Tæthed">
-        <option value="compact">Kompakt</option>
-        <option value="standard">Standard</option>
-        <option value="comfortable">Rummelig</option>
-      </select>
-    </div>
-  );
-}
-
-function CalendarMiniMonth({ selectedDate, events, locale = "da-DK", onSelect }) {
-  const selected = new Date(`${selectedDate}T12:00:00`);
-  const safeSelected = Number.isNaN(selected.getTime()) ? new Date() : selected;
-  const [cursor, setCursor] = useState(new Date(safeSelected.getFullYear(), safeSelected.getMonth(), 1));
-  useEffect(() => {
-    setCursor(new Date(safeSelected.getFullYear(), safeSelected.getMonth(), 1));
-  }, [selectedDate]);
-  const year = cursor.getFullYear();
-  const month = cursor.getMonth();
-  const cells = getMonthMatrix(year, month);
-  const weekdays = Array.from({ length: 7 }, (_, index) => new Intl.DateTimeFormat(locale, { weekday: "narrow" }).format(addDays(startOfWeek(new Date(2026, 0, 5, 12)), index)));
-  const today = new Date();
-  const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
-  return (
-    <section className="calendar-mini-month" aria-label="Mini-måned">
-      <header>
-        <button type="button" aria-label="Forrige måned" onClick={() => setCursor(new Date(year, month - 1, 1))}><Icon name="left" size={12} /></button>
-        <strong>{new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(cursor)}</strong>
-        <button type="button" aria-label="Næste måned" onClick={() => setCursor(new Date(year, month + 1, 1))}><Icon name="right" size={12} /></button>
-      </header>
-      <div className="calendar-mini-weekdays">{weekdays.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
-      <div className="calendar-mini-grid" role="grid">
-        {cells.map((day, index) => {
-          if (!day) return <span key={`empty-${index}`} aria-hidden="true" />;
-          const key = dateKey(year, month, day);
-          const count = calendarEventsForDate(events, key).length;
-          return (
-            <button key={key} type="button" role="gridcell" data-selected={key === selectedDate ? "true" : "false"} data-today={key === todayString ? "true" : "false"} aria-label={`${day}. ${new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(cursor)}${count ? `, ${count} aktiviteter` : ""}`} onClick={() => onSelect(key)}>
-              <span>{day}</span>{count > 0 && <i />}
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function CalendarEventPopover({ c, event, locale = "da-DK", onEdit, onClose, onComplete, onOpenLecture }) {
-  useEffect(() => {
-    function close(event2) { if (event2.key === "Escape") onClose(); }
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, [onClose]);
-  if (!event) return null;
-  const tone = calendarActivityTone(c, event);
-  return (
-    <div className="calendar-popover-backdrop" onMouseDown={(domEvent) => domEvent.target === domEvent.currentTarget && onClose()}>
-      <div className="calendar-event-popover" role="dialog" aria-modal="true" aria-label={event.title}>
-        <header><span style={{ "--popover-accent": tone.color }} /><div><small>{tone.label}</small><h3>{event.title}</h3></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={15} /></IconButton></header>
-        <div className="calendar-popover-details">
-          <p><Icon name="clock" size={14} />{calendarFormatDateTime(event, locale)}</p>
-          {event.location && <p><Icon name="target" size={14} />{event.location}</p>}
-          {event.description && <p className="calendar-popover-description">{event.description}</p>}
-          {event.planModuleId && <p><Icon name="book" size={14} />{event.planModuleId}{event.lectureId ? ` · ${event.lectureId}` : ""}</p>}
-        </div>
-        <footer>
-          <button type="button" className="ui-button ui-button--ghost" onClick={onComplete}><Icon name="check" size={14} />{event.completedAt ? "Markér ikke færdig" : "Markér færdig"}</button>
-          {event.lectureId && <button type="button" className="ui-button ui-button--secondary" onClick={onOpenLecture}><Icon name="book" size={14} />Åbn forelæsning</button>}
-          <button type="button" className="ui-button ui-button--primary" onClick={onEdit}><Icon name="edit" size={14} />Redigér</button>
-        </footer>
-      </div>
-    </div>
-  );
-}
-
-function CalendarImportPreview({ c, title, subtitle, diff, onConfirm, onClose, busy = false }) {
-  const [selected, setSelected] = useState(() => new Set((diff?.rows || []).map(({ event }) => event.sourceId || event.id)));
-  useEffect(() => setSelected(new Set((diff?.rows || []).map(({ event }) => event.sourceId || event.id))), [diff]);
-  const rows = diff?.rows || [];
-  const counts = rows.reduce((result, row) => ({ ...result, [row.status]: (result[row.status] || 0) + 1 }), {});
-  function toggle(key) { setSelected((previous) => { const next = new Set(previous); if (next.has(key)) next.delete(key); else next.add(key); return next; }); }
-  return (
-    <div className="calendar-import-overlay">
-      <div className="calendar-import-dialog" role="dialog" aria-modal="true" aria-label={title}>
-        <header><div><span>Forhåndsvisning</span><h2>{title}</h2><p>{subtitle}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header>
-        <div className="calendar-import-summary-grid">
-          <div><strong>{rows.length}</strong><span>fundet</span></div><div><strong>{counts.new || 0}</strong><span>nye</span></div><div><strong>{counts.changed || 0}</strong><span>ændrede</span></div><div><strong>{diff?.removed?.length || 0}</strong><span>fjernet hos kilden</span></div>
-        </div>
-        <div className="calendar-import-actions"><button type="button" onClick={() => setSelected(new Set(rows.map(({ event }) => event.sourceId || event.id)))}>Vælg alle</button><button type="button" onClick={() => setSelected(new Set())}>Fravælg alle</button><span>{selected.size} valgt</span></div>
-        <div className="calendar-import-list">
-          {rows.map(({ event, status }) => {
-            const key = event.sourceId || event.id;
-            return <label key={key} className="calendar-import-row" data-status={status}><input type="checkbox" checked={selected.has(key)} onChange={() => toggle(key)} /><span className="calendar-import-type" data-type={event.activityType || "other"}>{event.activityType === "lecture" ? "F" : event.activityType === "class" ? "H" : event.activityType === "tbl" ? "TBL" : "A"}</span><span><strong>{event.title}</strong><small>{event.date} · {event.time || "Hele dagen"}{event.endTime ? `–${event.endTime}` : ""}{event.location ? ` · ${event.location}` : ""}</small></span><em>{status === "new" ? "Ny" : status === "changed" ? "Ændret" : "Uændret"}</em></label>;
-          })}
-        </div>
-        {diff?.removed?.length > 0 && <details className="calendar-import-removed"><summary>{diff.removed.length} aktiviteter findes ikke længere hos kilden</summary>{diff.removed.map((event) => <div key={event.id}>{event.date} · {event.title}</div>)}</details>}
-        <footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={!selected.size || busy} onClick={() => onConfirm(rows.filter(({ event }) => selected.has(event.sourceId || event.id)).map(({ event }) => event), diff.removed || [])}>{busy ? "Importerer…" : `Importer ${selected.size} aktiviteter`}</PrimaryButton></footer>
-      </div>
-    </div>
-  );
-}
-
-function SduImportDialog({ c, moduleName, existingEvents, onImport, onClose }) {
-  const terms = calendarUpcomingTerms();
-  const [term, setTerm] = useState(terms[0]);
-  const [state, setState] = useState({ loading: false, error: "", payload: null });
-  async function loadPreview() {
-    setState({ loading: true, error: "", payload: null });
-    try {
-      const response = await fetch(`/api/sdu-timetable?module=${encodeURIComponent(moduleName)}&term=${encodeURIComponent(term)}`);
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload.ok) throw new Error(payload.message || "SDU-skemaet kunne ikke hentes.");
-      const moduleLectures = MODULE_LECTURES[moduleName] || [];
-      const normalizedAll = (payload.events || []).map((event) => {
-        const lecture = event.lectureId ? moduleLectures.find((item) => item.id === event.lectureId) : matchCalendarLecture(`${event.title || ""} ${event.originalTitle || event.moduleTitle || ""} ${event.description || ""}`, moduleLectures);
-        return {
-          id: event.stableId || `sdu-${event.sourceId}`,
-          sourceId: event.sourceId,
-          title: event.title,
-          originalTitle: event.originalTitle || event.moduleTitle || "",
-          date: event.date,
-          endDate: event.endDate || event.date,
-          time: event.time || "",
-          endTime: event.endTime || "",
-          estimatedHours: event.estimatedHours || (event.durationMinutes ? event.durationMinutes / 60 : 1),
-          type: "study",
-          description: event.description || "",
-          location: event.location || "",
-          url: event.url || payload.scheduleUrl || "",
-          lectureId: lecture?.id || null,
-          lectureIds: lecture?.id ? [lecture.id] : [],
-          planModuleId: moduleName,
-          importedSchedule: "sdu",
-          source: "sdu-schedule",
-          activityType: event.activityType || "other",
-          colorKey: event.activityType || "other",
-          term: payload.term || term,
-          uvaCode: payload.uvaCode || "",
-          importBatchId: `sdu-${moduleName}-${term}-${Date.now()}`,
-          importedAt: new Date().toISOString(),
-          lastSyncedAt: new Date().toISOString(),
-          allDay: Boolean(event.allDay),
-          status: String(event.status || "CONFIRMED").toUpperCase() === "CANCELLED" ? "cancelled" : "planned",
-          cancelledAt: String(event.status || "").toUpperCase() === "CANCELLED" ? new Date().toISOString() : null,
-          timeZone: CALENDAR_TIME_ZONE,
-        };
-      });
-      const cancelled = normalizedAll.filter((event) => event.status === "cancelled");
-      const normalized = normalizedAll.filter((event) => event.status !== "cancelled");
-      const diff = calendarImportDiff(normalized, existingEvents);
-      const cancelledIds = new Set(cancelled.map((event) => event.sourceId || event.id));
-      const cancelledExisting = (existingEvents || []).filter((event) => cancelledIds.has(event.sourceId || event.id));
-      diff.removed = [...new Map([...(diff.removed || []), ...cancelledExisting].map((event) => [event.sourceId || event.id, event])).values()];
-      setState({ loading: false, error: "", payload: { ...payload, normalized, cancelledCount: cancelled.length, diff } });
-    } catch (error) {
-      setState({ loading: false, error: error.message || String(error), payload: null });
-    }
-  }
-  if (state.payload) {
-    return <CalendarImportPreview c={c} title={`${moduleName} · ${term}`} subtitle={`UVA ${state.payload.uvaCode || "—"} · ${state.payload.normalized.length} aktiviteter${state.payload.cancelledCount ? ` · ${state.payload.cancelledCount} aflyst` : ""} · ingen ældre termin anvendes`} diff={state.payload.diff} onClose={onClose} onConfirm={(selected, removed) => onImport(selected, removed, { term, uvaCode: state.payload.uvaCode })} />;
-  }
-  return (
-    <div className="calendar-import-overlay"><div className="calendar-sdu-dialog"><header><div><span>SDU Skemaplan</span><h2>Importer kommende skema</h2><p>{moduleName}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header><label>Termin<select value={term} onChange={(event) => setTerm(event.target.value)}>{terms.map((value) => <option key={value} value={value}>{value}</option>)}</select></label><div className="ui-feedback" data-tone="info"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content">MedFLUEN accepterer kun en officiel fagversion og et skema, der matcher præcis den valgte termin. Et ældre semester bruges aldrig som reserve.</div></div>{state.error && <div className="ui-feedback" data-tone="error"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{state.error}</div></div>}<footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={state.loading} onClick={loadPreview}>{state.loading ? "Finder UVA og skema…" : "Hent preview"}</PrimaryButton></footer></div></div>
-  );
-}
-
-function CalendarTutorialOverlay({ c, onClose, onCreateTestData }) {
-  const steps = [
-    ["24-timers tidslinje", "Dag og uge indeholder hele døgnet. Scroll inde i kalenderen fra 00:00 til 23:59; headeren bliver stående."],
-    ["Kalenderlag", "Slå SDU-skema, studieplan, egne events og FSRS til eller fra uafhængigt."],
-    ["Tæthed og søgning", "Skift mellem kompakt, standard og rummelig visning. Søg efter titel, lokale eller forelæsnings-ID."],
-    ["Opret og flyt", "Klik et tomt tidspunkt for at oprette. Træk events mellem tidspunkter og dage. Kalenderen autoscroller ved kanten."],
-    ["Ændr varighed", "Træk det lille håndtag nederst på et event for at forkorte eller forlænge det i intervaller på 15 minutter."],
-    ["Hurtig visning", "Klik et event for et kompakt popover med tid, lokale, kilde og handlinger. Højreklik giver flere genveje."],
-    ["Import med preview", "iCal og SDU importeres aldrig direkte. Kontrollér nye, ændrede og fjernede aktiviteter før du godkender."],
-    ["Sync, gentagelser og påmindelser", "Metadata og sletninger synkroniseres. Gentagelser materialiseres som serier, og browserpåmindelser vises, når du har givet tilladelse."],
-  ];
-  const [index, setIndex] = useState(0);
-  return <div className="calendar-tutorial-overlay"><div className="calendar-tutorial-card"><header><span>{index + 1}/{steps.length}</span><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={15} /></IconButton></header><div className="calendar-tutorial-visual"><Icon name={index < 2 ? "calendar" : index < 5 ? "clock" : index === 6 ? "upload" : "check"} size={28} /></div><h2>{steps[index][0]}</h2><p>{steps[index][1]}</p><div className="calendar-tutorial-dots">{steps.map((_, stepIndex) => <i key={stepIndex} data-active={stepIndex === index ? "true" : "false"} />)}</div><footer><SecondaryButton disabled={index === 0} onClick={() => setIndex((value) => Math.max(0, value - 1))}>Tilbage</SecondaryButton>{index === steps.length - 1 ? <PrimaryButton onClick={() => { onCreateTestData?.(); onClose(); }}>Opret testdata</PrimaryButton> : <PrimaryButton onClick={() => setIndex((value) => value + 1)}>Næste</PrimaryButton>}</footer></div></div>;
-}
-
-function CalendarReminderManager({ events }) {
-  const notifiedRef = useRef(new Set());
-  const [activeReminder, setActiveReminder] = useState(null);
-  useEffect(() => {
-    function check() {
-      const now = Date.now();
-      (events || []).forEach((event) => {
-        const minutes = Number(event.reminderMinutes);
-        if (!event.date || !event.time || !Number.isFinite(minutes) || minutes <= 0 || event.completedAt) return;
-        const starts = new Date(`${event.date}T${event.time}:00`).getTime();
-        const notifyAt = starts - minutes * 60000;
-        const key = `${event.id}:${notifyAt}`;
-        if (now >= notifyAt && now < starts + 60000 && !notifiedRef.current.has(key)) {
-          notifiedRef.current.add(key);
-          setActiveReminder(event);
-          if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-            new Notification(event.title, { body: `${event.time}${event.location ? ` · ${event.location}` : ""}`, tag: key });
-          }
-        }
-      });
-    }
-    check();
-    const timer = window.setInterval(check, 30000);
-    return () => window.clearInterval(timer);
-  }, [events]);
-  if (!activeReminder) return null;
-  return <div className="calendar-reminder-toast" role="alert"><span><Icon name="clock" size={15} /></span><div><strong>{activeReminder.title}</strong><small>{activeReminder.time}{activeReminder.location ? ` · ${activeReminder.location}` : ""}</small></div><button type="button" onClick={() => setActiveReminder(null)} aria-label="Luk påmindelse">×</button></div>;
-}
-
 function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }) {
   const [events, setEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [eventMeta, setEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
-  const [calendarPreferences, setCalendarPreferences] = useStoredState(STORAGE.calendarPreferences, CALENDAR_DEFAULT_PREFERENCES);
   const [contextMenu, setContextMenu] = useState(null);
-  const [quickEvent, setQuickEvent] = useState(null);
-  const [search, setSearch] = useState("");
-  const [undoState, setUndoState] = useState(null);
-  const [showSduImport, setShowSduImport] = useState(false);
-  const [icalPreview, setIcalPreview] = useState(null);
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [syncState, setSyncState] = useState({ status: typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "idle", detail: "" });
   const mergedEvents = mergeCalendarEventMeta(events, eventMeta);
-  const visibleEvents = calendarFilterEvents(mergedEvents, calendarPreferences, module, search);
   const today = new Date();
-  const preferredDate = calendarPreferences.lastDate ? new Date(`${calendarPreferences.lastDate}T12:00:00`) : today;
-  const safePreferredDate = Number.isNaN(preferredDate.getTime()) ? today : preferredDate;
-  const [view, setView] = useState(calendarPreferences.lastView || "week");
-  const [weekStart, setWeekStart] = useState(startOfWeek(safePreferredDate));
-  const [monthDate, setMonthDate] = useState(new Date(safePreferredDate.getFullYear(), safePreferredDate.getMonth(), 1));
-  const [dayDate, setDayDate] = useState(safePreferredDate);
-  const [selectedDate, setSelectedDate] = useState(dateKey(safePreferredDate.getFullYear(), safePreferredDate.getMonth(), safePreferredDate.getDate()));
+  const [view, setView] = useState("week");
+  const [weekStart, setWeekStart] = useState(startOfWeek(today));
+  const [monthDate, setMonthDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [dayDate, setDayDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(dateKey(today.getFullYear(), today.getMonth(), today.getDate()));
   const [editingEvent, setEditingEvent] = useState(null);
   const [showLectures, setShowLectures] = useState(false);
+  const [importError, setImportError] = useState("");
+  const [importSummary, setImportSummary] = useState(null);
   const fileInputRef = useRef(null);
-  const searchInputRef = useRef(null);
   const moduleLectures = MODULE_LECTURES[module] || [];
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
   const contextCopy = calendarContextCopy(language);
-  const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
-
-  useEffect(() => setCalendarPreferences((previous) => ({ ...CALENDAR_DEFAULT_PREFERENCES, ...(previous || {}), lastView: view })), [view]);
-  useEffect(() => setCalendarPreferences((previous) => ({ ...CALENDAR_DEFAULT_PREFERENCES, ...(previous || {}), lastDate: selectedDate })), [selectedDate]);
-
-  useEffect(() => {
-    function handleSync(event) { setSyncState(event.detail || { status: "idle", detail: "" }); }
-    function handleOnline() { setSyncState({ status: "idle", detail: "Online" }); }
-    function handleOffline() { setSyncState({ status: "offline", detail: "Offline · ændringer gemmes lokalt" }); }
-    window.addEventListener("medlearn-calendar-sync", handleSync);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    return () => { window.removeEventListener("medlearn-calendar-sync", handleSync); window.removeEventListener("online", handleOnline); window.removeEventListener("offline", handleOffline); };
-  }, []);
 
   useEffect(() => {
     const plan = plans[module];
@@ -14946,6 +14131,8 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [module]);
 
+  // Imported timetable events become "held" when their end time passes. They are
+  // deliberately not marked "reviewed"; the user controls reviewed completion.
   useEffect(() => {
     const held = mergedEvents.filter((event) => event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
     if (!held.length) return;
@@ -14954,126 +14141,53 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
       held.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), deliveryStatus: "held" }; });
       return next;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, eventMeta]);
 
-  useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) return;
-      if (event.key === "Escape") { if (editingEvent || quickEvent || contextMenu) { setEditingEvent(null); setQuickEvent(null); setContextMenu(null); } else onClose(); }
-      if (event.key.toLowerCase() === "n") newEvent(selectedDate, "09:00");
-      if (event.key.toLowerCase() === "t") goToday();
-      if (event.key.toLowerCase() === "d") setView("day");
-      if (event.key.toLowerCase() === "w") setView("week");
-      if (event.key.toLowerCase() === "m") setView("month");
-      if (event.key === "/") { event.preventDefault(); searchInputRef.current?.focus(); }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  });
-
-  const eventsByDate = visibleEvents.reduce((result, event) => { (result[event.date] = result[event.date] || []).push(event); return result; }, {});
+  const eventsByDate = mergedEvents.reduce((result, event) => { (result[event.date] = result[event.date] || []).push(event); return result; }, {});
   const selectedEvents = (eventsByDate[selectedDate] || []).sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
-  const upcoming = visibleEvents.filter((event) => event.date >= todayKey && !event.completedAt).sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`)).slice(0, 12);
-
-  function snapshot(label) {
-    setUndoState({ label, events, metadata: eventMeta, expiresAt: Date.now() + 10000 });
-  }
-  function undo() {
-    if (!undoState) return;
-    setEvents(undoState.events);
-    setEventMeta(undoState.metadata);
-    setUndoState(null);
-  }
-
-  function splitRecord(event) {
-    const metadata = calendarEventMetaFields(event);
-    const base = { ...event };
-    Object.keys(metadata).forEach((key) => delete base[key]);
-    return { base, metadata };
-  }
+  const upcoming = mergedEvents.filter((event) => event.date >= todayKey && !event.completedAt).sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`)).slice(0, 8);
 
   function saveEvent(nextEvent) {
-    snapshot("Ændring gemt");
     const clean = { ...nextEvent, type: nextEvent.type || "study", needsScheduling: !nextEvent.allDay && !nextEvent.time };
-    const isSingleOccurrence = Boolean(clean.recurrenceParentId);
-    const materialized = isSingleOccurrence ? [clean] : calendarMaterializeRecurrence(clean);
-    const parentId = clean.id;
+    const metadata = calendarEventMetaFields(clean);
     setEvents((previous) => {
-      const retained = isSingleOccurrence
-        ? previous.filter((item) => item.id !== clean.id)
-        : previous.filter((item) => item.id !== parentId && item.recurrenceParentId !== parentId);
-      return [...retained, ...materialized.map((item) => splitRecord(item).base)];
+      const base = { ...clean };
+      Object.keys(metadata).forEach((key) => delete base[key]);
+      const exists = previous.some((item) => item.id === base.id);
+      return exists ? previous.map((item) => item.id === base.id ? base : item) : [...previous, base];
     });
-    setEventMeta((previous) => {
-      const next = { ...previous };
-      if (isSingleOccurrence) delete next[clean.id];
-      else Object.entries(next).forEach(([id, meta]) => { if (id === parentId || meta.recurrenceParentId === parentId) delete next[id]; });
-      materialized.forEach((item) => { next[item.id] = { ...(previous[item.id] || {}), ...splitRecord(item).metadata }; });
-      return next;
-    });
+    setEventMeta((previous) => ({ ...previous, [clean.id]: { ...(previous[clean.id] || {}), ...metadata } }));
     setEditingEvent(null);
-    setQuickEvent(null);
   }
 
   function deleteEvent(id) {
     const currentEvent = mergedEvents.find((item) => item.id === id);
     if (calendarIsUnfinishedStudyPlanLecture(currentEvent)) {
       const queuedEvent = calendarReturnLectureToQueue(currentEvent, todayKey);
-      snapshot("Forelæsning returneret til køen");
-      setEvents((previous) => previous.map((item) => item.id === id ? splitRecord(queuedEvent).base : item));
-      setEventMeta((previous) => ({ ...previous, [id]: { ...(previous[id] || {}), ...splitRecord(queuedEvent).metadata } }));
+      setEvents((previous) => previous.map((item) => item.id === id ? { ...item, date: queuedEvent.date, time: "", endTime: "", estimatedHours: null } : item));
+      setEventMeta((previous) => ({ ...previous, [id]: { ...(previous[id] || {}), ...calendarEventMetaFields(queuedEvent) } }));
       setEditingEvent(null);
       return;
     }
-    snapshot("Event slettet");
-    const deleteWholeSeries = Boolean(currentEvent?.recurrenceMaster);
-    const parentId = deleteWholeSeries ? currentEvent.id : null;
-    setEvents((previous) => previous.filter((item) => item.id !== id && (!parentId || item.recurrenceParentId !== parentId)));
-    setEventMeta((previous) => {
-      const next = { ...previous };
-      Object.entries(next).forEach(([eventId, meta]) => { if (eventId === id || (parentId && meta.recurrenceParentId === parentId)) delete next[eventId]; });
-      return next;
-    });
-    setEditingEvent(null); setQuickEvent(null);
-  }
-
-  function deleteEventSeries(event) {
-    const parentId = event?.recurrenceMaster ? event.id : event?.recurrenceParentId;
-    if (!parentId) return deleteEvent(event.id);
-    snapshot("Gentagelsesserie slettet");
-    setEvents((previous) => previous.filter((item) => item.id !== parentId && item.recurrenceParentId !== parentId));
-    setEventMeta((previous) => { const next = { ...previous }; Object.entries(next).forEach(([id, meta]) => { if (id === parentId || meta.recurrenceParentId === parentId) delete next[id]; }); return next; });
-    setQuickEvent(null); setEditingEvent(null);
-  }
-
-  function deleteFutureOccurrences(event) {
-    const parentId = event?.recurrenceParentId || (event?.recurrenceMaster ? event.id : null);
-    if (!parentId) return deleteEvent(event.id);
-    snapshot("Fremtidige forekomster slettet");
-    const cutoff = event.date;
-    const previousDay = addDays(new Date(`${cutoff}T12:00:00`), -1);
-    const recurrenceUntil = dateKey(previousDay.getFullYear(), previousDay.getMonth(), previousDay.getDate());
-    setEvents((previous) => previous.filter((item) => !(item.recurrenceParentId === parentId && item.date >= cutoff)).map((item) => item.id === parentId ? { ...item, recurrenceUntil } : item));
-    setEventMeta((previous) => { const next = { ...previous }; Object.entries(next).forEach(([id, meta]) => { if (meta.recurrenceParentId === parentId && (meta.date || mergedEvents.find((item) => item.id === id)?.date || "") >= cutoff) delete next[id]; }); next[parentId] = { ...(next[parentId] || {}), recurrenceUntil }; return next; });
-    setQuickEvent(null); setEditingEvent(null);
+    setEvents((previous) => previous.filter((item) => item.id !== id));
+    setEventMeta((previous) => { const next = { ...previous }; delete next[id]; return next; });
+    setEditingEvent(null);
   }
 
   function moveEvent(updatedEvent) {
-    snapshot("Event flyttet");
-    const { base, metadata } = splitRecord({ ...updatedEvent, needsScheduling: !updatedEvent.time, status: updatedEvent.time ? "planned" : "unscheduled" });
-    setEvents((previous) => previous.map((item) => item.id === base.id ? base : item));
-    setEventMeta((previous) => ({ ...previous, [base.id]: { ...(previous[base.id] || {}), ...metadata } }));
+    setEvents((previous) => previous.map((item) => item.id === updatedEvent.id ? { ...item, date: updatedEvent.date, time: updatedEvent.time, endTime: updatedEvent.endTime, estimatedHours: updatedEvent.estimatedHours } : item));
+    setEventMeta((previous) => ({ ...previous, [updatedEvent.id]: { ...(previous[updatedEvent.id] || {}), needsScheduling: !updatedEvent.time, status: updatedEvent.time ? "planned" : "unscheduled" } }));
   }
 
   function toggleEventComplete(event) {
-    snapshot(event.completedAt ? "Markering fjernet" : "Event markeret færdig");
     const completing = !event.completedAt;
     const lectureIds = calendarLectureIds(event);
     const completedAt = completing ? new Date().toISOString() : null;
     if (!completing && event.source === "study-plan" && lectureIds.length) {
       const queued = calendarReturnLectureToQueue(event, todayKey);
-      setEvents((previous) => previous.map((item) => item.id === event.id ? splitRecord(queued).base : item));
-      setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...splitRecord(queued).metadata } }));
+      setEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, date: queued.date, time: "", endTime: "", estimatedHours: null } : item));
+      setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...calendarEventMetaFields(queued) } }));
     } else {
       setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), completedAt, status: completedAt ? "completed" : "planned", manualIncompleteAt: completedAt ? null : Date.now() } }));
     }
@@ -15081,39 +14195,52 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
     setPlans((previous) => {
       const plan = previous[event.planModuleId];
       const current = new Set(plan.doneLectureIds || []);
-      lectureIds.forEach((lectureId) => completing ? current.add(lectureId) : current.delete(lectureId));
+      lectureIds.forEach((id) => completing ? current.add(id) : current.delete(id));
       return { ...previous, [event.planModuleId]: { ...plan, doneLectureIds: [...current], updatedAt: Date.now() } };
     });
   }
 
-  function newEvent(dayKeyString, time = "", type = "study") {
+  function newEvent(dayKeyString, time, type = "study") {
     const start = timeToMinutes(time);
-    const endFields = start == null ? { endDate: dayKeyString, endTime: "" } : calendarEndFields(dayKeyString, start, 60);
     setSelectedDate(dayKeyString);
-    setEditingEvent({ id: `event-${Date.now()}`, title: "", date: dayKeyString, ...endFields, time, type, estimatedHours: time ? 1 : null, planModuleId: module, createdByUser: true, source: "user", needsScheduling: !time, recurrence: "none" });
+    setEditingEvent({ id: `event-${Date.now()}`, title: "", date: dayKeyString, time, endTime: start == null ? "" : minutesToTime(start + 60), type, estimatedHours: time ? 1 : null, planModuleId: module, createdByUser: true, needsScheduling: !time });
   }
 
   function duplicateEvent(event) {
-    const start = timeToMinutes(event.time); const duration = calendarDurationMinutes(event); const shifted = start == null ? "" : minutesToTime(start + 15);
-    const endFields = shifted ? calendarEndFields(event.date, timeToMinutes(shifted) || 0, duration) : { endDate: event.date, endTime: "" };
-    saveEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · kopi`, time: shifted, ...endFields, completedAt: null, source: "user", createdByUser: true, recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
+    const start = timeToMinutes(event.time);
+    const duration = calendarDurationMinutes(event);
+    const shifted = start == null ? "" : minutesToTime(start + 15);
+    saveEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · kopi`, time: shifted, endTime: shifted ? minutesToTime((timeToMinutes(shifted) || 0) + duration) : "", completedAt: null, source: "duplicate", createdByUser: true });
   }
 
   function splitEvent(event) {
-    const start = timeToMinutes(event.time); const duration = calendarDurationMinutes(event); if (start == null || duration < 60) return;
-    const firstDuration = Math.round(duration / 2 / 15) * 15; const secondStart = start + firstDuration;
-    saveEvent({ ...event, endTime: minutesToTime(secondStart), estimatedHours: firstDuration / 60 });
-    window.setTimeout(() => saveEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · del 2`, time: minutesToTime(secondStart), endTime: minutesToTime(start + duration), estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null, recurrence: "none" }), 0);
+    const start = timeToMinutes(event.time);
+    const duration = calendarDurationMinutes(event);
+    if (start == null || duration < 60) return;
+    const firstDuration = Math.round(duration / 2 / 15) * 15;
+    const secondStart = start + firstDuration;
+    const first = { ...event, endTime: minutesToTime(secondStart), estimatedHours: firstDuration / 60 };
+    const second = { ...event, id: `event-${Date.now()}`, title: `${event.title} · del 2`, time: minutesToTime(secondStart), endTime: minutesToTime(start + duration), estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null };
+    saveEvent(first);
+    setTimeout(() => saveEvent(second), 0);
   }
 
-  function moveEventTo(event, targetDate, clearTime = false) { const shifted = calendarShiftEventDate(event, targetDate); moveEvent({ ...shifted, time: clearTime ? "" : event.time, endTime: clearTime ? "" : event.endTime, estimatedHours: clearTime ? null : event.estimatedHours }); }
-  function openLecture(event) { const lectureId = calendarLectureIds(event)[0]; if (lectureId) onOpenLecture?.(lectureId); }
-  function handleContextRequest(menu) { setContextMenu(menu); }
+  function moveEventTo(event, targetDate, clearTime = false) {
+    const updated = { ...event, date: targetDate, time: clearTime ? "" : event.time, endTime: clearTime ? "" : event.endTime, estimatedHours: clearTime ? null : event.estimatedHours };
+    moveEvent(updated);
+  }
 
+  function openLecture(event) {
+    const lectureId = calendarLectureIds(event)[0];
+    if (!lectureId) return;
+    onOpenLecture?.(lectureId);
+  }
+
+  function handleContextRequest(menu) { setContextMenu(menu); }
   function contextItems() {
     if (!contextMenu) return [];
     if (contextMenu.kind === "slot") {
-      const unscheduled = visibleEvents.find((event) => event.date === contextMenu.date && !event.time && !event.allDay && !event.completedAt && event.type !== "exam");
+      const unscheduled = mergedEvents.find((event) => event.date === contextMenu.date && !event.time && !event.completedAt && event.type !== "exam");
       return [
         { id: "new", label: contextCopy.create, icon: "plus", action: () => newEvent(contextMenu.date, contextMenu.time, "other") },
         unscheduled && { id: "place", label: contextCopy.placeLecture, icon: "book", action: () => { const duration = calendarDurationMinutes(unscheduled); moveEvent({ ...unscheduled, time: contextMenu.time, endTime: minutesToTime((timeToMinutes(contextMenu.time) || 0) + duration), estimatedHours: duration / 60 }); } },
@@ -15123,9 +14250,10 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
     }
     const event = contextMenu.event;
     if (!event) return [];
-    const tomorrow = addDays(today, 1); const tomorrowKey = dateKey(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+    const tomorrow = addDays(today, 1);
+    const tomorrowKey = dateKey(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
     if (contextMenu.kind === "unscheduled") {
-      const next = calendarFindNextFreeStart({ ...event, time: "09:00" }, visibleEvents, 0, 24 * 60);
+      const next = calendarFindNextFreeStart({ ...event, time: "09:00" }, mergedEvents);
       return [
         { id: "edit", label: contextCopy.edit, icon: "edit", action: () => setEditingEvent(event) },
         { id: "place", label: contextCopy.place, icon: "clock", action: () => setEditingEvent({ ...event, time: "09:00", endTime: "10:00", estimatedHours: 1 }) },
@@ -15134,10 +14262,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
         { id: "complete", label: contextCopy.complete, icon: "check", action: () => toggleEventComplete(event) },
         event.lectureId && { id: "lecture", label: contextCopy.openLecture, icon: "book", action: () => openLecture(event) },
         { separator: true },
-        event.recurrenceParentId && { id: "delete-occurrence", label: contextCopy.deleteOccurrence, icon: "trash", danger: true, action: () => deleteEvent(event.id) },
-        event.recurrenceParentId && { id: "delete-future", label: contextCopy.deleteFuture, icon: "trash", danger: true, action: () => deleteFutureOccurrences(event) },
-        event.recurrenceParentId && { id: "delete-series", label: contextCopy.deleteSeries, icon: "trash", danger: true, action: () => deleteEventSeries(event) },
-        !event.recurrenceParentId && { id: "delete", label: contextCopy.remove, icon: "trash", danger: true, action: () => deleteEvent(event.id) },
+        { id: "delete", label: contextCopy.remove, icon: "trash", danger: true, action: () => deleteEvent(event.id) },
       ];
     }
     return [
@@ -15145,132 +14270,59 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
       { id: "complete", label: event.completedAt ? contextCopy.incomplete : contextCopy.complete, icon: "check", action: () => toggleEventComplete(event) },
       { id: "today", label: contextCopy.today, icon: "calendar", action: () => moveEventTo(event, todayKey) },
       { id: "tomorrow", label: contextCopy.tomorrow, icon: "right", action: () => moveEventTo(event, tomorrowKey) },
-      { id: "previous-week", label: contextCopy.previousWeek, icon: "left", action: () => { const target = addDays(new Date(`${event.date}T12:00:00`), -7); moveEventTo(event, dateKey(target.getFullYear(), target.getMonth(), target.getDate())); } },
-      { id: "next-week", label: contextCopy.nextWeek, icon: "right", action: () => { const target = addDays(new Date(`${event.date}T12:00:00`), 7); moveEventTo(event, dateKey(target.getFullYear(), target.getMonth(), target.getDate())); } },
+      { id: "date", label: contextCopy.chooseDate, icon: "calendar", action: () => setEditingEvent(event) },
       { separator: true },
       { id: "duplicate", label: contextCopy.duplicate, icon: "plus", action: () => duplicateEvent(event) },
       { id: "split", label: contextCopy.split, icon: "cards", disabled: calendarDurationMinutes(event) < 60 || !event.time, action: () => splitEvent(event) },
       event.lectureId && { id: "lecture", label: contextCopy.openLecture, icon: "book", action: () => openLecture(event) },
       { separator: true },
-      event.recurrenceParentId && { id: "delete-occurrence", label: contextCopy.deleteOccurrence, icon: "trash", danger: true, action: () => deleteEvent(event.id) },
-      event.recurrenceParentId && { id: "delete-future", label: contextCopy.deleteFuture, icon: "trash", danger: true, action: () => deleteFutureOccurrences(event) },
-      event.recurrenceParentId && { id: "delete-series", label: contextCopy.deleteSeries, icon: "trash", danger: true, action: () => deleteEventSeries(event) },
-      !event.recurrenceParentId && { id: "delete", label: contextCopy.remove, icon: "trash", danger: true, action: () => deleteEvent(event.id) },
+      { id: "delete", label: contextCopy.remove, icon: "trash", danger: true, action: () => deleteEvent(event.id) },
     ];
   }
 
   function handleICalFile(fileEvent) {
-    const file = fileEvent.target.files?.[0]; if (!file) return;
+    const file = fileEvent.target.files?.[0];
+    if (!file) return;
+    setImportError(""); setImportSummary(null);
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const importFeedId = `file:${calendarNormalizeMatchText(file.name) || "calendar"}`;
-        const parsed = parseICalToEvents(String(reader.result || ""), { moduleName: module, lectures: moduleLectures, importFeedId });
-        if (!parsed.length) throw new Error(t.calendarICalEmpty || "Ingen hændelser fundet i filen.");
-        const active = parsed.filter((event) => !event.cancelled);
-        const cancelledIds = new Set(parsed.filter((event) => event.cancelled).map((event) => event.sourceId || event.id));
-        const diff = calendarImportDiff(active, mergedEvents);
-        const cancelledExisting = mergedEvents.filter((event) => cancelledIds.has(event.sourceId || event.id));
-        diff.removed = [...new Map([...(diff.removed || []), ...cancelledExisting].map((event) => [event.sourceId || event.id, event])).values()];
-        setIcalPreview({ diff, title: file.name, parsed: active, cancelledCount: cancelledIds.size });
-      } catch (error) { setIcalPreview({ error: error.message || (t.calendarICalError || "Kunne ikke læse iCal-filen.") }); }
+        const parsed = parseICalToEvents(String(reader.result || ""), { moduleName: module, lectures: moduleLectures });
+        if (!parsed.length) { setImportError(t.calendarICalEmpty || "Ingen hændelser fundet i filen."); return; }
+        const recognized = parsed.filter((event) => event.lectureId).length;
+        setEvents((previous) => {
+          const known = new Set(previous.map((event) => event.id));
+          return [...previous, ...parsed.filter((event) => !known.has(event.id)).map((event) => { const base = { ...event }; Object.keys(calendarEventMetaFields(event)).forEach((key) => delete base[key]); return base; })];
+        });
+        setEventMeta((previous) => ({ ...previous, ...Object.fromEntries(parsed.map((event) => [event.id, { ...calendarEventMetaFields(event), deliveryStatus: calendarEventEndTimestamp(event) <= Date.now() ? "held" : "planned" }])) }));
+        setImportSummary({ total: parsed.length, recognized });
+      } catch { setImportError(t.calendarICalError || "Kunne ikke læse iCal-filen."); }
     };
     reader.readAsText(file); fileEvent.target.value = "";
   }
 
-  function importCalendarEvents(selected, removed = [], sourceLabel = "import") {
-    snapshot(`${selected.length} aktiviteter importeret`);
-    const removeSourceIds = new Set(removed.map((event) => event.sourceId || event.id));
-    const existingBySource = new Map(mergedEvents.map((event) => [event.sourceId || event.id, event]));
-    const prepared = selected.map((event) => {
-      const previous = existingBySource.get(event.sourceId || event.id);
-      return previous ? { ...event, id: previous.id, completedAt: previous.completedAt || null } : event;
-    });
-    const preparedIds = new Set(prepared.map((event) => event.id));
-    setEvents((previous) => {
-      const retained = previous.filter((event) => !preparedIds.has(event.id) && !removeSourceIds.has(eventMeta[event.id]?.sourceId || event.id));
-      return [...retained, ...prepared.map((event) => splitRecord(event).base)];
-    });
-    setEventMeta((previous) => {
-      const next = { ...previous };
-      Object.entries(next).forEach(([id, meta]) => { if (removeSourceIds.has(meta.sourceId || id)) delete next[id]; });
-      prepared.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), ...splitRecord(event).metadata, importSourceLabel: sourceLabel }; });
-      return next;
-    });
-    setIcalPreview(null); setShowSduImport(false);
-  }
-
-  function createCalendarTestData() {
-    snapshot("Kalendertest oprettet");
-    const baseDate = selectedDate || todayKey;
-    const nextDateObject = addDays(new Date(`${baseDate}T12:00:00`), 1);
-    const nextDate = dateKey(nextDateObject.getFullYear(), nextDateObject.getMonth(), nextDateObject.getDate());
-    const prefix = `calendar-test-${Date.now()}`;
-    const testEvents = [
-      { id: `${prefix}-early`, title: "Test · Tidlig morgen", date: baseDate, endDate: baseDate, time: "06:30", endTime: "07:15", type: "study", source: "calendar-test", testEvent: true, createdByUser: true, description: "Kontrollér at du kan scrolle til før kl. 08:00." },
-      { id: `${prefix}-overlap-a`, title: "Test · Overlap A", date: baseDate, endDate: baseDate, time: "10:00", endTime: "11:30", type: "study", source: "calendar-test", testEvent: true, createdByUser: true },
-      { id: `${prefix}-overlap-b`, title: "Test · Overlap B", date: baseDate, endDate: baseDate, time: "10:30", endTime: "11:15", type: "review", source: "calendar-test", testEvent: true, createdByUser: true },
-      { id: `${prefix}-unscheduled`, title: "Test · Ikke placeret", date: baseDate, endDate: baseDate, time: "", endTime: "", type: "study", source: "calendar-test", testEvent: true, createdByUser: true, needsScheduling: true },
-      { id: `${prefix}-all-day`, title: "Test · Hele dagen", date: baseDate, endDate: nextDate, time: "", endTime: "", allDay: true, type: "other", source: "calendar-test", testEvent: true, createdByUser: true },
-      { id: `${prefix}-midnight`, title: "Test · Over midnat", date: baseDate, endDate: nextDate, time: "23:30", endTime: "01:00", type: "other", source: "calendar-test", testEvent: true, createdByUser: true, reminderMinutes: 10 },
-      { id: `${prefix}-series`, title: "Test · Ugentlig serie", date: baseDate, endDate: baseDate, time: "14:00", endTime: "14:45", type: "review", source: "calendar-test", testEvent: true, createdByUser: true, recurrence: "weekly", recurrenceUntil: dateKey(addDays(new Date(`${baseDate}T12:00:00`), 21).getFullYear(), addDays(new Date(`${baseDate}T12:00:00`), 21).getMonth(), addDays(new Date(`${baseDate}T12:00:00`), 21).getDate()) },
-    ].flatMap((event) => event.recurrence ? calendarMaterializeRecurrence(event) : [event]);
-    setEvents((previous) => [...previous, ...testEvents.map((event) => splitRecord(event).base)]);
-    setEventMeta((previous) => { const next = { ...previous }; testEvents.forEach((event) => { next[event.id] = { ...splitRecord(event).metadata, testEvent: true }; }); return next; });
-  }
-
-  function removeCalendarTestData() {
-    snapshot("Kalendertest fjernet");
-    const testIds = new Set(mergedEvents.filter((event) => event.testEvent || event.source === "calendar-test").map((event) => event.id));
-    setEvents((previous) => previous.filter((event) => !testIds.has(event.id)));
-    setEventMeta((previous) => { const next = { ...previous }; testIds.forEach((id) => delete next[id]); return next; });
-  }
-
   function currentLabel() {
+    const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
     if (view === "month") return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(monthDate);
     if (view === "day") return new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(dayDate);
     return `${weekStart.getDate()}/${weekStart.getMonth() + 1} – ${addDays(weekStart, 6).getDate()}/${addDays(weekStart, 6).getMonth() + 1}`;
   }
   function shift(delta) { if (view === "month") setMonthDate((previous) => new Date(previous.getFullYear(), previous.getMonth() + delta, 1)); else if (view === "day") setDayDate((previous) => addDays(previous, delta)); else setWeekStart((previous) => addDays(previous, delta * 7)); }
   function goToday() { const now = new Date(); setWeekStart(startOfWeek(now)); setMonthDate(new Date(now.getFullYear(), now.getMonth(), 1)); setDayDate(now); setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate())); }
-  async function enableNotifications() { if (typeof Notification !== "undefined" && Notification.permission === "default") await Notification.requestPermission(); }
 
   return (
     <div className="calendar-workspace fade-up" data-theme={theme}>
-      <header className="calendar-workspace-header" data-tour="calendar-toolbar">
-        <div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module} · {visibleEvents.length} synlige</small></div><em className="calendar-sync-pill" data-status={syncState.status}>{syncState.status === "syncing" ? "Synkroniserer…" : syncState.status === "synced" ? "Synkroniseret" : syncState.status === "offline" ? "Offline" : syncState.status === "error" ? "Sync-fejl" : "Lokal + cloud"}</em></div>
-        <div className="calendar-workspace-toolbar">
-          <div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div>
-          <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><input className="calendar-date-jump" type="date" value={selectedDate} onChange={(event) => { const next = new Date(`${event.target.value}T12:00:00`); if (Number.isNaN(next.getTime())) return; setSelectedDate(event.target.value); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} aria-label="Gå til dato" /><SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
-          <input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} />
-          <details className="calendar-more-menu"><summary><Icon name="more" size={16} /></summary><div><button type="button" onClick={() => setShowSduImport(true)}><Icon name="upload" size={14} />Importer SDU-skema</button><button type="button" onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />Importer iCal</button><button type="button" onClick={() => calendarDownloadICal(visibleEvents)}><Icon name="share" size={14} />Eksporter synlige</button><button type="button" onClick={enableNotifications}><Icon name="volume" size={14} />Aktivér påmindelser</button><button type="button" onClick={() => setShowTutorial(true)}><Icon name="sparkle" size={14} />Vis kalendertutorial</button><button type="button" onClick={createCalendarTestData}><Icon name="plus" size={14} />Opret testdata</button>{mergedEvents.some((event) => event.testEvent || event.source === "calendar-test") && <button type="button" onClick={removeCalendarTestData}><Icon name="trash" size={14} />Fjern testdata</button>}</div></details>
-          <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
-        </div>
-      </header>
-      <CalendarLayerControls preferences={calendarPreferences} setPreferences={setCalendarPreferences} search={search} setSearch={setSearch} moduleName={module} inputRef={searchInputRef} />
-      <div className="calendar-workspace-layout">
-        <main className="calendar-workspace-canvas" data-tour="calendar-timeline">
-          {view === "month" ? <MonthCalendar c={c} events={visibleEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setDayDate(new Date(`${key}T12:00:00`)); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setQuickEvent(event); }} onContextRequest={handleContextRequest} /> : <WeekCalendar c={c} events={visibleEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onResizeEvent={moveEvent} onSlotClick={newEvent} onEventClick={(event) => { setSelectedDate(event.date); setQuickEvent(event); }} onContextRequest={handleContextRequest} density={calendarPreferences.density || "compact"} viewportMode="workspace" />}
-        </main>
-        <aside className="calendar-workspace-sidebar">
-          <CalendarMiniMonth selectedDate={selectedDate} events={visibleEvents} locale={locale} onSelect={(key) => { const next = new Date(`${key}T12:00:00`); setSelectedDate(key); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} />
-          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setQuickEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name={event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || (event.allDay ? "Hele dagen" : "Ikke placeret")}{event.location ? ` · ${event.location}` : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
-          <section className="calendar-side-section"><button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>{showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: `${lecture.id} · ${lecture.title}`, date: selectedDate, endDate: selectedDate, time: "", endTime: "", type: "study", estimatedHours: null, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], source: "user", createdByUser: true, needsScheduling: true, recurrence: "none" })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}</section>
-          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setQuickEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name="check" size={12} /></span><span><strong>{event.title}</strong><small>{calendarFormatDateTime(event, locale)}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section>
-        </aside>
-      </div>
+      <header className="calendar-workspace-header"><div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module}</small></div></div><div className="calendar-workspace-toolbar"><div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div><button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton><input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} /><SecondaryButton onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />{t.calendarImportICal}</SecondaryButton><IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton></div></header>
+      {(importError || importSummary) && <div className="calendar-import-feedback" data-error={importError ? "true" : "false"}>{importError || `${importSummary.total} aktiviteter importeret · ${importSummary.recognized} forelæsninger genkendt`}</div>}
+      <div className="calendar-workspace-layout"><main className="calendar-workspace-canvas">{view === "month" ? <MonthCalendar c={c} events={mergedEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setDayDate(new Date(`${key}T12:00:00`)); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} onContextRequest={handleContextRequest} /> : <WeekCalendar c={c} events={mergedEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onSlotClick={newEvent} onEventClick={(event) => { setSelectedDate(event.date); setEditingEvent(event); }} onContextRequest={handleContextRequest} />}</main>
+        <aside className="calendar-workspace-sidebar"><section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(language === "da" ? "da-DK" : "en-GB", { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setEditingEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name={event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || "Ikke placeret"}{event.deliveryStatus === "held" ? " · Afholdt" : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
+          <section className="calendar-side-section"><button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>{showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: `${lecture.id} · ${lecture.title}`, date: selectedDate, time: "", endTime: "", type: "study", estimatedHours: null, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], createdByUser: true, needsScheduling: true })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}</section>
+          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setEditingEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name="check" size={12} /></span><span><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : " · Ikke placeret"}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section></aside></div>
       <CalendarContextMenu c={c} menu={contextMenu} items={contextItems()} onClose={() => setContextMenu(null)} />
-      {quickEvent && <CalendarEventPopover c={c} event={quickEvent} locale={locale} onClose={() => setQuickEvent(null)} onEdit={() => { setEditingEvent(quickEvent); setQuickEvent(null); }} onComplete={() => { toggleEventComplete(quickEvent); setQuickEvent(null); }} onOpenLecture={() => { openLecture(quickEvent); setQuickEvent(null); }} />}
       {editingEvent && <CalendarEventEditor c={c} t={t} language={language} event={editingEvent} moduleName={module} lectures={moduleLectures} allEvents={mergedEvents} exists={events.some((event) => event.id === editingEvent.id)} onChange={setEditingEvent} onSave={() => saveEvent(editingEvent)} onDelete={() => deleteEvent(editingEvent.id)} onClose={() => setEditingEvent(null)} />}
-      {showSduImport && <SduImportDialog c={c} moduleName={module} existingEvents={mergedEvents} onClose={() => setShowSduImport(false)} onImport={(selected, removed) => importCalendarEvents(selected, removed, "sdu")} />}
-      {icalPreview?.diff && <CalendarImportPreview c={c} title={`iCal · ${icalPreview.title}`} subtitle={`Kontrollér datoer, tider og titler før import${icalPreview.cancelledCount ? ` · ${icalPreview.cancelledCount} aflyst` : ""}`} diff={icalPreview.diff} onClose={() => setIcalPreview(null)} onConfirm={(selected, removed) => importCalendarEvents(selected, removed, "ical")} />}
-      {icalPreview?.error && <div className="calendar-import-overlay"><div className="calendar-sdu-dialog"><div className="ui-feedback" data-tone="error"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{icalPreview.error}</div></div><footer><PrimaryButton onClick={() => setIcalPreview(null)}>Luk</PrimaryButton></footer></div></div>}
-      {showTutorial && <CalendarTutorialOverlay c={c} onClose={() => setShowTutorial(false)} onCreateTestData={createCalendarTestData} />}
-      {undoState && <div className="calendar-undo-toast"><span>{undoState.label}</span><button type="button" onClick={undo}>Fortryd</button><button type="button" onClick={() => setUndoState(null)}>×</button></div>}
     </div>
   );
 }
-
 
 function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onStart, onCancel, onOpenLectureMenu, onResetAllProgress }) {
   const [groupFilter, setGroupFilter] = useState(null);
@@ -18576,27 +17628,32 @@ function StudyPlan({ c, language, user, setUser }) {
 }
 
 
-function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onMoveEvent, onContextRequest, onStartReview, density = "compact" }) {
-  const label = date.toLocaleDateString("da-DK", { weekday: "short" });
-  return (
-    <WeekCalendar
-      c={c}
-      events={events}
-      weekStart={date}
-      daysCount={1}
-      weekdayLabels={[label]}
-      onMoveEvent={onMoveEvent}
-      onResizeEvent={onMoveEvent}
-      onSlotClick={onSlotClick}
-      onEventClick={onEventClick}
-      onContextRequest={onContextRequest}
-      onStartReview={onStartReview}
-      density={density}
-      viewportMode="home"
-    />
-  );
+function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onMoveEvent, onContextRequest, onStartReview }) {
+  const startHour = 7, endHour = 21, hourHeight = 60;
+  const totalHeight = (endHour - startHour) * hourHeight;
+  const dateString = dateKey(date.getFullYear(), date.getMonth(), date.getDate());
+  const dragIdRef = useRef(null);
+  const gridRef = useRef(null);
+  const dayEvents = events.filter((event) => event.date === dateString);
+  const fsrsQueue = dayEvents.filter((event) => !event.time && !event.completedAt && event.source === "fsrs-review");
+  const unscheduled = dayEvents.filter((event) => !event.time && !event.completedAt && event.type !== "exam" && event.source !== "fsrs-review");
+  const palette = { exam: { color: "#c9822f", background: "rgba(201,130,47,.11)" }, study: { color: c.blue, background: c.blueSoft }, review: { color: c.green, background: c.greenSoft }, other: { color: c.secondary, background: c.soft } };
+  function toneFor(event) { return event.source === "fsrs-review" ? { color: "#7667d8", background: "rgba(118,103,216,.11)" } : (palette[event.type] || palette.other); }
+  function layoutDayEvents(items2) { const items = items2.filter((event) => event.time).map((event) => { const start = timeToMinutes(event.time); return { event, start, end: start + calendarDurationMinutes(event), lane: 0, laneCount: 1 }; }).sort((a, b) => a.start - b.start || b.end - a.end); const groups=[]; let active=[]; let activeEnd=-1; items.forEach((item)=>{ if(active.length&&item.start>=activeEnd){groups.push(active);active=[];activeEnd=-1;} active.push(item);activeEnd=Math.max(activeEnd,item.end);}); if(active.length)groups.push(active); groups.forEach((group)=>{const laneEnds=[];group.forEach((item)=>{let lane=laneEnds.findIndex((value)=>value<=item.start);if(lane<0)lane=laneEnds.length;laneEnds[lane]=item.end;item.lane=lane;});group.forEach((item)=>{item.laneCount=Math.max(1,laneEnds.length);});}); return items; }
+  const positionedEvents = layoutDayEvents(dayEvents);
+  function timeFromPointer(clientY) { if (!gridRef.current) return "07:00"; const rect=gridRef.current.getBoundingClientRect(); const relative=Math.max(0,Math.min(totalHeight-1,clientY-rect.top)); return minutesToTime(Math.round((startHour*60+(relative/hourHeight)*60)/15)*15); }
+  function dragButton(event, className) { return <button key={event.id} type="button" draggable className={className} onDragStart={(domEvent)=>{dragIdRef.current=event.id;domEvent.dataTransfer.setData("text/plain",event.id);}} onDragEnd={()=>{dragIdRef.current=null;}} onClick={()=>event.source==="fsrs-review"&&onStartReview?onStartReview(event):onEventClick(event)} onContextMenu={(domEvent)=>{domEvent.preventDefault();onContextRequest?.({kind:"unscheduled",event,date:dateString,x:domEvent.clientX,y:domEvent.clientY});}}><strong>{event.source === "fsrs-review" ? `${event.questionCount || event.questionIds?.length || 0}` : (event.lectureId || "•")}</strong><span>{event.title}</span></button>; }
+  const today=new Date(); const isToday=dateString===dateKey(today.getFullYear(),today.getMonth(),today.getDate()); const nowTop=(((today.getHours()*60+today.getMinutes())-startHour*60)/60)*hourHeight; const hourLines=Array.from({length:endHour-startHour+1},(_,index)=>({hour:startHour+index,top:index*hourHeight}));
+  return <div className="home-day-schedule" style={{"--home-hour-height":`${hourHeight}px`}}>
+    {fsrsQueue.length>0&&<div className="home-day-fsrs-queue"><div><span>Flashcard-repetition</span><strong>{fsrsQueue.reduce((sum,event)=>sum+(event.questionCount||event.questionIds?.length||0),0)} MCQ forfalder</strong><small>Træk en kø ned på tidslinjen eller start den nu.</small></div><div>{fsrsQueue.map((event)=><div key={event.id} className="home-day-fsrs-item">{dragButton(event,"home-day-fsrs-chip")}<button type="button" className="home-day-fsrs-start" onClick={()=>onStartReview?.(event)}>Start</button></div>)}</div></div>}
+    {unscheduled.length>0&&<div className="home-day-unscheduled"><span>Ikke placeret</span><div>{unscheduled.map((event)=>dragButton(event,""))}</div></div>}
+    <div className="home-day-times" style={{height:totalHeight}} aria-hidden="true">{hourLines.map(({hour,top})=><React.Fragment key={hour}><span className="home-day-gutter-line" style={{top}}/><span className="home-day-time" style={{top}}>{String(hour).padStart(2,"0")}:00</span></React.Fragment>)}</div>
+    <div ref={gridRef} className="home-day-grid" style={{height:totalHeight}} onClick={(event)=>{if(event.target.closest('.home-day-event'))return;onSlotClick(dateString,timeFromPointer(event.clientY));}} onContextMenu={(event)=>{if(event.target.closest('.home-day-event'))return;event.preventDefault();onContextRequest?.({kind:"slot",date:dateString,time:timeFromPointer(event.clientY),x:event.clientX,y:event.clientY});}} onDragOver={(event)=>event.preventDefault()} onDrop={(event)=>{event.preventDefault();const id=dragIdRef.current||event.dataTransfer.getData("text/plain");const source=events.find((item)=>item.id===id);if(!source)return;const time=timeFromPointer(event.clientY);const duration=calendarDurationMinutes(source);onMoveEvent({...source,date:dateString,time,endTime:minutesToTime((timeToMinutes(time)||0)+duration),estimatedHours:duration/60});dragIdRef.current=null;}}>
+      {hourLines.map(({hour,top})=><span key={`hour-${hour}`} className="home-day-hour-line" style={{top}}/>)}{Array.from({length:endHour-startHour},(_,index)=><span key={`half-${index}`} className="home-day-half-line" style={{top:index*hourHeight+hourHeight/2}}/>)}{isToday&&nowTop>=0&&nowTop<=totalHeight&&<div className="home-day-now-line" style={{top:nowTop}}/>}
+      {positionedEvents.map(({event,start,end,lane,laneCount})=>{const tone=toneFor(event);const top=((start-startHour*60)/60)*hourHeight;const height=Math.max(28,((end-start)/60)*hourHeight-2);if(top+height<0||top>totalHeight)return null;return <button key={event.id} type="button" draggable className="home-day-event" data-source={event.source||"other"} data-complete={event.completedAt?"true":"false"} data-conflict={events.some((other)=>calendarEventsConflict(event,other))?"true":"false"} onDragStart={(domEvent)=>{dragIdRef.current=event.id;domEvent.dataTransfer.effectAllowed="move";domEvent.dataTransfer.setData("text/plain",event.id);}} onDragEnd={()=>{dragIdRef.current=null;}} onClick={(domEvent)=>{domEvent.stopPropagation();event.source==="fsrs-review"&&onStartReview?onStartReview(event):onEventClick(event);}} onContextMenu={(domEvent)=>{domEvent.preventDefault();domEvent.stopPropagation();onContextRequest?.({kind:"event",event,date:dateString,x:domEvent.clientX,y:domEvent.clientY});}} style={{top:top+1,height,width:`calc(${100/laneCount}% - 10px)`,insetInlineStart:`calc(${lane*(100/laneCount)}% + 5px)`,"--home-event-accent":tone.color,"--home-event-surface":tone.background}} title={`${event.time}–${minutesToTime(end)} ${event.title}`}><span className="home-day-event-time">{event.time}–{minutesToTime(end)}</span><span className="home-day-event-title">{event.title}</span>{event.source==="fsrs-review"&&<small>Flashcards · {event.questionCount||event.questionIds?.length||0} kort</small>}{event.deliveryStatus==="held"&&<small>Afholdt</small>}</button>;})}
+    </div>
+  </div>;
 }
-
 
 function CalendarDailyPlanner({ c, language, todayEvents, missedEvents, onSaveToday, onResolveMissed, onDismiss }) {
   const copy = ({
@@ -18736,9 +17793,6 @@ function Dashboard({
   const [bottomTab, setBottomTab] = useState("activity");
   const [progressDetailsOpen, setProgressDetailsOpen] = useState(false);
   const [calendarContextMenu, setCalendarContextMenu] = useState(null);
-  const [dashboardQuickEvent, setDashboardQuickEvent] = useState(null);
-  const [calendarPreferences, setCalendarPreferences] = useStoredState(STORAGE.calendarPreferences, CALENDAR_DEFAULT_PREFERENCES);
-  const [calendarSearch, setCalendarSearch] = useState("");
 
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
   const direction = language === "ar" ? "rtl" : "ltr";
@@ -18749,7 +17803,6 @@ function Dashboard({
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const selectedKey = dateKey(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate());
   const mergedCalendarEvents = mergeCalendarEventMeta(calendarEvents, calendarEventMeta);
-  const visibleDashboardEvents = calendarFilterEvents(mergedCalendarEvents, calendarPreferences, currentModule, calendarSearch);
 
   const copy = ({
     da: {
@@ -19211,41 +18264,26 @@ function Dashboard({
   }
 
   function createEvent(date, time) {
-    const endFields = time ? calendarEndFields(date, timeToMinutes(time) || 0, 60) : { endDate: date, endTime: "" };
     setEditingPlanEvent({
       id: `event-${Date.now()}`,
       title: "",
       date,
-      ...endFields,
       time,
       type: "study",
       estimatedHours: 1,
-      source: "user",
-      recurrence: "none",
       __new: true,
     });
   }
 
   function saveEditingEvent() {
     if (!editingPlanEvent?.title?.trim() || !editingPlanEvent.date) return;
-    const cleanEvent = { ...editingPlanEvent, source: editingPlanEvent.source || "user", endDate: editingPlanEvent.endDate || editingPlanEvent.date };
+    const cleanEvent = { ...editingPlanEvent };
     delete cleanEvent.__new;
-    const isSingleOccurrence = Boolean(cleanEvent.recurrenceParentId);
-    const materialized = isSingleOccurrence ? [cleanEvent] : calendarMaterializeRecurrence(cleanEvent);
-    const parentId = cleanEvent.id;
-    setCalendarEvents((previous) => {
-      const retained = isSingleOccurrence
-        ? previous.filter((item) => item.id !== cleanEvent.id)
-        : previous.filter((item) => item.id !== parentId && item.recurrenceParentId !== parentId);
-      return [...retained, ...materialized.map((event) => { const metadata = calendarEventMetaFields(event); const base = { ...event }; Object.keys(metadata).forEach((key) => delete base[key]); return base; })];
-    });
-    setCalendarEventMeta((previous) => {
-      const next = { ...previous };
-      if (isSingleOccurrence) delete next[cleanEvent.id];
-      else Object.entries(next).forEach(([id, metadata]) => { if (id === parentId || metadata.recurrenceParentId === parentId) delete next[id]; });
-      materialized.forEach((event) => { next[event.id] = { ...(previous[event.id] || {}), ...calendarEventMetaFields(event), needsScheduling: !event.time && !event.allDay }; });
-      return next;
-    });
+    const metadata = calendarEventMetaFields(cleanEvent);
+    const base = { ...cleanEvent };
+    Object.keys(metadata).forEach((key) => delete base[key]);
+    setCalendarEvents((previous) => editingPlanEvent.__new ? [...previous, base] : previous.map((item) => item.id === base.id ? base : item));
+    setCalendarEventMeta((previous) => ({ ...previous, [cleanEvent.id]: { ...(previous[cleanEvent.id] || {}), ...metadata, needsScheduling: false } }));
     setEditingPlanEvent(null);
   }
 
@@ -19271,9 +18309,8 @@ function Dashboard({
     }
 
     if (!editingPlanEvent.__new) {
-      const parentId = editingPlanEvent.recurrenceMaster ? editingPlanEvent.id : null;
-      setCalendarEvents((previous) => previous.filter((item) => item.id !== editingPlanEvent.id && (!parentId || item.recurrenceParentId !== parentId)));
-      setCalendarEventMeta((previous) => { const next = { ...previous }; Object.entries(next).forEach(([id, metadata]) => { if (id === editingPlanEvent.id || (parentId && metadata.recurrenceParentId === parentId)) delete next[id]; }); return next; });
+      setCalendarEvents((previous) => previous.filter((item) => item.id !== editingPlanEvent.id));
+      setCalendarEventMeta((previous) => { const next = { ...previous }; delete next[editingPlanEvent.id]; return next; });
     }
     setEditingPlanEvent(null);
   }
@@ -19425,9 +18462,8 @@ function Dashboard({
   }
 
   function dashboardMoveEvent(updated) {
-    const metadata = { ...calendarEventMetaFields(updated), needsScheduling: !updated.time && !updated.allDay, status: updated.time || updated.allDay ? "planned" : "unscheduled" };
-    setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? { ...item, date: updated.date, time: updated.time, estimatedHours: updated.estimatedHours } : item));
-    setCalendarEventMeta((previous) => ({ ...previous, [updated.id]: { ...(previous[updated.id] || {}), ...metadata } }));
+    setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? { ...item, date: updated.date, time: updated.time, endTime: updated.endTime, estimatedHours: updated.estimatedHours } : item));
+    setCalendarEventMeta((previous) => ({ ...previous, [updated.id]: { ...(previous[updated.id] || {}), needsScheduling: !updated.time, status: updated.time ? "planned" : "unscheduled" } }));
   }
 
   function dashboardOpenLecture(event) {
@@ -19449,9 +18485,8 @@ function Dashboard({
   function dashboardDuplicateEvent(event) {
     const duration = calendarDurationMinutes(event);
     const start = timeToMinutes(event.time);
-    const shifted = start == null ? "" : minutesToTime((start + 15) % (24 * 60));
-    const endFields = shifted ? calendarEndFields(event.date, timeToMinutes(shifted) || 0, duration) : { endDate: event.date, endTime: "" };
-    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · kopi`, time: shifted, ...endFields, completedAt: null, createdByUser: true, source: "duplicate", recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
+    const shifted = start == null ? "" : minutesToTime(start + 15);
+    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · kopi`, time: shifted, endTime: shifted ? minutesToTime((timeToMinutes(shifted) || 0) + duration) : "", completedAt: null, createdByUser: true, source: "duplicate" });
   }
 
   function dashboardSplitEvent(event) {
@@ -19459,15 +18494,9 @@ function Dashboard({
     const duration = calendarDurationMinutes(event);
     if (start == null || duration < 60) return;
     const firstDuration = Math.max(30, Math.round(duration / 2 / 15) * 15);
-    const secondStartAbsolute = start + firstDuration;
-    const firstEnd = calendarEndFields(event.date, start, firstDuration);
-    const secondDateObject = addDays(new Date(`${event.date}T12:00:00`), Math.floor(secondStartAbsolute / (24 * 60)));
-    const secondDate = dateKey(secondDateObject.getFullYear(), secondDateObject.getMonth(), secondDateObject.getDate());
-    const secondStart = secondStartAbsolute % (24 * 60);
-    const secondEnd = calendarEndFields(secondDate, secondStart, duration - firstDuration);
-    setCalendarEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, estimatedHours: firstDuration / 60 } : item));
-    setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...firstEnd } }));
-    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · del 2`, date: secondDate, time: minutesToTime(secondStart), ...secondEnd, estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null, createdByUser: true, recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
+    const secondStart = start + firstDuration;
+    setCalendarEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, endTime: minutesToTime(secondStart), estimatedHours: firstDuration / 60 } : item));
+    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · del 2`, time: minutesToTime(secondStart), endTime: minutesToTime(start + duration), estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null, createdByUser: true });
   }
 
   function dashboardDeleteEvent(event) {
@@ -19477,9 +18506,8 @@ function Dashboard({
       setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...calendarEventMetaFields(queued) } }));
       return;
     }
-    const parentId = event.recurrenceMaster ? event.id : null;
-    setCalendarEvents((previous) => previous.filter((item) => item.id !== event.id && (!parentId || item.recurrenceParentId !== parentId)));
-    setCalendarEventMeta((previous) => { const next = { ...previous }; Object.entries(next).forEach(([id, metadata]) => { if (id === event.id || (parentId && metadata.recurrenceParentId === parentId)) delete next[id]; }); return next; });
+    setCalendarEvents((previous) => previous.filter((item) => item.id !== event.id));
+    setCalendarEventMeta((previous) => { const next = { ...previous }; delete next[event.id]; return next; });
   }
 
   function dashboardContextItems() {
@@ -19489,8 +18517,8 @@ function Dashboard({
       const unscheduled = mergedCalendarEvents.find((event) => event.date === calendarContextMenu.date && !event.time && !event.completedAt && event.type !== "exam");
       return [
         { id: "new", label: labels.create, icon: "plus", action: () => createEvent(calendarContextMenu.date, calendarContextMenu.time) },
-        unscheduled && { id: "place", label: labels.placeLecture, icon: "book", action: () => { const duration = calendarDurationMinutes(unscheduled); dashboardMoveEvent({ ...unscheduled, time: calendarContextMenu.time, ...calendarEndFields(calendarContextMenu.date, timeToMinutes(calendarContextMenu.time) || 0, duration), estimatedHours: duration / 60 }); } },
-        { id: "review", label: labels.createReview, icon: "reset", action: () => setEditingPlanEvent({ id: `event-${Date.now()}`, title: "Repetition", date: calendarContextMenu.date, time: calendarContextMenu.time, ...calendarEndFields(calendarContextMenu.date, timeToMinutes(calendarContextMenu.time) || 0, 45), type: "review", estimatedHours: .75, __new: true }) },
+        unscheduled && { id: "place", label: labels.placeLecture, icon: "book", action: () => { const duration = calendarDurationMinutes(unscheduled); dashboardMoveEvent({ ...unscheduled, time: calendarContextMenu.time, endTime: minutesToTime((timeToMinutes(calendarContextMenu.time) || 0) + duration), estimatedHours: duration / 60 }); } },
+        { id: "review", label: labels.createReview, icon: "reset", action: () => setEditingPlanEvent({ id: `event-${Date.now()}`, title: "Repetition", date: calendarContextMenu.date, time: calendarContextMenu.time, endTime: minutesToTime((timeToMinutes(calendarContextMenu.time) || 0) + 45), type: "review", estimatedHours: .75, __new: true }) },
       ];
     }
     const event = calendarContextMenu.event;
@@ -19509,10 +18537,8 @@ function Dashboard({
     return [
       { id: "edit", label: labels.edit, icon: "edit", action: () => setEditingPlanEvent(event) },
       { id: "complete", label: event.completedAt ? labels.incomplete : labels.complete, icon: "check", action: () => togglePlanEventComplete(event) },
-      { id: "today", label: labels.today, icon: "calendar", action: () => dashboardMoveEvent(calendarShiftEventDate(event, todayKey)) },
-      { id: "tomorrow", label: labels.tomorrow, icon: "right", action: () => dashboardMoveEvent(calendarShiftEventDate(event, tomorrowKey2)) },
-      { id: "previous-week", label: labels.previousWeek, icon: "left", action: () => { const target = addDays(new Date(`${event.date}T12:00:00`), -7); dashboardMoveEvent(calendarShiftEventDate(event, dateKey(target.getFullYear(), target.getMonth(), target.getDate()))); } },
-      { id: "next-week", label: labels.nextWeek, icon: "right", action: () => { const target = addDays(new Date(`${event.date}T12:00:00`), 7); dashboardMoveEvent(calendarShiftEventDate(event, dateKey(target.getFullYear(), target.getMonth(), target.getDate()))); } },
+      { id: "today", label: labels.today, icon: "calendar", action: () => dashboardMoveEvent({ ...event, date: todayKey }) },
+      { id: "tomorrow", label: labels.tomorrow, icon: "right", action: () => dashboardMoveEvent({ ...event, date: tomorrowKey2 }) },
       { separator: true },
       { id: "duplicate", label: labels.duplicate, icon: "plus", action: () => dashboardDuplicateEvent(event) },
       { id: "split", label: labels.split, icon: "cards", disabled: !event.time || calendarDurationMinutes(event) < 60, action: () => dashboardSplitEvent(event) },
@@ -19641,7 +18667,7 @@ function Dashboard({
         <div className="home-v2-calendar-area">
           <div className="home-v2-panel-header">
             <div>
-              <div className="home-v2-panel-title">{t.calendarTitle}</div>
+              <div className="home-v2-panel-title">{copy.studyPlan}</div>
               <div className="home-v2-calendar-nav">
                 <button type="button" className="home-v2-mini-button" aria-label={t.previous} onClick={() => shiftCalendar(-1)}><Icon name="left" size={13} /></button>
                 <button type="button" className="home-v2-mini-button" aria-label={t.next} onClick={() => shiftCalendar(1)}><Icon name="right" size={13} /></button>
@@ -19660,45 +18686,41 @@ function Dashboard({
             </div>
           </div>
 
-          <CalendarLayerControls preferences={calendarPreferences} setPreferences={setCalendarPreferences} search={calendarSearch} setSearch={setCalendarSearch} moduleName={currentModule} />
           <div className="home-v2-calendar-canvas">
             {calendarView === "day" ? (
               <HomeDaySchedule
                 c={c}
                 date={calendarDate}
-                events={visibleDashboardEvents}
-                onEventClick={setDashboardQuickEvent}
+                events={mergedCalendarEvents}
+                onEventClick={setEditingPlanEvent}
                 onSlotClick={createEvent}
                 onMoveEvent={dashboardMoveEvent}
                 onContextRequest={setCalendarContextMenu}
                 onStartReview={onStartFsrsReview}
-                density={calendarPreferences.density || "compact"}
               />
             ) : calendarView === "week" ? (
               <WeekCalendar
                 c={c}
-                events={visibleDashboardEvents}
+                events={mergedCalendarEvents}
                 weekStart={startOfWeek(calendarDate)}
                 daysCount={7}
                 weekdayLabels={weekdayLabels}
                 onMoveEvent={dashboardMoveEvent}
                 onSlotClick={createEvent}
-                onEventClick={setDashboardQuickEvent}
+                onEventClick={setEditingPlanEvent}
                 onContextRequest={setCalendarContextMenu}
-                density={calendarPreferences.density || "compact"}
-                onStartReview={onStartFsrsReview}
               />
             ) : (
               <MonthCalendar
                 c={c}
-                events={visibleDashboardEvents}
+                events={mergedCalendarEvents}
                 monthDate={calendarDate}
                 weekdayLabels={weekdayLabels}
                 onDayClick={(key) => {
                   setCalendarDate(new Date(`${key}T12:00:00`));
                   setCalendarView("day");
                 }}
-                onEventClick={setDashboardQuickEvent}
+                onEventClick={setEditingPlanEvent}
                 onContextRequest={setCalendarContextMenu}
               />
             )}
@@ -19839,18 +18861,6 @@ function Dashboard({
       )}
 
       <CalendarContextMenu c={c} menu={calendarContextMenu} items={dashboardContextItems()} onClose={() => setCalendarContextMenu(null)} />
-
-      {dashboardQuickEvent && (
-        <CalendarEventPopover
-          c={c}
-          event={dashboardQuickEvent}
-          locale={locale}
-          onClose={() => setDashboardQuickEvent(null)}
-          onEdit={() => { setEditingPlanEvent(dashboardQuickEvent); setDashboardQuickEvent(null); }}
-          onComplete={() => { togglePlanEventComplete(dashboardQuickEvent); setDashboardQuickEvent(null); }}
-          onOpenLecture={() => { if (dashboardQuickEvent.lectureId) onOpenWorkspace?.("lectures"); setDashboardQuickEvent(null); }}
-        />
-      )}
 
       {editingPlanEvent && (
         <CalendarEventEditor
@@ -31893,7 +30903,6 @@ useEffect(() => {
       }}
     >
       <GlobalStyles c={c} />
-      <CalendarReminderManager events={shellMergedEvents} />
       {theme === "light" && <div className="app-blue-hue" aria-hidden="true" />}
       {theme === "dark" && <div className="app-blue-hue-dark" aria-hidden="true" />}
 
