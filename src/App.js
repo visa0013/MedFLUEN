@@ -11729,7 +11729,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 4.4.7 — CALENDAR + STUDY PLAN POLISH ON APP(6).JS
+   SEGMENT 4.4.8 — CALENDAR + STUDY PLAN POLISH ON APP (3).JS
    ============================================================ */
 .calendar-week-scroll { --calendar-gutter-width: 74px; }
 .calendar-week-sticky-head {
@@ -18798,7 +18798,7 @@ function StudyPlan({ c, language, user, setUser }) {
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Segment 4.4.7 · studieplan</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header"><div><span>Segment 4.4.8 · studieplan</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
         <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
