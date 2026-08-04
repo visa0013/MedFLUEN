@@ -1705,9 +1705,16 @@ function WeekCalendar({
   const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = (nowMinutes / 60) * hourHeight;
-  const visibleDayEvents = dateStrings.map((key) => calendarEventsForDate(events, key));
-  const hasAllDayEvents = visibleDayEvents.some((dayEvents) => dayEvents.some((event) => event.allDay));
-  const hasUnscheduledEvents = visibleDayEvents.some((dayEvents) => dayEvents.some((event) => !event.time && !event.allDay && !event.completedAt && event.type !== "exam"));
+  const hasVisibleAllDayEvents = dateStrings.some((key) =>
+    calendarEventsForDate(events, key).some((event) => event.allDay)
+  );
+  const hasVisibleUnscheduledEvents = dateStrings.some((key) =>
+    calendarEventsForDate(events, key).some(
+      (event) => !event.time && !event.allDay && !event.completedAt && event.type !== "exam"
+    )
+  );
+  const showAllDayRow = viewportMode !== "home" || hasVisibleAllDayEvents;
+  const showUnscheduledRow = viewportMode !== "home" || hasVisibleUnscheduledEvents;
 
   useEffect(() => {
     const targetMinutes = calendarScrollTargetMinutes(events, dateStrings, new Date());
@@ -1925,28 +1932,28 @@ function WeekCalendar({
           })}
         </div>
 
-        {hasAllDayEvents && <div className="calendar-week-all-day-grid">
+        {showAllDayRow && <div className="calendar-week-all-day-grid">
           <div className="calendar-week-gutter calendar-week-row-label">Hele dagen</div>
           {days.map((day, index) => {
             const key = dateStrings[index];
-            const allDay = visibleDayEvents[index].filter((event) => event.allDay);
+            const allDay = calendarEventsForDate(events, key).filter((event) => event.allDay);
             return (
               <div key={key} className="calendar-week-all-day-cell" data-empty={!allDay.length ? "true" : "false"}>
                 {allDay.length ? allDay.slice(0, 4).map((event) => {
                   const tone = calendarActivityTone(c, event);
                   return <button key={`${event.id}-${key}`} type="button" className="calendar-week-all-day-chip" data-selected={selectedEventId === event.id ? "true" : "false"} style={{ "--calendar-event-accent": tone.color, "--calendar-event-surface": tone.background }} onClick={() => activateEvent(event)} title={event.title}>{event.title}</button>;
-                }) : null}
+                }) : <span className="calendar-week-unscheduled-empty">—</span>}
                 {allDay.length > 4 && <small>+{allDay.length - 4}</small>}
               </div>
             );
           })}
         </div>}
 
-        {hasUnscheduledEvents && <div className="calendar-week-unscheduled-grid">
+        {showUnscheduledRow && <div className="calendar-week-unscheduled-grid">
           <div className="calendar-week-gutter calendar-week-unscheduled-label">Ikke placeret</div>
           {days.map((day, index) => {
             const key = dateStrings[index];
-            const unscheduled = visibleDayEvents[index].filter((event) => !event.time && !event.allDay && !event.completedAt && event.type !== "exam");
+            const unscheduled = calendarEventsForDate(events, key).filter((event) => !event.time && !event.allDay && !event.completedAt && event.type !== "exam");
             return (
               <div key={key} className="calendar-week-unscheduled-cell" data-empty={!unscheduled.length ? "true" : "false"}>
                 {unscheduled.length ? unscheduled.map((event) => (
@@ -1967,7 +1974,7 @@ function WeekCalendar({
                   >
                     <span>{event.source === "fsrs-review" ? (event.questionCount || "R") : (event.lectureId || "•")}</span><strong>{event.title}</strong>
                   </button>
-                )) : null}
+                )) : <span className="calendar-week-unscheduled-empty">—</span>}
               </div>
             );
           })}
@@ -12034,44 +12041,14 @@ select.ui-control {
   .study-plan-v4-header-tools { width: 100%; justify-content: flex-start; }
 }
 
-/* ============================================================
-   SEGMENT 4.4.10 — COMPACT HOME HEADER + FULL-HEIGHT GRID
-   ============================================================ */
-@media (min-width: 1121px) {
-  .home-v2-workspace { align-items: stretch !important; }
-  .home-v2-calendar-area {
-    height: 100% !important;
-    min-height: 0 !important;
-    align-self: stretch !important;
-  }
-  .home-v2-calendar-canvas {
-    flex: 1 1 0 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-  }
-}
-.calendar-week-shell[data-viewport="home"] .calendar-week-header {
-  min-height: 58px !important;
-}
-.calendar-week-shell[data-viewport="home"] .calendar-week-day-header {
-  padding-block: 5px !important;
-}
-.calendar-week-shell[data-viewport="home"] .calendar-week-head-scroll {
-  flex: 0 0 auto;
-}
-.calendar-week-shell[data-viewport="home"] .calendar-week-scroll {
-  flex: 1 1 0 !important;
-  min-height: 0 !important;
-}
-@media (max-width: 1120px) {
-  .home-v2-calendar-area { height: auto !important; }
-  .home-v2-calendar-canvas {
-    flex: none !important;
-    height: var(--calendar-grid-viewport-height) !important;
-    min-height: var(--calendar-grid-viewport-height) !important;
-    max-height: var(--calendar-grid-viewport-height) !important;
-  }
+/* Segment 4.4.11 — kun de to aftalte Hjem-kalenderrettelser. */
+.home-v2-workspace { align-items: stretch !important; }
+.home-v2-calendar-area { height: 100% !important; align-self: stretch !important; }
+.home-v2-calendar-canvas {
+  flex: 1 1 auto !important;
+  height: auto !important;
+  min-height: var(--calendar-grid-viewport-height) !important;
+  max-height: none !important;
 }
 
     `}
