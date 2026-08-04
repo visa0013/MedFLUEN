@@ -1529,10 +1529,17 @@ function calendarImportDiff(incoming, existing) {
 }
 
 function calendarScrollTargetMinutes(events, dateStrings, now = new Date()) {
+  const scheduledMinutes = dateStrings.flatMap((dateString) =>
+    calendarEventsForDate(events, dateString)
+      .filter((event) => event.time && !event.allDay)
+      .map((event) => timeToMinutes(event.time))
+      .filter((value) => value != null)
+  );
+  if (scheduledMinutes.length) return Math.max(0, Math.min(...scheduledMinutes));
   const todayString = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
-  if (dateStrings.includes(todayString)) return Math.max(0, now.getHours() * 60 + now.getMinutes() - 90);
-  const times = (events || []).filter((event) => dateStrings.includes(event.date) && event.time).map((event) => timeToMinutes(event.time)).filter((value) => value != null);
-  return times.length ? Math.max(0, Math.min(...times) - 60) : 7 * 60;
+  return dateStrings.includes(todayString)
+    ? Math.max(0, now.getHours() * 60 + now.getMinutes() - 90)
+    : 7 * 60;
 }
 
 function calendarFormatDateTime(event, locale = "da-DK") {
@@ -1684,6 +1691,7 @@ function WeekCalendar({
   const [resizePreview, setResizePreview] = useState(null);
   const [createPreview, setCreatePreview] = useState(null);
   const scrollRef = useRef(null);
+  const headScrollRef = useRef(null);
   const scrollSaveTimerRef = useRef(null);
   const touchMovedRef = useRef(null);
   const createDragRef = useRef(null);
@@ -1699,18 +1707,23 @@ function WeekCalendar({
   const nowTop = (nowMinutes / 60) * hourHeight;
 
   useEffect(() => {
-    const stored = Number(sessionStorage.getItem(scrollStorageKey));
     const targetMinutes = calendarScrollTargetMinutes(events, dateStrings, new Date());
     const frame = window.requestAnimationFrame(() => {
       if (!scrollRef.current) return;
-      scrollRef.current.scrollTop = Number.isFinite(stored) && stored >= 0 ? stored : Math.max(0, (targetMinutes / 60) * hourHeight);
+      scrollRef.current.scrollTop = Math.max(0, (targetMinutes / 60) * hourHeight);
+      scrollRef.current.scrollLeft = 0;
+      if (headScrollRef.current) headScrollRef.current.scrollLeft = 0;
+      sessionStorage.setItem(scrollStorageKey, String(scrollRef.current.scrollTop));
     });
     return () => window.cancelAnimationFrame(frame);
+    // Start at the first scheduled event only when the visible date range/view changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekStart?.getTime?.(), daysCount, density, scrollStorageKey]);
 
   function rememberScrollPosition(domEvent) {
     window.clearTimeout(scrollSaveTimerRef.current);
     const top = domEvent.currentTarget.scrollTop;
+    if (headScrollRef.current) headScrollRef.current.scrollLeft = domEvent.currentTarget.scrollLeft;
     scrollSaveTimerRef.current = window.setTimeout(() => sessionStorage.setItem(scrollStorageKey, String(top)), 120);
   }
 
@@ -1886,14 +1899,13 @@ function WeekCalendar({
 
   return (
     <div
-      ref={scrollRef}
-      className="calendar-week-scroll"
+      className="calendar-week-shell"
       data-viewport={viewportMode}
       data-density={density}
-      onScroll={rememberScrollPosition}
       style={{ "--calendar-days": daysCount, "--calendar-hour-height": `${hourHeight}px` }}
     >
-      <div className="calendar-week-sticky-head">
+      <div ref={headScrollRef} className="calendar-week-head-scroll">
+        <div className="calendar-week-sticky-head">
         <div className="calendar-week-header">
           <div className="calendar-week-gutter calendar-week-gutter--header" aria-hidden="true" />
           {days.map((day, index) => {
@@ -1958,7 +1970,13 @@ function WeekCalendar({
           })}
         </div>
       </div>
+      </div>
 
+      <div
+        ref={scrollRef}
+        className="calendar-week-scroll"
+        onScroll={rememberScrollPosition}
+      >
       <div className="calendar-week-body" role="grid" aria-label={daysCount === 1 ? "Dagskalender" : "Ugekalender"} style={{ height: totalHeight }}>
         <div className="calendar-week-gutter calendar-week-time-gutter">
           {Array.from({ length: 25 }, (_, index) => (
@@ -2060,6 +2078,7 @@ function WeekCalendar({
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );
@@ -11873,6 +11892,145 @@ select.ui-control {
   .calendar-week-event, .calendar-week-all-day-chip, .calendar-week-unscheduled-chip { transition: none !important; }
 }
 
+/* ============================================================
+   SEGMENT 4.4.9 — CALENDAR VIEWPORT + PROGRESS REFINEMENT
+   ============================================================ */
+.home-v2-calendar-area,
+.calendar-workspace { --calendar-grid-viewport-height: clamp(420px, 52vh, 500px); }
+.home-v2-workspace { min-height: 0 !important; align-items: start !important; }
+.home-v2-calendar-area { height: auto !important; align-self: start; }
+.home-v2-calendar-canvas,
+.calendar-workspace-canvas {
+  height: var(--calendar-grid-viewport-height) !important;
+  min-height: var(--calendar-grid-viewport-height) !important;
+  max-height: var(--calendar-grid-viewport-height) !important;
+  overflow: hidden !important;
+}
+.calendar-workspace-layout { align-items: start; }
+.calendar-workspace-sidebar { max-height: var(--calendar-grid-viewport-height); }
+.home-v2-calendar-canvas > .calendar-week-shell,
+.calendar-workspace-canvas > .calendar-week-shell,
+.home-v2-calendar-canvas > .calendar-month-root,
+.calendar-workspace-canvas > .calendar-month-root { height: 100% !important; min-height: 0 !important; }
+
+.calendar-week-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--ui-panel);
+}
+.calendar-week-head-scroll {
+  position: relative;
+  z-index: 600;
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: var(--ui-panel);
+  border-bottom: 1px solid var(--ui-border-strong);
+  box-shadow: 0 7px 20px rgba(20,30,48,.11);
+}
+.calendar-week-sticky-head {
+  position: relative !important;
+  inset-block-start: auto !important;
+  z-index: 1 !important;
+  box-shadow: none !important;
+}
+.calendar-week-scroll,
+.calendar-month-root,
+.calendar-workspace-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb,var(--ui-border-strong) 88%,var(--ui-secondary)) var(--ui-soft);
+}
+.calendar-week-scroll {
+  flex: 1 1 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  scrollbar-gutter: stable;
+}
+.calendar-week-scroll::-webkit-scrollbar,
+.calendar-month-root::-webkit-scrollbar,
+.calendar-workspace-sidebar::-webkit-scrollbar { width: 10px; height: 10px; }
+.calendar-week-scroll::-webkit-scrollbar-track,
+.calendar-month-root::-webkit-scrollbar-track,
+.calendar-workspace-sidebar::-webkit-scrollbar-track {
+  background: var(--ui-soft);
+  border-inline-start: 1px solid var(--ui-border);
+}
+.calendar-week-scroll::-webkit-scrollbar-thumb,
+.calendar-month-root::-webkit-scrollbar-thumb,
+.calendar-workspace-sidebar::-webkit-scrollbar-thumb {
+  min-height: 34px;
+  border: 2px solid var(--ui-soft);
+  border-radius: 999px;
+  background: color-mix(in srgb,var(--ui-border-strong) 80%,var(--ui-secondary));
+}
+.calendar-week-scroll::-webkit-scrollbar-thumb:hover,
+.calendar-month-root::-webkit-scrollbar-thumb:hover,
+.calendar-workspace-sidebar::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb,var(--ui-blue) 52%,var(--ui-border-strong));
+}
+.calendar-week-all-day-cell,
+.calendar-week-unscheduled-cell { scrollbar-width: none; }
+.calendar-week-all-day-cell::-webkit-scrollbar,
+.calendar-week-unscheduled-cell::-webkit-scrollbar { display: none; }
+
+.home-v2-lecture-counter { padding: 10px 11px !important; }
+.home-v2-lecture-counter .home-v2-rail-title { min-height: 18px; font-size: 9px; }
+.home-v2-counter-focus {
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 2px 8px;
+  margin: 5px 0 6px;
+  padding: 6px 8px;
+}
+.home-v2-counter-focus small { font-size: 7.5px; }
+.home-v2-counter-focus strong { grid-row: 1 / 3; grid-column: 2; font-size: 17px; }
+.home-v2-counter-focus strong span { font-size: 9px; }
+.home-v2-counter-focus em { font-size: 6.8px; }
+.home-v2-progress-metric { margin-top: 3px; padding: 4px 5px; }
+.home-v2-progress-row { font-size: 7.5px; }
+.home-v2-progress-track { height: 4px !important; margin-top: 4px !important; }
+
+.study-plan-v4-header-tools { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+.study-plan-v4-progress-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+  background: var(--ui-soft);
+}
+.study-plan-v4-progress-toggle button {
+  min-width: 88px;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-secondary);
+}
+.study-plan-v4-progress-toggle button[data-active="true"] { background: var(--ui-panel); color: var(--ui-blue); box-shadow: var(--ui-shadow-sm); }
+.study-plan-v4-progress-toggle span { font-size: 8px; font-weight: 800; }
+.study-plan-v4-progress-toggle strong { font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 840px) {
+  .home-v2-calendar-area,
+  .calendar-workspace { --calendar-grid-viewport-height: 430px; }
+  .calendar-workspace-sidebar { max-height: none; }
+  .study-plan-v4-header { align-items: flex-start; }
+  .study-plan-v4-header-tools { width: 100%; justify-content: flex-start; }
+}
+
     `}
 </style>
   );
@@ -14290,6 +14448,18 @@ function calendarStudyPlanLectureId(moduleName, lectureId) {
   return `studyplan-${moduleName}-lecture-${lectureId}`;
 }
 
+function calendarIsStudyPlanObjectForModule(event, metadata, moduleName) {
+  const merged = { ...(event || {}), ...(metadata || {}) };
+  const id = String(event?.id || metadata?.id || "");
+  const belongsToModule = merged.planModuleId === moduleName || id.startsWith(`studyplan-${moduleName}`);
+  if (!belongsToModule) return false;
+  return Boolean(
+    merged.source === "study-plan" ||
+    id.startsWith(`studyplan-${moduleName}`) ||
+    ["lecture", "consolidation", "exam", "targeted", "buffer"].includes(merged.phase)
+  );
+}
+
 function calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existingEvent = null }) {
   return {
     id: existingEvent?.id || calendarStudyPlanLectureId(moduleName, lecture.id),
@@ -15138,7 +15308,11 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
 
   useEffect(() => {
     const plan = plans[module];
-    if (!plan || plan.calendarEnabled === false) return;
+    if (!plan || plan.calendarEnabled === false) {
+      setEvents((previous) => previous.filter((event) => !calendarIsStudyPlanObjectForModule(event, eventMeta[event.id], module)));
+      setEventMeta((previous) => Object.fromEntries(Object.entries(previous).filter(([id, metadata]) => !calendarIsStudyPlanObjectForModule({ id }, metadata, module))));
+      return;
+    }
     const questionTotal = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === module).length;
     const bundle = buildStudyPlanCalendarBundle({ moduleName: module, plan, lectures: moduleLectures, questionTotal });
     if (!bundle.events.length) return;
@@ -15157,7 +15331,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
       return next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [module]);
+  }, [module, plans[module]?.updatedAt, plans[module]?.calendarEnabled]);
 
   useEffect(() => {
     const held = mergedEvents.filter((event) => event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
@@ -18185,8 +18359,9 @@ function WorkloadVisualizer({ c, copy, hoursPerDay, estimatedMinutes, capacityMi
 function StudyPlan({ c, language, user, setUser }) {
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
-  const [, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
-  const [, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
+  const [calendarEvents] = useStoredState(STORAGE.calendarEvents, []);
+  const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
   const [, setCalendarDailyPlanner] = useStoredState(STORAGE.calendarDailyPlanner, {});
   const [fsrsSettings, setFsrsSettings] = useStoredState(STORAGE.fsrsSettings, FSRS_DEFAULT_SETTINGS);
   const moduleName = user?.module || "";
@@ -18203,6 +18378,7 @@ function StudyPlan({ c, language, user, setUser }) {
   const [savedNotice, setSavedNotice] = useState("");
   const [confirmClearCalendar, setConfirmClearCalendar] = useState(false);
   const [confirmResetPlan, setConfirmResetPlan] = useState(false);
+  const [planProgressMode, setPlanProgressMode] = useState("held");
   const [lectureContext, setLectureContext] = useState(null);
   const [draft, setDraft] = useState(() => ({
     version: 4,
@@ -18251,6 +18427,21 @@ function StudyPlan({ c, language, user, setUser }) {
   const availableStudyDays = Object.values(draft.weekdayHours || {}).filter((value) => Number(value) > 0).length;
   const selectedLectureCount = draft.includedLectureIds.length;
   const pendingLectureCount = draft.includedLectureIds.filter((id) => !draft.doneLectureIds.includes(id)).length;
+  const mergedStudyPlanEvents = mergeCalendarEventMeta(calendarEvents, calendarEventMeta);
+  const includedLectureIdSet = new Set(draft.includedLectureIds || []);
+  const heldPlanLectureCount = lectures.filter((lecture) =>
+    includedLectureIdSet.has(lecture.id) &&
+    calendarLectureScheduleStatus(moduleName, lecture.id, mergedStudyPlanEvents).held
+  ).length;
+  const practicedPlanLectureCount = lectures.filter((lecture) =>
+    includedLectureIdSet.has(lecture.id) &&
+    (draft.doneLectureIds.includes(lecture.id) || lectureProgress[`${moduleName}:${lecture.id}`]?.viewed)
+  ).length;
+  const planProgressLabels = language === "en"
+    ? { held: "Held", practiced: "Practised", hint: "Switch progress view" }
+    : language === "ar"
+      ? { held: "تم تقديمها", practiced: "تمت ممارستها", hint: "تبديل عرض التقدم" }
+      : { held: "Afholdte", practiced: "Øvede", hint: "Skift progressionsvisning" };
   const selectedLectureMinutes = lectures
     .filter((lecture) => draft.includedLectureIds.includes(lecture.id) && !draft.doneLectureIds.includes(lecture.id))
     .reduce((sum, lecture) => sum + studyPlanLectureMinutes(lecture, draft.difficulty?.[lecture.id] || "normal"), 0);
@@ -18659,26 +18850,47 @@ function StudyPlan({ c, language, user, setUser }) {
   function removeStudyPlanCalendarObjects() {
     const storedEvents = loadStorage(STORAGE.calendarEvents, []);
     const storedMeta = loadStorage(STORAGE.calendarEventMeta, {});
-    const isCurrentPlanEvent = (event) => event.planModuleId === moduleName && (event.source === "study-plan" || String(event.id || "").startsWith(`studyplan-${moduleName}`));
-    const removedIds = new Set(storedEvents.filter(isCurrentPlanEvent).map((event) => event.id));
-    const events = storedEvents.filter((event) => !isCurrentPlanEvent(event));
-    const meta = Object.fromEntries(Object.entries(storedMeta).filter(([id, value]) => !removedIds.has(id) && !(value?.planModuleId === moduleName && value?.source === "study-plan") && !String(id).startsWith(`studyplan-${moduleName}`)));
+    const removedIds = new Set(
+      storedEvents
+        .filter((event) => calendarIsStudyPlanObjectForModule(event, storedMeta[event.id], moduleName))
+        .map((event) => event.id)
+    );
+    const events = storedEvents.filter((event) => !removedIds.has(event.id));
+    const meta = Object.fromEntries(
+      Object.entries(storedMeta).filter(([id, value]) =>
+        !removedIds.has(id) &&
+        !calendarIsStudyPlanObjectForModule({ id }, value, moduleName)
+      )
+    );
     localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(events));
     localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(meta));
     setCalendarEventMeta(meta);
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEvents } }));
     window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarEventMeta } }));
+    return removedIds.size;
   }
 
   function clearStudyPlanCalendar() {
-    removeStudyPlanCalendarObjects();
-    setPlans((previous) => {
-      const plan = previous[moduleName];
-      if (!plan) return previous;
-      return { ...previous, [moduleName]: { ...plan, calendarEnabled: false, calendarClearedAt: Date.now(), updatedAt: Date.now() } };
-    });
+    const previousPlans = loadStorage(STORAGE.studyPlans, plans || {});
+    const currentPlan = previousPlans[moduleName];
+    const nextPlans = currentPlan
+      ? {
+          ...previousPlans,
+          [moduleName]: {
+            ...currentPlan,
+            calendarEnabled: false,
+            calendarClearedAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+        }
+      : previousPlans;
+    localStorage.setItem(STORAGE.studyPlans, JSON.stringify(nextPlans));
+    setPlans(nextPlans);
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.studyPlans } }));
+    const removedCount = removeStudyPlanCalendarObjects();
+    window.setTimeout(removeStudyPlanCalendarObjects, 80);
     setConfirmClearCalendar(false);
-    setSavedNotice("Studieplanskalenderen er ryddet. Planen og din forelæsningsprogression er bevaret.");
+    setSavedNotice(`${removedCount} studieplansaktiviteter er fjernet. Planen og din forelæsningsprogression er bevaret.`);
     window.setTimeout(() => setSavedNotice(""), 4200);
   }
 
@@ -18798,7 +19010,16 @@ function StudyPlan({ c, language, user, setUser }) {
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Segment 4.4.8 · studieplan</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header">
+        <div><span>Segment 4.4.9 · studieplan</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>
+        {existing && <div className="study-plan-v4-header-tools">
+          <div className="study-plan-v4-progress-toggle" role="group" aria-label={planProgressLabels.hint}>
+            <button type="button" data-active={planProgressMode === "held" ? "true" : "false"} onClick={() => setPlanProgressMode("held")}><span>{planProgressLabels.held}</span><strong>{heldPlanLectureCount}/{selectedLectureCount}</strong></button>
+            <button type="button" data-active={planProgressMode === "practiced" ? "true" : "false"} onClick={() => setPlanProgressMode("practiced")}><span>{planProgressLabels.practiced}</span><strong>{practicedPlanLectureCount}/{selectedLectureCount}</strong></button>
+          </div>
+          <div className="study-plan-v4-active-pill"><i />{copy.active}</div>
+        </div>}
+      </header>
       <div className="study-plan-v4-shell">
         <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
@@ -19255,7 +19476,12 @@ function Dashboard({
   const questionCount = scopedQuestions.length;
 
   useEffect(() => {
-    if (!activePlan || !currentModule || activePlan.calendarEnabled === false) return;
+    if (!activePlan || !currentModule) return;
+    if (activePlan.calendarEnabled === false) {
+      setCalendarEvents((previous) => previous.filter((event) => !calendarIsStudyPlanObjectForModule(event, calendarEventMeta[event.id], currentModule)));
+      setCalendarEventMeta((previous) => Object.fromEntries(Object.entries(previous).filter(([id, metadata]) => !calendarIsStudyPlanObjectForModule({ id }, metadata, currentModule))));
+      return;
+    }
     const bundle = buildStudyPlanCalendarBundle({ moduleName: currentModule, plan: activePlan, lectures: planLectures, questionTotal: questionCount, fromDate: today });
     if (!bundle.events.length) return;
     setCalendarEvents((previous) => {
@@ -19969,6 +20195,7 @@ function Dashboard({
                 onEventClick={setDashboardQuickEvent}
                 onContextRequest={setCalendarContextMenu}
                 density={calendarPreferences.density || "compact"}
+                viewportMode="home"
                 onStartReview={onStartFsrsReview}
               />
             ) : (
