@@ -2,6 +2,7 @@
  
 // Kræver: npm install @supabase/supabase-js
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
@@ -1600,38 +1601,71 @@ function calendarContextCopy(language) {
 
 function CalendarContextMenu({ c, menu, items, onClose }) {
   const menuRef = useRef(null);
+  const [position, setPosition] = useState({ left: 8, top: 8, ready: false });
   const visibleItems = items.filter(Boolean);
+  const menuKey = menu ? `${menu.x}:${menu.y}:${visibleItems.length}` : "";
 
   useEffect(() => {
     if (!menu) return undefined;
+    let frame = 0;
+    let secondFrame = 0;
+
+    function placeAtCursor() {
+      const element = menuRef.current;
+      if (!element) return;
+      const gap = 8;
+      const margin = 8;
+      const rect = element.getBoundingClientRect();
+      const width = rect.width || 224;
+      const height = rect.height || 40;
+      let left = menu.x + gap;
+      let top = menu.y + gap;
+      if (left + width > window.innerWidth - margin) left = menu.x - width - gap;
+      if (top + height > window.innerHeight - margin) top = menu.y - height - gap;
+      left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+      top = Math.max(margin, Math.min(top, window.innerHeight - height - margin));
+      setPosition({ left, top, ready: true });
+    }
+
+    function schedulePlacement() {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        placeAtCursor();
+        secondFrame = window.requestAnimationFrame(placeAtCursor);
+      });
+    }
+
     function handlePointer(event) {
       if (!menuRef.current?.contains(event.target)) onClose();
     }
     function handleKey(event) {
       if (event.key === "Escape") onClose();
     }
+
+    setPosition({ left: menu.x, top: menu.y, ready: false });
+    schedulePlacement();
+    window.addEventListener("resize", schedulePlacement);
+    window.visualViewport?.addEventListener("resize", schedulePlacement);
     window.addEventListener("pointerdown", handlePointer);
     window.addEventListener("keydown", handleKey);
     return () => {
+      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(secondFrame);
+      window.removeEventListener("resize", schedulePlacement);
+      window.visualViewport?.removeEventListener("resize", schedulePlacement);
       window.removeEventListener("pointerdown", handlePointer);
       window.removeEventListener("keydown", handleKey);
     };
-  }, [menu, onClose]);
+  }, [menuKey]);
 
-  if (!menu) return null;
-  const margin = 8;
-  const gap = 7;
-  const menuWidth = 224;
-  const estimatedHeight = Math.min(window.innerHeight - margin * 2, visibleItems.length * 39 + 18);
-  let left = menu.x + gap;
-  let top = menu.y + gap;
-  if (left + menuWidth > window.innerWidth - margin) left = menu.x - menuWidth - gap;
-  if (top + estimatedHeight > window.innerHeight - margin) top = menu.y - estimatedHeight - gap;
-  left = Math.max(margin, Math.min(left, window.innerWidth - menuWidth - margin));
-  top = Math.max(margin, Math.min(top, window.innerHeight - estimatedHeight - margin));
-
-  return (
-    <div ref={menuRef} className="calendar-context-menu" style={{ left, top, width: menuWidth, maxHeight: `calc(100dvh - ${margin * 2}px)` }} role="menu">
+  if (!menu || typeof document === "undefined") return null;
+  const menuNode = (
+    <div
+      ref={menuRef}
+      className="calendar-context-menu"
+      style={{ left: position.left, top: position.top, width: 224, visibility: position.ready ? "visible" : "hidden" }}
+      role="menu"
+    >
       {visibleItems.map((item, index) => item.separator ? (
         <span key={`separator-${index}`} className="calendar-context-separator" />
       ) : (
@@ -1651,6 +1685,7 @@ function CalendarContextMenu({ c, menu, items, onClose }) {
       ))}
     </div>
   );
+  return createPortal(menuNode, document.body);
 }
 
 function WeekCalendar({
@@ -1669,6 +1704,7 @@ function WeekCalendar({
   onResizeEvent,
   onRangeCreate,
   selectedEventId = null,
+  initialScrollMinutes = null,
 }) {
   const days = Array.from({ length: daysCount }, (_, index) => addDays(weekStart, index));
   const dateStrings = days.map((day) => dateKey(day.getFullYear(), day.getMonth(), day.getDate()));
@@ -1681,6 +1717,8 @@ function WeekCalendar({
   const touchMovedRef = useRef(null);
   const createDragRef = useRef(null);
   const suppressSlotClickRef = useRef(false);
+  const programmaticScrollRef = useRef(false);
+  const userScrolledRef = useRef(false);
   const scrollStorageKey = `medlearn-calendar-scroll-${viewportMode}-${daysCount}`;
   const startHour = 0;
   const endHour = 24;
@@ -1691,17 +1729,84 @@ function WeekCalendar({
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = (nowMinutes / 60) * hourHeight;
 
+  const scrollInitializationKey = `${viewportMode}:${daysCount}:${dateStrings.join(",")}:${density}:${Number.isFinite(initialScrollMinutes) ? initialScrollMinutes : "auto"}`;
+
   useEffect(() => {
-    const stored = viewportMode === "home" ? Number.NaN : Number(sessionStorage.getItem(scrollStorageKey));
-    const targetMinutes = viewportMode === "home" ? 8 * 60 : calendarScrollTargetMinutes(events, dateStrings, new Date());
-    const frame = window.requestAnimationFrame(() => {
-      if (!scrollRef.current) return;
-      scrollRef.current.scrollTop = Number.isFinite(stored) && stored >= 0 ? stored : Math.max(0, (targetMinutes / 60) * hourHeight);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [weekStart?.getTime?.(), daysCount, density, scrollStorageKey, viewportMode]);
+    const root = scrollRef.current;
+    if (!root) return undefined;
+    let cancelled = false;
+    let frame = 0;
+    let releaseFrame = 0;
+    let retryTimer = 0;
+    let settleTimer = 0;
+    let lateTimer = 0;
+    let observer = null;
+    let attempts = 0;
+    userScrolledRef.current = false;
+
+    const hasFixedTarget = Number.isFinite(initialScrollMinutes);
+    const stored = hasFixedTarget ? Number.NaN : Number(sessionStorage.getItem(scrollStorageKey));
+    const targetMinutes = hasFixedTarget
+      ? initialScrollMinutes
+      : calendarScrollTargetMinutes(events, dateStrings, new Date());
+    const targetTop = Number.isFinite(stored) && stored >= 0
+      ? stored
+      : Math.max(0, (targetMinutes / 60) * hourHeight);
+
+    function applyInitialScroll() {
+      if (cancelled || userScrolledRef.current || !scrollRef.current) return;
+      const element = scrollRef.current;
+      if (hasFixedTarget) {
+        element.style.setProperty("--calendar-initial-scroll-tail", "0px");
+        const baseScrollHeight = element.scrollHeight;
+        const requiredTail = Math.max(0, Math.ceil(targetTop + element.clientHeight - baseScrollHeight + 1));
+        element.style.setProperty("--calendar-initial-scroll-tail", `${requiredTail}px`);
+      }
+      const maxScroll = Math.max(0, element.scrollHeight - element.clientHeight);
+      if (maxScroll <= 0) {
+        if (attempts < 12) retryTimer = window.setTimeout(scheduleInitialScroll, 40);
+        return;
+      }
+      programmaticScrollRef.current = true;
+      element.scrollTop = Math.min(maxScroll, targetTop);
+      window.cancelAnimationFrame(releaseFrame);
+      releaseFrame = window.requestAnimationFrame(() => { programmaticScrollRef.current = false; });
+    }
+
+    function scheduleInitialScroll() {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        attempts += 1;
+        applyInitialScroll();
+      });
+    }
+
+    scheduleInitialScroll();
+    settleTimer = window.setTimeout(scheduleInitialScroll, 120);
+    lateTimer = window.setTimeout(scheduleInitialScroll, 320);
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => {
+        if (!userScrolledRef.current) scheduleInitialScroll();
+      });
+      observer.observe(root);
+    }
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(releaseFrame);
+      window.clearTimeout(retryTimer);
+      window.clearTimeout(settleTimer);
+      window.clearTimeout(lateTimer);
+      observer?.disconnect();
+      root.style.removeProperty("--calendar-initial-scroll-tail");
+      programmaticScrollRef.current = false;
+    };
+  }, [scrollInitializationKey, hourHeight, scrollStorageKey]);
 
   function rememberScrollPosition(domEvent) {
+    if (programmaticScrollRef.current) return;
+    userScrolledRef.current = true;
     window.clearTimeout(scrollSaveTimerRef.current);
     const top = domEvent.currentTarget.scrollTop;
     scrollSaveTimerRef.current = window.setTimeout(() => sessionStorage.setItem(scrollStorageKey, String(top)), 120);
@@ -1888,7 +1993,9 @@ function WeekCalendar({
     );
   }
 
-  const hasUnscheduledLectures = dateStrings.some((key) => calendarEventsForDate(events, key).some(isUnscheduledStudyPlanLecture));
+  const hasUnscheduledLectures = dateStrings.some((key) =>
+    calendarEventsForDate(events, key).some(isUnscheduledStudyPlanLecture)
+  );
 
   return (
     <div
@@ -1916,7 +2023,7 @@ function WeekCalendar({
           })}
         </div>
 
-        <div className="calendar-week-unscheduled-grid" data-empty={hasUnscheduledLectures ? "false" : "true"}>
+        {hasUnscheduledLectures && <div className="calendar-week-unscheduled-grid">
           <div className="calendar-week-gutter calendar-week-unscheduled-label">Ikke placeret</div>
           {days.map((day, index) => {
             const key = dateStrings[index];
@@ -1945,7 +2052,7 @@ function WeekCalendar({
               </div>
             );
           })}
-        </div>
+        </div>}
       </div>
 
       <div className="calendar-week-body" role="grid" aria-label={daysCount === 1 ? "Dagskalender" : "Ugekalender"} style={{ height: totalHeight }}>
@@ -2050,6 +2157,7 @@ function WeekCalendar({
           );
         })}
       </div>
+      {Number.isFinite(initialScrollMinutes) && <div className="calendar-week-scroll-tail" aria-hidden="true" />}
     </div>
   );
 }
@@ -11863,56 +11971,87 @@ select.ui-control {
 }
 
 /* ============================================================
-   APP(7) — EXACT CALENDAR + COUNTER REFINEMENT
+   APP(7) — CALENDAR + COUNTER REFINEMENT V2
+   Exact seven requested changes; no study-plan clear rewrite.
    ============================================================ */
-@media (min-width: 1121px) {
-  .home-v2-workspace {
-    height: auto !important;
-    min-height: max(460px, calc(100dvh - 320px)) !important;
-  }
-}
-.home-v2-calendar-area { min-height: 0 !important; height: 100% !important; }
-.home-v2-calendar-canvas {
-  flex: 1 1 auto !important;
-  height: auto !important;
-  min-height: 0 !important;
-}
-
 * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--ui-secondary) 30%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--ui-secondary) 34%, transparent) transparent;
 }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-track,
 *::-webkit-scrollbar-corner { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  min-height: 42px;
+  min-height: 38px;
   border: 3px solid transparent;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--ui-secondary) 32%, transparent);
+  background: color-mix(in srgb, var(--ui-secondary) 34%, transparent);
   background-clip: padding-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--ui-secondary) 50%, transparent);
+  background: color-mix(in srgb, var(--ui-secondary) 54%, transparent);
   background-clip: padding-box;
 }
 .calendar-layer-buttons { scrollbar-width: thin !important; }
 .calendar-layer-buttons::-webkit-scrollbar { display: block !important; height: 8px; }
 
-.calendar-week-sticky-head { box-shadow: 0 4px 12px rgba(20,30,48,.07) !important; }
-.calendar-week-header { min-height: 42px !important; }
-.calendar-week-day-header { min-height: 42px !important; padding: 4px 6px !important; }
+@media (min-width: 1121px) {
+  .home-v2-workspace {
+    height: var(--home-calendar-workspace-height, 560px) !important;
+    min-height: 0 !important;
+    align-items: stretch !important;
+  }
+  .home-v2-calendar-area {
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  .home-v2-calendar-canvas {
+    height: auto !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+  }
+  .home-v2-rail {
+    min-height: 0 !important;
+    overflow-y: auto;
+    align-content: start;
+  }
+}
+
+.calendar-week-sticky-head {
+  box-shadow: 0 4px 12px rgba(20,30,48,.065) !important;
+}
+.calendar-week-header {
+  min-height: 42px !important;
+}
+.calendar-week-day-header {
+  min-height: 42px !important;
+  padding: 4px 6px !important;
+}
 .calendar-week-day-name { font-size: 7.5px !important; }
 .calendar-week-day-number { font-size: 14px !important; }
-.calendar-week-unscheduled-grid { min-height: 28px !important; }
+.calendar-week-unscheduled-grid { min-height: 30px !important; }
 .calendar-week-unscheduled-label,
-.calendar-week-unscheduled-cell { min-height: 28px !important; }
+.calendar-week-unscheduled-cell { min-height: 30px !important; }
 .calendar-week-unscheduled-label { padding-block: 3px !important; }
 .calendar-week-unscheduled-cell { padding-block: 2px !important; }
-.calendar-context-menu { overflow-y: auto; }
+.calendar-week-scroll-tail {
+  width: 1px;
+  height: var(--calendar-initial-scroll-tail, 0px);
+  pointer-events: none;
+}
+
+.calendar-context-menu {
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+}
 
 .home-v2-lecture-counter { cursor: default !important; }
-.home-v2-lecture-counter .home-v2-rail-title { display: flex; align-items: center; gap: 8px; }
+.home-v2-lecture-counter .home-v2-rail-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .home-v2-counter-switch {
   display: grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
@@ -11944,7 +12083,7 @@ select.ui-control {
   height: 5px;
   border-radius: 50%;
   background: currentColor;
-  opacity: .55;
+  opacity: .58;
 }
 .home-v2-counter-switch button[data-active="true"] {
   background: var(--ui-panel);
@@ -11963,8 +12102,6 @@ select.ui-control {
 .home-v2-counter-focus small { font-size: 8px !important; }
 .home-v2-counter-focus strong { font-size: 20px !important; }
 .home-v2-counter-focus .home-v2-progress-track { margin-top: 2px; }
-
-.calendar-week-unscheduled-grid[data-empty="true"] { display: none !important; }
 
     `}
 </style>
@@ -18963,6 +19100,7 @@ function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onRangeCr
       onStartReview={onStartReview}
       density={density}
       viewportMode="home"
+      initialScrollMinutes={8 * 60}
     />
   );
 }
@@ -19109,6 +19247,57 @@ function Dashboard({
   const [dashboardQuickEvent, setDashboardQuickEvent] = useState(null);
   const [calendarPreferences, setCalendarPreferences] = useStoredState(STORAGE.calendarPreferences, CALENDAR_DEFAULT_PREFERENCES);
   const [calendarSearch, setCalendarSearch] = useState("");
+  const homeWorkspaceRef = useRef(null);
+  const [homeWorkspaceHeight, setHomeWorkspaceHeight] = useState(null);
+
+  useEffect(() => {
+    const workspace = homeWorkspaceRef.current;
+    if (!workspace) return undefined;
+    const scrollHost = workspace.closest(".content-padding");
+    if (!scrollHost) return undefined;
+    let frame = 0;
+    let secondFrame = 0;
+    let observer = null;
+
+    function measureWorkspaceHeight() {
+      if (window.innerWidth <= 1120) {
+        setHomeWorkspaceHeight(null);
+        return;
+      }
+      const hostRect = scrollHost.getBoundingClientRect();
+      const workspaceRect = workspace.getBoundingClientRect();
+      const workspaceTopInContent = workspaceRect.top - hostRect.top + scrollHost.scrollTop;
+      const hostStyle = window.getComputedStyle(scrollHost);
+      const bottomPadding = Math.min(24, Number.parseFloat(hostStyle.paddingBottom) || 0);
+      const available = Math.floor(scrollHost.clientHeight - workspaceTopInContent - bottomPadding);
+      const nextHeight = Math.max(480, available);
+      setHomeWorkspaceHeight((previous) => previous === nextHeight ? previous : nextHeight);
+    }
+
+    function scheduleMeasure() {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        measureWorkspaceHeight();
+        secondFrame = window.requestAnimationFrame(measureWorkspaceHeight);
+      });
+    }
+
+    scheduleMeasure();
+    window.addEventListener("resize", scheduleMeasure);
+    window.visualViewport?.addEventListener("resize", scheduleMeasure);
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(scheduleMeasure);
+      observer.observe(scrollHost);
+      if (workspace.parentElement) observer.observe(workspace.parentElement);
+    }
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(secondFrame);
+      window.removeEventListener("resize", scheduleMeasure);
+      window.visualViewport?.removeEventListener("resize", scheduleMeasure);
+      observer?.disconnect();
+    };
+  }, [dashboardPreferences.visible]);
 
   useEffect(() => {
     const allDayIds = calendarEvents.filter((event) => calendarIsAllDayRecord(event, calendarEventMeta[event.id])).map((event) => event.id);
@@ -19351,6 +19540,7 @@ function Dashboard({
       dismiss: "إخفاء",
     },
   })[language] || {};
+
   const lectureCounterCopy = ({
     da: { heldTab: "Afholdte", heldLabel: "Afholdte forelæsninger", selfTab: "Selvstudie", selfLabel: "Selvstudie", switchLabel: "Vælg forelæsningscounter" },
     en: { heldTab: "Held", heldLabel: "Lectures held", selfTab: "Self-study", selfLabel: "Self-study", switchLabel: "Choose lecture counter" },
@@ -20036,7 +20226,11 @@ function Dashboard({
         </div>
       </section>}
 
-      <section className="home-v2-workspace">
+      <section
+        ref={homeWorkspaceRef}
+        className="home-v2-workspace"
+        style={homeWorkspaceHeight ? { "--home-calendar-workspace-height": `${homeWorkspaceHeight}px` } : undefined}
+      >
         <div className="home-v2-calendar-area">
           <div className="home-v2-panel-header">
             <div>
@@ -20091,6 +20285,7 @@ function Dashboard({
                 density={calendarPreferences.density || "compact"}
                 onStartReview={onStartFsrsReview}
                 viewportMode="home"
+                initialScrollMinutes={8 * 60}
               />
             ) : (
               <MonthCalendar
