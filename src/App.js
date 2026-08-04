@@ -1705,16 +1705,6 @@ function WeekCalendar({
   const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = (nowMinutes / 60) * hourHeight;
-  const hasVisibleAllDayEvents = dateStrings.some((key) =>
-    calendarEventsForDate(events, key).some((event) => event.allDay)
-  );
-  const hasVisibleUnscheduledEvents = dateStrings.some((key) =>
-    calendarEventsForDate(events, key).some(
-      (event) => !event.time && !event.allDay && !event.completedAt && event.type !== "exam"
-    )
-  );
-  const showAllDayRow = viewportMode !== "home" || hasVisibleAllDayEvents;
-  const showUnscheduledRow = viewportMode !== "home" || hasVisibleUnscheduledEvents;
 
   useEffect(() => {
     const targetMinutes = calendarScrollTargetMinutes(events, dateStrings, new Date());
@@ -1932,7 +1922,7 @@ function WeekCalendar({
           })}
         </div>
 
-        {showAllDayRow && <div className="calendar-week-all-day-grid">
+        <div className="calendar-week-all-day-grid">
           <div className="calendar-week-gutter calendar-week-row-label">Hele dagen</div>
           {days.map((day, index) => {
             const key = dateStrings[index];
@@ -1947,9 +1937,9 @@ function WeekCalendar({
               </div>
             );
           })}
-        </div>}
+        </div>
 
-        {showUnscheduledRow && <div className="calendar-week-unscheduled-grid">
+        <div className="calendar-week-unscheduled-grid">
           <div className="calendar-week-gutter calendar-week-unscheduled-label">Ikke placeret</div>
           {days.map((day, index) => {
             const key = dateStrings[index];
@@ -1978,7 +1968,7 @@ function WeekCalendar({
               </div>
             );
           })}
-        </div>}
+        </div>
       </div>
       </div>
 
@@ -12039,16 +12029,6 @@ select.ui-control {
   .calendar-workspace-sidebar { max-height: none; }
   .study-plan-v4-header { align-items: flex-start; }
   .study-plan-v4-header-tools { width: 100%; justify-content: flex-start; }
-}
-
-/* Segment 4.4.11 — kun de to aftalte Hjem-kalenderrettelser. */
-.home-v2-workspace { align-items: stretch !important; }
-.home-v2-calendar-area { height: 100% !important; align-self: stretch !important; }
-.home-v2-calendar-canvas {
-  flex: 1 1 auto !important;
-  height: auto !important;
-  min-height: var(--calendar-grid-viewport-height) !important;
-  max-height: none !important;
 }
 
     `}
