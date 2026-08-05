@@ -12190,6 +12190,121 @@ select.ui-control {
 .home-v2-counter-focus strong { font-size: 20px !important; }
 .home-v2-counter-focus .home-v2-progress-track { margin-top: 2px; }
 
+/* ============================================================
+   SEGMENT 5.2 — FORELÆSNINGSSTATUS + KONFIGURERBAR COUNTER
+   ============================================================ */
+.home-v2-lecture-counter { position: relative; overflow: visible; }
+.home-v2-counter-title-actions { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 5px; }
+.home-v2-counter-settings-wrap { position: relative; display: inline-flex; }
+.home-v2-counter-settings-trigger {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ui-muted);
+}
+.home-v2-counter-settings-trigger:hover,
+.home-v2-counter-settings-trigger[aria-expanded="true"] { border-color: var(--ui-border); background: var(--ui-soft); color: var(--ui-text); }
+.home-v2-counter-settings-popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 7px);
+  inset-inline-end: 0;
+  width: 220px;
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 11px;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow);
+}
+.home-v2-counter-settings-popover > strong { padding: 3px 5px 6px; color: var(--ui-secondary); font-size: 8px; font-weight: 850; }
+.home-v2-counter-settings-popover > button {
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 19px minmax(0,1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-text);
+  font-size: 8.5px;
+  font-weight: 740;
+  text-align: start;
+}
+.home-v2-counter-settings-popover > button:hover:not(:disabled) { background: var(--ui-soft); }
+.home-v2-counter-settings-popover > button:disabled { opacity: .52; cursor: not-allowed; }
+.home-v2-counter-setting-check { width: 17px; height: 17px; display: grid; place-items: center; border: 1px solid var(--ui-border-strong); border-radius: 5px; color: transparent; }
+.home-v2-counter-setting-check[data-checked="true"] { border-color: var(--ui-blue); background: var(--ui-blue); color: #fff; }
+.home-v2-counter-switch { grid-template-columns: repeat(var(--counter-tabs, 3), minmax(0,1fr)) !important; }
+.home-v2-counter-switch button[data-mode="held"][data-active="true"] { color: #4f7fd8; }
+.home-v2-counter-switch button[data-mode="reading"][data-active="true"] { color: #278c6c; }
+.home-v2-counter-switch button[data-mode="deck"][data-active="true"] { color: #7667d8; }
+.home-v2-progress-fill--deck { background: #7667d8 !important; }
+.home-v2-counter-focus em { display: block; margin-top: 1px; font-size: 7px !important; line-height: 1.35; }
+
+.lecture-overview-row { min-height: 73px; }
+.lecture-overview-row .document-library-main { min-height: 71px; }
+.lecture-overview-row .document-library-copy { display: grid; gap: 1px; }
+.lecture-learning-meta {
+  min-width: 0;
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px !important;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.lecture-learning-meta > span {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+  padding: 2px 4px;
+  border-radius: 5px;
+  background: var(--ui-soft);
+  color: var(--ui-muted);
+  font-size: 7px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+}
+.lecture-learning-meta > span[data-tone="positive"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-learning-meta > span[data-tone="progress"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-learning-meta > span[data-tone="negative"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.lecture-overview-row .lecture-progress-actions {
+  width: 55px;
+  display: grid;
+  grid-template-columns: repeat(2, 26px);
+  gap: 3px;
+  padding-inline-end: 1px;
+}
+.lecture-status-toggle,
+.lecture-overview-row .lecture-mastery-toggle,
+.lecture-overview-row .document-library-file-state {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: 7px;
+  background: var(--ui-panel);
+  color: var(--ui-muted);
+}
+.lecture-status-toggle[data-tone="positive"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-status-toggle[data-tone="progress"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-status-toggle[data-tone="negative"] { border-color: var(--ui-red-border); background: var(--ui-red-soft); color: var(--ui-red); }
+.lecture-status-toggle:hover { border-color: var(--ui-blue-border); color: var(--ui-blue); }
+.lecture-overview-row .document-library-file-state[data-ready="true"] { border-color: var(--ui-green-border); }
+
     `}
 </style>
   );
@@ -14601,6 +14716,50 @@ function calendarLectureScheduleStatus(moduleName, lectureId, events, nowMs = Da
     held: scheduleEvents.length > 0 && heldEvents.length === scheduleEvents.length,
     started: heldEvents.length > 0,
   };
+}
+
+
+const LECTURE_SELF_STUDY_STATES = Object.freeze(["not-started", "in-progress", "reviewed"]);
+const LECTURE_ATTENDANCE_STATES = Object.freeze(["unmarked", "attended", "missed"]);
+
+function lectureSelfStudyStatus(progress) {
+  const explicit = progress?.selfStudyStatus;
+  if (LECTURE_SELF_STUDY_STATES.includes(explicit)) return explicit;
+  return progress?.viewed ? "reviewed" : "not-started";
+}
+
+function lectureSelfStudyIsReviewed(progress) {
+  return lectureSelfStudyStatus(progress) === "reviewed";
+}
+
+function lectureAttendanceStatus(progress) {
+  const explicit = progress?.attendance;
+  return LECTURE_ATTENDANCE_STATES.includes(explicit) ? explicit : "unmarked";
+}
+
+function lectureCardHasReview(card) {
+  if (!card) return false;
+  if (Array.isArray(card?.fsrs?.reviews) && card.fsrs.reviews.length > 0) return true;
+  if (Number(card?.fsrs?.card?.reps) > 0) return true;
+  if (Array.isArray(card?.sm2?.reviewLog) && card.sm2.reviewLog.length > 0) return true;
+  if (Number(card?.sm2?.repsCorrectInARow) > 0 || card?.sm2?.lastReviewedAt) return true;
+  return Number(card?.repetitions) > 0 || Boolean(card?.lastReviewedAt);
+}
+
+function lectureDeckStudyStatus(moduleName, lectureId, importedQuestions, spacedData) {
+  const questions = getFullQuestionBank(importedQuestions).filter((question) =>
+    question?.moduleId === moduleName && question?.lectureId === lectureId
+  );
+  const reviewedCount = questions.filter((question) => lectureCardHasReview(spacedData?.[question.id])).length;
+  const total = questions.length;
+  const state = total === 0
+    ? "unavailable"
+    : reviewedCount === 0
+      ? "not-started"
+      : reviewedCount >= total
+        ? "reviewed"
+        : "in-progress";
+  return { state, reviewedCount, total, fraction: total ? reviewedCount / total : 0 };
 }
 
 function calendarStudyPlanLectureId(moduleName, lectureId) {
@@ -19245,7 +19404,7 @@ function PlanProgressPage({ c, language, moduleName, plan, lectures, events, lec
     const studyEvent = studyEventByLecture[lecture.id] || null;
     const event = schedule.firstEvent || studyEvent;
     const progress = lectureProgress[`${moduleName}:${lecture.id}`] || {};
-    const read = doneIds.has(lecture.id) || Boolean(progress.viewed);
+    const read = doneIds.has(lecture.id) || lectureSelfStudyIsReviewed(progress);
     const held = schedule.held;
     const skipped = held && !read;
     return { lecture, event, studyEvent, schedule, read, held, skipped };
@@ -19321,6 +19480,7 @@ function Dashboard({
     railOrder: ["exam", "progress", "upcoming"],
     quickOrder: ["resume", "review", "lecture", "event", "note"],
     visible: { stats: true, recommendation: true, quick: true, exam: true, progress: true, upcoming: true, bottom: true },
+    lectureCounters: { active: "held", visible: { held: true, reading: true, deck: true } },
   });
   const [dashboardDayClose, setDashboardDayClose] = useStoredState(STORAGE.dashboardDayClose, {});
   const [dashboardEditorOpen, setDashboardEditorOpen] = useState(false);
@@ -19329,7 +19489,9 @@ function Dashboard({
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [bottomTab, setBottomTab] = useState("activity");
   const [progressDetailsOpen, setProgressDetailsOpen] = useState(false);
-  const [lectureCounterMode, setLectureCounterMode] = useState("held");
+  const [lectureCounterMode, setLectureCounterMode] = useState(() => dashboardPreferences?.lectureCounters?.active || "held");
+  const [lectureCounterSettingsOpen, setLectureCounterSettingsOpen] = useState(false);
+  const lectureCounterSettingsRef = useRef(null);
   const [calendarContextMenu, setCalendarContextMenu] = useState(null);
   const [dashboardQuickEvent, setDashboardQuickEvent] = useState(null);
   const [calendarPreferences, setCalendarPreferences] = useStoredState(STORAGE.calendarPreferences, CALENDAR_DEFAULT_PREFERENCES);
@@ -19628,9 +19790,9 @@ function Dashboard({
   })[language] || {};
 
   const lectureCounterCopy = ({
-    da: { heldTab: "Afholdte", heldLabel: "Afholdte forelæsninger", selfTab: "Selvstudie", selfLabel: "Selvstudie", switchLabel: "Vælg forelæsningscounter" },
-    en: { heldTab: "Held", heldLabel: "Lectures held", selfTab: "Self-study", selfLabel: "Self-study", switchLabel: "Choose lecture counter" },
-    ar: { heldTab: "مُنعقدة", heldLabel: "المحاضرات المنعقدة", selfTab: "دراسة ذاتية", selfLabel: "الدراسة الذاتية", switchLabel: "اختر عداد المحاضرات" },
+    da: { heldTab: "Afholdte", heldLabel: "Afholdte forelæsninger", readingTab: "Læst", readingLabel: "Selvstudie · forelæsning læst", deckTab: "Dæk", deckLabel: "Selvstudie · relevant dæk kørt", switchLabel: "Vælg forelæsningscounter", settings: "Vælg counters", settingsTitle: "Vis i forelæsningscounter", eligibleDecks: "forelæsninger med relevante dæk" },
+    en: { heldTab: "Held", heldLabel: "Lectures held", readingTab: "Read", readingLabel: "Self-study · lecture reviewed", deckTab: "Decks", deckLabel: "Self-study · relevant deck completed", switchLabel: "Choose lecture counter", settings: "Choose counters", settingsTitle: "Show in lecture counter", eligibleDecks: "lectures with relevant decks" },
+    ar: { heldTab: "مُنعقدة", heldLabel: "المحاضرات المنعقدة", readingTab: "مقروءة", readingLabel: "دراسة ذاتية · تمت قراءة المحاضرة", deckTab: "الحزم", deckLabel: "دراسة ذاتية · إكمال الحزمة المرتبطة", switchLabel: "اختر عداد المحاضرات", settings: "اختيار العدادات", settingsTitle: "إظهار في عداد المحاضرات", eligibleDecks: "محاضرات لها حزم مرتبطة" },
   })[language] || {};
 
   const hour = new Date().getHours();
@@ -19639,13 +19801,21 @@ function Dashboard({
   const moduleName = currentModule.replace(/^[A-Z]\d+\s*/, "");
   const planLectures = MODULE_LECTURES[currentModule] || [];
   const doneLectureIds = activePlan?.doneLectureIds || [];
-  const doneLectureCount = planLectures.filter((lecture) => doneLectureIds.includes(lecture.id) || lectureProgress[`${currentModule}:${lecture.id}`]?.viewed).length;
+  const allQuestions = getFullQuestionBank(importedQuestions);
+  const safeSpacedData = spacedData || {};
+  const readingLectureCount = planLectures.filter((lecture) =>
+    doneLectureIds.includes(lecture.id) || lectureSelfStudyIsReviewed(lectureProgress[`${currentModule}:${lecture.id}`])
+  ).length;
   const heldLectureIds = new Set(planLectures.filter((lecture) => calendarLectureScheduleStatus(currentModule, lecture.id, mergedCalendarEvents).held).map((lecture) => lecture.id));
   const heldLectureCount = heldLectureIds.size;
-  const allQuestions = getFullQuestionBank(importedQuestions);
+  const lectureDeckStatuses = planLectures.map((lecture) => ({
+    lecture,
+    status: lectureDeckStudyStatus(currentModule, lecture.id, allQuestions, safeSpacedData),
+  }));
+  const deckEligibleCount = lectureDeckStatuses.filter((entry) => entry.status.total > 0).length;
+  const deckReviewedLectureCount = lectureDeckStatuses.filter((entry) => entry.status.state === "reviewed").length;
   const moduleQuestions = allQuestions.filter((question) => question.moduleId === currentModule);
   const scopedQuestions = moduleQuestions.length ? moduleQuestions : allQuestions;
-  const safeSpacedData = spacedData || {};
   const reviewCount = scopedQuestions.filter((question) => safeSpacedData[question.id] && isDue(safeSpacedData[question.id])).length;
   const newCount = scopedQuestions.filter((question) => !safeSpacedData[question.id]).length;
   const questionCount = scopedQuestions.length;
@@ -19706,11 +19876,81 @@ function Dashboard({
   const planExamQuestions = scopedQuestions.filter((question) => !question.lectureId);
   const examSetDoneCount = Math.min(planExamQuestions.length, Math.max(planExamQuestions.filter((question) => safeSpacedData[question.id]).length, Number(activePlan?.completedExamQuestions) || 0));
   const examSetTotalCount = planExamQuestions.length;
-  const lectureFraction = planLectures.length ? doneLectureCount / planLectures.length : 0;
+  const doneLectureCount = readingLectureCount;
+  const lectureFraction = planLectures.length ? readingLectureCount / planLectures.length : 0;
   const heldLectureFraction = planLectures.length ? heldLectureCount / planLectures.length : 0;
+  const deckLectureFraction = deckEligibleCount ? deckReviewedLectureCount / deckEligibleCount : 0;
+  const storedLectureCounterVisibility = dashboardPreferences?.lectureCounters?.visible || {};
+  const lectureCounterVisibility = {
+    held: storedLectureCounterVisibility.held !== false,
+    reading: storedLectureCounterVisibility.reading !== false,
+    deck: storedLectureCounterVisibility.deck !== false,
+  };
+  const lectureCounterModes = [
+    { id: "held", tab: lectureCounterCopy.heldTab, label: lectureCounterCopy.heldLabel, count: heldLectureCount, total: planLectures.length, fraction: heldLectureFraction, fillClass: "home-v2-progress-fill--held" },
+    { id: "reading", tab: lectureCounterCopy.readingTab, label: lectureCounterCopy.readingLabel, count: readingLectureCount, total: planLectures.length, fraction: lectureFraction, fillClass: "home-v2-progress-fill--read" },
+    { id: "deck", tab: lectureCounterCopy.deckTab, label: lectureCounterCopy.deckLabel, count: deckReviewedLectureCount, total: deckEligibleCount, fraction: deckLectureFraction, fillClass: "home-v2-progress-fill--deck", note: lectureCounterCopy.eligibleDecks },
+  ];
+  const visibleLectureCounterModes = lectureCounterModes.filter((mode) => lectureCounterVisibility[mode.id] !== false);
+  const activeLectureCounter = visibleLectureCounterModes.find((mode) => mode.id === lectureCounterMode) || visibleLectureCounterModes[0] || lectureCounterModes[0];
   const examFraction = examSetTotalCount ? examSetDoneCount / examSetTotalCount : 0;
   const streak = computeStreak(streakData.days || []);
   const todayPomodoros = pomodoroLog[todayKey] || 0;
+
+  useEffect(() => {
+    if (lectureCounterVisibility[lectureCounterMode] !== false) return;
+    const fallback = visibleLectureCounterModes[0]?.id || "held";
+    setLectureCounterMode(fallback);
+    setDashboardPreferences((previous) => ({
+      ...previous,
+      lectureCounters: {
+        ...(previous.lectureCounters || {}),
+        active: fallback,
+        visible: { held: true, reading: true, deck: true, ...(previous.lectureCounters?.visible || {}) },
+      },
+    }));
+  }, [lectureCounterMode, lectureCounterVisibility.held, lectureCounterVisibility.reading, lectureCounterVisibility.deck]);
+
+  useEffect(() => {
+    if (!lectureCounterSettingsOpen) return undefined;
+    function handlePointer(event) {
+      if (!lectureCounterSettingsRef.current?.contains(event.target)) setLectureCounterSettingsOpen(false);
+    }
+    function handleKey(event) { if (event.key === "Escape") setLectureCounterSettingsOpen(false); }
+    document.addEventListener("pointerdown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [lectureCounterSettingsOpen]);
+
+  function chooseLectureCounter(mode) {
+    setLectureCounterMode(mode);
+    setDashboardPreferences((previous) => ({
+      ...previous,
+      lectureCounters: {
+        ...(previous.lectureCounters || {}),
+        active: mode,
+        visible: { held: true, reading: true, deck: true, ...(previous.lectureCounters?.visible || {}) },
+      },
+    }));
+  }
+
+  function toggleLectureCounterVisibility(mode) {
+    const currentlyVisible = lectureCounterVisibility[mode] !== false;
+    const visibleCount = Object.values(lectureCounterVisibility).filter(Boolean).length;
+    if (currentlyVisible && visibleCount <= 1) return;
+    const nextVisible = { ...lectureCounterVisibility, [mode]: !currentlyVisible };
+    const nextActive = nextVisible[lectureCounterMode]
+      ? lectureCounterMode
+      : lectureCounterModes.find((entry) => nextVisible[entry.id])?.id || "held";
+    setLectureCounterMode(nextActive);
+    setDashboardPreferences((previous) => ({
+      ...previous,
+      lectureCounters: { active: nextActive, visible: nextVisible },
+    }));
+  }
 
   const resumeRaw = (() => {
     try {
@@ -19783,10 +20023,22 @@ function Dashboard({
       const next = { ...previous };
       planLectures.forEach((lecture) => {
         const key = `${currentModule}:${lecture.id}`;
-        const current = next[key] || { viewed: false, mastery: "unrated" };
-        const viewed = doneIds.has(lecture.id);
-        if (Boolean(current.viewed) !== viewed) {
-          next[key] = { ...current, viewed, lastViewedAt: viewed ? current.lastViewedAt || Date.now() : null };
+        const current = next[key] || { viewed: false, selfStudyStatus: "not-started", attendance: "unmarked", mastery: "unrated" };
+        const completedInPlan = doneIds.has(lecture.id);
+        const hasExplicitSelfStudy = LECTURE_SELF_STUDY_STATES.includes(current.selfStudyStatus);
+        const nextSelfStudyStatus = completedInPlan
+          ? "reviewed"
+          : hasExplicitSelfStudy
+            ? current.selfStudyStatus
+            : "not-started";
+        const reviewed = nextSelfStudyStatus === "reviewed";
+        if (Boolean(current.viewed) !== reviewed || lectureSelfStudyStatus(current) !== nextSelfStudyStatus) {
+          next[key] = {
+            ...current,
+            viewed: reviewed,
+            selfStudyStatus: nextSelfStudyStatus,
+            lastViewedAt: reviewed ? current.lastViewedAt || Date.now() : null,
+          };
           changed = true;
         }
       });
@@ -19971,12 +20223,13 @@ function Dashboard({
 
     const lectureProgressKey = `${currentModule}:${lectureId}`;
     setLectureProgress((previous) => {
-      const current = previous[lectureProgressKey] || { viewed: false, mastery: "unrated" };
+      const current = previous[lectureProgressKey] || { viewed: false, selfStudyStatus: "not-started", attendance: "unmarked", mastery: "unrated" };
       return {
         ...previous,
         [lectureProgressKey]: {
           ...current,
           viewed: completed,
+          selfStudyStatus: completed ? "reviewed" : "not-started",
           lastViewedAt: completed ? Date.now() : null,
         },
       };
@@ -20426,22 +20679,46 @@ function Dashboard({
               <div
                 key={cardId}
                 className="home-v2-rail-card home-v2-lecture-counter"
-                data-counter-mode={lectureCounterMode}
+                data-counter-mode={activeLectureCounter.id}
                 onClick={() => { if (!activePlan) onNavigate("study-plan"); }}
               >
                 <div className="home-v2-rail-title">
                   <span>{copy.moduleStatus}</span>
-                  {activePlan && <button type="button" className="home-v2-rail-link" onClick={(event) => { event.stopPropagation(); setProgressDetailsOpen(true); }}>{copy.viewAll} <Icon name="right" size={11} /></button>}
+                  {activePlan && (
+                    <span className="home-v2-counter-title-actions">
+                      <button type="button" className="home-v2-rail-link" onClick={(event) => { event.stopPropagation(); setProgressDetailsOpen(true); }}>{copy.viewAll} <Icon name="right" size={11} /></button>
+                      <span ref={lectureCounterSettingsRef} className="home-v2-counter-settings-wrap">
+                        <button type="button" className="home-v2-counter-settings-trigger" aria-label={lectureCounterCopy.settings} title={lectureCounterCopy.settings} aria-expanded={lectureCounterSettingsOpen} onClick={(event) => { event.stopPropagation(); setLectureCounterSettingsOpen((value) => !value); }}><Icon name="more" size={14} /></button>
+                        {lectureCounterSettingsOpen && (
+                          <span className="home-v2-counter-settings-popover" onClick={(event) => event.stopPropagation()}>
+                            <strong>{lectureCounterCopy.settingsTitle}</strong>
+                            {lectureCounterModes.map((mode) => {
+                              const checked = lectureCounterVisibility[mode.id] !== false;
+                              const isLastVisible = checked && visibleLectureCounterModes.length <= 1;
+                              return (
+                                <button key={mode.id} type="button" role="menuitemcheckbox" aria-checked={checked} disabled={isLastVisible} onClick={() => toggleLectureCounterVisibility(mode.id)}>
+                                  <span className="home-v2-counter-setting-check" data-checked={checked ? "true" : "false"}><Icon name="check" size={10} /></span>
+                                  <span>{mode.label}</span>
+                                </button>
+                              );
+                            })}
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                  )}
                 </div>
                 {activePlan ? <>
-                  <div className="home-v2-counter-switch" role="tablist" aria-label={lectureCounterCopy.switchLabel}>
-                    <button type="button" role="tab" aria-selected={lectureCounterMode === "held"} data-active={lectureCounterMode === "held" ? "true" : "false"} onClick={(event) => { event.stopPropagation(); setLectureCounterMode("held"); }}><i />{lectureCounterCopy.heldTab}</button>
-                    <button type="button" role="tab" aria-selected={lectureCounterMode === "read"} data-active={lectureCounterMode === "read" ? "true" : "false"} onClick={(event) => { event.stopPropagation(); setLectureCounterMode("read"); }}><i />{lectureCounterCopy.selfTab}</button>
+                  <div className="home-v2-counter-switch" role="tablist" aria-label={lectureCounterCopy.switchLabel} style={{ "--counter-tabs": visibleLectureCounterModes.length }}>
+                    {visibleLectureCounterModes.map((mode) => (
+                      <button key={mode.id} type="button" role="tab" aria-selected={activeLectureCounter.id === mode.id} data-mode={mode.id} data-active={activeLectureCounter.id === mode.id ? "true" : "false"} onClick={(event) => { event.stopPropagation(); chooseLectureCounter(mode.id); }}><i />{mode.tab}</button>
+                    ))}
                   </div>
                   <div className="home-v2-counter-focus">
-                    <small>{lectureCounterMode === "held" ? lectureCounterCopy.heldLabel : lectureCounterCopy.selfLabel}</small>
-                    <strong>{lectureCounterMode === "held" ? heldLectureCount : doneLectureCount}<span>/{planLectures.length}</span></strong>
-                    <div className="home-v2-progress-track"><div className={`home-v2-progress-fill ${lectureCounterMode === "held" ? "home-v2-progress-fill--held" : "home-v2-progress-fill--read"}`} style={{ width: `${(lectureCounterMode === "held" ? heldLectureFraction : lectureFraction) * 100}%` }} /></div>
+                    <small>{activeLectureCounter.label}</small>
+                    <strong>{activeLectureCounter.count}<span>/{activeLectureCounter.total}</span></strong>
+                    <div className="home-v2-progress-track"><div className={`home-v2-progress-fill ${activeLectureCounter.fillClass}`} style={{ width: `${Math.max(0, Math.min(1, activeLectureCounter.fraction)) * 100}%` }} /></div>
+                    {activeLectureCounter.note && <em>{activeLectureCounter.note}</em>}
                   </div>
                   {isBehind && <button type="button" className="ui-button ui-button--ghost" onClick={(event) => { event.stopPropagation(); handleCatchUp(); }} style={{ width: "100%", minHeight: 30, marginTop: 8 }}>{copy.catchUp}</button>}
                 </> : <div className="home-v2-empty-card"><span><Icon name="target" size={17} /></span><strong>{copy.noPlanTitle}</strong><small>{copy.noPlanDescription}</small></div>}
@@ -30352,7 +30629,7 @@ function WorkspaceShell({ c, label, drByteOpen = false, closing = false, childre
   );
 }
 
-function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
+function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData = {}, importedQuestions = [] }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
@@ -30415,6 +30692,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       notReviewedLabel: "Ikke gennemgået",
       materialReady: "Materiale tilknyttet",
       materialMissing: "Mangler materiale",
+      attendance: "Deltagelse",
+      attendanceUnmarked: "Ikke markeret",
+      attendanceAttended: "Deltaget",
+      attendanceMissed: "Ikke deltaget",
+      selfStudyStatus: "Selvstudie",
+      selfStudyNotStarted: "Ikke startet",
+      selfStudyInProgress: "I gang",
+      selfStudyReviewed: "Gennemgået",
+      deckStatus: "Relevant dæk",
+      deckUnavailable: "Intet relevant dæk",
+      deckNotStarted: "Dæk ikke startet",
+      deckInProgress: "Dæk i gang",
+      deckReviewed: "Dæk gennemgået",
+      deckQuestions: (reviewed, total) => `${reviewed}/${total} spørgsmål`,
       showingLectures: (shown, total) => `${shown} af ${total} forelæsninger`,
     },
     en: {
@@ -30464,6 +30755,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       notReviewedLabel: "Not reviewed",
       materialReady: "Material attached",
       materialMissing: "Missing material",
+      attendance: "Attendance",
+      attendanceUnmarked: "Not marked",
+      attendanceAttended: "Attended",
+      attendanceMissed: "Did not attend",
+      selfStudyStatus: "Self-study",
+      selfStudyNotStarted: "Not started",
+      selfStudyInProgress: "In progress",
+      selfStudyReviewed: "Reviewed",
+      deckStatus: "Relevant deck",
+      deckUnavailable: "No relevant deck",
+      deckNotStarted: "Deck not started",
+      deckInProgress: "Deck in progress",
+      deckReviewed: "Deck completed",
+      deckQuestions: (reviewed, total) => `${reviewed}/${total} questions`,
       showingLectures: (shown, total) => `${shown} of ${total} lectures`,
     },
     ar: {
@@ -30513,6 +30818,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       notReviewedLabel: "لم تتم مراجعتها",
       materialReady: "المادة مرفقة",
       materialMissing: "المادة مفقودة",
+      attendance: "الحضور",
+      attendanceUnmarked: "غير محدد",
+      attendanceAttended: "حضرت",
+      attendanceMissed: "لم أحضر",
+      selfStudyStatus: "الدراسة الذاتية",
+      selfStudyNotStarted: "لم تبدأ",
+      selfStudyInProgress: "قيد الدراسة",
+      selfStudyReviewed: "تمت المراجعة",
+      deckStatus: "الحزمة المرتبطة",
+      deckUnavailable: "لا توجد حزمة مرتبطة",
+      deckNotStarted: "لم تبدأ الحزمة",
+      deckInProgress: "الحزمة قيد الدراسة",
+      deckReviewed: "اكتملت الحزمة",
+      deckQuestions: (reviewed, total) => `${reviewed}/${total} سؤال`,
       showingLectures: (shown, total) => `${shown} من ${total} محاضرة`,
     },
   })[language] || {};
@@ -30546,17 +30865,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
     : [];
   const lectureRows = lectures.map((lecture) => {
     const progressState = getLectureProgress(lecture.id);
+    const selfStudyStatus = lectureSelfStudyStatus(progressState);
+    const attendanceStatus = lectureAttendanceStatus(progressState);
+    const deckStudy = lectureDeckStudyStatus(moduleName, lecture.id, importedQuestions, spacedData);
     const schedule = calendarLectureScheduleStatus(moduleName, lecture.id, mergedLectureCalendarEvents);
     const scheduleView = lectureScheduleDefinition(schedule);
     const hasPdf = documents.some((document) => document.lectureId === lecture.id);
-    return { lecture, progressState, schedule, scheduleView, hasPdf };
+    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, hasPdf };
   });
   const lectureFilterCounts = {
     all: lectureRows.length,
     upcoming: lectureRows.filter((row) => row.scheduleView.key === "upcoming").length,
     held: lectureRows.filter((row) => row.scheduleView.key === "held").length,
-    notReviewed: lectureRows.filter((row) => !row.progressState.viewed).length,
-    selfStudy: lectureRows.filter((row) => row.progressState.viewed).length,
+    notReviewed: lectureRows.filter((row) => row.selfStudyStatus !== "reviewed").length,
+    selfStudy: lectureRows.filter((row) => row.selfStudyStatus !== "not-started").length,
     missingMaterial: lectureRows.filter((row) => !row.hasPdf).length,
   };
   const lectureFilters = [
@@ -30572,8 +30894,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
     if (!matchesQuery) return false;
     if (lectureFilter === "upcoming") return row.scheduleView.key === "upcoming";
     if (lectureFilter === "held") return row.scheduleView.key === "held";
-    if (lectureFilter === "notReviewed") return !row.progressState.viewed;
-    if (lectureFilter === "selfStudy") return row.progressState.viewed;
+    if (lectureFilter === "notReviewed") return row.selfStudyStatus !== "reviewed";
+    if (lectureFilter === "selfStudy") return row.selfStudyStatus !== "not-started";
     if (lectureFilter === "missingMaterial") return !row.hasPdf;
     return true;
   });
@@ -30591,9 +30913,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
   }
 
   function getLectureProgress(lectureId) {
-    return lectureProgress[lectureProgressKey(lectureId)] || {
-      viewed: false,
-      mastery: "unrated",
+    const stored = lectureProgress[lectureProgressKey(lectureId)] || {};
+    const selfStudyStatus = lectureSelfStudyStatus(stored);
+    return {
+      ...stored,
+      viewed: selfStudyStatus === "reviewed",
+      selfStudyStatus,
+      attendance: lectureAttendanceStatus(stored),
+      mastery: stored.mastery || "unrated",
     };
   }
 
@@ -30605,6 +30932,34 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       confident: { label: copy.masteryConfident, color: c.green },
     };
     return definitions[value] || definitions.unrated;
+  }
+
+  function attendanceDefinition(value) {
+    const definitions = {
+      unmarked: { label: copy.attendanceUnmarked, icon: "user", tone: "neutral" },
+      attended: { label: copy.attendanceAttended, icon: "check", tone: "positive" },
+      missed: { label: copy.attendanceMissed, icon: "close", tone: "negative" },
+    };
+    return definitions[value] || definitions.unmarked;
+  }
+
+  function selfStudyDefinition(value) {
+    const definitions = {
+      "not-started": { label: copy.selfStudyNotStarted, icon: "book", tone: "neutral" },
+      "in-progress": { label: copy.selfStudyInProgress, icon: "play", tone: "progress" },
+      reviewed: { label: copy.selfStudyReviewed, icon: "check", tone: "positive" },
+    };
+    return definitions[value] || definitions["not-started"];
+  }
+
+  function deckStudyDefinition(status) {
+    const definitions = {
+      unavailable: { label: copy.deckUnavailable, tone: "neutral" },
+      "not-started": { label: copy.deckNotStarted, tone: "neutral" },
+      "in-progress": { label: copy.deckInProgress, tone: "progress" },
+      reviewed: { label: copy.deckReviewed, tone: "positive" },
+    };
+    return definitions[status?.state] || definitions.unavailable;
   }
 
   function lectureScheduleDefinition(schedule) {
@@ -30714,27 +31069,42 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
     });
   }
 
-  function toggleLectureViewed(lectureId) {
+  function cycleLectureSelfStudy(lectureId) {
     const key = lectureProgressKey(lectureId);
     const previous = getLectureProgress(lectureId);
-    const viewed = !previous.viewed;
+    const previousReviewed = lectureSelfStudyIsReviewed(previous);
+    const currentIndex = LECTURE_SELF_STUDY_STATES.indexOf(lectureSelfStudyStatus(previous));
+    const selfStudyStatus = LECTURE_SELF_STUDY_STATES[(currentIndex + 1) % LECTURE_SELF_STUDY_STATES.length];
+    const reviewed = selfStudyStatus === "reviewed";
 
     setLectureProgress((current) => ({
       ...current,
       [key]: {
         ...(current[key] || previous),
-        viewed,
-        lastViewedAt: viewed ? Date.now() : null,
+        viewed: reviewed,
+        selfStudyStatus,
+        selfStudyUpdatedAt: Date.now(),
+        lastViewedAt: reviewed ? Date.now() : null,
       },
     }));
 
-    syncLectureCompletion(lectureId, viewed);
+    if (reviewed !== previousReviewed) syncLectureCompletion(lectureId, reviewed);
+  }
+
+  function cycleLectureAttendance(lectureId) {
+    const key = lectureProgressKey(lectureId);
+    setLectureProgress((current) => {
+      const previous = current[key] || { viewed: false, selfStudyStatus: "not-started", attendance: "unmarked", mastery: "unrated" };
+      const currentIndex = LECTURE_ATTENDANCE_STATES.indexOf(lectureAttendanceStatus(previous));
+      const attendance = LECTURE_ATTENDANCE_STATES[(currentIndex + 1) % LECTURE_ATTENDANCE_STATES.length];
+      return { ...current, [key]: { ...previous, attendance, attendanceUpdatedAt: Date.now() } };
+    });
   }
 
   function cycleLectureMastery(lectureId) {
     const key = lectureProgressKey(lectureId);
     setLectureProgress((current) => {
-      const previous = current[key] || { viewed: false, mastery: "unrated" };
+      const previous = current[key] || { viewed: false, selfStudyStatus: "not-started", attendance: "unmarked", mastery: "unrated" };
       const currentIndex = masteryOrder.indexOf(previous.mastery || "unrated");
       const mastery = masteryOrder[(currentIndex + 1) % masteryOrder.length];
       return { ...current, [key]: { ...previous, mastery, masteryUpdatedAt: Date.now() } };
@@ -30834,9 +31204,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
                     </button>
                     {!collapsed && (
                       <div className="lecture-group-rows">
-                        {rows.map(({ lecture, progressState, scheduleView, hasPdf }) => {
+                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, hasPdf }) => {
                           const selected = lecture.id === selectedLecture?.id;
                           const mastery = masteryDefinition(progressState.mastery);
+                          const attendance = attendanceDefinition(attendanceStatus);
+                          const selfStudy = selfStudyDefinition(selfStudyStatus);
+                          const deck = deckStudyDefinition(deckStudy);
                           return (
                             <div
                               key={lecture.id}
@@ -30855,19 +31228,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
                                     </span>
                                     {scheduleView.detail && <span className="lecture-schedule-date">{scheduleView.detail}</span>}
                                   </small>
+                                  <small className="lecture-learning-meta">
+                                    <span data-tone={attendance.tone} title={`${copy.attendance}: ${attendance.label}`}><Icon name={attendance.icon} size={9} />{attendance.label}</span>
+                                    <span data-tone={selfStudy.tone} title={`${copy.selfStudyStatus}: ${selfStudy.label}`}><Icon name={selfStudy.icon} size={9} />{selfStudy.label}</span>
+                                    <span data-tone={deck.tone} title={`${copy.deckStatus}: ${deck.label}${deckStudy.total ? ` · ${copy.deckQuestions(deckStudy.reviewedCount, deckStudy.total)}` : ""}`}><Icon name="cards" size={9} />{deckStudy.total ? `${deckStudy.reviewedCount}/${deckStudy.total}` : "—"}</span>
+                                  </small>
                                 </span>
                               </button>
                               <div className="lecture-progress-actions">
-                                <button
-                                  type="button"
-                                  className="lecture-view-toggle"
-                                  data-viewed={progressState.viewed ? "true" : "false"}
-                                  aria-pressed={Boolean(progressState.viewed)}
-                                  title={progressState.viewed ? copy.reviewedLabel : copy.notReviewedLabel}
-                                  onClick={() => toggleLectureViewed(lecture.id)}
-                                >
-                                  <Icon name="check" size={11} />
-                                </button>
+                                <button type="button" className="lecture-status-toggle" data-tone={attendance.tone} title={`${copy.attendance}: ${attendance.label}`} aria-label={`${copy.attendance}: ${attendance.label}`} onClick={() => cycleLectureAttendance(lecture.id)}><Icon name={attendance.icon} size={11} /></button>
+                                <button type="button" className="lecture-status-toggle" data-tone={selfStudy.tone} title={`${copy.selfStudyStatus}: ${selfStudy.label}`} aria-label={`${copy.selfStudyStatus}: ${selfStudy.label}`} onClick={() => cycleLectureSelfStudy(lecture.id)}><Icon name={selfStudy.icon} size={11} /></button>
                                 <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
                                 <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"} title={hasPdf ? copy.materialReady : copy.materialMissing}><Icon name={hasPdf ? "file" : "plus"} size={12} /></span>
                               </div>
@@ -32941,7 +33311,7 @@ useEffect(() => {
             <Notebook c={c} t={t} onClose={closeWorkspace} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} spacedData={spacedData} importedQuestions={importedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} />
