@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
  
 // Kræver: npm install @supabase/supabase-js
 import React, { useEffect, useRef, useState } from "react";
@@ -12304,6 +12304,211 @@ select.ui-control {
 .lecture-status-toggle[data-tone="negative"] { border-color: var(--ui-red-border); background: var(--ui-red-soft); color: var(--ui-red); }
 .lecture-status-toggle:hover { border-color: var(--ui-blue-border); color: var(--ui-blue); }
 .lecture-overview-row .document-library-file-state[data-ready="true"] { border-color: var(--ui-green-border); }
+
+/* ============================================================
+   SEGMENT 5.3 — KOMPAKT FORELÆSNINGSHOVED
+   ============================================================ */
+.document-workspace-grid--notes {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.document-workspace-grid--notes > .document-library-panel {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+.document-workspace-grid--notes > .lecture-detail-header {
+  grid-column: 2 / -1;
+  grid-row: 1;
+}
+.document-workspace-grid--notes > .document-viewer-panel {
+  grid-column: 2;
+  grid-row: 2;
+}
+.document-workspace-grid--notes > .lecture-notes-panel {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.lecture-detail-header {
+  position: relative;
+  z-index: 6;
+  min-width: 0;
+  min-height: 86px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--ui-border);
+  background: color-mix(in srgb, var(--ui-panel) 96%, transparent);
+  box-shadow: 0 5px 18px rgba(20,35,60,.035);
+  backdrop-filter: blur(12px);
+}
+.lecture-detail-heading {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.lecture-detail-code {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ui-blue-border);
+  border-radius: 10px;
+  background: var(--ui-blue-soft);
+  color: var(--ui-blue);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+.lecture-detail-copy { min-width: 0; display: grid; gap: 3px; }
+.lecture-detail-copy > small {
+  overflow: hidden;
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 830;
+  letter-spacing: .07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.lecture-detail-copy > strong {
+  overflow: hidden;
+  color: var(--ui-text);
+  font-size: 12.5px;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lecture-detail-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 1px;
+}
+.lecture-detail-meta > span,
+.lecture-detail-meta > a {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ui-muted);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.lecture-detail-meta > a { color: var(--ui-blue); }
+.lecture-detail-meta > a:hover { text-decoration: underline; }
+.lecture-detail-schedule-state {
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--ui-soft);
+}
+.lecture-detail-schedule-state > i { width: 5px; height: 5px; border-radius: 99px; background: currentColor; }
+.lecture-detail-schedule-state[data-state="held"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-detail-schedule-state[data-state="partial"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-detail-schedule-state[data-state="upcoming"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
+
+.lecture-detail-tools {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.lecture-detail-statuses { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.lecture-detail-status-button {
+  min-width: 105px;
+  height: 38px;
+  display: grid;
+  grid-template-columns: 23px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-panel);
+  color: var(--ui-secondary);
+  text-align: start;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+.lecture-detail-status-button:hover { border-color: var(--ui-blue-border); background: var(--ui-soft); }
+.lecture-detail-status-button > span:first-child {
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--ui-soft);
+  color: var(--ui-muted);
+}
+.lecture-detail-status-button > span:last-child { min-width: 0; display: grid; gap: 1px; }
+.lecture-detail-status-button small,
+.lecture-detail-status-button strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-detail-status-button small { color: var(--ui-muted); font-size: 6.8px; font-weight: 830; letter-spacing: .04em; text-transform: uppercase; }
+.lecture-detail-status-button strong { color: inherit; font-size: 8px; font-weight: 820; }
+.lecture-detail-status-button[data-tone="positive"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-detail-status-button[data-tone="positive"] > span:first-child { background: color-mix(in srgb, var(--ui-green-soft) 55%, var(--ui-panel)); color: var(--ui-green); }
+.lecture-detail-status-button[data-tone="progress"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-detail-status-button[data-tone="progress"] > span:first-child { background: color-mix(in srgb, var(--ui-blue-soft) 55%, var(--ui-panel)); color: var(--ui-blue); }
+.lecture-detail-status-button[data-tone="negative"] { border-color: var(--ui-red-border); background: var(--ui-red-soft); color: var(--ui-red); }
+.lecture-detail-status-button[data-tone="negative"] > span:first-child { background: color-mix(in srgb, var(--ui-red-soft) 55%, var(--ui-panel)); color: var(--ui-red); }
+.lecture-detail-status-button[data-tone="warning"] { border-color: color-mix(in srgb, #d7a22f 45%, var(--ui-border)); background: color-mix(in srgb, #d7a22f 10%, var(--ui-panel)); color: #a6750f; }
+.lecture-detail-status-button[data-kind="mastery"] > span:first-child { position: relative; color: var(--lecture-status-accent, var(--ui-muted)); }
+.lecture-detail-status-button[data-kind="mastery"] > span:first-child::after { content: ""; width: 8px; height: 8px; border-radius: 99px; background: currentColor; }
+
+.lecture-detail-navigation {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-soft);
+}
+.lecture-detail-navigation > span { min-width: 36px; color: var(--ui-muted); font-size: 7.5px; font-weight: 800; text-align: center; }
+.lecture-detail-nav-button {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ui-secondary);
+}
+.lecture-detail-nav-button:hover:not(:disabled) { background: var(--ui-panel); color: var(--ui-blue); }
+.lecture-detail-nav-button:disabled { opacity: .32; cursor: not-allowed; }
+
+@media (max-width: 1180px) {
+  .lecture-detail-header { grid-template-columns: minmax(190px, 1fr) auto; gap: 9px; padding-inline: 10px; }
+  .lecture-detail-status-button { min-width: 94px; }
+}
+@media (max-width: 940px) {
+  .document-workspace-grid--notes { position: relative; }
+  .lecture-detail-header { grid-column: 2; grid-row: 1; grid-template-columns: 1fr; align-items: start; min-height: 118px; }
+  .lecture-detail-tools { justify-content: flex-start; }
+  .document-workspace-grid--notes > .document-viewer-panel { grid-column: 2; grid-row: 2; }
+  .document-workspace-grid--notes > .lecture-notes-panel { top: 118px; }
+}
+@media (max-width: 760px) {
+  .lecture-detail-header { grid-column: 1; grid-row: 1; min-height: 112px; padding: 8px 9px; }
+  .document-workspace-grid--notes > .document-viewer-panel { grid-column: 1; grid-row: 2; }
+  .document-workspace-grid--notes > .lecture-notes-panel { top: 112px; }
+  .lecture-detail-status-button { min-width: 0; width: 36px; grid-template-columns: 1fr; padding: 0; }
+  .lecture-detail-status-button > span:first-child { margin: auto; }
+  .lecture-detail-status-button > span:last-child { display: none; }
+  .lecture-detail-copy > strong { font-size: 11px; }
+}
 
     `}
 </style>
@@ -30707,6 +30912,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
       deckReviewed: "Dæk gennemgået",
       deckQuestions: (reviewed, total) => `${reviewed}/${total} spørgsmål`,
       showingLectures: (shown, total) => `${shown} af ${total} forelæsninger`,
+      previousLecture: "Forrige forelæsning",
+      nextLecture: "Næste forelæsning",
+      lecturePosition: (current, total) => `${current}/${total}`,
+      openLectureLink: "Åbn undervisningslink",
+      scheduleLocation: "Sted",
+      lectureHeader: "Valgt forelæsning",
     },
     en: {
       lectures: "Lectures",
@@ -30770,6 +30981,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
       deckReviewed: "Deck completed",
       deckQuestions: (reviewed, total) => `${reviewed}/${total} questions`,
       showingLectures: (shown, total) => `${shown} of ${total} lectures`,
+      previousLecture: "Previous lecture",
+      nextLecture: "Next lecture",
+      lecturePosition: (current, total) => `${current}/${total}`,
+      openLectureLink: "Open teaching link",
+      scheduleLocation: "Location",
+      lectureHeader: "Selected lecture",
     },
     ar: {
       lectures: "المحاضرات",
@@ -30833,6 +31050,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
       deckReviewed: "اكتملت الحزمة",
       deckQuestions: (reviewed, total) => `${reviewed}/${total} سؤال`,
       showingLectures: (shown, total) => `${shown} من ${total} محاضرة`,
+      previousLecture: "المحاضرة السابقة",
+      nextLecture: "المحاضرة التالية",
+      lecturePosition: (current, total) => `${current}/${total}`,
+      openLectureLink: "فتح رابط المحاضرة",
+      scheduleLocation: "المكان",
+      lectureHeader: "المحاضرة المختارة",
     },
   })[language] || {};
 
@@ -30907,6 +31130,25 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
       rows: filteredLectureRows.filter((row) => row.lecture.group === group),
     }))
     .filter((entry) => entry.rows.length > 0);
+
+  const selectedLectureRow = isLectureLibrary
+    ? lectureRows.find((row) => row.lecture.id === selectedLecture?.id) || null
+    : null;
+  const selectedLectureIndex = selectedLecture
+    ? lectures.findIndex((lecture) => lecture.id === selectedLecture.id)
+    : -1;
+  const previousLecture = selectedLectureIndex > 0 ? lectures[selectedLectureIndex - 1] : null;
+  const nextLecture = selectedLectureIndex >= 0 && selectedLectureIndex < lectures.length - 1
+    ? lectures[selectedLectureIndex + 1]
+    : null;
+  const selectedScheduleEvent = selectedLectureRow?.schedule?.firstEvent || null;
+  const lectureHeaderLocale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+  const selectedScheduleDate = selectedScheduleEvent?.date
+    ? new Date(`${selectedScheduleEvent.date}T12:00:00`).toLocaleDateString(lectureHeaderLocale, { weekday: "short", day: "numeric", month: "short" })
+    : "";
+  const selectedScheduleTime = selectedScheduleEvent?.time
+    ? `${selectedScheduleEvent.time}${selectedScheduleEvent.endTime ? `–${selectedScheduleEvent.endTime}` : ""}`
+    : "";
 
   function lectureProgressKey(lectureId) {
     return `${moduleName || "module"}:${lectureId}`;
@@ -31001,6 +31243,11 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
     if (next.has(group)) next.delete(group);
     else next.add(group);
     updateLectureOverviewPreferences({ collapsedGroups: [...next] });
+  }
+
+  function selectAdjacentLecture(lecture) {
+    if (!lecture) return;
+    setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }));
   }
 
   function syncLectureCompletion(lectureId, completed) {
@@ -31145,6 +31392,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
 
   const title = isLectureLibrary ? copy.lectures : copy.examSets;
   const subtitle = isLectureLibrary ? copy.lectureSubtitle : copy.examSubtitle;
+  const selectedAttendance = selectedLectureRow ? attendanceDefinition(selectedLectureRow.attendanceStatus) : null;
+  const selectedSelfStudy = selectedLectureRow ? selfStudyDefinition(selectedLectureRow.selfStudyStatus) : null;
+  const selectedMastery = selectedLectureRow ? masteryDefinition(selectedLectureRow.progressState.mastery) : null;
+  const selectedMasteryTone = selectedLectureRow?.progressState?.mastery === "confident"
+    ? "positive"
+    : selectedLectureRow?.progressState?.mastery === "developing"
+      ? "progress"
+      : selectedLectureRow?.progressState?.mastery === "uncertain"
+        ? "warning"
+        : "neutral";
 
   return (
     <div className="document-workspace" dir={language === "ar" ? "rtl" : "ltr"}>
@@ -31260,6 +31517,75 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
           </div>
           <div className="document-session-note">{copy.sessionOnly}</div>
         </aside>
+
+        {isLectureLibrary && selectedLecture && selectedLectureRow && (
+          <section className="lecture-detail-header" aria-label={copy.lectureHeader}>
+            <div className="lecture-detail-heading">
+              <span className="lecture-detail-code">{selectedLecture.id}</span>
+              <div className="lecture-detail-copy">
+                <small>{selectedLecture.group}</small>
+                <strong title={selectedLecture.title}>{selectedLecture.title}</strong>
+                <div className="lecture-detail-meta">
+                  <span className="lecture-detail-schedule-state" data-state={selectedLectureRow.scheduleView.key}>
+                    <i />{selectedLectureRow.scheduleView.label}
+                  </span>
+                  {(selectedScheduleDate || selectedScheduleTime) && (
+                    <span><Icon name="calendar" size={10} />{[selectedScheduleDate, selectedScheduleTime].filter(Boolean).join(" · ")}</span>
+                  )}
+                  {selectedScheduleEvent?.location && (
+                    <span title={`${copy.scheduleLocation}: ${selectedScheduleEvent.location}`}><Icon name="target" size={10} />{selectedScheduleEvent.location}</span>
+                  )}
+                  {selectedScheduleEvent?.url && (
+                    <a href={selectedScheduleEvent.url} target="_blank" rel="noreferrer"><Icon name="expand" size={10} />{copy.openLectureLink}</a>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="lecture-detail-tools">
+              <div className="lecture-detail-statuses" role="group" aria-label={copy.lectureHeader}>
+                <button
+                  type="button"
+                  className="lecture-detail-status-button"
+                  data-tone={selectedAttendance?.tone || "neutral"}
+                  title={`${copy.attendance}: ${selectedAttendance?.label || copy.attendanceUnmarked}`}
+                  onClick={() => cycleLectureAttendance(selectedLecture.id)}
+                >
+                  <span><Icon name={selectedAttendance?.icon || "user"} size={11} /></span>
+                  <span><small>{copy.attendance}</small><strong>{selectedAttendance?.label || copy.attendanceUnmarked}</strong></span>
+                </button>
+                <button
+                  type="button"
+                  className="lecture-detail-status-button"
+                  data-tone={selectedSelfStudy?.tone || "neutral"}
+                  title={`${copy.selfStudyStatus}: ${selectedSelfStudy?.label || copy.selfStudyNotStarted}`}
+                  onClick={() => cycleLectureSelfStudy(selectedLecture.id)}
+                >
+                  <span><Icon name={selectedSelfStudy?.icon || "book"} size={11} /></span>
+                  <span><small>{copy.selfStudyStatus}</small><strong>{selectedSelfStudy?.label || copy.selfStudyNotStarted}</strong></span>
+                </button>
+                <button
+                  type="button"
+                  className="lecture-detail-status-button"
+                  data-kind="mastery"
+                  data-tone={selectedMasteryTone}
+                  style={{ "--lecture-status-accent": selectedMastery?.color || c.borderStrong }}
+                  title={`${copy.mastery}: ${selectedMastery?.label || copy.masteryUnrated}`}
+                  onClick={() => cycleLectureMastery(selectedLecture.id)}
+                >
+                  <span aria-hidden="true" />
+                  <span><small>{copy.mastery}</small><strong>{selectedMastery?.label || copy.masteryUnrated}</strong></span>
+                </button>
+              </div>
+
+              <nav className="lecture-detail-navigation" aria-label={copy.lectureHeader}>
+                <button type="button" className="lecture-detail-nav-button" disabled={!previousLecture} title={copy.previousLecture} aria-label={copy.previousLecture} onClick={() => selectAdjacentLecture(previousLecture)}><Icon name={language === "ar" ? "right" : "left"} size={13} /></button>
+                <span>{copy.lecturePosition(Math.max(0, selectedLectureIndex) + 1, lectures.length)}</span>
+                <button type="button" className="lecture-detail-nav-button" disabled={!nextLecture} title={copy.nextLecture} aria-label={copy.nextLecture} onClick={() => selectAdjacentLecture(nextLecture)}><Icon name={language === "ar" ? "left" : "right"} size={13} /></button>
+              </nav>
+            </div>
+          </section>
+        )}
 
         <main className="document-viewer-panel">
           <div className="document-viewer-toolbar">
