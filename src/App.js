@@ -11010,6 +11010,93 @@ select.ui-control {
 .lecture-mastery-toggle span { width: 9px; height: 9px; border-radius: 99px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
 .lecture-progress-row .document-library-file-state { width: 25px; height: 27px; }
 
+
+/* ============================================================
+   SEGMENT 5.1 — FORELÆSNINGSOVERSIGT
+   Kun venstre oversigtspanel: grupper, filtre og status-signaler.
+   ============================================================ */
+.lecture-overview-controls {
+  flex-shrink: 0;
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.lecture-filter-strip {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 0 4px 5px;
+  scrollbar-width: none;
+}
+.lecture-filter-strip::-webkit-scrollbar { display: none; }
+.lecture-filter-strip button {
+  min-height: 29px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 0 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  background: var(--ui-panel);
+  color: var(--ui-secondary);
+  font-size: 8.5px;
+  font-weight: 760;
+  white-space: nowrap;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+.lecture-filter-strip button:hover { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-filter-strip button[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-filter-strip button strong { min-width: 16px; height: 16px; display: grid; place-items: center; padding: 0 4px; border-radius: 99px; background: var(--ui-soft); color: var(--ui-muted); font-size: 7.5px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.lecture-filter-strip button[data-active="true"] strong { background: var(--ui-panel); color: var(--ui-blue); }
+.lecture-overview-result-count { padding: 1px 5px 0; color: var(--ui-muted); font-size: 8px; font-weight: 700; }
+.lecture-overview-list { padding: 7px 7px 12px; }
+.lecture-group-section { overflow: hidden; margin-bottom: 7px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); }
+.lecture-group-section[data-collapsed="true"] { background: var(--ui-soft); }
+.lecture-group-heading {
+  width: 100%;
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: 25px minmax(0,1fr) 16px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--ui-border);
+  background: color-mix(in srgb, var(--ui-soft) 72%, var(--ui-panel));
+  color: var(--ui-secondary);
+  text-align: start;
+}
+.lecture-group-section[data-collapsed="true"] .lecture-group-heading { border-bottom-color: transparent; }
+.lecture-group-heading:hover { background: var(--ui-soft); color: var(--ui-text); }
+.lecture-group-heading-icon { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 7px; background: var(--ui-panel); color: var(--ui-blue); }
+.lecture-group-heading-copy { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lecture-group-heading-copy strong { overflow: hidden; color: var(--ui-text); font-size: 9.5px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-group-heading-copy small { flex-shrink: 0; color: var(--ui-muted); font-size: 8px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.lecture-group-rows { padding: 3px; }
+.lecture-overview-row { min-height: 61px; margin: 2px 0; border-radius: 8px; }
+.lecture-overview-row[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-blue-border) 35%, transparent); }
+.lecture-overview-row .document-library-code { width: 31px; height: 31px; border-radius: 8px; }
+.lecture-overview-row[data-schedule="held"] .document-library-code { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-row-meta { display: flex !important; align-items: center; gap: 5px; overflow: hidden; }
+.lecture-schedule-state { min-width: 0; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; color: var(--ui-muted); }
+.lecture-schedule-state i { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: var(--ui-border-strong); }
+.lecture-schedule-state[data-state="held"] { color: var(--ui-green); }
+.lecture-schedule-state[data-state="held"] i { background: var(--ui-green); }
+.lecture-schedule-state[data-state="partial"] { color: #c9822f; }
+.lecture-schedule-state[data-state="partial"] i { background: #c9822f; }
+.lecture-schedule-state[data-state="upcoming"] { color: var(--ui-blue); }
+.lecture-schedule-state[data-state="upcoming"] i { background: var(--ui-blue); }
+.lecture-schedule-date { min-width: 0; overflow: hidden; color: var(--ui-muted); text-overflow: ellipsis; white-space: nowrap; }
+.lecture-overview-row .lecture-view-toggle { min-width: 27px; width: 27px; padding: 0; }
+.lecture-overview-row .lecture-progress-actions { gap: 2px; padding-inline-end: 2px; }
+.lecture-overview-row .document-library-file-state { border: 1px solid transparent; }
+.lecture-overview-row .document-library-file-state:not([data-ready="true"]) { color: var(--ui-muted); }
+
+@media (max-width: 940px) {
+  .lecture-filter-strip { padding-bottom: 4px; }
+  .lecture-group-heading { min-height: 40px; }
+}
+
 @media (max-width: 760px) {
   .topbar-digital-clock { width: 132px; min-height: 48px; padding-inline: 8px; }
   .topbar-digital-time { font-size: 21px; }
@@ -30310,6 +30397,25 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       masteryDeveloping: "På vej",
       masteryConfident: "Sikker",
       timesViewed: "gange set",
+      lectureOverview: "Forelæsningsoversigt",
+      filterAll: "Alle",
+      filterUpcoming: "Kommende",
+      filterHeld: "Afholdte",
+      filterNotReviewed: "Ikke gennemgået",
+      filterSelfStudy: "Selvstudie",
+      filterMissingMaterial: "Mangler materiale",
+      lectureNoMatches: "Ingen forelæsninger matcher søgningen eller det valgte filter.",
+      collapseGroup: "Fold fagområde sammen",
+      expandGroup: "Fold fagområde ud",
+      scheduleHeld: "Afholdt",
+      schedulePartial: "Delvist afholdt",
+      scheduleUpcoming: "Kommende",
+      scheduleUnscheduled: "Ingen SDU-dato",
+      reviewedLabel: "Gennemgået",
+      notReviewedLabel: "Ikke gennemgået",
+      materialReady: "Materiale tilknyttet",
+      materialMissing: "Mangler materiale",
+      showingLectures: (shown, total) => `${shown} af ${total} forelæsninger`,
     },
     en: {
       lectures: "Lectures",
@@ -30340,6 +30446,25 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       masteryDeveloping: "Developing",
       masteryConfident: "Confident",
       timesViewed: "views",
+      lectureOverview: "Lecture overview",
+      filterAll: "All",
+      filterUpcoming: "Upcoming",
+      filterHeld: "Held",
+      filterNotReviewed: "Not reviewed",
+      filterSelfStudy: "Self-study",
+      filterMissingMaterial: "Missing material",
+      lectureNoMatches: "No lectures match the search or selected filter.",
+      collapseGroup: "Collapse subject area",
+      expandGroup: "Expand subject area",
+      scheduleHeld: "Held",
+      schedulePartial: "Partly held",
+      scheduleUpcoming: "Upcoming",
+      scheduleUnscheduled: "No SDU date",
+      reviewedLabel: "Reviewed",
+      notReviewedLabel: "Not reviewed",
+      materialReady: "Material attached",
+      materialMissing: "Missing material",
+      showingLectures: (shown, total) => `${shown} of ${total} lectures`,
     },
     ar: {
       lectures: "المحاضرات",
@@ -30370,6 +30495,25 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       masteryDeveloping: "قيد التطور",
       masteryConfident: "واثق",
       timesViewed: "مرات المشاهدة",
+      lectureOverview: "نظرة عامة على المحاضرات",
+      filterAll: "الكل",
+      filterUpcoming: "القادمة",
+      filterHeld: "المنعقدة",
+      filterNotReviewed: "لم تتم مراجعتها",
+      filterSelfStudy: "دراسة ذاتية",
+      filterMissingMaterial: "بدون مواد",
+      lectureNoMatches: "لا توجد محاضرات تطابق البحث أو عامل التصفية المحدد.",
+      collapseGroup: "طي المجال",
+      expandGroup: "توسيع المجال",
+      scheduleHeld: "منعقدة",
+      schedulePartial: "منعقدة جزئيًا",
+      scheduleUpcoming: "قادمة",
+      scheduleUnscheduled: "بدون موعد SDU",
+      reviewedLabel: "تمت مراجعتها",
+      notReviewedLabel: "لم تتم مراجعتها",
+      materialReady: "المادة مرفقة",
+      materialMissing: "المادة مفقودة",
+      showingLectures: (shown, total) => `${shown} من ${total} محاضرة`,
     },
   })[language] || {};
 
@@ -30390,10 +30534,57 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
     : documents.find((document) => document.id === selectedId) || documents[0] || null;
 
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredLectures = lectures.filter((lecture) => `${lecture.id} ${lecture.title} ${lecture.group}`.toLowerCase().includes(normalizedQuery));
   const filteredDocuments = documents.filter((document) => `${document.name} ${document.year || ""}`.toLowerCase().includes(normalizedQuery));
   const noteKey = selectedLecture ? `${moduleName || "module"}:${selectedLecture.id}` : null;
   const masteryOrder = ["unrated", "uncertain", "developing", "confident"];
+  const lectureOverviewKey = moduleName || "module";
+  const lectureOverviewPreferences = workspaceState.lectureOverview?.[lectureOverviewKey] || {};
+  const lectureFilter = lectureOverviewPreferences.filter || "all";
+  const collapsedLectureGroups = new Set(lectureOverviewPreferences.collapsedGroups || []);
+  const mergedLectureCalendarEvents = isLectureLibrary
+    ? mergeCalendarEventMeta(calendarEvents, calendarEventMeta)
+    : [];
+  const lectureRows = lectures.map((lecture) => {
+    const progressState = getLectureProgress(lecture.id);
+    const schedule = calendarLectureScheduleStatus(moduleName, lecture.id, mergedLectureCalendarEvents);
+    const scheduleView = lectureScheduleDefinition(schedule);
+    const hasPdf = documents.some((document) => document.lectureId === lecture.id);
+    return { lecture, progressState, schedule, scheduleView, hasPdf };
+  });
+  const lectureFilterCounts = {
+    all: lectureRows.length,
+    upcoming: lectureRows.filter((row) => row.scheduleView.key === "upcoming").length,
+    held: lectureRows.filter((row) => row.scheduleView.key === "held").length,
+    notReviewed: lectureRows.filter((row) => !row.progressState.viewed).length,
+    selfStudy: lectureRows.filter((row) => row.progressState.viewed).length,
+    missingMaterial: lectureRows.filter((row) => !row.hasPdf).length,
+  };
+  const lectureFilters = [
+    { id: "all", label: copy.filterAll },
+    { id: "upcoming", label: copy.filterUpcoming },
+    { id: "held", label: copy.filterHeld },
+    { id: "notReviewed", label: copy.filterNotReviewed },
+    { id: "selfStudy", label: copy.filterSelfStudy },
+    { id: "missingMaterial", label: copy.filterMissingMaterial },
+  ];
+  const filteredLectureRows = lectureRows.filter((row) => {
+    const matchesQuery = `${row.lecture.id} ${row.lecture.title} ${row.lecture.group}`.toLowerCase().includes(normalizedQuery);
+    if (!matchesQuery) return false;
+    if (lectureFilter === "upcoming") return row.scheduleView.key === "upcoming";
+    if (lectureFilter === "held") return row.scheduleView.key === "held";
+    if (lectureFilter === "notReviewed") return !row.progressState.viewed;
+    if (lectureFilter === "selfStudy") return row.progressState.viewed;
+    if (lectureFilter === "missingMaterial") return !row.hasPdf;
+    return true;
+  });
+  const lectureGroupOrder = [...new Set(lectures.map((lecture) => lecture.group))];
+  const groupedLectureRows = lectureGroupOrder
+    .map((group) => ({
+      group,
+      total: lectureRows.filter((row) => row.lecture.group === group).length,
+      rows: filteredLectureRows.filter((row) => row.lecture.group === group),
+    }))
+    .filter((entry) => entry.rows.length > 0);
 
   function lectureProgressKey(lectureId) {
     return `${moduleName || "module"}:${lectureId}`;
@@ -30414,6 +30605,47 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       confident: { label: copy.masteryConfident, color: c.green },
     };
     return definitions[value] || definitions.unrated;
+  }
+
+  function lectureScheduleDefinition(schedule) {
+    const first = schedule?.firstEvent || null;
+    const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+    const dateLabel = first?.date
+      ? new Date(`${first.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })
+      : "";
+    const timeLabel = first?.time
+      ? `${first.time}${first.endTime ? `–${first.endTime}` : ""}`
+      : "";
+    const detail = [dateLabel, timeLabel].filter(Boolean).join(" · ");
+    if (schedule?.held) return { key: "held", label: copy.scheduleHeld, detail, icon: "check" };
+    if (schedule?.started) return { key: "partial", label: copy.schedulePartial, detail, icon: "clock" };
+    if (first) return { key: "upcoming", label: copy.scheduleUpcoming, detail, icon: "calendar" };
+    return { key: "unscheduled", label: copy.scheduleUnscheduled, detail: "", icon: "calendar" };
+  }
+
+  function updateLectureOverviewPreferences(patch) {
+    setWorkspaceState((current) => {
+      const overview = current.lectureOverview || {};
+      const modulePreferences = overview[lectureOverviewKey] || {};
+      return {
+        ...current,
+        lectureOverview: {
+          ...overview,
+          [lectureOverviewKey]: { ...modulePreferences, ...patch },
+        },
+      };
+    });
+  }
+
+  function selectLectureFilter(filter) {
+    updateLectureOverviewPreferences({ filter });
+  }
+
+  function toggleLectureGroup(group) {
+    const next = new Set(collapsedLectureGroups);
+    if (next.has(group)) next.delete(group);
+    else next.add(group);
+    updateLectureOverviewPreferences({ collapsedGroups: [...next] });
   }
 
   function syncLectureCompletion(lectureId, completed) {
@@ -30563,29 +30795,90 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose }) {
       <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : ""}`}>
         <aside className="document-library-panel">
           <label className="document-search-box"><Icon name="search" size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} /></label>
-          <div className="document-library-list">
+          {isLectureLibrary && (
+            <div className="lecture-overview-controls">
+              <div className="lecture-filter-strip" role="tablist" aria-label={copy.lectureOverview}>
+                {lectureFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={lectureFilter === filter.id}
+                    data-active={lectureFilter === filter.id ? "true" : "false"}
+                    onClick={() => selectLectureFilter(filter.id)}
+                  >
+                    <span>{filter.label}</span>
+                    <strong>{lectureFilterCounts[filter.id]}</strong>
+                  </button>
+                ))}
+              </div>
+              <div className="lecture-overview-result-count">{copy.showingLectures(filteredLectureRows.length, lectureRows.length)}</div>
+            </div>
+          )}
+          <div className={`document-library-list ${isLectureLibrary ? "lecture-overview-list" : ""}`}>
             {isLectureLibrary ? (
-              filteredLectures.length ? filteredLectures.map((lecture) => {
-                const selected = lecture.id === selectedLecture?.id;
-                const hasPdf = documents.some((document) => document.lectureId === lecture.id);
-                const progressState = getLectureProgress(lecture.id);
-                const mastery = masteryDefinition(progressState.mastery);
+              groupedLectureRows.length ? groupedLectureRows.map(({ group, rows, total }) => {
+                const collapsed = collapsedLectureGroups.has(group);
                 return (
-                  <div key={lecture.id} className="document-library-row lecture-progress-row" data-active={selected ? "true" : "false"} style={{ "--lecture-tone": mastery.color }}>
-                    <button type="button" className="document-library-main" onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }))}>
-                      <span className="document-library-code">{lecture.id}</span>
-                      <span className="document-library-copy"><strong>{lecture.title}</strong><small>{lecture.group} · {mastery.label}</small></span>
+                  <section key={group} className="lecture-group-section" data-collapsed={collapsed ? "true" : "false"}>
+                    <button
+                      type="button"
+                      className="lecture-group-heading"
+                      aria-expanded={!collapsed}
+                      title={collapsed ? copy.expandGroup : copy.collapseGroup}
+                      onClick={() => toggleLectureGroup(group)}
+                    >
+                      <span className="lecture-group-heading-icon"><Icon name="folder" size={13} /></span>
+                      <span className="lecture-group-heading-copy"><strong>{group}</strong><small>{rows.length === total ? total : `${rows.length}/${total}`}</small></span>
+                      <Icon name={collapsed ? "right" : "down"} size={13} />
                     </button>
-                    <div className="lecture-progress-actions">
-                      <button type="button" className="lecture-view-toggle" data-viewed={progressState.viewed ? "true" : "false"} aria-pressed={Boolean(progressState.viewed)} title={progressState.viewed ? copy.viewed : copy.notViewed} onClick={() => toggleLectureViewed(lecture.id)}>
-                        <Icon name="check" size={11} />
-                      </button>
-                      <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
-                      <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"}><Icon name={hasPdf ? "file" : "plus"} size={12} /></span>
-                    </div>
-                  </div>
+                    {!collapsed && (
+                      <div className="lecture-group-rows">
+                        {rows.map(({ lecture, progressState, scheduleView, hasPdf }) => {
+                          const selected = lecture.id === selectedLecture?.id;
+                          const mastery = masteryDefinition(progressState.mastery);
+                          return (
+                            <div
+                              key={lecture.id}
+                              className="document-library-row lecture-progress-row lecture-overview-row"
+                              data-active={selected ? "true" : "false"}
+                              data-schedule={scheduleView.key}
+                              style={{ "--lecture-tone": mastery.color }}
+                            >
+                              <button type="button" className="document-library-main" onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }))}>
+                                <span className="document-library-code">{lecture.id}</span>
+                                <span className="document-library-copy">
+                                  <strong>{lecture.title}</strong>
+                                  <small className="lecture-row-meta">
+                                    <span className="lecture-schedule-state" data-state={scheduleView.key} title={scheduleView.detail || scheduleView.label}>
+                                      <i />{scheduleView.label}
+                                    </span>
+                                    {scheduleView.detail && <span className="lecture-schedule-date">{scheduleView.detail}</span>}
+                                  </small>
+                                </span>
+                              </button>
+                              <div className="lecture-progress-actions">
+                                <button
+                                  type="button"
+                                  className="lecture-view-toggle"
+                                  data-viewed={progressState.viewed ? "true" : "false"}
+                                  aria-pressed={Boolean(progressState.viewed)}
+                                  title={progressState.viewed ? copy.reviewedLabel : copy.notReviewedLabel}
+                                  onClick={() => toggleLectureViewed(lecture.id)}
+                                >
+                                  <Icon name="check" size={11} />
+                                </button>
+                                <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
+                                <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"} title={hasPdf ? copy.materialReady : copy.materialMissing}><Icon name={hasPdf ? "file" : "plus"} size={12} /></span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </section>
                 );
-              }) : <div className="document-library-empty">{copy.noLectures}</div>
+              }) : <div className="document-library-empty">{lectures.length ? copy.lectureNoMatches : copy.noLectures}</div>
             ) : (
               filteredDocuments.length ? filteredDocuments.map((document) => (
                 <button key={document.id} type="button" className="document-library-row" data-active={document.id === activeDocument?.id ? "true" : "false"} onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: document.id }))}>
