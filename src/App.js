@@ -19266,10 +19266,9 @@ function Dashboard({
       }
       const hostRect = scrollHost.getBoundingClientRect();
       const workspaceRect = workspace.getBoundingClientRect();
-      const workspaceTopInContent = workspaceRect.top - hostRect.top + scrollHost.scrollTop;
-      const hostStyle = window.getComputedStyle(scrollHost);
-      const bottomPadding = Math.min(24, Number.parseFloat(hostStyle.paddingBottom) || 0);
-      const available = Math.floor(scrollHost.clientHeight - workspaceTopInContent - bottomPadding);
+      const workspaceTopInViewport = Math.max(0, workspaceRect.top - hostRect.top);
+      const bottomOverscan = 16;
+      const available = Math.floor(scrollHost.clientHeight - workspaceTopInViewport + bottomOverscan);
       const nextHeight = Math.max(480, available);
       setHomeWorkspaceHeight((previous) => previous === nextHeight ? previous : nextHeight);
     }
