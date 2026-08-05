@@ -12510,6 +12510,106 @@ select.ui-control {
   .lecture-detail-copy > strong { font-size: 11px; }
 }
 
+/* ============================================================
+   SEGMENT 5.4 — PERMANENT MATERIALEBIBLIOTEK
+   ============================================================ */
+.lecture-material-strip {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  min-height: 62px;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+}
+.lecture-material-strip-heading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-inline-end: 1px solid var(--ui-border);
+}
+.lecture-material-strip-heading > span { display: flex; align-items: center; gap: 5px; color: var(--ui-secondary); }
+.lecture-material-strip-heading strong { font-size: 9px; font-weight: 850; }
+.lecture-material-strip-heading small { min-width: 18px; padding: 2px 5px; border-radius: 99px; background: var(--ui-soft); color: var(--ui-muted); font-size: 7px; font-weight: 850; text-align: center; }
+.lecture-material-strip-heading button { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; padding: 4px 6px; border: 0; border-radius: 6px; background: var(--ui-blue-soft); color: var(--ui-blue); font-size: 7.5px; font-weight: 800; }
+.lecture-material-strip-heading button:disabled { opacity: .45; cursor: not-allowed; }
+.lecture-material-strip-body { min-width: 0; display: flex; align-items: center; overflow: hidden; padding: 7px 9px; }
+.lecture-material-list { min-width: 0; display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.lecture-material-chip {
+  width: 176px;
+  min-width: 176px;
+  height: 45px;
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-panel);
+  color: var(--ui-secondary);
+  text-align: start;
+}
+.lecture-material-chip:hover { border-color: var(--ui-blue-border); background: var(--ui-soft); }
+.lecture-material-chip[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-blue) 10%, transparent); }
+.lecture-material-chip > span:first-child { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 7px; background: var(--ui-soft); color: var(--ui-muted); }
+.lecture-material-chip[data-primary="true"] > span:first-child { background: color-mix(in srgb, #d7a22f 12%, var(--ui-panel)); color: #b17b09; }
+.lecture-material-chip > span:last-child { min-width: 0; display: grid; gap: 2px; }
+.lecture-material-chip strong,
+.lecture-material-chip small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-material-chip strong { color: var(--ui-text); font-size: 8px; font-weight: 820; }
+.lecture-material-chip small { color: var(--ui-muted); font-size: 6.8px; font-weight: 700; }
+.lecture-material-inline-state { color: var(--ui-muted); font-size: 8.5px; font-weight: 700; }
+.lecture-material-actions { min-width: 0; display: flex; align-items: center; gap: 2px; overflow-x: auto; }
+.document-viewer-toolbar .lecture-material-actions button { white-space: nowrap; }
+.document-viewer-toolbar .lecture-material-actions .lecture-material-delete { color: var(--ui-red); }
+.document-viewer-toolbar > span { flex: 1; }
+.lecture-primary-badge { display: inline-flex; align-items: center; gap: 3px; padding: 3px 5px; border-radius: 6px; background: color-mix(in srgb, #d7a22f 12%, var(--ui-panel)); color: #a6750f; font-size: 6.8px; font-style: normal; font-weight: 850; white-space: nowrap; }
+.lecture-material-status { flex-shrink: 0; padding: 5px 12px; border-bottom: 1px solid var(--ui-border); background: var(--ui-soft); color: var(--ui-secondary); font-size: 8px; font-weight: 700; }
+.lecture-material-status[data-state="error"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.lecture-material-status[data-state="success"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-material-image-preview { width: 100%; height: 100%; display: block; object-fit: contain; border-radius: 6px; background: #fff; box-shadow: 0 6px 20px rgba(20,35,60,.10); }
+.document-viewer-empty > small { max-width: 360px; color: var(--ui-muted); font-size: 9px; line-height: 1.5; }
+.lecture-material-empty-actions { display: flex; gap: 7px; }
+.lecture-material-count { position: absolute; inset-block-start: -4px; inset-inline-end: -4px; min-width: 14px; height: 14px; display: grid; place-items: center; padding: 0 3px; border: 2px solid var(--ui-panel); border-radius: 99px; background: var(--ui-blue); color: #fff; font-size: 6px; font-weight: 900; }
+.document-library-file-state { position: relative; }
+.lecture-material-dialog { display: grid; gap: 16px; }
+.lecture-material-dialog-heading { display: flex; align-items: center; gap: 10px; }
+.lecture-material-dialog-heading > span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-material-dialog-heading > div { min-width: 0; display: grid; gap: 2px; }
+.lecture-material-dialog-heading strong { color: var(--ui-text); font-size: 13px; font-weight: 850; }
+.lecture-material-dialog-heading small { overflow: hidden; color: var(--ui-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-material-dialog-files { display: grid; gap: 6px; }
+.lecture-material-dialog-files > label,
+.lecture-material-field > span { color: var(--ui-muted); font-size: 8px; font-weight: 820; letter-spacing: .04em; text-transform: uppercase; }
+.lecture-material-dialog-files > span { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 7px 8px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); }
+.lecture-material-dialog-files strong { overflow: hidden; color: var(--ui-text); font-size: 8.5px; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-material-dialog-files small { color: var(--ui-muted); font-size: 7px; }
+.lecture-material-field { display: grid; gap: 6px; }
+.lecture-material-field input,
+.lecture-material-field select { width: 100%; height: 40px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 9px; outline: 0; background: var(--ui-soft); color: var(--ui-text); font-size: 10px; }
+.lecture-material-field input:focus,
+.lecture-material-field select:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 3px var(--ui-ring); background: var(--ui-panel); }
+.lecture-material-primary-choice { display: flex; align-items: flex-start; gap: 8px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
+.lecture-material-primary-choice input { margin-top: 2px; accent-color: var(--ui-blue); }
+.lecture-material-primary-choice > span { display: grid; gap: 2px; }
+.lecture-material-primary-choice strong { color: var(--ui-text); font-size: 9px; }
+.lecture-material-primary-choice small { color: var(--ui-muted); font-size: 7.5px; line-height: 1.4; }
+.lecture-material-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+@media (max-width: 940px) {
+  .lecture-material-strip { grid-template-columns: 112px minmax(0, 1fr); }
+  .lecture-material-chip { width: 158px; min-width: 158px; }
+  .lecture-material-actions button { font-size: 0 !important; }
+  .lecture-material-actions button svg { width: 13px; height: 13px; }
+}
+@media (max-width: 760px) {
+  .lecture-material-strip { grid-template-columns: 1fr; }
+  .lecture-material-strip-heading { flex-direction: row; align-items: center; justify-content: space-between; border-inline-end: 0; border-bottom: 1px solid var(--ui-border); }
+  .lecture-material-strip-heading > span { flex: 1; }
+  .lecture-material-chip { width: 150px; min-width: 150px; }
+}
+
     `}
 </style>
   );
@@ -30810,6 +30910,71 @@ const DOCUMENT_SESSION_CACHE = {
   examSets: [],
 };
 
+
+const LECTURE_MATERIALS_BUCKET = "lecture-materials";
+const LECTURE_MATERIAL_MAX_BYTES = 50 * 1024 * 1024;
+const LECTURE_MATERIAL_ACCEPT = ".pdf,.ppt,.pptx,.doc,.docx,.png,.jpg,.jpeg,.webp,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg,image/webp";
+const LECTURE_MATERIAL_TYPES = ["slides", "compendium", "article", "own", "supplement", "other"];
+
+function lectureMaterialSafeSegment(value, fallback = "item") {
+  const normalized = String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 72);
+  return normalized || fallback;
+}
+
+function lectureMaterialExtension(fileName) {
+  const match = String(fileName || "").toLowerCase().match(/(\.[a-z0-9]{1,8})$/);
+  return match ? match[1] : "";
+}
+
+function lectureMaterialMime(file) {
+  if (file?.type) return file.type;
+  const extension = lectureMaterialExtension(file?.name);
+  return ({
+    ".pdf": "application/pdf",
+    ".ppt": "application/vnd.ms-powerpoint",
+    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+  })[extension] || "application/octet-stream";
+}
+
+function lectureMaterialObjectPath(userId, moduleName, lectureId, fileName) {
+  const id = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return [
+    userId,
+    lectureMaterialSafeSegment(moduleName, "module"),
+    lectureMaterialSafeSegment(lectureId, "lecture"),
+    `${id}${lectureMaterialExtension(fileName)}`,
+  ].join("/");
+}
+
+function lectureMaterialFormatBytes(bytes) {
+  const amount = Math.max(0, Number(bytes) || 0);
+  if (amount < 1024) return `${amount} B`;
+  if (amount < 1024 * 1024) return `${Math.round(amount / 1024)} KB`;
+  return `${(amount / (1024 * 1024)).toFixed(amount >= 10 * 1024 * 1024 ? 0 : 1)} MB`;
+}
+
+function lectureMaterialPreviewKind(material) {
+  const mime = String(material?.mime_type || "").toLowerCase();
+  const extension = lectureMaterialExtension(material?.file_name);
+  if (mime === "application/pdf" || extension === ".pdf") return "pdf";
+  if (mime.startsWith("image/") || [".png", ".jpg", ".jpeg", ".webp"].includes(extension)) return "image";
+  return "external";
+}
+
 function WorkspaceShell({ c, label, drByteOpen = false, closing = false, children }) {
   return (
     <section
@@ -30834,7 +30999,7 @@ function WorkspaceShell({ c, label, drByteOpen = false, closing = false, childre
   );
 }
 
-function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData = {}, importedQuestions = [] }) {
+function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, spacedData = {}, importedQuestions = [] }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
@@ -30847,13 +31012,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
   const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [lectureMaterials, setLectureMaterials] = useState([]);
+  const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
+  const [materialPreviewUrl, setMaterialPreviewUrl] = useState("");
+  const [materialPreviewState, setMaterialPreviewState] = useState("idle");
+  const [materialDialog, setMaterialDialog] = useState(null);
+  const [materialSaving, setMaterialSaving] = useState(false);
   const uploadRef = useRef(null);
+  const replaceUploadRef = useRef(null);
 
   const copy = ({
     da: {
       lectures: "Forelæsninger",
       examSets: "Eksamenssæt",
-      lectureSubtitle: "PDF-bibliotek, viewer og forelæsningsnoter",
+      lectureSubtitle: "Permanent materialebibliotek, viewer og forelæsningsnoter",
       examSubtitle: "Samling og gennemgang af tidligere eksamenssæt",
       searchLectures: "Søg efter forelæsning…",
       searchExamSets: "Søg efter fil eller år…",
@@ -30918,11 +31090,50 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
       openLectureLink: "Åbn undervisningslink",
       scheduleLocation: "Sted",
       lectureHeader: "Valgt forelæsning",
+      addMaterial: "Tilføj materiale",
+      materialLibrary: "Materialer",
+      materialLibraryEmpty: "Der er endnu ikke tilføjet materiale til denne forelæsning.",
+      materialPermanent: "Materialer gemmes privat og permanent i Supabase Storage.",
+      materialLoading: "Henter materialer…",
+      materialSetupMissing: "Materialelageret er ikke klargjort. Kør Segment 5.4 SQL-filen i Supabase.",
+      materialUploadTitle: "Tilføj materiale",
+      materialEditTitle: "Redigér materiale",
+      materialFiles: "Valgte filer",
+      materialName: "Visningsnavn",
+      materialType: "Materialetype",
+      materialPrimary: "Primært materiale",
+      materialPrimaryHint: "Åbnes automatisk, når forelæsningen vælges.",
+      materialSave: "Gem materiale",
+      materialCancel: "Annuller",
+      materialSetPrimary: "Gør primært",
+      materialPrimaryLabel: "Primær",
+      materialRename: "Redigér",
+      materialReplace: "Erstat fil",
+      materialDelete: "Slet",
+      materialDownload: "Download",
+      materialOpen: "Åbn",
+      materialNoPreview: "Denne filtype kan ikke forhåndsvises i appen.",
+      materialOpenExternally: "Åbn eller download filen for at se indholdet.",
+      materialUploadError: "Materialet kunne ikke gemmes.",
+      materialDeleteConfirm: "Vil du slette dette materiale permanent?",
+      materialTooLarge: "Filen er større end 50 MB og kan ikke uploades.",
+      materialUnsupported: "Filtypen understøttes ikke i dette materialebibliotek.",
+      materialSaved: "Materialet er gemt.",
+      materialDeleted: "Materialet er slettet.",
+      materialReplaced: "Filen er erstattet.",
+      materialUpdated: "Materialet er opdateret.",
+      materialTypeSlides: "Forelæsningsslides",
+      materialTypeCompendium: "Kompendium",
+      materialTypeArticle: "Artikel",
+      materialTypeOwn: "Eget dokument",
+      materialTypeSupplement: "Supplerende materiale",
+      materialTypeOther: "Andet",
+      materialAdded: "Tilføjet",
     },
     en: {
       lectures: "Lectures",
       examSets: "Exam sets",
-      lectureSubtitle: "PDF library, viewer and lecture notes",
+      lectureSubtitle: "Permanent material library, viewer and lecture notes",
       examSubtitle: "Collection and review of previous exam sets",
       searchLectures: "Search lectures…",
       searchExamSets: "Search file or year…",
@@ -30987,11 +31198,50 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
       openLectureLink: "Open teaching link",
       scheduleLocation: "Location",
       lectureHeader: "Selected lecture",
+      addMaterial: "Add material",
+      materialLibrary: "Materials",
+      materialLibraryEmpty: "No material has been added to this lecture yet.",
+      materialPermanent: "Materials are stored privately and permanently in Supabase Storage.",
+      materialLoading: "Loading materials…",
+      materialSetupMissing: "The material store is not configured. Run the Segment 5.4 SQL file in Supabase.",
+      materialUploadTitle: "Add material",
+      materialEditTitle: "Edit material",
+      materialFiles: "Selected files",
+      materialName: "Display name",
+      materialType: "Material type",
+      materialPrimary: "Primary material",
+      materialPrimaryHint: "Opens automatically when the lecture is selected.",
+      materialSave: "Save material",
+      materialCancel: "Cancel",
+      materialSetPrimary: "Make primary",
+      materialPrimaryLabel: "Primary",
+      materialRename: "Edit",
+      materialReplace: "Replace file",
+      materialDelete: "Delete",
+      materialDownload: "Download",
+      materialOpen: "Open",
+      materialNoPreview: "This file type cannot be previewed in the app.",
+      materialOpenExternally: "Open or download the file to view its contents.",
+      materialUploadError: "The material could not be saved.",
+      materialDeleteConfirm: "Delete this material permanently?",
+      materialTooLarge: "The file is larger than 50 MB and cannot be uploaded.",
+      materialUnsupported: "This file type is not supported by the material library.",
+      materialSaved: "The material was saved.",
+      materialDeleted: "The material was deleted.",
+      materialReplaced: "The file was replaced.",
+      materialUpdated: "The material was updated.",
+      materialTypeSlides: "Lecture slides",
+      materialTypeCompendium: "Compendium",
+      materialTypeArticle: "Article",
+      materialTypeOwn: "Own document",
+      materialTypeSupplement: "Supplementary material",
+      materialTypeOther: "Other",
+      materialAdded: "Added",
     },
     ar: {
       lectures: "المحاضرات",
       examSets: "مجموعات الامتحان",
-      lectureSubtitle: "مكتبة PDF وعارض وملاحظات المحاضرات",
+      lectureSubtitle: "مكتبة مواد دائمة وعارض وملاحظات المحاضرات",
       examSubtitle: "مجموعة ومراجعة نماذج الامتحانات السابقة",
       searchLectures: "ابحث في المحاضرات…",
       searchExamSets: "ابحث باسم الملف أو السنة…",
@@ -31056,6 +31306,45 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
       openLectureLink: "فتح رابط المحاضرة",
       scheduleLocation: "المكان",
       lectureHeader: "المحاضرة المختارة",
+      addMaterial: "إضافة مادة",
+      materialLibrary: "المواد",
+      materialLibraryEmpty: "لم تتم إضافة مواد لهذه المحاضرة بعد.",
+      materialPermanent: "يتم حفظ المواد بشكل خاص ودائم في Supabase Storage.",
+      materialLoading: "جارٍ تحميل المواد…",
+      materialSetupMissing: "لم يتم إعداد مخزن المواد. شغّل ملف SQL الخاص بالقسم 5.4 في Supabase.",
+      materialUploadTitle: "إضافة مادة",
+      materialEditTitle: "تعديل المادة",
+      materialFiles: "الملفات المحددة",
+      materialName: "اسم العرض",
+      materialType: "نوع المادة",
+      materialPrimary: "المادة الأساسية",
+      materialPrimaryHint: "تُفتح تلقائيًا عند اختيار المحاضرة.",
+      materialSave: "حفظ المادة",
+      materialCancel: "إلغاء",
+      materialSetPrimary: "تعيين كأساسية",
+      materialPrimaryLabel: "أساسية",
+      materialRename: "تعديل",
+      materialReplace: "استبدال الملف",
+      materialDelete: "حذف",
+      materialDownload: "تنزيل",
+      materialOpen: "فتح",
+      materialNoPreview: "لا يمكن معاينة هذا النوع من الملفات داخل التطبيق.",
+      materialOpenExternally: "افتح الملف أو نزّله لعرض محتواه.",
+      materialUploadError: "تعذر حفظ المادة.",
+      materialDeleteConfirm: "هل تريد حذف هذه المادة نهائيًا؟",
+      materialTooLarge: "حجم الملف أكبر من 50 ميغابايت ولا يمكن رفعه.",
+      materialUnsupported: "نوع الملف غير مدعوم في مكتبة المواد.",
+      materialSaved: "تم حفظ المادة.",
+      materialDeleted: "تم حذف المادة.",
+      materialReplaced: "تم استبدال الملف.",
+      materialUpdated: "تم تحديث المادة.",
+      materialTypeSlides: "شرائح المحاضرة",
+      materialTypeCompendium: "ملزمة",
+      materialTypeArticle: "مقالة",
+      materialTypeOwn: "مستند شخصي",
+      materialTypeSupplement: "مادة إضافية",
+      materialTypeOther: "أخرى",
+      materialAdded: "أضيفت",
     },
   })[language] || {};
 
@@ -31071,9 +31360,81 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
   }, [selectedId, initialLectureId, documents.length, isLectureLibrary, selectedStateKey, setWorkspaceState]);
 
   const selectedLecture = isLectureLibrary ? lectures.find((lecture) => lecture.id === selectedId) || lectures[0] : null;
+  const materialScopeKey = selectedLecture ? `${moduleName || "module"}:${selectedLecture.id}` : null;
+  const selectedLectureMaterials = isLectureLibrary && selectedLecture
+    ? lectureMaterials.filter((material) => material.lecture_id === selectedLecture.id)
+    : [];
+  const selectedMaterialId = materialScopeKey ? workspaceState.lectureMaterialSelection?.[materialScopeKey] : null;
+  const activeLectureMaterial = selectedLectureMaterials.find((material) => material.id === selectedMaterialId)
+    || selectedLectureMaterials.find((material) => material.is_primary)
+    || selectedLectureMaterials[0]
+    || null;
   const activeDocument = isLectureLibrary
-    ? documents.find((document) => document.lectureId === selectedLecture?.id) || null
+    ? activeLectureMaterial
+      ? {
+          id: activeLectureMaterial.id,
+          name: activeLectureMaterial.file_name,
+          url: materialPreviewUrl,
+          size: activeLectureMaterial.size_bytes,
+          mimeType: activeLectureMaterial.mime_type,
+          previewKind: lectureMaterialPreviewKind(activeLectureMaterial),
+          material: activeLectureMaterial,
+        }
+      : null
     : documents.find((document) => document.id === selectedId) || documents[0] || null;
+
+  useEffect(() => {
+    if (!isLectureLibrary) return undefined;
+    if (!userId || !moduleName) {
+      setLectureMaterials([]);
+      setMaterialStatus({ state: "error", message: copy.materialSetupMissing });
+      return undefined;
+    }
+    let cancelled = false;
+    setMaterialStatus({ state: "loading", message: "" });
+    supabase
+      .from("lecture_materials")
+      .select("id,user_id,module_name,lecture_id,file_name,storage_path,mime_type,size_bytes,material_type,is_primary,created_at,updated_at")
+      .eq("user_id", userId)
+      .eq("module_name", moduleName)
+      .order("is_primary", { ascending: false })
+      .order("created_at", { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setLectureMaterials([]);
+          setMaterialStatus({ state: "error", message: copy.materialSetupMissing });
+          return;
+        }
+        setLectureMaterials(Array.isArray(data) ? data : []);
+        setMaterialStatus({ state: "ready", message: "" });
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, moduleName]);
+
+  useEffect(() => {
+    if (!isLectureLibrary || !activeLectureMaterial?.storage_path) {
+      setMaterialPreviewUrl("");
+      setMaterialPreviewState("idle");
+      return undefined;
+    }
+    let cancelled = false;
+    setMaterialPreviewUrl("");
+    setMaterialPreviewState("loading");
+    supabase.storage
+      .from(LECTURE_MATERIALS_BUCKET)
+      .createSignedUrl(activeLectureMaterial.storage_path, 60 * 60)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data?.signedUrl) {
+          setMaterialPreviewState("error");
+          return;
+        }
+        setMaterialPreviewUrl(data.signedUrl);
+        setMaterialPreviewState("ready");
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, activeLectureMaterial?.id, activeLectureMaterial?.storage_path]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredDocuments = documents.filter((document) => `${document.name} ${document.year || ""}`.toLowerCase().includes(normalizedQuery));
@@ -31093,8 +31454,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
     const deckStudy = lectureDeckStudyStatus(moduleName, lecture.id, importedQuestions, spacedData);
     const schedule = calendarLectureScheduleStatus(moduleName, lecture.id, mergedLectureCalendarEvents);
     const scheduleView = lectureScheduleDefinition(schedule);
-    const hasPdf = documents.some((document) => document.lectureId === lecture.id);
-    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, hasPdf };
+    const materialCount = lectureMaterials.filter((material) => material.lecture_id === lecture.id).length;
+    const hasPdf = materialCount > 0;
+    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, hasPdf, materialCount };
   });
   const lectureFilterCounts = {
     all: lectureRows.length,
@@ -31358,13 +31720,254 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
     });
   }
 
+  function materialTypeLabel(value) {
+    return ({
+      slides: copy.materialTypeSlides,
+      compendium: copy.materialTypeCompendium,
+      article: copy.materialTypeArticle,
+      own: copy.materialTypeOwn,
+      supplement: copy.materialTypeSupplement,
+      other: copy.materialTypeOther,
+    })[value] || copy.materialTypeOther;
+  }
+
+  function selectLectureMaterial(materialId) {
+    if (!materialScopeKey || !materialId) return;
+    setWorkspaceState((current) => ({
+      ...current,
+      lectureMaterialSelection: {
+        ...(current.lectureMaterialSelection || {}),
+        [materialScopeKey]: materialId,
+      },
+    }));
+  }
+
+  async function refreshLectureMaterials() {
+    if (!isLectureLibrary || !userId || !moduleName) return [];
+    const { data, error } = await supabase
+      .from("lecture_materials")
+      .select("id,user_id,module_name,lecture_id,file_name,storage_path,mime_type,size_bytes,material_type,is_primary,created_at,updated_at")
+      .eq("user_id", userId)
+      .eq("module_name", moduleName)
+      .order("is_primary", { ascending: false })
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    const next = Array.isArray(data) ? data : [];
+    setLectureMaterials(next);
+    setMaterialStatus({ state: "ready", message: "" });
+    return next;
+  }
+
+  function validateLectureMaterialFile(file) {
+    if (!file) return copy.materialUnsupported;
+    if (file.size > LECTURE_MATERIAL_MAX_BYTES) return copy.materialTooLarge;
+    const extension = lectureMaterialExtension(file.name);
+    const allowed = [".pdf", ".ppt", ".pptx", ".doc", ".docx", ".png", ".jpg", ".jpeg", ".webp"];
+    return allowed.includes(extension) ? "" : copy.materialUnsupported;
+  }
+
+  async function setPrimaryLectureMaterial(materialId, lectureId = selectedLecture?.id) {
+    if (!materialId || !lectureId || !userId || !moduleName) return;
+    setMaterialSaving(true);
+    try {
+      const { error: setError } = await supabase.rpc("set_lecture_material_primary", { p_material_id: materialId });
+      if (setError) throw setError;
+      await refreshLectureMaterials();
+      selectLectureMaterial(materialId);
+      setMaterialStatus({ state: "success", message: copy.materialUpdated });
+    } catch (error) {
+      setMaterialStatus({ state: "error", message: error?.message || copy.materialUploadError });
+    } finally {
+      setMaterialSaving(false);
+    }
+  }
+
+  async function uploadLectureMaterials() {
+    const draft = materialDialog;
+    if (draft?.mode !== "upload" || !selectedLecture || !userId || !moduleName) return;
+    const files = draft.files || [];
+    if (!files.length) return;
+    setMaterialSaving(true);
+    setMaterialStatus({ state: "loading", message: "" });
+    const uploadedPaths = [];
+    try {
+      const rows = [];
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
+        const validationError = validateLectureMaterialFile(file);
+        if (validationError) throw new Error(`${file.name}: ${validationError}`);
+        const storagePath = lectureMaterialObjectPath(userId, moduleName, selectedLecture.id, file.name);
+        const { error: uploadError } = await supabase.storage
+          .from(LECTURE_MATERIALS_BUCKET)
+          .upload(storagePath, file, { cacheControl: "3600", upsert: false, contentType: lectureMaterialMime(file) });
+        if (uploadError) throw uploadError;
+        uploadedPaths.push(storagePath);
+        rows.push({
+          user_id: userId,
+          module_name: moduleName,
+          lecture_id: selectedLecture.id,
+          file_name: files.length === 1 ? (draft.name || file.name).trim() || file.name : file.name,
+          storage_path: storagePath,
+          mime_type: lectureMaterialMime(file),
+          size_bytes: file.size,
+          material_type: draft.materialType || "other",
+          is_primary: false,
+        });
+      }
+      const { data: inserted, error: insertError } = await supabase
+        .from("lecture_materials")
+        .insert(rows)
+        .select("id,lecture_id");
+      if (insertError) throw insertError;
+      const existingForLecture = lectureMaterials.filter((material) => material.lecture_id === selectedLecture.id);
+      const shouldSetPrimary = draft.makePrimary || !existingForLecture.some((material) => material.is_primary);
+      const firstInserted = inserted?.[0];
+      await refreshLectureMaterials();
+      if (shouldSetPrimary && firstInserted?.id) await setPrimaryLectureMaterial(firstInserted.id, selectedLecture.id);
+      else if (firstInserted?.id) selectLectureMaterial(firstInserted.id);
+      setMaterialDialog(null);
+      setMaterialStatus({ state: "success", message: copy.materialSaved });
+    } catch (error) {
+      if (uploadedPaths.length) await supabase.storage.from(LECTURE_MATERIALS_BUCKET).remove(uploadedPaths);
+      setMaterialStatus({ state: "error", message: error?.message || copy.materialUploadError });
+    } finally {
+      setMaterialSaving(false);
+    }
+  }
+
+  async function updateLectureMaterial() {
+    const draft = materialDialog;
+    if (draft?.mode !== "edit" || !draft.material || !userId) return;
+    const name = String(draft.name || "").trim();
+    if (!name) return;
+    setMaterialSaving(true);
+    try {
+      const { error } = await supabase
+        .from("lecture_materials")
+        .update({ file_name: name, material_type: draft.materialType || "other", updated_at: new Date().toISOString() })
+        .eq("id", draft.material.id)
+        .eq("user_id", userId);
+      if (error) throw error;
+      await refreshLectureMaterials();
+      setMaterialDialog(null);
+      setMaterialStatus({ state: "success", message: copy.materialUpdated });
+    } catch (error) {
+      setMaterialStatus({ state: "error", message: error?.message || copy.materialUploadError });
+    } finally {
+      setMaterialSaving(false);
+    }
+  }
+
+  async function replaceLectureMaterialFile(event) {
+    const file = Array.from(event.target.files || [])[0];
+    event.target.value = "";
+    if (!file || !activeLectureMaterial || !userId || !moduleName || !selectedLecture) return;
+    const validationError = validateLectureMaterialFile(file);
+    if (validationError) {
+      setMaterialStatus({ state: "error", message: validationError });
+      return;
+    }
+    setMaterialSaving(true);
+    const newPath = lectureMaterialObjectPath(userId, moduleName, selectedLecture.id, file.name);
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from(LECTURE_MATERIALS_BUCKET)
+        .upload(newPath, file, { cacheControl: "3600", upsert: false, contentType: lectureMaterialMime(file) });
+      if (uploadError) throw uploadError;
+      const { error: updateError } = await supabase
+        .from("lecture_materials")
+        .update({
+          file_name: file.name,
+          storage_path: newPath,
+          mime_type: lectureMaterialMime(file),
+          size_bytes: file.size,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", activeLectureMaterial.id)
+        .eq("user_id", userId);
+      if (updateError) {
+        await supabase.storage.from(LECTURE_MATERIALS_BUCKET).remove([newPath]);
+        throw updateError;
+      }
+      await supabase.storage.from(LECTURE_MATERIALS_BUCKET).remove([activeLectureMaterial.storage_path]);
+      await refreshLectureMaterials();
+      setMaterialStatus({ state: "success", message: copy.materialReplaced });
+    } catch (error) {
+      setMaterialStatus({ state: "error", message: error?.message || copy.materialUploadError });
+    } finally {
+      setMaterialSaving(false);
+    }
+  }
+
+  async function deleteLectureMaterial(material) {
+    if (!material || !userId || !window.confirm(copy.materialDeleteConfirm)) return;
+    setMaterialSaving(true);
+    try {
+      const { error: deleteError } = await supabase.from("lecture_materials").delete().eq("id", material.id).eq("user_id", userId);
+      if (deleteError) throw deleteError;
+      const { error: storageError } = await supabase.storage.from(LECTURE_MATERIALS_BUCKET).remove([material.storage_path]);
+      if (storageError) console.warn("Materialets metadata blev slettet, men storage-filen kunne ikke fjernes:", storageError);
+      const remaining = (await refreshLectureMaterials()).filter((item) => item.lecture_id === material.lecture_id && item.id !== material.id);
+      if (material.is_primary && remaining.length) await setPrimaryLectureMaterial(remaining[0].id, material.lecture_id);
+      setMaterialStatus({ state: "success", message: copy.materialDeleted });
+    } catch (error) {
+      setMaterialStatus({ state: "error", message: error?.message || copy.materialUploadError });
+    } finally {
+      setMaterialSaving(false);
+    }
+  }
+
+  async function openLectureMaterial(material = activeLectureMaterial) {
+    if (!material?.storage_path) return;
+    const { data, error } = await supabase.storage.from(LECTURE_MATERIALS_BUCKET).createSignedUrl(material.storage_path, 60 * 60);
+    if (error || !data?.signedUrl) {
+      setMaterialStatus({ state: "error", message: error?.message || copy.materialUploadError });
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }
+
+  async function downloadLectureMaterial(material = activeLectureMaterial) {
+    if (!material?.storage_path) return;
+    const { data, error } = await supabase.storage.from(LECTURE_MATERIALS_BUCKET).download(material.storage_path);
+    if (error || !data) {
+      setMaterialStatus({ state: "error", message: error?.message || copy.materialUploadError });
+      return;
+    }
+    const url = URL.createObjectURL(data);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = material.file_name || "materiale";
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function updateDocuments(next) {
     DOCUMENT_SESSION_CACHE[cacheKey] = next;
     setDocuments([...next]);
   }
 
   function handleUpload(event) {
-    const files = Array.from(event.target.files || []).filter((file) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"));
+    const selectedFiles = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (isLectureLibrary) {
+      const files = selectedFiles.filter((file) => !validateLectureMaterialFile(file));
+      const invalid = selectedFiles.find((file) => validateLectureMaterialFile(file));
+      if (invalid) {
+        setMaterialStatus({ state: "error", message: `${invalid.name}: ${validateLectureMaterialFile(invalid)}` });
+        return;
+      }
+      if (!files.length || !selectedLecture) return;
+      setMaterialDialog({
+        mode: "upload",
+        files,
+        name: files.length === 1 ? files[0].name : "",
+        materialType: "slides",
+        makePrimary: !selectedLectureMaterials.some((material) => material.is_primary),
+      });
+      return;
+    }
+    const files = selectedFiles.filter((file) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"));
     if (!files.length) return;
     const additions = files.map((file, index) => ({
       id: `pdf-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
@@ -31411,9 +32014,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
           <span><strong>{title}</strong><small>{subtitle}</small></span>
         </div>
         <div className="document-workspace-header-actions">
-          <input ref={uploadRef} type="file" accept="application/pdf,.pdf" multiple={!isLectureLibrary} onChange={handleUpload} hidden />
-          <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && !selectedLecture}>
-            <Icon name="upload" size={14} />{activeDocument && isLectureLibrary ? copy.replace : copy.upload}
+          <input ref={uploadRef} type="file" accept={isLectureLibrary ? LECTURE_MATERIAL_ACCEPT : "application/pdf,.pdf"} multiple onChange={handleUpload} hidden />
+          {isLectureLibrary && <input ref={replaceUploadRef} type="file" accept={LECTURE_MATERIAL_ACCEPT} onChange={replaceLectureMaterialFile} hidden />}
+          <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && (!selectedLecture || materialSaving)}>
+            <Icon name="upload" size={14} />{isLectureLibrary ? copy.addMaterial : copy.upload}
           </button>
           <IconButton c={c} title={copy.close} onClick={onClose} style={{ border: `1px solid ${c.border}`, background: c.soft }}><Icon name="close" size={16} /></IconButton>
         </div>
@@ -31461,7 +32065,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
                     </button>
                     {!collapsed && (
                       <div className="lecture-group-rows">
-                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, hasPdf }) => {
+                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, hasPdf, materialCount }) => {
                           const selected = lecture.id === selectedLecture?.id;
                           const mastery = masteryDefinition(progressState.mastery);
                           const attendance = attendanceDefinition(attendanceStatus);
@@ -31496,7 +32100,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
                                 <button type="button" className="lecture-status-toggle" data-tone={attendance.tone} title={`${copy.attendance}: ${attendance.label}`} aria-label={`${copy.attendance}: ${attendance.label}`} onClick={() => cycleLectureAttendance(lecture.id)}><Icon name={attendance.icon} size={11} /></button>
                                 <button type="button" className="lecture-status-toggle" data-tone={selfStudy.tone} title={`${copy.selfStudyStatus}: ${selfStudy.label}`} aria-label={`${copy.selfStudyStatus}: ${selfStudy.label}`} onClick={() => cycleLectureSelfStudy(lecture.id)}><Icon name={selfStudy.icon} size={11} /></button>
                                 <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
-                                <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"} title={hasPdf ? copy.materialReady : copy.materialMissing}><Icon name={hasPdf ? "file" : "plus"} size={12} /></span>
+                                <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"} title={hasPdf ? `${copy.materialReady} · ${materialCount}` : copy.materialMissing}><Icon name={hasPdf ? "file" : "plus"} size={12} />{materialCount > 1 && <small className="lecture-material-count">{materialCount}</small>}</span>
                               </div>
                             </div>
                           );
@@ -31515,7 +32119,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
               )) : <div className="document-library-empty">{copy.noExamSets}</div>
             )}
           </div>
-          <div className="document-session-note">{copy.sessionOnly}</div>
+          <div className="document-session-note">{isLectureLibrary ? copy.materialPermanent : copy.sessionOnly}</div>
         </aside>
 
         {isLectureLibrary && selectedLecture && selectedLectureRow && (
@@ -31588,13 +32192,71 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
         )}
 
         <main className="document-viewer-panel">
+          {isLectureLibrary && (
+            <div className="lecture-material-strip">
+              <div className="lecture-material-strip-heading">
+                <span><Icon name="folder" size={13} /><strong>{copy.materialLibrary}</strong><small>{selectedLectureMaterials.length}</small></span>
+                <button type="button" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="plus" size={12} />{copy.addMaterial}</button>
+              </div>
+              <div className="lecture-material-strip-body">
+                {materialStatus.state === "loading" ? (
+                  <span className="lecture-material-inline-state">{copy.materialLoading}</span>
+                ) : selectedLectureMaterials.length ? (
+                  <div className="lecture-material-list">
+                    {selectedLectureMaterials.map((material) => (
+                      <button
+                        key={material.id}
+                        type="button"
+                        className="lecture-material-chip"
+                        data-active={material.id === activeLectureMaterial?.id ? "true" : "false"}
+                        data-primary={material.is_primary ? "true" : "false"}
+                        onClick={() => selectLectureMaterial(material.id)}
+                        title={`${material.file_name} · ${lectureMaterialFormatBytes(material.size_bytes)}`}
+                      >
+                        <span><Icon name={material.is_primary ? "star" : "file"} size={11} /></span>
+                        <span><strong>{material.file_name}</strong><small>{materialTypeLabel(material.material_type)} · {lectureMaterialFormatBytes(material.size_bytes)}</small></span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="lecture-material-inline-state">{materialStatus.state === "error" ? materialStatus.message : copy.materialLibraryEmpty}</span>
+                )}
+              </div>
+            </div>
+          )}
           <div className="document-viewer-toolbar">
-            <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong></span>
-            {activeDocument && <button type="button" onClick={() => window.open(activeDocument.url, "_blank", "noopener,noreferrer")}><Icon name="expand" size={13} />{copy.openSeparate}</button>}
+            <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong>{activeLectureMaterial?.is_primary && <em className="lecture-primary-badge"><Icon name="star" size={9} />{copy.materialPrimaryLabel}</em>}</span>
+            {isLectureLibrary && activeLectureMaterial ? (
+              <div className="lecture-material-actions">
+                {!activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="star" size={12} />{copy.materialSetPrimary}</button>}
+                <button type="button" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other" })}><Icon name="edit" size={12} />{copy.materialRename}</button>
+                <button type="button" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><Icon name="upload" size={12} />{copy.materialReplace}</button>
+                <button type="button" onClick={() => downloadLectureMaterial()}><Icon name="down" size={12} />{copy.materialDownload}</button>
+                <button type="button" onClick={() => openLectureMaterial()}><Icon name="expand" size={12} />{copy.materialOpen}</button>
+                <button type="button" className="lecture-material-delete" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><Icon name="trash" size={12} />{copy.materialDelete}</button>
+              </div>
+            ) : activeDocument && !isLectureLibrary ? (
+              <button type="button" onClick={() => window.open(activeDocument.url, "_blank", "noopener,noreferrer")}><Icon name="expand" size={13} />{copy.openSeparate}</button>
+            ) : null}
           </div>
+          {isLectureLibrary && materialStatus.message && materialStatus.state !== "loading" && <div className="lecture-material-status" data-state={materialStatus.state}>{materialStatus.message}</div>}
           <div className="document-viewer-canvas">
-            {activeDocument ? <iframe title={activeDocument.name} src={activeDocument.url} /> : (
-              <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{isLectureLibrary && !selectedLecture ? copy.selectItem : copy.noPdf}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && !selectedLecture}><Icon name="upload" size={14} />{copy.upload}</button></div>
+            {isLectureLibrary ? (
+              activeLectureMaterial ? (
+                materialPreviewState === "loading" ? (
+                  <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialLoading}</strong></div>
+                ) : activeDocument?.previewKind === "image" && activeDocument.url ? (
+                  <img className="lecture-material-image-preview" src={activeDocument.url} alt={activeDocument.name} />
+                ) : activeDocument?.previewKind === "pdf" && activeDocument.url ? (
+                  <iframe title={activeDocument.name} src={activeDocument.url} />
+                ) : (
+                  <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialNoPreview}</strong><small>{copy.materialOpenExternally}</small><div className="lecture-material-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => downloadLectureMaterial()}>{copy.materialDownload}</button><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureMaterial()}>{copy.materialOpen}</button></div></div>
+                )
+              ) : (
+                <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{!selectedLecture ? copy.selectItem : copy.materialLibraryEmpty}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="upload" size={14} />{copy.addMaterial}</button></div>
+              )
+            ) : activeDocument ? <iframe title={activeDocument.name} src={activeDocument.url} /> : (
+              <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.noPdf}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()}><Icon name="upload" size={14} />{copy.upload}</button></div>
             )}
           </div>
         </main>
@@ -31613,6 +32275,31 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, spacedData 
           </aside>
         )}
       </div>
+
+      {materialDialog && (
+        <Modal c={c} onClose={() => !materialSaving && setMaterialDialog(null)}>
+          <div className="lecture-material-dialog">
+            <div className="lecture-material-dialog-heading">
+              <span><Icon name={materialDialog.mode === "upload" ? "upload" : "edit"} size={17} /></span>
+              <div><strong>{materialDialog.mode === "upload" ? copy.materialUploadTitle : copy.materialEditTitle}</strong><small>{selectedLecture?.id} · {selectedLecture?.title}</small></div>
+            </div>
+            {materialDialog.mode === "upload" && (
+              <div className="lecture-material-dialog-files">
+                <label>{copy.materialFiles}</label>
+                {(materialDialog.files || []).map((file) => <span key={`${file.name}-${file.size}`}><Icon name="file" size={12} /><strong>{file.name}</strong><small>{lectureMaterialFormatBytes(file.size)}</small></span>)}
+              </div>
+            )}
+            {(materialDialog.mode === "edit" || materialDialog.files?.length === 1) && (
+              <label className="lecture-material-field"><span>{copy.materialName}</span><input value={materialDialog.name || ""} onChange={(event) => setMaterialDialog((current) => ({ ...current, name: event.target.value }))} /></label>
+            )}
+            <label className="lecture-material-field"><span>{copy.materialType}</span><select value={materialDialog.materialType || "other"} onChange={(event) => setMaterialDialog((current) => ({ ...current, materialType: event.target.value }))}>{LECTURE_MATERIAL_TYPES.map((type) => <option key={type} value={type}>{materialTypeLabel(type)}</option>)}</select></label>
+            {materialDialog.mode === "upload" && (
+              <label className="lecture-material-primary-choice"><input type="checkbox" checked={Boolean(materialDialog.makePrimary)} onChange={(event) => setMaterialDialog((current) => ({ ...current, makePrimary: event.target.checked }))} /><span><strong>{copy.materialPrimary}</strong><small>{copy.materialPrimaryHint}</small></span></label>
+            )}
+            <div className="lecture-material-dialog-actions"><button type="button" className="ui-button ui-button--secondary" disabled={materialSaving} onClick={() => setMaterialDialog(null)}>{copy.materialCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={materialSaving || (materialDialog.mode === "edit" && !String(materialDialog.name || "").trim())} onClick={materialDialog.mode === "upload" ? uploadLectureMaterials : updateLectureMaterial}>{materialSaving ? copy.materialLoading : copy.materialSave}</button></div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -33637,7 +34324,7 @@ useEffect(() => {
             <Notebook c={c} t={t} onClose={closeWorkspace} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} spacedData={spacedData} importedQuestions={importedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} spacedData={spacedData} importedQuestions={importedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} />
