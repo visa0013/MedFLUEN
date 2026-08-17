@@ -11286,6 +11286,82 @@ select.ui-control {
 }
 
 /* ============================================================
+   SEGMENT 6.3 — FACIT OG SELVVURDERING
+   Facit/modelbesvarelse, egen vurdering, fejltype og læringspunkt.
+   ============================================================ */
+.exam-set-review-section {
+  display: grid;
+  gap: 9px;
+  margin: 3px 0 10px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb,#7667d8 18%,var(--ui-border));
+  border-radius: 10px;
+  background: color-mix(in srgb,#7667d8 3%,var(--ui-panel));
+}
+.exam-set-review-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.exam-set-review-heading > div { min-width: 0; display: grid; gap: 2px; }
+.exam-set-review-heading strong { color: var(--ui-text); font-size: 9px; font-weight: 850; }
+.exam-set-review-heading small { color: var(--ui-muted); font-size: 7.5px; line-height: 1.4; }
+.exam-set-review-heading > span {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 23px;
+  padding: 0 7px;
+  border: 1px solid var(--ui-border);
+  border-radius: 999px;
+  background: var(--ui-panel);
+  color: var(--ui-muted);
+  font-size: 7px;
+  font-weight: 850;
+}
+.exam-set-review-heading > span[data-rating="correct"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.exam-set-review-heading > span[data-rating="partial"] { border-color: color-mix(in srgb,#d79628 35%,var(--ui-border)); background: color-mix(in srgb,#d79628 9%,var(--ui-panel)); color: #b37618; }
+.exam-set-review-heading > span[data-rating="incorrect"] { border-color: color-mix(in srgb,var(--ui-red) 30%,var(--ui-border)); background: var(--ui-red-soft); color: var(--ui-red); }
+.exam-set-review-section .exam-set-question-field { margin-bottom: 0; }
+.exam-set-review-section .exam-set-question-field textarea { min-height: 96px; background: var(--ui-panel); }
+.exam-set-review-section .exam-set-question-field textarea[data-kind="learning"] { min-height: 72px; }
+.exam-set-review-ratings { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; }
+.exam-set-review-ratings button {
+  min-height: 31px;
+  padding: 4px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-panel);
+  color: var(--ui-muted);
+  font-size: 7px;
+  font-weight: 850;
+}
+.exam-set-review-ratings button:hover { border-color: var(--ui-blue-border); color: var(--ui-blue); }
+.exam-set-review-ratings button[data-active="true"][data-rating="unrated"] { background: var(--ui-soft); color: var(--ui-secondary); }
+.exam-set-review-ratings button[data-active="true"][data-rating="correct"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.exam-set-review-ratings button[data-active="true"][data-rating="partial"] { border-color: color-mix(in srgb,#d79628 40%,var(--ui-border)); background: color-mix(in srgb,#d79628 10%,var(--ui-panel)); color: #b37618; }
+.exam-set-review-ratings button[data-active="true"][data-rating="incorrect"] { border-color: color-mix(in srgb,var(--ui-red) 35%,var(--ui-border)); background: var(--ui-red-soft); color: var(--ui-red); }
+.exam-set-review-error-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 5px; }
+.exam-set-review-error-grid > span { color: var(--ui-muted); font-size: 7.5px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+.exam-set-review-error-grid select {
+  width: 100%;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  outline: 0;
+  background: var(--ui-panel);
+  color: var(--ui-text);
+  font: inherit;
+  font-size: 9px;
+}
+.exam-set-review-error-grid select:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 3px var(--ui-ring); }
+.exam-set-question-tab[data-rating="correct"] { color: var(--ui-green); }
+.exam-set-question-tab[data-rating="partial"] { color: #b37618; }
+.exam-set-question-tab[data-rating="incorrect"] { color: var(--ui-red); }
+.exam-set-review-summary { color: #7667d8; }
+@media (max-width: 760px) {
+  .exam-set-review-ratings { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+/* ============================================================
    SEGMENT 5.10 — KOMPAKT MODULOVERBLIK
    Fire handlingsnære modultal, der fungerer som filtre.
    ============================================================ */
@@ -31791,6 +31867,11 @@ function examSetDocumentFromRow(row) {
    ========================================================================== */
 const EXAM_SET_QUESTION_STATUSES = ["not-started", "answered", "review"];
 
+/* Segment 6.3 keeps assessment data inside the existing question JSONB objects.
+   No new database table is required, and old Segment 6.2 rows normalize safely. */
+const EXAM_SET_SELF_RATINGS = ["unrated", "correct", "partial", "incorrect"];
+const EXAM_SET_ERROR_TYPES = ["", "knowledge", "reasoning", "interpretation", "wording", "time", "careless", "other"];
+
 function examSetQuestionId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
   return `exam-question-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -31804,6 +31885,11 @@ function examSetQuestionNormalize(value, index = 0) {
     label: String(source.label || index + 1),
     answer: typeof source.answer === "string" ? source.answer : "",
     note: typeof source.note === "string" ? source.note : "",
+    modelAnswer: typeof source.modelAnswer === "string" ? source.modelAnswer : (typeof source.model_answer === "string" ? source.model_answer : ""),
+    selfRating: EXAM_SET_SELF_RATINGS.includes(source.selfRating) ? source.selfRating : (EXAM_SET_SELF_RATINGS.includes(source.self_rating) ? source.self_rating : "unrated"),
+    errorType: EXAM_SET_ERROR_TYPES.includes(source.errorType) ? source.errorType : (EXAM_SET_ERROR_TYPES.includes(source.error_type) ? source.error_type : ""),
+    learningPoint: typeof source.learningPoint === "string" ? source.learningPoint : (typeof source.learning_point === "string" ? source.learning_point : ""),
+    reviewedAt: source.reviewedAt || source.reviewed_at || null,
     status: EXAM_SET_QUESTION_STATUSES.includes(source.status) ? source.status : "not-started",
     marked: Boolean(source.marked),
     page: Number.isInteger(page) && page > 0 ? page : null,
@@ -31849,6 +31935,9 @@ function examSetQuestionCounts(value) {
     answered: workspace.questions.filter((question) => question.status === "answered" || question.status === "review").length,
     review: workspace.questions.filter((question) => question.status === "review").length,
     marked: workspace.questions.filter((question) => question.marked).length,
+    assessed: workspace.questions.filter((question) => question.selfRating !== "unrated").length,
+    incorrect: workspace.questions.filter((question) => question.selfRating === "incorrect").length,
+    partial: workspace.questions.filter((question) => question.selfRating === "partial").length,
   };
 }
 
@@ -32444,6 +32533,27 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetQuestionDeleteConfirm: "Slet denne opgave og dens gemte svar/noter?",
       examSetQuestionEmptyTitle: "Ingen opgaver endnu",
       examSetQuestionEmptyText: "Tilføj opgaver, efterhånden som du arbejder dig gennem PDF'en. Opgavenummeret kan fx være 1, 1a eller 12.",
+      examSetAssessmentTitle: "Facit og selvvurdering",
+      examSetAssessmentIntro: "Sammenlign dit svar med facit og gem ét konkret læringspunkt.",
+      examSetAssessmentCount: (count, total) => `${count}/${total} vurderet`,
+      examSetModelAnswer: "Facit / modelbesvarelse",
+      examSetModelAnswerPlaceholder: "Indsæt facit eller skriv de centrale elementer i en korrekt besvarelse…",
+      examSetSelfRating: "Egen vurdering",
+      examSetRatingUnrated: "Ikke vurderet",
+      examSetRatingCorrect: "Korrekt",
+      examSetRatingPartial: "Delvist korrekt",
+      examSetRatingIncorrect: "Forkert",
+      examSetErrorType: "Primær fejltype",
+      examSetErrorNone: "Vælg fejltype",
+      examSetErrorKnowledge: "Viden / fakta",
+      examSetErrorReasoning: "Klinisk ræsonnering",
+      examSetErrorInterpretation: "Fortolkning",
+      examSetErrorWording: "Formulering / præcision",
+      examSetErrorTime: "Tid / prioritering",
+      examSetErrorCareless: "Uopmærksom fejl",
+      examSetErrorOther: "Andet",
+      examSetLearningPoint: "Læringspunkt",
+      examSetLearningPointPlaceholder: "Hvad skal du huske eller gøre anderledes næste gang?",
       upload: "Tilføj PDF",
       replace: "Udskift PDF",
       noPdf: "Der er endnu ikke knyttet en PDF til dette element.",
@@ -32701,6 +32811,27 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetQuestionDeleteConfirm: "Delete this question and its saved answer/notes?",
       examSetQuestionEmptyTitle: "No questions yet",
       examSetQuestionEmptyText: "Add questions as you work through the PDF. The label can be 1, 1a or 12, for example.",
+      examSetAssessmentTitle: "Answer key and self-assessment",
+      examSetAssessmentIntro: "Compare your answer with the key and save one concrete learning point.",
+      examSetAssessmentCount: (count, total) => `${count}/${total} assessed`,
+      examSetModelAnswer: "Answer key / model answer",
+      examSetModelAnswerPlaceholder: "Paste the answer key or write the core elements of a correct answer…",
+      examSetSelfRating: "Self-assessment",
+      examSetRatingUnrated: "Not assessed",
+      examSetRatingCorrect: "Correct",
+      examSetRatingPartial: "Partly correct",
+      examSetRatingIncorrect: "Incorrect",
+      examSetErrorType: "Primary error type",
+      examSetErrorNone: "Choose error type",
+      examSetErrorKnowledge: "Knowledge / facts",
+      examSetErrorReasoning: "Clinical reasoning",
+      examSetErrorInterpretation: "Interpretation",
+      examSetErrorWording: "Wording / precision",
+      examSetErrorTime: "Time / prioritisation",
+      examSetErrorCareless: "Careless error",
+      examSetErrorOther: "Other",
+      examSetLearningPoint: "Learning point",
+      examSetLearningPointPlaceholder: "What should you remember or do differently next time?",
       upload: "Add PDF",
       replace: "Replace PDF",
       noPdf: "No PDF is linked to this item yet.",
@@ -32958,6 +33089,27 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetQuestionDeleteConfirm: "هل تريد حذف هذا السؤال وإجابته وملاحظاته المحفوظة؟",
       examSetQuestionEmptyTitle: "لا توجد أسئلة بعد",
       examSetQuestionEmptyText: "أضف الأسئلة أثناء العمل على ملف PDF. يمكن أن يكون الرقم مثل 1 أو 1a أو 12.",
+      examSetAssessmentTitle: "نموذج الإجابة والتقييم الذاتي",
+      examSetAssessmentIntro: "قارن إجابتك بالنموذج واحفظ نقطة تعلم عملية واحدة.",
+      examSetAssessmentCount: (count, total) => `${count}/${total} تم تقييمها`,
+      examSetModelAnswer: "نموذج الإجابة",
+      examSetModelAnswerPlaceholder: "ألصق نموذج الإجابة أو اكتب العناصر الأساسية للإجابة الصحيحة…",
+      examSetSelfRating: "التقييم الذاتي",
+      examSetRatingUnrated: "غير مقيّم",
+      examSetRatingCorrect: "صحيح",
+      examSetRatingPartial: "صحيح جزئيًا",
+      examSetRatingIncorrect: "خاطئ",
+      examSetErrorType: "نوع الخطأ الرئيسي",
+      examSetErrorNone: "اختر نوع الخطأ",
+      examSetErrorKnowledge: "المعرفة / الحقائق",
+      examSetErrorReasoning: "الاستدلال السريري",
+      examSetErrorInterpretation: "التفسير",
+      examSetErrorWording: "الصياغة / الدقة",
+      examSetErrorTime: "الوقت / ترتيب الأولويات",
+      examSetErrorCareless: "خطأ بسبب عدم الانتباه",
+      examSetErrorOther: "أخرى",
+      examSetLearningPoint: "نقطة تعلم",
+      examSetLearningPointPlaceholder: "ما الذي يجب أن تتذكره أو تفعله بشكل مختلف في المرة القادمة؟",
       upload: "إضافة PDF",
       replace: "استبدال PDF",
       noPdf: "لا يوجد ملف PDF مرتبط بهذا العنصر بعد.",
@@ -34654,6 +34806,37 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     })[status] || copy.examSetQuestionNotStarted;
   }
 
+  function examSetSelfRatingLabel(rating) {
+    return ({
+      unrated: copy.examSetRatingUnrated,
+      correct: copy.examSetRatingCorrect,
+      partial: copy.examSetRatingPartial,
+      incorrect: copy.examSetRatingIncorrect,
+    })[rating] || copy.examSetRatingUnrated;
+  }
+
+  function examSetErrorTypeLabel(errorType) {
+    return ({
+      "": copy.examSetErrorNone,
+      knowledge: copy.examSetErrorKnowledge,
+      reasoning: copy.examSetErrorReasoning,
+      interpretation: copy.examSetErrorInterpretation,
+      wording: copy.examSetErrorWording,
+      time: copy.examSetErrorTime,
+      careless: copy.examSetErrorCareless,
+      other: copy.examSetErrorOther,
+    })[errorType] || copy.examSetErrorNone;
+  }
+
+  function updateExamSetSelfRating(questionId, selfRating) {
+    if (!EXAM_SET_SELF_RATINGS.includes(selfRating)) return;
+    updateExamSetQuestion(questionId, {
+      selfRating,
+      reviewedAt: selfRating === "unrated" ? null : new Date().toISOString(),
+      ...(selfRating === "correct" || selfRating === "unrated" ? { errorType: "" } : {}),
+    });
+  }
+
   async function refreshExamSetDocuments() {
     if (isLectureLibrary || !userId || !moduleName) return [];
     const { data, error } = await supabase
@@ -35242,7 +35425,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
             <div className="exam-set-work-header">
               <div>
                 <strong>{copy.examSetWorkTitle}</strong>
-                <small>{copy.examSetWorkCount(examSetWorkCounts.answered, examSetWorkCounts.total)} · {copy.examSetWorkMarkedCount(examSetWorkCounts.marked)}</small>
+                <small>{copy.examSetWorkCount(examSetWorkCounts.answered, examSetWorkCounts.total)} · <span className="exam-set-review-summary">{copy.examSetAssessmentCount(examSetWorkCounts.assessed, examSetWorkCounts.total)}</span> · {copy.examSetWorkMarkedCount(examSetWorkCounts.marked)}</small>
               </div>
               <div className="exam-set-work-header-actions">
                 <span className="exam-set-work-save-state" data-state={examSetWorkSaveState}>
@@ -35263,8 +35446,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                   className="exam-set-question-tab"
                   data-active={question.id === activeExamSetQuestion?.id ? "true" : "false"}
                   data-status={question.status}
+                  data-rating={question.selfRating}
                   data-marked={question.marked ? "true" : "false"}
-                  title={`${copy.examSetQuestion} ${question.label} · ${examSetQuestionStatusLabel(question.status)}`}
+                  title={`${copy.examSetQuestion} ${question.label} · ${examSetQuestionStatusLabel(question.status)} · ${examSetSelfRatingLabel(question.selfRating)}`}
                   onClick={() => selectExamSetQuestion(question.id)}
                 >
                   {question.label || "—"}
@@ -35298,6 +35482,35 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                   <span>{copy.examSetQuestionNote}</span>
                   <textarea data-kind="note" value={activeExamSetQuestion.note} placeholder={copy.examSetQuestionNotePlaceholder} onChange={(event) => updateExamSetQuestion(activeExamSetQuestion.id, { note: event.target.value })} />
                 </label>
+
+                <section className="exam-set-review-section" aria-label={copy.examSetAssessmentTitle}>
+                  <div className="exam-set-review-heading">
+                    <div><strong>{copy.examSetAssessmentTitle}</strong><small>{copy.examSetAssessmentIntro}</small></div>
+                    <span data-rating={activeExamSetQuestion.selfRating}><Icon name={activeExamSetQuestion.selfRating === "correct" ? "check" : activeExamSetQuestion.selfRating === "incorrect" ? "flag" : "cards"} size={9} />{examSetSelfRatingLabel(activeExamSetQuestion.selfRating)}</span>
+                  </div>
+                  <label className="exam-set-question-field">
+                    <span>{copy.examSetModelAnswer}</span>
+                    <textarea value={activeExamSetQuestion.modelAnswer} placeholder={copy.examSetModelAnswerPlaceholder} onChange={(event) => updateExamSetQuestion(activeExamSetQuestion.id, { modelAnswer: event.target.value })} />
+                  </label>
+                  <div className="exam-set-review-ratings" role="group" aria-label={copy.examSetSelfRating}>
+                    {EXAM_SET_SELF_RATINGS.map((rating) => (
+                      <button key={rating} type="button" data-rating={rating} data-active={activeExamSetQuestion.selfRating === rating ? "true" : "false"} onClick={() => updateExamSetSelfRating(activeExamSetQuestion.id, rating)}>{examSetSelfRatingLabel(rating)}</button>
+                    ))}
+                  </div>
+                  {(activeExamSetQuestion.selfRating === "partial" || activeExamSetQuestion.selfRating === "incorrect") && (
+                    <label className="exam-set-review-error-grid">
+                      <span>{copy.examSetErrorType}</span>
+                      <select value={activeExamSetQuestion.errorType} onChange={(event) => updateExamSetQuestion(activeExamSetQuestion.id, { errorType: event.target.value })}>
+                        {EXAM_SET_ERROR_TYPES.map((errorType) => <option key={errorType || "none"} value={errorType}>{examSetErrorTypeLabel(errorType)}</option>)}
+                      </select>
+                    </label>
+                  )}
+                  <label className="exam-set-question-field">
+                    <span>{copy.examSetLearningPoint}</span>
+                    <textarea data-kind="learning" value={activeExamSetQuestion.learningPoint} placeholder={copy.examSetLearningPointPlaceholder} onChange={(event) => updateExamSetQuestion(activeExamSetQuestion.id, { learningPoint: event.target.value })} />
+                  </label>
+                </section>
+
                 <div className="exam-set-question-editor-actions">
                   <div>
                     <button type="button" data-active={activeExamSetQuestion.marked ? "true" : "false"} onClick={() => updateExamSetQuestion(activeExamSetQuestion.id, { marked: !activeExamSetQuestion.marked })}><Icon name="flag" size={11} />{activeExamSetQuestion.marked ? copy.examSetQuestionUnmark : copy.examSetQuestionMark}</button>
