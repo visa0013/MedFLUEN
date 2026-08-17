@@ -53,6 +53,7 @@ const STORAGE = {
   navigationScroll: "medlearn-navigation-scroll",
   workspaceState: "medlearn-workspace-state",
   lectureNotes: "medlearn-lecture-notes",
+  lectureNoteDrafts: "medlearn-lecture-note-drafts",
   sharedLectureNotes: "medlearn-shared-lecture-notes",
   lectureProgress: "medlearn-lecture-progress",
   dashboardPreferences: "medlearn-dashboard-preferences",
@@ -12664,6 +12665,58 @@ select.ui-control {
 }
 @media (prefers-reduced-motion: reduce) {
   .lecture-pdf-spinner { animation-duration: 1.4s; }
+}
+
+
+/* ============================================================
+   SEGMENT 5.6 — PRIVATE LECTURE NOTES
+   ============================================================ */
+.lecture-notes-panel { overflow: hidden; }
+.lecture-own-note-shell { min-width: 0; min-height: 0; flex: 1; display: flex; flex-direction: column; background: var(--ui-panel); }
+.lecture-own-note-toolbar {
+  min-height: 39px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 7px;
+  border-bottom: 1px solid var(--ui-border);
+  background: color-mix(in srgb,var(--ui-panel) 96%,transparent);
+}
+.lecture-note-view-toggle { min-width: 0; display: inline-flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); }
+.lecture-note-view-toggle button { height: 26px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: var(--ui-muted); font-size: 7.5px; font-weight: 800; white-space: nowrap; }
+.lecture-note-view-toggle button:hover { color: var(--ui-text); }
+.lecture-note-view-toggle button[data-active="true"] { background: var(--ui-panel); color: var(--ui-blue); box-shadow: 0 1px 4px rgba(20,35,60,.08); }
+.lecture-note-toolbar-actions { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+.lecture-note-save-state { height: 24px; display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; border-radius: 6px; color: var(--ui-muted); font-size: 6.9px; font-weight: 760; white-space: nowrap; }
+.lecture-note-save-state[data-state="saving"] { color: var(--ui-blue); }
+.lecture-note-save-state[data-state="saved"] { color: var(--ui-green); }
+.lecture-note-save-state[data-state="error"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.lecture-note-save-state[data-state="local"] { color: #b17b09; }
+.lecture-note-export-button { width: 27px; height: 27px; display: grid; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--ui-muted); }
+.lecture-note-export-button:hover:not(:disabled) { border-color: var(--ui-border); background: var(--ui-soft); color: var(--ui-text); }
+.lecture-note-export-button:disabled { opacity: .35; cursor: not-allowed; }
+.lecture-note-loading { min-height: 0; flex: 1; display: grid; place-items: center; align-content: center; gap: 8px; color: var(--ui-muted); text-align: center; }
+.lecture-note-loading strong { font-size: 9px; font-weight: 800; }
+.lecture-note-sync-warning { flex-shrink: 0; display: flex; align-items: flex-start; gap: 6px; padding: 6px 9px; border-bottom: 1px solid color-mix(in srgb,var(--ui-red) 18%,var(--ui-border)); background: color-mix(in srgb,var(--ui-red-soft) 72%,var(--ui-panel)); color: var(--ui-red); font-size: 7px; font-weight: 700; line-height: 1.45; }
+.lecture-note-free { min-height: 0; flex: 1; display: flex; }
+.lecture-note-free textarea { width: 100%; }
+.lecture-note-structured { min-height: 0; flex: 1; overflow-y: auto; display: grid; align-content: start; gap: 9px; padding: 10px; }
+.lecture-note-section { min-width: 0; display: grid; gap: 5px; padding: 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
+.lecture-note-section > header { display: flex; align-items: center; gap: 6px; color: var(--ui-secondary); }
+.lecture-note-section > header span { width: 23px; height: 23px; display: grid; place-items: center; flex-shrink: 0; border-radius: 6px; background: var(--ui-panel); color: var(--ui-blue); }
+.lecture-note-section > header strong { font-size: 8.5px; font-weight: 850; }
+.lecture-notes-panel .lecture-note-section textarea { min-height: 98px; width: 100%; flex: none; padding: 9px 10px; border: 1px solid transparent; border-radius: 7px; resize: vertical; background: var(--ui-panel); font-size: 10.5px; line-height: 1.6; }
+.lecture-notes-panel .lecture-note-section textarea:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 3px var(--ui-ring); }
+@media (max-width: 1180px) {
+  .lecture-note-save-state span { display: none; }
+  .lecture-note-view-toggle button { padding-inline: 6px; }
+}
+@media (max-width: 760px) {
+  .lecture-own-note-toolbar { min-height: 42px; }
+  .lecture-note-view-toggle button { height: 28px; }
+  .lecture-note-export-button { width: 29px; height: 29px; }
 }
 .document-viewer-empty > small { max-width: 360px; color: var(--ui-muted); font-size: 9px; line-height: 1.5; }
 .lecture-material-empty-actions { display: flex; gap: 7px; }
@@ -31072,6 +31125,91 @@ function lectureMaterialPreviewKind(material) {
 
 
 /* =============================================================================
+   SEGMENT 5.6 — PRIVATE LECTURE NOTES
+   -----------------------------------------------------------------------------
+   Notes are stored per authenticated user + module + lecture in Supabase.
+   A local draft cache is retained for instant typing/offline resilience and for
+   migrating the previous plain-text notes without losing existing content.
+   ========================================================================== */
+const LECTURE_NOTE_VIEW_MODES = ["free", "structured"];
+
+function lectureNoteEmpty(viewMode = "free") {
+  return {
+    freeText: "",
+    keyPoints: "",
+    clinicalPoints: "",
+    openQuestions: "",
+    viewMode: LECTURE_NOTE_VIEW_MODES.includes(viewMode) ? viewMode : "free",
+    updatedAt: null,
+  };
+}
+
+function lectureNoteNormalize(value, legacyText = "", fallbackViewMode = "free") {
+  if (typeof value === "string") {
+    return { ...lectureNoteEmpty(fallbackViewMode), freeText: value };
+  }
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    freeText: typeof source.freeText === "string" ? source.freeText : (typeof legacyText === "string" ? legacyText : ""),
+    keyPoints: typeof source.keyPoints === "string" ? source.keyPoints : "",
+    clinicalPoints: typeof source.clinicalPoints === "string" ? source.clinicalPoints : "",
+    openQuestions: typeof source.openQuestions === "string" ? source.openQuestions : "",
+    viewMode: LECTURE_NOTE_VIEW_MODES.includes(source.viewMode) ? source.viewMode : (LECTURE_NOTE_VIEW_MODES.includes(fallbackViewMode) ? fallbackViewMode : "free"),
+    updatedAt: source.updatedAt || source.remoteUpdatedAt || null,
+  };
+}
+
+function lectureNoteFromRow(row, fallbackViewMode = "free") {
+  if (!row) return lectureNoteEmpty(fallbackViewMode);
+  return lectureNoteNormalize({
+    freeText: row.free_text,
+    keyPoints: row.key_points,
+    clinicalPoints: row.clinical_points,
+    openQuestions: row.open_questions,
+    viewMode: row.view_mode,
+    updatedAt: row.updated_at,
+  }, "", fallbackViewMode);
+}
+
+function lectureNoteHasContent(note) {
+  const normalized = lectureNoteNormalize(note);
+  return [normalized.freeText, normalized.keyPoints, normalized.clinicalPoints, normalized.openQuestions]
+    .some((value) => String(value || "").trim().length > 0);
+}
+
+function lectureNoteBuildExport(note, lecture, moduleName, format = "markdown", labels = {}) {
+  const normalized = lectureNoteNormalize(note);
+  const lectureLabel = [lecture?.id, lecture?.title].filter(Boolean).join(" · ") || labels.lecture || "Forelæsning";
+  const sections = [
+    [labels.free || "Frie noter", normalized.freeText],
+    [labels.keyPoints || "Nøglepunkter", normalized.keyPoints],
+    [labels.clinicalPoints || "Kliniske pointer", normalized.clinicalPoints],
+    [labels.openQuestions || "Uafklarede spørgsmål", normalized.openQuestions],
+  ].filter(([, value]) => String(value || "").trim());
+  if (format === "text") {
+    const blocks = [lectureLabel, moduleName ? `${labels.module || "Modul"}: ${moduleName}` : "", ""];
+    sections.forEach(([label, value]) => blocks.push(label.toUpperCase(), String(value).trim(), ""));
+    return blocks.join("\n").trimEnd() + "\n";
+  }
+  const blocks = [`# ${lectureLabel}`, moduleName ? `**Modul:** ${moduleName}` : ""];
+  sections.forEach(([label, value]) => blocks.push(`\n## ${label}\n\n${String(value).trim()}`));
+  return blocks.filter((value) => value !== "").join("\n").trimEnd() + "\n";
+}
+
+function lectureNoteDownload(filename, content, mimeType = "text/plain;charset=utf-8") {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+
+/* =============================================================================
    SEGMENT 5.5 — PDF.JS DOCUMENT VIEWER
    -----------------------------------------------------------------------------
    A pinned PDF.js runtime is loaded only when a PDF is actually opened. This
@@ -31387,6 +31525,21 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [noteMode, setNoteMode] = useState("own");
   const [workspaceState, setWorkspaceState] = useStoredState(STORAGE.workspaceState, {});
   const [lectureNotes, setLectureNotes] = useStoredState(STORAGE.lectureNotes, {});
+  const [lectureNoteDraftCache, setLectureNoteDraftCache] = useStoredState(STORAGE.lectureNoteDrafts, {});
+  const [lectureNoteDraft, setLectureNoteDraft] = useState(() => lectureNoteEmpty());
+  const [lectureNoteLoadState, setLectureNoteLoadState] = useState("idle");
+  const [lectureNoteSaveState, setLectureNoteSaveState] = useState("idle");
+  const [lectureNoteSyncMessage, setLectureNoteSyncMessage] = useState("");
+  const lectureNoteDraftRef = useRef(lectureNoteEmpty());
+  const lectureNoteDraftCacheRef = useRef(lectureNoteDraftCache);
+  const lectureNotesRef = useRef(lectureNotes);
+  const lectureNoteScopeRef = useRef(null);
+  const lectureNoteDirtyRef = useRef(false);
+  const lectureNoteRevisionRef = useRef(0);
+  const lectureNoteHydratedRef = useRef(false);
+  const lectureNoteSaveTimerRef = useRef(null);
+  const lectureNoteLoadTokenRef = useRef(0);
+  const lectureNoteMountedRef = useRef(true);
   const [sharedNotes] = useStoredState(STORAGE.sharedLectureNotes, {});
   const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
   const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
@@ -31400,6 +31553,19 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [materialSaving, setMaterialSaving] = useState(false);
   const uploadRef = useRef(null);
   const replaceUploadRef = useRef(null);
+
+  useEffect(() => { lectureNoteDraftCacheRef.current = lectureNoteDraftCache; }, [lectureNoteDraftCache]);
+  useEffect(() => { lectureNotesRef.current = lectureNotes; }, [lectureNotes]);
+  useEffect(() => {
+    lectureNoteMountedRef.current = true;
+    return () => {
+      lectureNoteMountedRef.current = false;
+      window.clearTimeout(lectureNoteSaveTimerRef.current);
+      if (lectureNoteDirtyRef.current && lectureNoteScopeRef.current) {
+        persistLectureNoteSnapshot(lectureNoteScopeRef.current, lectureNoteDraftRef.current, lectureNoteRevisionRef.current, { background: true });
+      }
+    };
+  }, []);
 
   const copy = ({
     da: {
@@ -31417,6 +31583,22 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sharedNotes: "Delte noter",
       sharedReady: "Det delte noteområde er klargjort til Supabase-synkronisering i det senere forelæsningssegment.",
       notesPlaceholder: "Skriv noter til denne forelæsning…",
+      noteFreeView: "Fri note",
+      noteStructuredView: "Struktureret",
+      noteKeyPoints: "Nøglepunkter",
+      noteClinicalPoints: "Kliniske pointer",
+      noteOpenQuestions: "Uafklarede spørgsmål",
+      noteKeyPointsPlaceholder: "Skriv de vigtigste pointer fra forelæsningen…",
+      noteClinicalPointsPlaceholder: "Skriv kliniske pointer, røde flag eller praktiske koblinger…",
+      noteOpenQuestionsPlaceholder: "Skriv det, du stadig skal have afklaret…",
+      noteLoading: "Henter dine noter…",
+      noteSaving: "Gemmer…",
+      noteSaved: "Gemt",
+      noteLocalOnly: "Kun lokalt",
+      noteSyncError: "Kunne ikke synkronisere. Din lokale kladde er bevaret.",
+      noteSetupMissing: "Notelageret er ikke klargjort. Kør Segment 5.6 SQL-filen i Supabase.",
+      noteExportText: "Eksportér som tekst",
+      noteExportMarkdown: "Eksportér som Markdown",
       sessionOnly: "PDF-filer beholdes i denne browsersession i denne første workspace-version.",
       pdfViewer: "PDF-viewer",
       noLectures: "Ingen forelæsninger findes til det valgte modul.",
@@ -31535,6 +31717,22 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sharedNotes: "Shared notes",
       sharedReady: "The shared-note area is prepared for Supabase synchronization in the later lecture segment.",
       notesPlaceholder: "Write notes for this lecture…",
+      noteFreeView: "Free note",
+      noteStructuredView: "Structured",
+      noteKeyPoints: "Key points",
+      noteClinicalPoints: "Clinical points",
+      noteOpenQuestions: "Open questions",
+      noteKeyPointsPlaceholder: "Write the most important points from the lecture…",
+      noteClinicalPointsPlaceholder: "Write clinical points, red flags or practical links…",
+      noteOpenQuestionsPlaceholder: "Write what you still need to clarify…",
+      noteLoading: "Loading your notes…",
+      noteSaving: "Saving…",
+      noteSaved: "Saved",
+      noteLocalOnly: "Local only",
+      noteSyncError: "Could not sync. Your local draft has been preserved.",
+      noteSetupMissing: "The note store is not ready. Run the Segment 5.6 SQL file in Supabase.",
+      noteExportText: "Export as text",
+      noteExportMarkdown: "Export as Markdown",
       sessionOnly: "PDF files remain available for this browser session in this first workspace version.",
       pdfViewer: "PDF viewer",
       noLectures: "No lectures are available for the selected module.",
@@ -31653,6 +31851,22 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sharedNotes: "ملاحظات مشتركة",
       sharedReady: "تم تجهيز مساحة الملاحظات المشتركة لمزامنة Supabase في قسم المحاضرات لاحقًا.",
       notesPlaceholder: "اكتب ملاحظات لهذه المحاضرة…",
+      noteFreeView: "ملاحظة حرة",
+      noteStructuredView: "منظمة",
+      noteKeyPoints: "النقاط الرئيسية",
+      noteClinicalPoints: "نقاط سريرية",
+      noteOpenQuestions: "أسئلة غير محسومة",
+      noteKeyPointsPlaceholder: "اكتب أهم النقاط من المحاضرة…",
+      noteClinicalPointsPlaceholder: "اكتب النقاط السريرية أو علامات الخطر أو الروابط العملية…",
+      noteOpenQuestionsPlaceholder: "اكتب ما لا يزال يحتاج إلى توضيح…",
+      noteLoading: "جارٍ تحميل ملاحظاتك…",
+      noteSaving: "جارٍ الحفظ…",
+      noteSaved: "تم الحفظ",
+      noteLocalOnly: "محلي فقط",
+      noteSyncError: "تعذرت المزامنة. تم الاحتفاظ بالمسودة المحلية.",
+      noteSetupMissing: "مخزن الملاحظات غير مهيأ. شغّل ملف SQL الخاص بالمقطع 5.6 في Supabase.",
+      noteExportText: "تصدير كنص",
+      noteExportMarkdown: "تصدير Markdown",
       sessionOnly: "تبقى ملفات PDF متاحة خلال جلسة المتصفح الحالية في هذه النسخة الأولى.",
       pdfViewer: "عارض PDF",
       noLectures: "لا توجد محاضرات للوحدة المختارة.",
@@ -31849,6 +32063,109 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const normalizedQuery = query.trim().toLowerCase();
   const filteredDocuments = documents.filter((document) => `${document.name} ${document.year || ""}`.toLowerCase().includes(normalizedQuery));
   const noteKey = selectedLecture ? `${moduleName || "module"}:${selectedLecture.id}` : null;
+
+  useEffect(() => {
+    if (!isLectureLibrary || !selectedLecture || !noteKey) {
+      lectureNoteScopeRef.current = null;
+      lectureNoteHydratedRef.current = false;
+      lectureNoteDirtyRef.current = false;
+      lectureNoteDraftRef.current = lectureNoteEmpty();
+      setLectureNoteDraft(lectureNoteEmpty());
+      setLectureNoteLoadState("idle");
+      setLectureNoteSaveState("idle");
+      setLectureNoteSyncMessage("");
+      return undefined;
+    }
+
+    const token = ++lectureNoteLoadTokenRef.current;
+    const cachedRecord = lectureNoteDraftCacheRef.current?.[noteKey];
+    const legacyText = typeof lectureNotesRef.current?.[noteKey] === "string" ? lectureNotesRef.current[noteKey] : "";
+    const rememberedMode = workspaceState.lectureNoteViewMode?.[noteKey];
+    const localDraft = lectureNoteNormalize(cachedRecord, legacyText, rememberedMode || "free");
+    const scope = { key: noteKey, userId, moduleName, lectureId: selectedLecture.id };
+    lectureNoteScopeRef.current = scope;
+    lectureNoteHydratedRef.current = false;
+    lectureNoteDirtyRef.current = false;
+    lectureNoteRevisionRef.current = Math.max(0, Number(cachedRecord?.revision) || 0);
+    setLectureNoteLoadState("loading");
+    setLectureNoteSaveState("idle");
+    setLectureNoteSyncMessage("");
+
+    if (!userId || !moduleName) {
+      lectureNoteDraftRef.current = localDraft;
+      setLectureNoteDraft(localDraft);
+      lectureNoteHydratedRef.current = true;
+      setLectureNoteLoadState("ready");
+      setLectureNoteSaveState("local");
+      return undefined;
+    }
+
+    let cancelled = false;
+    supabase
+      .from("lecture_notes")
+      .select("id,user_id,module_name,lecture_id,free_text,key_points,clinical_points,open_questions,view_mode,created_at,updated_at")
+      .eq("user_id", userId)
+      .eq("module_name", moduleName)
+      .eq("lecture_id", selectedLecture.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled || token !== lectureNoteLoadTokenRef.current) return;
+        if (error) {
+          lectureNoteDraftRef.current = localDraft;
+          setLectureNoteDraft(localDraft);
+          lectureNoteHydratedRef.current = true;
+          setLectureNoteLoadState("ready");
+          setLectureNoteSaveState("error");
+          setLectureNoteSyncMessage(error.code === "42P01" ? copy.noteSetupMissing : copy.noteSyncError);
+          return;
+        }
+
+        const hasPendingLocal = cachedRecord?.syncState === "pending";
+        const remoteDraft = data ? lectureNoteFromRow(data, localDraft.viewMode) : null;
+        const chosen = hasPendingLocal ? localDraft : (remoteDraft || localDraft);
+        lectureNoteDraftRef.current = chosen;
+        setLectureNoteDraft(chosen);
+        lectureNoteHydratedRef.current = true;
+        setLectureNoteLoadState("ready");
+        setLectureNoteSaveState(data && !hasPendingLocal ? "saved" : (lectureNoteHasContent(chosen) ? "saving" : "saved"));
+
+        setLectureNoteDraftCache((current) => ({
+          ...current,
+          [noteKey]: {
+            ...chosen,
+            revision: Math.max(Number(current?.[noteKey]?.revision) || 0, lectureNoteRevisionRef.current),
+            syncState: hasPendingLocal ? "pending" : "synced",
+            remoteUpdatedAt: data?.updated_at || null,
+          },
+        }));
+        if (typeof chosen.freeText === "string") {
+          setLectureNotes((current) => ({ ...current, [noteKey]: chosen.freeText }));
+        }
+
+        if (hasPendingLocal || (!data && lectureNoteHasContent(chosen))) {
+          lectureNoteDirtyRef.current = true;
+          const revision = Math.max(1, lectureNoteRevisionRef.current || Number(cachedRecord?.revision) || 1);
+          lectureNoteRevisionRef.current = revision;
+          persistLectureNoteSnapshot(scope, chosen, revision);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, noteKey, selectedLecture?.id, userId, moduleName]);
+
+  useEffect(() => {
+    if (!isLectureLibrary || !noteKey || !lectureNoteHydratedRef.current || !lectureNoteDirtyRef.current) return undefined;
+    const scope = lectureNoteScopeRef.current;
+    if (!scope || scope.key !== noteKey) return undefined;
+    const snapshot = lectureNoteDraft;
+    const revision = lectureNoteRevisionRef.current;
+    window.clearTimeout(lectureNoteSaveTimerRef.current);
+    lectureNoteSaveTimerRef.current = window.setTimeout(() => {
+      persistLectureNoteSnapshot(scope, snapshot, revision);
+    }, 700);
+    return () => window.clearTimeout(lectureNoteSaveTimerRef.current);
+  }, [lectureNoteDraft, noteKey, userId, moduleName, isLectureLibrary]);
+
   const masteryOrder = ["unrated", "uncertain", "developing", "confident"];
   const lectureOverviewKey = moduleName || "module";
   const lectureOverviewPreferences = workspaceState.lectureOverview?.[lectureOverviewKey] || {};
@@ -31992,6 +32309,134 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     return { key: "unscheduled", label: copy.scheduleUnscheduled, detail: "", icon: "calendar" };
   }
 
+  async function persistLectureNoteSnapshot(scope, draft, revision, options = {}) {
+    if (!scope?.key || !scope?.userId || !scope?.moduleName || !scope?.lectureId) {
+      if (lectureNoteMountedRef.current && lectureNoteScopeRef.current?.key === scope?.key) setLectureNoteSaveState("local");
+      return false;
+    }
+    const normalized = lectureNoteNormalize(draft);
+    const isCurrentScope = lectureNoteScopeRef.current?.key === scope.key;
+    if (!options.background && isCurrentScope && lectureNoteMountedRef.current) {
+      setLectureNoteSaveState("saving");
+      setLectureNoteSyncMessage("");
+    }
+    const payload = {
+      user_id: scope.userId,
+      module_name: scope.moduleName,
+      lecture_id: scope.lectureId,
+      free_text: normalized.freeText,
+      key_points: normalized.keyPoints,
+      clinical_points: normalized.clinicalPoints,
+      open_questions: normalized.openQuestions,
+      view_mode: normalized.viewMode,
+      updated_at: new Date().toISOString(),
+    };
+    try {
+      const { data, error } = await supabase
+        .from("lecture_notes")
+        .upsert(payload, { onConflict: "user_id,module_name,lecture_id" })
+        .select("updated_at")
+        .single();
+      if (error) throw error;
+
+      if (lectureNoteMountedRef.current) {
+        setLectureNoteDraftCache((current) => {
+          const cached = current?.[scope.key] || {};
+          if ((Number(cached.revision) || 0) > revision) return current;
+          return {
+            ...current,
+            [scope.key]: {
+              ...normalized,
+              revision,
+              syncState: "synced",
+              remoteUpdatedAt: data?.updated_at || payload.updated_at,
+            },
+          };
+        });
+        setLectureNotes((current) => ({ ...current, [scope.key]: normalized.freeText }));
+      }
+      if (isCurrentScope && lectureNoteMountedRef.current && lectureNoteRevisionRef.current === revision) {
+        lectureNoteDirtyRef.current = false;
+        setLectureNoteSaveState("saved");
+        setLectureNoteSyncMessage("");
+      }
+      return true;
+    } catch (error) {
+      if (lectureNoteMountedRef.current) {
+        setLectureNoteDraftCache((current) => {
+          const cached = current?.[scope.key] || {};
+          if ((Number(cached.revision) || 0) > revision) return current;
+          return { ...current, [scope.key]: { ...normalized, revision, syncState: "pending", lastErrorAt: Date.now() } };
+        });
+      }
+      if (isCurrentScope && lectureNoteMountedRef.current) {
+        setLectureNoteSaveState("error");
+        setLectureNoteSyncMessage(error?.code === "42P01" ? copy.noteSetupMissing : copy.noteSyncError);
+      }
+      return false;
+    }
+  }
+
+  function updateLectureNoteDraft(patch) {
+    if (!noteKey || !selectedLecture) return;
+    const revision = lectureNoteRevisionRef.current + 1;
+    lectureNoteRevisionRef.current = revision;
+    lectureNoteDirtyRef.current = true;
+    setLectureNoteSaveState(userId && moduleName ? "saving" : "local");
+    setLectureNoteSyncMessage("");
+    setLectureNoteDraft((current) => {
+      const next = lectureNoteNormalize({ ...current, ...patch, updatedAt: new Date().toISOString() });
+      lectureNoteDraftRef.current = next;
+      setLectureNoteDraftCache((cache) => ({
+        ...cache,
+        [noteKey]: { ...next, revision, syncState: "pending", localUpdatedAt: Date.now() },
+      }));
+      setLectureNotes((currentLegacy) => ({ ...currentLegacy, [noteKey]: next.freeText }));
+      return next;
+    });
+  }
+
+  function setLectureNoteViewMode(viewMode) {
+    if (!LECTURE_NOTE_VIEW_MODES.includes(viewMode) || !noteKey) return;
+    updateLectureNoteDraft({ viewMode });
+    setWorkspaceState((current) => ({
+      ...current,
+      lectureNoteViewMode: { ...(current.lectureNoteViewMode || {}), [noteKey]: viewMode },
+    }));
+  }
+
+  function flushCurrentLectureNote() {
+    window.clearTimeout(lectureNoteSaveTimerRef.current);
+    const scope = lectureNoteScopeRef.current;
+    if (!lectureNoteDirtyRef.current || !scope) return;
+    persistLectureNoteSnapshot(scope, lectureNoteDraftRef.current, lectureNoteRevisionRef.current, { background: true });
+  }
+
+  function selectLecture(lecture) {
+    if (!lecture) return;
+    flushCurrentLectureNote();
+    setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }));
+  }
+
+  function handleDocumentWorkspaceClose() {
+    flushCurrentLectureNote();
+    onClose?.();
+  }
+
+  function exportCurrentLectureNote(format) {
+    if (!selectedLecture || !lectureNoteHasContent(lectureNoteDraft)) return;
+    const extension = format === "markdown" ? "md" : "txt";
+    const filename = `${lectureMaterialSafeSegment(selectedLecture.id, "lecture")}-${lectureMaterialSafeSegment(selectedLecture.title, "notes")}.${extension}`;
+    const content = lectureNoteBuildExport(
+      lectureNoteDraft,
+      selectedLecture,
+      moduleName,
+      format === "markdown" ? "markdown" : "text",
+      { free: copy.noteFreeView, keyPoints: copy.noteKeyPoints, clinicalPoints: copy.noteClinicalPoints, openQuestions: copy.noteOpenQuestions, module: language === "en" ? "Module" : language === "ar" ? "الوحدة" : "Modul", lecture: copy.lectures }
+    );
+    lectureNoteDownload(filename, content, format === "markdown" ? "text/markdown;charset=utf-8" : "text/plain;charset=utf-8");
+  }
+
   function updateLectureOverviewPreferences(patch) {
     setWorkspaceState((current) => {
       const overview = current.lectureOverview || {};
@@ -32018,8 +32463,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }
 
   function selectAdjacentLecture(lecture) {
-    if (!lecture) return;
-    setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }));
+    selectLecture(lecture);
   }
 
   function syncLectureCompletion(lectureId, completed) {
@@ -32445,7 +32889,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && (!selectedLecture || materialSaving)}>
             <Icon name="upload" size={14} />{isLectureLibrary ? copy.addMaterial : copy.upload}
           </button>
-          <IconButton c={c} title={copy.close} onClick={onClose} style={{ border: `1px solid ${c.border}`, background: c.soft }}><Icon name="close" size={16} /></IconButton>
+          <IconButton c={c} title={copy.close} onClick={handleDocumentWorkspaceClose} style={{ border: `1px solid ${c.border}`, background: c.soft }}><Icon name="close" size={16} /></IconButton>
         </div>
       </header>
 
@@ -32505,7 +32949,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                               data-schedule={scheduleView.key}
                               style={{ "--lecture-tone": mastery.color }}
                             >
-                              <button type="button" className="document-library-main" onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }))}>
+                              <button type="button" className="document-library-main" onClick={() => selectLecture(lecture)}>
                                 <span className="document-library-code">{lecture.id}</span>
                                 <span className="document-library-copy">
                                   <strong>{lecture.title}</strong>
@@ -32701,7 +33145,43 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
               <button type="button" data-active={noteMode === "shared" ? "true" : "false"} onClick={() => setNoteMode("shared")}><Icon name="share" size={12} />{copy.sharedNotes}</button>
             </div>
             {noteMode === "own" ? (
-              <textarea value={noteKey ? lectureNotes[noteKey] || "" : ""} disabled={!noteKey} onChange={(event) => noteKey && setLectureNotes((current) => ({ ...current, [noteKey]: event.target.value }))} placeholder={copy.notesPlaceholder} />
+              <div className="lecture-own-note-shell">
+                <div className="lecture-own-note-toolbar">
+                  <div className="lecture-note-view-toggle" role="tablist" aria-label={copy.ownNotes}>
+                    <button type="button" role="tab" aria-selected={lectureNoteDraft.viewMode === "free"} data-active={lectureNoteDraft.viewMode === "free" ? "true" : "false"} onClick={() => setLectureNoteViewMode("free")}>{copy.noteFreeView}</button>
+                    <button type="button" role="tab" aria-selected={lectureNoteDraft.viewMode === "structured"} data-active={lectureNoteDraft.viewMode === "structured" ? "true" : "false"} onClick={() => setLectureNoteViewMode("structured")}>{copy.noteStructuredView}</button>
+                  </div>
+                  <div className="lecture-note-toolbar-actions">
+                    <span className="lecture-note-save-state" data-state={lectureNoteSaveState} title={lectureNoteSyncMessage || undefined}>
+                      <Icon name={lectureNoteSaveState === "saved" ? "check" : lectureNoteSaveState === "error" ? "flag" : "clock"} size={10} />
+                      <span>{lectureNoteSaveState === "saving" ? copy.noteSaving : lectureNoteSaveState === "saved" ? copy.noteSaved : lectureNoteSaveState === "error" ? copy.noteLocalOnly : lectureNoteSaveState === "local" ? copy.noteLocalOnly : ""}</span>
+                    </span>
+                    <button type="button" className="lecture-note-export-button" title={copy.noteExportText} aria-label={copy.noteExportText} disabled={!selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={() => exportCurrentLectureNote("text")}><Icon name="file" size={12} /></button>
+                    <button type="button" className="lecture-note-export-button" title={copy.noteExportMarkdown} aria-label={copy.noteExportMarkdown} disabled={!selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={() => exportCurrentLectureNote("markdown")}><Icon name="down" size={12} /></button>
+                  </div>
+                </div>
+                {lectureNoteSyncMessage && lectureNoteSaveState === "error" && <div className="lecture-note-sync-warning" role="status"><Icon name="flag" size={11} /><span>{lectureNoteSyncMessage}</span></div>}
+                {lectureNoteLoadState === "loading" ? (
+                  <div className="lecture-note-loading"><span className="lecture-pdf-spinner" /><strong>{copy.noteLoading}</strong></div>
+                ) : lectureNoteDraft.viewMode === "structured" ? (
+                  <div className="lecture-note-structured">
+                    <section className="lecture-note-section">
+                      <header><span><Icon name="check" size={11} /></span><strong>{copy.noteKeyPoints}</strong></header>
+                      <textarea value={lectureNoteDraft.keyPoints} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ keyPoints: event.target.value })} placeholder={copy.noteKeyPointsPlaceholder} />
+                    </section>
+                    <section className="lecture-note-section">
+                      <header><span><Icon name="plus" size={11} /></span><strong>{copy.noteClinicalPoints}</strong></header>
+                      <textarea value={lectureNoteDraft.clinicalPoints} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ clinicalPoints: event.target.value })} placeholder={copy.noteClinicalPointsPlaceholder} />
+                    </section>
+                    <section className="lecture-note-section">
+                      <header><span><Icon name="flag" size={11} /></span><strong>{copy.noteOpenQuestions}</strong></header>
+                      <textarea value={lectureNoteDraft.openQuestions} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ openQuestions: event.target.value })} placeholder={copy.noteOpenQuestionsPlaceholder} />
+                    </section>
+                  </div>
+                ) : (
+                  <div className="lecture-note-free"><textarea value={lectureNoteDraft.freeText} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ freeText: event.target.value })} placeholder={copy.notesPlaceholder} /></div>
+                )}
+              </div>
             ) : (
               <div className="shared-notes-placeholder"><Icon name="share" size={18} /><strong>{copy.sharedNotes}</strong><p>{noteKey && sharedNotes[noteKey] ? sharedNotes[noteKey] : copy.sharedReady}</p></div>
             )}
