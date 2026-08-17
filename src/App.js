@@ -12795,6 +12795,60 @@ select.ui-control {
   .lecture-note-share-bar { padding-block: 7px; }
   .lecture-shared-note-selector button { min-width: 116px; }
 }
+/* ============================================================
+   SEGMENT 5.8 — FORELÆSNINGSOPFØLGNING
+   ============================================================ */
+.lecture-learning-meta > span[data-tone="warning"],
+.lecture-follow-up-row-badge { color: #a6750f; background: color-mix(in srgb,#d7a22f 10%,transparent); }
+.lecture-follow-up-trigger {
+  min-width: 104px; height: 38px; display: grid; grid-template-columns: 23px minmax(0,1fr); align-items: center; gap: 6px; padding: 0 8px;
+  border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-secondary); text-align: start;
+}
+.lecture-follow-up-trigger:hover { border-color: color-mix(in srgb,#d7a22f 50%,var(--ui-border)); background: color-mix(in srgb,#d7a22f 7%,var(--ui-panel)); }
+.lecture-follow-up-trigger > span:first-child { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 7px; background: var(--ui-soft); color: var(--ui-muted); }
+.lecture-follow-up-trigger > span:last-child { min-width: 0; display: grid; gap: 1px; }
+.lecture-follow-up-trigger small,.lecture-follow-up-trigger strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-follow-up-trigger small { color: var(--ui-muted); font-size: 6.8px; font-weight: 830; letter-spacing: .04em; text-transform: uppercase; }
+.lecture-follow-up-trigger strong { color: inherit; font-size: 8px; font-weight: 820; }
+.lecture-follow-up-trigger[data-active="true"] { border-color: color-mix(in srgb,#d7a22f 48%,var(--ui-border)); background: color-mix(in srgb,#d7a22f 10%,var(--ui-panel)); color: #a6750f; }
+.lecture-follow-up-trigger[data-active="true"] > span:first-child { background: color-mix(in srgb,#d7a22f 15%,var(--ui-panel)); color: #a6750f; }
+.lecture-follow-up-trigger[data-plan="sent"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-follow-up-trigger[data-plan="sent"] > span:first-child { background: color-mix(in srgb,var(--ui-green-soft) 55%,var(--ui-panel)); color: var(--ui-green); }
+.lecture-follow-up-popover {
+  position: absolute; inset-block-start: calc(100% - 4px); inset-inline-end: 12px; z-index: 45; width: min(390px, calc(100vw - 28px)); display: grid; gap: 10px; padding: 11px;
+  border: 1px solid var(--ui-border); border-radius: 13px; background: color-mix(in srgb,var(--ui-panel) 98%,transparent); box-shadow: 0 22px 60px rgba(20,35,60,.18); backdrop-filter: blur(16px);
+}
+.lecture-follow-up-popover-head { display: grid; grid-template-columns: 30px minmax(0,1fr) 28px; align-items: start; gap: 8px; }
+.lecture-follow-up-popover-head > span { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: color-mix(in srgb,#d7a22f 12%,var(--ui-panel)); color: #a6750f; }
+.lecture-follow-up-popover-head > div { min-width: 0; display: grid; gap: 2px; }
+.lecture-follow-up-popover-head strong { color: var(--ui-text); font-size: 10px; font-weight: 860; }
+.lecture-follow-up-popover-head small { color: var(--ui-muted); font-size: 7px; line-height: 1.45; }
+.lecture-follow-up-popover-head > button { width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--ui-muted); }
+.lecture-follow-up-popover-head > button:hover { background: var(--ui-soft); color: var(--ui-text); }
+.lecture-follow-up-reasons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+.lecture-follow-up-reasons button { min-width: 0; height: 31px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 7.5px; font-weight: 780; text-align: start; }
+.lecture-follow-up-reasons button:hover { border-color: color-mix(in srgb,#d7a22f 40%,var(--ui-border)); }
+.lecture-follow-up-reasons button[data-active="true"] { border-color: color-mix(in srgb,#d7a22f 50%,var(--ui-border)); background: color-mix(in srgb,#d7a22f 10%,var(--ui-panel)); color: #a6750f; }
+.lecture-follow-up-comment { display: grid; gap: 5px; }
+.lecture-follow-up-comment > span { color: var(--ui-muted); font-size: 7px; font-weight: 820; letter-spacing: .04em; text-transform: uppercase; }
+.lecture-follow-up-comment textarea { width: 100%; min-height: 66px; resize: vertical; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 9px; outline: 0; background: var(--ui-soft); color: var(--ui-text); font: inherit; font-size: 8.5px; line-height: 1.5; }
+.lecture-follow-up-comment textarea:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 3px var(--ui-ring); background: var(--ui-panel); }
+.lecture-follow-up-message,.lecture-follow-up-plan-hint { display: flex; align-items: flex-start; gap: 5px; padding: 6px 7px; border-radius: 7px; background: var(--ui-green-soft); color: var(--ui-green); font-size: 7px; line-height: 1.4; }
+.lecture-follow-up-message[data-error="true"],.lecture-follow-up-plan-hint { background: color-mix(in srgb,#d7a22f 10%,var(--ui-panel)); color: #9a6b0a; }
+.lecture-follow-up-actions { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 6px; }
+.lecture-follow-up-actions .ui-button { min-height: 31px; padding: 0 9px; font-size: 7.5px; }
+.lecture-follow-up-remove { height: 31px; display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-red); font-size: 7.3px; font-weight: 780; }
+.lecture-follow-up-remove:hover { background: var(--ui-red-soft); }
+@media (max-width: 940px) { .lecture-follow-up-popover { inset-inline-end: 8px; } }
+@media (max-width: 760px) {
+  .lecture-follow-up-trigger { min-width: 0; width: 36px; grid-template-columns: 1fr; padding: 0; }
+  .lecture-follow-up-trigger > span:first-child { margin: auto; }
+  .lecture-follow-up-trigger > span:last-child { display: none; }
+  .lecture-follow-up-popover { position: fixed; inset-inline: 10px; inset-block-start: auto; inset-block-end: 10px; width: auto; max-height: min(520px, calc(100dvh - 20px)); overflow-y: auto; }
+  .lecture-follow-up-actions { grid-template-columns: 1fr 1fr; }
+  .lecture-follow-up-actions > span { display: none; }
+  .lecture-follow-up-remove { grid-column: 1 / -1; justify-content: center; }
+}
 .document-viewer-empty > small { max-width: 360px; color: var(--ui-muted); font-size: 9px; line-height: 1.5; }
 .lecture-material-empty-actions { display: flex; gap: 7px; }
 .lecture-material-count { position: absolute; inset-block-start: -4px; inset-inline-end: -4px; min-width: 14px; height: 14px; display: grid; place-items: center; padding: 0 3px; border: 2px solid var(--ui-panel); border-radius: 99px; background: var(--ui-blue); color: #fff; font-size: 6px; font-weight: 900; }
@@ -15251,6 +15305,21 @@ function calendarLectureScheduleStatus(moduleName, lectureId, events, nowMs = Da
 
 const LECTURE_SELF_STUDY_STATES = Object.freeze(["not-started", "in-progress", "reviewed"]);
 const LECTURE_ATTENDANCE_STATES = Object.freeze(["unmarked", "attended", "missed"]);
+const LECTURE_FOLLOW_UP_REASON_IDS = Object.freeze(["missing-material", "reread", "unresolved", "absence", "other"]);
+
+function lectureFollowUpState(value) {
+  const raw = value?.followUp && typeof value.followUp === "object" ? value.followUp : {};
+  const reasons = Array.isArray(raw.reasons)
+    ? [...new Set(raw.reasons.filter((reason) => LECTURE_FOLLOW_UP_REASON_IDS.includes(reason)))]
+    : [];
+  return {
+    active: raw.active === true,
+    reasons,
+    comment: String(raw.comment || ""),
+    updatedAt: Number(raw.updatedAt) || 0,
+    sentToStudyPlanAt: Number(raw.sentToStudyPlanAt) || 0,
+  };
+}
 
 function lectureSelfStudyStatus(progress) {
   const explicit = progress?.selfStudyStatus;
@@ -15294,6 +15363,10 @@ function lectureDeckStudyStatus(moduleName, lectureId, importedQuestions, spaced
 
 function calendarStudyPlanLectureId(moduleName, lectureId) {
   return `studyplan-${moduleName}-lecture-${lectureId}`;
+}
+
+function calendarStudyPlanFollowUpId(moduleName, lectureId) {
+  return `studyplan-${moduleName}-followup-${lectureId}`;
 }
 
 function calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existingEvent = null }) {
@@ -15805,6 +15878,55 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
       createdByUser: true,
     };
   });
+
+  const followUps = plan?.followUps && typeof plan.followUps === "object" ? plan.followUps : {};
+  Object.entries(followUps).forEach(([lectureId, followUp]) => {
+    if (!followUp || followUp.active === false) return;
+    const lecture = (lectures || []).find((item) => item.id === lectureId);
+    if (!lecture) return;
+    const existingId = calendarStudyPlanLectureId(moduleName, lectureId);
+    const existingIndex = events.findIndex((event) => event.id === existingId);
+    const followUpMeta = {
+      followUp: true,
+      followUpReasons: Array.isArray(followUp.reasons) ? followUp.reasons : [],
+      followUpComment: String(followUp.comment || ""),
+      followUpUpdatedAt: Number(followUp.updatedAt) || Date.now(),
+    };
+    if (existingIndex >= 0) {
+      metadata[existingId] = {
+        ...(metadata[existingId] || {}),
+        ...followUpMeta,
+        followUpStandalone: false,
+      };
+      return;
+    }
+    const followUpId = calendarStudyPlanFollowUpId(moduleName, lectureId);
+    const todayKey = studyPlanDateKey(fromDate) || studyPlanDateKey(new Date());
+    events.push({
+      id: followUpId,
+      title: `Opfølgning · ${lecture.id} · ${lecture.title}`,
+      date: todayKey,
+      time: "",
+      type: "review",
+      planModuleId: moduleName,
+      lectureCount: 1,
+      estimatedHours: Math.max(.25, Number(followUp.estimatedHours) || .75),
+    });
+    metadata[followUpId] = {
+      source: "study-plan",
+      status: "unscheduled",
+      needsScheduling: true,
+      phase: "follow-up",
+      phaseLabel: "Forelæsningsopfølgning",
+      lectureId,
+      lectureIds: [lectureId],
+      lectureUnits: [{ id: lecture.id, title: lecture.title }],
+      createdByUser: true,
+      followUpStandalone: true,
+      ...followUpMeta,
+    };
+  });
+
   const examId = `studyplan-exam-${moduleName}`;
   events.push({ id: examId, title: `${moduleName} · Eksamen`, date: plan.examDate, time: "", type: "exam", planModuleId: moduleName, estimatedHours: 1 });
   metadata[examId] = { source: "study-plan", status: "planned", needsScheduling: false, phase: "exam-day", createdByUser: true, lectureIds: [] };
@@ -31665,6 +31787,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [followUpEditorOpen, setFollowUpEditorOpen] = useState(false);
+  const [followUpDraft, setFollowUpDraft] = useState({ reasons: [], comment: "" });
+  const [followUpMessage, setFollowUpMessage] = useState("");
   const [lectureMaterials, setLectureMaterials] = useState([]);
   const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
   const [materialPreviewUrl, setMaterialPreviewUrl] = useState("");
@@ -31766,6 +31891,29 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       filterNotReviewed: "Ikke gennemgået",
       filterSelfStudy: "Selvstudie",
       filterMissingMaterial: "Mangler materiale",
+      filterFollowUp: "Følg op",
+      followUp: "Følg op",
+      followUpShort: "Opfølgning",
+      followUpTitle: "Forelæsningsopfølgning",
+      followUpIntro: "Markér hvorfor forelæsningen kræver opfølgning. Du kan gemme markeringen alene eller sende den direkte til studieplanen.",
+      followUpMissingMaterial: "Materiale mangler",
+      followUpReread: "Skal læses igen",
+      followUpUnresolved: "Uafklaret emne",
+      followUpAbsence: "Fravær",
+      followUpOther: "Andet",
+      followUpComment: "Egen kommentar",
+      followUpCommentPlaceholder: "Tilføj evt. hvad du konkret skal følge op på…",
+      followUpSave: "Gem opfølgning",
+      followUpSend: "Send til studieplan",
+      followUpUpdatePlan: "Opdater studieplan",
+      followUpRemove: "Fjern opfølgning",
+      followUpSaved: "Opfølgningen er gemt.",
+      followUpSent: "Opfølgningen er sendt til studieplanen uden at oprette en ekstra aktivitet, hvis forelæsningen allerede ligger i planen.",
+      followUpRemoved: "Opfølgningen er fjernet.",
+      followUpPlanMissing: "Opret eller aktivér en studieplan, før opfølgningen kan sendes dertil.",
+      followUpPlanCurrent: "Sendt til studieplan",
+      followUpPlanOutdated: "Ændret siden sidste afsendelse",
+      followUpChooseReason: "Vælg mindst én årsag eller skriv en kommentar.",
       lectureNoMatches: "Ingen forelæsninger matcher søgningen eller det valgte filter.",
       collapseGroup: "Fold fagområde sammen",
       expandGroup: "Fold fagområde ud",
@@ -31926,6 +32074,29 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       filterNotReviewed: "Not reviewed",
       filterSelfStudy: "Self-study",
       filterMissingMaterial: "Missing material",
+      filterFollowUp: "Follow up",
+      followUp: "Follow up",
+      followUpShort: "Follow-up",
+      followUpTitle: "Lecture follow-up",
+      followUpIntro: "Mark why this lecture needs follow-up. Save the flag on its own or send it directly to the study plan.",
+      followUpMissingMaterial: "Material missing",
+      followUpReread: "Read again",
+      followUpUnresolved: "Unresolved topic",
+      followUpAbsence: "Absence",
+      followUpOther: "Other",
+      followUpComment: "Own comment",
+      followUpCommentPlaceholder: "Optionally add what you need to follow up on…",
+      followUpSave: "Save follow-up",
+      followUpSend: "Send to study plan",
+      followUpUpdatePlan: "Update study plan",
+      followUpRemove: "Remove follow-up",
+      followUpSaved: "The follow-up has been saved.",
+      followUpSent: "The follow-up was sent to the study plan without creating an extra activity when the lecture is already in the plan.",
+      followUpRemoved: "The follow-up has been removed.",
+      followUpPlanMissing: "Create or activate a study plan before sending the follow-up there.",
+      followUpPlanCurrent: "Sent to study plan",
+      followUpPlanOutdated: "Changed since last send",
+      followUpChooseReason: "Choose at least one reason or write a comment.",
       lectureNoMatches: "No lectures match the search or selected filter.",
       collapseGroup: "Collapse subject area",
       expandGroup: "Expand subject area",
@@ -32086,6 +32257,29 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       filterNotReviewed: "لم تتم مراجعتها",
       filterSelfStudy: "دراسة ذاتية",
       filterMissingMaterial: "بدون مواد",
+      filterFollowUp: "متابعة",
+      followUp: "متابعة",
+      followUpShort: "متابعة",
+      followUpTitle: "متابعة المحاضرة",
+      followUpIntro: "حدّد سبب حاجة المحاضرة إلى متابعة. يمكنك حفظ العلامة فقط أو إرسالها مباشرة إلى خطة الدراسة.",
+      followUpMissingMaterial: "المواد ناقصة",
+      followUpReread: "تحتاج إعادة قراءة",
+      followUpUnresolved: "موضوع غير محسوم",
+      followUpAbsence: "غياب",
+      followUpOther: "أخرى",
+      followUpComment: "تعليق شخصي",
+      followUpCommentPlaceholder: "أضف ما تحتاج إلى متابعته إن رغبت…",
+      followUpSave: "حفظ المتابعة",
+      followUpSend: "إرسال إلى خطة الدراسة",
+      followUpUpdatePlan: "تحديث خطة الدراسة",
+      followUpRemove: "إزالة المتابعة",
+      followUpSaved: "تم حفظ المتابعة.",
+      followUpSent: "تم إرسال المتابعة إلى خطة الدراسة دون إنشاء نشاط إضافي إذا كانت المحاضرة موجودة بالفعل في الخطة.",
+      followUpRemoved: "تمت إزالة المتابعة.",
+      followUpPlanMissing: "أنشئ أو فعّل خطة دراسة قبل إرسال المتابعة إليها.",
+      followUpPlanCurrent: "مرسلة إلى خطة الدراسة",
+      followUpPlanOutdated: "تغيّرت منذ آخر إرسال",
+      followUpChooseReason: "اختر سببًا واحدًا على الأقل أو اكتب تعليقًا.",
       lectureNoMatches: "لا توجد محاضرات تطابق البحث أو عامل التصفية المحدد.",
       collapseGroup: "طي المجال",
       expandGroup: "توسيع المجال",
@@ -32395,7 +32589,18 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     const scheduleView = lectureScheduleDefinition(schedule);
     const materialCount = lectureMaterials.filter((material) => material.lecture_id === lecture.id).length;
     const hasPdf = materialCount > 0;
-    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, hasPdf, materialCount };
+    const localFollowUp = lectureFollowUpState(progressState);
+    const plannedFollowUp = studyPlans[moduleName]?.followUps?.[lecture.id] || null;
+    const followUp = localFollowUp.active || !plannedFollowUp
+      ? localFollowUp
+      : {
+          active: true,
+          reasons: Array.isArray(plannedFollowUp.reasons) ? plannedFollowUp.reasons : [],
+          comment: String(plannedFollowUp.comment || ""),
+          updatedAt: Number(plannedFollowUp.updatedAt) || 0,
+          sentToStudyPlanAt: Number(plannedFollowUp.sentAt) || Number(plannedFollowUp.updatedAt) || 0,
+        };
+    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, hasPdf, materialCount, followUp };
   });
   const lectureFilterCounts = {
     all: lectureRows.length,
@@ -32404,6 +32609,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     notReviewed: lectureRows.filter((row) => row.selfStudyStatus !== "reviewed").length,
     selfStudy: lectureRows.filter((row) => row.selfStudyStatus !== "not-started").length,
     missingMaterial: lectureRows.filter((row) => !row.hasPdf).length,
+    followUp: lectureRows.filter((row) => row.followUp.active).length,
   };
   const lectureFilters = [
     { id: "all", label: copy.filterAll },
@@ -32412,6 +32618,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     { id: "notReviewed", label: copy.filterNotReviewed },
     { id: "selfStudy", label: copy.filterSelfStudy },
     { id: "missingMaterial", label: copy.filterMissingMaterial },
+    { id: "followUp", label: copy.filterFollowUp },
   ];
   const filteredLectureRows = lectureRows.filter((row) => {
     const matchesQuery = `${row.lecture.id} ${row.lecture.title} ${row.lecture.group}`.toLowerCase().includes(normalizedQuery);
@@ -32421,6 +32628,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     if (lectureFilter === "notReviewed") return row.selfStudyStatus !== "reviewed";
     if (lectureFilter === "selfStudy") return row.selfStudyStatus !== "not-started";
     if (lectureFilter === "missingMaterial") return !row.hasPdf;
+    if (lectureFilter === "followUp") return row.followUp.active;
     return true;
   });
   const lectureGroupOrder = [...new Set(lectures.map((lecture) => lecture.group))];
@@ -32456,6 +32664,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const ownSharedNoteNeedsUpdate = sharedLectureNoteNeedsUpdate(ownSharedNote, lectureNoteDraft);
   const sharedNoteLocale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
   const sharedAuthorName = String(loadStorage(STORAGE.user, {})?.name || "").trim() || copy.sharedAnonymous;
+  const selectedFollowUp = selectedLectureRow ? selectedLectureRow.followUp : lectureFollowUpState(null);
+  const activeStudyPlan = moduleName ? studyPlans[moduleName] : null;
+  const selectedPlanFollowUp = selectedLecture?.id && activeStudyPlan?.followUps?.[selectedLecture.id]
+    ? activeStudyPlan.followUps[selectedLecture.id]
+    : null;
+  const selectedFollowUpPlanOutdated = Boolean(
+    selectedPlanFollowUp && selectedFollowUp.updatedAt && Number(selectedPlanFollowUp.updatedAt || 0) < selectedFollowUp.updatedAt
+  );
 
   function formatSharedNoteTimestamp(value) {
     if (!value) return "";
@@ -32643,6 +32859,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   function selectLecture(lecture) {
     if (!lecture) return;
     flushCurrentLectureNote();
+    setFollowUpEditorOpen(false);
+    setFollowUpMessage("");
     setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }));
   }
 
@@ -32785,6 +33003,185 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
 
   function selectAdjacentLecture(lecture) {
     selectLecture(lecture);
+  }
+
+  function followUpReasonDefinitions() {
+    return [
+      { id: "missing-material", label: copy.followUpMissingMaterial, icon: "file" },
+      { id: "reread", label: copy.followUpReread, icon: "book" },
+      { id: "unresolved", label: copy.followUpUnresolved, icon: "brain" },
+      { id: "absence", label: copy.followUpAbsence, icon: "user" },
+      { id: "other", label: copy.followUpOther, icon: "more" },
+    ];
+  }
+
+  function openLectureFollowUpEditor() {
+    if (!selectedLectureRow) return;
+    const followUp = lectureFollowUpState(selectedLectureRow.progressState);
+    setFollowUpDraft({ reasons: followUp.reasons, comment: followUp.comment });
+    setFollowUpMessage("");
+    setFollowUpEditorOpen(true);
+  }
+
+  function toggleFollowUpReason(reasonId) {
+    if (!LECTURE_FOLLOW_UP_REASON_IDS.includes(reasonId)) return;
+    setFollowUpDraft((current) => {
+      const reasons = new Set(current.reasons || []);
+      if (reasons.has(reasonId)) reasons.delete(reasonId);
+      else reasons.add(reasonId);
+      return { ...current, reasons: [...reasons] };
+    });
+  }
+
+  function normalizedFollowUpDraft() {
+    return {
+      reasons: [...new Set((followUpDraft.reasons || []).filter((reason) => LECTURE_FOLLOW_UP_REASON_IDS.includes(reason)))],
+      comment: String(followUpDraft.comment || "").trim(),
+    };
+  }
+
+  function writeLectureFollowUp(lectureId, followUp) {
+    const key = lectureProgressKey(lectureId);
+    setLectureProgress((current) => ({
+      ...current,
+      [key]: {
+        ...(current[key] || getLectureProgress(lectureId)),
+        followUp,
+      },
+    }));
+  }
+
+  function applyFollowUpCalendarNow(lecture, followUp, plan) {
+    if (!lecture || !plan || plan.calendarEnabled === false) return;
+    const today = new Date();
+    const todayKeyString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+    const primaryId = calendarStudyPlanLectureId(moduleName, lecture.id);
+    const standaloneId = calendarStudyPlanFollowUpId(moduleName, lecture.id);
+    const merged = mergeCalendarEventMeta(calendarEvents, calendarEventMeta);
+    const primary = merged.find((event) => event.id === primaryId && !event.completedAt && event.status !== "completed") || null;
+    const targetId = primary ? primaryId : standaloneId;
+
+    setCalendarEvents((previous) => {
+      if (primary) return previous.filter((event) => event.id !== standaloneId);
+      const exists = previous.some((event) => event.id === standaloneId);
+      const standaloneEvent = {
+        id: standaloneId,
+        title: `Opfølgning · ${lecture.id} · ${lecture.title}`,
+        date: todayKeyString,
+        time: "",
+        type: "review",
+        planModuleId: moduleName,
+        lectureCount: 1,
+        estimatedHours: .75,
+      };
+      return exists
+        ? previous.map((event) => event.id === standaloneId ? { ...event, ...standaloneEvent } : event)
+        : [...previous, standaloneEvent];
+    });
+
+    setCalendarEventMeta((previous) => {
+      const next = { ...previous };
+      if (primary && next[standaloneId]) delete next[standaloneId];
+      next[targetId] = {
+        ...(next[targetId] || {}),
+        source: "study-plan",
+        status: primary ? (next[targetId]?.status || "planned") : "unscheduled",
+        needsScheduling: primary ? (next[targetId]?.needsScheduling !== false) : true,
+        phase: primary ? (next[targetId]?.phase || "lecture") : "follow-up",
+        phaseLabel: primary ? (next[targetId]?.phaseLabel || "Forelæsninger") : "Forelæsningsopfølgning",
+        lectureId: lecture.id,
+        lectureIds: [lecture.id],
+        followUp: true,
+        followUpReasons: followUp.reasons,
+        followUpComment: followUp.comment,
+        followUpUpdatedAt: followUp.updatedAt,
+        followUpStandalone: !primary,
+        createdByUser: true,
+      };
+      return next;
+    });
+  }
+
+  function saveLectureFollowUp(sendToPlan = false) {
+    if (!selectedLecture) return;
+    const draft = normalizedFollowUpDraft();
+    if (!draft.reasons.length && !draft.comment) {
+      setFollowUpMessage(copy.followUpChooseReason);
+      return;
+    }
+    if (sendToPlan && !activeStudyPlan) {
+      setFollowUpMessage(copy.followUpPlanMissing);
+      return;
+    }
+
+    const now = Date.now();
+    const followUp = {
+      active: true,
+      reasons: draft.reasons,
+      comment: draft.comment,
+      updatedAt: now,
+      sentToStudyPlanAt: sendToPlan ? now : selectedFollowUp.sentToStudyPlanAt,
+    };
+    writeLectureFollowUp(selectedLecture.id, followUp);
+
+    if (sendToPlan) {
+      const planFollowUp = {
+        active: true,
+        reasons: draft.reasons,
+        comment: draft.comment,
+        updatedAt: now,
+        sentAt: now,
+      };
+      setStudyPlans((previous) => {
+        const plan = previous[moduleName];
+        if (!plan) return previous;
+        return {
+          ...previous,
+          [moduleName]: {
+            ...plan,
+            followUps: { ...(plan.followUps || {}), [selectedLecture.id]: planFollowUp },
+            updatedAt: now,
+          },
+        };
+      });
+      applyFollowUpCalendarNow(selectedLecture, planFollowUp, activeStudyPlan);
+      setFollowUpMessage(copy.followUpSent);
+    } else {
+      setFollowUpMessage(copy.followUpSaved);
+    }
+  }
+
+  function removeLectureFollowUp() {
+    if (!selectedLecture) return;
+    const lectureId = selectedLecture.id;
+    const key = lectureProgressKey(lectureId);
+    setLectureProgress((current) => ({
+      ...current,
+      [key]: { ...(current[key] || getLectureProgress(lectureId)), followUp: { active: false, reasons: [], comment: "", updatedAt: Date.now(), sentToStudyPlanAt: 0 } },
+    }));
+    setStudyPlans((previous) => {
+      const plan = previous[moduleName];
+      if (!plan?.followUps?.[lectureId]) return previous;
+      const followUps = { ...(plan.followUps || {}) };
+      delete followUps[lectureId];
+      return { ...previous, [moduleName]: { ...plan, followUps, updatedAt: Date.now() } };
+    });
+    const standaloneId = calendarStudyPlanFollowUpId(moduleName, lectureId);
+    setCalendarEvents((previous) => previous.filter((event) => event.id !== standaloneId));
+    setCalendarEventMeta((previous) => {
+      const next = { ...previous };
+      delete next[standaloneId];
+      Object.entries(next).forEach(([id, metadata]) => {
+        if (!metadata?.followUp || !calendarLectureIds({ id, ...metadata }).includes(lectureId)) return;
+        const cleaned = { ...metadata };
+        ["followUp", "followUpReasons", "followUpComment", "followUpUpdatedAt", "followUpStandalone"].forEach((field) => delete cleaned[field]);
+        next[id] = cleaned;
+      });
+      return next;
+    });
+    setFollowUpDraft({ reasons: [], comment: "" });
+    setFollowUpMessage(copy.followUpRemoved);
+    setFollowUpEditorOpen(false);
   }
 
   function syncLectureCompletion(lectureId, completed) {
@@ -33189,6 +33586,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const selectedAttendance = selectedLectureRow ? attendanceDefinition(selectedLectureRow.attendanceStatus) : null;
   const selectedSelfStudy = selectedLectureRow ? selfStudyDefinition(selectedLectureRow.selfStudyStatus) : null;
   const selectedMastery = selectedLectureRow ? masteryDefinition(selectedLectureRow.progressState.mastery) : null;
+  const selectedFollowUpReasonText = selectedFollowUp.reasons.map((reason) => followUpReasonDefinitions().find((item) => item.id === reason)?.label).filter(Boolean).join(" · ");
   const selectedMasteryTone = selectedLectureRow?.progressState?.mastery === "confident"
     ? "positive"
     : selectedLectureRow?.progressState?.mastery === "developing"
@@ -33256,7 +33654,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                     </button>
                     {!collapsed && (
                       <div className="lecture-group-rows">
-                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, hasPdf, materialCount }) => {
+                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, hasPdf, materialCount, followUp }) => {
                           const selected = lecture.id === selectedLecture?.id;
                           const mastery = masteryDefinition(progressState.mastery);
                           const attendance = attendanceDefinition(attendanceStatus);
@@ -33284,6 +33682,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                                     <span data-tone={attendance.tone} title={`${copy.attendance}: ${attendance.label}`}><Icon name={attendance.icon} size={9} />{attendance.label}</span>
                                     <span data-tone={selfStudy.tone} title={`${copy.selfStudyStatus}: ${selfStudy.label}`}><Icon name={selfStudy.icon} size={9} />{selfStudy.label}</span>
                                     <span data-tone={deck.tone} title={`${copy.deckStatus}: ${deck.label}${deckStudy.total ? ` · ${copy.deckQuestions(deckStudy.reviewedCount, deckStudy.total)}` : ""}`}><Icon name="cards" size={9} />{deckStudy.total ? `${deckStudy.reviewedCount}/${deckStudy.total}` : "—"}</span>
+                                    {followUp.active && <span data-tone="warning" className="lecture-follow-up-row-badge" title={copy.followUpTitle}><Icon name="flag" size={9} />{copy.followUpShort}</span>}
                                   </small>
                                 </span>
                               </button>
@@ -33373,12 +33772,49 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                 </button>
               </div>
 
+              <button
+                type="button"
+                className="lecture-follow-up-trigger"
+                data-active={selectedFollowUp.active ? "true" : "false"}
+                data-plan={selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? "outdated" : "sent") : "local"}
+                title={selectedFollowUp.active ? `${copy.followUp}: ${selectedFollowUpReasonText || copy.followUpShort}` : copy.followUpTitle}
+                onClick={() => followUpEditorOpen ? setFollowUpEditorOpen(false) : openLectureFollowUpEditor()}
+              >
+                <span><Icon name="flag" size={11} /></span>
+                <span><small>{copy.followUp}</small><strong>{selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? copy.followUpPlanOutdated : copy.followUpPlanCurrent) : (selectedFollowUp.active ? copy.followUpShort : copy.followUp)}</strong></span>
+              </button>
+
               <nav className="lecture-detail-navigation" aria-label={copy.lectureHeader}>
                 <button type="button" className="lecture-detail-nav-button" disabled={!previousLecture} title={copy.previousLecture} aria-label={copy.previousLecture} onClick={() => selectAdjacentLecture(previousLecture)}><Icon name={language === "ar" ? "right" : "left"} size={13} /></button>
                 <span>{copy.lecturePosition(Math.max(0, selectedLectureIndex) + 1, lectures.length)}</span>
                 <button type="button" className="lecture-detail-nav-button" disabled={!nextLecture} title={copy.nextLecture} aria-label={copy.nextLecture} onClick={() => selectAdjacentLecture(nextLecture)}><Icon name={language === "ar" ? "left" : "right"} size={13} /></button>
               </nav>
             </div>
+
+            {followUpEditorOpen && (
+              <div className="lecture-follow-up-popover" role="dialog" aria-label={copy.followUpTitle}>
+                <div className="lecture-follow-up-popover-head">
+                  <span><Icon name="flag" size={14} /></span>
+                  <div><strong>{copy.followUpTitle}</strong><small>{copy.followUpIntro}</small></div>
+                  <button type="button" aria-label={copy.close} title={copy.close} onClick={() => setFollowUpEditorOpen(false)}><Icon name="close" size={13} /></button>
+                </div>
+                <div className="lecture-follow-up-reasons">
+                  {followUpReasonDefinitions().map((reason) => {
+                    const active = (followUpDraft.reasons || []).includes(reason.id);
+                    return <button key={reason.id} type="button" data-active={active ? "true" : "false"} onClick={() => toggleFollowUpReason(reason.id)}><Icon name={reason.icon} size={11} /><span>{reason.label}</span></button>;
+                  })}
+                </div>
+                <label className="lecture-follow-up-comment"><span>{copy.followUpComment}</span><textarea rows={3} value={followUpDraft.comment || ""} onChange={(event) => setFollowUpDraft((current) => ({ ...current, comment: event.target.value }))} placeholder={copy.followUpCommentPlaceholder} /></label>
+                {followUpMessage && <div className="lecture-follow-up-message" data-error={followUpMessage === copy.followUpPlanMissing || followUpMessage === copy.followUpChooseReason ? "true" : "false"}>{followUpMessage}</div>}
+                {!activeStudyPlan && <div className="lecture-follow-up-plan-hint"><Icon name="target" size={11} />{copy.followUpPlanMissing}</div>}
+                <div className="lecture-follow-up-actions">
+                  {selectedFollowUp.active && <button type="button" className="lecture-follow-up-remove" onClick={removeLectureFollowUp}><Icon name="trash" size={11} />{copy.followUpRemove}</button>}
+                  <span />
+                  <button type="button" className="ui-button ui-button--secondary" onClick={() => saveLectureFollowUp(false)}>{copy.followUpSave}</button>
+                  <button type="button" className="ui-button ui-button--primary" disabled={!activeStudyPlan} onClick={() => saveLectureFollowUp(true)}><Icon name="target" size={11} />{selectedPlanFollowUp ? copy.followUpUpdatePlan : copy.followUpSend}</button>
+                </div>
+              </div>
+            )}
           </section>
         )}
 
