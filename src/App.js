@@ -11098,6 +11098,98 @@ select.ui-control {
   .lecture-group-heading { min-height: 40px; }
 }
 
+/* ============================================================
+   SEGMENT 5.10 — KOMPAKT MODULOVERBLIK
+   Fire handlingsnære modultal, der fungerer som filtre.
+   ============================================================ */
+.lecture-module-overview-wrap {
+  display: grid;
+  gap: 5px;
+  padding: 1px 4px 7px;
+}
+.lecture-module-overview-label {
+  color: var(--ui-muted);
+  font-size: 7.5px;
+  font-weight: 850;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+.lecture-module-overview {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 4px;
+}
+.lecture-module-overview button {
+  min-width: 0;
+  min-height: 43px;
+  display: grid;
+  grid-template-columns: 22px minmax(0,1fr);
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  align-items: center;
+  padding: 5px 6px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ui-panel) 92%, var(--ui-soft));
+  color: var(--ui-secondary);
+  text-align: start;
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, color 140ms ease;
+}
+.lecture-module-overview button:hover {
+  transform: translateY(-1px);
+  border-color: var(--overview-border, var(--ui-blue-border));
+  background: var(--overview-soft, var(--ui-blue-soft));
+  color: var(--overview-accent, var(--ui-blue));
+}
+.lecture-module-overview button[data-active="true"] {
+  border-color: var(--overview-border, var(--ui-blue-border));
+  background: var(--overview-soft, var(--ui-blue-soft));
+  color: var(--overview-accent, var(--ui-blue));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--overview-accent, var(--ui-blue)) 10%, transparent);
+}
+.lecture-module-overview-icon {
+  grid-row: 1 / 3;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--overview-soft, var(--ui-soft));
+  color: var(--overview-accent, var(--ui-blue));
+}
+.lecture-module-overview button[data-active="true"] .lecture-module-overview-icon {
+  background: var(--ui-panel);
+}
+.lecture-module-overview-value {
+  align-self: end;
+  color: var(--ui-text);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.lecture-module-overview-copy {
+  min-width: 0;
+  align-self: start;
+  overflow: hidden;
+  color: var(--ui-muted);
+  font-size: 7.6px;
+  font-weight: 760;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lecture-module-overview button[data-active="true"] .lecture-module-overview-value,
+.lecture-module-overview button[data-active="true"] .lecture-module-overview-copy { color: var(--overview-accent, var(--ui-blue)); }
+.lecture-module-overview button[data-tone="held"] { --overview-accent: var(--ui-green); --overview-border: var(--ui-green-border); --overview-soft: var(--ui-green-soft); }
+.lecture-module-overview button[data-tone="study"] { --overview-accent: var(--ui-blue); --overview-border: var(--ui-blue-border); --overview-soft: var(--ui-blue-soft); }
+.lecture-module-overview button[data-tone="followup"] { --overview-accent: #c9822f; --overview-border: color-mix(in srgb, #c9822f 34%, var(--ui-border)); --overview-soft: color-mix(in srgb, #c9822f 10%, var(--ui-panel)); }
+.lecture-module-overview button[data-tone="material"] { --overview-accent: var(--ui-secondary); --overview-border: var(--ui-border-strong); --overview-soft: var(--ui-soft); }
+
+@media (max-width: 520px) {
+  .lecture-module-overview { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
 @media (max-width: 760px) {
   .topbar-digital-clock { width: 132px; min-height: 48px; padding-inline: 8px; }
   .topbar-digital-time { font-size: 21px; }
@@ -32026,6 +32118,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       masteryConfident: "Sikker",
       timesViewed: "gange set",
       lectureOverview: "Forelæsningsoversigt",
+      moduleOverview: "Moduloverblik",
+      moduleOverviewHeld: "Afholdte",
+      moduleOverviewSelfStudy: "Selvstudie",
+      moduleOverviewSelfStudyHint: "Gennemgået som selvstudie",
+      moduleOverviewFollowUp: "Følg op",
+      moduleOverviewMissingMaterial: "Mangler materiale",
       filterAll: "Alle",
       filterUpcoming: "Kommende",
       filterHeld: "Afholdte",
@@ -32223,6 +32321,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       masteryConfident: "Confident",
       timesViewed: "views",
       lectureOverview: "Lecture overview",
+      moduleOverview: "Module overview",
+      moduleOverviewHeld: "Held",
+      moduleOverviewSelfStudy: "Self-study",
+      moduleOverviewSelfStudyHint: "Completed as self-study",
+      moduleOverviewFollowUp: "Follow up",
+      moduleOverviewMissingMaterial: "Missing material",
       filterAll: "All",
       filterUpcoming: "Upcoming",
       filterHeld: "Held",
@@ -32420,6 +32524,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       masteryConfident: "واثق",
       timesViewed: "مرات المشاهدة",
       lectureOverview: "نظرة عامة على المحاضرات",
+      moduleOverview: "نظرة عامة على الوحدة",
+      moduleOverviewHeld: "منعقدة",
+      moduleOverviewSelfStudy: "دراسة ذاتية",
+      moduleOverviewSelfStudyHint: "مكتملة كدراسة ذاتية",
+      moduleOverviewFollowUp: "متابعة",
+      moduleOverviewMissingMaterial: "بدون مواد",
       filterAll: "الكل",
       filterUpcoming: "القادمة",
       filterHeld: "المنعقدة",
@@ -32789,11 +32899,18 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     all: lectureRows.length,
     upcoming: lectureRows.filter((row) => row.scheduleView.key === "upcoming").length,
     held: lectureRows.filter((row) => row.scheduleView.key === "held").length,
+    reviewed: lectureRows.filter((row) => row.selfStudyStatus === "reviewed").length,
     notReviewed: lectureRows.filter((row) => row.selfStudyStatus !== "reviewed").length,
     selfStudy: lectureRows.filter((row) => row.selfStudyStatus !== "not-started").length,
     missingMaterial: lectureRows.filter((row) => !row.hasPdf).length,
     followUp: lectureRows.filter((row) => row.followUp.active).length,
   };
+  const lectureModuleOverviewItems = [
+    { id: "held", label: copy.moduleOverviewHeld, value: lectureFilterCounts.held, icon: "clock", tone: "held", title: copy.moduleOverviewHeld },
+    { id: "reviewed", label: copy.moduleOverviewSelfStudy, value: lectureFilterCounts.reviewed, icon: "book", tone: "study", title: copy.moduleOverviewSelfStudyHint },
+    { id: "followUp", label: copy.moduleOverviewFollowUp, value: lectureFilterCounts.followUp, icon: "flag", tone: "followup", title: copy.moduleOverviewFollowUp },
+    { id: "missingMaterial", label: copy.moduleOverviewMissingMaterial, value: lectureFilterCounts.missingMaterial, icon: "file", tone: "material", title: copy.moduleOverviewMissingMaterial },
+  ];
   const lectureFilters = [
     { id: "all", label: copy.filterAll },
     { id: "upcoming", label: copy.filterUpcoming },
@@ -32808,6 +32925,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     if (!matchesQuery) return false;
     if (lectureFilter === "upcoming") return row.scheduleView.key === "upcoming";
     if (lectureFilter === "held") return row.scheduleView.key === "held";
+    if (lectureFilter === "reviewed") return row.selfStudyStatus === "reviewed";
     if (lectureFilter === "notReviewed") return row.selfStudyStatus !== "reviewed";
     if (lectureFilter === "selfStudy") return row.selfStudyStatus !== "not-started";
     if (lectureFilter === "missingMaterial") return !row.hasPdf;
@@ -33869,6 +33987,29 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           <label className="document-search-box"><Icon name="search" size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} /></label>
           {isLectureLibrary && (
             <div className="lecture-overview-controls">
+              <div className="lecture-module-overview-wrap">
+                <span className="lecture-module-overview-label">{copy.moduleOverview}</span>
+                <div className="lecture-module-overview" role="group" aria-label={copy.moduleOverview}>
+                  {lectureModuleOverviewItems.map((item) => {
+                    const active = lectureFilter === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        data-active={active ? "true" : "false"}
+                        data-tone={item.tone}
+                        aria-pressed={active}
+                        title={`${item.title}: ${item.value}/${lectureRows.length}`}
+                        onClick={() => selectLectureFilter(active ? "all" : item.id)}
+                      >
+                        <span className="lecture-module-overview-icon"><Icon name={item.icon} size={11} /></span>
+                        <strong className="lecture-module-overview-value">{item.value}</strong>
+                        <span className="lecture-module-overview-copy">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="lecture-filter-strip" role="tablist" aria-label={copy.lectureOverview}>
                 {lectureFilters.map((filter) => (
                   <button
