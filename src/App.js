@@ -12718,6 +12718,83 @@ select.ui-control {
   .lecture-note-view-toggle button { height: 28px; }
   .lecture-note-export-button { width: 29px; height: 29px; }
 }
+
+
+/* ============================================================
+   SEGMENT 5.7 — SHARED LECTURE NOTES
+   ============================================================ */
+.lecture-note-share-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ui-border);
+  background: color-mix(in srgb,var(--ui-soft) 54%,var(--ui-panel));
+}
+.lecture-note-share-status { min-width: 0; display: flex; align-items: center; gap: 7px; }
+.lecture-note-share-status > span:first-child { width: 27px; height: 27px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-muted); }
+.lecture-note-share-status[data-shared="true"] > span:first-child { border-color: color-mix(in srgb,var(--ui-blue) 28%,var(--ui-border)); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-note-share-status > div { min-width: 0; display: grid; gap: 1px; }
+.lecture-note-share-status strong { overflow: hidden; color: var(--ui-text); font-size: 7.8px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-note-share-status small { overflow: hidden; color: var(--ui-muted); font-size: 6.5px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-note-share-actions { flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
+.lecture-note-share-button { height: 27px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 6.8px; font-weight: 820; white-space: nowrap; }
+.lecture-note-share-button:hover:not(:disabled) { border-color: var(--ui-blue-border); color: var(--ui-blue); }
+.lecture-note-share-button[data-primary="true"] { border-color: color-mix(in srgb,var(--ui-blue) 35%,var(--ui-border)); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-note-share-button[data-danger="true"]:hover:not(:disabled) { border-color: color-mix(in srgb,var(--ui-red) 35%,var(--ui-border)); background: var(--ui-red-soft); color: var(--ui-red); }
+.lecture-note-share-button:disabled { opacity: .42; cursor: not-allowed; }
+.lecture-note-share-message { flex-shrink: 0; display: flex; align-items: center; gap: 5px; padding: 5px 8px; border-bottom: 1px solid var(--ui-border); color: var(--ui-secondary); font-size: 6.8px; font-weight: 720; }
+.lecture-note-share-message[data-state="error"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.lecture-note-share-message[data-state="success"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-shared-note-shell { min-width: 0; min-height: 0; flex: 1; display: flex; flex-direction: column; background: var(--ui-panel); }
+.lecture-shared-note-toolbar { min-height: 39px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 7px; padding: 6px 8px; border-bottom: 1px solid var(--ui-border); }
+.lecture-shared-note-toolbar > div { min-width: 0; display: grid; gap: 1px; }
+.lecture-shared-note-toolbar strong { color: var(--ui-text); font-size: 8px; font-weight: 850; }
+.lecture-shared-note-toolbar small { color: var(--ui-muted); font-size: 6.5px; }
+.lecture-shared-note-refresh { width: 27px; height: 27px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--ui-muted); }
+.lecture-shared-note-refresh:hover:not(:disabled) { border-color: var(--ui-border); background: var(--ui-soft); color: var(--ui-blue); }
+.lecture-shared-note-refresh:disabled { opacity: .4; cursor: not-allowed; }
+.lecture-shared-note-loading { min-height: 0; flex: 1; display: grid; place-items: center; align-content: center; gap: 8px; color: var(--ui-muted); text-align: center; }
+.lecture-shared-note-loading strong { font-size: 9px; font-weight: 800; }
+.lecture-shared-note-selector { flex-shrink: 0; display: flex; gap: 5px; overflow-x: auto; padding: 7px 8px; border-bottom: 1px solid var(--ui-border); scrollbar-width: thin; }
+.lecture-shared-note-selector button { min-width: 108px; max-width: 150px; display: grid; grid-template-columns: 24px minmax(0,1fr); align-items: center; gap: 6px; padding: 6px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); text-align: start; }
+.lecture-shared-note-selector button:hover { border-color: var(--ui-blue-border); }
+.lecture-shared-note-selector button[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--ui-blue) 12%,transparent); }
+.lecture-shared-note-avatar { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px; background: var(--ui-panel); color: var(--ui-blue); font-size: 7px; font-weight: 900; }
+.lecture-shared-note-selector button > span:last-child { min-width: 0; display: grid; gap: 1px; }
+.lecture-shared-note-selector strong { overflow: hidden; color: var(--ui-text); font-size: 7.2px; font-weight: 820; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-shared-note-selector small { color: var(--ui-muted); font-size: 6.2px; white-space: nowrap; }
+.lecture-shared-note-reader { min-height: 0; flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.lecture-shared-note-reader-head { flex-shrink: 0; display: grid; gap: 6px; padding: 9px 10px; border-bottom: 1px solid var(--ui-border); background: color-mix(in srgb,var(--ui-panel) 96%,transparent); }
+.lecture-shared-note-author { display: flex; align-items: center; gap: 7px; }
+.lecture-shared-note-author .lecture-shared-note-avatar { width: 30px; height: 30px; font-size: 8px; background: var(--ui-blue-soft); }
+.lecture-shared-note-author > div { min-width: 0; display: grid; gap: 1px; }
+.lecture-shared-note-author strong { overflow: hidden; color: var(--ui-text); font-size: 9px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-shared-note-author small { color: var(--ui-muted); font-size: 6.6px; }
+.lecture-shared-note-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.lecture-shared-note-badge { height: 20px; display: inline-flex; align-items: center; gap: 3px; padding: 0 6px; border: 1px solid var(--ui-border); border-radius: 99px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 6.2px; font-weight: 800; }
+.lecture-shared-note-badge[data-tone="blue"] { border-color: color-mix(in srgb,var(--ui-blue) 24%,var(--ui-border)); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-shared-note-badge[data-tone="green"] { border-color: color-mix(in srgb,var(--ui-green) 24%,var(--ui-border)); background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-shared-note-content { display: grid; align-content: start; gap: 9px; padding: 10px; }
+.lecture-shared-note-free-text { margin: 0; color: var(--ui-text); font-size: 10px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lecture-shared-note-section { display: grid; gap: 5px; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); }
+.lecture-shared-note-section strong { color: var(--ui-secondary); font-size: 7.4px; font-weight: 850; }
+.lecture-shared-note-section p { margin: 0; color: var(--ui-text); font-size: 9.5px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lecture-shared-note-empty { min-height: 0; flex: 1; display: grid; place-items: center; align-content: center; gap: 8px; padding: 24px; color: var(--ui-muted); text-align: center; }
+.lecture-shared-note-empty > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-shared-note-empty strong { color: var(--ui-text); font-size: 9px; font-weight: 850; }
+.lecture-shared-note-empty p { max-width: 250px; margin: 0; font-size: 7.3px; line-height: 1.55; }
+@media (max-width: 1180px) {
+  .lecture-note-share-status small { display: none; }
+  .lecture-note-share-button span { display: none; }
+  .lecture-note-share-button { width: 27px; padding: 0; }
+}
+@media (max-width: 760px) {
+  .lecture-note-share-bar { padding-block: 7px; }
+  .lecture-shared-note-selector button { min-width: 116px; }
+}
 .document-viewer-empty > small { max-width: 360px; color: var(--ui-muted); font-size: 9px; line-height: 1.5; }
 .lecture-material-empty-actions { display: flex; gap: 7px; }
 .lecture-material-count { position: absolute; inset-block-start: -4px; inset-inline-end: -4px; min-width: 14px; height: 14px; display: grid; place-items: center; padding: 0 3px; border: 2px solid var(--ui-panel); border-radius: 99px; background: var(--ui-blue); color: #fff; font-size: 6px; font-weight: 900; }
@@ -31210,6 +31287,44 @@ function lectureNoteDownload(filename, content, mimeType = "text/plain;charset=u
 
 
 /* =============================================================================
+   SEGMENT 5.7 — SHARED LECTURE NOTES
+   -----------------------------------------------------------------------------
+   Sharing is explicit and snapshot-based: private notes never become public
+   automatically. A shared version can only be published/updated by its owner.
+   Other authenticated users receive read-only access through Supabase RLS.
+   ========================================================================== */
+function sharedLectureNoteFromRow(row) {
+  if (!row) return null;
+  const note = lectureNoteFromRow(row, row.view_mode || "free");
+  return {
+    ...note,
+    id: row.id,
+    ownerUserId: row.owner_user_id,
+    moduleName: row.module_name,
+    lectureId: row.lecture_id,
+    authorName: row.author_name || "",
+    version: Math.max(1, Number(row.version) || 1),
+    sourceNoteUpdatedAt: row.source_note_updated_at || null,
+    sharedAt: row.shared_at || null,
+    updatedAt: row.updated_at || row.shared_at || note.updatedAt || null,
+  };
+}
+
+function sharedLectureNoteNeedsUpdate(sharedNote, privateDraft) {
+  if (!sharedNote || !privateDraft) return false;
+  const privateTime = new Date(privateDraft.updatedAt || 0).getTime();
+  const sharedTime = new Date(sharedNote.sourceNoteUpdatedAt || sharedNote.updatedAt || 0).getTime();
+  return Number.isFinite(privateTime) && Number.isFinite(sharedTime) && privateTime > sharedTime + 500;
+}
+
+function sharedLectureNoteInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || "").join("") || "?";
+}
+
+
+/* =============================================================================
    SEGMENT 5.5 — PDF.JS DOCUMENT VIEWER
    -----------------------------------------------------------------------------
    A pinned PDF.js runtime is loaded only when a PDF is actually opened. This
@@ -31540,7 +31655,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const lectureNoteSaveTimerRef = useRef(null);
   const lectureNoteLoadTokenRef = useRef(0);
   const lectureNoteMountedRef = useRef(true);
-  const [sharedNotes] = useStoredState(STORAGE.sharedLectureNotes, {});
+  const [sharedLectureNotes, setSharedLectureNotes] = useState([]);
+  const [sharedNoteLoadState, setSharedNoteLoadState] = useState("idle");
+  const [sharedNoteActionState, setSharedNoteActionState] = useState("idle");
+  const [sharedNoteMessage, setSharedNoteMessage] = useState("");
+  const [selectedSharedNoteId, setSelectedSharedNoteId] = useState(null);
+  const sharedNoteLoadTokenRef = useRef(0);
   const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
   const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
@@ -31581,7 +31701,33 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       selectItem: "Vælg et element i listen for at åbne arbejdsfladen.",
       ownNotes: "Egne noter",
       sharedNotes: "Delte noter",
-      sharedReady: "Det delte noteområde er klargjort til Supabase-synkronisering i det senere forelæsningssegment.",
+      sharedPrivate: "Privat",
+      sharedPublished: "Delt",
+      sharedReadOnly: "Skrivebeskyttet",
+      sharedShareNote: "Del note",
+      sharedUpdateNote: "Opdater delt version",
+      sharedStopSharing: "Stop deling",
+      sharedStopConfirm: "Vil du stoppe delingen af denne forelæsningsnote? Din private note bliver ikke slettet.",
+      sharedExplicitHint: "Deling sker kun, når du selv publicerer. Senere private ændringer deles ikke automatisk.",
+      sharedPublishedHint: "Andre MedFLUEN-brugere kan læse den publicerede version. Din private kladde forbliver separat.",
+      sharedUpdateAvailable: "Din private note er ændret siden den delte version.",
+      sharedNoContent: "Skriv noget i din private note, før den kan deles.",
+      sharedPublishing: "Publicerer…",
+      sharedPublishSuccess: "Noten er delt som en skrivebeskyttet version.",
+      sharedUpdateSuccess: "Den delte note er opdateret med en ny version.",
+      sharedUnshareSuccess: "Delingen er stoppet. Din private note er bevaret.",
+      sharedLoad: "Henter delte noter…",
+      sharedRefresh: "Opdatér delte noter",
+      sharedEmptyTitle: "Ingen delte noter endnu",
+      sharedEmptyText: "Når en studerende aktivt deler sin note til denne forelæsning, vises den her som skrivebeskyttet.",
+      sharedCount: (count) => count === 1 ? "1 delt note" : `${count} delte noter`,
+      sharedVersion: (version) => `Version ${version}`,
+      sharedUpdated: "Senest opdateret",
+      sharedYou: "Dig",
+      sharedAnonymous: "Studerende",
+      sharedSetupMissing: "Delte noter er ikke klargjort. Kør Segment 5.7 SQL-filen i Supabase.",
+      sharedLoadError: "Kunne ikke hente delte noter.",
+      sharedActionError: "Handlingen kunne ikke gennemføres. Prøv igen.",
       notesPlaceholder: "Skriv noter til denne forelæsning…",
       noteFreeView: "Fri note",
       noteStructuredView: "Struktureret",
@@ -31715,7 +31861,33 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       selectItem: "Select an item in the list to open the workspace.",
       ownNotes: "My notes",
       sharedNotes: "Shared notes",
-      sharedReady: "The shared-note area is prepared for Supabase synchronization in the later lecture segment.",
+      sharedPrivate: "Private",
+      sharedPublished: "Shared",
+      sharedReadOnly: "Read only",
+      sharedShareNote: "Share note",
+      sharedUpdateNote: "Update shared version",
+      sharedStopSharing: "Stop sharing",
+      sharedStopConfirm: "Stop sharing this lecture note? Your private note will not be deleted.",
+      sharedExplicitHint: "Sharing only happens when you publish it yourself. Later private edits are never shared automatically.",
+      sharedPublishedHint: "Other MedFLUEN users can read the published version. Your private draft remains separate.",
+      sharedUpdateAvailable: "Your private note has changed since the shared version.",
+      sharedNoContent: "Write something in your private note before sharing it.",
+      sharedPublishing: "Publishing…",
+      sharedPublishSuccess: "The note is shared as a read-only version.",
+      sharedUpdateSuccess: "The shared note has been updated with a new version.",
+      sharedUnshareSuccess: "Sharing has stopped. Your private note is preserved.",
+      sharedLoad: "Loading shared notes…",
+      sharedRefresh: "Refresh shared notes",
+      sharedEmptyTitle: "No shared notes yet",
+      sharedEmptyText: "When a student explicitly shares a note for this lecture, it appears here as read only.",
+      sharedCount: (count) => count === 1 ? "1 shared note" : `${count} shared notes`,
+      sharedVersion: (version) => `Version ${version}`,
+      sharedUpdated: "Last updated",
+      sharedYou: "You",
+      sharedAnonymous: "Student",
+      sharedSetupMissing: "Shared notes are not ready. Run the Segment 5.7 SQL file in Supabase.",
+      sharedLoadError: "Could not load shared notes.",
+      sharedActionError: "The action could not be completed. Try again.",
       notesPlaceholder: "Write notes for this lecture…",
       noteFreeView: "Free note",
       noteStructuredView: "Structured",
@@ -31849,7 +32021,33 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       selectItem: "اختر عنصرًا من القائمة لفتح مساحة العمل.",
       ownNotes: "ملاحظاتي",
       sharedNotes: "ملاحظات مشتركة",
-      sharedReady: "تم تجهيز مساحة الملاحظات المشتركة لمزامنة Supabase في قسم المحاضرات لاحقًا.",
+      sharedPrivate: "خاص",
+      sharedPublished: "مشارك",
+      sharedReadOnly: "للقراءة فقط",
+      sharedShareNote: "مشاركة الملاحظة",
+      sharedUpdateNote: "تحديث النسخة المشتركة",
+      sharedStopSharing: "إيقاف المشاركة",
+      sharedStopConfirm: "هل تريد إيقاف مشاركة ملاحظة هذه المحاضرة؟ لن يتم حذف ملاحظتك الخاصة.",
+      sharedExplicitHint: "لا تتم المشاركة إلا عندما تنشر الملاحظة بنفسك. التعديلات الخاصة اللاحقة لا تُشارك تلقائيًا.",
+      sharedPublishedHint: "يمكن لمستخدمي MedFLUEN الآخرين قراءة النسخة المنشورة، بينما تبقى مسودتك الخاصة منفصلة.",
+      sharedUpdateAvailable: "تم تعديل ملاحظتك الخاصة منذ النسخة المشتركة.",
+      sharedNoContent: "اكتب شيئًا في ملاحظتك الخاصة قبل مشاركتها.",
+      sharedPublishing: "جارٍ النشر…",
+      sharedPublishSuccess: "تمت مشاركة الملاحظة كنسخة للقراءة فقط.",
+      sharedUpdateSuccess: "تم تحديث الملاحظة المشتركة إلى نسخة جديدة.",
+      sharedUnshareSuccess: "تم إيقاف المشاركة مع الاحتفاظ بملاحظتك الخاصة.",
+      sharedLoad: "جارٍ تحميل الملاحظات المشتركة…",
+      sharedRefresh: "تحديث الملاحظات المشتركة",
+      sharedEmptyTitle: "لا توجد ملاحظات مشتركة بعد",
+      sharedEmptyText: "عندما يشارك طالب ملاحظة لهذه المحاضرة بشكل صريح، ستظهر هنا للقراءة فقط.",
+      sharedCount: (count) => count === 1 ? "ملاحظة مشتركة واحدة" : `${count} ملاحظات مشتركة`,
+      sharedVersion: (version) => `الإصدار ${version}`,
+      sharedUpdated: "آخر تحديث",
+      sharedYou: "أنت",
+      sharedAnonymous: "طالب",
+      sharedSetupMissing: "الملاحظات المشتركة غير مهيأة. شغّل ملف SQL الخاص بالمقطع 5.7 في Supabase.",
+      sharedLoadError: "تعذر تحميل الملاحظات المشتركة.",
+      sharedActionError: "تعذر تنفيذ الإجراء. حاول مرة أخرى.",
       notesPlaceholder: "اكتب ملاحظات لهذه المحاضرة…",
       noteFreeView: "ملاحظة حرة",
       noteStructuredView: "منظمة",
@@ -32166,6 +32364,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     return () => window.clearTimeout(lectureNoteSaveTimerRef.current);
   }, [lectureNoteDraft, noteKey, userId, moduleName, isLectureLibrary]);
 
+
+  useEffect(() => {
+    if (!isLectureLibrary || !selectedLecture || !userId || !moduleName) {
+      sharedNoteLoadTokenRef.current += 1;
+      setSharedLectureNotes([]);
+      setSelectedSharedNoteId(null);
+      setSharedNoteLoadState("idle");
+      setSharedNoteMessage("");
+      return undefined;
+    }
+    refreshSharedLectureNotes({ resetSelection: true });
+    return () => { sharedNoteLoadTokenRef.current += 1; };
+  }, [isLectureLibrary, selectedLecture?.id, userId, moduleName]);
+
   const masteryOrder = ["unrated", "uncertain", "developing", "confident"];
   const lectureOverviewKey = moduleName || "module";
   const lectureOverviewPreferences = workspaceState.lectureOverview?.[lectureOverviewKey] || {};
@@ -32238,6 +32450,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const selectedScheduleTime = selectedScheduleEvent?.time
     ? `${selectedScheduleEvent.time}${selectedScheduleEvent.endTime ? `–${selectedScheduleEvent.endTime}` : ""}`
     : "";
+
+  const ownSharedNote = sharedLectureNotes.find((note) => note.ownerUserId === userId) || null;
+  const selectedSharedNote = sharedLectureNotes.find((note) => note.id === selectedSharedNoteId) || sharedLectureNotes[0] || null;
+  const ownSharedNoteNeedsUpdate = sharedLectureNoteNeedsUpdate(ownSharedNote, lectureNoteDraft);
+  const sharedNoteLocale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+  const sharedAuthorName = String(loadStorage(STORAGE.user, {})?.name || "").trim() || copy.sharedAnonymous;
+
+  function formatSharedNoteTimestamp(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleString(sharedNoteLocale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  }
+
 
   function lectureProgressKey(lectureId) {
     return `${moduleName || "module"}:${lectureId}`;
@@ -32384,6 +32610,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     lectureNoteDirtyRef.current = true;
     setLectureNoteSaveState(userId && moduleName ? "saving" : "local");
     setLectureNoteSyncMessage("");
+    setSharedNoteActionState("idle");
+    setSharedNoteMessage("");
     setLectureNoteDraft((current) => {
       const next = lectureNoteNormalize({ ...current, ...patch, updatedAt: new Date().toISOString() });
       lectureNoteDraftRef.current = next;
@@ -32435,6 +32663,99 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       { free: copy.noteFreeView, keyPoints: copy.noteKeyPoints, clinicalPoints: copy.noteClinicalPoints, openQuestions: copy.noteOpenQuestions, module: language === "en" ? "Module" : language === "ar" ? "الوحدة" : "Modul", lecture: copy.lectures }
     );
     lectureNoteDownload(filename, content, format === "markdown" ? "text/markdown;charset=utf-8" : "text/plain;charset=utf-8");
+  }
+
+
+  async function refreshSharedLectureNotes(options = {}) {
+    if (!isLectureLibrary || !selectedLecture?.id || !userId || !moduleName) return false;
+    const token = ++sharedNoteLoadTokenRef.current;
+    if (!options.silent) setSharedNoteLoadState("loading");
+    if (!options.keepMessage) { setSharedNoteMessage(""); setSharedNoteActionState("idle"); }
+    try {
+      const { data, error } = await supabase
+        .from("shared_lecture_notes")
+        .select("id,owner_user_id,module_name,lecture_id,author_name,free_text,key_points,clinical_points,open_questions,view_mode,version,source_note_updated_at,shared_at,updated_at")
+        .eq("module_name", moduleName)
+        .eq("lecture_id", selectedLecture.id)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      if (token !== sharedNoteLoadTokenRef.current) return false;
+      const rows = (data || []).map(sharedLectureNoteFromRow).filter(Boolean);
+      setSharedLectureNotes(rows);
+      setSelectedSharedNoteId((current) => {
+        if (!options.resetSelection && current && rows.some((note) => note.id === current)) return current;
+        return rows.find((note) => note.ownerUserId === userId)?.id || rows[0]?.id || null;
+      });
+      setSharedNoteLoadState("ready");
+      return true;
+    } catch (error) {
+      if (token !== sharedNoteLoadTokenRef.current) return false;
+      setSharedLectureNotes([]);
+      setSelectedSharedNoteId(null);
+      setSharedNoteLoadState("error");
+      setSharedNoteActionState("error");
+      setSharedNoteMessage(error?.code === "42P01" || error?.code === "PGRST202" ? copy.sharedSetupMissing : copy.sharedLoadError);
+      return false;
+    }
+  }
+
+  async function publishCurrentLectureNote() {
+    if (!selectedLecture || !userId || !moduleName) return;
+    const snapshot = lectureNoteNormalize(lectureNoteDraftRef.current);
+    if (!lectureNoteHasContent(snapshot)) {
+      setSharedNoteActionState("error");
+      setSharedNoteMessage(copy.sharedNoContent);
+      return;
+    }
+    setSharedNoteActionState("saving");
+    setSharedNoteMessage(copy.sharedPublishing);
+    window.clearTimeout(lectureNoteSaveTimerRef.current);
+    const scope = lectureNoteScopeRef.current;
+    if (lectureNoteDirtyRef.current && scope?.key === noteKey) {
+      await persistLectureNoteSnapshot(scope, snapshot, lectureNoteRevisionRef.current, { background: true });
+    }
+    const wasAlreadyShared = Boolean(ownSharedNote);
+    try {
+      const { error } = await supabase.rpc("medfluen_publish_lecture_note", {
+        p_module_name: moduleName,
+        p_lecture_id: selectedLecture.id,
+        p_author_name: sharedAuthorName,
+        p_free_text: snapshot.freeText,
+        p_key_points: snapshot.keyPoints,
+        p_clinical_points: snapshot.clinicalPoints,
+        p_open_questions: snapshot.openQuestions,
+        p_view_mode: snapshot.viewMode,
+        p_source_note_updated_at: snapshot.updatedAt || new Date().toISOString(),
+      });
+      if (error) throw error;
+      await refreshSharedLectureNotes({ silent: true, resetSelection: true, keepMessage: true });
+      setSharedNoteActionState("success");
+      setSharedNoteMessage(wasAlreadyShared ? copy.sharedUpdateSuccess : copy.sharedPublishSuccess);
+    } catch (error) {
+      setSharedNoteActionState("error");
+      setSharedNoteMessage(error?.code === "42883" || error?.code === "PGRST202" || error?.code === "42P01" ? copy.sharedSetupMissing : copy.sharedActionError);
+    }
+  }
+
+  async function stopSharingCurrentLectureNote() {
+    if (!ownSharedNote || !userId) return;
+    if (!window.confirm(copy.sharedStopConfirm)) return;
+    setSharedNoteActionState("saving");
+    setSharedNoteMessage("");
+    try {
+      const { error } = await supabase
+        .from("shared_lecture_notes")
+        .delete()
+        .eq("id", ownSharedNote.id)
+        .eq("owner_user_id", userId);
+      if (error) throw error;
+      await refreshSharedLectureNotes({ silent: true, resetSelection: true, keepMessage: true });
+      setSharedNoteActionState("success");
+      setSharedNoteMessage(copy.sharedUnshareSuccess);
+    } catch (error) {
+      setSharedNoteActionState("error");
+      setSharedNoteMessage(error?.code === "42P01" ? copy.sharedSetupMissing : copy.sharedActionError);
+    }
   }
 
   function updateLectureOverviewPreferences(patch) {
@@ -33160,6 +33481,26 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                     <button type="button" className="lecture-note-export-button" title={copy.noteExportMarkdown} aria-label={copy.noteExportMarkdown} disabled={!selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={() => exportCurrentLectureNote("markdown")}><Icon name="down" size={12} /></button>
                   </div>
                 </div>
+                <div className="lecture-note-share-bar">
+                  <div className="lecture-note-share-status" data-shared={ownSharedNote ? "true" : "false"}>
+                    <span><Icon name={ownSharedNote ? "share" : "user"} size={12} /></span>
+                    <div>
+                      <strong>{ownSharedNote ? `${copy.sharedPublished} · ${copy.sharedVersion(ownSharedNote.version)}` : copy.sharedPrivate}</strong>
+                      <small>{ownSharedNote ? (ownSharedNoteNeedsUpdate ? copy.sharedUpdateAvailable : copy.sharedPublishedHint) : copy.sharedExplicitHint}</small>
+                    </div>
+                  </div>
+                  <div className="lecture-note-share-actions">
+                    {!ownSharedNote ? (
+                      <button type="button" className="lecture-note-share-button" data-primary="true" disabled={sharedNoteActionState === "saving" || !selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={publishCurrentLectureNote} title={copy.sharedShareNote}><Icon name="share" size={11} /><span>{copy.sharedShareNote}</span></button>
+                    ) : (
+                      <>
+                        {ownSharedNoteNeedsUpdate && <button type="button" className="lecture-note-share-button" data-primary="true" disabled={sharedNoteActionState === "saving"} onClick={publishCurrentLectureNote} title={copy.sharedUpdateNote}><Icon name="upload" size={11} /><span>{copy.sharedUpdateNote}</span></button>}
+                        <button type="button" className="lecture-note-share-button" data-danger="true" disabled={sharedNoteActionState === "saving"} onClick={stopSharingCurrentLectureNote} title={copy.sharedStopSharing}><Icon name="close" size={11} /><span>{copy.sharedStopSharing}</span></button>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {sharedNoteMessage && noteMode === "own" && <div className="lecture-note-share-message" data-state={sharedNoteActionState === "error" ? "error" : sharedNoteActionState === "success" ? "success" : "info"}><Icon name={sharedNoteActionState === "error" ? "flag" : sharedNoteActionState === "success" ? "check" : "clock"} size={10} /><span>{sharedNoteMessage}</span></div>}
                 {lectureNoteSyncMessage && lectureNoteSaveState === "error" && <div className="lecture-note-sync-warning" role="status"><Icon name="flag" size={11} /><span>{lectureNoteSyncMessage}</span></div>}
                 {lectureNoteLoadState === "loading" ? (
                   <div className="lecture-note-loading"><span className="lecture-pdf-spinner" /><strong>{copy.noteLoading}</strong></div>
@@ -33183,7 +33524,46 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                 )}
               </div>
             ) : (
-              <div className="shared-notes-placeholder"><Icon name="share" size={18} /><strong>{copy.sharedNotes}</strong><p>{noteKey && sharedNotes[noteKey] ? sharedNotes[noteKey] : copy.sharedReady}</p></div>
+              <div className="lecture-shared-note-shell">
+                <div className="lecture-shared-note-toolbar">
+                  <div><strong>{copy.sharedNotes}</strong><small>{copy.sharedCount(sharedLectureNotes.length)}</small></div>
+                  <button type="button" className="lecture-shared-note-refresh" aria-label={copy.sharedRefresh} title={copy.sharedRefresh} disabled={sharedNoteLoadState === "loading" || !selectedLecture} onClick={() => refreshSharedLectureNotes()}><Icon name="reset" size={12} /></button>
+                </div>
+                {sharedNoteMessage && noteMode === "shared" && sharedNoteLoadState === "error" && <div className="lecture-note-share-message" data-state="error"><Icon name="flag" size={10} /><span>{sharedNoteMessage}</span></div>}
+                {sharedNoteLoadState === "loading" ? (
+                  <div className="lecture-shared-note-loading"><span className="lecture-pdf-spinner" /><strong>{copy.sharedLoad}</strong></div>
+                ) : sharedLectureNotes.length === 0 ? (
+                  <div className="lecture-shared-note-empty"><span><Icon name="share" size={17} /></span><strong>{copy.sharedEmptyTitle}</strong><p>{sharedNoteLoadState === "error" ? (sharedNoteMessage || copy.sharedLoadError) : copy.sharedEmptyText}</p></div>
+                ) : (
+                  <>
+                    <div className="lecture-shared-note-selector" role="tablist" aria-label={copy.sharedNotes}>
+                      {sharedLectureNotes.map((sharedNote) => (
+                        <button key={sharedNote.id} type="button" role="tab" aria-selected={selectedSharedNote?.id === sharedNote.id} data-active={selectedSharedNote?.id === sharedNote.id ? "true" : "false"} onClick={() => setSelectedSharedNoteId(sharedNote.id)}>
+                          <span className="lecture-shared-note-avatar">{sharedLectureNoteInitials(sharedNote.authorName)}</span>
+                          <span><strong>{sharedNote.ownerUserId === userId ? copy.sharedYou : (sharedNote.authorName || copy.sharedAnonymous)}</strong><small>{copy.sharedVersion(sharedNote.version)}</small></span>
+                        </button>
+                      ))}
+                    </div>
+                    {selectedSharedNote && (
+                      <article className="lecture-shared-note-reader">
+                        <header className="lecture-shared-note-reader-head">
+                          <div className="lecture-shared-note-author">
+                            <span className="lecture-shared-note-avatar">{sharedLectureNoteInitials(selectedSharedNote.authorName)}</span>
+                            <div><strong>{selectedSharedNote.ownerUserId === userId ? copy.sharedYou : (selectedSharedNote.authorName || copy.sharedAnonymous)}</strong><small>{formatSharedNoteTimestamp(selectedSharedNote.updatedAt)}</small></div>
+                          </div>
+                          <div className="lecture-shared-note-badges"><span className="lecture-shared-note-badge" data-tone="blue"><Icon name="share" size={9} />{copy.sharedVersion(selectedSharedNote.version)}</span><span className="lecture-shared-note-badge" data-tone="green"><Icon name="check" size={9} />{copy.sharedReadOnly}</span></div>
+                        </header>
+                        <div className="lecture-shared-note-content">
+                          {String(selectedSharedNote.freeText || "").trim() && <p className="lecture-shared-note-free-text">{selectedSharedNote.freeText}</p>}
+                          {String(selectedSharedNote.keyPoints || "").trim() && <section className="lecture-shared-note-section"><strong>{copy.noteKeyPoints}</strong><p>{selectedSharedNote.keyPoints}</p></section>}
+                          {String(selectedSharedNote.clinicalPoints || "").trim() && <section className="lecture-shared-note-section"><strong>{copy.noteClinicalPoints}</strong><p>{selectedSharedNote.clinicalPoints}</p></section>}
+                          {String(selectedSharedNote.openQuestions || "").trim() && <section className="lecture-shared-note-section"><strong>{copy.noteOpenQuestions}</strong><p>{selectedSharedNote.openQuestions}</p></section>}
+                        </div>
+                      </article>
+                    )}
+                  </>
+                )}
+              </div>
             )}
           </aside>
         )}
