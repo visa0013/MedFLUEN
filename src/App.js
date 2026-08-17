@@ -11099,6 +11099,39 @@ select.ui-control {
 }
 
 /* ============================================================
+   SEGMENT 6.1 — PERMANENT EKSAMENSSÆTBIBLIOTEK
+   ============================================================ */
+.exam-set-library-row .document-library-code {
+  color: #7667d8;
+  background: color-mix(in srgb,#7667d8 8%,var(--ui-panel));
+  border-color: color-mix(in srgb,#7667d8 18%,var(--ui-border));
+}
+.exam-set-library-row[data-active="true"] .document-library-code {
+  background: color-mix(in srgb,#7667d8 14%,var(--ui-panel));
+  border-color: color-mix(in srgb,#7667d8 34%,var(--ui-border));
+}
+.exam-set-library-meta { display: flex !important; align-items: center; gap: 5px; }
+.exam-set-library-meta > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exam-set-library-meta > i { width: 3px; height: 3px; flex-shrink: 0; border-radius: 99px; background: var(--ui-border-strong); }
+.exam-set-viewer-actions { min-width: 0; display: flex; align-items: center; gap: 2px; overflow-x: auto; }
+.exam-set-viewer-actions button { white-space: nowrap; }
+.exam-set-viewer-actions .exam-set-delete { color: var(--ui-red); }
+.exam-set-status { flex-shrink: 0; padding: 5px 12px; border-bottom: 1px solid var(--ui-border); background: var(--ui-soft); color: var(--ui-secondary); font-size: 8px; font-weight: 700; }
+.exam-set-status[data-state="error"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.exam-set-status[data-state="success"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.exam-set-dialog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.exam-set-dialog-file { display: grid; grid-template-columns: 20px minmax(0,1fr) auto; align-items: center; gap: 7px; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
+.exam-set-dialog-file > div { min-width: 0; display: grid; gap: 2px; }
+.exam-set-dialog-file strong { overflow: hidden; color: var(--ui-text); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.exam-set-dialog-file small { color: var(--ui-muted); font-size: 7.5px; }
+.exam-set-dialog-file > small { white-space: nowrap; }
+@media (max-width: 760px) {
+  .exam-set-dialog-grid { grid-template-columns: 1fr; }
+  .exam-set-viewer-actions button { font-size: 0 !important; }
+  .exam-set-viewer-actions button svg { width: 13px; height: 13px; }
+}
+
+/* ============================================================
    SEGMENT 5.10 — KOMPAKT MODULOVERBLIK
    Fire handlingsnære modultal, der fungerer som filtre.
    ============================================================ */
@@ -31555,6 +31588,46 @@ function lectureMaterialPreviewKind(material) {
 
 
 /* =============================================================================
+   SEGMENT 6.1 — PERMANENT EXAM SET LIBRARY
+   -----------------------------------------------------------------------------
+   Exam-set PDFs are stored privately in Supabase Storage and indexed by module,
+   year and exam type. The existing PDF.js viewer is reused without changing the
+   lecture workspace or the spaced-repetition engine.
+   ========================================================================== */
+const EXAM_SET_DOCUMENTS_BUCKET = "exam-set-documents";
+const EXAM_SET_DOCUMENT_MAX_BYTES = 50 * 1024 * 1024;
+const EXAM_SET_TYPES = ["ordinary", "reexam", "other"];
+
+function examSetDocumentObjectPath(userId, moduleName, fileName) {
+  const id = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return [
+    userId,
+    lectureMaterialSafeSegment(moduleName, "module"),
+    `${id}.pdf`,
+  ].join("/");
+}
+
+function examSetDocumentFromRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.display_name || row.file_name || "Eksamenssæt.pdf",
+    fileName: row.file_name || row.display_name || "Eksamenssæt.pdf",
+    storagePath: row.storage_path,
+    mimeType: row.mime_type || "application/pdf",
+    size: Math.max(0, Number(row.size_bytes) || 0),
+    year: row.exam_year ? String(row.exam_year) : "",
+    examType: EXAM_SET_TYPES.includes(row.exam_type) ? row.exam_type : "other",
+    examDate: row.exam_date || "",
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null,
+  };
+}
+
+
+/* =============================================================================
    SEGMENT 5.6 — PRIVATE LECTURE NOTES
    -----------------------------------------------------------------------------
    Notes are stored per authenticated user + module + lecture in Supabase.
@@ -32029,6 +32102,11 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [materialPreviewState, setMaterialPreviewState] = useState("idle");
   const [materialDialog, setMaterialDialog] = useState(null);
   const [materialSaving, setMaterialSaving] = useState(false);
+  const [examSetStatus, setExamSetStatus] = useState({ state: "idle", message: "" });
+  const [examSetDialog, setExamSetDialog] = useState(null);
+  const [examSetSaving, setExamSetSaving] = useState(false);
+  const [examSetPreviewUrl, setExamSetPreviewUrl] = useState("");
+  const [examSetPreviewState, setExamSetPreviewState] = useState("idle");
   const uploadRef = useRef(null);
   const replaceUploadRef = useRef(null);
 
@@ -32050,9 +32128,35 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       lectures: "Forelæsninger",
       examSets: "Eksamenssæt",
       lectureSubtitle: "Permanent materialebibliotek, viewer og forelæsningsnoter",
-      examSubtitle: "Samling og gennemgang af tidligere eksamenssæt",
+      examSubtitle: "Permanent bibliotek og gennemgang af tidligere eksamenssæt",
       searchLectures: "Søg efter forelæsning…",
-      searchExamSets: "Søg efter fil eller år…",
+      searchExamSets: "Søg efter fil, år eller eksamenstype…",
+      examSetPermanent: "Eksamenssæt gemmes privat og permanent i Supabase Storage.",
+      examSetLoading: "Henter eksamenssæt…",
+      examSetSetupMissing: "Eksamenssætbiblioteket er ikke klargjort. Kør Segment 6.1 SQL-filen i Supabase.",
+      examSetUploadTitle: "Tilføj eksamenssæt",
+      examSetEditTitle: "Redigér eksamenssæt",
+      examSetName: "Visningsnavn",
+      examSetYear: "År",
+      examSetType: "Eksamenstype",
+      examSetDate: "Eksamensdato",
+      examSetTypeOrdinary: "Ordinær",
+      examSetTypeReexam: "Reeksamen",
+      examSetTypeOther: "Andet",
+      examSetSave: "Gem eksamenssæt",
+      examSetCancel: "Annuller",
+      examSetEdit: "Redigér",
+      examSetDelete: "Slet",
+      examSetDownload: "Download",
+      examSetOpen: "Åbn",
+      examSetDeleteConfirm: "Slet dette eksamenssæt permanent?",
+      examSetTooLarge: "PDF-filen er større end 50 MB og kan ikke uploades.",
+      examSetInvalidFile: "Kun PDF-filer kan tilføjes til eksamenssætbiblioteket.",
+      examSetSaved: "Eksamenssættet er gemt permanent.",
+      examSetUpdated: "Eksamenssættet er opdateret.",
+      examSetDeleted: "Eksamenssættet er slettet.",
+      examSetLoadError: "Eksamenssættene kunne ikke hentes.",
+      examSetActionError: "Handlingen kunne ikke gennemføres.",
       upload: "Tilføj PDF",
       replace: "Udskift PDF",
       noPdf: "Der er endnu ikke knyttet en PDF til dette element.",
@@ -32253,9 +32357,35 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       lectures: "Lectures",
       examSets: "Exam sets",
       lectureSubtitle: "Permanent material library, viewer and lecture notes",
-      examSubtitle: "Collection and review of previous exam sets",
+      examSubtitle: "Permanent library and review of previous exam sets",
       searchLectures: "Search lectures…",
-      searchExamSets: "Search file or year…",
+      searchExamSets: "Search file, year or exam type…",
+      examSetPermanent: "Exam sets are stored privately and permanently in Supabase Storage.",
+      examSetLoading: "Loading exam sets…",
+      examSetSetupMissing: "The exam-set library is not configured. Run the Segment 6.1 SQL file in Supabase.",
+      examSetUploadTitle: "Add exam set",
+      examSetEditTitle: "Edit exam set",
+      examSetName: "Display name",
+      examSetYear: "Year",
+      examSetType: "Exam type",
+      examSetDate: "Exam date",
+      examSetTypeOrdinary: "Ordinary",
+      examSetTypeReexam: "Resit",
+      examSetTypeOther: "Other",
+      examSetSave: "Save exam set",
+      examSetCancel: "Cancel",
+      examSetEdit: "Edit",
+      examSetDelete: "Delete",
+      examSetDownload: "Download",
+      examSetOpen: "Open",
+      examSetDeleteConfirm: "Delete this exam set permanently?",
+      examSetTooLarge: "The PDF is larger than 50 MB and cannot be uploaded.",
+      examSetInvalidFile: "Only PDF files can be added to the exam-set library.",
+      examSetSaved: "The exam set was saved permanently.",
+      examSetUpdated: "The exam set was updated.",
+      examSetDeleted: "The exam set was deleted.",
+      examSetLoadError: "The exam sets could not be loaded.",
+      examSetActionError: "The action could not be completed.",
       upload: "Add PDF",
       replace: "Replace PDF",
       noPdf: "No PDF is linked to this item yet.",
@@ -32456,9 +32586,35 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       lectures: "المحاضرات",
       examSets: "مجموعات الامتحان",
       lectureSubtitle: "مكتبة مواد دائمة وعارض وملاحظات المحاضرات",
-      examSubtitle: "مجموعة ومراجعة نماذج الامتحانات السابقة",
+      examSubtitle: "مكتبة دائمة ومراجعة نماذج الامتحانات السابقة",
       searchLectures: "ابحث في المحاضرات…",
-      searchExamSets: "ابحث باسم الملف أو السنة…",
+      searchExamSets: "ابحث بالملف أو السنة أو نوع الامتحان…",
+      examSetPermanent: "تُحفظ نماذج الامتحان بشكل خاص ودائم في Supabase Storage.",
+      examSetLoading: "جارٍ تحميل نماذج الامتحان…",
+      examSetSetupMissing: "مكتبة نماذج الامتحان غير مهيأة. شغّل ملف SQL الخاص بالمقطع 6.1 في Supabase.",
+      examSetUploadTitle: "إضافة نموذج امتحان",
+      examSetEditTitle: "تعديل نموذج الامتحان",
+      examSetName: "اسم العرض",
+      examSetYear: "السنة",
+      examSetType: "نوع الامتحان",
+      examSetDate: "تاريخ الامتحان",
+      examSetTypeOrdinary: "عادي",
+      examSetTypeReexam: "إعادة",
+      examSetTypeOther: "آخر",
+      examSetSave: "حفظ نموذج الامتحان",
+      examSetCancel: "إلغاء",
+      examSetEdit: "تعديل",
+      examSetDelete: "حذف",
+      examSetDownload: "تنزيل",
+      examSetOpen: "فتح",
+      examSetDeleteConfirm: "حذف نموذج الامتحان هذا نهائيًا؟",
+      examSetTooLarge: "ملف PDF أكبر من 50 ميغابايت ولا يمكن رفعه.",
+      examSetInvalidFile: "يمكن إضافة ملفات PDF فقط إلى مكتبة نماذج الامتحان.",
+      examSetSaved: "تم حفظ نموذج الامتحان بشكل دائم.",
+      examSetUpdated: "تم تحديث نموذج الامتحان.",
+      examSetDeleted: "تم حذف نموذج الامتحان.",
+      examSetLoadError: "تعذر تحميل نماذج الامتحان.",
+      examSetActionError: "تعذر تنفيذ الإجراء.",
       upload: "إضافة PDF",
       replace: "استبدال PDF",
       noPdf: "لا يوجد ملف PDF مرتبط بهذا العنصر بعد.",
@@ -32678,6 +32834,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     || selectedLectureMaterials.find((material) => material.is_primary)
     || selectedLectureMaterials[0]
     || null;
+  const selectedExamDocument = !isLectureLibrary
+    ? documents.find((document) => document.id === selectedId) || documents[0] || null
+    : null;
   const activeDocument = isLectureLibrary
     ? activeLectureMaterial
       ? {
@@ -32690,7 +32849,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           material: activeLectureMaterial,
         }
       : null
-    : documents.find((document) => document.id === selectedId) || documents[0] || null;
+    : selectedExamDocument
+      ? { ...selectedExamDocument, url: examSetPreviewUrl }
+      : null;
 
   useEffect(() => {
     if (!isLectureLibrary) return undefined;
@@ -32745,8 +32906,79 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     return () => { cancelled = true; };
   }, [isLectureLibrary, activeLectureMaterial?.id, activeLectureMaterial?.storage_path]);
 
+  useEffect(() => {
+    if (isLectureLibrary) return undefined;
+    if (!userId || !moduleName) {
+      setDocuments([]);
+      setExamSetStatus({ state: "error", message: copy.examSetSetupMissing });
+      return undefined;
+    }
+    let cancelled = false;
+    setExamSetStatus({ state: "loading", message: "" });
+    supabase
+      .from("exam_set_documents")
+      .select("id,user_id,module_name,file_name,display_name,storage_path,mime_type,size_bytes,exam_year,exam_type,exam_date,created_at,updated_at")
+      .eq("user_id", userId)
+      .eq("module_name", moduleName)
+      .order("exam_year", { ascending: false, nullsFirst: false })
+      .order("exam_date", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setDocuments([]);
+          setExamSetStatus({ state: "error", message: copy.examSetSetupMissing });
+          return;
+        }
+        const next = (Array.isArray(data) ? data : []).map(examSetDocumentFromRow).filter(Boolean);
+        DOCUMENT_SESSION_CACHE.examSets = next;
+        setDocuments(next);
+        setWorkspaceState((current) => {
+          const rememberedId = current[selectedStateKey];
+          if (rememberedId && next.some((document) => document.id === rememberedId)) return current;
+          return { ...current, [selectedStateKey]: next[0]?.id || null };
+        });
+        setExamSetStatus({ state: "ready", message: "" });
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, moduleName]);
+
+  useEffect(() => {
+    if (isLectureLibrary || !selectedExamDocument?.storagePath) {
+      setExamSetPreviewUrl("");
+      setExamSetPreviewState("idle");
+      return undefined;
+    }
+    let cancelled = false;
+    setExamSetPreviewUrl("");
+    setExamSetPreviewState("loading");
+    supabase.storage
+      .from(EXAM_SET_DOCUMENTS_BUCKET)
+      .createSignedUrl(selectedExamDocument.storagePath, 60 * 60)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data?.signedUrl) {
+          setExamSetPreviewState("error");
+          setExamSetStatus({ state: "error", message: copy.examSetActionError });
+          return;
+        }
+        setExamSetPreviewUrl(data.signedUrl);
+        setExamSetPreviewState("ready");
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, selectedExamDocument?.id, selectedExamDocument?.storagePath]);
+
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredDocuments = documents.filter((document) => `${document.name} ${document.year || ""}`.toLowerCase().includes(normalizedQuery));
+  function examSetTypeLabel(type) {
+    return ({ ordinary: copy.examSetTypeOrdinary, reexam: copy.examSetTypeReexam, other: copy.examSetTypeOther })[type] || copy.examSetTypeOther;
+  }
+  function examSetDateLabel(date) {
+    if (!date) return "";
+    const value = new Date(`${date}T12:00:00`);
+    if (Number.isNaN(value.getTime())) return date;
+    return value.toLocaleDateString(language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK", { day: "numeric", month: "short", year: "numeric" });
+  }
+  const filteredDocuments = documents.filter((document) => `${document.name} ${document.year || ""} ${examSetTypeLabel(document.examType)} ${document.examDate || ""}`.toLowerCase().includes(normalizedQuery));
   const noteKey = selectedLecture ? `${moduleName || "module"}:${selectedLecture.id}` : null;
 
   useEffect(() => {
@@ -33900,6 +34132,174 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  async function refreshExamSetDocuments() {
+    if (isLectureLibrary || !userId || !moduleName) return [];
+    const { data, error } = await supabase
+      .from("exam_set_documents")
+      .select("id,user_id,module_name,file_name,display_name,storage_path,mime_type,size_bytes,exam_year,exam_type,exam_date,created_at,updated_at")
+      .eq("user_id", userId)
+      .eq("module_name", moduleName)
+      .order("exam_year", { ascending: false, nullsFirst: false })
+      .order("exam_date", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const next = (Array.isArray(data) ? data : []).map(examSetDocumentFromRow).filter(Boolean);
+    DOCUMENT_SESSION_CACHE.examSets = next;
+    setDocuments(next);
+    return next;
+  }
+
+  function validateExamSetFile(file) {
+    if (!file) return copy.examSetInvalidFile;
+    if (file.size > EXAM_SET_DOCUMENT_MAX_BYTES) return copy.examSetTooLarge;
+    const pdf = file.type === "application/pdf" || String(file.name || "").toLowerCase().endsWith(".pdf");
+    return pdf ? "" : copy.examSetInvalidFile;
+  }
+
+  function openExamSetUploadDialog(file) {
+    if (!file) return;
+    const year = (String(file.name || "").match(/(?:19|20)\d{2}/) || [])[0] || "";
+    setExamSetStatus({ state: "idle", message: "" });
+    setExamSetDialog({
+      mode: "upload",
+      file,
+      name: file.name.replace(/\.pdf$/i, ""),
+      year,
+      examType: "ordinary",
+      examDate: "",
+    });
+  }
+
+  async function saveExamSetDocument() {
+    if (!examSetDialog || examSetSaving || isLectureLibrary) return;
+    const name = String(examSetDialog.name || "").trim();
+    if (!name || !userId || !moduleName) {
+      setExamSetStatus({ state: "error", message: copy.examSetSetupMissing });
+      return;
+    }
+    const yearNumber = String(examSetDialog.year || "").trim() ? Number(examSetDialog.year) : null;
+    if (yearNumber != null && (!Number.isInteger(yearNumber) || yearNumber < 1900 || yearNumber > 2100)) {
+      setExamSetStatus({ state: "error", message: copy.examSetActionError });
+      return;
+    }
+    setExamSetSaving(true);
+    setExamSetStatus({ state: "loading", message: "" });
+    try {
+      if (examSetDialog.mode === "upload") {
+        const file = examSetDialog.file;
+        const validation = validateExamSetFile(file);
+        if (validation) throw new Error(validation);
+        const storagePath = examSetDocumentObjectPath(userId, moduleName, file.name);
+        const { error: uploadError } = await supabase.storage
+          .from(EXAM_SET_DOCUMENTS_BUCKET)
+          .upload(storagePath, file, { contentType: "application/pdf", upsert: false });
+        if (uploadError) throw uploadError;
+        const { data: inserted, error: insertError } = await supabase
+          .from("exam_set_documents")
+          .insert({
+            user_id: userId,
+            module_name: moduleName,
+            file_name: file.name,
+            display_name: name,
+            storage_path: storagePath,
+            mime_type: "application/pdf",
+            size_bytes: file.size,
+            exam_year: yearNumber,
+            exam_type: EXAM_SET_TYPES.includes(examSetDialog.examType) ? examSetDialog.examType : "other",
+            exam_date: examSetDialog.examDate || null,
+          })
+          .select("id")
+          .single();
+        if (insertError) {
+          await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove([storagePath]);
+          throw insertError;
+        }
+        const next = await refreshExamSetDocuments();
+        const nextId = inserted?.id || next[0]?.id;
+        if (nextId) setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextId }));
+        setExamSetDialog(null);
+        setExamSetStatus({ state: "success", message: copy.examSetSaved });
+      } else {
+        const document = examSetDialog.document;
+        if (!document?.id) return;
+        const { error } = await supabase
+          .from("exam_set_documents")
+          .update({
+            display_name: name,
+            exam_year: yearNumber,
+            exam_type: EXAM_SET_TYPES.includes(examSetDialog.examType) ? examSetDialog.examType : "other",
+            exam_date: examSetDialog.examDate || null,
+          })
+          .eq("id", document.id)
+          .eq("user_id", userId);
+        if (error) throw error;
+        await refreshExamSetDocuments();
+        setExamSetDialog(null);
+        setExamSetStatus({ state: "success", message: copy.examSetUpdated });
+      }
+    } catch (error) {
+      setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+    } finally {
+      setExamSetSaving(false);
+    }
+  }
+
+  function editExamSetDocument(document = selectedExamDocument) {
+    if (!document) return;
+    setExamSetDialog({
+      mode: "edit",
+      document,
+      name: document.name || "",
+      year: document.year || "",
+      examType: document.examType || "other",
+      examDate: document.examDate || "",
+    });
+  }
+
+  async function deleteExamSetDocument(document = selectedExamDocument) {
+    if (!document?.id || !window.confirm(copy.examSetDeleteConfirm)) return;
+    setExamSetSaving(true);
+    setExamSetStatus({ state: "loading", message: "" });
+    try {
+      const { error } = await supabase.from("exam_set_documents").delete().eq("id", document.id).eq("user_id", userId);
+      if (error) throw error;
+      if (document.storagePath) await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove([document.storagePath]);
+      const next = await refreshExamSetDocuments();
+      const nextId = next[0]?.id || null;
+      setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextId }));
+      setExamSetStatus({ state: "success", message: copy.examSetDeleted });
+    } catch (error) {
+      setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+    } finally {
+      setExamSetSaving(false);
+    }
+  }
+
+  async function openExamSetDocument(document = selectedExamDocument) {
+    if (!document?.storagePath) return;
+    const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(document.storagePath, 60 * 60);
+    if (error || !data?.signedUrl) {
+      setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }
+
+  async function downloadExamSetDocument(document = selectedExamDocument) {
+    if (!document?.storagePath) return;
+    const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).download(document.storagePath);
+    if (error || !data) {
+      setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+      return;
+    }
+    const url = URL.createObjectURL(data);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = document.fileName || `${document.name || "eksamenssaet"}.pdf`;
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function updateDocuments(next) {
     DOCUMENT_SESSION_CACHE[cacheKey] = next;
     setDocuments([...next]);
@@ -33925,30 +34325,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       });
       return;
     }
-    const files = selectedFiles.filter((file) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"));
-    if (!files.length) return;
-    const additions = files.map((file, index) => ({
-      id: `pdf-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
-      name: file.name,
-      url: URL.createObjectURL(file),
-      size: file.size,
-      lectureId: isLectureLibrary ? selectedLecture?.id || null : null,
-      year: (file.name.match(/(?:19|20)\d{2}/) || [])[0] || "",
-      addedAt: Date.now(),
-    }));
-
-    let next;
-    if (isLectureLibrary && selectedLecture) {
-      const replaced = documents.find((document) => document.lectureId === selectedLecture.id);
-      if (replaced?.url) URL.revokeObjectURL(replaced.url);
-      next = [...documents.filter((document) => document.lectureId !== selectedLecture.id), additions[0]];
-    } else {
-      next = [...documents, ...additions];
+    const file = selectedFiles[0];
+    if (!file) return;
+    const validation = validateExamSetFile(file);
+    if (validation) {
+      setExamSetStatus({ state: "error", message: validation });
+      return;
     }
-    updateDocuments(next);
-    const nextSelected = isLectureLibrary ? selectedLecture?.id : additions[0]?.id;
-    if (nextSelected) setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextSelected }));
-    event.target.value = "";
+    openExamSetUploadDialog(file);
   }
 
   const title = isLectureLibrary ? copy.lectures : copy.examSets;
@@ -33973,9 +34357,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           <span><strong>{title}</strong><small>{subtitle}</small></span>
         </div>
         <div className="document-workspace-header-actions">
-          <input ref={uploadRef} type="file" accept={isLectureLibrary ? LECTURE_MATERIAL_ACCEPT : "application/pdf,.pdf"} multiple onChange={handleUpload} hidden />
+          <input ref={uploadRef} type="file" accept={isLectureLibrary ? LECTURE_MATERIAL_ACCEPT : "application/pdf,.pdf"} multiple={isLectureLibrary} onChange={handleUpload} hidden />
           {isLectureLibrary && <input ref={replaceUploadRef} type="file" accept={LECTURE_MATERIAL_ACCEPT} onChange={replaceLectureMaterialFile} hidden />}
-          <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary && (!selectedLecture || materialSaving)}>
+          <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary ? (!selectedLecture || materialSaving) : examSetSaving}>
             <Icon name="upload" size={14} />{isLectureLibrary ? copy.addMaterial : copy.upload}
           </button>
           <IconButton c={c} title={copy.close} onClick={handleDocumentWorkspaceClose} style={{ border: `1px solid ${c.border}`, background: c.soft }}><Icon name="close" size={16} /></IconButton>
@@ -34094,15 +34478,18 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                 );
               }) : <div className="document-library-empty">{lectures.length ? copy.lectureNoMatches : copy.noLectures}</div>
             ) : (
-              filteredDocuments.length ? filteredDocuments.map((document) => (
-                <button key={document.id} type="button" className="document-library-row" data-active={document.id === activeDocument?.id ? "true" : "false"} onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: document.id }))}>
+              examSetStatus.state === "loading" && !documents.length ? <div className="document-library-empty">{copy.examSetLoading}</div> : filteredDocuments.length ? filteredDocuments.map((document) => (
+                <button key={document.id} type="button" className="document-library-row exam-set-library-row" data-active={document.id === activeDocument?.id ? "true" : "false"} onClick={() => setWorkspaceState((current) => ({ ...current, [selectedStateKey]: document.id }))}>
                   <span className="document-library-code"><Icon name="file" size={14} /></span>
-                  <span className="document-library-copy"><strong>{document.name}</strong><small>{document.year || "PDF"}</small></span>
+                  <span className="document-library-copy">
+                    <strong>{document.name}</strong>
+                    <small className="exam-set-library-meta"><span>{document.year || "—"}</span><i /><span>{examSetTypeLabel(document.examType)}</span>{document.examDate && <><i /><span>{examSetDateLabel(document.examDate)}</span></>}</small>
+                  </span>
                 </button>
-              )) : <div className="document-library-empty">{copy.noExamSets}</div>
+              )) : <div className="document-library-empty">{examSetStatus.state === "error" ? examSetStatus.message : copy.noExamSets}</div>
             )}
           </div>
-          <div className="document-session-note">{isLectureLibrary ? copy.materialPermanent : copy.sessionOnly}</div>
+          <div className="document-session-note">{isLectureLibrary ? copy.materialPermanent : copy.examSetPermanent}</div>
         </aside>
 
         {isLectureLibrary && selectedLecture && selectedLectureRow && (
@@ -34274,10 +34661,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                 <button type="button" className="lecture-material-delete" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><Icon name="trash" size={12} />{copy.materialDelete}</button>
               </div>
             ) : activeDocument && !isLectureLibrary ? (
-              <button type="button" onClick={() => window.open(activeDocument.url, "_blank", "noopener,noreferrer")}><Icon name="expand" size={13} />{copy.openSeparate}</button>
+              <div className="exam-set-viewer-actions">
+                <button type="button" disabled={examSetSaving} onClick={() => editExamSetDocument()}><Icon name="edit" size={12} />{copy.examSetEdit}</button>
+                <button type="button" onClick={() => downloadExamSetDocument()}><Icon name="down" size={12} />{copy.examSetDownload}</button>
+                <button type="button" onClick={() => openExamSetDocument()}><Icon name="expand" size={12} />{copy.examSetOpen}</button>
+                <button type="button" className="exam-set-delete" disabled={examSetSaving} onClick={() => deleteExamSetDocument()}><Icon name="trash" size={12} />{copy.examSetDelete}</button>
+              </div>
             ) : null}
           </div>
           {isLectureLibrary && materialStatus.message && materialStatus.state !== "loading" && <div className="lecture-material-status" data-state={materialStatus.state}>{materialStatus.message}</div>}
+          {!isLectureLibrary && examSetStatus.message && examSetStatus.state !== "loading" && <div className="exam-set-status" data-state={examSetStatus.state}>{examSetStatus.message}</div>}
           <div className="document-viewer-canvas">
             {isLectureLibrary ? (
               activeLectureMaterial ? (
@@ -34300,8 +34693,23 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
               ) : (
                 <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{!selectedLecture ? copy.selectItem : copy.materialLibraryEmpty}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="upload" size={14} />{copy.addMaterial}</button></div>
               )
-            ) : activeDocument ? <iframe title={activeDocument.name} src={activeDocument.url} /> : (
-              <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.noPdf}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()}><Icon name="upload" size={14} />{copy.upload}</button></div>
+            ) : activeDocument ? (
+              examSetPreviewState === "loading" ? (
+                <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.examSetLoading}</strong></div>
+              ) : activeDocument.url ? (
+                <LecturePdfViewer
+                  url={activeDocument.url}
+                  materialId={activeDocument.id}
+                  fileName={activeDocument.name}
+                  savedState={workspaceState.documentViewer?.[activeDocument.id] || {}}
+                  onStateChange={(patch) => updateLectureViewerState(activeDocument.id, patch)}
+                  copy={copy}
+                />
+              ) : (
+                <div className="document-viewer-empty"><span><Icon name="flag" size={24} /></span><strong>{examSetStatus.message || copy.examSetActionError}</strong></div>
+              )
+            ) : (
+              <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.noPdf}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={examSetSaving}><Icon name="upload" size={14} />{copy.upload}</button></div>
             )}
           </div>
         </main>
@@ -34456,6 +34864,31 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
               }) : <div className="lecture-sdu-match-empty">{copy.sduMatchEmpty}</div>}
             </div>
             <div className="lecture-sdu-match-footer"><button type="button" className="ui-button ui-button--primary" onClick={() => setSduMatchDialogOpen(false)}>{copy.sduMatchClose}</button></div>
+          </div>
+        </Modal>
+      )}
+
+      {examSetDialog && !isLectureLibrary && (
+        <Modal c={c} onClose={() => !examSetSaving && setExamSetDialog(null)}>
+          <div className="lecture-material-dialog">
+            <div className="lecture-material-dialog-heading">
+              <span><Icon name="cards" size={17} /></span>
+              <div><strong>{examSetDialog.mode === "upload" ? copy.examSetUploadTitle : copy.examSetEditTitle}</strong><small>{moduleName}</small></div>
+            </div>
+            {examSetDialog.mode === "upload" && examSetDialog.file && (
+              <div className="exam-set-dialog-file">
+                <Icon name="file" size={14} />
+                <div><strong>{examSetDialog.file.name}</strong><small>{lectureMaterialFormatBytes(examSetDialog.file.size)}</small></div>
+                <small>PDF</small>
+              </div>
+            )}
+            <label className="lecture-material-field"><span>{copy.examSetName}</span><input value={examSetDialog.name || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, name: event.target.value }))} /></label>
+            <div className="exam-set-dialog-grid">
+              <label className="lecture-material-field"><span>{copy.examSetYear}</span><input type="number" min="1900" max="2100" inputMode="numeric" value={examSetDialog.year || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, year: event.target.value }))} /></label>
+              <label className="lecture-material-field"><span>{copy.examSetType}</span><select value={examSetDialog.examType || "ordinary"} onChange={(event) => setExamSetDialog((current) => ({ ...current, examType: event.target.value }))}>{EXAM_SET_TYPES.map((type) => <option key={type} value={type}>{examSetTypeLabel(type)}</option>)}</select></label>
+            </div>
+            <label className="lecture-material-field"><span>{copy.examSetDate}</span><input type="date" value={examSetDialog.examDate || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, examDate: event.target.value }))} /></label>
+            <div className="lecture-material-dialog-actions"><button type="button" className="ui-button ui-button--secondary" disabled={examSetSaving} onClick={() => setExamSetDialog(null)}>{copy.examSetCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={examSetSaving || !String(examSetDialog.name || "").trim()} onClick={saveExamSetDocument}>{examSetSaving ? copy.examSetLoading : copy.examSetSave}</button></div>
           </div>
         </Modal>
       )}
@@ -36511,7 +36944,7 @@ useEffect(() => {
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} spacedData={spacedData} importedQuestions={importedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} userId={session?.user?.id} />
           )}
         </WorkspaceShell>
       )}
