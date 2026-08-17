@@ -11132,6 +11132,160 @@ select.ui-control {
 }
 
 /* ============================================================
+   SEGMENT 6.2 — EKSAMENSSÆT ARBEJDS-/BESVARELSESTILSTAND
+   Permanent opgaveprogression, svar, noter og markeringer.
+   ============================================================ */
+.document-workspace-grid--exam-work {
+  grid-template-columns: 260px minmax(360px, 1fr) 330px;
+}
+.exam-set-work-panel {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-inline-start: 1px solid var(--ui-border);
+  background: var(--ui-panel);
+}
+.exam-set-work-header {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px 7px 12px;
+  border-bottom: 1px solid var(--ui-border);
+}
+.exam-set-work-header > div:first-child { min-width: 0; display: grid; gap: 2px; }
+.exam-set-work-header strong { overflow: hidden; color: var(--ui-text); font-size: 10px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.exam-set-work-header small { color: var(--ui-muted); font-size: 8px; font-weight: 700; }
+.exam-set-work-header-actions { flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
+.exam-set-work-save-state { display: inline-flex; align-items: center; gap: 4px; color: var(--ui-muted); font-size: 7.5px; font-weight: 800; white-space: nowrap; }
+.exam-set-work-save-state[data-state="saved"] { color: var(--ui-green); }
+.exam-set-work-save-state[data-state="error"] { color: var(--ui-red); }
+.exam-set-work-close {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ui-muted);
+}
+.exam-set-work-close:hover { background: var(--ui-soft); color: var(--ui-text); }
+.exam-set-work-message { padding: 7px 10px; border-bottom: 1px solid var(--ui-border); color: var(--ui-muted); font-size: 8px; line-height: 1.45; }
+.exam-set-work-message[data-state="error"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.exam-set-question-strip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 45px;
+  padding: 7px 9px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-soft);
+}
+.exam-set-question-tab,
+.exam-set-question-add {
+  min-width: 31px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+  flex-shrink: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-panel);
+  color: var(--ui-secondary);
+  font-size: 8px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+.exam-set-question-tab:hover,
+.exam-set-question-add:hover { border-color: var(--ui-blue-border); color: var(--ui-blue); }
+.exam-set-question-tab[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.exam-set-question-tab[data-marked="true"]::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #d79628; }
+.exam-set-question-tab[data-status="answered"] { box-shadow: inset 0 -2px 0 var(--ui-green); }
+.exam-set-question-tab[data-status="review"] { box-shadow: inset 0 -2px 0 #d79628; }
+.exam-set-question-add { color: var(--ui-blue); }
+.exam-set-question-add:disabled { opacity: .45; cursor: wait; }
+.exam-set-question-editor { min-height: 0; flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 10px; }
+.exam-set-question-editor-top { display: grid; grid-template-columns: minmax(0,1fr) 92px; gap: 8px; }
+.exam-set-question-field { display: grid; gap: 5px; margin-bottom: 9px; }
+.exam-set-question-field > span { color: var(--ui-muted); font-size: 7.5px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+.exam-set-question-field input,
+.exam-set-question-field textarea {
+  width: 100%;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  outline: 0;
+  background: var(--ui-soft);
+  color: var(--ui-text);
+  font: inherit;
+  font-size: 10px;
+}
+.exam-set-question-field input { height: 34px; padding: 0 9px; }
+.exam-set-question-field textarea { min-height: 120px; padding: 9px 10px; resize: vertical; line-height: 1.55; }
+.exam-set-question-field textarea[data-kind="note"] { min-height: 90px; }
+.exam-set-question-field input:focus,
+.exam-set-question-field textarea:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 3px var(--ui-ring); background: var(--ui-panel); }
+.exam-set-question-statuses { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; margin-bottom: 9px; }
+.exam-set-question-statuses button {
+  min-height: 31px;
+  padding: 4px 5px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-panel);
+  color: var(--ui-muted);
+  font-size: 7.5px;
+  font-weight: 800;
+}
+.exam-set-question-statuses button:hover { border-color: var(--ui-blue-border); color: var(--ui-blue); }
+.exam-set-question-statuses button[data-active="true"][data-status="not-started"] { background: var(--ui-soft); color: var(--ui-secondary); }
+.exam-set-question-statuses button[data-active="true"][data-status="answered"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.exam-set-question-statuses button[data-active="true"][data-status="review"] { border-color: color-mix(in srgb,#d79628 40%,var(--ui-border)); background: color-mix(in srgb,#d79628 10%,var(--ui-panel)); color: #b37618; }
+.exam-set-question-editor-actions { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-top: auto; padding-top: 4px; }
+.exam-set-question-editor-actions > div { display: flex; align-items: center; gap: 5px; }
+.exam-set-question-editor-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 31px;
+  padding: 0 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-panel);
+  color: var(--ui-secondary);
+  font-size: 8px;
+  font-weight: 800;
+}
+.exam-set-question-editor-actions button:hover { border-color: var(--ui-blue-border); color: var(--ui-blue); }
+.exam-set-question-editor-actions button[data-active="true"] { border-color: color-mix(in srgb,#d79628 40%,var(--ui-border)); background: color-mix(in srgb,#d79628 10%,var(--ui-panel)); color: #b37618; }
+.exam-set-question-editor-actions .exam-set-question-delete { color: var(--ui-red); }
+.exam-set-question-empty { min-height: 0; flex: 1; display: grid; place-items: center; align-content: center; gap: 8px; padding: 24px; color: var(--ui-muted); text-align: center; }
+.exam-set-question-empty span { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-soft); color: #7667d8; }
+.exam-set-question-empty strong { color: var(--ui-text); font-size: 10.5px; }
+.exam-set-question-empty p { max-width: 230px; margin: 0; font-size: 8.5px; line-height: 1.55; }
+.exam-set-question-empty button { margin-top: 3px; }
+.exam-set-work-toggle[data-active="true"] { background: color-mix(in srgb,#7667d8 12%,var(--ui-panel)) !important; color: #6555c7 !important; }
+
+@media (max-width: 1180px) {
+  .document-workspace-grid--exam-work { grid-template-columns: 245px minmax(330px,1fr) 295px; }
+}
+@media (max-width: 940px) {
+  .document-workspace-grid--exam-work { position: relative; grid-template-columns: 240px minmax(0,1fr); }
+  .exam-set-work-panel { position: absolute; z-index: 7; top: 0; bottom: 0; inset-inline-end: 0; width: min(330px,42vw); box-shadow: var(--ui-shadow-lg); }
+}
+@media (max-width: 760px) {
+  .document-workspace-grid--exam-work { grid-template-columns: 1fr; }
+  .exam-set-work-panel { width: min(360px,92vw); }
+  .exam-set-question-editor-top { grid-template-columns: minmax(0,1fr) 82px; }
+  .exam-set-question-field textarea { min-height: 105px; }
+}
+
+/* ============================================================
    SEGMENT 5.10 — KOMPAKT MODULOVERBLIK
    Fire handlingsnære modultal, der fungerer som filtre.
    ============================================================ */
@@ -31628,6 +31782,85 @@ function examSetDocumentFromRow(row) {
 
 
 /* =============================================================================
+   SEGMENT 6.2 — EXAM SET WORK / ANSWER MODE
+   -----------------------------------------------------------------------------
+   A single persistent working state is stored per user + exam-set document.
+   Questions are intentionally user-defined because imported PDFs do not expose a
+   reliable machine-readable question structure. This preserves the original PDF
+   while allowing answers, review notes, flags and progress to sync permanently.
+   ========================================================================== */
+const EXAM_SET_QUESTION_STATUSES = ["not-started", "answered", "review"];
+
+function examSetQuestionId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return `exam-question-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function examSetQuestionNormalize(value, index = 0) {
+  const source = value && typeof value === "object" ? value : {};
+  const page = Number(source.page);
+  return {
+    id: String(source.id || examSetQuestionId()),
+    label: String(source.label || index + 1),
+    answer: typeof source.answer === "string" ? source.answer : "",
+    note: typeof source.note === "string" ? source.note : "",
+    status: EXAM_SET_QUESTION_STATUSES.includes(source.status) ? source.status : "not-started",
+    marked: Boolean(source.marked),
+    page: Number.isInteger(page) && page > 0 ? page : null,
+    updatedAt: Number(source.updatedAt) || 0,
+  };
+}
+
+function examSetWorkspaceEmpty() {
+  return { questions: [], activeQuestionId: null, startedAt: null, updatedAt: null };
+}
+
+function examSetWorkspaceNormalize(value) {
+  const source = value && typeof value === "object" ? value : {};
+  const questions = Array.isArray(source.questions)
+    ? source.questions.map((question, index) => examSetQuestionNormalize(question, index))
+    : [];
+  const requestedActive = source.activeQuestionId || source.active_question_id || null;
+  const activeQuestionId = questions.some((question) => question.id === requestedActive)
+    ? requestedActive
+    : questions[0]?.id || null;
+  return {
+    questions,
+    activeQuestionId,
+    startedAt: source.startedAt || source.started_at || null,
+    updatedAt: source.updatedAt || source.updated_at || null,
+  };
+}
+
+function examSetWorkspaceFromRow(row) {
+  if (!row) return examSetWorkspaceEmpty();
+  return examSetWorkspaceNormalize({
+    questions: row.questions,
+    activeQuestionId: row.active_question_id,
+    startedAt: row.started_at,
+    updatedAt: row.updated_at,
+  });
+}
+
+function examSetQuestionCounts(value) {
+  const workspace = examSetWorkspaceNormalize(value);
+  return {
+    total: workspace.questions.length,
+    answered: workspace.questions.filter((question) => question.status === "answered" || question.status === "review").length,
+    review: workspace.questions.filter((question) => question.status === "review").length,
+    marked: workspace.questions.filter((question) => question.marked).length,
+  };
+}
+
+function examSetNextQuestionLabel(questions) {
+  const numeric = (Array.isArray(questions) ? questions : [])
+    .map((question) => Number(String(question?.label || "").trim()))
+    .filter((value) => Number.isInteger(value) && value > 0);
+  return String((numeric.length ? Math.max(...numeric) : 0) + 1);
+}
+
+
+/* =============================================================================
    SEGMENT 5.6 — PRIVATE LECTURE NOTES
    -----------------------------------------------------------------------------
    Notes are stored per authenticated user + module + lecture in Supabase.
@@ -32107,6 +32340,18 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [examSetSaving, setExamSetSaving] = useState(false);
   const [examSetPreviewUrl, setExamSetPreviewUrl] = useState("");
   const [examSetPreviewState, setExamSetPreviewState] = useState("idle");
+  const [examSetWorkMode, setExamSetWorkMode] = useState(false);
+  const [examSetWorkDraft, setExamSetWorkDraft] = useState(() => examSetWorkspaceEmpty());
+  const [examSetWorkLoadState, setExamSetWorkLoadState] = useState("idle");
+  const [examSetWorkSaveState, setExamSetWorkSaveState] = useState("idle");
+  const [examSetWorkMessage, setExamSetWorkMessage] = useState("");
+  const examSetWorkDraftRef = useRef(examSetWorkspaceEmpty());
+  const examSetWorkScopeRef = useRef(null);
+  const examSetWorkDirtyRef = useRef(false);
+  const examSetWorkRevisionRef = useRef(0);
+  const examSetWorkSaveTimerRef = useRef(null);
+  const examSetWorkLoadTokenRef = useRef(0);
+  const examSetWorkMountedRef = useRef(true);
   const uploadRef = useRef(null);
   const replaceUploadRef = useRef(null);
 
@@ -32119,6 +32364,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       window.clearTimeout(lectureNoteSaveTimerRef.current);
       if (lectureNoteDirtyRef.current && lectureNoteScopeRef.current) {
         persistLectureNoteSnapshot(lectureNoteScopeRef.current, lectureNoteDraftRef.current, lectureNoteRevisionRef.current, { background: true });
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    examSetWorkDraftRef.current = examSetWorkDraft;
+  }, [examSetWorkDraft]);
+  useEffect(() => {
+    examSetWorkMountedRef.current = true;
+    return () => {
+      examSetWorkMountedRef.current = false;
+      window.clearTimeout(examSetWorkSaveTimerRef.current);
+      if (examSetWorkDirtyRef.current && examSetWorkScopeRef.current) {
+        persistExamSetWorkspaceSnapshot(examSetWorkScopeRef.current, examSetWorkDraftRef.current, examSetWorkRevisionRef.current, { background: true });
       }
     };
   }, []);
@@ -32157,6 +32416,34 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetDeleted: "Eksamenssættet er slettet.",
       examSetLoadError: "Eksamenssættene kunne ikke hentes.",
       examSetActionError: "Handlingen kunne ikke gennemføres.",
+      examSetWork: "Besvarelse",
+      examSetWorkClose: "Skjul besvarelse",
+      examSetWorkTitle: "Arbejd med eksamenssættet",
+      examSetWorkIntro: "Opret opgaver og gem svar, noter og markeringer permanent.",
+      examSetWorkLoading: "Henter besvarelse…",
+      examSetWorkSaving: "Gemmer…",
+      examSetWorkSaved: "Gemt",
+      examSetWorkSetupMissing: "Besvarelsesfunktionen er ikke klargjort. Kør Segment 6.2 SQL-filen i Supabase.",
+      examSetWorkSaveError: "Besvarelsen kunne ikke synkroniseres. Dine ændringer er stadig åbne i denne session.",
+      examSetWorkCount: (answered, total) => `${answered}/${total} besvaret`,
+      examSetWorkMarkedCount: (count) => `${count} markeret`,
+      examSetQuestionAdd: "Tilføj opgave",
+      examSetQuestion: "Opgave",
+      examSetQuestionLabel: "Opgavenr.",
+      examSetQuestionPage: "PDF-side",
+      examSetQuestionAnswer: "Dit svar",
+      examSetQuestionAnswerPlaceholder: "Skriv din besvarelse til opgaven…",
+      examSetQuestionNote: "Note / fejlpunkter",
+      examSetQuestionNotePlaceholder: "Skriv hvad du skal kontrollere, rette eller gennemgå bagefter…",
+      examSetQuestionNotStarted: "Ikke startet",
+      examSetQuestionAnswered: "Besvaret",
+      examSetQuestionReview: "Skal gennemgås",
+      examSetQuestionMark: "Markér",
+      examSetQuestionUnmark: "Fjern markering",
+      examSetQuestionDelete: "Slet opgave",
+      examSetQuestionDeleteConfirm: "Slet denne opgave og dens gemte svar/noter?",
+      examSetQuestionEmptyTitle: "Ingen opgaver endnu",
+      examSetQuestionEmptyText: "Tilføj opgaver, efterhånden som du arbejder dig gennem PDF'en. Opgavenummeret kan fx være 1, 1a eller 12.",
       upload: "Tilføj PDF",
       replace: "Udskift PDF",
       noPdf: "Der er endnu ikke knyttet en PDF til dette element.",
@@ -32386,6 +32673,34 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetDeleted: "The exam set was deleted.",
       examSetLoadError: "The exam sets could not be loaded.",
       examSetActionError: "The action could not be completed.",
+      examSetWork: "Answers",
+      examSetWorkClose: "Hide answers",
+      examSetWorkTitle: "Work through the exam set",
+      examSetWorkIntro: "Create questions and save answers, notes and flags permanently.",
+      examSetWorkLoading: "Loading answers…",
+      examSetWorkSaving: "Saving…",
+      examSetWorkSaved: "Saved",
+      examSetWorkSetupMissing: "The answer workspace is not configured. Run the Segment 6.2 SQL file in Supabase.",
+      examSetWorkSaveError: "The answers could not be synced. Your changes remain open in this session.",
+      examSetWorkCount: (answered, total) => `${answered}/${total} answered`,
+      examSetWorkMarkedCount: (count) => `${count} flagged`,
+      examSetQuestionAdd: "Add question",
+      examSetQuestion: "Question",
+      examSetQuestionLabel: "Question no.",
+      examSetQuestionPage: "PDF page",
+      examSetQuestionAnswer: "Your answer",
+      examSetQuestionAnswerPlaceholder: "Write your answer to the question…",
+      examSetQuestionNote: "Note / error points",
+      examSetQuestionNotePlaceholder: "Write what you need to check, correct or review afterwards…",
+      examSetQuestionNotStarted: "Not started",
+      examSetQuestionAnswered: "Answered",
+      examSetQuestionReview: "Needs review",
+      examSetQuestionMark: "Flag",
+      examSetQuestionUnmark: "Remove flag",
+      examSetQuestionDelete: "Delete question",
+      examSetQuestionDeleteConfirm: "Delete this question and its saved answer/notes?",
+      examSetQuestionEmptyTitle: "No questions yet",
+      examSetQuestionEmptyText: "Add questions as you work through the PDF. The label can be 1, 1a or 12, for example.",
       upload: "Add PDF",
       replace: "Replace PDF",
       noPdf: "No PDF is linked to this item yet.",
@@ -32615,6 +32930,34 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetDeleted: "تم حذف نموذج الامتحان.",
       examSetLoadError: "تعذر تحميل نماذج الامتحان.",
       examSetActionError: "تعذر تنفيذ الإجراء.",
+      examSetWork: "الإجابات",
+      examSetWorkClose: "إخفاء الإجابات",
+      examSetWorkTitle: "العمل على نموذج الامتحان",
+      examSetWorkIntro: "أنشئ أسئلة واحفظ إجاباتك وملاحظاتك وعلاماتك بشكل دائم.",
+      examSetWorkLoading: "جارٍ تحميل الإجابات…",
+      examSetWorkSaving: "جارٍ الحفظ…",
+      examSetWorkSaved: "تم الحفظ",
+      examSetWorkSetupMissing: "مساحة الإجابات غير مهيأة. شغّل ملف SQL الخاص بالمقطع 6.2 في Supabase.",
+      examSetWorkSaveError: "تعذر مزامنة الإجابات. تظل تغييراتك مفتوحة في هذه الجلسة.",
+      examSetWorkCount: (answered, total) => `${answered}/${total} تمت الإجابة`,
+      examSetWorkMarkedCount: (count) => `${count} معلّمة`,
+      examSetQuestionAdd: "إضافة سؤال",
+      examSetQuestion: "سؤال",
+      examSetQuestionLabel: "رقم السؤال",
+      examSetQuestionPage: "صفحة PDF",
+      examSetQuestionAnswer: "إجابتك",
+      examSetQuestionAnswerPlaceholder: "اكتب إجابتك على السؤال…",
+      examSetQuestionNote: "ملاحظة / نقاط الخطأ",
+      examSetQuestionNotePlaceholder: "اكتب ما تحتاج إلى التحقق منه أو تصحيحه أو مراجعته لاحقًا…",
+      examSetQuestionNotStarted: "لم يبدأ",
+      examSetQuestionAnswered: "تمت الإجابة",
+      examSetQuestionReview: "يحتاج مراجعة",
+      examSetQuestionMark: "تعليم",
+      examSetQuestionUnmark: "إزالة العلامة",
+      examSetQuestionDelete: "حذف السؤال",
+      examSetQuestionDeleteConfirm: "هل تريد حذف هذا السؤال وإجابته وملاحظاته المحفوظة؟",
+      examSetQuestionEmptyTitle: "لا توجد أسئلة بعد",
+      examSetQuestionEmptyText: "أضف الأسئلة أثناء العمل على ملف PDF. يمكن أن يكون الرقم مثل 1 أو 1a أو 12.",
       upload: "إضافة PDF",
       replace: "استبدال PDF",
       noPdf: "لا يوجد ملف PDF مرتبط بهذا العنصر بعد.",
@@ -32852,6 +33195,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     : selectedExamDocument
       ? { ...selectedExamDocument, url: examSetPreviewUrl }
       : null;
+  const examSetWorkCounts = examSetQuestionCounts(examSetWorkDraft);
+  const activeExamSetQuestion = examSetWorkDraft.questions.find((question) => question.id === examSetWorkDraft.activeQuestionId)
+    || examSetWorkDraft.questions[0]
+    || null;
 
   useEffect(() => {
     if (!isLectureLibrary) return undefined;
@@ -32967,6 +33314,75 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       });
     return () => { cancelled = true; };
   }, [isLectureLibrary, selectedExamDocument?.id, selectedExamDocument?.storagePath]);
+
+  useEffect(() => {
+    window.clearTimeout(examSetWorkSaveTimerRef.current);
+    examSetWorkLoadTokenRef.current += 1;
+    const token = examSetWorkLoadTokenRef.current;
+    examSetWorkDirtyRef.current = false;
+    examSetWorkRevisionRef.current = 0;
+
+    if (isLectureLibrary || !selectedExamDocument?.id || !userId || !moduleName) {
+      examSetWorkScopeRef.current = null;
+      const empty = examSetWorkspaceEmpty();
+      examSetWorkDraftRef.current = empty;
+      setExamSetWorkDraft(empty);
+      setExamSetWorkLoadState("idle");
+      setExamSetWorkSaveState("idle");
+      setExamSetWorkMessage("");
+      return undefined;
+    }
+
+    const scope = { userId, moduleName, documentId: selectedExamDocument.id };
+    examSetWorkScopeRef.current = scope;
+    setExamSetWorkLoadState("loading");
+    setExamSetWorkSaveState("idle");
+    setExamSetWorkMessage("");
+
+    supabase
+      .from("exam_set_workspaces")
+      .select("id,user_id,exam_set_document_id,module_name,questions,active_question_id,started_at,created_at,updated_at")
+      .eq("user_id", userId)
+      .eq("exam_set_document_id", selectedExamDocument.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (token !== examSetWorkLoadTokenRef.current || examSetWorkScopeRef.current?.documentId !== selectedExamDocument.id) return;
+        if (error) {
+          const empty = examSetWorkspaceEmpty();
+          examSetWorkDraftRef.current = empty;
+          setExamSetWorkDraft(empty);
+          setExamSetWorkLoadState("error");
+          setExamSetWorkSaveState("error");
+          setExamSetWorkMessage(error.code === "42P01" ? copy.examSetWorkSetupMissing : copy.examSetWorkSaveError);
+          return;
+        }
+        const next = data ? examSetWorkspaceFromRow(data) : examSetWorkspaceEmpty();
+        examSetWorkDraftRef.current = next;
+        setExamSetWorkDraft(next);
+        setExamSetWorkLoadState("ready");
+        setExamSetWorkSaveState(data ? "saved" : "idle");
+        setExamSetWorkMessage("");
+      });
+
+    return () => {
+      window.clearTimeout(examSetWorkSaveTimerRef.current);
+      if (examSetWorkDirtyRef.current && examSetWorkScopeRef.current?.documentId === selectedExamDocument.id) {
+        persistExamSetWorkspaceSnapshot(examSetWorkScopeRef.current, examSetWorkDraftRef.current, examSetWorkRevisionRef.current, { background: true });
+      }
+    };
+  }, [isLectureLibrary, selectedExamDocument?.id, userId, moduleName]);
+
+  useEffect(() => {
+    if (isLectureLibrary || !examSetWorkDirtyRef.current || examSetWorkLoadState !== "ready" || !examSetWorkScopeRef.current) return undefined;
+    const scope = examSetWorkScopeRef.current;
+    const snapshot = examSetWorkDraft;
+    const revision = examSetWorkRevisionRef.current;
+    window.clearTimeout(examSetWorkSaveTimerRef.current);
+    examSetWorkSaveTimerRef.current = window.setTimeout(() => {
+      persistExamSetWorkspaceSnapshot(scope, snapshot, revision);
+    }, 700);
+    return () => window.clearTimeout(examSetWorkSaveTimerRef.current);
+  }, [examSetWorkDraft, examSetWorkLoadState, isLectureLibrary]);
 
   const normalizedQuery = query.trim().toLowerCase();
   function examSetTypeLabel(type) {
@@ -34132,6 +34548,112 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  async function persistExamSetWorkspaceSnapshot(scope, draft, revision, options = {}) {
+    if (!scope?.userId || !scope?.moduleName || !scope?.documentId) return false;
+    const normalized = examSetWorkspaceNormalize(draft);
+    const isCurrentAtStart = examSetWorkScopeRef.current?.documentId === scope.documentId;
+    if (!options.background && isCurrentAtStart && examSetWorkMountedRef.current) {
+      setExamSetWorkSaveState("saving");
+      setExamSetWorkMessage("");
+    }
+    try {
+      const { data, error } = await supabase
+        .from("exam_set_workspaces")
+        .upsert({
+          user_id: scope.userId,
+          exam_set_document_id: scope.documentId,
+          module_name: scope.moduleName,
+          questions: normalized.questions,
+          active_question_id: normalized.activeQuestionId,
+          started_at: normalized.startedAt || null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id,exam_set_document_id" })
+        .select("updated_at")
+        .single();
+      if (error) throw error;
+      const isCurrentNow = examSetWorkScopeRef.current?.documentId === scope.documentId;
+      if (examSetWorkMountedRef.current && isCurrentNow) {
+        if (revision === examSetWorkRevisionRef.current) examSetWorkDirtyRef.current = false;
+        setExamSetWorkSaveState("saved");
+        setExamSetWorkMessage("");
+        if (data?.updated_at && revision === examSetWorkRevisionRef.current) {
+          setExamSetWorkDraft((current) => ({ ...current, updatedAt: data.updated_at }));
+        }
+      }
+      return true;
+    } catch (error) {
+      const isCurrentNow = examSetWorkScopeRef.current?.documentId === scope.documentId;
+      if (examSetWorkMountedRef.current && isCurrentNow) {
+        setExamSetWorkSaveState("error");
+        setExamSetWorkMessage(error?.code === "42P01" ? copy.examSetWorkSetupMissing : copy.examSetWorkSaveError);
+      }
+      return false;
+    }
+  }
+
+  function updateExamSetWorkDraft(updater) {
+    const base = examSetWorkspaceNormalize(examSetWorkDraftRef.current);
+    const candidate = typeof updater === "function" ? updater(base) : updater;
+    const next = examSetWorkspaceNormalize(candidate);
+    if (!next.startedAt && next.questions.length) next.startedAt = new Date().toISOString();
+    next.updatedAt = new Date().toISOString();
+    examSetWorkDraftRef.current = next;
+    examSetWorkDirtyRef.current = true;
+    examSetWorkRevisionRef.current += 1;
+    setExamSetWorkSaveState("saving");
+    setExamSetWorkMessage("");
+    setExamSetWorkDraft(next);
+  }
+
+  function addExamSetQuestion() {
+    const question = examSetQuestionNormalize({ label: examSetNextQuestionLabel(examSetWorkDraftRef.current.questions) }, examSetWorkDraftRef.current.questions.length);
+    updateExamSetWorkDraft((current) => ({
+      ...current,
+      questions: [...current.questions, question],
+      activeQuestionId: question.id,
+    }));
+  }
+
+  function selectExamSetQuestion(questionId) {
+    if (!examSetWorkDraftRef.current.questions.some((question) => question.id === questionId)) return;
+    updateExamSetWorkDraft((current) => ({ ...current, activeQuestionId: questionId }));
+  }
+
+  function updateExamSetQuestion(questionId, patch) {
+    updateExamSetWorkDraft((current) => ({
+      ...current,
+      questions: current.questions.map((question) => question.id === questionId
+        ? examSetQuestionNormalize({ ...question, ...patch, updatedAt: Date.now() })
+        : question),
+    }));
+  }
+
+  function updateExamSetQuestionAnswer(questionId, answer) {
+    const current = examSetWorkDraftRef.current.questions.find((question) => question.id === questionId);
+    const status = String(answer || "").trim() && current?.status === "not-started" ? "answered" : current?.status;
+    updateExamSetQuestion(questionId, { answer, status: status || "not-started" });
+  }
+
+  function deleteExamSetQuestion(questionId) {
+    if (!window.confirm(copy.examSetQuestionDeleteConfirm)) return;
+    updateExamSetWorkDraft((current) => {
+      const index = current.questions.findIndex((question) => question.id === questionId);
+      const questions = current.questions.filter((question) => question.id !== questionId);
+      const activeQuestionId = current.activeQuestionId === questionId
+        ? (questions[Math.min(Math.max(index, 0), Math.max(questions.length - 1, 0))]?.id || questions[0]?.id || null)
+        : current.activeQuestionId;
+      return { ...current, questions, activeQuestionId };
+    });
+  }
+
+  function examSetQuestionStatusLabel(status) {
+    return ({
+      "not-started": copy.examSetQuestionNotStarted,
+      answered: copy.examSetQuestionAnswered,
+      review: copy.examSetQuestionReview,
+    })[status] || copy.examSetQuestionNotStarted;
+  }
+
   async function refreshExamSetDocuments() {
     if (isLectureLibrary || !userId || !moduleName) return [];
     const { data, error } = await supabase
@@ -34366,7 +34888,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         </div>
       </header>
 
-      <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : ""}`}>
+      <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : (examSetWorkMode && activeDocument ? "document-workspace-grid--exam-work" : "")}`}>
         <aside className="document-library-panel">
           <label className="document-search-box"><Icon name="search" size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} /></label>
           {isLectureLibrary && (
@@ -34662,6 +35184,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
               </div>
             ) : activeDocument && !isLectureLibrary ? (
               <div className="exam-set-viewer-actions">
+                <button type="button" className="exam-set-work-toggle" data-active={examSetWorkMode ? "true" : "false"} onClick={() => setExamSetWorkMode((value) => !value)}><Icon name="cards" size={12} />{examSetWorkMode ? copy.examSetWorkClose : copy.examSetWork}</button>
                 <button type="button" disabled={examSetSaving} onClick={() => editExamSetDocument()}><Icon name="edit" size={12} />{copy.examSetEdit}</button>
                 <button type="button" onClick={() => downloadExamSetDocument()}><Icon name="down" size={12} />{copy.examSetDownload}</button>
                 <button type="button" onClick={() => openExamSetDocument()}><Icon name="expand" size={12} />{copy.examSetOpen}</button>
@@ -34713,6 +35236,85 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
             )}
           </div>
         </main>
+
+        {!isLectureLibrary && activeDocument && examSetWorkMode && (
+          <aside className="exam-set-work-panel" aria-label={copy.examSetWorkTitle}>
+            <div className="exam-set-work-header">
+              <div>
+                <strong>{copy.examSetWorkTitle}</strong>
+                <small>{copy.examSetWorkCount(examSetWorkCounts.answered, examSetWorkCounts.total)} · {copy.examSetWorkMarkedCount(examSetWorkCounts.marked)}</small>
+              </div>
+              <div className="exam-set-work-header-actions">
+                <span className="exam-set-work-save-state" data-state={examSetWorkSaveState}>
+                  <Icon name={examSetWorkSaveState === "saved" ? "check" : examSetWorkSaveState === "error" ? "flag" : "clock"} size={9} />
+                  {examSetWorkSaveState === "saving" ? copy.examSetWorkSaving : examSetWorkSaveState === "saved" ? copy.examSetWorkSaved : examSetWorkLoadState === "loading" ? copy.examSetWorkLoading : ""}
+                </span>
+                <button type="button" className="exam-set-work-close" title={copy.examSetWorkClose} aria-label={copy.examSetWorkClose} onClick={() => setExamSetWorkMode(false)}><Icon name="close" size={13} /></button>
+              </div>
+            </div>
+            {examSetWorkLoadState === "error" && <div className="exam-set-work-message" data-state="error">{examSetWorkMessage || copy.examSetWorkSetupMissing}</div>}
+            {examSetWorkLoadState !== "error" && examSetWorkMessage && <div className="exam-set-work-message">{examSetWorkMessage}</div>}
+            <div className="exam-set-question-strip">
+              <button type="button" className="exam-set-question-add" title={copy.examSetQuestionAdd} disabled={examSetWorkLoadState === "loading"} onClick={addExamSetQuestion}><Icon name="plus" size={11} />{copy.examSetQuestionAdd}</button>
+              {examSetWorkDraft.questions.map((question) => (
+                <button
+                  key={question.id}
+                  type="button"
+                  className="exam-set-question-tab"
+                  data-active={question.id === activeExamSetQuestion?.id ? "true" : "false"}
+                  data-status={question.status}
+                  data-marked={question.marked ? "true" : "false"}
+                  title={`${copy.examSetQuestion} ${question.label} · ${examSetQuestionStatusLabel(question.status)}`}
+                  onClick={() => selectExamSetQuestion(question.id)}
+                >
+                  {question.label || "—"}
+                </button>
+              ))}
+            </div>
+            {examSetWorkLoadState === "loading" ? (
+              <div className="exam-set-question-empty"><span><Icon name="clock" size={18} /></span><strong>{copy.examSetWorkLoading}</strong></div>
+            ) : activeExamSetQuestion ? (
+              <div className="exam-set-question-editor">
+                <div className="exam-set-question-editor-top">
+                  <label className="exam-set-question-field">
+                    <span>{copy.examSetQuestionLabel}</span>
+                    <input value={activeExamSetQuestion.label} onChange={(event) => updateExamSetQuestion(activeExamSetQuestion.id, { label: event.target.value })} />
+                  </label>
+                  <label className="exam-set-question-field">
+                    <span>{copy.examSetQuestionPage}</span>
+                    <input type="number" min="1" inputMode="numeric" value={activeExamSetQuestion.page || ""} onChange={(event) => updateExamSetQuestion(activeExamSetQuestion.id, { page: event.target.value ? Math.max(1, Number(event.target.value) || 1) : null })} />
+                  </label>
+                </div>
+                <div className="exam-set-question-statuses" role="group" aria-label={copy.examSetQuestion}>
+                  {EXAM_SET_QUESTION_STATUSES.map((status) => (
+                    <button key={status} type="button" data-status={status} data-active={activeExamSetQuestion.status === status ? "true" : "false"} onClick={() => updateExamSetQuestion(activeExamSetQuestion.id, { status })}>{examSetQuestionStatusLabel(status)}</button>
+                  ))}
+                </div>
+                <label className="exam-set-question-field">
+                  <span>{copy.examSetQuestionAnswer}</span>
+                  <textarea value={activeExamSetQuestion.answer} placeholder={copy.examSetQuestionAnswerPlaceholder} onChange={(event) => updateExamSetQuestionAnswer(activeExamSetQuestion.id, event.target.value)} />
+                </label>
+                <label className="exam-set-question-field">
+                  <span>{copy.examSetQuestionNote}</span>
+                  <textarea data-kind="note" value={activeExamSetQuestion.note} placeholder={copy.examSetQuestionNotePlaceholder} onChange={(event) => updateExamSetQuestion(activeExamSetQuestion.id, { note: event.target.value })} />
+                </label>
+                <div className="exam-set-question-editor-actions">
+                  <div>
+                    <button type="button" data-active={activeExamSetQuestion.marked ? "true" : "false"} onClick={() => updateExamSetQuestion(activeExamSetQuestion.id, { marked: !activeExamSetQuestion.marked })}><Icon name="flag" size={11} />{activeExamSetQuestion.marked ? copy.examSetQuestionUnmark : copy.examSetQuestionMark}</button>
+                  </div>
+                  <button type="button" className="exam-set-question-delete" onClick={() => deleteExamSetQuestion(activeExamSetQuestion.id)}><Icon name="trash" size={11} />{copy.examSetQuestionDelete}</button>
+                </div>
+              </div>
+            ) : (
+              <div className="exam-set-question-empty">
+                <span><Icon name="cards" size={18} /></span>
+                <strong>{copy.examSetQuestionEmptyTitle}</strong>
+                <p>{copy.examSetQuestionEmptyText}</p>
+                <button type="button" className="ui-button ui-button--primary" onClick={addExamSetQuestion}><Icon name="plus" size={12} />{copy.examSetQuestionAdd}</button>
+              </div>
+            )}
+          </aside>
+        )}
 
         {isLectureLibrary && (
           <aside className="lecture-notes-panel">
