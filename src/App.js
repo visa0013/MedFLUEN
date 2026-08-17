@@ -12570,6 +12570,101 @@ select.ui-control {
 .lecture-material-status[data-state="error"] { background: var(--ui-red-soft); color: var(--ui-red); }
 .lecture-material-status[data-state="success"] { background: var(--ui-green-soft); color: var(--ui-green); }
 .lecture-material-image-preview { width: 100%; height: 100%; display: block; object-fit: contain; border-radius: 6px; background: #fff; box-shadow: 0 6px 20px rgba(20,35,60,.10); }
+
+
+/* ============================================================
+   SEGMENT 5.5 — ADVANCED DOCUMENT VIEWER
+   ============================================================ */
+.lecture-pdf-viewer {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 7px;
+  background: #dfe4eb;
+  box-shadow: 0 6px 20px rgba(20,35,60,.10);
+  outline: none;
+}
+.lecture-pdf-viewer:focus-visible { box-shadow: 0 0 0 3px var(--ui-ring), 0 6px 20px rgba(20,35,60,.10); }
+.lecture-pdf-toolbar {
+  min-height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-bottom: 1px solid color-mix(in srgb,var(--ui-border) 78%,transparent);
+  background: color-mix(in srgb,var(--ui-panel) 96%,transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.lecture-pdf-toolbar-group { display: inline-flex; align-items: center; gap: 3px; }
+.lecture-pdf-toolbar button {
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ui-secondary);
+  font-size: 11px;
+  font-weight: 820;
+}
+.lecture-pdf-toolbar button:hover:not(:disabled) { border-color: var(--ui-border); background: var(--ui-soft); color: var(--ui-text); }
+.lecture-pdf-toolbar button:disabled { opacity: .35; cursor: not-allowed; }
+.lecture-pdf-toolbar button[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-pdf-toolbar-divider { width: 1px; height: 20px; background: var(--ui-border); }
+.lecture-pdf-page-control { height: 28px; display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); }
+.lecture-pdf-page-control input { width: 34px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--ui-text); font-size: 9px; font-weight: 820; text-align: center; appearance: textfield; -moz-appearance: textfield; }
+.lecture-pdf-page-control input::-webkit-outer-spin-button,
+.lecture-pdf-page-control input::-webkit-inner-spin-button { margin: 0; -webkit-appearance: none; }
+.lecture-pdf-page-control span,
+.lecture-pdf-zoom-value { color: var(--ui-muted); font-size: 8px; font-weight: 760; font-variant-numeric: tabular-nums; }
+.lecture-pdf-zoom-value { min-width: 38px; text-align: center; }
+.lecture-pdf-fit-button span { font-size: 8px; }
+.lecture-pdf-surface {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(255,255,255,.30), transparent 42%),
+    #dfe4eb;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.lecture-pdf-page-stage { position: relative; width: max-content; min-width: 100%; min-height: 100%; display: flex; align-items: flex-start; justify-content: center; }
+.lecture-pdf-page-stage canvas { display: block; max-width: none; background: #fff; box-shadow: 0 8px 28px rgba(20,35,60,.18); }
+.lecture-pdf-page-stage[data-rendering="true"] canvas { opacity: .82; }
+.lecture-pdf-page-loading { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.lecture-pdf-page-error { position: absolute; inset: 12px; display: grid; place-items: center; align-content: center; gap: 7px; border: 1px solid color-mix(in srgb,var(--ui-red) 28%,var(--ui-border)); border-radius: 8px; background: color-mix(in srgb,var(--ui-panel) 94%,transparent); color: var(--ui-red); pointer-events: none; }
+.lecture-pdf-page-error strong { font-size: 9px; font-weight: 820; }
+.lecture-pdf-state { width: 100%; height: 100%; min-height: 220px; display: grid; place-items: center; align-content: center; gap: 9px; color: var(--ui-secondary); text-align: center; }
+.lecture-pdf-state strong { font-size: 10px; font-weight: 800; }
+.lecture-pdf-state--error { color: var(--ui-red); }
+.lecture-pdf-spinner { width: 18px; height: 18px; display: inline-block; border: 2px solid color-mix(in srgb,var(--ui-blue) 22%,transparent); border-top-color: var(--ui-blue); border-radius: 50%; animation: lecturePdfSpin 700ms linear infinite; }
+@keyframes lecturePdfSpin { to { transform: rotate(360deg); } }
+.lecture-pdf-viewer--fallback { position: relative; }
+.lecture-pdf-viewer--fallback iframe { flex: 1; min-height: 0; border-radius: 0; box-shadow: none; }
+.lecture-pdf-fallback-note { flex-shrink: 0; padding: 6px 9px; border-bottom: 1px solid var(--ui-border); background: var(--ui-soft); color: var(--ui-secondary); font-size: 8px; font-weight: 720; text-align: center; }
+@media (max-width: 760px) {
+  .lecture-pdf-toolbar { justify-content: space-between; gap: 4px; padding-inline: 5px; }
+  .lecture-pdf-toolbar-divider { display: none; }
+  .lecture-pdf-fit-button span { display: none; }
+  .lecture-pdf-surface { padding: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lecture-pdf-spinner { animation-duration: 1.4s; }
+}
 .document-viewer-empty > small { max-width: 360px; color: var(--ui-muted); font-size: 9px; line-height: 1.5; }
 .lecture-material-empty-actions { display: flex; gap: 7px; }
 .lecture-material-count { position: absolute; inset-block-start: -4px; inset-inline-end: -4px; min-width: 14px; height: 14px; display: grid; place-items: center; padding: 0 3px; border: 2px solid var(--ui-panel); border-radius: 99px; background: var(--ui-blue); color: #fff; font-size: 6px; font-weight: 900; }
@@ -30975,6 +31070,291 @@ function lectureMaterialPreviewKind(material) {
   return "external";
 }
 
+
+/* =============================================================================
+   SEGMENT 5.5 — PDF.JS DOCUMENT VIEWER
+   -----------------------------------------------------------------------------
+   A pinned PDF.js runtime is loaded only when a PDF is actually opened. This
+   keeps the existing single-file App.js deployment model and avoids a new npm
+   dependency while replacing the browser iframe with a controlled page viewer.
+   ========================================================================== */
+const LECTURE_PDFJS_VERSION = "4.10.38";
+const LECTURE_PDFJS_MODULE_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${LECTURE_PDFJS_VERSION}/build/pdf.min.mjs`;
+const LECTURE_PDFJS_WORKER_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${LECTURE_PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+let lecturePdfJsPromise = null;
+
+function loadLecturePdfJs() {
+  if (lecturePdfJsPromise) return lecturePdfJsPromise;
+  lecturePdfJsPromise = import(/* webpackIgnore: true */ LECTURE_PDFJS_MODULE_URL)
+    .then((pdfjs) => {
+      pdfjs.GlobalWorkerOptions.workerSrc = LECTURE_PDFJS_WORKER_URL;
+      return pdfjs;
+    })
+    .catch((error) => {
+      lecturePdfJsPromise = null;
+      throw error;
+    });
+  return lecturePdfJsPromise;
+}
+
+function lecturePdfClamp(value, min, max) {
+  return Math.min(max, Math.max(min, Number(value) || min));
+}
+
+function LecturePdfViewer({
+  url,
+  materialId,
+  fileName,
+  savedState = {},
+  onStateChange,
+  copy,
+}) {
+  const canvasRef = useRef(null);
+  const surfaceRef = useRef(null);
+  const pdfRef = useRef(null);
+  const loadingTaskRef = useRef(null);
+  const renderTaskRef = useRef(null);
+  const stateChangeRef = useRef(onStateChange);
+  const scrollSaveTimerRef = useRef(null);
+  const restoreScrollRef = useRef(Number(savedState?.scrollTop) || 0);
+  const [loadState, setLoadState] = useState("loading");
+  const [renderState, setRenderState] = useState("idle");
+  const [pdfRevision, setPdfRevision] = useState(0);
+  const [pageNumber, setPageNumber] = useState(Math.max(1, Number(savedState?.page) || 1));
+  const [pageDraft, setPageDraft] = useState(String(Math.max(1, Number(savedState?.page) || 1)));
+  const [numPages, setNumPages] = useState(0);
+  const [zoomMode, setZoomMode] = useState(savedState?.zoomMode === "custom" ? "custom" : "fit-width");
+  const [customScale, setCustomScale] = useState(lecturePdfClamp(savedState?.scale || 1.25, .5, 3.5));
+  const [effectiveScale, setEffectiveScale] = useState(1);
+  const [surfaceWidth, setSurfaceWidth] = useState(0);
+
+  useEffect(() => {
+    stateChangeRef.current = onStateChange;
+  }, [onStateChange]);
+
+  useEffect(() => {
+    const page = Math.max(1, Number(savedState?.page) || 1);
+    setPageNumber(page);
+    setPageDraft(String(page));
+    setZoomMode(savedState?.zoomMode === "custom" ? "custom" : "fit-width");
+    setCustomScale(lecturePdfClamp(savedState?.scale || 1.25, .5, 3.5));
+    restoreScrollRef.current = Math.max(0, Number(savedState?.scrollTop) || 0);
+  }, [materialId]);
+
+  useEffect(() => {
+    const node = surfaceRef.current;
+    if (!node) return undefined;
+    const measure = () => setSurfaceWidth(Math.round(node.clientWidth || 0));
+    measure();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [materialId, loadState]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadState("loading");
+    setRenderState("idle");
+    setNumPages(0);
+    pdfRef.current = null;
+
+    loadLecturePdfJs()
+      .then((pdfjs) => {
+        if (cancelled) return null;
+        const loadingTask = pdfjs.getDocument({ url });
+        loadingTaskRef.current = loadingTask;
+        return loadingTask.promise;
+      })
+      .then((pdf) => {
+        if (!pdf || cancelled) {
+          pdf?.destroy?.();
+          return;
+        }
+        pdfRef.current = pdf;
+        const total = Math.max(1, Number(pdf.numPages) || 1);
+        const restoredPage = lecturePdfClamp(savedState?.page || pageNumber, 1, total);
+        setNumPages(total);
+        setPageNumber(restoredPage);
+        setPageDraft(String(restoredPage));
+        setLoadState("ready");
+        setPdfRevision((value) => value + 1);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadState("fallback");
+      });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(scrollSaveTimerRef.current);
+      try { renderTaskRef.current?.cancel?.(); } catch {}
+      renderTaskRef.current = null;
+      try { loadingTaskRef.current?.destroy?.(); } catch {}
+      loadingTaskRef.current = null;
+      try { pdfRef.current?.destroy?.(); } catch {}
+      pdfRef.current = null;
+    };
+  }, [url, materialId]);
+
+  useEffect(() => {
+    if (loadState !== "ready" || !pdfRef.current || !canvasRef.current || !surfaceRef.current) return undefined;
+    let cancelled = false;
+    const pdf = pdfRef.current;
+    const canvas = canvasRef.current;
+    const surface = surfaceRef.current;
+
+    async function renderPage() {
+      setRenderState("rendering");
+      try {
+        const page = await pdf.getPage(pageNumber);
+        if (cancelled) return;
+        const baseViewport = page.getViewport({ scale: 1 });
+        const availableWidth = Math.max(240, (surface.clientWidth || surfaceWidth || baseViewport.width) - 34);
+        const fitScale = lecturePdfClamp(availableWidth / Math.max(1, baseViewport.width), .35, 3.5);
+        const scale = zoomMode === "fit-width" ? fitScale : lecturePdfClamp(customScale, .5, 3.5);
+        const viewport = page.getViewport({ scale });
+        const outputScale = Math.min(2.5, Math.max(1, window.devicePixelRatio || 1));
+        const context = canvas.getContext("2d", { alpha: false });
+        if (!context) throw new Error("Canvas unavailable");
+
+        try { renderTaskRef.current?.cancel?.(); } catch {}
+        canvas.width = Math.max(1, Math.floor(viewport.width * outputScale));
+        canvas.height = Math.max(1, Math.floor(viewport.height * outputScale));
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+        const renderTask = page.render({ canvasContext: context, transform, viewport });
+        renderTaskRef.current = renderTask;
+        await renderTask.promise;
+        if (cancelled) return;
+        setEffectiveScale(scale);
+        setRenderState("ready");
+        const restoreTop = restoreScrollRef.current;
+        restoreScrollRef.current = null;
+        if (restoreTop != null) {
+          window.requestAnimationFrame(() => {
+            if (surfaceRef.current) surfaceRef.current.scrollTop = Math.max(0, restoreTop);
+          });
+        }
+      } catch (error) {
+        if (cancelled || error?.name === "RenderingCancelledException") return;
+        setRenderState("error");
+      }
+    }
+
+    renderPage();
+    return () => {
+      cancelled = true;
+      try { renderTaskRef.current?.cancel?.(); } catch {}
+    };
+  }, [loadState, pdfRevision, pageNumber, zoomMode, customScale, surfaceWidth]);
+
+  useEffect(() => {
+    if (!materialId) return;
+    stateChangeRef.current?.({
+      page: pageNumber,
+      zoomMode,
+      scale: customScale,
+    });
+  }, [materialId, pageNumber, zoomMode, customScale]);
+
+  function changePage(nextPage) {
+    if (!numPages) return;
+    const next = lecturePdfClamp(nextPage, 1, numPages);
+    restoreScrollRef.current = 0;
+    setPageNumber(next);
+    setPageDraft(String(next));
+  }
+
+  function commitPageDraft() {
+    const parsed = Number(pageDraft);
+    if (!Number.isFinite(parsed)) {
+      setPageDraft(String(pageNumber));
+      return;
+    }
+    changePage(parsed);
+  }
+
+  function changeZoom(delta) {
+    const base = zoomMode === "fit-width" ? effectiveScale : customScale;
+    setCustomScale(lecturePdfClamp(base + delta, .5, 3.5));
+    setZoomMode("custom");
+  }
+
+  function rememberScroll(event) {
+    const top = Math.max(0, event.currentTarget.scrollTop || 0);
+    window.clearTimeout(scrollSaveTimerRef.current);
+    scrollSaveTimerRef.current = window.setTimeout(() => {
+      stateChangeRef.current?.({ scrollTop: top, page: pageNumber });
+    }, 140);
+  }
+
+  function handleKeys(event) {
+    if (event.target?.matches?.("input,textarea,select")) return;
+    if (event.key === "PageDown" || event.key === "ArrowRight") {
+      event.preventDefault();
+      changePage(pageNumber + 1);
+    } else if (event.key === "PageUp" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      changePage(pageNumber - 1);
+    } else if ((event.ctrlKey || event.metaKey) && (event.key === "+" || event.key === "=")) {
+      event.preventDefault();
+      changeZoom(.15);
+    } else if ((event.ctrlKey || event.metaKey) && event.key === "-") {
+      event.preventDefault();
+      changeZoom(-.15);
+    } else if ((event.ctrlKey || event.metaKey) && event.key === "0") {
+      event.preventDefault();
+      setZoomMode("fit-width");
+    }
+  }
+
+  if (loadState === "fallback") {
+    return (
+      <div className="lecture-pdf-viewer lecture-pdf-viewer--fallback">
+        <div className="lecture-pdf-fallback-note">{copy.pdfViewerFallback}</div>
+        <iframe title={fileName} src={url} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="lecture-pdf-viewer" tabIndex={0} onKeyDown={handleKeys}>
+      <div className="lecture-pdf-toolbar" role="toolbar" aria-label={copy.pdfViewerControls}>
+        <div className="lecture-pdf-toolbar-group">
+          <button type="button" title={copy.pdfPreviousPage} disabled={loadState !== "ready" || pageNumber <= 1} onClick={() => changePage(pageNumber - 1)}><Icon name="left" size={13} /></button>
+          <label className="lecture-pdf-page-control" title={copy.pdfPage}>
+            <input type="number" min="1" max={numPages || 1} value={pageDraft} onChange={(event) => setPageDraft(event.target.value)} onBlur={commitPageDraft} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitPageDraft(); event.currentTarget.blur(); } }} />
+            <span>/ {numPages || "—"}</span>
+          </label>
+          <button type="button" title={copy.pdfNextPage} disabled={loadState !== "ready" || !numPages || pageNumber >= numPages} onClick={() => changePage(pageNumber + 1)}><Icon name="right" size={13} /></button>
+        </div>
+        <span className="lecture-pdf-toolbar-divider" />
+        <div className="lecture-pdf-toolbar-group">
+          <button type="button" title={copy.pdfZoomOut} disabled={loadState !== "ready"} onClick={() => changeZoom(-.15)}>−</button>
+          <span className="lecture-pdf-zoom-value">{Math.round((effectiveScale || 1) * 100)}%</span>
+          <button type="button" title={copy.pdfZoomIn} disabled={loadState !== "ready"} onClick={() => changeZoom(.15)}>+</button>
+          <button type="button" className="lecture-pdf-fit-button" data-active={zoomMode === "fit-width" ? "true" : "false"} title={copy.pdfFitWidth} disabled={loadState !== "ready"} onClick={() => setZoomMode("fit-width")}><Icon name="expand" size={12} /><span>{copy.pdfFitWidth}</span></button>
+        </div>
+      </div>
+      <div ref={surfaceRef} className="lecture-pdf-surface" onScroll={rememberScroll}>
+        {loadState === "loading" ? (
+          <div className="lecture-pdf-state"><span className="lecture-pdf-spinner" /><strong>{copy.pdfLoading}</strong></div>
+        ) : (
+          <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}>
+            <canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />
+            {renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}
+            {renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function WorkspaceShell({ c, label, drByteOpen = false, closing = false, children }) {
   return (
     <section
@@ -31129,6 +31509,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       materialTypeSupplement: "Supplerende materiale",
       materialTypeOther: "Andet",
       materialAdded: "Tilføjet",
+      pdfViewerControls: "PDF-kontroller",
+      pdfLoading: "Indlæser PDF…",
+      pdfRenderError: "PDF-siden kunne ikke vises.",
+      pdfViewerFallback: "Den avancerede PDF-visning kunne ikke indlæses. Browserens PDF-visning bruges i stedet.",
+      pdfPreviousPage: "Forrige side",
+      pdfNextPage: "Næste side",
+      pdfPage: "Side",
+      pdfZoomOut: "Zoom ud",
+      pdfZoomIn: "Zoom ind",
+      pdfFitWidth: "Tilpas bredde",
     },
     en: {
       lectures: "Lectures",
@@ -31237,6 +31627,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       materialTypeSupplement: "Supplementary material",
       materialTypeOther: "Other",
       materialAdded: "Added",
+      pdfViewerControls: "PDF controls",
+      pdfLoading: "Loading PDF…",
+      pdfRenderError: "The PDF page could not be displayed.",
+      pdfViewerFallback: "The advanced PDF viewer could not load. The browser PDF viewer is used instead.",
+      pdfPreviousPage: "Previous page",
+      pdfNextPage: "Next page",
+      pdfPage: "Page",
+      pdfZoomOut: "Zoom out",
+      pdfZoomIn: "Zoom in",
+      pdfFitWidth: "Fit width",
     },
     ar: {
       lectures: "المحاضرات",
@@ -31345,6 +31745,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       materialTypeSupplement: "مادة إضافية",
       materialTypeOther: "أخرى",
       materialAdded: "أضيفت",
+      pdfViewerControls: "عناصر تحكم PDF",
+      pdfLoading: "جارٍ تحميل PDF…",
+      pdfRenderError: "تعذر عرض صفحة PDF.",
+      pdfViewerFallback: "تعذر تحميل عارض PDF المتقدم. سيتم استخدام عارض المتصفح بدلاً منه.",
+      pdfPreviousPage: "الصفحة السابقة",
+      pdfNextPage: "الصفحة التالية",
+      pdfPage: "الصفحة",
+      pdfZoomOut: "تصغير",
+      pdfZoomIn: "تكبير",
+      pdfFitWidth: "ملاءمة العرض",
     },
   })[language] || {};
 
@@ -31738,6 +32148,22 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       lectureMaterialSelection: {
         ...(current.lectureMaterialSelection || {}),
         [materialScopeKey]: materialId,
+      },
+    }));
+  }
+
+
+  function updateLectureViewerState(materialId, patch) {
+    if (!materialId || !patch || typeof patch !== "object") return;
+    setWorkspaceState((current) => ({
+      ...current,
+      documentViewer: {
+        ...(current.documentViewer || {}),
+        [materialId]: {
+          ...(current.documentViewer?.[materialId] || {}),
+          ...patch,
+          updatedAt: Date.now(),
+        },
       },
     }));
   }
@@ -32248,7 +32674,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                 ) : activeDocument?.previewKind === "image" && activeDocument.url ? (
                   <img className="lecture-material-image-preview" src={activeDocument.url} alt={activeDocument.name} />
                 ) : activeDocument?.previewKind === "pdf" && activeDocument.url ? (
-                  <iframe title={activeDocument.name} src={activeDocument.url} />
+                  <LecturePdfViewer
+                    url={activeDocument.url}
+                    materialId={activeLectureMaterial.id}
+                    fileName={activeDocument.name}
+                    savedState={workspaceState.documentViewer?.[activeLectureMaterial.id] || {}}
+                    onStateChange={(patch) => updateLectureViewerState(activeLectureMaterial.id, patch)}
+                    copy={copy}
+                  />
                 ) : (
                   <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialNoPreview}</strong><small>{copy.materialOpenExternally}</small><div className="lecture-material-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => downloadLectureMaterial()}>{copy.materialDownload}</button><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureMaterial()}>{copy.materialOpen}</button></div></div>
                 )
