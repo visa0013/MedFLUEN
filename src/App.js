@@ -12512,6 +12512,132 @@ select.ui-control {
 }
 
 /* ============================================================
+   SEGMENT 5.9 — STÆRKERE SDU-INTEGRATION
+   ============================================================ */
+.lecture-sdu-session-summary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.lecture-sdu-session-summary > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  background: var(--ui-soft);
+  color: var(--ui-secondary);
+  font-size: 8px;
+  font-weight: 800;
+  list-style: none;
+  cursor: pointer;
+}
+.lecture-sdu-session-summary > summary::-webkit-details-marker { display: none; }
+.lecture-sdu-session-summary[open] > summary { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-sdu-session-popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 6px);
+  inset-inline-start: 0;
+  width: min(430px, calc(100vw - 34px));
+  max-height: 280px;
+  overflow-y: auto;
+  display: grid;
+  gap: 5px;
+  padding: 7px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  background: var(--ui-panel);
+  box-shadow: var(--ui-shadow-lg);
+}
+.lecture-sdu-session-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 7px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  background: var(--ui-soft);
+}
+.lecture-sdu-session-row > i { width: 7px; height: 7px; border-radius: 99px; background: var(--ui-blue); }
+.lecture-sdu-session-row[data-held="true"] > i { background: var(--ui-green); }
+.lecture-sdu-session-row > div { min-width: 0; display: grid; gap: 2px; }
+.lecture-sdu-session-row strong { overflow: hidden; color: var(--ui-text); font-size: 8px; font-weight: 830; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-sdu-session-row small { overflow: hidden; color: var(--ui-muted); font-size: 7px; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-sdu-session-row a { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 7px; background: var(--ui-panel); color: var(--ui-blue); }
+.lecture-sdu-match-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ui-blue);
+  font-size: 8px;
+  font-weight: 800;
+}
+.lecture-sdu-match-trigger:hover { background: var(--ui-blue-soft); }
+.lecture-sdu-match-dialog { display: grid; gap: 13px; }
+.lecture-sdu-match-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.lecture-sdu-match-heading > div { min-width: 0; display: grid; gap: 3px; }
+.lecture-sdu-match-heading strong { color: var(--ui-text); font-size: 15px; font-weight: 880; }
+.lecture-sdu-match-heading small { color: var(--ui-muted); font-size: 9px; line-height: 1.4; }
+.lecture-sdu-match-search {
+  width: 100%;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--ui-border);
+  border-radius: 9px;
+  background: var(--ui-soft);
+  color: var(--ui-text);
+  font-size: 10px;
+}
+.lecture-sdu-match-current {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ui-secondary);
+  font-size: 8px;
+  font-weight: 760;
+}
+.lecture-sdu-match-current > span { padding: 3px 6px; border-radius: 99px; background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-sdu-match-list { display: grid; gap: 6px; max-height: 480px; overflow-y: auto; padding-inline-end: 2px; }
+.lecture-sdu-match-row {
+  display: grid;
+  grid-template-columns: 95px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  background: var(--ui-panel);
+}
+.lecture-sdu-match-row[data-selected="true"] { border-color: var(--ui-blue-border); background: color-mix(in srgb, var(--ui-blue-soft) 45%, var(--ui-panel)); }
+.lecture-sdu-match-when { display: grid; gap: 2px; }
+.lecture-sdu-match-when strong { color: var(--ui-text); font-size: 8.5px; }
+.lecture-sdu-match-when small { color: var(--ui-muted); font-size: 7px; }
+.lecture-sdu-match-copy { min-width: 0; display: grid; gap: 2px; }
+.lecture-sdu-match-copy strong { overflow: hidden; color: var(--ui-text); font-size: 9px; font-weight: 820; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-sdu-match-copy small { overflow: hidden; color: var(--ui-muted); font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+.lecture-sdu-match-copy em { color: var(--ui-blue); font-size: 7px; font-style: normal; font-weight: 780; }
+.lecture-sdu-match-actions { display: flex; align-items: center; gap: 4px; }
+.lecture-sdu-match-actions button { height: 28px; padding: 0 7px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 7.5px; font-weight: 800; }
+.lecture-sdu-match-actions button[data-primary="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-sdu-match-actions button[data-danger="true"] { color: var(--ui-red); }
+.lecture-sdu-match-empty { padding: 24px 12px; border: 1px dashed var(--ui-border); border-radius: 10px; color: var(--ui-muted); font-size: 9px; text-align: center; }
+.lecture-sdu-match-footer { display: flex; justify-content: flex-end; padding-top: 2px; }
+@media (max-width: 760px) {
+  .lecture-sdu-match-row { grid-template-columns: 1fr; gap: 6px; }
+  .lecture-sdu-match-actions { justify-content: flex-start; }
+  .lecture-sdu-session-popover { inset-inline-start: -45px; }
+}
+
+/* ============================================================
    SEGMENT 5.4 — PERMANENT MATERIALEBIBLIOTEK
    ============================================================ */
 .lecture-material-strip {
@@ -15221,6 +15347,7 @@ function calendarEventMetaFields(event) {
     "sourceId", "activityType", "term", "uvaCode", "importBatchId", "importFeedId", "importedAt", "lastSyncedAt",
     "originalTitle", "timeZone", "cancelled", "cancelledAt", "teacher", "exdates", "importSourceLabel", "testEvent", "phase", "phaseLabel",
     "questionIds", "earliestDue", "fsrsVersion", "loadMinutes", "examSetIndex",
+    "manualLectureIds", "manualLectureMatchUpdatedAt",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -15279,16 +15406,28 @@ function calendarReturnLectureToQueue(event, todayKeyString) {
   };
 }
 
-function calendarLectureIds(event) {
-  if (Array.isArray(event?.lectureIds) && event.lectureIds.length) return event.lectureIds;
+function calendarAutomaticLectureIds(event) {
+  if (Array.isArray(event?.lectureIds) && event.lectureIds.length) return event.lectureIds.filter(Boolean);
   return event?.lectureId ? [event.lectureId] : [];
+}
+
+function calendarLectureIds(event) {
+  if (event && Object.prototype.hasOwnProperty.call(event, "manualLectureIds")) {
+    return Array.isArray(event.manualLectureIds) ? event.manualLectureIds.filter(Boolean) : [];
+  }
+  return calendarAutomaticLectureIds(event);
+}
+
+function calendarIsSduScheduleEvent(event, moduleName = null) {
+  if (!event) return false;
+  if (moduleName && event.planModuleId !== moduleName) return false;
+  return event.importedSchedule === "sdu" || event.source === "sdu-schedule" || event.source === "sdu";
 }
 
 function calendarLectureScheduleStatus(moduleName, lectureId, events, nowMs = Date.now()) {
   const scheduleEvents = (events || [])
     .filter((event) =>
-      event?.planModuleId === moduleName &&
-      (event.importedSchedule === "sdu" || event.source === "sdu-schedule" || event.source === "sdu") &&
+      calendarIsSduScheduleEvent(event, moduleName) &&
       calendarLectureIds(event).includes(lectureId)
     )
     .sort((a, b) => `${a.date || ""} ${a.time || ""}`.localeCompare(`${b.date || ""} ${b.time || ""}`));
@@ -31790,6 +31929,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [followUpEditorOpen, setFollowUpEditorOpen] = useState(false);
   const [followUpDraft, setFollowUpDraft] = useState({ reasons: [], comment: "" });
   const [followUpMessage, setFollowUpMessage] = useState("");
+  const [sduMatchDialogOpen, setSduMatchDialogOpen] = useState(false);
+  const [sduMatchQuery, setSduMatchQuery] = useState("");
   const [lectureMaterials, setLectureMaterials] = useState([]);
   const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
   const [materialPreviewUrl, setMaterialPreviewUrl] = useState("");
@@ -31946,6 +32087,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       openLectureLink: "Åbn undervisningslink",
       scheduleLocation: "Sted",
       lectureHeader: "Valgt forelæsning",
+      sduSessions: (count) => count === 1 ? "1 undervisningsgang" : `${count} undervisningsgange`,
+      sduMatchEdit: "Ret SDU-match",
+      sduMatchTitle: "Tilknyt SDU-undervisning",
+      sduMatchIntro: "Korrigér kun matchningen mellem skemaaktiviteten og forelæsningen. Noter, materialer og din progression påvirkes ikke.",
+      sduMatchSearch: "Søg i SDU-aktiviteter…",
+      sduMatchCurrent: "Tilknyttet denne forelæsning",
+      sduMatchAttach: "Tilknyt",
+      sduMatchRemove: "Fjern",
+      sduMatchAutomatic: "Brug automatisk match",
+      sduMatchManual: "Manuelt match",
+      sduMatchOtherLecture: "Matchet til",
+      sduMatchNone: "Ingen forelæsning",
+      sduMatchEmpty: "Ingen SDU-aktiviteter matcher søgningen.",
+      sduMatchClose: "Færdig",
       addMaterial: "Tilføj materiale",
       materialLibrary: "Materialer",
       materialLibraryEmpty: "Der er endnu ikke tilføjet materiale til denne forelæsning.",
@@ -32129,6 +32284,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       openLectureLink: "Open teaching link",
       scheduleLocation: "Location",
       lectureHeader: "Selected lecture",
+      sduSessions: (count) => count === 1 ? "1 teaching session" : `${count} teaching sessions`,
+      sduMatchEdit: "Fix SDU match",
+      sduMatchTitle: "Link SDU teaching",
+      sduMatchIntro: "Correct only the link between the timetable event and this lecture. Notes, materials and progress are not changed.",
+      sduMatchSearch: "Search SDU events…",
+      sduMatchCurrent: "Linked to this lecture",
+      sduMatchAttach: "Link",
+      sduMatchRemove: "Remove",
+      sduMatchAutomatic: "Use automatic match",
+      sduMatchManual: "Manual match",
+      sduMatchOtherLecture: "Matched to",
+      sduMatchNone: "No lecture",
+      sduMatchEmpty: "No SDU events match the search.",
+      sduMatchClose: "Done",
       addMaterial: "Add material",
       materialLibrary: "Materials",
       materialLibraryEmpty: "No material has been added to this lecture yet.",
@@ -32312,6 +32481,20 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       openLectureLink: "فتح رابط المحاضرة",
       scheduleLocation: "المكان",
       lectureHeader: "المحاضرة المختارة",
+      sduSessions: (count) => count === 1 ? "جلسة تدريس واحدة" : `${count} جلسات تدريس`,
+      sduMatchEdit: "تصحيح مطابقة SDU",
+      sduMatchTitle: "ربط تدريس SDU",
+      sduMatchIntro: "صحّح فقط الربط بين حدث الجدول والمحاضرة. لن تتغير الملاحظات أو المواد أو تقدمك.",
+      sduMatchSearch: "البحث في أحداث SDU…",
+      sduMatchCurrent: "مرتبط بهذه المحاضرة",
+      sduMatchAttach: "ربط",
+      sduMatchRemove: "إزالة",
+      sduMatchAutomatic: "استخدام المطابقة التلقائية",
+      sduMatchManual: "مطابقة يدوية",
+      sduMatchOtherLecture: "مطابق لـ",
+      sduMatchNone: "بدون محاضرة",
+      sduMatchEmpty: "لا توجد أحداث SDU مطابقة للبحث.",
+      sduMatchClose: "تم",
       addMaterial: "إضافة مادة",
       materialLibrary: "المواد",
       materialLibraryEmpty: "لم تتم إضافة مواد لهذه المحاضرة بعد.",
@@ -32650,7 +32833,13 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const nextLecture = selectedLectureIndex >= 0 && selectedLectureIndex < lectures.length - 1
     ? lectures[selectedLectureIndex + 1]
     : null;
-  const selectedScheduleEvent = selectedLectureRow?.schedule?.firstEvent || null;
+  const moduleSduEvents = isLectureLibrary
+    ? mergedLectureCalendarEvents
+        .filter((event) => calendarIsSduScheduleEvent(event, moduleName))
+        .sort((a, b) => `${a.date || ""} ${a.time || ""} ${a.title || ""}`.localeCompare(`${b.date || ""} ${b.time || ""} ${b.title || ""}`))
+    : [];
+  const selectedScheduleEvents = selectedLectureRow?.schedule?.events || [];
+  const selectedScheduleEvent = selectedScheduleEvents[0] || null;
   const lectureHeaderLocale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
   const selectedScheduleDate = selectedScheduleEvent?.date
     ? new Date(`${selectedScheduleEvent.date}T12:00:00`).toLocaleDateString(lectureHeaderLocale, { weekday: "short", day: "numeric", month: "short" })
@@ -32658,6 +32847,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const selectedScheduleTime = selectedScheduleEvent?.time
     ? `${selectedScheduleEvent.time}${selectedScheduleEvent.endTime ? `–${selectedScheduleEvent.endTime}` : ""}`
     : "";
+  const normalizedSduMatchQuery = String(sduMatchQuery || "").trim().toLowerCase();
+  const sduMatchCandidates = moduleSduEvents.filter((event) => {
+    if (!normalizedSduMatchQuery) return true;
+    const effectiveIds = calendarLectureIds(event);
+    const automaticIds = calendarAutomaticLectureIds(event);
+    const haystack = [event.title, event.date, event.time, event.endTime, event.location, event.teacher, event.uvaCode, ...effectiveIds, ...automaticIds].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(normalizedSduMatchQuery);
+  });
 
   const ownSharedNote = sharedLectureNotes.find((note) => note.ownerUserId === userId) || null;
   const selectedSharedNote = sharedLectureNotes.find((note) => note.id === selectedSharedNoteId) || sharedLectureNotes[0] || null;
@@ -32744,7 +32941,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     const timeLabel = first?.time
       ? `${first.time}${first.endTime ? `–${first.endTime}` : ""}`
       : "";
-    const detail = [dateLabel, timeLabel].filter(Boolean).join(" · ");
+    const sessionCount = Array.isArray(schedule?.events) ? schedule.events.length : 0;
+    const detail = [dateLabel, timeLabel, sessionCount > 1 ? `+${sessionCount - 1}` : ""].filter(Boolean).join(" · ");
     if (schedule?.held) return { key: "held", label: copy.scheduleHeld, detail, icon: "check" };
     if (schedule?.started) return { key: "partial", label: copy.schedulePartial, detail, icon: "clock" };
     if (first) return { key: "upcoming", label: copy.scheduleUpcoming, detail, icon: "calendar" };
@@ -32857,6 +33055,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }
 
   function selectLecture(lecture) {
+    setSduMatchDialogOpen(false);
     if (!lecture) return;
     flushCurrentLectureNote();
     setFollowUpEditorOpen(false);
@@ -33002,7 +33201,60 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }
 
   function selectAdjacentLecture(lecture) {
+    setSduMatchDialogOpen(false);
     selectLecture(lecture);
+  }
+
+  function setSduEventManualLectureMatch(eventId, lectureIds) {
+    if (!eventId) return;
+    const nextIds = Array.isArray(lectureIds) ? [...new Set(lectureIds.filter(Boolean))] : [];
+    setCalendarEventMeta((current) => ({
+      ...current,
+      [eventId]: {
+        ...(current[eventId] || {}),
+        manualLectureIds: nextIds,
+        manualLectureMatchUpdatedAt: Date.now(),
+      },
+    }));
+  }
+
+  function clearSduEventManualLectureMatch(eventId) {
+    if (!eventId) return;
+    setCalendarEventMeta((current) => {
+      if (!current[eventId]) return current;
+      const metadata = { ...current[eventId] };
+      delete metadata.manualLectureIds;
+      delete metadata.manualLectureMatchUpdatedAt;
+      return { ...current, [eventId]: metadata };
+    });
+  }
+
+  function openSduMatchDialog() {
+    setSduMatchQuery("");
+    setSduMatchDialogOpen(true);
+  }
+
+  function formatSduSessionDate(event) {
+    if (!event?.date) return "";
+    return new Date(`${event.date}T12:00:00`).toLocaleDateString(lectureHeaderLocale, { weekday: "short", day: "numeric", month: "short" });
+  }
+
+  function formatSduSessionTime(event) {
+    if (!event?.time) return "";
+    return `${event.time}${event.endTime ? `–${event.endTime}` : ""}`;
+  }
+
+  function sduEventIsHeld(event) {
+    return event?.deliveryStatus === "held" || Number(calendarEventEndTimestamp(event)) <= Date.now();
+  }
+
+  function sduEventMatchLabel(event) {
+    const ids = calendarLectureIds(event);
+    if (!ids.length) return copy.sduMatchNone;
+    return ids.map((id) => {
+      const lecture = lectures.find((item) => item.id === id);
+      return lecture ? `${lecture.id} · ${lecture.title}` : id;
+    }).join(", ");
   }
 
   function followUpReasonDefinitions() {
@@ -33732,6 +33984,24 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                   {selectedScheduleEvent?.url && (
                     <a href={selectedScheduleEvent.url} target="_blank" rel="noreferrer"><Icon name="expand" size={10} />{copy.openLectureLink}</a>
                   )}
+                  {selectedScheduleEvents.length > 1 && (
+                    <details className="lecture-sdu-session-summary">
+                      <summary><Icon name="calendar" size={9} />{copy.sduSessions(selectedScheduleEvents.length)}</summary>
+                      <div className="lecture-sdu-session-popover">
+                        {selectedScheduleEvents.map((session, index) => (
+                          <div key={session.id || `${session.date}-${session.time}-${index}`} className="lecture-sdu-session-row" data-held={sduEventIsHeld(session) ? "true" : "false"}>
+                            <i />
+                            <div>
+                              <strong>{[formatSduSessionDate(session), formatSduSessionTime(session)].filter(Boolean).join(" · ") || copy.scheduleUnscheduled}</strong>
+                              <small>{[session.location, session.title].filter(Boolean).join(" · ")}</small>
+                            </div>
+                            {session.url ? <a href={session.url} target="_blank" rel="noreferrer" title={copy.openLectureLink}><Icon name="expand" size={10} /></a> : <span />}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                  <button type="button" className="lecture-sdu-match-trigger" onClick={openSduMatchDialog}><Icon name="edit" size={9} />{copy.sduMatchEdit}</button>
                 </div>
               </div>
             </div>
@@ -34004,6 +34274,50 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           </aside>
         )}
       </div>
+
+      {sduMatchDialogOpen && selectedLecture && (
+        <Modal c={c} size="large" onClose={() => setSduMatchDialogOpen(false)}>
+          <div className="lecture-sdu-match-dialog">
+            <div className="lecture-sdu-match-heading">
+              <div>
+                <strong>{copy.sduMatchTitle}</strong>
+                <small>{selectedLecture.id} · {selectedLecture.title}<br />{copy.sduMatchIntro}</small>
+              </div>
+              <button type="button" className="lecture-detail-nav-button" title={copy.sduMatchClose} aria-label={copy.sduMatchClose} onClick={() => setSduMatchDialogOpen(false)}><Icon name="close" size={14} /></button>
+            </div>
+            <input className="lecture-sdu-match-search" value={sduMatchQuery} onChange={(event) => setSduMatchQuery(event.target.value)} placeholder={copy.sduMatchSearch} autoFocus />
+            <div className="lecture-sdu-match-current">{copy.sduMatchCurrent}<span>{selectedScheduleEvents.length}</span></div>
+            <div className="lecture-sdu-match-list">
+              {sduMatchCandidates.length ? sduMatchCandidates.map((event) => {
+                const effectiveIds = calendarLectureIds(event);
+                const automaticIds = calendarAutomaticLectureIds(event);
+                const matchedHere = effectiveIds.includes(selectedLecture.id);
+                const hasManualOverride = Object.prototype.hasOwnProperty.call(event, "manualLectureIds");
+                const automaticHere = automaticIds.includes(selectedLecture.id);
+                return (
+                  <div key={event.id} className="lecture-sdu-match-row" data-selected={matchedHere ? "true" : "false"}>
+                    <div className="lecture-sdu-match-when"><strong>{formatSduSessionDate(event) || event.date || "—"}</strong><small>{formatSduSessionTime(event) || "—"}</small></div>
+                    <div className="lecture-sdu-match-copy">
+                      <strong>{event.title || "SDU"}</strong>
+                      <small>{[event.location, event.teacher].filter(Boolean).join(" · ") || sduEventMatchLabel(event)}</small>
+                      <em>{hasManualOverride ? `${copy.sduMatchManual} · ${sduEventMatchLabel(event)}` : `${copy.sduMatchOtherLecture}: ${sduEventMatchLabel(event)}`}</em>
+                    </div>
+                    <div className="lecture-sdu-match-actions">
+                      {matchedHere ? (
+                        <button type="button" data-danger="true" onClick={() => setSduEventManualLectureMatch(event.id, [])}>{copy.sduMatchRemove}</button>
+                      ) : (
+                        <button type="button" data-primary="true" onClick={() => setSduEventManualLectureMatch(event.id, [selectedLecture.id])}>{copy.sduMatchAttach}</button>
+                      )}
+                      {hasManualOverride && <button type="button" title={automaticHere ? copy.sduMatchCurrent : (automaticIds.length ? automaticIds.join(", ") : copy.sduMatchNone)} onClick={() => clearSduEventManualLectureMatch(event.id)}>{copy.sduMatchAutomatic}</button>}
+                    </div>
+                  </div>
+                );
+              }) : <div className="lecture-sdu-match-empty">{copy.sduMatchEmpty}</div>}
+            </div>
+            <div className="lecture-sdu-match-footer"><button type="button" className="ui-button ui-button--primary" onClick={() => setSduMatchDialogOpen(false)}>{copy.sduMatchClose}</button></div>
+          </div>
+        </Modal>
+      )}
 
       {materialDialog && (
         <Modal c={c} onClose={() => !materialSaving && setMaterialDialog(null)}>
