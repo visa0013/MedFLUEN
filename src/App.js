@@ -11099,22 +11099,15 @@ select.ui-control {
 }
 
 /* ============================================================
-   SEGMENT 6.2 REBUILT — FÆLLES PDF-BIBLIOTEK + PDF-BASERET EKSAMENSVIEWER
-   Den gamle manuelle 6.2/6.3-opgavemodel er erstattet.
+   SEGMENT 6.2 FINAL — PAIRED PDF EXAM VIEWER
    ============================================================ */
-.exam-set-library-row .document-library-code {
-  color: #7667d8;
-  background: color-mix(in srgb,#7667d8 8%,var(--ui-panel));
-  border-color: color-mix(in srgb,#7667d8 18%,var(--ui-border));
-}
-.exam-set-library-row[data-active="true"] .document-library-code {
-  background: color-mix(in srgb,#7667d8 14%,var(--ui-panel));
-  border-color: color-mix(in srgb,#7667d8 34%,var(--ui-border));
-}
+.exam-set-library-row .document-library-code { color: #7667d8; background: color-mix(in srgb,#7667d8 8%,var(--ui-panel)); border-color: color-mix(in srgb,#7667d8 18%,var(--ui-border)); }
+.exam-set-library-row[data-active="true"] .document-library-code { background: color-mix(in srgb,#7667d8 14%,var(--ui-panel)); border-color: color-mix(in srgb,#7667d8 34%,var(--ui-border)); }
 .exam-set-library-meta { display: flex !important; align-items: center; gap: 5px; }
 .exam-set-library-meta > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .exam-set-library-meta > i { width: 3px; height: 3px; flex-shrink: 0; border-radius: 99px; background: var(--ui-border-strong); }
 .exam-set-shared-badge { display: inline-flex !important; align-items: center; gap: 3px; color: var(--ui-blue) !important; }
+.exam-set-answer-source-badge { display: inline-flex !important; align-items: center; gap: 3px; color: var(--ui-green) !important; }
 .exam-set-viewer-actions { min-width: 0; display: flex; align-items: center; gap: 2px; overflow-x: auto; }
 .exam-set-viewer-actions button { white-space: nowrap; }
 .exam-set-viewer-actions .exam-set-delete { color: var(--ui-red); }
@@ -11128,28 +11121,54 @@ select.ui-control {
 .exam-set-dialog-file strong { overflow: hidden; color: var(--ui-text); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .exam-set-dialog-file small { color: var(--ui-muted); font-size: 7.5px; }
 .exam-set-dialog-file > small { white-space: nowrap; }
-.exam-set-dialog-required { display: flex; align-items: center; gap: 6px; margin-top: -2px; color: var(--ui-muted); font-size: 8px; font-weight: 680; line-height: 1.45; }
-.exam-set-dialog-required svg { flex-shrink: 0; color: var(--ui-blue); }
-
+.exam-set-dialog-required { display: flex; align-items: flex-start; gap: 6px; margin-top: -2px; color: var(--ui-muted); font-size: 8px; font-weight: 680; line-height: 1.45; }
+.exam-set-dialog-required svg { flex-shrink: 0; color: var(--ui-blue); margin-top: 1px; }
+.exam-set-paired-files { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.exam-set-file-pick { min-width: 0; display: grid; gap: 7px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); }
+.exam-set-file-pick[data-ready="true"] { border-color: var(--ui-green-border); background: color-mix(in srgb,var(--ui-green) 3%,var(--ui-panel)); }
+.exam-set-file-pick > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.exam-set-file-pick > header strong { color: var(--ui-text); font-size: 8.5px; font-weight: 850; }
+.exam-set-file-pick > header small { color: var(--ui-muted); font-size: 7px; font-weight: 750; }
+.exam-set-file-pick-body { min-height: 48px; display: flex; align-items: center; gap: 7px; }
+.exam-set-file-pick-body > div { min-width: 0; display: grid; gap: 2px; }
+.exam-set-file-pick-body strong { overflow: hidden; color: var(--ui-text); font-size: 8.5px; text-overflow: ellipsis; white-space: nowrap; }
+.exam-set-file-pick-body small { color: var(--ui-muted); font-size: 7px; }
+.exam-set-file-pick-body > svg { flex-shrink: 0; color: var(--ui-blue); }
+.exam-set-file-pick[data-ready="true"] .exam-set-file-pick-body > svg { color: var(--ui-green); }
+.exam-set-file-pick button { width: 100%; min-height: 28px; border: 1px dashed var(--ui-border-strong); border-radius: 7px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 8px; font-weight: 800; }
+.exam-set-file-pick button:hover { border-color: var(--ui-blue-border); color: var(--ui-blue); background: var(--ui-blue-soft); }
+.exam-set-parse-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
+.exam-set-parse-summary span { min-width: 0; display: grid; gap: 2px; text-align: center; }
+.exam-set-parse-summary strong { color: var(--ui-text); font-size: 11px; font-weight: 900; }
+.exam-set-parse-summary small { color: var(--ui-muted); font-size: 6.8px; font-weight: 750; }
 .exam-set-mode-toggle { display: inline-flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
 .exam-set-mode-toggle button { min-height: 27px; padding: 0 8px !important; border-radius: 6px !important; color: var(--ui-secondary) !important; }
 .exam-set-mode-toggle button[data-active="true"] { background: var(--ui-panel) !important; color: var(--ui-blue) !important; box-shadow: 0 1px 3px rgba(20,35,60,.08); }
 .exam-set-create-viewer { color: #7667d8 !important; }
-
+.exam-set-answer-toggle { display: inline-flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
+.exam-set-answer-toggle button { min-height: 27px; padding: 0 8px !important; border-radius: 6px !important; color: var(--ui-secondary) !important; }
+.exam-set-answer-toggle button[data-active="true"] { background: var(--ui-panel) !important; color: var(--ui-green) !important; box-shadow: 0 1px 3px rgba(20,35,60,.08); }
 .exam-set-practice-shell { height: 100%; min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) 238px; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); box-shadow: 0 6px 20px rgba(20,35,60,.08); }
 .exam-set-question-stage { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .exam-set-question-header { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--ui-border); background: var(--ui-panel); }
 .exam-set-question-header > div { min-width: 0; display: grid; gap: 3px; }
 .exam-set-question-header strong { color: var(--ui-text); font-size: 11px; font-weight: 850; }
 .exam-set-question-header small { color: var(--ui-muted); font-size: 8.5px; font-weight: 700; }
+.exam-set-question-header-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
 .exam-set-practice-save { flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--ui-muted); font-size: 8px; font-weight: 750; }
 .exam-set-practice-save[data-state="saved"] { color: var(--ui-green); }
 .exam-set-practice-save[data-state="error"] { color: var(--ui-red); }
 .exam-set-question-scroll { min-height: 0; flex: 1; overflow-y: auto; padding: 22px clamp(16px,4vw,44px) 28px; }
 .exam-set-question-card { max-width: 860px; margin: 0 auto; }
-.exam-set-question-source { display: flex; align-items: center; gap: 6px; margin-bottom: 9px; color: var(--ui-muted); font-size: 8.5px; font-weight: 750; }
+.exam-set-question-source { display: flex; align-items: center; gap: 6px; margin-bottom: 9px; color: var(--ui-muted); font-size: 8.5px; font-weight: 750; flex-wrap: wrap; }
 .exam-set-question-source span { padding: 3px 6px; border-radius: 6px; background: var(--ui-soft); }
 .exam-set-question-text { margin: 0 0 19px; color: var(--ui-text); font-size: clamp(14px,1.35vw,17px); font-weight: 730; line-height: 1.55; white-space: pre-wrap; }
+.exam-set-source-visual { margin: 0 0 18px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-soft); }
+.exam-set-source-visual-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.exam-set-source-visual-header strong { color: var(--ui-text); font-size: 8.5px; font-weight: 850; }
+.exam-set-source-visual-header small { color: var(--ui-muted); font-size: 7px; }
+.exam-set-source-visual-canvas { width: 100%; max-height: 390px; display: block; object-fit: contain; border: 1px solid var(--ui-border); border-radius: 8px; background: #fff; }
+.exam-set-source-visual-note { margin-top: 6px; color: var(--ui-muted); font-size: 7px; line-height: 1.4; }
 .exam-set-options { display: grid; gap: 9px; }
 .exam-set-option { width: 100%; min-height: 52px; display: grid; grid-template-columns: 30px minmax(0,1fr); align-items: start; gap: 10px; padding: 10px 12px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); color: var(--ui-text); text-align: start; transition: border-color 140ms ease, background 140ms ease, transform 140ms ease; }
 .exam-set-option:hover { transform: translateY(-1px); border-color: var(--ui-blue-border); background: var(--ui-blue-soft); }
@@ -11161,16 +11180,15 @@ select.ui-control {
 .exam-set-option[data-result="correct"] .exam-set-option-label { border-color: var(--ui-green); background: var(--ui-green); color: #fff; }
 .exam-set-option[data-result="wrong"] { border-color: color-mix(in srgb,var(--ui-red) 35%,var(--ui-border)); background: var(--ui-red-soft); }
 .exam-set-option[data-result="wrong"] .exam-set-option-label { border-color: var(--ui-red); background: var(--ui-red); color: #fff; }
-.exam-set-question-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; }
+.exam-set-question-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
 .exam-set-question-nav { display: inline-flex; align-items: center; gap: 6px; }
-.exam-set-question-nav button, .exam-set-mark-button { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 9px; font-weight: 800; }
-.exam-set-question-nav button:hover, .exam-set-mark-button:hover { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.exam-set-question-nav button, .exam-set-mark-button, .exam-set-original-button { min-height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 9px; font-weight: 800; }
+.exam-set-question-nav button:hover, .exam-set-mark-button:hover, .exam-set-original-button:hover { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
 .exam-set-question-nav button:disabled { opacity: .45; cursor: default; }
 .exam-set-mark-button[data-marked="true"] { border-color: color-mix(in srgb,#c9822f 38%,var(--ui-border)); background: color-mix(in srgb,#c9822f 10%,var(--ui-panel)); color: #b56f1f; }
 .exam-set-answer-feedback { margin-top: 16px; padding: 10px 12px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 9.5px; font-weight: 700; line-height: 1.5; }
 .exam-set-answer-feedback[data-tone="correct"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
 .exam-set-answer-feedback[data-tone="wrong"] { border-color: color-mix(in srgb,var(--ui-red) 35%,var(--ui-border)); background: var(--ui-red-soft); color: var(--ui-red); }
-
 .exam-set-grid-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; border-inline-start: 1px solid var(--ui-border); background: var(--ui-soft); }
 .exam-set-grid-header { padding: 11px 11px 8px; border-bottom: 1px solid var(--ui-border); }
 .exam-set-grid-header strong { display: block; color: var(--ui-text); font-size: 9.5px; font-weight: 850; }
@@ -11201,16 +11219,21 @@ select.ui-control {
 .exam-set-grid-legend i[data-tone="wrong"] { border-color: color-mix(in srgb,var(--ui-red) 40%,var(--ui-border)); background: var(--ui-red-soft); }
 .exam-set-parser-state { height: 100%; display: grid; place-items: center; align-content: center; gap: 10px; padding: 30px; border: 1px dashed var(--ui-border-strong); border-radius: 10px; background: var(--ui-panel); color: var(--ui-muted); text-align: center; }
 .exam-set-parser-state span:first-child { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 12px; background: color-mix(in srgb,#7667d8 10%,var(--ui-panel)); color: #7667d8; }
-.exam-set-parser-state strong { max-width: 420px; color: var(--ui-text); font-size: 11px; line-height: 1.5; }
-.exam-set-parser-state p { max-width: 500px; margin: 0; color: var(--ui-muted); font-size: 9px; line-height: 1.55; }
+.exam-set-parser-state strong { max-width: 520px; color: var(--ui-text); font-size: 11px; line-height: 1.5; }
+.exam-set-parser-state p { max-width: 560px; margin: 0; color: var(--ui-muted); font-size: 9px; line-height: 1.55; }
 .exam-set-parser-meta { display: inline-flex; align-items: center; gap: 6px; color: var(--ui-muted); font-size: 8px; font-weight: 700; }
-
+.exam-set-original-modal { width: min(980px,94vw); height: min(820px,88vh); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 14px; background: var(--ui-panel); }
+.exam-set-original-modal-header { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--ui-border); }
+.exam-set-original-modal-header > div { min-width: 0; display: grid; gap: 3px; }
+.exam-set-original-modal-header strong { color: var(--ui-text); font-size: 10px; font-weight: 850; }
+.exam-set-original-modal-header small { color: var(--ui-muted); font-size: 7.5px; }
+.exam-set-original-modal-body { min-height: 0; flex: 1; }
 @media (max-width: 980px) {
   .exam-set-practice-shell { grid-template-columns: minmax(0,1fr) 196px; }
   .exam-set-question-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
 }
 @media (max-width: 760px) {
-  .exam-set-dialog-grid { grid-template-columns: 1fr; }
+  .exam-set-dialog-grid, .exam-set-paired-files { grid-template-columns: 1fr; }
   .exam-set-viewer-actions button { font-size: 0 !important; }
   .exam-set-viewer-actions button svg { width: 13px; height: 13px; }
   .exam-set-practice-shell { grid-template-columns: 1fr; grid-template-rows: minmax(0,1fr) auto; }
@@ -31680,43 +31703,63 @@ function lectureMaterialPreviewKind(material) {
 
 
 /* =============================================================================
-   SEGMENT 6.2 REBUILT — SHARED EXAM PDFs + SOURCE-ONLY MCQ VIEWER
+   SEGMENT 6.2 FINAL — PAIRED EXAM PDFs + SOURCE-FAITHFUL MCQ VIEWER
    -----------------------------------------------------------------------------
-   This replaces the former manual Segment 6.2/6.3 direction. Exam PDFs are a
-   shared authenticated library, while every user's answers/marked questions are
-   private. MCQs are parsed deterministically from the PDF text layer: MedFLUEN
-   never invents question text, options or an answer key.
+   A permanent exam set has a question PDF and an optional/required answer PDF.
+   The question PDF is the source of truth for question text, options, pages and
+   visuals. The answer PDF is a private source document used only to harvest the
+   official answer key. Users never get another user's private practice state.
    ========================================================================== */
 const EXAM_SET_DOCUMENTS_BUCKET = "exam-set-documents";
 const EXAM_SET_DOCUMENT_MAX_BYTES = 50 * 1024 * 1024;
 const EXAM_SET_SESSIONS = ["summer", "winter", "reexam"];
+const EXAM_SET_PARSE_VERSION = "6.2.0-paired-pdf-1";
 
-function examSetDocumentObjectPath(userId, moduleName, fileName) {
-  const id = typeof crypto !== "undefined" && crypto.randomUUID
+function examSetUuid() {
+  return typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function examSetDocumentObjectPath(userId, moduleName, fileName, role = "questions") {
+  const safeRole = role === "answers" ? "answers" : "questions";
+  const safeName = String(fileName || "exam.pdf").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-").slice(-80) || "exam.pdf";
   return [
     userId,
     lectureMaterialSafeSegment(moduleName, "module"),
-    `${id}.pdf`,
+    `${examSetUuid()}-${safeRole}-${safeName}`,
   ].join("/");
 }
 
 function examSetDocumentFromRow(row) {
   if (!row) return null;
   const legacySession = row.exam_type === "reexam" ? "reexam" : "";
+  const parsedQuestions = Array.isArray(row.parsed_questions) ? row.parsed_questions : [];
+  const parseMeta = row.parse_meta && typeof row.parse_meta === "object" ? row.parse_meta : {};
   return {
     id: row.id,
     ownerUserId: row.user_id || null,
-    name: row.display_name || row.file_name || "Eksamenssæt.pdf",
-    fileName: row.file_name || row.display_name || "Eksamenssæt.pdf",
-    storagePath: row.storage_path,
+    name: row.display_name || row.file_name || row.question_file_name || "Eksamenssæt",
+    fileName: row.file_name || row.question_file_name || row.display_name || "Eksamenssæt.pdf",
+    storagePath: row.question_storage_path || row.storage_path || null,
+    questionStoragePath: row.question_storage_path || row.storage_path || null,
+    answerStoragePath: row.answer_storage_path || null,
     mimeType: row.mime_type || "application/pdf",
-    size: Math.max(0, Number(row.size_bytes) || 0),
+    size: Math.max(0, Number(row.question_size_bytes ?? row.size_bytes) || 0),
+    questionSize: Math.max(0, Number(row.question_size_bytes ?? row.size_bytes) || 0),
+    answerSize: Math.max(0, Number(row.answer_size_bytes) || 0),
+    questionFileName: row.question_file_name || row.file_name || "Spørgsmål.pdf",
+    answerFileName: row.answer_file_name || "Svar.pdf",
     year: row.exam_year ? String(row.exam_year) : "",
     examSession: EXAM_SET_SESSIONS.includes(row.exam_session) ? row.exam_session : legacySession,
     examDate: row.exam_date || "",
-    contentSha256: row.content_sha256 || "",
+    contentSha256: row.question_sha256 || row.content_sha256 || "",
+    questionSha256: row.question_sha256 || row.content_sha256 || "",
+    answerSha256: row.answer_sha256 || "",
+    parsedQuestions,
+    parseMeta,
+    parseStatus: row.parse_status || (parsedQuestions.length ? "ready" : "legacy"),
+    parseVersion: row.parse_version || "",
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null,
   };
@@ -31759,7 +31802,14 @@ function examSetPdfItemsToLines(items, pageNumber) {
 
   function flush() {
     const text = examSetNormalizeSourceText(parts.map((part) => part.text).join(" "));
-    if (text) lines.push({ page: pageNumber, text });
+    if (text) {
+      lines.push({
+        page: pageNumber,
+        text,
+        x: parts.length ? Math.min(...parts.map((part) => part.x)) : 0,
+        y: parts.length ? Math.max(...parts.map((part) => part.y)) : 0,
+      });
+    }
     parts = [];
     lastY = null;
     lastX = null;
@@ -31777,7 +31827,7 @@ function examSetPdfItemsToLines(items, pageNumber) {
     const movedLine = lastY != null && Math.abs(lastY - y) > 2.5;
     const wrappedBack = lastX != null && x < lastX - 24 && lastY != null && Math.abs(lastY - y) <= 2.5;
     if (parts.length && (movedLine || wrappedBack)) flush();
-    parts.push({ x, text });
+    parts.push({ x, y, text });
     lastY = y;
     lastX = x;
     if (item?.hasEOL) flush();
@@ -31820,9 +31870,9 @@ function examSetExtractAnswerKey(lines) {
       break;
     }
   }
-  if (startIndex < 0) return { startIndex: -1, answers: {} };
   const answers = {};
-  source.slice(startIndex).forEach((line) => {
+  const scan = startIndex >= 0 ? source.slice(startIndex) : source;
+  scan.forEach((line) => {
     const value = examSetNormalizeSourceText(line?.text);
     if (!value || value.length > 180) return;
     const regex = /(?:^|[\s,;|])(?:spg\.?\s*)?(\d{1,3})\s*[.\):\-]?\s*([A-H])(?=$|[\s,;|])/gi;
@@ -31865,7 +31915,13 @@ function examSetLocalCorrectAnswer(text) {
   return match ? match[1].toUpperCase() : "";
 }
 
-function examSetParseMcqLines(rawLines) {
+function examSetDirectAnswerPair(text) {
+  const value = examSetNormalizeSourceText(text);
+  const match = value.match(/^(?:spg\.?\s*)?(\d{1,3})\s*[.\):\-]?\s*([A-H])\s*$/i);
+  return match ? { number: String(Number(match[1])), label: match[2].toUpperCase() } : null;
+}
+
+function examSetParseMcqLines(rawLines, pageVisuals = {}) {
   const cleaned = examSetCleanPdfLines(rawLines);
   const answerKey = examSetExtractAnswerKey(cleaned);
   const source = answerKey.startIndex >= 0 ? cleaned.slice(0, answerKey.startIndex) : cleaned;
@@ -31907,11 +31963,8 @@ function examSetParseMcqLines(rawLines) {
         options.push(currentOption);
         return;
       }
-      if (!options.length) {
-        questionParts.push(value);
-      } else if (currentOption) {
-        currentOption.text = examSetNormalizeSourceText(`${currentOption.text} ${value}`);
-      }
+      if (!options.length) questionParts.push(value);
+      else if (currentOption) currentOption.text = examSetNormalizeSourceText(`${currentOption.text} ${value}`);
     });
 
     const uniqueOptions = [];
@@ -31927,16 +31980,21 @@ function examSetParseMcqLines(rawLines) {
       return;
     }
     const sourceNumber = start.marker.number;
+    const sourcePages = [...new Set([start.page, ...block.map((line) => line.page)].filter(Boolean))].sort((a, b) => a - b);
     const keyed = answerKey.answers[sourceNumber] || localCorrect || "";
     const correctLabel = uniqueOptions.some((option) => option.label === keyed) ? keyed : null;
     const duplicateNumber = questions.filter((question) => question.sourceNumber === sourceNumber).length;
+    const hasVisual = sourcePages.some((page) => Boolean(pageVisuals[page]));
     questions.push({
       id: `q-${sourceNumber}${duplicateNumber ? `-${duplicateNumber + 1}` : ""}`,
       sourceNumber,
       page: start.page || null,
+      sourcePages,
       text: questionText,
       options: uniqueOptions,
       correctLabel,
+      hasVisual,
+      sourceType: "original-pdf",
     });
   });
 
@@ -31947,28 +32005,133 @@ function examSetParseMcqLines(rawLines) {
       skipped,
       answerKeyFound: answerKey.startIndex >= 0,
       questionsWithKey: questions.filter((question) => question.correctLabel).length,
+      questionsWithVisuals: questions.filter((question) => question.hasVisual).length,
+    },
+  };
+}
+
+function examSetExtractAnswerMap(lines) {
+  const cleaned = examSetCleanPdfLines(lines);
+  const answerKey = examSetExtractAnswerKey(cleaned);
+  const answers = { ...answerKey.answers };
+  cleaned.forEach((line) => {
+    const direct = examSetDirectAnswerPair(line?.text);
+    if (direct) answers[direct.number] = direct.label;
+  });
+
+  const starts = [];
+  cleaned.forEach((line, index) => {
+    const marker = examSetQuestionMarker(line?.text);
+    if (marker) starts.push({ index, marker });
+  });
+  starts.forEach((start, position) => {
+    const endIndex = position + 1 < starts.length ? starts[position + 1].index : cleaned.length;
+    cleaned.slice(start.index, endIndex).forEach((line) => {
+      const local = examSetLocalCorrectAnswer(line?.text);
+      if (local) answers[start.marker.number] = local;
+    });
+  });
+  return { answers, answerKeyFound: answerKey.startIndex >= 0 };
+}
+
+function examSetMergeQuestionAnswerKeys(questions, answerMap) {
+  const map = answerMap && typeof answerMap === "object" ? answerMap : {};
+  return (Array.isArray(questions) ? questions : []).map((question) => {
+    const label = map[question.sourceNumber] || question.correctLabel || null;
+    return { ...question, correctLabel: question.options?.some((option) => option.label === label) ? label : null };
+  });
+}
+
+function examSetPdfHasVisualOperator(pdfjs, operatorList) {
+  const values = pdfjs?.OPS || {};
+  const visualFns = new Set(
+    Object.keys(values)
+      .filter((key) => /paint(?:Inline)?Image|paintJpegXObject|paintFormXObject/i.test(key))
+      .map((key) => values[key])
+  );
+  return Array.isArray(operatorList?.fnArray) && operatorList.fnArray.some((fn) => visualFns.has(fn));
+}
+
+async function examSetReadPdfSource(source) {
+  const pdfjs = await loadLecturePdfJs();
+  let loadingTask;
+  if (source instanceof Blob) {
+    loadingTask = pdfjs.getDocument({ data: new Uint8Array(await source.arrayBuffer()) });
+  } else if (source instanceof ArrayBuffer || ArrayBuffer.isView(source)) {
+    const data = source instanceof ArrayBuffer ? new Uint8Array(source) : source;
+    loadingTask = pdfjs.getDocument({ data });
+  } else {
+    loadingTask = pdfjs.getDocument({ url: source });
+  }
+  let pdf = null;
+  try {
+    pdf = await loadingTask.promise;
+    const lines = [];
+    const pageVisuals = {};
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      const content = await page.getTextContent();
+      lines.push(...examSetPdfItemsToLines(content?.items, pageNumber));
+      try {
+        const operatorList = await page.getOperatorList();
+        pageVisuals[pageNumber] = examSetPdfHasVisualOperator(pdfjs, operatorList);
+      } catch {
+        pageVisuals[pageNumber] = false;
+      }
+    }
+    return { lines, pageVisuals, pageCount: pdf.numPages, extractedLineCount: lines.length };
+  } finally {
+    try { await loadingTask.destroy?.(); } catch {}
+    try { await pdf?.destroy?.(); } catch {}
+  }
+}
+
+async function examSetParsePairedSources(questionSource, answerSource = null) {
+  const questionPdf = await examSetReadPdfSource(questionSource);
+  const questionParsed = examSetParseMcqLines(questionPdf.lines, questionPdf.pageVisuals);
+  let answerMap = {};
+  let answerMeta = { pageCount: 0, extractedLineCount: 0, answerKeyFound: false };
+  if (answerSource) {
+    const answerPdf = await examSetReadPdfSource(answerSource);
+    const extracted = examSetExtractAnswerMap(answerPdf.lines);
+    answerMap = extracted.answers;
+    answerMeta = {
+      pageCount: answerPdf.pageCount,
+      extractedLineCount: answerPdf.extractedLineCount,
+      answerKeyFound: extracted.answerKeyFound,
+    };
+  }
+  const questions = examSetMergeQuestionAnswerKeys(questionParsed.questions, answerMap);
+  return {
+    questions,
+    meta: {
+      parseVersion: EXAM_SET_PARSE_VERSION,
+      parseStatus: questions.length ? "ready" : "needs_review",
+      questionPdfPages: questionPdf.pageCount,
+      answerPdfPages: answerMeta.pageCount,
+      extractedQuestionLines: questionPdf.extractedLineCount,
+      extractedAnswerLines: answerMeta.extractedLineCount,
+      questionCount: questions.length,
+      questionsWithKey: questions.filter((question) => question.correctLabel).length,
+      questionsWithVisuals: questions.filter((question) => question.hasVisual).length,
+      answerKeyFound: answerMeta.answerKeyFound || questionParsed.stats.answerKeyFound,
+      skippedQuestionBlocks: questionParsed.stats.skipped,
     },
   };
 }
 
 async function examSetExtractQuestionsFromPdf(url) {
-  const pdfjs = await loadLecturePdfJs();
-  const loadingTask = pdfjs.getDocument({ url });
-  let pdf = null;
-  try {
-    pdf = await loadingTask.promise;
-    const lines = [];
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-      const page = await pdf.getPage(pageNumber);
-      const content = await page.getTextContent();
-      lines.push(...examSetPdfItemsToLines(content?.items, pageNumber));
-    }
-    const parsed = examSetParseMcqLines(lines);
-    return { ...parsed, pageCount: pdf.numPages, extractedLineCount: lines.length };
-  } finally {
-    try { await loadingTask.destroy?.(); } catch {}
-    try { await pdf?.destroy?.(); } catch {}
-  }
+  const parsed = await examSetParsePairedSources(url, null);
+  return {
+    questions: parsed.questions,
+    stats: {
+      questionsWithKey: parsed.meta.questionsWithKey,
+      questionsWithVisuals: parsed.meta.questionsWithVisuals,
+      answerKeyFound: parsed.meta.answerKeyFound,
+    },
+    pageCount: parsed.meta.questionPdfPages,
+    extractedLineCount: parsed.meta.extractedQuestionLines,
+  };
 }
 
 function examSetQuestionGridState(question, practice) {
@@ -31979,7 +32142,6 @@ function examSetQuestionGridState(question, practice) {
   if (selected) return "answered";
   return "unanswered";
 }
-
 
 /* =============================================================================
    SEGMENT 5.6 — PRIVATE LECTURE NOTES
@@ -32388,6 +32550,100 @@ function LecturePdfViewer({
   );
 }
 
+function ExamSourcePagePreview({ url, pageNumber = 1, fileName = "Original eksamen", copy, onOpen }) {
+  const canvasRef = useRef(null);
+  const surfaceRef = useRef(null);
+  const [state, setState] = useState("loading");
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const node = surfaceRef.current;
+    if (!node) return undefined;
+    const measure = () => setWidth(Math.max(240, Math.round(node.clientWidth || 0)));
+    measure();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [url]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let task = null;
+    let pdf = null;
+    setState("loading");
+    loadLecturePdfJs()
+      .then((pdfjs) => {
+        if (cancelled) return null;
+        task = pdfjs.getDocument({ url });
+        return task.promise;
+      })
+      .then(async (loadedPdf) => {
+        if (!loadedPdf || cancelled) {
+          loadedPdf?.destroy?.();
+          return;
+        }
+        pdf = loadedPdf;
+        const page = await pdf.getPage(Math.max(1, Number(pageNumber) || 1));
+        if (cancelled || !canvasRef.current) return;
+        const baseViewport = page.getViewport({ scale: 1 });
+        const available = Math.max(240, (width || 760) - 22);
+        const scale = Math.min(2.2, Math.max(.35, available / Math.max(1, baseViewport.width)));
+        const viewport = page.getViewport({ scale });
+        const outputScale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+        const canvas = canvasRef.current;
+        const context = canvas.getContext("2d", { alpha: false });
+        if (!context) throw new Error("Canvas unavailable");
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+        const renderTask = page.render({ canvasContext: context, viewport, transform: outputScale !== 1 ? [outputScale,0,0,outputScale,0,0] : null });
+        await renderTask.promise;
+        if (!cancelled) setState("ready");
+      })
+      .catch(() => { if (!cancelled) setState("error"); })
+      ;
+    return () => {
+      cancelled = true;
+      try { task?.destroy?.(); } catch {}
+      try { pdf?.destroy?.(); } catch {}
+    };
+  }, [url, pageNumber, width]);
+
+  return (
+    <div className="exam-set-source-visual">
+      <div className="exam-set-source-visual-header">
+        <div><strong>{copy.examSetOriginalExcerpt}</strong><small> · {copy.examSetSourcePage} {pageNumber}</small></div>
+        <button type="button" className="exam-set-original-button" onClick={onOpen}><Icon name="expand" size={11} />{copy.examSetOpenOriginal}</button>
+      </div>
+      <div ref={surfaceRef}>
+        {state === "loading" ? <div className="exam-set-parser-meta">{copy.examSetOriginalLoading}</div> : state === "error" ? <div className="exam-set-parser-meta">{copy.examSetOriginalError}</div> : <canvas ref={canvasRef} className="exam-set-source-visual-canvas" aria-label={`${fileName} · ${copy.examSetSourcePage} ${pageNumber}`} />}
+      </div>
+      <div className="exam-set-source-visual-note">{copy.examSetOriginalSourceNote}</div>
+    </div>
+  );
+}
+
+function ExamOriginalPageModal({ c, url, pageNumber, fileName, copy, onClose }) {
+  return (
+    <Modal c={c} onClose={onClose} size="large">
+      <div className="exam-set-original-modal">
+        <header className="exam-set-original-modal-header">
+          <div><strong>{copy.examSetOriginalTitle}</strong><small>{fileName} · {copy.examSetSourcePage} {pageNumber} · {copy.examSetOriginalNoAnswers}</small></div>
+          <button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button>
+        </header>
+        <div className="exam-set-original-modal-body">
+          <LecturePdfViewer url={url} materialId={`exam-original-${fileName}-${pageNumber}`} fileName={fileName} savedState={{ page: pageNumber, zoomMode: "fit-width", scale: 1.25 }} onStateChange={() => {}} copy={copy} />
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 function WorkspaceShell({ c, label, drByteOpen = false, closing = false, children }) {
   return (
     <section
@@ -32461,6 +32717,11 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [examSetSaving, setExamSetSaving] = useState(false);
   const [examSetPreviewUrl, setExamSetPreviewUrl] = useState("");
   const [examSetPreviewState, setExamSetPreviewState] = useState("idle");
+  const [examSetAnswerPreviewUrl, setExamSetAnswerPreviewUrl] = useState("");
+  const [examSetAnswerPreviewState, setExamSetAnswerPreviewState] = useState("idle");
+  const [examSetPdfSource, setExamSetPdfSource] = useState("questions");
+  const [examSetShowAnswers, setExamSetShowAnswers] = useState(false);
+  const [examSetOriginalPage, setExamSetOriginalPage] = useState(null);
   const [examSetMode, setExamSetMode] = useState("pdf");
   const [examSetQuestions, setExamSetQuestions] = useState([]);
   const [examSetQuestionDocumentId, setExamSetQuestionDocumentId] = useState(null);
@@ -32477,6 +32738,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const examSetPracticeLoadTokenRef = useRef(0);
   const uploadRef = useRef(null);
   const replaceUploadRef = useRef(null);
+  const answerUploadRef = useRef(null);
 
   useEffect(() => { lectureNoteDraftCacheRef.current = lectureNoteDraftCache; }, [lectureNoteDraftCache]);
   useEffect(() => { lectureNotesRef.current = lectureNotes; }, [lectureNotes]);
@@ -32496,13 +32758,13 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       lectures: "Forelæsninger",
       examSets: "Eksamenssæt",
       lectureSubtitle: "Permanent materialebibliotek, viewer og forelæsningsnoter",
-      examSubtitle: "Fælles PDF-bibliotek og privat eksamensøvelse direkte fra PDF'en",
+      examSubtitle: "Parrede spørgsmål-/svar-PDF'er, source-faithful MCQ-viewer og privat øvelse",
       searchLectures: "Søg efter forelæsning…",
       searchExamSets: "Søg efter fil, år eller eksamenstermin…",
-      examSetPermanent: "PDF'erne er fælles for alle loggede MedFLUEN-brugere. Dine svar, markeringer og øvelsesdata er private.",
+      examSetPermanent: "Spørgsmål-PDF'erne er fælles for alle loggede MedFLUEN-brugere. Svar-PDF'en bruges som intern facitkilde, mens dine svar, markeringer og øvelsesdata er private.",
       examSetLoading: "Henter eksamenssæt…",
-      examSetSetupMissing: "Eksamenssæt er ikke klargjort. Kør SQL-filen til Segment 6.2 Rebuilt i Supabase.",
-      examSetUploadTitle: "Tilføj fælles eksamenssæt",
+      examSetSetupMissing: "Eksamenssæt er ikke klargjort. Kør SQL-filen til Segment 6.2 FINAL i Supabase.",
+      examSetUploadTitle: "Tilføj eksamenssæt",
       examSetEditTitle: "Redigér eksamenssæt",
       examSetName: "Visningsnavn",
       examSetYear: "Årstal",
@@ -32511,56 +32773,78 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetSessionSummer: "Sommer",
       examSetSessionWinter: "Vinter",
       examSetSessionReexam: "Reeksamen",
+      examSetQuestionPdf: "Spørgsmål-PDF",
+      examSetAnswerPdf: "Svar-/facit-PDF",
+      examSetChooseQuestionPdf: "Vælg spørgsmål-PDF",
+      examSetChooseAnswerPdf: "Vælg svar-PDF",
+      examSetQuestionPdfRequired: "Spørgsmål-PDF er påkrævet.",
+      examSetAnswerPdfRequired: "Svar-/facit-PDF er påkrævet for et komplet eksamenssæt.",
+      examSetAnswerPdfPrivate: "Svar-PDF'en bruges som intern facitkilde og deles ikke direkte med andre brugere.",
       examSetSave: "Gem eksamenssæt",
       examSetCancel: "Annuller",
       examSetEdit: "Redigér",
       examSetDelete: "Slet",
-      examSetDownload: "Download",
-      examSetOpen: "Åbn",
+      examSetDownload: "Download spørgsmål",
+      examSetOpen: "Åbn spørgsmål",
       examSetDeleteConfirm: "Slet dette fælles eksamenssæt permanent?",
-      examSetTooLarge: "PDF-filen er større end 50 MB og kan ikke uploades.",
+      examSetTooLarge: "En PDF-fil er større end 50 MB og kan ikke uploades.",
       examSetInvalidFile: "Kun PDF-filer kan tilføjes til eksamenssætbiblioteket.",
-      examSetRequiredMeta: "Årstal og Sommer/Vinter/Reeksamen skal vælges, før PDF'en kan gemmes.",
-      examSetHashing: "Kontrollerer PDF og dubletter…",
+      examSetRequiredMeta: "Årstal, eksamenstermin og begge PDF-versioner skal være valgt, før et nyt sæt kan gemmes.",
+      examSetHashing: "Kontrollerer PDF'er og dubletter…",
+      examSetParsing: "Analyserer spørgsmål, svar og originale visuelle elementer…",
       examSetDuplicate: "Dette eksamenssæt findes allerede. Samme modul + år + termin eller samme PDF kan ikke uploades igen.",
       examSetSaved: "Eksamenssættet er gemt i det fælles bibliotek.",
       examSetUpdated: "Eksamenssættet er opdateret.",
       examSetDeleted: "Eksamenssættet er slettet.",
       examSetLoadError: "Eksamenssættene kunne ikke hentes.",
       examSetActionError: "Handlingen kunne ikke gennemføres.",
-      examSetShared: "Fælles PDF",
-      examSetOwnerOnly: "Kun uploaderen kan redigere eller slette PDF'en.",
-      examSetPdfMode: "PDF",
-      examSetViewerMode: "Eksamensvisning",
-      examSetCreateViewer: "Opret eksamensvisning",
-      examSetExtracting: "Læser spørgsmål og svarmuligheder fra PDF'en…",
-      examSetExtractHint: "MedFLUEN bruger kun tekst, svarmuligheder og eventuelt facit, der faktisk findes i PDF'en. Der oprettes ingen nye spørgsmål eller svar.",
-      examSetExtracted: (count, keyed) => `${count} MCQ fundet · ${keyed} med facit fra PDF`,
-      examSetNoQuestions: "Ingen sikre MCQ-spørgsmål kunne udtrækkes fra PDF'ens tekstlag. Der er ikke oprettet eller gættet nye spørgsmål.",
-      examSetScannedHint: "Hvis PDF'en er scannet som billeder eller har et usædvanligt layout, kan teksten ikke altid struktureres automatisk.",
+      examSetShared: "Fælles spørgsmål",
+      examSetAnswerKeyReady: "Facit høstet",
+      examSetOwnerOnly: "Kun uploaderen kan redigere eller slette kildedokumenterne.",
+      examSetPdfMode: "Original PDF",
+      examSetViewerMode: "Eksamensviewer",
+      examSetQuestionsSource: "Uden svar",
+      examSetAnswersSource: "Med facit",
+      examSetCreateViewer: "Generér MCQ-viewer",
+      examSetRebuildViewer: "Genlæs PDF'er",
+      examSetExtracting: "Læser spørgsmål og kobler facit…",
+      examSetExtractHint: "Spørgsmål, svarmuligheder og billeder kommer kun fra spørgsmål-PDF'en. Facit kommer kun fra svar-PDF'en. MedFLUEN opfinder ikke nye spørgsmål eller svar.",
+      examSetExtracted: (count, keyed, visual) => `${count} MCQ fundet · ${keyed} med facit · ${visual} med originale visuelle elementer`,
+      examSetNoQuestions: "Ingen sikre MCQ-spørgsmål kunne udtrækkes fra spørgsmål-PDF'en. Der er ikke oprettet eller gættet nye spørgsmål.",
+      examSetScannedHint: "Hvis PDF'en er scannet som billeder eller har et usædvanligt layout, markeres sættet til kontrol i stedet for at gætte.",
       examSetQuestion: "Spørgsmål",
-      examSetSourceQuestion: "PDF-spørgsmål",
+      examSetSourceQuestion: "Originalt spørgsmål",
       examSetSourcePage: "PDF-side",
       examSetPreviousQuestion: "Forrige",
       examSetNextQuestion: "Næste",
       examSetMarkLater: "Markér til senere",
       examSetUnmarkLater: "Fjern markering",
       examSetGridTitle: "Spørgsmålsgrid",
-      examSetGridHint: "Klik 1–X for at hoppe direkte mellem MCQ'er.",
+      examSetGridHint: "Klik 1–X for at hoppe direkte mellem MCQ'er. Farven viser status.",
       examSetAnswered: "Besvaret",
-      examSetMarked: "Markeret",
+      examSetMarked: "Til senere",
       examSetCorrect: "Korrekt",
       examSetWrong: "Forkert",
       examSetUnanswered: "Ikke besvaret",
       examSetSubmit: "Aflever øvelse",
       examSetSubmitted: "Afleveret",
-      examSetAnswerKeyMissing: "Facit til dette spørgsmål blev ikke fundet i PDF'en, så MedFLUEN gætter ikke.",
-      examSetCorrectAnswer: (label) => `Korrekt svar i PDF: ${label}`,
+      examSetAnswerKeyMissing: "Der blev ikke fundet et sikkert facit i svar-PDF'en. MedFLUEN gætter ikke.",
+      examSetCorrectAnswer: (label) => `Officielt facit fra svar-PDF: ${label}`,
+      examSetShowAnswers: "Vis svar",
+      examSetHideAnswers: "Skjul svar",
+      examSetOpenOriginal: "Se original PDF-side",
+      examSetOriginalTitle: "Original eksamensside",
+      examSetOriginalNoAnswers: "Spørgsmål-PDF · uden svar",
+      examSetOriginalExcerpt: "Originalt visuelt element",
+      examSetOriginalSourceNote: "Dette udsnit er renderet direkte fra den originale spørgsmål-PDF. MedFLUEN genererer eller tegner ikke billedet om.",
+      examSetOriginalLoading: "Henter originalt udsnit…",
+      examSetOriginalError: "Det originale udsnit kunne ikke vises. Brug knappen til hele PDF-siden.",
       examSetPracticeLoading: "Henter din private øvelse…",
       examSetPracticeSaving: "Gemmer…",
       examSetPracticeSaved: "Gemt privat",
-      examSetPracticeError: "Din øvelse kunne ikke gemmes. Kontroller Segment 6.2 Rebuilt SQL.",
-      upload: "Tilføj PDF",
+      examSetPracticeError: "Din øvelse kunne ikke gemmes. Kontroller Segment 6.2 FINAL SQL.",
+      upload: "Tilføj eksamenssæt",
+
       replace: "Udskift PDF",
       noPdf: "Der er endnu ikke knyttet en PDF til dette element.",
       selectItem: "Vælg et element i listen for at åbne arbejdsfladen.",
@@ -32763,10 +33047,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSubtitle: "Shared PDF library and private exam practice generated directly from the PDF",
       searchLectures: "Search lectures…",
       searchExamSets: "Search file, year or exam session…",
-      examSetPermanent: "PDFs are shared with all signed-in MedFLUEN users. Your answers, flags and practice data remain private.",
+      examSetPermanent: "Question PDFs are shared with all signed-in MedFLUEN users. The answer PDF is an internal key source, while your answers, flags and practice data remain private.",
       examSetLoading: "Loading exam sets…",
-      examSetSetupMissing: "Exam sets are not configured. Run the Segment 6.2 Rebuilt SQL file in Supabase.",
-      examSetUploadTitle: "Add shared exam set",
+      examSetSetupMissing: "Exam sets are not configured. Run the Segment 6.2 FINAL SQL file in Supabase.",
+      examSetUploadTitle: "Add exam set",
       examSetEditTitle: "Edit exam set",
       examSetName: "Display name",
       examSetYear: "Year",
@@ -32774,57 +33058,78 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetDate: "Exam date (optional)",
       examSetSessionSummer: "Summer",
       examSetSessionWinter: "Winter",
-      examSetSessionReexam: "Resit",
+      examSetSessionReexam: "Re-exam",
+      examSetQuestionPdf: "Question PDF",
+      examSetAnswerPdf: "Answer/key PDF",
+      examSetChooseQuestionPdf: "Choose question PDF",
+      examSetChooseAnswerPdf: "Choose answer PDF",
+      examSetQuestionPdfRequired: "A question PDF is required.",
+      examSetAnswerPdfRequired: "An answer/key PDF is required for a complete exam set.",
+      examSetAnswerPdfPrivate: "The answer PDF is used as an internal answer-key source and is not directly shared with other users.",
       examSetSave: "Save exam set",
       examSetCancel: "Cancel",
       examSetEdit: "Edit",
       examSetDelete: "Delete",
-      examSetDownload: "Download",
-      examSetOpen: "Open",
+      examSetDownload: "Download questions",
+      examSetOpen: "Open questions",
       examSetDeleteConfirm: "Delete this shared exam set permanently?",
-      examSetTooLarge: "The PDF is larger than 50 MB and cannot be uploaded.",
+      examSetTooLarge: "A PDF file is larger than 50 MB and cannot be uploaded.",
       examSetInvalidFile: "Only PDF files can be added to the exam-set library.",
-      examSetRequiredMeta: "Year and Summer/Winter/Resit must be selected before the PDF can be saved.",
-      examSetHashing: "Checking PDF and duplicates…",
-      examSetDuplicate: "This exam set already exists. The same module + year + session or the same PDF cannot be uploaded twice.",
-      examSetSaved: "The exam set was saved to the shared library.",
-      examSetUpdated: "The exam set was updated.",
-      examSetDeleted: "The exam set was deleted.",
+      examSetRequiredMeta: "Year, exam session and both PDF versions must be selected before a new set can be saved.",
+      examSetHashing: "Checking PDFs and duplicates…",
+      examSetParsing: "Analyzing questions, answers and original visual elements…",
+      examSetDuplicate: "This exam set already exists. The same module + year + session or same PDF cannot be uploaded again.",
+      examSetSaved: "The exam set is saved in the shared library.",
+      examSetUpdated: "The exam set has been updated.",
+      examSetDeleted: "The exam set has been deleted.",
       examSetLoadError: "The exam sets could not be loaded.",
       examSetActionError: "The action could not be completed.",
-      examSetShared: "Shared PDF",
-      examSetOwnerOnly: "Only the uploader can edit or delete the PDF.",
-      examSetPdfMode: "PDF",
-      examSetViewerMode: "Exam view",
-      examSetCreateViewer: "Create exam view",
-      examSetExtracting: "Reading questions and answer choices from the PDF…",
-      examSetExtractHint: "MedFLUEN only uses text, answer choices and any answer key that actually exists in the PDF. No new questions or answers are created.",
-      examSetExtracted: (count, keyed) => `${count} MCQs found · ${keyed} with an answer key from the PDF`,
-      examSetNoQuestions: "No reliable MCQs could be extracted from the PDF text layer. No questions or answers were invented.",
-      examSetScannedHint: "Scanned/image-only PDFs or unusual layouts may not contain a usable text layer.",
+      examSetShared: "Shared questions",
+      examSetAnswerKeyReady: "Answer key harvested",
+      examSetOwnerOnly: "Only the uploader can edit or delete the source documents.",
+      examSetPdfMode: "Original PDF",
+      examSetViewerMode: "Exam viewer",
+      examSetQuestionsSource: "Without answers",
+      examSetAnswersSource: "With answer key",
+      examSetCreateViewer: "Generate MCQ viewer",
+      examSetRebuildViewer: "Re-read PDFs",
+      examSetExtracting: "Reading questions and matching the answer key…",
+      examSetExtractHint: "Questions, answer choices and images come only from the question PDF. The answer key comes only from the answer PDF. MedFLUEN does not invent questions or answers.",
+      examSetExtracted: (count, keyed, visual) => `${count} MCQs found · ${keyed} with answer key · ${visual} with original visual elements`,
+      examSetNoQuestions: "No reliable MCQs could be extracted from the question PDF. No questions or answers were invented.",
+      examSetScannedHint: "If the PDF is scanned as images or uses an unusual layout, the set is flagged for review instead of guessing.",
       examSetQuestion: "Question",
-      examSetSourceQuestion: "PDF question",
+      examSetSourceQuestion: "Original question",
       examSetSourcePage: "PDF page",
       examSetPreviousQuestion: "Previous",
       examSetNextQuestion: "Next",
       examSetMarkLater: "Mark for later",
       examSetUnmarkLater: "Remove mark",
       examSetGridTitle: "Question grid",
-      examSetGridHint: "Click 1–X to jump directly between MCQs.",
+      examSetGridHint: "Click 1–X to jump between MCQs. Color shows status.",
       examSetAnswered: "Answered",
-      examSetMarked: "Marked",
+      examSetMarked: "For later",
       examSetCorrect: "Correct",
       examSetWrong: "Wrong",
       examSetUnanswered: "Unanswered",
       examSetSubmit: "Submit practice",
       examSetSubmitted: "Submitted",
-      examSetAnswerKeyMissing: "No answer key for this question was found in the PDF, so MedFLUEN will not guess.",
-      examSetCorrectAnswer: (label) => `Correct answer in PDF: ${label}`,
+      examSetAnswerKeyMissing: "No reliable answer key was found in the answer PDF. MedFLUEN will not guess.",
+      examSetCorrectAnswer: (label) => `Official answer from answer PDF: ${label}`,
+      examSetShowAnswers: "Show answers",
+      examSetHideAnswers: "Hide answers",
+      examSetOpenOriginal: "View original PDF page",
+      examSetOriginalTitle: "Original exam page",
+      examSetOriginalNoAnswers: "Question PDF · without answers",
+      examSetOriginalExcerpt: "Original visual element",
+      examSetOriginalSourceNote: "This excerpt is rendered directly from the original question PDF. MedFLUEN does not redraw or generate the image.",
+      examSetOriginalLoading: "Loading original excerpt…",
+      examSetOriginalError: "The original excerpt could not be shown. Use the button for the full PDF page.",
       examSetPracticeLoading: "Loading your private practice…",
       examSetPracticeSaving: "Saving…",
       examSetPracticeSaved: "Saved privately",
-      examSetPracticeError: "Your practice could not be saved. Check the Segment 6.2 Rebuilt SQL.",
-      upload: "Add PDF",
+      examSetPracticeError: "Your practice could not be saved. Check the Segment 6.2 FINAL SQL.",
+      upload: "Add exam set",
       replace: "Replace PDF",
       noPdf: "No PDF is linked to this item yet.",
       selectItem: "Select an item in the list to open the workspace.",
@@ -33027,68 +33332,89 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSubtitle: "مكتبة PDF مشتركة وتدريب امتحاني خاص يُنشأ مباشرة من ملف PDF",
       searchLectures: "ابحث في المحاضرات…",
       searchExamSets: "ابحث بالملف أو السنة أو موسم الامتحان…",
-      examSetPermanent: "ملفات PDF مشتركة بين جميع مستخدمي MedFLUEN المسجلين، بينما تبقى إجاباتك وعلاماتك وبيانات تدريبك خاصة.",
+      examSetPermanent: "ملفات الأسئلة PDF مشتركة بين جميع مستخدمي MedFLUEN المسجلين. ويُستخدم ملف الإجابات كمصدر داخلي، بينما تبقى إجاباتك وعلاماتك وبيانات تدريبك خاصة.",
       examSetLoading: "جارٍ تحميل نماذج الامتحان…",
-      examSetSetupMissing: "نماذج الامتحان غير مهيأة. شغّل ملف SQL الخاص بـ Segment 6.2 Rebuilt في Supabase.",
-      examSetUploadTitle: "إضافة نموذج امتحان مشترك",
-      examSetEditTitle: "تعديل نموذج الامتحان",
+      examSetSetupMissing: "نماذج الامتحان غير مهيأة. شغّل ملف SQL الخاص بـ Segment 6.2 FINAL في Supabase.",
+      examSetUploadTitle: "إضافة مجموعة امتحان",
+      examSetEditTitle: "تعديل مجموعة الامتحان",
       examSetName: "اسم العرض",
       examSetYear: "السنة",
-      examSetSession: "موسم الامتحان",
+      examSetSession: "فترة الامتحان",
       examSetDate: "تاريخ الامتحان (اختياري)",
-      examSetSessionSummer: "صيف",
-      examSetSessionWinter: "شتاء",
-      examSetSessionReexam: "إعادة",
-      examSetSave: "حفظ نموذج الامتحان",
+      examSetSessionSummer: "الصيف",
+      examSetSessionWinter: "الشتاء",
+      examSetSessionReexam: "إعادة الامتحان",
+      examSetQuestionPdf: "ملف أسئلة PDF",
+      examSetAnswerPdf: "ملف الإجابات PDF",
+      examSetChooseQuestionPdf: "اختر ملف الأسئلة",
+      examSetChooseAnswerPdf: "اختر ملف الإجابات",
+      examSetQuestionPdfRequired: "ملف الأسئلة مطلوب.",
+      examSetAnswerPdfRequired: "ملف الإجابات مطلوب لمجموعة امتحان مكتملة.",
+      examSetAnswerPdfPrivate: "يُستخدم ملف الإجابات كمصدر داخلي للمفتاح ولا تتم مشاركته مباشرة مع المستخدمين الآخرين.",
+      examSetSave: "حفظ مجموعة الامتحان",
       examSetCancel: "إلغاء",
       examSetEdit: "تعديل",
       examSetDelete: "حذف",
-      examSetDownload: "تنزيل",
-      examSetOpen: "فتح",
-      examSetDeleteConfirm: "حذف نموذج الامتحان المشترك هذا نهائيًا؟",
+      examSetDownload: "تنزيل الأسئلة",
+      examSetOpen: "فتح الأسئلة",
+      examSetDeleteConfirm: "هل تريد حذف مجموعة الامتحان المشتركة نهائياً؟",
       examSetTooLarge: "ملف PDF أكبر من 50 ميغابايت ولا يمكن رفعه.",
-      examSetInvalidFile: "يمكن إضافة ملفات PDF فقط إلى مكتبة نماذج الامتحان.",
-      examSetRequiredMeta: "يجب اختيار السنة وصيف/شتاء/إعادة قبل حفظ ملف PDF.",
-      examSetHashing: "جارٍ فحص ملف PDF والتكرار…",
-      examSetDuplicate: "نموذج الامتحان موجود بالفعل. لا يمكن رفع نفس الوحدة + السنة + الموسم أو نفس ملف PDF مرتين.",
-      examSetSaved: "تم حفظ نموذج الامتحان في المكتبة المشتركة.",
-      examSetUpdated: "تم تحديث نموذج الامتحان.",
-      examSetDeleted: "تم حذف نموذج الامتحان.",
-      examSetLoadError: "تعذر تحميل نماذج الامتحان.",
-      examSetActionError: "تعذر تنفيذ الإجراء.",
-      examSetShared: "PDF مشترك",
-      examSetOwnerOnly: "يمكن للرافع فقط تعديل أو حذف ملف PDF.",
-      examSetPdfMode: "PDF",
-      examSetViewerMode: "عرض الامتحان",
-      examSetCreateViewer: "إنشاء عرض الامتحان",
-      examSetExtracting: "جارٍ قراءة الأسئلة وخيارات الإجابة من PDF…",
-      examSetExtractHint: "يستخدم MedFLUEN فقط النص والخيارات ومفتاح الإجابة الموجود فعليًا في PDF، ولا ينشئ أسئلة أو إجابات جديدة.",
-      examSetExtracted: (count, keyed) => `تم العثور على ${count} سؤال MCQ · ${keyed} منها مع مفتاح إجابة من PDF`,
-      examSetNoQuestions: "تعذر استخراج أسئلة MCQ موثوقة من طبقة النص في PDF. لم يتم اختراع أسئلة أو إجابات.",
-      examSetScannedHint: "قد لا تحتوي ملفات PDF الممسوحة كصور أو ذات التخطيط غير المعتاد على طبقة نص قابلة للاستخدام.",
+      examSetInvalidFile: "يمكن إضافة ملفات PDF فقط.",
+      examSetRequiredMeta: "يجب اختيار السنة وفترة الامتحان وملفي PDF قبل حفظ مجموعة جديدة.",
+      examSetHashing: "جارٍ فحص ملفات PDF والتكرارات…",
+      examSetParsing: "جارٍ تحليل الأسئلة والإجابات والعناصر المرئية الأصلية…",
+      examSetDuplicate: "مجموعة الامتحان هذه موجودة بالفعل. لا يمكن رفع نفس الوحدة والسنة والفترة أو نفس ملف PDF مرة أخرى.",
+      examSetSaved: "تم حفظ مجموعة الامتحان في المكتبة المشتركة.",
+      examSetUpdated: "تم تحديث مجموعة الامتحان.",
+      examSetDeleted: "تم حذف مجموعة الامتحان.",
+      examSetLoadError: "تعذر تحميل مجموعات الامتحان.",
+      examSetActionError: "تعذر تنفيذ العملية.",
+      examSetShared: "أسئلة مشتركة",
+      examSetAnswerKeyReady: "تم استخراج مفتاح الإجابة",
+      examSetOwnerOnly: "يمكن فقط لرافع الملفات تعديل أو حذف المستندات المصدر.",
+      examSetPdfMode: "ملف PDF الأصلي",
+      examSetViewerMode: "عارض الامتحان",
+      examSetQuestionsSource: "بدون إجابات",
+      examSetAnswersSource: "مع مفتاح الإجابة",
+      examSetCreateViewer: "إنشاء عارض MCQ",
+      examSetRebuildViewer: "إعادة قراءة ملفات PDF",
+      examSetExtracting: "جارٍ قراءة الأسئلة ومطابقة مفتاح الإجابة…",
+      examSetExtractHint: "الأسئلة والخيارات والصور تأتي فقط من ملف الأسئلة. مفتاح الإجابة يأتي فقط من ملف الإجابات. لا يتم اختراع أسئلة أو إجابات.",
+      examSetExtracted: (count, keyed, visual) => `${count} سؤال MCQ · ${keyed} مع مفتاح إجابة · ${visual} مع عناصر مرئية أصلية`,
+      examSetNoQuestions: "تعذر استخراج أسئلة MCQ موثوقة من ملف الأسئلة. لم يتم اختراع أي أسئلة أو إجابات.",
+      examSetScannedHint: "إذا كان الملف ممسوحاً ضوئياً أو يستخدم تنسيقاً غير معتاد، سيتم وضعه للمراجعة بدلاً من التخمين.",
       examSetQuestion: "السؤال",
-      examSetSourceQuestion: "سؤال PDF",
+      examSetSourceQuestion: "السؤال الأصلي",
       examSetSourcePage: "صفحة PDF",
       examSetPreviousQuestion: "السابق",
       examSetNextQuestion: "التالي",
-      examSetMarkLater: "وضع علامة للمراجعة",
+      examSetMarkLater: "وضع علامة للمراجعة لاحقاً",
       examSetUnmarkLater: "إزالة العلامة",
       examSetGridTitle: "شبكة الأسئلة",
-      examSetGridHint: "اضغط 1–X للانتقال مباشرة بين أسئلة MCQ.",
-      examSetAnswered: "مجاب",
-      examSetMarked: "معلّم",
+      examSetGridHint: "اضغط 1–X للانتقال مباشرة بين الأسئلة. اللون يوضح الحالة.",
+      examSetAnswered: "تمت الإجابة",
+      examSetMarked: "للمراجعة لاحقاً",
       examSetCorrect: "صحيح",
       examSetWrong: "خطأ",
-      examSetUnanswered: "غير مجاب",
+      examSetUnanswered: "بدون إجابة",
       examSetSubmit: "تسليم التدريب",
       examSetSubmitted: "تم التسليم",
-      examSetAnswerKeyMissing: "لم يتم العثور على مفتاح إجابة لهذا السؤال في PDF، لذلك لن يخمّن MedFLUEN.",
-      examSetCorrectAnswer: (label) => `الإجابة الصحيحة في PDF: ${label}`,
+      examSetAnswerKeyMissing: "لم يتم العثور على مفتاح إجابة موثوق في ملف الإجابات. لن يتم التخمين.",
+      examSetCorrectAnswer: (label) => `الإجابة الرسمية من ملف الإجابات: ${label}`,
+      examSetShowAnswers: "إظهار الإجابات",
+      examSetHideAnswers: "إخفاء الإجابات",
+      examSetOpenOriginal: "عرض صفحة PDF الأصلية",
+      examSetOriginalTitle: "صفحة الامتحان الأصلية",
+      examSetOriginalNoAnswers: "ملف الأسئلة · بدون إجابات",
+      examSetOriginalExcerpt: "العنصر المرئي الأصلي",
+      examSetOriginalSourceNote: "تم عرض هذا المقتطف مباشرة من ملف الأسئلة الأصلي. لا يتم إعادة رسم الصورة أو إنشاؤها.",
+      examSetOriginalLoading: "جارٍ تحميل المقتطف الأصلي…",
+      examSetOriginalError: "تعذر عرض المقتطف الأصلي. استخدم الزر لفتح صفحة PDF كاملة.",
       examSetPracticeLoading: "جارٍ تحميل تدريبك الخاص…",
       examSetPracticeSaving: "جارٍ الحفظ…",
       examSetPracticeSaved: "محفوظ بشكل خاص",
-      examSetPracticeError: "تعذر حفظ تدريبك. تحقق من SQL الخاص بـ Segment 6.2 Rebuilt.",
-      upload: "إضافة PDF",
+      examSetPracticeError: "تعذر حفظ تدريبك. تحقق من SQL الخاص بـ Segment 6.2 FINAL.",
+      upload: "إضافة مجموعة امتحان",
       replace: "استبدال PDF",
       noPdf: "لا يوجد ملف PDF مرتبط بهذا العنصر بعد.",
       selectItem: "اختر عنصرًا من القائمة لفتح مساحة العمل.",
@@ -33390,7 +33716,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setExamSetStatus({ state: "loading", message: "" });
     supabase
       .from("exam_set_documents")
-      .select("id,user_id,module_name,file_name,display_name,storage_path,mime_type,size_bytes,exam_year,exam_session,exam_type,exam_date,content_sha256,created_at,updated_at")
+      .select("id,user_id,module_name,file_name,display_name,storage_path,mime_type,size_bytes,exam_year,exam_session,exam_type,exam_date,content_sha256,question_file_name,question_storage_path,question_size_bytes,question_sha256,answer_file_name,answer_storage_path,answer_size_bytes,answer_sha256,parsed_questions,parse_meta,parse_status,parse_version,created_at,updated_at")
       .eq("module_name", moduleName)
       .order("exam_year", { ascending: false, nullsFirst: false })
       .order("exam_session", { ascending: true, nullsFirst: false })
@@ -33417,29 +33743,41 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }, [isLectureLibrary, userId, moduleName]);
 
   useEffect(() => {
-    if (isLectureLibrary || !selectedExamDocument?.storagePath) {
+    if (isLectureLibrary || !selectedExamDocument?.questionStoragePath) {
       setExamSetPreviewUrl("");
       setExamSetPreviewState("idle");
+      setExamSetAnswerPreviewUrl("");
+      setExamSetAnswerPreviewState("idle");
       return undefined;
     }
     let cancelled = false;
     setExamSetPreviewUrl("");
     setExamSetPreviewState("loading");
-    supabase.storage
-      .from(EXAM_SET_DOCUMENTS_BUCKET)
-      .createSignedUrl(selectedExamDocument.storagePath, 60 * 60)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error || !data?.signedUrl) {
-          setExamSetPreviewState("error");
-          setExamSetStatus({ state: "error", message: copy.examSetActionError });
-          return;
-        }
-        setExamSetPreviewUrl(data.signedUrl);
-        setExamSetPreviewState("ready");
-      });
+    setExamSetAnswerPreviewUrl("");
+    setExamSetAnswerPreviewState(selectedExamDocument.answerStoragePath ? "loading" : "idle");
+    Promise.all([
+      supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(selectedExamDocument.questionStoragePath, 60 * 60),
+      selectedExamDocument.answerStoragePath
+        ? supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(selectedExamDocument.answerStoragePath, 60 * 60)
+        : Promise.resolve({ data: null, error: null }),
+    ]).then(([questionResult, answerResult]) => {
+      if (cancelled) return;
+      if (questionResult.error || !questionResult.data?.signedUrl) {
+        setExamSetPreviewState("error");
+        setExamSetStatus({ state: "error", message: copy.examSetActionError });
+        return;
+      }
+      setExamSetPreviewUrl(questionResult.data.signedUrl);
+      setExamSetPreviewState("ready");
+      if (selectedExamDocument.answerStoragePath && answerResult.data?.signedUrl && !answerResult.error) {
+        setExamSetAnswerPreviewUrl(answerResult.data.signedUrl);
+        setExamSetAnswerPreviewState("ready");
+      } else {
+        setExamSetAnswerPreviewState(selectedExamDocument.answerStoragePath ? "error" : "idle");
+      }
+    });
     return () => { cancelled = true; };
-  }, [isLectureLibrary, selectedExamDocument?.id, selectedExamDocument?.storagePath]);
+  }, [isLectureLibrary, selectedExamDocument?.id, selectedExamDocument?.questionStoragePath, selectedExamDocument?.answerStoragePath]);
 
   useEffect(() => {
     if (isLectureLibrary) return undefined;
@@ -33452,6 +33790,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setExamSetPracticeSaveState("idle");
     setExamSetPracticeLoadState(selectedExamDocument?.id ? "loading" : "idle");
     setExamSetMode("pdf");
+    setExamSetPdfSource("questions");
+    setExamSetShowAnswers(false);
+    setExamSetOriginalPage(null);
     setExamSetQuestions([]);
     setExamSetQuestionDocumentId(null);
     setExamSetParseState("idle");
@@ -34657,201 +34998,268 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  async function refreshExamSetDocuments() {
-    if (isLectureLibrary || !userId || !moduleName) return [];
-    const { data, error } = await supabase
-      .from("exam_set_documents")
-      .select("id,user_id,module_name,file_name,display_name,storage_path,mime_type,size_bytes,exam_year,exam_session,exam_type,exam_date,content_sha256,created_at,updated_at")
-      .eq("module_name", moduleName)
-      .order("exam_year", { ascending: false, nullsFirst: false })
-      .order("exam_session", { ascending: true, nullsFirst: false })
-      .order("exam_date", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    const next = (Array.isArray(data) ? data : []).map(examSetDocumentFromRow).filter(Boolean);
-    DOCUMENT_SESSION_CACHE.examSets = next;
-    setDocuments(next);
-    return next;
-  }
+async function refreshExamSetDocuments() {
+  if (isLectureLibrary || !userId || !moduleName) return [];
+  const { data, error } = await supabase
+    .from("exam_set_documents")
+    .select("id,user_id,module_name,file_name,display_name,storage_path,mime_type,size_bytes,exam_year,exam_session,exam_type,exam_date,content_sha256,question_file_name,question_storage_path,question_size_bytes,question_sha256,answer_file_name,answer_storage_path,answer_size_bytes,answer_sha256,parsed_questions,parse_meta,parse_status,parse_version,created_at,updated_at")
+    .eq("module_name", moduleName)
+    .order("exam_year", { ascending: false, nullsFirst: false })
+    .order("exam_session", { ascending: true, nullsFirst: false })
+    .order("exam_date", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  const next = (Array.isArray(data) ? data : []).map(examSetDocumentFromRow).filter(Boolean);
+  DOCUMENT_SESSION_CACHE.examSets = next;
+  setDocuments(next);
+  return next;
+}
 
-  function validateExamSetFile(file) {
-    if (!file) return copy.examSetInvalidFile;
-    if (file.size > EXAM_SET_DOCUMENT_MAX_BYTES) return copy.examSetTooLarge;
-    const pdf = file.type === "application/pdf" || String(file.name || "").toLowerCase().endsWith(".pdf");
-    return pdf ? "" : copy.examSetInvalidFile;
-  }
+function validateExamSetFile(file) {
+  if (!file) return copy.examSetInvalidFile;
+  if (file.size > EXAM_SET_DOCUMENT_MAX_BYTES) return copy.examSetTooLarge;
+  const pdf = file.type === "application/pdf" || String(file.name || "").toLowerCase().endsWith(".pdf");
+  return pdf ? "" : copy.examSetInvalidFile;
+}
 
-  function openExamSetUploadDialog(file) {
-    if (!file) return;
-    setExamSetStatus({ state: "idle", message: "" });
-    setExamSetDialog({
-      mode: "upload",
-      file,
-      name: file.name.replace(/\.pdf$/i, ""),
-      year: "",
-      examSession: "",
-      examDate: "",
-    });
-  }
+function openExamSetUploadDialog(file) {
+  if (!file) return;
+  setExamSetStatus({ state: "idle", message: "" });
+  setExamSetDialog({
+    mode: "upload",
+    questionFile: file,
+    answerFile: null,
+    name: file.name.replace(/\.pdf$/i, ""),
+    year: "",
+    examSession: "",
+    examDate: "",
+  });
+}
 
-  async function findExamSetDuplicate({ yearNumber, examSession, contentSha256, excludeId = null }) {
-    let query = supabase
-      .from("exam_set_documents")
-      .select("id,exam_year,exam_session,content_sha256")
-      .eq("module_name", moduleName);
-    if (excludeId) query = query.neq("id", excludeId);
-    const { data, error } = await query;
-    if (error) throw error;
-    return (Array.isArray(data) ? data : []).find((row) =>
-      (Number(row.exam_year) === yearNumber && row.exam_session === examSession)
-      || (contentSha256 && row.content_sha256 && row.content_sha256 === contentSha256)
-    ) || null;
-  }
+async function findExamSetDuplicate({ yearNumber, examSession, questionSha256, answerSha256, excludeId = null }) {
+  let query = supabase
+    .from("exam_set_documents")
+    .select("id,exam_year,exam_session,question_sha256,answer_sha256,content_sha256");
+  if (excludeId) query = query.neq("id", excludeId);
+  const { data, error } = await query.eq("module_name", moduleName);
+  if (error) throw error;
+  return (Array.isArray(data) ? data : []).find((row) =>
+    (Number(row.exam_year) === yearNumber && row.exam_session === examSession)
+    || (questionSha256 && (row.question_sha256 === questionSha256 || row.content_sha256 === questionSha256))
+    || (answerSha256 && row.answer_sha256 === answerSha256)
+  ) || null;
+}
 
-  async function saveExamSetDocument() {
-    if (!examSetDialog || examSetSaving || isLectureLibrary) return;
-    const name = String(examSetDialog.name || "").trim();
-    const yearNumber = Number(examSetDialog.year);
-    const examSession = EXAM_SET_SESSIONS.includes(examSetDialog.examSession) ? examSetDialog.examSession : "";
-    if (!name || !userId || !moduleName || !Number.isInteger(yearNumber) || yearNumber < 1900 || yearNumber > 2100 || !examSession) {
-      setExamSetStatus({ state: "error", message: copy.examSetRequiredMeta });
-      return;
+async function uploadExamSetSourceFile(file, role) {
+  const storagePath = examSetDocumentObjectPath(userId, moduleName, file.name, role);
+  const { error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).upload(storagePath, file, { contentType: "application/pdf", upsert: false });
+  if (error) throw error;
+  return storagePath;
+}
+
+async function saveExamSetDocument() {
+  if (!examSetDialog || examSetSaving || isLectureLibrary) return;
+  const name = String(examSetDialog.name || "").trim();
+  const yearNumber = Number(examSetDialog.year);
+  const examSession = EXAM_SET_SESSIONS.includes(examSetDialog.examSession) ? examSetDialog.examSession : "";
+  const questionFile = examSetDialog.questionFile || null;
+  const answerFile = examSetDialog.answerFile || null;
+  if (!name || !userId || !moduleName || !Number.isInteger(yearNumber) || yearNumber < 1900 || yearNumber > 2100 || !examSession) {
+    setExamSetStatus({ state: "error", message: copy.examSetRequiredMeta });
+    return;
+  }
+  if (examSetDialog.mode === "upload" && !questionFile) {
+    setExamSetStatus({ state: "error", message: copy.examSetQuestionPdfRequired });
+    return;
+  }
+  if (examSetDialog.mode === "upload" && !answerFile) {
+    setExamSetStatus({ state: "error", message: copy.examSetAnswerPdfRequired });
+    return;
+  }
+  if (questionFile && validateExamSetFile(questionFile)) {
+    setExamSetStatus({ state: "error", message: validateExamSetFile(questionFile) });
+    return;
+  }
+  if (answerFile && validateExamSetFile(answerFile)) {
+    setExamSetStatus({ state: "error", message: validateExamSetFile(answerFile) });
+    return;
+  }
+  setExamSetSaving(true);
+  setExamSetStatus({ state: "loading", message: copy.examSetHashing });
+  let questionStoragePath = null;
+  let answerStoragePath = null;
+  let uploadedPaths = [];
+  try {
+    const questionSha256 = questionFile ? await examSetDocumentSha256(questionFile) : examSetDialog.document?.questionSha256 || "";
+    const answerSha256 = answerFile ? await examSetDocumentSha256(answerFile) : examSetDialog.document?.answerSha256 || "";
+    const duplicate = await findExamSetDuplicate({ yearNumber, examSession, questionSha256, answerSha256, excludeId: examSetDialog.mode === "edit" ? examSetDialog.document?.id : null });
+    if (duplicate) throw Object.assign(new Error(copy.examSetDuplicate), { code: "23505" });
+
+    let parsedQuestions = examSetDialog.document?.parsedQuestions || [];
+    let parseMeta = examSetDialog.document?.parseMeta || {};
+    let parseStatus = examSetDialog.document?.parseStatus || "legacy";
+
+    if (questionFile) {
+      setExamSetStatus({ state: "loading", message: copy.examSetParsing });
+      const paired = await examSetParsePairedSources(questionFile, answerFile || null);
+      parsedQuestions = paired.questions;
+      parseMeta = paired.meta;
+      parseStatus = paired.meta.parseStatus;
+    } else if (examSetDialog.mode === "edit" && answerFile && examSetDialog.document?.questionStoragePath) {
+      const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(examSetDialog.document.questionStoragePath, 60 * 60);
+      if (error || !data?.signedUrl) throw error || new Error(copy.examSetActionError);
+      const paired = await examSetParsePairedSources(data.signedUrl, answerFile);
+      parsedQuestions = paired.questions;
+      parseMeta = paired.meta;
+      parseStatus = paired.meta.parseStatus;
     }
-    setExamSetSaving(true);
-    setExamSetStatus({ state: "loading", message: examSetDialog.mode === "upload" ? copy.examSetHashing : "" });
-    try {
-      if (examSetDialog.mode === "upload") {
-        const file = examSetDialog.file;
-        const validation = validateExamSetFile(file);
-        if (validation) throw new Error(validation);
-        const contentSha256 = await examSetDocumentSha256(file);
-        const duplicate = await findExamSetDuplicate({ yearNumber, examSession, contentSha256 });
-        if (duplicate) throw Object.assign(new Error(copy.examSetDuplicate), { code: "23505" });
 
-        const storagePath = examSetDocumentObjectPath(userId, moduleName, file.name);
-        const { error: uploadError } = await supabase.storage
-          .from(EXAM_SET_DOCUMENTS_BUCKET)
-          .upload(storagePath, file, { contentType: "application/pdf", upsert: false });
-        if (uploadError) throw uploadError;
-        const { data: inserted, error: insertError } = await supabase
-          .from("exam_set_documents")
-          .insert({
-            user_id: userId,
-            module_name: moduleName,
-            file_name: file.name,
-            display_name: name,
-            storage_path: storagePath,
-            mime_type: "application/pdf",
-            size_bytes: file.size,
-            exam_year: yearNumber,
-            exam_session: examSession,
-            exam_date: examSetDialog.examDate || null,
-            content_sha256: contentSha256 || null,
-          })
-          .select("id")
-          .single();
-        if (insertError) {
-          await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove([storagePath]);
-          if (insertError.code === "23505") throw Object.assign(new Error(copy.examSetDuplicate), { code: "23505" });
-          throw insertError;
-        }
-        const next = await refreshExamSetDocuments();
-        const nextId = inserted?.id || next[0]?.id;
-        if (nextId) setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextId }));
-        setExamSetDialog(null);
-        setExamSetStatus({ state: "success", message: copy.examSetSaved });
-      } else {
-        const document = examSetDialog.document;
-        if (!document?.id || document.ownerUserId !== userId) throw new Error(copy.examSetOwnerOnly);
-        const duplicate = await findExamSetDuplicate({ yearNumber, examSession, contentSha256: document.contentSha256, excludeId: document.id });
-        if (duplicate) throw Object.assign(new Error(copy.examSetDuplicate), { code: "23505" });
-        const { error } = await supabase
-          .from("exam_set_documents")
-          .update({
-            display_name: name,
-            exam_year: yearNumber,
-            exam_session: examSession,
-            exam_date: examSetDialog.examDate || null,
-          })
-          .eq("id", document.id)
-          .eq("user_id", userId);
-        if (error) {
-          if (error.code === "23505") throw Object.assign(new Error(copy.examSetDuplicate), { code: "23505" });
-          throw error;
-        }
-        await refreshExamSetDocuments();
-        setExamSetDialog(null);
-        setExamSetStatus({ state: "success", message: copy.examSetUpdated });
-      }
-    } catch (error) {
-      setExamSetStatus({ state: "error", message: error?.code === "23505" ? copy.examSetDuplicate : (error?.message || copy.examSetActionError) });
-    } finally {
-      setExamSetSaving(false);
+    setExamSetStatus({ state: "loading", message: copy.examSetParsing });
+    if (questionFile) {
+      questionStoragePath = await uploadExamSetSourceFile(questionFile, "questions");
+      uploadedPaths.push(questionStoragePath);
+    } else {
+      questionStoragePath = examSetDialog.document?.questionStoragePath || null;
     }
-  }
+    if (answerFile) {
+      answerStoragePath = await uploadExamSetSourceFile(answerFile, "answers");
+      uploadedPaths.push(answerStoragePath);
+    } else {
+      answerStoragePath = examSetDialog.document?.answerStoragePath || null;
+    }
 
-  function editExamSetDocument(examDocument = selectedExamDocument) {
-    if (!examDocument || examDocument.ownerUserId !== userId) {
-      setExamSetStatus({ state: "error", message: copy.examSetOwnerOnly });
-      return;
-    }
-    setExamSetDialog({
-      mode: "edit",
-      document: examDocument,
-      name: examDocument.name || "",
-      year: examDocument.year || "",
-      examSession: examDocument.examSession || "",
-      examDate: examDocument.examDate || "",
-    });
-  }
-
-  async function deleteExamSetDocument(examDocument = selectedExamDocument) {
-    if (!examDocument?.id || examDocument.ownerUserId !== userId) {
-      setExamSetStatus({ state: "error", message: copy.examSetOwnerOnly });
-      return;
-    }
-    if (!window.confirm(copy.examSetDeleteConfirm)) return;
-    setExamSetSaving(true);
-    setExamSetStatus({ state: "loading", message: "" });
-    try {
-      const { error } = await supabase.from("exam_set_documents").delete().eq("id", examDocument.id).eq("user_id", userId);
-      if (error) throw error;
-      if (examDocument.storagePath) await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove([examDocument.storagePath]);
+    if (examSetDialog.mode === "upload") {
+      const payload = {
+        user_id: userId,
+        module_name: moduleName,
+        file_name: questionFile.name,
+        display_name: name,
+        storage_path: questionStoragePath,
+        mime_type: "application/pdf",
+        size_bytes: questionFile.size,
+        exam_year: yearNumber,
+        exam_session: examSession,
+        exam_date: examSetDialog.examDate || null,
+        content_sha256: questionSha256 || null,
+        question_file_name: questionFile.name,
+        question_storage_path: questionStoragePath,
+        question_size_bytes: questionFile.size,
+        question_sha256: questionSha256 || null,
+        answer_file_name: answerFile?.name || null,
+        answer_storage_path: answerStoragePath,
+        answer_size_bytes: answerFile?.size || null,
+        answer_sha256: answerSha256 || null,
+        parsed_questions: parsedQuestions,
+        parse_meta: parseMeta,
+        parse_status: parseStatus,
+        parse_version: EXAM_SET_PARSE_VERSION,
+      };
+      const { data: inserted, error: insertError } = await supabase.from("exam_set_documents").insert(payload).select("id").single();
+      if (insertError) throw insertError;
       const next = await refreshExamSetDocuments();
-      const nextId = next[0]?.id || null;
-      setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextId }));
-      setExamSetStatus({ state: "success", message: copy.examSetDeleted });
-    } catch (error) {
-      setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
-    } finally {
-      setExamSetSaving(false);
+      const nextId = inserted?.id || next[0]?.id;
+      if (nextId) setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextId }));
+      setExamSetDialog(null);
+      setExamSetStatus({ state: "success", message: copy.examSetSaved });
+    } else {
+      const document = examSetDialog.document;
+      if (!document?.id || document.ownerUserId !== userId) throw new Error(copy.examSetOwnerOnly);
+      const updatePayload = {
+        display_name: name,
+        exam_year: yearNumber,
+        exam_session: examSession,
+        exam_date: examSetDialog.examDate || null,
+        answer_file_name: answerFile?.name || document.answerFileName || null,
+        answer_storage_path: answerStoragePath,
+        answer_size_bytes: answerFile?.size || document.answerSize || null,
+        answer_sha256: answerSha256 || document.answerSha256 || null,
+        parsed_questions: parsedQuestions,
+        parse_meta: parseMeta,
+        parse_status: parseStatus,
+        parse_version: EXAM_SET_PARSE_VERSION,
+      };
+      const { error } = await supabase.from("exam_set_documents").update(updatePayload).eq("id", document.id).eq("user_id", userId);
+      if (error) throw error;
+      if (answerFile && document.answerStoragePath && document.answerStoragePath !== answerStoragePath) {
+        await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove([document.answerStoragePath]);
+      }
+      await refreshExamSetDocuments();
+      setExamSetDialog(null);
+      setExamSetStatus({ state: "success", message: copy.examSetUpdated });
     }
+  } catch (error) {
+    if (uploadedPaths.length) await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove(uploadedPaths).catch(() => {});
+    setExamSetStatus({ state: "error", message: error?.code === "23505" ? copy.examSetDuplicate : (error?.message || copy.examSetActionError) });
+  } finally {
+    setExamSetSaving(false);
   }
+}
 
-  async function openExamSetDocument(examDocument = selectedExamDocument) {
-    if (!examDocument?.storagePath) return;
-    const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(examDocument.storagePath, 60 * 60);
-    if (error || !data?.signedUrl) {
-      setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
-      return;
-    }
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+function editExamSetDocument(examDocument = selectedExamDocument) {
+  if (!examDocument || examDocument.ownerUserId !== userId) {
+    setExamSetStatus({ state: "error", message: copy.examSetOwnerOnly });
+    return;
   }
+  setExamSetDialog({
+    mode: "edit",
+    document: examDocument,
+    questionFile: null,
+    answerFile: null,
+    name: examDocument.name || "",
+    year: examDocument.year || "",
+    examSession: examDocument.examSession || "",
+    examDate: examDocument.examDate || "",
+  });
+}
 
-  async function downloadExamSetDocument(examDocument = selectedExamDocument) {
-    if (!examDocument?.storagePath) return;
-    const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).download(examDocument.storagePath);
-    if (error || !data) {
-      setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
-      return;
-    }
-    const url = URL.createObjectURL(data);
-    const anchor = window.document.createElement("a");
-    anchor.href = url;
-    anchor.download = examDocument.fileName || `${examDocument.name || "eksamenssaet"}.pdf`;
-    anchor.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+async function deleteExamSetDocument(examDocument = selectedExamDocument) {
+  if (!examDocument?.id || examDocument.ownerUserId !== userId) {
+    setExamSetStatus({ state: "error", message: copy.examSetOwnerOnly });
+    return;
   }
+  if (!window.confirm(copy.examSetDeleteConfirm)) return;
+  setExamSetSaving(true);
+  setExamSetStatus({ state: "loading", message: "" });
+  try {
+    const { error } = await supabase.from("exam_set_documents").delete().eq("id", examDocument.id).eq("user_id", userId);
+    if (error) throw error;
+    const paths = [examDocument.questionStoragePath || examDocument.storagePath, examDocument.answerStoragePath].filter(Boolean);
+    if (paths.length) await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove(paths);
+    const next = await refreshExamSetDocuments();
+    const nextId = next[0]?.id || null;
+    setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextId }));
+    setExamSetStatus({ state: "success", message: copy.examSetDeleted });
+  } catch (error) {
+    setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+  } finally {
+    setExamSetSaving(false);
+  }
+}
+
+async function openExamSetDocument(examDocument = selectedExamDocument) {
+  if (!examDocument?.questionStoragePath) return;
+  const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(examDocument.questionStoragePath, 60 * 60);
+  if (error || !data?.signedUrl) {
+    setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+    return;
+  }
+  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+}
+
+async function downloadExamSetDocument(examDocument = selectedExamDocument) {
+  if (!examDocument?.questionStoragePath) return;
+  const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).download(examDocument.questionStoragePath);
+  if (error || !data) {
+    setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+    return;
+  }
+  const url = URL.createObjectURL(data);
+  const anchor = window.document.createElement("a");
+  anchor.href = url;
+  anchor.download = examDocument.questionFileName || `${examDocument.name || "eksamenssaet"}-spørgsmål.pdf`;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
   async function persistExamSetPractice(scope, snapshot, { background = false } = {}) {
     if (!scope?.userId || !scope?.examSetId) return false;
@@ -34900,42 +35308,54 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     });
   }
 
-  async function createExamSetViewer() {
-    if (!selectedExamDocument || !examSetPreviewUrl || examSetPreviewState !== "ready") return;
-    if (examSetQuestionDocumentId === selectedExamDocument.id && examSetQuestions.length) {
-      setExamSetMode("exam");
-      return;
+async function createExamSetViewer() {
+  if (!selectedExamDocument || !examSetPreviewUrl || examSetPreviewState !== "ready") return;
+  if (examSetQuestionDocumentId === selectedExamDocument.id && examSetQuestions.length && examSetParseMeta?.parseVersion === (selectedExamDocument.parseVersion || EXAM_SET_PARSE_VERSION)) {
+    setExamSetMode("exam");
+    return;
+  }
+  setExamSetParseState("loading");
+  setExamSetParseMeta(null);
+  setExamSetStatus({ state: "loading", message: copy.examSetExtracting });
+  try {
+    let questions = Array.isArray(selectedExamDocument.parsedQuestions) ? selectedExamDocument.parsedQuestions : [];
+    let meta = selectedExamDocument.parseMeta && typeof selectedExamDocument.parseMeta === "object" ? selectedExamDocument.parseMeta : {};
+    if (!questions.length || selectedExamDocument.parseVersion !== EXAM_SET_PARSE_VERSION) {
+      const paired = await examSetParsePairedSources(examSetPreviewUrl, examSetAnswerPreviewUrl || null);
+      questions = paired.questions;
+      meta = paired.meta;
     }
-    setExamSetParseState("loading");
-    setExamSetParseMeta(null);
-    setExamSetStatus({ state: "loading", message: copy.examSetExtracting });
-    try {
-      const parsed = await examSetExtractQuestionsFromPdf(examSetPreviewUrl);
-      if (!parsed.questions.length) {
-        setExamSetQuestions([]);
-        setExamSetQuestionDocumentId(selectedExamDocument.id);
-        setExamSetParseMeta(parsed);
-        setExamSetParseState("empty");
-        setExamSetMode("exam");
-        setExamSetStatus({ state: "error", message: copy.examSetNoQuestions });
-        return;
-      }
-      setExamSetQuestions(parsed.questions);
-      setExamSetQuestionDocumentId(selectedExamDocument.id);
-      setExamSetParseMeta(parsed);
-      setExamSetParseState("ready");
-      setExamSetMode("exam");
-      const safeIndex = Math.min(Math.max(0, examSetPracticeRef.current.currentIndex || 0), parsed.questions.length - 1);
-      updateExamSetPractice((current) => ({ ...current, currentIndex: safeIndex }), { save: false });
-      setExamSetStatus({ state: "success", message: copy.examSetExtracted(parsed.questions.length, parsed.stats.questionsWithKey) });
-    } catch (error) {
+    if (!questions.length) {
       setExamSetQuestions([]);
       setExamSetQuestionDocumentId(selectedExamDocument.id);
-      setExamSetParseState("error");
+      setExamSetParseMeta(meta);
+      setExamSetParseState("empty");
       setExamSetMode("exam");
       setExamSetStatus({ state: "error", message: copy.examSetNoQuestions });
+      return;
     }
+    setExamSetQuestions(questions);
+    setExamSetQuestionDocumentId(selectedExamDocument.id);
+    setExamSetParseMeta(meta);
+    setExamSetParseState("ready");
+    setExamSetMode("exam");
+    const safeIndex = Math.min(Math.max(0, examSetPracticeRef.current.currentIndex || 0), questions.length - 1);
+    updateExamSetPractice((current) => ({ ...current, currentIndex: safeIndex }), { save: false });
+    setExamSetStatus({ state: "success", message: copy.examSetExtracted(questions.length, questions.filter((question) => question.correctLabel).length, questions.filter((question) => question.hasVisual).length) });
+  } catch (error) {
+    setExamSetQuestions([]);
+    setExamSetQuestionDocumentId(selectedExamDocument.id);
+    setExamSetParseState("error");
+    setExamSetMode("exam");
+    setExamSetStatus({ state: "error", message: error?.message || copy.examSetNoQuestions });
   }
+}
+
+function openOriginalExamPage(question) {
+  const page = Number(question?.page || question?.sourcePages?.[0] || 1);
+  if (!examSetPreviewUrl || !Number.isFinite(page)) return;
+  setExamSetOriginalPage(page);
+}
 
   function selectExamSetQuestion(index) {
     if (!examSetQuestions.length) return;
@@ -34997,6 +35417,18 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     openExamSetUploadDialog(file);
   }
 
+  function handleExamSetAnswerFile(event) {
+    const file = event.target.files?.[0] || null;
+    event.target.value = "";
+    if (!file) return;
+    const validation = validateExamSetFile(file);
+    if (validation) {
+      setExamSetStatus({ state: "error", message: validation });
+      return;
+    }
+    setExamSetDialog((current) => current ? { ...current, answerFile: file } : current);
+  }
+
   const title = isLectureLibrary ? copy.lectures : copy.examSets;
   const subtitle = isLectureLibrary ? copy.lectureSubtitle : copy.examSubtitle;
   const selectedAttendance = selectedLectureRow ? attendanceDefinition(selectedLectureRow.attendanceStatus) : null;
@@ -35020,6 +35452,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         </div>
         <div className="document-workspace-header-actions">
           <input ref={uploadRef} type="file" accept={isLectureLibrary ? LECTURE_MATERIAL_ACCEPT : "application/pdf,.pdf"} multiple={isLectureLibrary} onChange={handleUpload} hidden />
+          {!isLectureLibrary && <input ref={answerUploadRef} type="file" accept="application/pdf,.pdf" onChange={handleExamSetAnswerFile} hidden />}
           {isLectureLibrary && <input ref={replaceUploadRef} type="file" accept={LECTURE_MATERIAL_ACCEPT} onChange={replaceLectureMaterialFile} hidden />}
           <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary ? (!selectedLecture || materialSaving) : examSetSaving}>
             <Icon name="upload" size={14} />{isLectureLibrary ? copy.addMaterial : copy.upload}
@@ -35145,7 +35578,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                   <span className="document-library-code"><Icon name="file" size={14} /></span>
                   <span className="document-library-copy">
                     <strong>{document.name}</strong>
-                    <small className="exam-set-library-meta"><span>{document.year || "—"}</span><i /><span>{examSetSessionLabel(document.examSession)}</span>{document.examDate && <><i /><span>{examSetDateLabel(document.examDate)}</span></>}<i /><span className="exam-set-shared-badge"><Icon name="share" size={8} />{copy.examSetShared}</span></small>
+                    <small className="exam-set-library-meta"><span>{document.year || "—"}</span><i /><span>{examSetSessionLabel(document.examSession)}</span>{document.examDate && <><i /><span>{examSetDateLabel(document.examDate)}</span></>}<i /><span className="exam-set-shared-badge"><Icon name="share" size={8} />{copy.examSetShared}</span>{Number(document.parseMeta?.questionsWithKey) > 0 && <><i /><span className="exam-set-answer-source-badge"><Icon name="check" size={8} />{copy.examSetAnswerKeyReady}</span></>}</small>
                   </span>
                 </button>
               )) : <div className="document-library-empty">{examSetStatus.state === "error" ? examSetStatus.message : copy.noExamSets}</div>
@@ -35328,8 +35761,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                   <button type="button" role="tab" aria-selected={examSetMode === "pdf"} data-active={examSetMode === "pdf" ? "true" : "false"} onClick={() => setExamSetMode("pdf")}><Icon name="file" size={12} />{copy.examSetPdfMode}</button>
                   <button type="button" role="tab" aria-selected={examSetMode === "exam"} data-active={examSetMode === "exam" ? "true" : "false"} className="exam-set-create-viewer" disabled={examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={createExamSetViewer}><Icon name="cards" size={12} />{examSetQuestionDocumentId === selectedExamDocument?.id && examSetQuestions.length ? copy.examSetViewerMode : copy.examSetCreateViewer}</button>
                 </span>
-                <button type="button" onClick={() => downloadExamSetDocument()}><Icon name="down" size={12} />{copy.examSetDownload}</button>
-                <button type="button" onClick={() => openExamSetDocument()}><Icon name="expand" size={12} />{copy.examSetOpen}</button>
+                {examSetMode === "pdf" && <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetPdfMode}>
+                  <button type="button" role="tab" aria-selected={examSetPdfSource === "questions"} data-active={examSetPdfSource === "questions" ? "true" : "false"} onClick={() => setExamSetPdfSource("questions")}><Icon name="file" size={11} />{copy.examSetQuestionsSource}</button>
+                  <button type="button" role="tab" aria-selected={examSetPdfSource === "answers"} data-active={examSetPdfSource === "answers" ? "true" : "false"} disabled={!selectedExamDocument?.answerStoragePath || examSetAnswerPreviewState !== "ready"} onClick={() => setExamSetPdfSource("answers")}><Icon name="check" size={11} />{copy.examSetAnswersSource}</button>
+                </span>}
+                <button type="button" onClick={() => openExamSetDocument()}><Icon name="external" size={12} />{copy.examSetOpen}</button>
+                <button type="button" onClick={() => downloadExamSetDocument()}><Icon name="download" size={12} />{copy.examSetDownload}</button>
                 {selectedExamDocument?.ownerUserId === userId && <button type="button" disabled={examSetSaving} onClick={() => editExamSetDocument()}><Icon name="edit" size={12} />{copy.examSetEdit}</button>}
                 {selectedExamDocument?.ownerUserId === userId && <button type="button" className="exam-set-delete" disabled={examSetSaving} onClick={() => deleteExamSetDocument()}><Icon name="trash" size={12} />{copy.examSetDelete}</button>}
               </div>
@@ -35360,84 +35797,91 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
                 <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{!selectedLecture ? copy.selectItem : copy.materialLibraryEmpty}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="upload" size={14} />{copy.addMaterial}</button></div>
               )
             ) : activeDocument ? (
-              examSetMode === "exam" ? (
-                examSetParseState === "loading" ? (
-                  <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetExtracting}</strong><p>{copy.examSetExtractHint}</p></div>
-                ) : examSetQuestions.length ? (() => {
-                  const currentIndex = Math.min(Math.max(0, examSetPractice.currentIndex || 0), examSetQuestions.length - 1);
-                  const question = examSetQuestions[currentIndex];
-                  const selectedAnswer = examSetPractice.answers?.[question.id] || "";
-                  const isMarked = Boolean(examSetPractice.marked?.[question.id]);
-                  const answeredCount = examSetQuestions.filter((item) => examSetPractice.answers?.[item.id]).length;
-                  const markedCount = examSetQuestions.filter((item) => examSetPractice.marked?.[item.id]).length;
-                  const submitted = Boolean(examSetPractice.submittedAt);
-                  const keyedCount = examSetQuestions.filter((item) => item.correctLabel).length;
-                  const correctCount = submitted ? examSetQuestions.filter((item) => item.correctLabel && examSetPractice.answers?.[item.id] === item.correctLabel).length : 0;
-                  const selectedIsCorrect = submitted && question.correctLabel && selectedAnswer ? selectedAnswer === question.correctLabel : null;
-                  return (
-                    <div className="exam-set-practice-shell">
-                      <section className="exam-set-question-stage">
-                        <header className="exam-set-question-header">
-                          <div><strong>{copy.examSetQuestion} {currentIndex + 1} / {examSetQuestions.length}</strong><small>{copy.examSetExtracted(examSetQuestions.length, keyedCount)}</small></div>
-                          <span className="exam-set-practice-save" data-state={examSetPracticeSaveState}>{examSetPracticeLoadState === "loading" ? copy.examSetPracticeLoading : examSetPracticeSaveState === "saving" ? copy.examSetPracticeSaving : examSetPracticeSaveState === "saved" ? copy.examSetPracticeSaved : examSetPracticeSaveState === "error" ? copy.examSetPracticeError : ""}</span>
-                        </header>
-                        <div className="exam-set-question-scroll">
-                          <article className="exam-set-question-card">
-                            <div className="exam-set-question-source"><span>{copy.examSetSourceQuestion} {question.sourceNumber}</span>{question.page && <span>{copy.examSetSourcePage} {question.page}</span>}</div>
-                            <h2 className="exam-set-question-text">{question.text}</h2>
-                            <div className="exam-set-options">
-                              {question.options.map((option) => {
-                                const result = submitted && question.correctLabel
-                                  ? option.label === question.correctLabel
-                                    ? "correct"
-                                    : selectedAnswer === option.label
-                                      ? "wrong"
-                                      : ""
-                                  : "";
-                                return <button key={option.label} type="button" className="exam-set-option" data-selected={selectedAnswer === option.label ? "true" : "false"} data-result={result || undefined} onClick={() => answerExamSetQuestion(question.id, option.label)}><span className="exam-set-option-label">{option.label}</span><span className="exam-set-option-text">{option.text}</span></button>;
-                              })}
-                            </div>
-                            {submitted && (
-                              <div className="exam-set-answer-feedback" data-tone={question.correctLabel ? (selectedIsCorrect ? "correct" : selectedAnswer ? "wrong" : "") : ""}>
-                                {question.correctLabel ? copy.examSetCorrectAnswer(question.correctLabel) : copy.examSetAnswerKeyMissing}
-                              </div>
-                            )}
-                            <footer className="exam-set-question-footer">
-                              <div className="exam-set-question-nav"><button type="button" disabled={currentIndex <= 0} onClick={() => selectExamSetQuestion(currentIndex - 1)}><Icon name="left" size={11} />{copy.examSetPreviousQuestion}</button><button type="button" disabled={currentIndex >= examSetQuestions.length - 1} onClick={() => selectExamSetQuestion(currentIndex + 1)}>{copy.examSetNextQuestion}<Icon name="right" size={11} /></button></div>
-                              <button type="button" className="exam-set-mark-button" data-marked={isMarked ? "true" : "false"} onClick={() => toggleExamSetMarked(question.id)}><Icon name="flag" size={11} />{isMarked ? copy.examSetUnmarkLater : copy.examSetMarkLater}</button>
-                            </footer>
-                          </article>
-                        </div>
-                      </section>
-                      <aside className="exam-set-grid-panel">
-                        <div className="exam-set-grid-header"><strong>{copy.examSetGridTitle}</strong><small>{copy.examSetGridHint}</small></div>
-                        <div className="exam-set-question-grid">
-                          {examSetQuestions.map((item, index) => {
-                            const state = examSetQuestionGridState(item, examSetPractice);
-                            const marked = Boolean(examSetPractice.marked?.[item.id]);
-                            return <button key={item.id} type="button" className="exam-set-grid-cell" data-state={state} data-marked={marked ? "true" : "false"} data-current={index === currentIndex ? "true" : "false"} title={`${copy.examSetSourceQuestion} ${item.sourceNumber}`} onClick={() => selectExamSetQuestion(index)}>{index + 1}</button>;
-                          })}
-                        </div>
-                        <div className="exam-set-grid-summary">
-                          <div className="exam-set-grid-stats"><span><strong>{answeredCount}</strong><small>{copy.examSetAnswered}</small></span><span><strong>{markedCount}</strong><small>{copy.examSetMarked}</small></span><span><strong>{submitted && keyedCount ? `${correctCount}/${keyedCount}` : keyedCount}</strong><small>{submitted ? copy.examSetCorrect : "Facit"}</small></span></div>
-                          <div className="exam-set-grid-legend"><span><i />{copy.examSetUnanswered}</span><span><i data-tone="answered" />{copy.examSetAnswered}</span><span><i data-tone="marked" />{copy.examSetMarked}</span>{submitted && <><span><i data-tone="correct" />{copy.examSetCorrect}</span><span><i data-tone="wrong" />{copy.examSetWrong}</span></>}</div>
-                          <button type="button" className="exam-set-grid-submit" data-submitted={submitted ? "true" : "false"} onClick={submitExamSetPractice}><Icon name={submitted ? "check" : "flag"} size={12} />{submitted ? copy.examSetSubmitted : copy.examSetSubmit}</button>
-                        </div>
-                      </aside>
-                    </div>
-                  );
-                })() : (
-                  <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetNoQuestions}</strong><p>{copy.examSetExtractHint}<br />{copy.examSetScannedHint}</p>{examSetParseMeta && <span className="exam-set-parser-meta">{examSetParseMeta.pageCount || 0} PDF-sider · {examSetParseMeta.extractedLineCount || 0} tekstlinjer</span>}<button type="button" className="ui-button ui-button--secondary" onClick={() => setExamSetMode("pdf")}><Icon name="file" size={13} />{copy.examSetPdfMode}</button></div>
-                )
+examSetMode === "exam" ? (
+  examSetParseState === "loading" ? (
+    <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetExtracting}</strong><p>{copy.examSetExtractHint}</p></div>
+  ) : examSetQuestions.length ? (() => {
+    const currentIndex = Math.min(Math.max(0, examSetPractice.currentIndex || 0), examSetQuestions.length - 1);
+    const question = examSetQuestions[currentIndex];
+    const selectedAnswer = examSetPractice.answers?.[question.id] || "";
+    const isMarked = Boolean(examSetPractice.marked?.[question.id]);
+    const answeredCount = examSetQuestions.filter((item) => examSetPractice.answers?.[item.id]).length;
+    const markedCount = examSetQuestions.filter((item) => examSetPractice.marked?.[item.id]).length;
+    const submitted = Boolean(examSetPractice.submittedAt);
+    const keyedCount = examSetQuestions.filter((item) => item.correctLabel).length;
+    const correctCount = submitted ? examSetQuestions.filter((item) => item.correctLabel && examSetPractice.answers?.[item.id] === item.correctLabel).length : 0;
+    const selectedIsCorrect = submitted && question.correctLabel && selectedAnswer ? selectedAnswer === question.correctLabel : null;
+    return (
+      <div className="exam-set-practice-shell">
+        <section className="exam-set-question-stage">
+          <header className="exam-set-question-header">
+            <div><strong>{copy.examSetQuestion} {currentIndex + 1} / {examSetQuestions.length}</strong><small>{copy.examSetExtracted(examSetQuestions.length, keyedCount, examSetQuestions.filter((item) => item.hasVisual).length)}</small></div>
+            <div className="exam-set-question-header-actions">
+              <span className="exam-set-practice-save" data-state={examSetPracticeSaveState}>{examSetPracticeLoadState === "loading" ? copy.examSetPracticeLoading : examSetPracticeSaveState === "saving" ? copy.examSetPracticeSaving : examSetPracticeSaveState === "saved" ? copy.examSetPracticeSaved : examSetPracticeSaveState === "error" ? copy.examSetPracticeError : ""}</span>
+              <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetShowAnswers}>
+                <button type="button" role="tab" aria-selected={!examSetShowAnswers} data-active={!examSetShowAnswers ? "true" : "false"} onClick={() => setExamSetShowAnswers(false)}>{copy.examSetHideAnswers}</button>
+                <button type="button" role="tab" aria-selected={examSetShowAnswers} data-active={examSetShowAnswers ? "true" : "false"} onClick={() => setExamSetShowAnswers(true)} disabled={!keyedCount}>{copy.examSetShowAnswers}</button>
+              </span>
+            </div>
+          </header>
+          <div className="exam-set-question-scroll">
+            <article className="exam-set-question-card">
+              <div className="exam-set-question-source"><span>{copy.examSetSourceQuestion} {question.sourceNumber}</span>{question.sourcePages?.length ? <span>{copy.examSetSourcePage} {question.sourcePages.join("–")}</span> : question.page ? <span>{copy.examSetSourcePage} {question.page}</span> : null}{question.hasVisual && <span>{copy.examSetOriginalExcerpt}</span>}</div>
+              <h2 className="exam-set-question-text">{question.text}</h2>
+              {question.hasVisual && examSetPreviewUrl && <ExamSourcePagePreview url={examSetPreviewUrl} pageNumber={question.page || question.sourcePages?.[0] || 1} fileName={selectedExamDocument?.questionFileName || selectedExamDocument?.name} copy={copy} onOpen={() => openOriginalExamPage(question)} />}
+              <div className="exam-set-options">
+                {question.options.map((option) => {
+                  const result = submitted && question.correctLabel
+                    ? option.label === question.correctLabel
+                      ? "correct"
+                      : selectedAnswer === option.label
+                        ? "wrong"
+                        : ""
+                    : "";
+                  return <button key={option.label} type="button" className="exam-set-option" data-selected={selectedAnswer === option.label ? "true" : "false"} data-result={result || undefined} onClick={() => answerExamSetQuestion(question.id, option.label)}><span className="exam-set-option-label">{option.label}</span><span className="exam-set-option-text">{option.text}</span></button>;
+                })}
+              </div>
+              {examSetShowAnswers && (
+                <div className="exam-set-answer-feedback" data-tone={question.correctLabel && selectedAnswer ? (selectedIsCorrect ? "correct" : "wrong") : ""}>
+                  {question.correctLabel ? copy.examSetCorrectAnswer(question.correctLabel) : copy.examSetAnswerKeyMissing}
+                </div>
+              )}
+              <footer className="exam-set-question-footer">
+                <div className="exam-set-question-nav"><button type="button" disabled={currentIndex <= 0} onClick={() => selectExamSetQuestion(currentIndex - 1)}><Icon name="left" size={11} />{copy.examSetPreviousQuestion}</button><button type="button" disabled={currentIndex >= examSetQuestions.length - 1} onClick={() => selectExamSetQuestion(currentIndex + 1)}>{copy.examSetNextQuestion}<Icon name="right" size={11} /></button></div>
+                <div className="exam-set-question-nav"><button type="button" className="exam-set-original-button" onClick={() => openOriginalExamPage(question)}><Icon name="file" size={11} />{copy.examSetOpenOriginal}</button><button type="button" className="exam-set-mark-button" data-marked={isMarked ? "true" : "false"} onClick={() => toggleExamSetMarked(question.id)}><Icon name="flag" size={11} />{isMarked ? copy.examSetUnmarkLater : copy.examSetMarkLater}</button></div>
+              </footer>
+            </article>
+          </div>
+        </section>
+        <aside className="exam-set-grid-panel">
+          <div className="exam-set-grid-header"><strong>{copy.examSetGridTitle}</strong><small>{copy.examSetGridHint}</small></div>
+          <div className="exam-set-question-grid">
+            {examSetQuestions.map((item, index) => {
+              const state = examSetQuestionGridState(item, examSetPractice);
+              const marked = Boolean(examSetPractice.marked?.[item.id]);
+              return <button key={item.id} type="button" className="exam-set-grid-cell" data-state={state} data-marked={marked ? "true" : "false"} data-current={index === currentIndex ? "true" : "false"} title={`${copy.examSetSourceQuestion} ${item.sourceNumber}`} onClick={() => selectExamSetQuestion(index)}>{index + 1}</button>;
+            })}
+          </div>
+          <div className="exam-set-grid-summary">
+            <div className="exam-set-grid-stats"><span><strong>{answeredCount}</strong><small>{copy.examSetAnswered}</small></span><span><strong>{markedCount}</strong><small>{copy.examSetMarked}</small></span><span><strong>{submitted && keyedCount ? `${correctCount}/${keyedCount}` : keyedCount}</strong><small>{submitted ? copy.examSetCorrect : "Facit"}</small></span></div>
+            <div className="exam-set-grid-legend"><span><i />{copy.examSetUnanswered}</span><span><i data-tone="answered" />{copy.examSetAnswered}</span><span><i data-tone="marked" />{copy.examSetMarked}</span>{submitted && <><span><i data-tone="correct" />{copy.examSetCorrect}</span><span><i data-tone="wrong" />{copy.examSetWrong}</span></>}</div>
+            <button type="button" className="exam-set-grid-submit" data-submitted={submitted ? "true" : "false"} onClick={submitExamSetPractice}><Icon name={submitted ? "check" : "flag"} size={12} />{submitted ? copy.examSetSubmitted : copy.examSetSubmit}</button>
+          </div>
+        </aside>
+      </div>
+    );
+  })() : (
+    <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetNoQuestions}</strong><p>{copy.examSetExtractHint}<br />{copy.examSetScannedHint}</p>{examSetParseMeta && <span className="exam-set-parser-meta">{examSetParseMeta.questionPdfPages || 0} PDF-sider · {examSetParseMeta.questionCount || 0} MCQ · {examSetParseMeta.questionsWithKey || 0} med facit · {examSetParseMeta.questionsWithVisuals || 0} med visual</span>}<button type="button" className="ui-button ui-button--secondary" onClick={() => setExamSetMode("pdf")}><Icon name="file" size={13} />{copy.examSetPdfMode}</button></div>
+  )
               ) : examSetPreviewState === "loading" ? (
                 <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.examSetLoading}</strong></div>
               ) : activeDocument.url ? (
                 <LecturePdfViewer
-                  url={activeDocument.url}
-                  materialId={activeDocument.id}
-                  fileName={activeDocument.name}
-                  savedState={workspaceState.documentViewer?.[activeDocument.id] || {}}
-                  onStateChange={(patch) => updateLectureViewerState(activeDocument.id, patch)}
+                  url={examSetPdfSource === "answers" ? examSetAnswerPreviewUrl : activeDocument.url}
+                  materialId={`${activeDocument.id}-${examSetPdfSource}`}
+                  fileName={examSetPdfSource === "answers" ? selectedExamDocument?.answerFileName : activeDocument.name}
+                  savedState={workspaceState.documentViewer?.[`${activeDocument.id}-${examSetPdfSource}`] || {}}
+                  onStateChange={(patch) => updateLectureViewerState(`${activeDocument.id}-${examSetPdfSource}`, patch)}
                   copy={copy}
                 />
               ) : (
@@ -35603,30 +36047,42 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         </Modal>
       )}
 
-      {examSetDialog && !isLectureLibrary && (
-        <Modal c={c} onClose={() => !examSetSaving && setExamSetDialog(null)}>
-          <div className="lecture-material-dialog">
-            <div className="lecture-material-dialog-heading">
-              <span><Icon name="cards" size={17} /></span>
-              <div><strong>{examSetDialog.mode === "upload" ? copy.examSetUploadTitle : copy.examSetEditTitle}</strong><small>{moduleName}</small></div>
-            </div>
-            {examSetDialog.mode === "upload" && examSetDialog.file && (
-              <div className="exam-set-dialog-file">
-                <Icon name="file" size={14} />
-                <div><strong>{examSetDialog.file.name}</strong><small>{lectureMaterialFormatBytes(examSetDialog.file.size)}</small></div>
-                <small>PDF</small>
-              </div>
-            )}
-            <label className="lecture-material-field"><span>{copy.examSetName}</span><input value={examSetDialog.name || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, name: event.target.value }))} /></label>
-            <div className="exam-set-dialog-grid">
-              <label className="lecture-material-field"><span>{copy.examSetYear}</span><input type="number" min="1900" max="2100" inputMode="numeric" value={examSetDialog.year || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, year: event.target.value }))} /></label>
-              <label className="lecture-material-field"><span>{copy.examSetSession}</span><select value={examSetDialog.examSession || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, examSession: event.target.value }))}><option value="">—</option>{EXAM_SET_SESSIONS.map((session) => <option key={session} value={session}>{examSetSessionLabel(session)}</option>)}</select></label>
-            </div>
-            <div className="exam-set-dialog-required"><Icon name="flag" size={11} /><span>{copy.examSetRequiredMeta}</span></div>
-            <label className="lecture-material-field"><span>{copy.examSetDate}</span><input type="date" value={examSetDialog.examDate || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, examDate: event.target.value }))} /></label>
-            <div className="lecture-material-dialog-actions"><button type="button" className="ui-button ui-button--secondary" disabled={examSetSaving} onClick={() => setExamSetDialog(null)}>{copy.examSetCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={examSetSaving || !String(examSetDialog.name || "").trim() || !String(examSetDialog.year || "").trim() || !EXAM_SET_SESSIONS.includes(examSetDialog.examSession)} onClick={saveExamSetDocument}>{examSetSaving ? (examSetDialog.mode === "upload" ? copy.examSetHashing : copy.examSetLoading) : copy.examSetSave}</button></div>
-          </div>
-        </Modal>
+{examSetDialog && !isLectureLibrary && (
+  <Modal c={c} onClose={() => !examSetSaving && setExamSetDialog(null)}>
+    <div className="lecture-material-dialog">
+      <div className="lecture-material-dialog-heading">
+        <span><Icon name="cards" size={17} /></span>
+        <div><strong>{examSetDialog.mode === "upload" ? copy.examSetUploadTitle : copy.examSetEditTitle}</strong><small>{moduleName}</small></div>
+      </div>
+      <div className="exam-set-dialog-grid">
+        <label className="lecture-material-field"><span>{copy.examSetName}</span><input value={examSetDialog.name || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, name: event.target.value }))} /></label>
+        <label className="lecture-material-field"><span>{copy.examSetYear}</span><input type="number" min="1900" max="2100" inputMode="numeric" value={examSetDialog.year || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, year: event.target.value }))} /></label>
+      </div>
+      <div className="exam-set-dialog-grid">
+        <label className="lecture-material-field"><span>{copy.examSetSession}</span><select value={examSetDialog.examSession || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, examSession: event.target.value }))}><option value="">—</option>{EXAM_SET_SESSIONS.map((session) => <option key={session} value={session}>{examSetSessionLabel(session)}</option>)}</select></label>
+        <label className="lecture-material-field"><span>{copy.examSetDate}</span><input type="date" value={examSetDialog.examDate || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, examDate: event.target.value }))} /></label>
+      </div>
+      <div className="exam-set-paired-files">
+        <section className="exam-set-file-pick" data-ready={examSetDialog.questionFile || examSetDialog.document?.questionFileName ? "true" : "false"}>
+          <header><strong>{copy.examSetQuestionPdf}</strong><small>Påkrævet</small></header>
+          <div className="exam-set-file-pick-body"><Icon name="file" size={16} /><div><strong>{examSetDialog.questionFile?.name || examSetDialog.document?.questionFileName || "—"}</strong><small>{examSetDialog.questionFile ? lectureMaterialFormatBytes(examSetDialog.questionFile.size) : examSetDialog.document?.questionSize ? lectureMaterialFormatBytes(examSetDialog.document.questionSize) : "Ingen fil valgt"}</small></div></div>
+          {examSetDialog.mode === "upload" && <button type="button" disabled={examSetSaving} onClick={() => uploadRef.current?.click()}>{copy.examSetChooseQuestionPdf}</button>}
+        </section>
+        <section className="exam-set-file-pick" data-ready={examSetDialog.answerFile || examSetDialog.document?.answerFileName ? "true" : "false"}>
+          <header><strong>{copy.examSetAnswerPdf}</strong><small>Påkrævet</small></header>
+          <div className="exam-set-file-pick-body"><Icon name="check" size={16} /><div><strong>{examSetDialog.answerFile?.name || examSetDialog.document?.answerFileName || "—"}</strong><small>{examSetDialog.answerFile ? lectureMaterialFormatBytes(examSetDialog.answerFile.size) : examSetDialog.document?.answerSize ? lectureMaterialFormatBytes(examSetDialog.document.answerSize) : "Ingen fil valgt"}</small></div></div>
+          <button type="button" disabled={examSetSaving} onClick={() => answerUploadRef.current?.click()}>{copy.examSetChooseAnswerPdf}</button>
+        </section>
+      </div>
+      <div className="exam-set-dialog-required"><Icon name="flag" size={11} /><span>{copy.examSetAnswerPdfPrivate} {copy.examSetRequiredMeta}</span></div>
+      {examSetDialog.document?.parseMeta?.questionCount ? <div className="exam-set-parse-summary"><span><strong>{examSetDialog.document.parseMeta.questionCount}</strong><small>MCQ</small></span><span><strong>{examSetDialog.document.parseMeta.questionsWithKey || 0}</strong><small>Med facit</small></span><span><strong>{examSetDialog.document.parseMeta.questionsWithVisuals || 0}</strong><small>Visuelle</small></span></div> : null}
+      <div className="lecture-material-dialog-actions"><button type="button" className="ui-button ui-button--secondary" disabled={examSetSaving} onClick={() => setExamSetDialog(null)}>{copy.examSetCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={examSetSaving || !String(examSetDialog.name || "").trim() || !String(examSetDialog.year || "").trim() || !EXAM_SET_SESSIONS.includes(examSetDialog.examSession) || (!examSetDialog.questionFile && examSetDialog.mode === "upload") || (!examSetDialog.answerFile && !examSetDialog.document?.answerStoragePath && examSetDialog.mode === "upload")} onClick={saveExamSetDocument}>{examSetSaving ? copy.examSetParsing : copy.examSetSave}</button></div>
+    </div>
+  </Modal>
+)}
+
+      {examSetOriginalPage && selectedExamDocument && examSetPreviewUrl && (
+        <ExamOriginalPageModal c={c} url={examSetPreviewUrl} pageNumber={examSetOriginalPage} fileName={selectedExamDocument.questionFileName || selectedExamDocument.name} copy={copy} onClose={() => setExamSetOriginalPage(null)} />
       )}
 
       {materialDialog && (
