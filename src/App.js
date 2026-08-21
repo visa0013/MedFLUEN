@@ -11228,6 +11228,39 @@ select.ui-control {
 .exam-set-original-modal-header strong { color: var(--ui-text); font-size: 10px; font-weight: 850; }
 .exam-set-original-modal-header small { color: var(--ui-muted); font-size: 7.5px; }
 .exam-set-original-modal-body { min-height: 0; flex: 1; }
+.exam-set-original-visuals { display: grid; gap: 8px; margin: 14px 0 16px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); }
+.exam-set-original-visual-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(280px,100%),1fr)); gap: 9px; align-items: start; }
+.exam-set-source-region-canvas-wrap { min-width: 0; min-height: 88px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 8px; background: #fff; }
+.exam-set-source-region-canvas-wrap[data-state="loading"], .exam-set-source-region-canvas-wrap[data-state="error"] { padding: 18px; }
+.exam-set-source-region-canvas { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; background: #fff; }
+.exam-pdf-editor-modal { width: min(1120px,95vw); height: min(860px,90vh); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 14px; background: var(--ui-panel); }
+.exam-pdf-editor-header { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--ui-border); }
+.exam-pdf-editor-header > div:first-child { min-width: 0; display: flex; align-items: center; gap: 10px; }
+.exam-pdf-editor-header > div:first-child > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; background: var(--ui-blue-soft); color: var(--ui-blue); }
+.exam-pdf-editor-header strong { display: block; color: var(--ui-text); font-size: 11px; font-weight: 900; }
+.exam-pdf-editor-header small { display: block; margin-top: 3px; max-width: 720px; color: var(--ui-muted); font-size: 8px; font-weight: 650; line-height: 1.45; }
+.exam-pdf-editor-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; padding: 10px 14px 0; }
+.exam-pdf-editor-summary > span { min-width: 0; display: grid; gap: 2px; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); }
+.exam-pdf-editor-summary > span[data-warning="true"] { border-color: color-mix(in srgb,#c9822f 42%,var(--ui-border)); background: color-mix(in srgb,#c9822f 8%,var(--ui-panel)); }
+.exam-pdf-editor-summary strong { overflow: hidden; color: var(--ui-text); font-size: 12px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.exam-pdf-editor-summary small { color: var(--ui-muted); font-size: 7px; font-weight: 750; }
+.exam-pdf-editor-note { margin: 8px 14px 0; display: flex; align-items: flex-start; gap: 7px; padding: 8px 9px; border: 1px solid var(--ui-blue-border); border-radius: 8px; background: var(--ui-blue-soft); color: var(--ui-secondary); font-size: 8px; font-weight: 680; line-height: 1.45; }
+.exam-pdf-editor-note svg { flex: 0 0 auto; margin-top: 1px; color: var(--ui-blue); }
+.exam-pdf-editor-list { min-height: 0; flex: 1; overflow: auto; display: grid; align-content: start; gap: 5px; padding: 10px 14px; }
+.exam-pdf-editor-row { display: grid; grid-template-columns: minmax(190px,1.5fr) 86px 86px minmax(115px,.8fr) minmax(135px,.9fr); gap: 8px; align-items: center; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); }
+.exam-pdf-editor-row[data-warning="true"] { border-color: color-mix(in srgb,#c9822f 38%,var(--ui-border)); }
+.exam-pdf-editor-question { min-width: 0; display: grid; gap: 2px; }
+.exam-pdf-editor-question strong { color: var(--ui-text); font-size: 9px; font-weight: 850; }
+.exam-pdf-editor-question small { overflow: hidden; color: var(--ui-muted); font-size: 7px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.exam-pdf-editor-row > label:not(.exam-pdf-editor-check) { display: grid; gap: 3px; color: var(--ui-muted); font-size: 6.8px; font-weight: 750; }
+.exam-pdf-editor-row input[type="number"] { width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-text); font-size: 9px; font-weight: 800; outline: none; }
+.exam-pdf-editor-row input[type="number"]:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 2px color-mix(in srgb,var(--ui-blue) 10%,transparent); }
+.exam-pdf-editor-check { min-width: 0; display: flex; align-items: center; gap: 6px; color: var(--ui-secondary); font-size: 7.5px; font-weight: 750; }
+.exam-pdf-editor-check input { width: 14px; height: 14px; accent-color: var(--ui-blue); }
+.exam-pdf-editor-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--ui-border); background: var(--ui-soft); }
+.exam-pdf-editor-footer > div { display: flex; align-items: center; gap: 7px; }
+.exam-pdf-editor-print label { display: inline-flex; align-items: center; gap: 6px; color: var(--ui-secondary); font-size: 7.5px; font-weight: 750; }
+.exam-pdf-editor-print input { width: 14px; height: 14px; accent-color: var(--ui-blue); }
 @media (max-width: 980px) {
   .exam-set-practice-shell { grid-template-columns: minmax(0,1fr) 196px; }
   .exam-set-question-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
@@ -11244,6 +11277,11 @@ select.ui-control {
   .exam-set-grid-legend { display: none; }
   .exam-set-grid-stats { min-width: 0; }
   .exam-set-grid-submit { width: auto; padding-inline: 12px; }
+  .exam-pdf-editor-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .exam-pdf-editor-row { grid-template-columns: minmax(0,1fr) 74px 74px; }
+  .exam-pdf-editor-row .exam-pdf-editor-check { grid-column: span 1; }
+  .exam-pdf-editor-footer { align-items: stretch; flex-direction: column; }
+  .exam-pdf-editor-footer > div { justify-content: space-between; flex-wrap: wrap; }
 }
 
 /* ============================================================
@@ -31713,7 +31751,8 @@ function lectureMaterialPreviewKind(material) {
 const EXAM_SET_DOCUMENTS_BUCKET = "exam-set-documents";
 const EXAM_SET_DOCUMENT_MAX_BYTES = 50 * 1024 * 1024;
 const EXAM_SET_SESSIONS = ["summer", "winter", "reexam"];
-const EXAM_SET_PARSE_VERSION = "6.2.0-paired-pdf-1";
+const EXAM_SET_PARSE_VERSION = "6.2.2-sdu-paired-editor-1";
+const EXAM_SET_STANDARD_FONT = "Arial, Helvetica, sans-serif";
 
 function examSetUuid() {
   return typeof crypto !== "undefined" && crypto.randomUUID
@@ -31790,10 +31829,14 @@ function examSetPracticeFromRow(row) {
 }
 
 function examSetNormalizeSourceText(value) {
-  return String(value || "").replace(/\s+/g, " ").trim();
+  return String(value || "").replace(/\u200b/g, "").replace(/\s+/g, " ").trim();
 }
 
-function examSetPdfItemsToLines(items, pageNumber) {
+function examSetEscapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function examSetPdfItemsToLines(items, pageNumber, viewport = null) {
   const source = Array.isArray(items) ? items : [];
   const lines = [];
   let parts = [];
@@ -31803,11 +31846,18 @@ function examSetPdfItemsToLines(items, pageNumber) {
   function flush() {
     const text = examSetNormalizeSourceText(parts.map((part) => part.text).join(" "));
     if (text) {
+      const left = parts.length ? Math.min(...parts.map((part) => part.left)) : 0;
+      const right = parts.length ? Math.max(...parts.map((part) => part.right)) : left;
+      const top = parts.length ? Math.min(...parts.map((part) => part.top)) : 0;
+      const bottom = parts.length ? Math.max(...parts.map((part) => part.bottom)) : top;
       lines.push({
         page: pageNumber,
         text,
-        x: parts.length ? Math.min(...parts.map((part) => part.x)) : 0,
-        y: parts.length ? Math.max(...parts.map((part) => part.y)) : 0,
+        x: left,
+        top,
+        width: Math.max(1, right - left),
+        height: Math.max(1, bottom - top),
+        highlight: null,
       });
     }
     parts = [];
@@ -31824,10 +31874,13 @@ function examSetPdfItemsToLines(items, pageNumber) {
     const transform = Array.isArray(item?.transform) ? item.transform : [];
     const x = Number(transform[4]) || 0;
     const y = Number(transform[5]) || 0;
+    const itemWidth = Math.max(1, Number(item?.width) || 0);
+    const fontHeight = Math.max(5, Number(item?.height) || Math.abs(Number(transform[3]) || 0) || Math.abs(Number(transform[0]) || 0) || 10);
+    const topLeftY = viewport ? Math.max(0, Number(viewport.height || 0) - y - fontHeight) : 0;
     const movedLine = lastY != null && Math.abs(lastY - y) > 2.5;
     const wrappedBack = lastX != null && x < lastX - 24 && lastY != null && Math.abs(lastY - y) <= 2.5;
     if (parts.length && (movedLine || wrappedBack)) flush();
-    parts.push({ x, y, text });
+    parts.push({ left: x, right: x + itemWidth, top: topLeftY, bottom: topLeftY + fontHeight, text });
     lastY = y;
     lastX = x;
     if (item?.hasEOL) flush();
@@ -31839,220 +31892,487 @@ function examSetPdfItemsToLines(items, pageNumber) {
 function examSetCleanPdfLines(lines) {
   const input = Array.isArray(lines) ? lines : [];
   const pageCount = new Set(input.map((line) => line.page)).size;
-  if (pageCount < 3) return input;
+  if (pageCount < 3) return input.filter((line) => examSetNormalizeSourceText(line?.text));
   const pageFrequency = new Map();
   input.forEach((line) => {
     const key = examSetNormalizeSourceText(line.text).toLowerCase();
-    if (!key || key.length > 110) return;
+    if (!key || key.length > 120) return;
     if (!pageFrequency.has(key)) pageFrequency.set(key, new Set());
     pageFrequency.get(key).add(line.page);
   });
   const repeated = new Set(
     [...pageFrequency.entries()]
-      .filter(([key, pages]) => key.length >= 3 && pages.size >= Math.max(3, Math.ceil(pageCount * .55)))
+      .filter(([key, pages]) => key.length >= 3 && pages.size >= Math.max(4, Math.ceil(pageCount * .62)))
       .map(([key]) => key)
   );
-  return input.filter((line) => !repeated.has(examSetNormalizeSourceText(line.text).toLowerCase()));
-}
-
-function examSetAnswerKeyHeading(text) {
-  const value = examSetNormalizeSourceText(text);
-  return /^(?:facit|svarnøgle|svar-nøgle|answer\s*key|answers?)\s*:?[\s–—-]*$/i.test(value)
-    || /^(?:facit|svarnøgle|answer\s*key)\b.{0,35}$/i.test(value);
-}
-
-function examSetExtractAnswerKey(lines) {
-  const source = Array.isArray(lines) ? lines : [];
-  let startIndex = -1;
-  for (let index = 0; index < source.length; index += 1) {
-    if (examSetAnswerKeyHeading(source[index]?.text)) {
-      startIndex = index;
-      break;
-    }
-  }
-  const answers = {};
-  const scan = startIndex >= 0 ? source.slice(startIndex) : source;
-  scan.forEach((line) => {
-    const value = examSetNormalizeSourceText(line?.text);
-    if (!value || value.length > 180) return;
-    const regex = /(?:^|[\s,;|])(?:spg\.?\s*)?(\d{1,3})\s*[.\):\-]?\s*([A-H])(?=$|[\s,;|])/gi;
-    let match;
-    while ((match = regex.exec(value))) answers[String(Number(match[1]))] = match[2].toUpperCase();
+  return input.filter((line) => {
+    const key = examSetNormalizeSourceText(line?.text).toLowerCase();
+    return key && !repeated.has(key);
   });
-  return { startIndex, answers };
 }
 
-function examSetQuestionMarker(text) {
+function examSetExplicitQuestionMarker(text) {
   const value = examSetNormalizeSourceText(text);
-  let match = value.match(/^(?:spørgsmål|question)\s+(\d{1,3})\s*[.\):\-]?\s*(.*)$/i);
-  if (!match) match = value.match(/^(\d{1,3})\s*[.\):\-]\s*(.*)$/);
-  if (!match) return null;
-  return { number: String(Number(match[1])), text: examSetNormalizeSourceText(match[2]) };
+  const match = value.match(/^(?:spørgsmål|question)\s+(\d{1,3})\b\s*:?[\s–—-]*(.*)$/i);
+  return match ? { number: String(Number(match[1])), text: examSetNormalizeSourceText(match[2]) } : null;
 }
 
-function examSetSingleOption(text) {
-  const value = examSetNormalizeSourceText(text);
-  const match = value.match(/^([A-Ha-h])\s*[.\):\-]\s*(.+)$/);
-  return match ? { label: match[1].toUpperCase(), text: examSetNormalizeSourceText(match[2]) } : null;
-}
-
-function examSetInlineOptions(text) {
-  const value = examSetNormalizeSourceText(text);
-  const marker = /(?:^|\s)([A-Ha-h])\s*[.\):]\s*/g;
-  const matches = [];
-  let match;
-  while ((match = marker.exec(value))) matches.push({ label: match[1].toUpperCase(), start: match.index + (match[0].startsWith(" ") ? 1 : 0), contentStart: marker.lastIndex });
-  if (matches.length < 2) return null;
-  return matches.map((item, index) => {
-    const end = index + 1 < matches.length ? matches[index + 1].start : value.length;
-    return { label: item.label, text: examSetNormalizeSourceText(value.slice(item.contentStart, end)) };
-  }).filter((option) => option.text);
-}
-
-function examSetLocalCorrectAnswer(text) {
-  const value = examSetNormalizeSourceText(text);
-  const match = value.match(/^(?:korrekt\s+svar|rigtigt\s+svar|correct\s+answer|facit|svar)\s*[:\-]?\s*([A-H])\b/i);
+function examSetQuestionCode(text) {
+  const value = examSetNormalizeSourceText(text).toUpperCase();
+  const match = value.match(/(?:^|\s)((?:[A-ZÆØÅ]{1,7}\d{1,5}|PNP\d+|EPI\d+|TUMOR\d+))(?:$|\s)/i);
   return match ? match[1].toUpperCase() : "";
 }
 
-function examSetDirectAnswerPair(text) {
-  const value = examSetNormalizeSourceText(text);
-  const match = value.match(/^(?:spg\.?\s*)?(\d{1,3})\s*[.\):\-]?\s*([A-H])\s*$/i);
-  return match ? { number: String(Number(match[1])), label: match[2].toUpperCase() } : null;
+function examSetSequentialQuestionBlocks(lines) {
+  const source = examSetCleanPdfLines(lines);
+  const starts = [];
+  let expected = 1;
+  source.forEach((line, index) => {
+    const marker = examSetExplicitQuestionMarker(line?.text);
+    if (!marker || Number(marker.number) !== expected) return;
+    starts.push({ index, number: marker.number, marker, line });
+    expected += 1;
+  });
+  return starts.map((start, position) => {
+    const endIndex = position + 1 < starts.length ? starts[position + 1].index : source.length;
+    return {
+      number: start.number,
+      line: start.line,
+      marker: start.marker,
+      lines: source.slice(start.index + 1, endIndex),
+    };
+  });
 }
 
-function examSetParseMcqLines(rawLines, pageVisuals = {}) {
-  const cleaned = examSetCleanPdfLines(rawLines);
-  const answerKey = examSetExtractAnswerKey(cleaned);
-  const source = answerKey.startIndex >= 0 ? cleaned.slice(0, answerKey.startIndex) : cleaned;
-  const starts = [];
-  source.forEach((line, index) => {
-    const marker = examSetQuestionMarker(line?.text);
-    if (marker) starts.push({ index, marker, page: line.page });
+function examSetStripAnswerOnlySuffix(value) {
+  let text = examSetNormalizeSourceText(value);
+  const suffixes = [
+    /\s+Svaret\s+er\s*:\s*[1-9A-H]\b[\s\S]*$/i,
+    /\s+Rigtigt\s+svar\s*\(?[1-9A-H]\)?\b[\s\S]*$/i,
+    /\s+Svar\s+nummer\s+[1-9A-H]\s+er\s+korrekt\b[\s\S]*$/i,
+    /\s+[1-9A-H]\)\s*er\s+det\s+rigtige\s+svar\b[\s\S]*$/i,
+    /\s+Nr\.?\s*[1-9A-H]\s+er\s+svaret\b[\s\S]*$/i,
+  ];
+  for (const pattern of suffixes) text = text.replace(pattern, "");
+  return examSetNormalizeSourceText(text.replace(/[✔✓]\s*$/g, ""));
+}
+
+function examSetOptionTailCut(offsets, contentStart, defaultEnd) {
+  let cut = defaultEnd;
+  let sourceNote = "";
+  for (const offset of Array.isArray(offsets) ? offsets : []) {
+    if (offset.start <= contentStart) continue;
+    const value = examSetNormalizeSourceText(offset.row?.text);
+    if (!value) continue;
+    const answerOnly = /^(?:Svaret\s+er\s*:|Rigtigt\s+svar\b|Svar\s+nummer\b|[1-9A-H]\)\s*er\s+det\s+rigtige\s+svar\b|Nr\.?\s*[1-9A-H]\s+er\s+svaret\b)/i.test(value);
+    const sourceTail = /^\((?:hvilke|bemærk|obs|note)\b[\s\S]*\)$/i.test(value);
+    if (!answerOnly && !sourceTail) continue;
+    cut = Math.min(cut, offset.start);
+    if (sourceTail) sourceNote = value;
+    break;
+  }
+  return { cut, sourceNote };
+}
+
+function examSetOptionRun(lines) {
+  const rows = (Array.isArray(lines) ? lines : [])
+    .map((line, index) => ({ line, index, text: examSetNormalizeSourceText(line?.text) }))
+    .filter((row) => row.text);
+  let flatText = "";
+  const offsets = [];
+  rows.forEach((row) => {
+    if (flatText) flatText += " ";
+    const start = flatText.length;
+    flatText += row.text;
+    offsets.push({ start, end: flatText.length, row });
   });
 
-  const questions = [];
-  let skipped = 0;
-  starts.forEach((start, position) => {
-    const endIndex = position + 1 < starts.length ? starts[position + 1].index : source.length;
-    const block = source.slice(start.index + 1, endIndex);
-    const questionParts = start.marker.text ? [start.marker.text] : [];
-    const options = [];
-    let currentOption = null;
-    let localCorrect = "";
+  function choose(kind) {
+    const marker = kind === "number"
+      ? /(?<!\d)([1-9])\s*[.\)]\s+/g
+      : /(?:^|\s)([A-Ha-h])\s*[.\)]\s+/g;
+    const matches = [];
+    let match;
+    while ((match = marker.exec(flatText))) {
+      matches.push({
+        label: kind === "number" ? match[1] : match[1].toUpperCase(),
+        start: match.index + (kind === "letter" && match[0].startsWith(" ") ? 1 : 0),
+        contentStart: marker.lastIndex,
+      });
+    }
+    const runs = [];
+    for (let index = 0; index < matches.length; index += 1) {
+      const first = matches[index];
+      const firstIsValid = kind === "number" ? first.label === "1" : first.label === "A";
+      if (!firstIsValid) continue;
+      const run = [first];
+      let expected = kind === "number" ? 2 : "B".charCodeAt(0);
+      for (let cursor = index + 1; cursor < matches.length; cursor += 1) {
+        const candidate = matches[cursor];
+        const value = kind === "number" ? Number(candidate.label) : candidate.label.charCodeAt(0);
+        if (value === expected) {
+          run.push(candidate);
+          expected += 1;
+        } else if ((kind === "number" && candidate.label === "1") || (kind === "letter" && candidate.label === "A")) {
+          break;
+        } else if (value < expected) {
+          continue;
+        } else {
+          break;
+        }
+      }
+      if (run.length >= 2) runs.push(run);
+    }
+    if (!runs.length) return null;
+    // SDU-sæt kan have en nummereret del-liste inde i selve spørgsmålet.
+    // Den faktiske svarliste ligger typisk sidst, så seneste sammenhængende 1..N/A..N-run vinder.
+    const run = runs.sort((left, right) => right[0].start - left[0].start || right.length - left.length)[0];
+    let sourceNote = "";
+    const options = run.map((item, index) => {
+      const defaultEnd = index + 1 < run.length ? run[index + 1].start : flatText.length;
+      const tail = index + 1 < run.length ? { cut: defaultEnd, sourceNote: "" } : examSetOptionTailCut(offsets, item.contentStart, defaultEnd);
+      if (tail.sourceNote) sourceNote = tail.sourceNote;
+      return {
+        label: item.label,
+        start: item.start,
+        contentStart: item.contentStart,
+        end: tail.cut,
+        text: examSetStripAnswerOnlySuffix(flatText.slice(item.contentStart, tail.cut)),
+      };
+    });
+    return { flatText, offsets, options, questionEnd: run[0].start, sourceNote };
+  }
 
-    block.forEach((line) => {
+  return choose("number") || choose("letter");
+}
+
+function examSetHighlightedOptionLabel(run) {
+  if (!run) return "";
+  for (const offset of run.offsets) {
+    const highlight = offset.row?.line?.highlight;
+    if (!highlight) continue;
+    const center = Math.max(0, Math.min(1, (Number(highlight.startRatio) + Number(highlight.endRatio)) / 2));
+    const position = offset.start + Math.round(offset.row.text.length * center);
+    const option = run.options.find((candidate) => position >= candidate.start && position < candidate.end);
+    if (option) return option.label;
+  }
+  const checked = run.options.find((option) => /[✔✓]/.test(run.flatText.slice(option.contentStart, option.end)));
+  return checked?.label || "";
+}
+
+function examSetExplicitCorrectAnswer(text, options) {
+  const value = examSetNormalizeSourceText(text);
+  const patterns = [
+    /Rigtigt\s+svar\s*\(?([1-9A-H])\)?/i,
+    /Svar(?:et)?(?:\s+nummer)?\s*[:\-]?\s*([1-9A-H])\s*(?:er\s+korrekt|er\s+det\s+rigtige\s+svar)?/i,
+    /([1-9A-H])\)\s*er\s+det\s+rigtige\s+svar/i,
+    /Nr\.?\s*([1-9A-H])\s*er\s+svaret/i,
+    /Svaret\s+er\s*:\s*([1-9A-H])/i,
+    /\(([1-9A-H])\)\s*(?=Spørgsmål|$)/i,
+  ];
+  for (const pattern of patterns) {
+    const match = value.match(pattern);
+    if (!match) continue;
+    const label = match[1].toUpperCase();
+    if (options.some((option) => option.label === label)) return label;
+  }
+  return "";
+}
+
+function examSetQuestionTextFromRun(run, code = "") {
+  if (!run) return "";
+  let value = examSetNormalizeSourceText(run.flatText.slice(0, run.questionEnd));
+  if (code) value = examSetNormalizeSourceText(value.replace(new RegExp(`^${examSetEscapeRegExp(code)}\\b`, "i"), ""));
+  value = examSetNormalizeSourceText(value
+    .replace(/^\d{1,2}\s+(?=[A-ZÆØÅ])/i, "")
+    .replace(/\bOpgavetekst\b\s*/gi, "")
+    .replace(/\bSvarmuligheder\b\s*Obs!\s*Kun\s+ét\s+svar\s+skal\s+være\s+korrekt\.?\s*/gi, "")
+    .replace(/\bSvarmuligheder\b\s*/gi, ""));
+  if (run.sourceNote) value = examSetNormalizeSourceText(`${value} ${run.sourceNote}`);
+  return value;
+}
+
+function examSetParseAnswerQuestions(answerPdf) {
+  const blocks = examSetSequentialQuestionBlocks(answerPdf?.lines || []);
+  return blocks.map((block) => {
+    let code = "";
+    for (const line of block.lines.slice(0, 8)) {
+      code = examSetQuestionCode(line?.text);
+      if (code) break;
+    }
+    const optionRun = examSetOptionRun(block.lines);
+    if (!optionRun) return null;
+    const options = optionRun.options.filter((option) => option?.text);
+    if (options.length < 2) return null;
+    const highlighted = examSetHighlightedOptionLabel(optionRun);
+    const explicit = examSetExplicitCorrectAnswer(optionRun.flatText, options);
+    const correctLabel = highlighted || explicit || null;
+    return {
+      id: `q-${block.number}`,
+      sourceNumber: block.number,
+      code,
+      text: examSetQuestionTextFromRun(optionRun, code),
+      options: options.map(({ label, text }) => ({ label, text })),
+      correctLabel,
+      answerPage: block.line?.page || null,
+      sourceType: "paired-original-pdf",
+    };
+  }).filter(Boolean);
+}
+
+function examSetSourceNoiseLine(text) {
+  const value = examSetNormalizeSourceText(text);
+  return !value
+    || Boolean(examSetExplicitQuestionMarker(value))
+    || /^(?:eksamen\b|mcq\s+opgavesæt\b|meq\s+opgavesæt\b|opgavesæt\s*:)/i.test(value)
+    || /^\d{1,3}$/.test(value)
+    || /^[ivxlcdm]{1,5}[.)]?$/i.test(value);
+}
+
+function examSetTextTokens(text) {
+  return examSetNormalizeSourceText(text).toLowerCase().replace(/[^a-z0-9æøå]+/gi, " ").split(/\s+/).filter((token) => token.length >= 4).slice(0, 18);
+}
+
+function examSetSourceAnchor(lines, question, previousIndex = -1) {
+  const source = Array.isArray(lines) ? lines : [];
+  const code = question?.code || "";
+  if (code) {
+    const codePattern = new RegExp(`(?:^|\\s)${examSetEscapeRegExp(code)}(?:$|\\s)`, "i");
+    for (let index = Math.max(0, previousIndex + 1); index < source.length; index += 1) {
+      if (!codePattern.test(examSetNormalizeSourceText(source[index]?.text))) continue;
+      let startIndex = index;
+      for (let back = index - 1; back >= Math.max(previousIndex + 1, index - 2); back -= 1) {
+        const marker = examSetExplicitQuestionMarker(source[back]?.text);
+        if (marker?.number === question.sourceNumber) {
+          startIndex = back;
+          break;
+        }
+      }
+      return { index: startIndex, anchorIndex: index, method: "code", confidence: 1 };
+    }
+  }
+  for (let index = Math.max(0, previousIndex + 1); index < source.length; index += 1) {
+    const marker = examSetExplicitQuestionMarker(source[index]?.text);
+    if (marker?.number === question.sourceNumber) return { index, anchorIndex: index, method: "marker", confidence: .94 };
+  }
+
+  const tokens = examSetTextTokens(question?.text);
+  if (tokens.length >= 4) {
+    let best = null;
+    for (let index = Math.max(0, previousIndex + 1); index < source.length; index += 1) {
+      const windowText = examSetNormalizeSourceText(source.slice(index, index + 5).map((line) => line.text).join(" ")).toLowerCase();
+      if (!windowText) continue;
+      const hits = tokens.filter((token) => windowText.includes(token)).length;
+      const score = hits / tokens.length;
+      if (!best || score > best.score) best = { index, anchorIndex: index, method: "text", confidence: score, score };
+    }
+    if (best?.score >= .55) return best;
+  }
+  return null;
+}
+
+function examSetQuestionSourceRegion(page, startLine, endLine, pageDimensions) {
+  const dimensions = pageDimensions?.[page] || pageDimensions?.[String(page)] || { width: 595, height: 842 };
+  const pageHeight = Math.max(1, Number(dimensions.height) || 842);
+  const pageWidth = Math.max(1, Number(dimensions.width) || 595);
+  let top = 0;
+  let bottom = pageHeight;
+  if (startLine?.page === page) top = Math.max(0, Number(startLine.top) - 7);
+  if (endLine?.page === page) bottom = Math.min(pageHeight, Number(endLine.top) - 7);
+  if (bottom <= top + 18) bottom = Math.min(pageHeight, top + 18);
+  return { page, x: 0, y: top, width: pageWidth, height: Math.max(18, bottom - top), pageWidth, pageHeight };
+}
+
+function examSetRectOverlapArea(left, right) {
+  const x = Math.max(0, Math.min(left.x + left.width, right.x + right.width) - Math.max(left.x, right.x));
+  const y = Math.max(0, Math.min(left.y + left.height, right.y + right.height) - Math.max(left.y, right.y));
+  return x * y;
+}
+
+function examSetAttachOriginalSource(questionPdf, answerQuestions) {
+  const lines = examSetCleanPdfLines(questionPdf?.lines || []);
+  const anchors = [];
+  let previousIndex = -1;
+  (Array.isArray(answerQuestions) ? answerQuestions : []).forEach((question) => {
+    const anchor = examSetSourceAnchor(lines, question, previousIndex);
+    anchors.push(anchor ? { ...anchor, question } : null);
+    if (anchor) previousIndex = anchor.index;
+  });
+
+  return (Array.isArray(answerQuestions) ? answerQuestions : []).map((question, questionIndex) => {
+    const anchor = anchors[questionIndex];
+    if (!anchor) {
+      return {
+        ...question,
+        page: null,
+        sourcePages: [],
+        sourceRegions: [],
+        visualRegions: [],
+        hasVisual: false,
+        sourceMatch: "unmatched",
+        sourceMatchConfidence: 0,
+        editor: { startPage: 1, endPage: 1, pageBreakBefore: false, keepTogether: true },
+      };
+    }
+    const nextAnchor = anchors.slice(questionIndex + 1).find(Boolean) || null;
+    const endIndex = nextAnchor ? nextAnchor.index : lines.length;
+    const rawBlock = lines.slice(anchor.index, endIndex);
+    const meaningful = rawBlock.filter((line, localIndex) => {
+      if (localIndex === 0) return true;
       const value = examSetNormalizeSourceText(line?.text);
-      if (!value) return;
-      const correct = examSetLocalCorrectAnswer(value);
-      if (correct && options.length >= 2) {
-        localCorrect = correct;
-        return;
-      }
-      const inline = examSetInlineOptions(value);
-      if (inline) {
-        inline.forEach((option) => {
-          currentOption = { ...option };
-          options.push(currentOption);
-        });
-        return;
-      }
-      const option = examSetSingleOption(value);
-      if (option) {
-        currentOption = { ...option };
-        options.push(currentOption);
-        return;
-      }
-      if (!options.length) questionParts.push(value);
-      else if (currentOption) currentOption.text = examSetNormalizeSourceText(`${currentOption.text} ${value}`);
+      if (examSetSourceNoiseLine(value)) return false;
+      // A section code immediately before the next accepted question belongs to the next block.
+      if (nextAnchor && line.page === lines[nextAnchor.index]?.page && examSetQuestionCode(value)) return false;
+      return true;
     });
+    const sourceParseLines = meaningful.filter((line) => !examSetExplicitQuestionMarker(line?.text));
+    const sourceRun = examSetOptionRun(sourceParseLines);
+    const sourceOptions = sourceRun?.options?.filter((option) => option?.text) || [];
+    const sourceText = sourceRun && sourceOptions.length >= 2 ? examSetQuestionTextFromRun(sourceRun, question.code) : "";
+    const pages = [...new Set(meaningful.map((line) => Number(line.page)).filter(Boolean))].sort((left, right) => left - right);
+    const startLine = lines[anchor.index];
+    const endLine = nextAnchor ? lines[nextAnchor.index] : null;
+    const normalizedPages = pages.length ? pages : [Number(startLine?.page) || 1];
+    const sourceRegions = normalizedPages.map((page) => examSetQuestionSourceRegion(
+      page,
+      page === startLine?.page ? startLine : null,
+      endLine && page === endLine.page ? endLine : null,
+      questionPdf?.pageDimensions || {}
+    ));
+    const visualRegions = [];
+    sourceRegions.forEach((region) => {
+      const images = questionPdf?.pageImages?.[region.page] || questionPdf?.pageImages?.[String(region.page)] || [];
+      images.forEach((image) => {
+        const area = Math.max(1, Number(image.width) * Number(image.height));
+        const overlap = examSetRectOverlapArea(region, image);
+        if (area >= 900 && overlap / area >= .3) visualRegions.push({ ...image, page: Number(region.page) });
+      });
+    });
+    const startPage = normalizedPages[0];
+    const endPage = normalizedPages[normalizedPages.length - 1];
+    return {
+      ...question,
+      text: sourceText || question.text,
+      options: sourceOptions.length >= 2 ? sourceOptions.map(({ label, text }) => ({ label, text })) : question.options,
+      contentSource: sourceText && sourceOptions.length >= 2 ? "question-pdf" : "answer-pdf-fallback",
+      page: startPage,
+      sourcePages: normalizedPages,
+      sourceRegions,
+      visualRegions,
+      hasVisual: visualRegions.length > 0,
+      sourceMatch: anchor.method,
+      sourceMatchConfidence: Number(anchor.confidence) || 0,
+      editor: {
+        startPage,
+        endPage,
+        pageBreakBefore: Boolean(question?.editor?.pageBreakBefore),
+        keepTogether: question?.editor?.keepTogether !== false,
+      },
+    };
+  });
+}
 
-    const uniqueOptions = [];
-    const seenLabels = new Set();
-    options.forEach((option) => {
-      if (!option?.text || seenLabels.has(option.label)) return;
-      seenLabels.add(option.label);
-      uniqueOptions.push(option);
-    });
-    const questionText = examSetNormalizeSourceText(questionParts.join(" "));
-    if (questionText.length < 3 || uniqueOptions.length < 2) {
-      skipped += 1;
+function examSetMatrixMultiply(left, right) {
+  const [a1,b1,c1,d1,e1,f1] = left;
+  const [a2,b2,c2,d2,e2,f2] = right;
+  return [
+    a1 * a2 + c1 * b2,
+    b1 * a2 + d1 * b2,
+    a1 * c2 + c1 * d2,
+    b1 * c2 + d1 * d2,
+    a1 * e2 + c1 * f2 + e1,
+    b1 * e2 + d1 * f2 + f1,
+  ];
+}
+
+function examSetMatrixPoint(matrix, x, y) {
+  return { x: matrix[0] * x + matrix[2] * y + matrix[4], y: matrix[1] * x + matrix[3] * y + matrix[5] };
+}
+
+function examSetPdfImageRects(pdfjs, operatorList, viewport, pageNumber) {
+  const opName = new Map(Object.entries(pdfjs?.OPS || {}).map(([name, value]) => [value, name]));
+  const stack = [];
+  let ctm = [1,0,0,1,0,0];
+  const regions = [];
+  const functions = Array.isArray(operatorList?.fnArray) ? operatorList.fnArray : [];
+  const argsList = Array.isArray(operatorList?.argsArray) ? operatorList.argsArray : [];
+  functions.forEach((fn, index) => {
+    const name = opName.get(fn) || "";
+    const args = Array.isArray(argsList[index]) ? argsList[index] : [];
+    if (name === "save") {
+      stack.push([...ctm]);
       return;
     }
-    const sourceNumber = start.marker.number;
-    const sourcePages = [...new Set([start.page, ...block.map((line) => line.page)].filter(Boolean))].sort((a, b) => a - b);
-    const keyed = answerKey.answers[sourceNumber] || localCorrect || "";
-    const correctLabel = uniqueOptions.some((option) => option.label === keyed) ? keyed : null;
-    const duplicateNumber = questions.filter((question) => question.sourceNumber === sourceNumber).length;
-    const hasVisual = sourcePages.some((page) => Boolean(pageVisuals[page]));
-    questions.push({
-      id: `q-${sourceNumber}${duplicateNumber ? `-${duplicateNumber + 1}` : ""}`,
-      sourceNumber,
-      page: start.page || null,
-      sourcePages,
-      text: questionText,
-      options: uniqueOptions,
-      correctLabel,
-      hasVisual,
-      sourceType: "original-pdf",
-    });
+    if (name === "restore") {
+      ctm = stack.pop() || [1,0,0,1,0,0];
+      return;
+    }
+    if (name === "transform" && args.length >= 6) {
+      ctm = examSetMatrixMultiply(ctm, args.slice(0, 6).map((value) => Number(value) || 0));
+      return;
+    }
+    if (!/paint(?:Inline)?Image|paintJpegXObject|paintImageMaskXObject|paintSolidColorImageMask/i.test(name)) return;
+    const points = [examSetMatrixPoint(ctm,0,0), examSetMatrixPoint(ctm,1,0), examSetMatrixPoint(ctm,0,1), examSetMatrixPoint(ctm,1,1)]
+      .map((point) => viewport?.convertToViewportPoint ? viewport.convertToViewportPoint(point.x, point.y) : [point.x, point.y]);
+    const xs = points.map((point) => Number(point[0]) || 0);
+    const ys = points.map((point) => Number(point[1]) || 0);
+    const x = Math.min(...xs);
+    const y = Math.min(...ys);
+    const width = Math.max(...xs) - x;
+    const height = Math.max(...ys) - y;
+    const pageArea = Math.max(1, Number(viewport?.width) * Number(viewport?.height));
+    const area = width * height;
+    if (width >= 20 && height >= 20 && area >= 900 && area < pageArea * .9) regions.push({ page: pageNumber, x, y, width, height });
   });
-
-  return {
-    questions,
-    stats: {
-      sourceLines: source.length,
-      skipped,
-      answerKeyFound: answerKey.startIndex >= 0,
-      questionsWithKey: questions.filter((question) => question.correctLabel).length,
-      questionsWithVisuals: questions.filter((question) => question.hasVisual).length,
-    },
-  };
+  return regions;
 }
 
-function examSetExtractAnswerMap(lines) {
-  const cleaned = examSetCleanPdfLines(lines);
-  const answerKey = examSetExtractAnswerKey(cleaned);
-  const answers = { ...answerKey.answers };
-  cleaned.forEach((line) => {
-    const direct = examSetDirectAnswerPair(line?.text);
-    if (direct) answers[direct.number] = direct.label;
+async function examSetDetectPageHighlights(page, viewport, pageLines) {
+  if (typeof document === "undefined" || !pageLines?.length) return pageLines;
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.ceil(viewport.width));
+  canvas.height = Math.max(1, Math.ceil(viewport.height));
+  const context = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
+  if (!context) return pageLines;
+  await page.render({ canvasContext: context, viewport }).promise;
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  const width = canvas.width;
+  const height = canvas.height;
+  return pageLines.map((line) => {
+    const left = Math.max(0, Math.floor(Number(line.x) - 2));
+    const right = Math.min(width - 1, Math.ceil(Number(line.x) + Number(line.width) + 2));
+    const top = Math.max(0, Math.floor(Number(line.top) - 2));
+    const bottom = Math.min(height - 1, Math.ceil(Number(line.top) + Number(line.height) + 2));
+    let hits = 0;
+    let minX = right;
+    let maxX = left;
+    for (let y = top; y <= bottom; y += 2) {
+      for (let x = left; x <= right; x += 2) {
+        const offset = (y * width + x) * 4;
+        const red = pixels[offset];
+        const green = pixels[offset + 1];
+        const blue = pixels[offset + 2];
+        const yellow = red >= 185 && green >= 175 && blue <= 185 && ((red + green) / 2 - blue) >= 45 && Math.abs(red - green) <= 90;
+        if (!yellow) continue;
+        hits += 1;
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+      }
+    }
+    const sampleArea = Math.max(1, Math.ceil((right - left + 1) / 2) * Math.ceil((bottom - top + 1) / 2));
+    if (hits < Math.max(5, sampleArea * .012)) return line;
+    return {
+      ...line,
+      highlight: {
+        startRatio: Math.max(0, Math.min(1, (minX - Number(line.x)) / Math.max(1, Number(line.width)))),
+        endRatio: Math.max(0, Math.min(1, (maxX - Number(line.x)) / Math.max(1, Number(line.width)))),
+        score: hits / sampleArea,
+      },
+    };
   });
-
-  const starts = [];
-  cleaned.forEach((line, index) => {
-    const marker = examSetQuestionMarker(line?.text);
-    if (marker) starts.push({ index, marker });
-  });
-  starts.forEach((start, position) => {
-    const endIndex = position + 1 < starts.length ? starts[position + 1].index : cleaned.length;
-    cleaned.slice(start.index, endIndex).forEach((line) => {
-      const local = examSetLocalCorrectAnswer(line?.text);
-      if (local) answers[start.marker.number] = local;
-    });
-  });
-  return { answers, answerKeyFound: answerKey.startIndex >= 0 };
 }
 
-function examSetMergeQuestionAnswerKeys(questions, answerMap) {
-  const map = answerMap && typeof answerMap === "object" ? answerMap : {};
-  return (Array.isArray(questions) ? questions : []).map((question) => {
-    const label = map[question.sourceNumber] || question.correctLabel || null;
-    return { ...question, correctLabel: question.options?.some((option) => option.label === label) ? label : null };
-  });
-}
-
-function examSetPdfHasVisualOperator(pdfjs, operatorList) {
-  const values = pdfjs?.OPS || {};
-  const visualFns = new Set(
-    Object.keys(values)
-      .filter((key) => /paint(?:Inline)?Image|paintJpegXObject|paintFormXObject/i.test(key))
-      .map((key) => values[key])
-  );
-  return Array.isArray(operatorList?.fnArray) && operatorList.fnArray.some((fn) => visualFns.has(fn));
-}
-
-async function examSetReadPdfSource(source) {
+async function examSetReadPdfSource(source, { detectHighlights = false } = {}) {
   const pdfjs = await loadLecturePdfJs();
   let loadingTask;
   if (source instanceof Blob) {
@@ -32068,18 +32388,29 @@ async function examSetReadPdfSource(source) {
     pdf = await loadingTask.promise;
     const lines = [];
     const pageVisuals = {};
+    const pageImages = {};
+    const pageDimensions = {};
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
       const page = await pdf.getPage(pageNumber);
+      const viewport = page.getViewport({ scale: 1 });
+      pageDimensions[pageNumber] = { width: viewport.width, height: viewport.height };
       const content = await page.getTextContent();
-      lines.push(...examSetPdfItemsToLines(content?.items, pageNumber));
+      let pageLines = examSetPdfItemsToLines(content?.items, pageNumber, viewport);
+      if (detectHighlights) {
+        try { pageLines = await examSetDetectPageHighlights(page, viewport, pageLines); } catch {}
+      }
+      lines.push(...pageLines);
       try {
         const operatorList = await page.getOperatorList();
-        pageVisuals[pageNumber] = examSetPdfHasVisualOperator(pdfjs, operatorList);
+        const images = examSetPdfImageRects(pdfjs, operatorList, viewport, pageNumber);
+        pageImages[pageNumber] = images;
+        pageVisuals[pageNumber] = images.length > 0;
       } catch {
+        pageImages[pageNumber] = [];
         pageVisuals[pageNumber] = false;
       }
     }
-    return { lines, pageVisuals, pageCount: pdf.numPages, extractedLineCount: lines.length };
+    return { lines, pageVisuals, pageImages, pageDimensions, pageCount: pdf.numPages, extractedLineCount: lines.length };
   } finally {
     try { await loadingTask.destroy?.(); } catch {}
     try { await pdf?.destroy?.(); } catch {}
@@ -32087,35 +32418,61 @@ async function examSetReadPdfSource(source) {
 }
 
 async function examSetParsePairedSources(questionSource, answerSource = null) {
-  const questionPdf = await examSetReadPdfSource(questionSource);
-  const questionParsed = examSetParseMcqLines(questionPdf.lines, questionPdf.pageVisuals);
-  let answerMap = {};
-  let answerMeta = { pageCount: 0, extractedLineCount: 0, answerKeyFound: false };
-  if (answerSource) {
-    const answerPdf = await examSetReadPdfSource(answerSource);
-    const extracted = examSetExtractAnswerMap(answerPdf.lines);
-    answerMap = extracted.answers;
-    answerMeta = {
-      pageCount: answerPdf.pageCount,
-      extractedLineCount: answerPdf.extractedLineCount,
-      answerKeyFound: extracted.answerKeyFound,
-    };
+  const questionPdf = await examSetReadPdfSource(questionSource, { detectHighlights: false });
+  const answerPdf = answerSource ? await examSetReadPdfSource(answerSource, { detectHighlights: true }) : { lines: [], pageCount: 0, extractedLineCount: 0, pageImages: {}, pageDimensions: {} };
+  let answerQuestions = examSetParseAnswerQuestions(answerPdf);
+
+  // Fallback for pairs where the answer PDF has no usable sequential headings:
+  // parse the question PDF itself, but never fabricate an answer key.
+  if (!answerQuestions.length) {
+    const questionBlocks = examSetSequentialQuestionBlocks(questionPdf.lines);
+    answerQuestions = questionBlocks.map((block) => {
+      let code = "";
+      for (const line of block.lines.slice(0, 8)) {
+        code = examSetQuestionCode(line?.text);
+        if (code) break;
+      }
+      const run = examSetOptionRun(block.lines);
+      if (!run || run.options.length < 2) return null;
+      return {
+        id: `q-${block.number}`,
+        sourceNumber: block.number,
+        code,
+        text: examSetQuestionTextFromRun(run, code),
+        options: run.options.map(({ label, text }) => ({ label, text })),
+        correctLabel: null,
+        answerPage: null,
+        sourceType: "original-pdf",
+      };
+    }).filter(Boolean);
   }
-  const questions = examSetMergeQuestionAnswerKeys(questionParsed.questions, answerMap);
+
+  const questions = examSetAttachOriginalSource(questionPdf, answerQuestions);
+  const matchedCount = questions.filter((question) => question.sourceMatch !== "unmatched").length;
+  const multiPageCount = questions.filter((question) => (question.sourcePages || []).length > 1).length;
+  const lowConfidenceCount = questions.filter((question) => Number(question.sourceMatchConfidence) < .8).length;
+  const questionsWithKey = questions.filter((question) => question.correctLabel).length;
+  const questionsWithVisuals = questions.filter((question) => question.hasVisual).length;
+  const parseStatus = questions.length && matchedCount >= Math.ceil(questions.length * .8) ? "ready" : "needs_review";
   return {
     questions,
     meta: {
       parseVersion: EXAM_SET_PARSE_VERSION,
-      parseStatus: questions.length ? "ready" : "needs_review",
+      parseStatus,
       questionPdfPages: questionPdf.pageCount,
-      answerPdfPages: answerMeta.pageCount,
+      answerPdfPages: answerPdf.pageCount || 0,
       extractedQuestionLines: questionPdf.extractedLineCount,
-      extractedAnswerLines: answerMeta.extractedLineCount,
+      extractedAnswerLines: answerPdf.extractedLineCount || 0,
       questionCount: questions.length,
-      questionsWithKey: questions.filter((question) => question.correctLabel).length,
-      questionsWithVisuals: questions.filter((question) => question.hasVisual).length,
-      answerKeyFound: answerMeta.answerKeyFound || questionParsed.stats.answerKeyFound,
-      skippedQuestionBlocks: questionParsed.stats.skipped,
+      questionsWithKey,
+      questionsWithVisuals,
+      sourceMatched: matchedCount,
+      multiPageQuestions: multiPageCount,
+      lowConfidenceQuestions: lowConfidenceCount,
+      pageImageRects: questionPdf.pageImages || {},
+      pageDimensions: questionPdf.pageDimensions || {},
+      editorVersion: 1,
+      sampleProfile: questions.length >= 40 && questions.slice(0, 3).every((question) => question.code) ? "sdu-sequential-paired" : "paired-pdf",
     },
   };
 }
@@ -32127,11 +32484,107 @@ async function examSetExtractQuestionsFromPdf(url) {
     stats: {
       questionsWithKey: parsed.meta.questionsWithKey,
       questionsWithVisuals: parsed.meta.questionsWithVisuals,
-      answerKeyFound: parsed.meta.answerKeyFound,
+      answerKeyFound: parsed.meta.questionsWithKey > 0,
     },
     pageCount: parsed.meta.questionPdfPages,
     extractedLineCount: parsed.meta.extractedQuestionLines,
   };
+}
+
+function examSetEditorApplyRange(question, startPage, endPage, parseMeta = {}) {
+  const maxPage = Math.max(1, Number(parseMeta?.questionPdfPages) || Math.max(...(question?.sourcePages || [1]).map(Number), 1));
+  const start = Math.min(maxPage, Math.max(1, Number(startPage) || 1));
+  const end = Math.min(maxPage, Math.max(start, Number(endPage) || start));
+  const sourcePages = Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  const visualRegions = sourcePages.flatMap((page) => {
+    const images = parseMeta?.pageImageRects?.[page] || parseMeta?.pageImageRects?.[String(page)] || [];
+    return images.map((image) => ({ ...image, page }));
+  });
+  return {
+    ...question,
+    page: start,
+    sourcePages,
+    visualRegions,
+    hasVisual: visualRegions.length > 0,
+    editor: {
+      startPage: start,
+      endPage: end,
+      pageBreakBefore: Boolean(question?.editor?.pageBreakBefore),
+      keepTogether: question?.editor?.keepTogether !== false,
+      manual: true,
+    },
+  };
+}
+
+async function examSetRenderVisualRegionDataUrl(url, region, scale = 1.8) {
+  if (!url || !region?.page || typeof document === "undefined") return "";
+  const pdfjs = await loadLecturePdfJs();
+  const loadingTask = pdfjs.getDocument({ url });
+  let pdf = null;
+  try {
+    pdf = await loadingTask.promise;
+    const page = await pdf.getPage(Math.max(1, Number(region.page) || 1));
+    const viewport = page.getViewport({ scale });
+    const full = document.createElement("canvas");
+    full.width = Math.max(1, Math.ceil(viewport.width));
+    full.height = Math.max(1, Math.ceil(viewport.height));
+    const context = full.getContext("2d", { alpha: false });
+    if (!context) return "";
+    await page.render({ canvasContext: context, viewport }).promise;
+    const sx = Math.max(0, Math.floor(Number(region.x || 0) * scale));
+    const sy = Math.max(0, Math.floor(Number(region.y || 0) * scale));
+    const sw = Math.max(1, Math.min(full.width - sx, Math.ceil(Number(region.width || 1) * scale)));
+    const sh = Math.max(1, Math.min(full.height - sy, Math.ceil(Number(region.height || 1) * scale)));
+    const crop = document.createElement("canvas");
+    crop.width = sw;
+    crop.height = sh;
+    const cropContext = crop.getContext("2d", { alpha: false });
+    if (!cropContext) return "";
+    cropContext.drawImage(full, sx, sy, sw, sh, 0, 0, sw, sh);
+    return crop.toDataURL("image/png");
+  } finally {
+    try { await loadingTask.destroy?.(); } catch {}
+    try { await pdf?.destroy?.(); } catch {}
+  }
+}
+
+function examSetEscapeHtml(value) {
+  return String(value ?? "").replace(/[&<>\"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]);
+}
+
+async function examSetPrintStandardPdf({ questions, questionPdfUrl, title = "Eksamenssæt", includeAnswers = false }) {
+  const printWindow = typeof window !== "undefined" ? window.open("", "_blank") : null;
+  if (!printWindow) throw new Error("Printvinduet kunne ikke åbnes.");
+  printWindow.document.write(`<div style="font-family:${EXAM_SET_STANDARD_FONT};padding:32px">Forbereder standardiseret PDF…</div>`);
+  const questionList = Array.isArray(questions) ? questions : [];
+  const visualUrls = {};
+  for (const question of questionList) {
+    const regions = Array.isArray(question.visualRegions) ? question.visualRegions.slice(0, 3) : [];
+    if (!regions.length) continue;
+    visualUrls[question.id] = [];
+    for (const region of regions) {
+      try {
+        const dataUrl = await examSetRenderVisualRegionDataUrl(questionPdfUrl, region, 1.7);
+        if (dataUrl) visualUrls[question.id].push(dataUrl);
+      } catch {}
+    }
+  }
+  const body = questionList.map((question, index) => {
+    const breakClass = question?.editor?.pageBreakBefore ? " page-break" : "";
+    const keepClass = question?.editor?.keepTogether === false ? "" : " keep";
+    const images = (visualUrls[question.id] || []).map((src) => `<img class="visual" src="${src}" alt="Originalt billede fra spørgsmål ${examSetEscapeHtml(question.sourceNumber || index + 1)}">`).join("");
+    const options = (question.options || []).map((option) => {
+      const correct = includeAnswers && question.correctLabel === option.label ? " correct" : "";
+      return `<div class="option${correct}"><b>${examSetEscapeHtml(option.label)}.</b><span>${examSetEscapeHtml(option.text)}</span></div>`;
+    }).join("");
+    const answer = includeAnswers ? `<div class="answer">Facit: ${question.correctLabel ? examSetEscapeHtml(question.correctLabel) : "Ikke sikkert fundet i svar-PDF"}</div>` : "";
+    return `<section class="question${breakClass}${keepClass}"><header><b>Spørgsmål ${examSetEscapeHtml(question.sourceNumber || index + 1)}</b><small>Original side ${(question.sourcePages || []).join("-") || "-"}</small></header><h2>${examSetEscapeHtml(question.text)}</h2>${images}<div class="options">${options}</div>${answer}</section>`;
+  }).join("");
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${examSetEscapeHtml(title)}</title><style>@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:${EXAM_SET_STANDARD_FONT};color:#111;margin:0;font-size:10.5pt;line-height:1.42}h1{font-size:17pt;margin:0 0 7mm}.meta{font-size:9pt;color:#555;margin-bottom:8mm}.question{padding:0 0 7mm;margin:0 0 7mm;border-bottom:1px solid #ddd}.question.keep{break-inside:avoid-page}.question.page-break{break-before:page}.question header{display:flex;justify-content:space-between;gap:12px;margin-bottom:3mm}.question header b{font-size:11pt}.question header small{color:#666}.question h2{font:700 11pt/1.45 ${EXAM_SET_STANDARD_FONT};margin:0 0 4mm}.visual{display:block;max-width:100%;max-height:90mm;object-fit:contain;margin:4mm auto;border:1px solid #ddd}.options{display:grid;gap:2mm}.option{display:grid;grid-template-columns:7mm 1fr;gap:1mm;padding:2mm 2.5mm;border:1px solid #ddd;border-radius:2mm}.option.correct{background:#eef8ef;border-color:#83b98a}.answer{margin-top:3mm;font-weight:700}.print-hint{display:none}@media screen{body{padding:18mm;max-width:900px;margin:auto}.print-hint{display:block;padding:10px 12px;background:#f3f6fa;border:1px solid #dbe2ea;border-radius:8px;margin-bottom:20px}}@media print{.print-hint{display:none}}</style></head><body><div class="print-hint">Vælg <b>Gem som PDF</b> i browserens printdialog. Font og layout er standardiseret.</div><h1>${examSetEscapeHtml(title)}</h1><div class="meta">Genereret fra original spørgsmål-PDF${includeAnswers ? " · med officielt facit fra svar-PDF" : " · uden facit"}</div>${body}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script></body></html>`;
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+  return true;
 }
 
 function examSetQuestionGridState(question, practice) {
@@ -32142,6 +32595,7 @@ function examSetQuestionGridState(question, practice) {
   if (selected) return "answered";
   return "unanswered";
 }
+
 
 /* =============================================================================
    SEGMENT 5.6 — PRIVATE LECTURE NOTES
@@ -32644,6 +33098,152 @@ function ExamOriginalPageModal({ c, url, pageNumber, fileName, copy, onClose }) 
   );
 }
 
+function ExamSourceVisualRegionCanvas({ url, region, fileName = "Original eksamen", copy }) {
+  const canvasRef = useRef(null);
+  const [state, setState] = useState("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    let loadingTask = null;
+    let pdf = null;
+    setState("loading");
+    loadLecturePdfJs()
+      .then((pdfjs) => {
+        if (cancelled) return null;
+        loadingTask = pdfjs.getDocument({ url });
+        return loadingTask.promise;
+      })
+      .then(async (loadedPdf) => {
+        if (!loadedPdf || cancelled) return;
+        pdf = loadedPdf;
+        const page = await pdf.getPage(Math.max(1, Number(region?.page) || 1));
+        const scale = 1.8;
+        const viewport = page.getViewport({ scale });
+        const fullCanvas = document.createElement("canvas");
+        fullCanvas.width = Math.max(1, Math.ceil(viewport.width));
+        fullCanvas.height = Math.max(1, Math.ceil(viewport.height));
+        const fullContext = fullCanvas.getContext("2d", { alpha: false });
+        if (!fullContext) throw new Error("Canvas unavailable");
+        await page.render({ canvasContext: fullContext, viewport }).promise;
+        if (cancelled || !canvasRef.current) return;
+        const sx = Math.max(0, Math.floor(Number(region?.x || 0) * scale));
+        const sy = Math.max(0, Math.floor(Number(region?.y || 0) * scale));
+        const sw = Math.max(1, Math.min(fullCanvas.width - sx, Math.ceil(Number(region?.width || 1) * scale)));
+        const sh = Math.max(1, Math.min(fullCanvas.height - sy, Math.ceil(Number(region?.height || 1) * scale)));
+        const canvas = canvasRef.current;
+        const context = canvas.getContext("2d", { alpha: false });
+        if (!context) throw new Error("Canvas unavailable");
+        canvas.width = sw;
+        canvas.height = sh;
+        context.drawImage(fullCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+        if (!cancelled) setState("ready");
+      })
+      .catch(() => { if (!cancelled) setState("error"); });
+    return () => {
+      cancelled = true;
+      try { loadingTask?.destroy?.(); } catch {}
+      try { pdf?.destroy?.(); } catch {}
+    };
+  }, [url, region?.page, region?.x, region?.y, region?.width, region?.height]);
+
+  return (
+    <div className="exam-set-source-region-canvas-wrap" data-state={state}>
+      {state === "loading" && <span className="exam-set-parser-meta">{copy.examSetOriginalLoading}</span>}
+      {state === "error" && <span className="exam-set-parser-meta">{copy.examSetOriginalError}</span>}
+      <canvas ref={canvasRef} className="exam-set-source-region-canvas" aria-label={`${fileName} · ${copy.examSetSourcePage} ${region?.page || "—"}`} />
+    </div>
+  );
+}
+
+function ExamQuestionOriginalVisuals({ url, question, fileName, copy, onOpen }) {
+  const regions = Array.isArray(question?.visualRegions) ? question.visualRegions : [];
+  if (!url || !regions.length) return null;
+  return (
+    <section className="exam-set-original-visuals">
+      <div className="exam-set-source-visual-header">
+        <div><strong>{copy.examSetOriginalImages}</strong><small> · {regions.length === 1 ? copy.examSetOriginalImage : copy.examSetOriginalImagesCount(regions.length)}</small></div>
+        <button type="button" className="exam-set-original-button" onClick={onOpen}><Icon name="expand" size={11} />{copy.examSetOpenOriginal}</button>
+      </div>
+      <div className="exam-set-original-visual-grid">
+        {regions.map((region, index) => <ExamSourceVisualRegionCanvas key={`${question.id}-${region.page}-${index}`} url={url} region={region} fileName={fileName} copy={copy} />)}
+      </div>
+      <div className="exam-set-source-visual-note">{copy.examSetOriginalSourceNote}</div>
+    </section>
+  );
+}
+
+function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, onRebuild, onPrint, saving = false }) {
+  const [draft, setDraft] = useState(() => (Array.isArray(questions) ? questions.map((question) => ({ ...question, editor: { ...(question.editor || {}) } })) : []));
+  const [includeAnswers, setIncludeAnswers] = useState(false);
+
+  useEffect(() => {
+    setDraft(Array.isArray(questions) ? questions.map((question) => ({ ...question, editor: { ...(question.editor || {}) } })) : []);
+  }, [questions]);
+
+  const pageCount = Math.max(1, Number(parseMeta?.questionPdfPages) || 1);
+  const multiPage = draft.filter((question) => (question.sourcePages || []).length > 1).length;
+  const uncertain = draft.filter((question) => question.sourceMatch === "unmatched" || Number(question.sourceMatchConfidence) < .8).length;
+
+  function updateRange(index, key, value) {
+    setDraft((current) => current.map((question, questionIndex) => {
+      if (questionIndex !== index) return question;
+      const start = key === "start" ? Number(value) : Number(question.editor?.startPage || question.sourcePages?.[0] || 1);
+      const end = key === "end" ? Number(value) : Number(question.editor?.endPage || question.sourcePages?.[question.sourcePages.length - 1] || start);
+      const ranged = examSetEditorApplyRange(question, start, end, parseMeta);
+      return { ...ranged, editor: { ...ranged.editor, pageBreakBefore: Boolean(question.editor?.pageBreakBefore), keepTogether: question.editor?.keepTogether !== false, manual: true } };
+    }));
+  }
+
+  function updateLayout(index, patch) {
+    setDraft((current) => current.map((question, questionIndex) => questionIndex === index ? { ...question, editor: { ...(question.editor || {}), ...patch, manual: true } } : question));
+  }
+
+  return (
+    <Modal c={c} onClose={() => !saving && onClose()} size="large">
+      <div className="exam-pdf-editor-modal">
+        <header className="exam-pdf-editor-header">
+          <div><span><Icon name="edit" size={15} /></span><div><strong>{copy.examSetEditorTitle}</strong><small>{copy.examSetEditorIntro}</small></div></div>
+          <button type="button" className="ui-button ui-button--secondary" disabled={saving} onClick={onClose}>{copy.close}</button>
+        </header>
+        <div className="exam-pdf-editor-summary">
+          <span><strong>{draft.length}</strong><small>{copy.examSetEditorQuestions}</small></span>
+          <span><strong>{multiPage}</strong><small>{copy.examSetEditorMultiPage}</small></span>
+          <span data-warning={uncertain ? "true" : "false"}><strong>{uncertain}</strong><small>{copy.examSetEditorNeedsCheck}</small></span>
+          <span><strong>{EXAM_SET_STANDARD_FONT.split(",")[0]}</strong><small>{copy.examSetEditorFont}</small></span>
+        </div>
+        <div className="exam-pdf-editor-note"><Icon name="flag" size={11} /><span>{copy.examSetEditorPurpose}</span></div>
+        <div className="exam-pdf-editor-list">
+          {draft.map((question, index) => {
+            const startPage = Number(question.editor?.startPage || question.sourcePages?.[0] || 1);
+            const endPage = Number(question.editor?.endPage || question.sourcePages?.[question.sourcePages.length - 1] || startPage);
+            const needsCheck = question.sourceMatch === "unmatched" || Number(question.sourceMatchConfidence) < .8;
+            return (
+              <div key={question.id || index} className="exam-pdf-editor-row" data-warning={needsCheck ? "true" : "false"}>
+                <div className="exam-pdf-editor-question"><strong>{copy.examSetQuestion} {question.sourceNumber || index + 1}</strong><small>{question.code || "—"} · {question.hasVisual ? copy.examSetEditorHasImage : copy.examSetEditorNoImage}{needsCheck ? ` · ${copy.examSetEditorCheck}` : ""}</small></div>
+                <label><span>{copy.examSetEditorStartPage}</span><input type="number" min="1" max={pageCount} value={startPage} onChange={(event) => updateRange(index, "start", event.target.value)} /></label>
+                <label><span>{copy.examSetEditorEndPage}</span><input type="number" min={startPage} max={pageCount} value={endPage} onChange={(event) => updateRange(index, "end", event.target.value)} /></label>
+                <label className="exam-pdf-editor-check"><input type="checkbox" checked={question.editor?.keepTogether !== false} onChange={(event) => updateLayout(index, { keepTogether: event.target.checked })} /><span>{copy.examSetEditorKeepTogether}</span></label>
+                <label className="exam-pdf-editor-check"><input type="checkbox" checked={Boolean(question.editor?.pageBreakBefore)} onChange={(event) => updateLayout(index, { pageBreakBefore: event.target.checked })} /><span>{copy.examSetEditorPageBreak}</span></label>
+              </div>
+            );
+          })}
+        </div>
+        <footer className="exam-pdf-editor-footer">
+          <div className="exam-pdf-editor-print">
+            <label><input type="checkbox" checked={includeAnswers} onChange={(event) => setIncludeAnswers(event.target.checked)} /><span>{copy.examSetEditorPrintAnswers}</span></label>
+            <button type="button" className="ui-button ui-button--secondary" disabled={saving || !draft.length} onClick={() => onPrint(draft, includeAnswers)}><Icon name="file" size={12} />{copy.examSetEditorGeneratePdf}</button>
+          </div>
+          <div>
+            <button type="button" className="ui-button ui-button--secondary" disabled={saving} onClick={onRebuild}><Icon name="reset" size={12} />{copy.examSetEditorReanalyse}</button>
+            <button type="button" className="ui-button ui-button--primary" disabled={saving || !draft.length} onClick={() => onSave(draft)}>{saving ? copy.examSetEditorSaving : copy.examSetEditorSave}</button>
+          </div>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
+
 function WorkspaceShell({ c, label, drByteOpen = false, closing = false, children }) {
   return (
     <section
@@ -32727,6 +33327,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [examSetQuestionDocumentId, setExamSetQuestionDocumentId] = useState(null);
   const [examSetParseState, setExamSetParseState] = useState("idle");
   const [examSetParseMeta, setExamSetParseMeta] = useState(null);
+  const [examSetEditorOpen, setExamSetEditorOpen] = useState(false);
+  const [examSetEditorSaving, setExamSetEditorSaving] = useState(false);
   const [examSetPractice, setExamSetPractice] = useState(() => examSetPracticeEmpty());
   const [examSetPracticeLoadState, setExamSetPracticeLoadState] = useState("idle");
   const [examSetPracticeSaveState, setExamSetPracticeSaveState] = useState("idle");
@@ -32843,6 +33445,33 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "Gemmer…",
       examSetPracticeSaved: "Gemt privat",
       examSetPracticeError: "Din øvelse kunne ikke gemmes. Kontroller Segment 6.2 FINAL SQL.",
+      examSetOriginalImages: "Originale billeder",
+      examSetOriginalImage: "1 billede",
+      examSetOriginalImagesCount: (count) => `${count} billeder`,
+      examSetEditorTitle: "PDF-editor",
+      examSetEditorIntro: "Kontrollér hvilke originalsider der hører til hvert spørgsmål, og styr sideskift i den standardiserede PDF.",
+      examSetEditorQuestions: "spørgsmål",
+      examSetEditorMultiPage: "går over flere sider",
+      examSetEditorNeedsCheck: "kræver kontrol",
+      examSetEditorFont: "standardfont",
+      examSetEditorPurpose: "Editoren ændrer kun sidekobling og layout. Spørgsmål, svarmuligheder og billeder forbliver fra originaleksamen.",
+      examSetEditorStartPage: "Fra side",
+      examSetEditorEndPage: "Til side",
+      examSetEditorKeepTogether: "Hold samlet",
+      examSetEditorPageBreak: "Ny PDF-side før",
+      examSetEditorHasImage: "originalt billede fundet",
+      examSetEditorNoImage: "intet billede fundet",
+      examSetEditorCheck: "kontrollér",
+      examSetEditorPrintAnswers: "Med facit i genereret PDF",
+      examSetEditorGeneratePdf: "Generér standard-PDF",
+      examSetEditorReanalyse: "Genanalysér PDF'er",
+      examSetEditorSave: "Gem rettelser",
+      examSetEditorSaving: "Gemmer…",
+      examSetEditorOpen: "PDF-editor",
+      examSetEditorSaved: "PDF-editorens sidekoblinger er gemt.",
+      examSetEditorOwnerOnly: "Kun uploaderen kan ændre den fælles PDF-editor.",
+      examSetEditorRebuilt: "PDF'erne er genanalyseret med den forbedrede SDU-parser.",
+      examSetEditorPrintError: "Den standardiserede PDF kunne ikke forberedes.",
       upload: "Tilføj eksamenssæt",
 
       replace: "Udskift PDF",
@@ -33129,6 +33758,33 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "Saving…",
       examSetPracticeSaved: "Saved privately",
       examSetPracticeError: "Your practice could not be saved. Check the Segment 6.2 FINAL SQL.",
+      examSetOriginalImages: "Original images",
+      examSetOriginalImage: "1 image",
+      examSetOriginalImagesCount: (count) => `${count} images`,
+      examSetEditorTitle: "PDF editor",
+      examSetEditorIntro: "Check which original pages belong to each question and control page breaks in the standardized PDF.",
+      examSetEditorQuestions: "questions",
+      examSetEditorMultiPage: "span multiple pages",
+      examSetEditorNeedsCheck: "need review",
+      examSetEditorFont: "standard font",
+      examSetEditorPurpose: "The editor only changes page mapping and layout. Questions, options and images remain from the original exam.",
+      examSetEditorStartPage: "From page",
+      examSetEditorEndPage: "To page",
+      examSetEditorKeepTogether: "Keep together",
+      examSetEditorPageBreak: "New PDF page before",
+      examSetEditorHasImage: "original image found",
+      examSetEditorNoImage: "no image found",
+      examSetEditorCheck: "review",
+      examSetEditorPrintAnswers: "Include answer key in generated PDF",
+      examSetEditorGeneratePdf: "Generate standard PDF",
+      examSetEditorReanalyse: "Re-analyse PDFs",
+      examSetEditorSave: "Save corrections",
+      examSetEditorSaving: "Saving…",
+      examSetEditorOpen: "PDF editor",
+      examSetEditorSaved: "The PDF editor page mappings were saved.",
+      examSetEditorOwnerOnly: "Only the uploader can change the shared PDF editor.",
+      examSetEditorRebuilt: "The PDFs were re-analysed with the improved SDU parser.",
+      examSetEditorPrintError: "The standardized PDF could not be prepared.",
       upload: "Add exam set",
       replace: "Replace PDF",
       noPdf: "No PDF is linked to this item yet.",
@@ -33414,6 +34070,33 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "جارٍ الحفظ…",
       examSetPracticeSaved: "محفوظ بشكل خاص",
       examSetPracticeError: "تعذر حفظ تدريبك. تحقق من SQL الخاص بـ Segment 6.2 FINAL.",
+      examSetOriginalImages: "الصور الأصلية",
+      examSetOriginalImage: "صورة واحدة",
+      examSetOriginalImagesCount: (count) => `${count} صور`,
+      examSetEditorTitle: "محرر PDF",
+      examSetEditorIntro: "تحقق من صفحات المصدر المرتبطة بكل سؤال وتحكم في فواصل الصفحات في ملف PDF الموحّد.",
+      examSetEditorQuestions: "أسئلة",
+      examSetEditorMultiPage: "تمتد على عدة صفحات",
+      examSetEditorNeedsCheck: "تحتاج مراجعة",
+      examSetEditorFont: "الخط القياسي",
+      examSetEditorPurpose: "يغيّر المحرر ربط الصفحات والتخطيط فقط. تبقى الأسئلة والخيارات والصور من الامتحان الأصلي.",
+      examSetEditorStartPage: "من صفحة",
+      examSetEditorEndPage: "إلى صفحة",
+      examSetEditorKeepTogether: "إبقاء السؤال معاً",
+      examSetEditorPageBreak: "صفحة PDF جديدة قبل",
+      examSetEditorHasImage: "تم العثور على صورة أصلية",
+      examSetEditorNoImage: "لا توجد صورة",
+      examSetEditorCheck: "راجع",
+      examSetEditorPrintAnswers: "تضمين الإجابات في PDF المولّد",
+      examSetEditorGeneratePdf: "إنشاء PDF موحّد",
+      examSetEditorReanalyse: "إعادة تحليل ملفات PDF",
+      examSetEditorSave: "حفظ التصحيحات",
+      examSetEditorSaving: "جارٍ الحفظ…",
+      examSetEditorOpen: "محرر PDF",
+      examSetEditorSaved: "تم حفظ ربط الصفحات في محرر PDF.",
+      examSetEditorOwnerOnly: "يمكن للرافع فقط تعديل محرر PDF المشترك.",
+      examSetEditorRebuilt: "تمت إعادة تحليل ملفات PDF باستخدام محلل SDU المحسن.",
+      examSetEditorPrintError: "تعذر إعداد ملف PDF الموحّد.",
       upload: "إضافة مجموعة امتحان",
       replace: "استبدال PDF",
       noPdf: "لا يوجد ملف PDF مرتبط بهذا العنصر بعد.",
@@ -33793,6 +34476,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setExamSetPdfSource("questions");
     setExamSetShowAnswers(false);
     setExamSetOriginalPage(null);
+    setExamSetEditorOpen(false);
     setExamSetQuestions([]);
     setExamSetQuestionDocumentId(null);
     setExamSetParseState("idle");
@@ -35308,11 +35992,47 @@ async function downloadExamSetDocument(examDocument = selectedExamDocument) {
     });
   }
 
+async function persistExamSetParsedModel(questions, meta, { message = "" } = {}) {
+  if (!selectedExamDocument?.id || selectedExamDocument.ownerUserId !== userId) return false;
+  const normalizedQuestions = Array.isArray(questions) ? questions : [];
+  const normalizedMeta = {
+    ...(meta && typeof meta === "object" ? meta : {}),
+    parseVersion: EXAM_SET_PARSE_VERSION,
+    questionCount: normalizedQuestions.length,
+    questionsWithKey: normalizedQuestions.filter((question) => question.correctLabel).length,
+    questionsWithVisuals: normalizedQuestions.filter((question) => question.hasVisual).length,
+    multiPageQuestions: normalizedQuestions.filter((question) => (question.sourcePages || []).length > 1).length,
+    lowConfidenceQuestions: normalizedQuestions.filter((question) => question.sourceMatch === "unmatched" || Number(question.sourceMatchConfidence) < .8).length,
+    editorUpdatedAt: new Date().toISOString(),
+  };
+  const { error } = await supabase
+    .from("exam_set_documents")
+    .update({
+      parsed_questions: normalizedQuestions,
+      parse_meta: normalizedMeta,
+      parse_status: normalizedQuestions.length ? "ready" : "needs_review",
+      parse_version: EXAM_SET_PARSE_VERSION,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", selectedExamDocument.id)
+    .eq("user_id", userId);
+  if (error) throw error;
+  const nextDocuments = documents.map((document) => document.id === selectedExamDocument.id
+    ? { ...document, parsedQuestions: normalizedQuestions, parseMeta: normalizedMeta, parseStatus: normalizedQuestions.length ? "ready" : "needs_review", parseVersion: EXAM_SET_PARSE_VERSION, updatedAt: new Date().toISOString() }
+    : document);
+  updateDocuments(nextDocuments);
+  setExamSetQuestions(normalizedQuestions);
+  setExamSetQuestionDocumentId(selectedExamDocument.id);
+  setExamSetParseMeta(normalizedMeta);
+  if (message) setExamSetStatus({ state: "success", message });
+  return true;
+}
+
 async function createExamSetViewer() {
-  if (!selectedExamDocument || !examSetPreviewUrl || examSetPreviewState !== "ready") return;
-  if (examSetQuestionDocumentId === selectedExamDocument.id && examSetQuestions.length && examSetParseMeta?.parseVersion === (selectedExamDocument.parseVersion || EXAM_SET_PARSE_VERSION)) {
+  if (!selectedExamDocument || !examSetPreviewUrl || examSetPreviewState !== "ready") return null;
+  if (examSetQuestionDocumentId === selectedExamDocument.id && examSetQuestions.length && examSetParseMeta?.parseVersion === EXAM_SET_PARSE_VERSION) {
     setExamSetMode("exam");
-    return;
+    return { questions: examSetQuestions, meta: examSetParseMeta };
   }
   setExamSetParseState("loading");
   setExamSetParseMeta(null);
@@ -35320,10 +36040,15 @@ async function createExamSetViewer() {
   try {
     let questions = Array.isArray(selectedExamDocument.parsedQuestions) ? selectedExamDocument.parsedQuestions : [];
     let meta = selectedExamDocument.parseMeta && typeof selectedExamDocument.parseMeta === "object" ? selectedExamDocument.parseMeta : {};
-    if (!questions.length || selectedExamDocument.parseVersion !== EXAM_SET_PARSE_VERSION) {
-      const paired = await examSetParsePairedSources(examSetPreviewUrl, examSetAnswerPreviewUrl || null);
+    const ownerCanReparse = selectedExamDocument.ownerUserId === userId && examSetAnswerPreviewState === "ready" && Boolean(examSetAnswerPreviewUrl);
+    const needsReparse = !questions.length || (selectedExamDocument.parseVersion !== EXAM_SET_PARSE_VERSION && ownerCanReparse);
+    if (needsReparse) {
+      const paired = await examSetParsePairedSources(examSetPreviewUrl, ownerCanReparse ? examSetAnswerPreviewUrl : null);
       questions = paired.questions;
       meta = paired.meta;
+      if (ownerCanReparse && questions.length) {
+        try { await persistExamSetParsedModel(questions, meta); } catch (persistError) { console.warn("Kunne ikke gemme nyt parserresultat:", persistError); }
+      }
     }
     if (!questions.length) {
       setExamSetQuestions([]);
@@ -35332,22 +36057,76 @@ async function createExamSetViewer() {
       setExamSetParseState("empty");
       setExamSetMode("exam");
       setExamSetStatus({ state: "error", message: copy.examSetNoQuestions });
-      return;
+      return null;
     }
     setExamSetQuestions(questions);
     setExamSetQuestionDocumentId(selectedExamDocument.id);
-    setExamSetParseMeta(meta);
+    setExamSetParseMeta({ ...meta, parseVersion: meta?.parseVersion || selectedExamDocument.parseVersion || EXAM_SET_PARSE_VERSION });
     setExamSetParseState("ready");
     setExamSetMode("exam");
     const safeIndex = Math.min(Math.max(0, examSetPracticeRef.current.currentIndex || 0), questions.length - 1);
     updateExamSetPractice((current) => ({ ...current, currentIndex: safeIndex }), { save: false });
     setExamSetStatus({ state: "success", message: copy.examSetExtracted(questions.length, questions.filter((question) => question.correctLabel).length, questions.filter((question) => question.hasVisual).length) });
+    return { questions, meta };
   } catch (error) {
     setExamSetQuestions([]);
     setExamSetQuestionDocumentId(selectedExamDocument.id);
     setExamSetParseState("error");
     setExamSetMode("exam");
     setExamSetStatus({ state: "error", message: error?.message || copy.examSetNoQuestions });
+    return null;
+  }
+}
+
+async function saveExamSetEditorQuestions(nextQuestions) {
+  if (!selectedExamDocument?.id || selectedExamDocument.ownerUserId !== userId) {
+    setExamSetStatus({ state: "error", message: copy.examSetEditorOwnerOnly });
+    return;
+  }
+  setExamSetEditorSaving(true);
+  try {
+    await persistExamSetParsedModel(nextQuestions, examSetParseMeta || selectedExamDocument.parseMeta || {}, { message: copy.examSetEditorSaved });
+    setExamSetEditorOpen(false);
+  } catch (error) {
+    setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+  } finally {
+    setExamSetEditorSaving(false);
+  }
+}
+
+async function rebuildExamSetSources() {
+  if (!selectedExamDocument?.id || selectedExamDocument.ownerUserId !== userId) {
+    setExamSetStatus({ state: "error", message: copy.examSetEditorOwnerOnly });
+    return;
+  }
+  if (!examSetPreviewUrl || !examSetAnswerPreviewUrl || examSetPreviewState !== "ready" || examSetAnswerPreviewState !== "ready") {
+    setExamSetStatus({ state: "error", message: copy.examSetActionError });
+    return;
+  }
+  setExamSetEditorSaving(true);
+  setExamSetParseState("loading");
+  try {
+    const paired = await examSetParsePairedSources(examSetPreviewUrl, examSetAnswerPreviewUrl);
+    await persistExamSetParsedModel(paired.questions, paired.meta, { message: copy.examSetEditorRebuilt });
+    setExamSetParseState(paired.questions.length ? "ready" : "empty");
+  } catch (error) {
+    setExamSetParseState("error");
+    setExamSetStatus({ state: "error", message: error?.message || copy.examSetActionError });
+  } finally {
+    setExamSetEditorSaving(false);
+  }
+}
+
+async function printExamSetStandardPdf(questions, includeAnswers = false) {
+  try {
+    await examSetPrintStandardPdf({
+      questions,
+      questionPdfUrl: examSetPreviewUrl,
+      title: `${selectedExamDocument?.name || copy.examSets} · ${selectedExamDocument?.year || ""} ${examSetSessionLabel(selectedExamDocument?.examSession)}`.trim(),
+      includeAnswers,
+    });
+  } catch (error) {
+    setExamSetStatus({ state: "error", message: error?.message || copy.examSetEditorPrintError });
   }
 }
 
@@ -35355,6 +36134,19 @@ function openOriginalExamPage(question) {
   const page = Number(question?.page || question?.sourcePages?.[0] || 1);
   if (!examSetPreviewUrl || !Number.isFinite(page)) return;
   setExamSetOriginalPage(page);
+}
+
+async function openExamSetPdfEditor() {
+  if (!selectedExamDocument?.id || selectedExamDocument.ownerUserId !== userId) {
+    setExamSetStatus({ state: "error", message: copy.examSetEditorOwnerOnly });
+    return;
+  }
+  let readyQuestions = examSetQuestionDocumentId === selectedExamDocument.id ? examSetQuestions : [];
+  if (!readyQuestions.length) {
+    const result = await createExamSetViewer();
+    readyQuestions = result?.questions || [];
+  }
+  if (readyQuestions.length) setExamSetEditorOpen(true);
 }
 
   function selectExamSetQuestion(index) {
@@ -35761,6 +36553,7 @@ function openOriginalExamPage(question) {
                   <button type="button" role="tab" aria-selected={examSetMode === "pdf"} data-active={examSetMode === "pdf" ? "true" : "false"} onClick={() => setExamSetMode("pdf")}><Icon name="file" size={12} />{copy.examSetPdfMode}</button>
                   <button type="button" role="tab" aria-selected={examSetMode === "exam"} data-active={examSetMode === "exam" ? "true" : "false"} className="exam-set-create-viewer" disabled={examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={createExamSetViewer}><Icon name="cards" size={12} />{examSetQuestionDocumentId === selectedExamDocument?.id && examSetQuestions.length ? copy.examSetViewerMode : copy.examSetCreateViewer}</button>
                 </span>
+                {selectedExamDocument?.ownerUserId === userId && <button type="button" className="exam-set-editor-open" disabled={examSetSaving || examSetEditorSaving || examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={openExamSetPdfEditor}><Icon name="edit" size={12} />{copy.examSetEditorOpen}</button>}
                 {examSetMode === "pdf" && <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetPdfMode}>
                   <button type="button" role="tab" aria-selected={examSetPdfSource === "questions"} data-active={examSetPdfSource === "questions" ? "true" : "false"} onClick={() => setExamSetPdfSource("questions")}><Icon name="file" size={11} />{copy.examSetQuestionsSource}</button>
                   <button type="button" role="tab" aria-selected={examSetPdfSource === "answers"} data-active={examSetPdfSource === "answers" ? "true" : "false"} disabled={!selectedExamDocument?.answerStoragePath || examSetAnswerPreviewState !== "ready"} onClick={() => setExamSetPdfSource("answers")}><Icon name="check" size={11} />{copy.examSetAnswersSource}</button>
@@ -35828,7 +36621,7 @@ examSetMode === "exam" ? (
             <article className="exam-set-question-card">
               <div className="exam-set-question-source"><span>{copy.examSetSourceQuestion} {question.sourceNumber}</span>{question.sourcePages?.length ? <span>{copy.examSetSourcePage} {question.sourcePages.join("–")}</span> : question.page ? <span>{copy.examSetSourcePage} {question.page}</span> : null}{question.hasVisual && <span>{copy.examSetOriginalExcerpt}</span>}</div>
               <h2 className="exam-set-question-text">{question.text}</h2>
-              {question.hasVisual && examSetPreviewUrl && <ExamSourcePagePreview url={examSetPreviewUrl} pageNumber={question.page || question.sourcePages?.[0] || 1} fileName={selectedExamDocument?.questionFileName || selectedExamDocument?.name} copy={copy} onOpen={() => openOriginalExamPage(question)} />}
+              {question.hasVisual && examSetPreviewUrl && <ExamQuestionOriginalVisuals url={examSetPreviewUrl} question={question} fileName={selectedExamDocument?.questionFileName || selectedExamDocument?.name} copy={copy} onOpen={() => openOriginalExamPage(question)} />}
               <div className="exam-set-options">
                 {question.options.map((option) => {
                   const result = submitted && question.correctLabel
@@ -36080,6 +36873,20 @@ examSetMode === "exam" ? (
     </div>
   </Modal>
 )}
+
+      {examSetEditorOpen && selectedExamDocument && !isLectureLibrary && (
+        <ExamPdfEditorModal
+          c={c}
+          questions={examSetQuestionDocumentId === selectedExamDocument.id ? examSetQuestions : selectedExamDocument.parsedQuestions}
+          parseMeta={examSetQuestionDocumentId === selectedExamDocument.id ? (examSetParseMeta || selectedExamDocument.parseMeta) : selectedExamDocument.parseMeta}
+          copy={copy}
+          saving={examSetEditorSaving}
+          onClose={() => setExamSetEditorOpen(false)}
+          onSave={saveExamSetEditorQuestions}
+          onRebuild={rebuildExamSetSources}
+          onPrint={printExamSetStandardPdf}
+        />
+      )}
 
       {examSetOriginalPage && selectedExamDocument && examSetPreviewUrl && (
         <ExamOriginalPageModal c={c} url={examSetPreviewUrl} pageNumber={examSetOriginalPage} fileName={selectedExamDocument.questionFileName || selectedExamDocument.name} copy={copy} onClose={() => setExamSetOriginalPage(null)} />
