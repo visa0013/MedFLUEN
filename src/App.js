@@ -116,8 +116,8 @@ const TEXT = {
     drByteUsedWebSearch: "Svaret inkluderer information fundet via websøgning",
     drByteAiProviderLabel: "AI-udbyder",
     drByteNvidiaKeyLabel: "NVIDIA API-nøgle",
-    drByteNvidiaKeyPlaceholder: "nvapi-... (valgfrit, standardnøgle bruges hvis tom)",
-    drByteNvidiaKeyHint: "Hvis feltet er tomt, bruges en indbygget standardnøgle. Bemærk: al kode i denne app er synlig i browseren, så del ikke appen offentligt uden at rotere nøglen.",
+    drByteNvidiaKeyPlaceholder: "nvapi-...",
+    drByteNvidiaKeyHint: "NVIDIA-nøglen gemmes lokalt i din browser. Der er ikke længere en indbygget standardnøgle i app-koden.",
     drByteNvidiaProxyLabel: "Proxy-URL (valgfrit)",
     drByteNvidiaProxyPlaceholder: "fx https://din-proxy.dk/api/nvidia",
     drByteNvidiaProxyHint: "NVIDIA's API blokerer direkte kald fra browseren (CORS). Uden en proxy-server får du en 'Failed to fetch'-fejl. Peg her på en simpel mellemled-server, der videresender kaldet til NVIDIA.",
@@ -401,8 +401,8 @@ reorderHint: "Træk boksene for at ændre rækkefølgen",
     drByteUsedWebSearch: "This answer includes information found via web search",
     drByteAiProviderLabel: "AI provider",
     drByteNvidiaKeyLabel: "NVIDIA API key",
-    drByteNvidiaKeyPlaceholder: "nvapi-... (optional, default key used if empty)",
-    drByteNvidiaKeyHint: "If left empty, a built-in default key is used. Note: all code in this app is visible in the browser, so don't share the app publicly without rotating the key.",
+    drByteNvidiaKeyPlaceholder: "nvapi-...",
+    drByteNvidiaKeyHint: "The NVIDIA key is stored locally in your browser. There is no longer a built-in default key in the client code.",
     drByteNvidiaProxyLabel: "Proxy URL (optional)",
     drByteNvidiaProxyPlaceholder: "e.g. https://your-proxy.com/api/nvidia",
     drByteNvidiaProxyHint: "NVIDIA's API blocks direct calls from the browser (CORS). Without a proxy server you'll get a 'Failed to fetch' error. Point this at a simple relay server that forwards the request to NVIDIA.",
@@ -686,8 +686,8 @@ reorderHint: "Drag the boxes to change their order",
     drByteUsedWebSearch: "تحتوي هذه الإجابة على معلومات تم العثور عليها عبر البحث على الويب",
     drByteAiProviderLabel: "مزود الذكاء الاصطناعي",
     drByteNvidiaKeyLabel: "مفتاح NVIDIA API",
-    drByteNvidiaKeyPlaceholder: "nvapi-... (اختياري، يُستخدم المفتاح الافتراضي إذا تُرك فارغًا)",
-    drByteNvidiaKeyHint: "إذا تُرك الحقل فارغًا، يُستخدم مفتاح افتراضي مدمج. ملاحظة: جميع الأكواد في هذا التطبيق مرئية في المتصفح، فلا تشارك التطبيق علنًا دون تدوير المفتاح.",
+    drByteNvidiaKeyPlaceholder: "nvapi-...",
+    drByteNvidiaKeyHint: "يُحفظ مفتاح NVIDIA محليًا في المتصفح. لم يعد هناك مفتاح افتراضي مدمج في كود العميل.",
     drByteNvidiaProxyLabel: "عنوان URL للوكيل (اختياري)",
     drByteNvidiaProxyPlaceholder: "مثال: https://your-proxy.com/api/nvidia",
     drByteNvidiaProxyHint: "تحظر واجهة برمجة تطبيقات NVIDIA الاتصال المباشر من المتصفح (CORS). بدون خادم وكيل ستحصل على خطأ 'Failed to fetch'. أشر هنا إلى خادم وسيط بسيط يعيد توجيه الطلب إلى NVIDIA.",
@@ -3585,11 +3585,9 @@ const DR_BYTE_SYSTEM_PROMPT = {
 
 
 
-// NOTE: this key is embedded directly in client-side code and will be visible to anyone
-// who inspects the app's network requests or source (browser DevTools). Anyone with access
-// to this app can extract and reuse it. Rotate it via NVIDIA's console if this app is ever
-// shared beyond personal/local use.
-const NVIDIA_DEFAULT_API_KEY = "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";
+// Security: no provider secret is embedded in the client bundle. NVIDIA remains an
+// optional Dr. Byte provider and requires a user-supplied key (or a server proxy).
+const NVIDIA_DEFAULT_API_KEY = "";
 
 const NVIDIA_CORS_ERROR_HINT = {
   da: "NVIDIA's API tillader ikke direkte kald fra en browser (CORS er ikke aktiveret på deres endpoint). Dette er en begrænsning hos NVIDIA, ikke en fejl i appen. Tilføj en 'Proxy-URL' i AI-indstillingerne, der peger på en lille mellemled-server, for at løse det permanent.",
@@ -11239,7 +11237,7 @@ select.ui-control {
 .exam-pdf-editor-header > div:first-child > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; background: var(--ui-blue-soft); color: var(--ui-blue); }
 .exam-pdf-editor-header strong { display: block; color: var(--ui-text); font-size: 11px; font-weight: 900; }
 .exam-pdf-editor-header small { display: block; margin-top: 3px; max-width: 720px; color: var(--ui-muted); font-size: 8px; font-weight: 650; line-height: 1.45; }
-.exam-pdf-editor-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; padding: 10px 14px 0; }
+.exam-pdf-editor-summary { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 7px; padding: 10px 14px 0; }
 .exam-pdf-editor-summary > span { min-width: 0; display: grid; gap: 2px; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); }
 .exam-pdf-editor-summary > span[data-warning="true"] { border-color: color-mix(in srgb,#c9822f 42%,var(--ui-border)); background: color-mix(in srgb,#c9822f 8%,var(--ui-panel)); }
 .exam-pdf-editor-summary strong { overflow: hidden; color: var(--ui-text); font-size: 12px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
@@ -11257,6 +11255,31 @@ select.ui-control {
 .exam-pdf-editor-row input[type="number"]:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 2px color-mix(in srgb,var(--ui-blue) 10%,transparent); }
 .exam-pdf-editor-check { min-width: 0; display: flex; align-items: center; gap: 6px; color: var(--ui-secondary); font-size: 7.5px; font-weight: 750; }
 .exam-pdf-editor-check input { width: 14px; height: 14px; accent-color: var(--ui-blue); }
+.exam-pdf-status-pill { width: fit-content; margin-top: 3px; padding: 2px 6px; border-radius: 999px; background: var(--ui-soft); color: var(--ui-muted); font-size: 6.4px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+.exam-pdf-status-pill[data-status="verified"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.exam-pdf-status-pill[data-status="review"] { background: color-mix(in srgb,#c9822f 12%,var(--ui-panel)); color: #c9822f; }
+.exam-pdf-status-pill[data-status="blocked"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.exam-pdf-evidence-panel { grid-column: 1 / -1; display: grid; gap: 7px; padding: 8px; border-top: 1px solid var(--ui-border); background: color-mix(in srgb,var(--ui-soft) 58%,transparent); border-radius: 7px; }
+.exam-pdf-evidence-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.exam-pdf-evidence-head > div:first-child { min-width: 0; display: grid; gap: 2px; }
+.exam-pdf-evidence-head strong { color: var(--ui-text); font-size: 8px; font-weight: 900; }
+.exam-pdf-evidence-head small { color: var(--ui-muted); font-size: 6.8px; font-weight: 700; }
+.exam-pdf-evidence-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.exam-pdf-evidence-actions .ui-button { min-height: 27px; padding: 0 8px; font-size: 6.8px; }
+.exam-pdf-evidence-list { display: flex; align-items: stretch; gap: 5px; flex-wrap: wrap; }
+.exam-pdf-evidence-list > span { min-width: 120px; max-width: 250px; display: grid; grid-template-columns: auto auto; gap: 2px 5px; align-items: center; padding: 5px 7px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); }
+.exam-pdf-evidence-list b { color: var(--ui-secondary); font-size: 6.4px; font-weight: 850; }
+.exam-pdf-evidence-list em { justify-self: end; color: var(--ui-blue); font-size: 8px; font-style: normal; font-weight: 950; }
+.exam-pdf-evidence-list small { grid-column: 1 / -1; color: var(--ui-muted); font-size: 6.2px; font-weight: 650; line-height: 1.35; }
+.exam-pdf-evidence-list > span[data-channel="manual"] { border-color: var(--ui-green-border); background: var(--ui-green-soft); }
+.exam-pdf-evidence-list > span[data-channel="ai"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); }
+.exam-pdf-no-evidence { padding: 6px 8px; border: 1px dashed var(--ui-border); border-radius: 7px; color: var(--ui-muted); font-size: 7px; font-weight: 750; }
+.exam-pdf-ai-note { display: flex; align-items: center; gap: 5px; color: var(--ui-blue); font-size: 6.8px; font-weight: 800; }
+.exam-pdf-review-controls { display: grid; grid-template-columns: 78px minmax(220px,1fr) auto auto; gap: 6px; align-items: end; }
+.exam-pdf-review-controls label { display: grid; gap: 3px; color: var(--ui-muted); font-size: 6.8px; font-weight: 750; }
+.exam-pdf-review-controls select { width: 100%; min-height: 30px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); color: var(--ui-text); padding: 0 7px; font-size: 7.4px; font-weight: 700; }
+.exam-pdf-review-controls input[type="number"] { width: 100%; min-height: 30px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); color: var(--ui-text); padding: 0 7px; font-size: 7.4px; font-weight: 800; }
+.exam-pdf-review-controls .ui-button { min-height: 30px; padding-inline: 10px; font-size: 7px; }
 .exam-pdf-editor-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--ui-border); background: var(--ui-soft); }
 .exam-pdf-editor-footer > div { display: flex; align-items: center; gap: 7px; }
 .exam-pdf-editor-print label { display: inline-flex; align-items: center; gap: 6px; color: var(--ui-secondary); font-size: 7.5px; font-weight: 750; }
@@ -11280,6 +11303,8 @@ select.ui-control {
   .exam-pdf-editor-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .exam-pdf-editor-row { grid-template-columns: minmax(0,1fr) 74px 74px; }
   .exam-pdf-editor-row .exam-pdf-editor-check { grid-column: span 1; }
+  .exam-pdf-review-controls { grid-template-columns: 1fr; }
+  .exam-pdf-evidence-head { align-items: flex-start; flex-direction: column; }
   .exam-pdf-editor-footer { align-items: stretch; flex-direction: column; }
   .exam-pdf-editor-footer > div { justify-content: space-between; flex-wrap: wrap; }
 }
@@ -31751,7 +31776,9 @@ function lectureMaterialPreviewKind(material) {
 const EXAM_SET_DOCUMENTS_BUCKET = "exam-set-documents";
 const EXAM_SET_DOCUMENT_MAX_BYTES = 50 * 1024 * 1024;
 const EXAM_SET_SESSIONS = ["summer", "winter", "reexam"];
-const EXAM_SET_PARSE_VERSION = "6.2.2-sdu-paired-editor-1";
+const EXAM_SET_PARSE_VERSION = "6.3.2-intelligent-vision-evidence-2";
+const EXAM_SET_AI_MAX_QUESTION_CALLS = 12;
+const EXAM_SET_AI_PATTERN_PAGE_LIMIT = 3;
 const EXAM_SET_STANDARD_FONT = "Arial, Helvetica, sans-serif";
 
 function examSetUuid() {
@@ -31836,7 +31863,7 @@ function examSetEscapeRegExp(value) {
   return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function examSetPdfItemsToLines(items, pageNumber, viewport = null) {
+function examSetPdfItemsToLines(items, pageNumber, viewport = null, styles = {}) {
   const source = Array.isArray(items) ? items : [];
   const lines = [];
   let parts = [];
@@ -31850,6 +31877,9 @@ function examSetPdfItemsToLines(items, pageNumber, viewport = null) {
       const right = parts.length ? Math.max(...parts.map((part) => part.right)) : left;
       const top = parts.length ? Math.min(...parts.map((part) => part.top)) : 0;
       const bottom = parts.length ? Math.max(...parts.map((part) => part.bottom)) : top;
+      const fontNames = [...new Set(parts.map((part) => part.fontName).filter(Boolean))];
+      const fontSizes = parts.map((part) => Number(part.fontSize) || 0).filter((value) => value > 0);
+      const boldParts = parts.filter((part) => /bold|black|semibold|demi/i.test(`${part.fontName || ""} ${part.fontFamily || ""}`)).length;
       lines.push({
         page: pageNumber,
         text,
@@ -31857,7 +31887,12 @@ function examSetPdfItemsToLines(items, pageNumber, viewport = null) {
         top,
         width: Math.max(1, right - left),
         height: Math.max(1, bottom - top),
+        fontNames,
+        fontSize: fontSizes.length ? Math.max(...fontSizes) : Math.max(1, bottom - top),
+        boldRatio: parts.length ? boldParts / parts.length : 0,
+        parts: parts.map((part) => ({ text: part.text, x: part.left, width: Math.max(1, part.right - part.left), fontName: part.fontName, fontSize: part.fontSize })),
         highlight: null,
+        markers: [],
       });
     }
     parts = [];
@@ -31880,7 +31915,18 @@ function examSetPdfItemsToLines(items, pageNumber, viewport = null) {
     const movedLine = lastY != null && Math.abs(lastY - y) > 2.5;
     const wrappedBack = lastX != null && x < lastX - 24 && lastY != null && Math.abs(lastY - y) <= 2.5;
     if (parts.length && (movedLine || wrappedBack)) flush();
-    parts.push({ left: x, right: x + itemWidth, top: topLeftY, bottom: topLeftY + fontHeight, text });
+    const fontName = String(item?.fontName || "");
+    const style = styles?.[fontName] || {};
+    parts.push({
+      left: x,
+      right: x + itemWidth,
+      top: topLeftY,
+      bottom: topLeftY + fontHeight,
+      text,
+      fontName,
+      fontFamily: style?.fontFamily || "",
+      fontSize: fontHeight,
+    });
     lastY = y;
     lastX = x;
     if (item?.hasEOL) flush();
@@ -31888,7 +31934,6 @@ function examSetPdfItemsToLines(items, pageNumber, viewport = null) {
   flush();
   return lines;
 }
-
 function examSetCleanPdfLines(lines) {
   const input = Array.isArray(lines) ? lines : [];
   const pageCount = new Set(input.map((line) => line.page)).size;
@@ -31923,35 +31968,16 @@ function examSetQuestionCode(text) {
   return match ? match[1].toUpperCase() : "";
 }
 
-function examSetSequentialQuestionBlocks(lines) {
-  const source = examSetCleanPdfLines(lines);
-  const starts = [];
-  let expected = 1;
-  source.forEach((line, index) => {
-    const marker = examSetExplicitQuestionMarker(line?.text);
-    if (!marker || Number(marker.number) !== expected) return;
-    starts.push({ index, number: marker.number, marker, line });
-    expected += 1;
-  });
-  return starts.map((start, position) => {
-    const endIndex = position + 1 < starts.length ? starts[position + 1].index : source.length;
-    return {
-      number: start.number,
-      line: start.line,
-      marker: start.marker,
-      lines: source.slice(start.index + 1, endIndex),
-    };
-  });
-}
-
 function examSetStripAnswerOnlySuffix(value) {
   let text = examSetNormalizeSourceText(value);
   const suffixes = [
-    /\s+Svaret\s+er\s*:\s*[1-9A-H]\b[\s\S]*$/i,
-    /\s+Rigtigt\s+svar\s*\(?[1-9A-H]\)?\b[\s\S]*$/i,
+    /\s+Svaret\s+er\s*:?\s*\(?[1-9A-H]\)?\b[\s\S]*$/i,
+    /\s+Rigtigt\s+svar\s*(?:er\s*)?[:\-]?\s*\(?[1-9A-H]\)?\b[\s\S]*$/i,
+    /\s+Korrekt(?:e)?\s+svar\s*(?:er\s*)?[:\-]?\s*\(?[1-9A-H]\)?\b[\s\S]*$/i,
     /\s+Svar\s+nummer\s+[1-9A-H]\s+er\s+korrekt\b[\s\S]*$/i,
     /\s+[1-9A-H]\)\s*er\s+det\s+rigtige\s+svar\b[\s\S]*$/i,
     /\s+Nr\.?\s*[1-9A-H]\s+er\s+svaret\b[\s\S]*$/i,
+    /\s+\([1-9A-H]\)\s*$/i,
   ];
   for (const pattern of suffixes) text = text.replace(pattern, "");
   return examSetNormalizeSourceText(text.replace(/[✔✓]\s*$/g, ""));
@@ -31964,7 +31990,7 @@ function examSetOptionTailCut(offsets, contentStart, defaultEnd) {
     if (offset.start <= contentStart) continue;
     const value = examSetNormalizeSourceText(offset.row?.text);
     if (!value) continue;
-    const answerOnly = /^(?:Svaret\s+er\s*:|Rigtigt\s+svar\b|Svar\s+nummer\b|[1-9A-H]\)\s*er\s+det\s+rigtige\s+svar\b|Nr\.?\s*[1-9A-H]\s+er\s+svaret\b)/i.test(value);
+    const answerOnly = /^(?:Svaret\s+er\s*:|Rigtigt\s+svar\b|Svar\s+nummer\b|[1-9A-H]\)\s*er\s+det\s+rigtige\s+svar\b|Nr\.?\s*[1-9A-H]\s+er\s+svaret\b|\([1-9A-H]\)\s*$)/i.test(value);
     const sourceTail = /^\((?:hvilke|bemærk|obs|note)\b[\s\S]*\)$/i.test(value);
     if (!answerOnly && !sourceTail) continue;
     cut = Math.min(cut, offset.start);
@@ -31989,8 +32015,8 @@ function examSetOptionRun(lines) {
 
   function choose(kind) {
     const marker = kind === "number"
-      ? /(?<!\d)([1-9])\s*[.\)]\s+/g
-      : /(?:^|\s)([A-Ha-h])\s*[.\)]\s+/g;
+      ? /(?<!\d)([1-9])\s*(?:\)\s*|\.\s+)/g
+      : /(?:^|\s)([A-Ha-h])\s*(?:\)\s*|\.\s+)/g;
     const matches = [];
     let match;
     while ((match = marker.exec(flatText))) {
@@ -32046,43 +32072,10 @@ function examSetOptionRun(lines) {
   return choose("number") || choose("letter");
 }
 
-function examSetHighlightedOptionLabel(run) {
-  if (!run) return "";
-  for (const offset of run.offsets) {
-    const highlight = offset.row?.line?.highlight;
-    if (!highlight) continue;
-    const center = Math.max(0, Math.min(1, (Number(highlight.startRatio) + Number(highlight.endRatio)) / 2));
-    const position = offset.start + Math.round(offset.row.text.length * center);
-    const option = run.options.find((candidate) => position >= candidate.start && position < candidate.end);
-    if (option) return option.label;
-  }
-  const checked = run.options.find((option) => /[✔✓]/.test(run.flatText.slice(option.contentStart, option.end)));
-  return checked?.label || "";
-}
-
-function examSetExplicitCorrectAnswer(text, options) {
-  const value = examSetNormalizeSourceText(text);
-  const patterns = [
-    /Rigtigt\s+svar\s*\(?([1-9A-H])\)?/i,
-    /Svar(?:et)?(?:\s+nummer)?\s*[:\-]?\s*([1-9A-H])\s*(?:er\s+korrekt|er\s+det\s+rigtige\s+svar)?/i,
-    /([1-9A-H])\)\s*er\s+det\s+rigtige\s+svar/i,
-    /Nr\.?\s*([1-9A-H])\s*er\s+svaret/i,
-    /Svaret\s+er\s*:\s*([1-9A-H])/i,
-    /\(([1-9A-H])\)\s*(?=Spørgsmål|$)/i,
-  ];
-  for (const pattern of patterns) {
-    const match = value.match(pattern);
-    if (!match) continue;
-    const label = match[1].toUpperCase();
-    if (options.some((option) => option.label === label)) return label;
-  }
-  return "";
-}
-
 function examSetQuestionTextFromRun(run, code = "") {
   if (!run) return "";
   let value = examSetNormalizeSourceText(run.flatText.slice(0, run.questionEnd));
-  if (code) value = examSetNormalizeSourceText(value.replace(new RegExp(`^${examSetEscapeRegExp(code)}\\b`, "i"), ""));
+  if (code) value = examSetNormalizeSourceText(value.replace(new RegExp(`(?:^|\\s)${examSetEscapeRegExp(code)}(?=\\s|$)`, "i"), " "));
   value = examSetNormalizeSourceText(value
     .replace(/^\d{1,2}\s+(?=[A-ZÆØÅ])/i, "")
     .replace(/\bOpgavetekst\b\s*/gi, "")
@@ -32090,85 +32083,6 @@ function examSetQuestionTextFromRun(run, code = "") {
     .replace(/\bSvarmuligheder\b\s*/gi, ""));
   if (run.sourceNote) value = examSetNormalizeSourceText(`${value} ${run.sourceNote}`);
   return value;
-}
-
-function examSetParseAnswerQuestions(answerPdf) {
-  const blocks = examSetSequentialQuestionBlocks(answerPdf?.lines || []);
-  return blocks.map((block) => {
-    let code = "";
-    for (const line of block.lines.slice(0, 8)) {
-      code = examSetQuestionCode(line?.text);
-      if (code) break;
-    }
-    const optionRun = examSetOptionRun(block.lines);
-    if (!optionRun) return null;
-    const options = optionRun.options.filter((option) => option?.text);
-    if (options.length < 2) return null;
-    const highlighted = examSetHighlightedOptionLabel(optionRun);
-    const explicit = examSetExplicitCorrectAnswer(optionRun.flatText, options);
-    const correctLabel = highlighted || explicit || null;
-    return {
-      id: `q-${block.number}`,
-      sourceNumber: block.number,
-      code,
-      text: examSetQuestionTextFromRun(optionRun, code),
-      options: options.map(({ label, text }) => ({ label, text })),
-      correctLabel,
-      answerPage: block.line?.page || null,
-      sourceType: "paired-original-pdf",
-    };
-  }).filter(Boolean);
-}
-
-function examSetSourceNoiseLine(text) {
-  const value = examSetNormalizeSourceText(text);
-  return !value
-    || Boolean(examSetExplicitQuestionMarker(value))
-    || /^(?:eksamen\b|mcq\s+opgavesæt\b|meq\s+opgavesæt\b|opgavesæt\s*:)/i.test(value)
-    || /^\d{1,3}$/.test(value)
-    || /^[ivxlcdm]{1,5}[.)]?$/i.test(value);
-}
-
-function examSetTextTokens(text) {
-  return examSetNormalizeSourceText(text).toLowerCase().replace(/[^a-z0-9æøå]+/gi, " ").split(/\s+/).filter((token) => token.length >= 4).slice(0, 18);
-}
-
-function examSetSourceAnchor(lines, question, previousIndex = -1) {
-  const source = Array.isArray(lines) ? lines : [];
-  const code = question?.code || "";
-  if (code) {
-    const codePattern = new RegExp(`(?:^|\\s)${examSetEscapeRegExp(code)}(?:$|\\s)`, "i");
-    for (let index = Math.max(0, previousIndex + 1); index < source.length; index += 1) {
-      if (!codePattern.test(examSetNormalizeSourceText(source[index]?.text))) continue;
-      let startIndex = index;
-      for (let back = index - 1; back >= Math.max(previousIndex + 1, index - 2); back -= 1) {
-        const marker = examSetExplicitQuestionMarker(source[back]?.text);
-        if (marker?.number === question.sourceNumber) {
-          startIndex = back;
-          break;
-        }
-      }
-      return { index: startIndex, anchorIndex: index, method: "code", confidence: 1 };
-    }
-  }
-  for (let index = Math.max(0, previousIndex + 1); index < source.length; index += 1) {
-    const marker = examSetExplicitQuestionMarker(source[index]?.text);
-    if (marker?.number === question.sourceNumber) return { index, anchorIndex: index, method: "marker", confidence: .94 };
-  }
-
-  const tokens = examSetTextTokens(question?.text);
-  if (tokens.length >= 4) {
-    let best = null;
-    for (let index = Math.max(0, previousIndex + 1); index < source.length; index += 1) {
-      const windowText = examSetNormalizeSourceText(source.slice(index, index + 5).map((line) => line.text).join(" ")).toLowerCase();
-      if (!windowText) continue;
-      const hits = tokens.filter((token) => windowText.includes(token)).length;
-      const score = hits / tokens.length;
-      if (!best || score > best.score) best = { index, anchorIndex: index, method: "text", confidence: score, score };
-    }
-    if (best?.score >= .55) return best;
-  }
-  return null;
 }
 
 function examSetQuestionSourceRegion(page, startLine, endLine, pageDimensions) {
@@ -32189,88 +32103,718 @@ function examSetRectOverlapArea(left, right) {
   return x * y;
 }
 
-function examSetAttachOriginalSource(questionPdf, answerQuestions) {
-  const lines = examSetCleanPdfLines(questionPdf?.lines || []);
-  const anchors = [];
-  let previousIndex = -1;
-  (Array.isArray(answerQuestions) ? answerQuestions : []).forEach((question) => {
-    const anchor = examSetSourceAnchor(lines, question, previousIndex);
-    anchors.push(anchor ? { ...anchor, question } : null);
-    if (anchor) previousIndex = anchor.index;
+/* =============================================================================
+   SEGMENT 6.3.2 — INTELLIGENT, EVIDENCE-FIRST EXAM DETECTION
+   -----------------------------------------------------------------------------
+   The question PDF is always the source of truth for question identity/content.
+   The answer PDF is parsed independently and matched globally. Displayed question
+   numbers are metadata only; stable codes, stem text, answer options and document
+   evidence carry the match. A correctLabel is only exposed when the match AND the
+   answer evidence are verified. AI may interpret document markings, but it may
+   never solve the medical question and AI-only evidence never auto-verifies.
+   ========================================================================== */
+
+function examSetClamp(value, min = 0, max = 1) {
+  return Math.max(min, Math.min(max, Number(value) || 0));
+}
+
+function examSetLooksLikeAnswerOnlyLine(text) {
+  const value = examSetNormalizeSourceText(text);
+  return /^(?:svaret\s+er\s*:?|rigtigt\s+svar\b|korrekt(?:e)?\s+svar\b|det\s+(?:korrekte|rigtige)\s+svar\b|svar(?:et)?(?:\s+nummer)?\s*[:\-]?\s*[1-9A-H]\b|[1-9A-H]\)\s*er\s+det\s+rigtige\s+svar\b|nr\.?\s*[1-9A-H]\s+er\s+svaret\b|\([1-9A-H]\))$/i.test(value)
+    || /^(?:svaret\s+er\s*:?|rigtigt\s+svar\b|korrekt(?:e)?\s+svar\b|det\s+(?:korrekte|rigtige)\s+svar\b|svar(?:et)?(?:\s+nummer)?\b|[1-9A-H]\)\s*er\s+det\s+rigtige\s+svar\b|nr\.?\s*[1-9A-H]\s+er\s+svaret\b)/i.test(value);
+}
+
+function examSetQuestionBlocks(lines, { answerDocument = false } = {}) {
+  const source = examSetCleanPdfLines(lines);
+  const explicitStarts = [];
+  source.forEach((line, index) => {
+    const marker = examSetExplicitQuestionMarker(line?.text);
+    if (marker) explicitStarts.push({ index, displayNumber: marker.number, line, method: "marker" });
   });
 
-  return (Array.isArray(answerQuestions) ? answerQuestions : []).map((question, questionIndex) => {
-    const anchor = anchors[questionIndex];
-    if (!anchor) {
-      return {
-        ...question,
-        page: null,
-        sourcePages: [],
-        sourceRegions: [],
-        visualRegions: [],
-        hasVisual: false,
-        sourceMatch: "unmatched",
-        sourceMatchConfidence: 0,
-        editor: { startPage: 1, endPage: 1, pageBreakBefore: false, keepTogether: true },
-      };
+  const codeStarts = [];
+  source.forEach((line, index) => {
+    const code = examSetQuestionCode(line?.text);
+    if (!code || examSetNormalizeSourceText(line?.text).toUpperCase() !== code) return;
+    const windowLines = source.slice(index, Math.min(source.length, index + 22));
+    if (!examSetOptionRun(windowLines)) return;
+    const previousMarker = [...explicitStarts].reverse().find((candidate) => candidate.index < index);
+    if (previousMarker) {
+      const between = source.slice(previousMarker.index + 1, index);
+      // A code directly after a heading belongs to that question. A standalone
+      // code after the previous option run can recover a missing next heading.
+      if (!examSetOptionRun(between)) return;
     }
-    const nextAnchor = anchors.slice(questionIndex + 1).find(Boolean) || null;
-    const endIndex = nextAnchor ? nextAnchor.index : lines.length;
-    const rawBlock = lines.slice(anchor.index, endIndex);
-    const meaningful = rawBlock.filter((line, localIndex) => {
-      if (localIndex === 0) return true;
-      const value = examSetNormalizeSourceText(line?.text);
-      if (examSetSourceNoiseLine(value)) return false;
-      // A section code immediately before the next accepted question belongs to the next block.
-      if (nextAnchor && line.page === lines[nextAnchor.index]?.page && examSetQuestionCode(value)) return false;
-      return true;
+    codeStarts.push({ index, displayNumber: "", line, method: "code" });
+  });
+
+  let starts = explicitStarts.length ? [...explicitStarts, ...codeStarts] : codeStarts;
+
+  // Last-resort answer-document mode for unusual layouts with no headings/codes.
+  // Important: this fallback is ONLY used when the document has no stronger boundary
+  // signals. An answer note immediately before "Spørgsmål X" therefore remains inside
+  // the PREVIOUS question block and can never be stolen by the next question.
+  if (!starts.length && answerDocument) {
+    source.forEach((line, index) => {
+      if (!examSetLooksLikeAnswerOnlyLine(line?.text)) return;
+      const windowLines = source.slice(Math.max(0, index - 18), Math.min(source.length, index + 4));
+      if (!examSetOptionRun(windowLines)) return;
+      starts.push({ index: Math.max(0, index - 18), displayNumber: "", line: source[Math.max(0, index - 18)], method: "answer-fallback" });
     });
-    const sourceParseLines = meaningful.filter((line) => !examSetExplicitQuestionMarker(line?.text));
-    const sourceRun = examSetOptionRun(sourceParseLines);
-    const sourceOptions = sourceRun?.options?.filter((option) => option?.text) || [];
-    const sourceText = sourceRun && sourceOptions.length >= 2 ? examSetQuestionTextFromRun(sourceRun, question.code) : "";
-    const pages = [...new Set(meaningful.map((line) => Number(line.page)).filter(Boolean))].sort((left, right) => left - right);
-    const startLine = lines[anchor.index];
-    const endLine = nextAnchor ? lines[nextAnchor.index] : null;
-    const normalizedPages = pages.length ? pages : [Number(startLine?.page) || 1];
-    const sourceRegions = normalizedPages.map((page) => examSetQuestionSourceRegion(
-      page,
-      page === startLine?.page ? startLine : null,
-      endLine && page === endLine.page ? endLine : null,
-      questionPdf?.pageDimensions || {}
-    ));
-    const visualRegions = [];
-    sourceRegions.forEach((region) => {
-      const images = questionPdf?.pageImages?.[region.page] || questionPdf?.pageImages?.[String(region.page)] || [];
-      images.forEach((image) => {
-        const area = Math.max(1, Number(image.width) * Number(image.height));
-        const overlap = examSetRectOverlapArea(region, image);
-        if (area >= 900 && overlap / area >= .3) visualRegions.push({ ...image, page: Number(region.page) });
-      });
-    });
-    const startPage = normalizedPages[0];
-    const endPage = normalizedPages[normalizedPages.length - 1];
+  }
+
+  const unique = [];
+  const seen = new Set();
+  starts.sort((left, right) => left.index - right.index).forEach((start) => {
+    if (seen.has(start.index)) return;
+    seen.add(start.index);
+    unique.push(start);
+  });
+
+  return unique.map((start, position) => {
+    const next = position + 1 < unique.length ? unique[position + 1] : null;
+    const endIndex = next ? next.index : source.length;
     return {
-      ...question,
-      text: sourceText || question.text,
-      options: sourceOptions.length >= 2 ? sourceOptions.map(({ label, text }) => ({ label, text })) : question.options,
-      contentSource: sourceText && sourceOptions.length >= 2 ? "question-pdf" : "answer-pdf-fallback",
-      page: startPage,
-      sourcePages: normalizedPages,
-      sourceRegions,
-      visualRegions,
-      hasVisual: visualRegions.length > 0,
-      sourceMatch: anchor.method,
-      sourceMatchConfidence: Number(anchor.confidence) || 0,
-      editor: {
-        startPage,
-        endPage,
-        pageBreakBefore: Boolean(question?.editor?.pageBreakBefore),
-        keepTogether: question?.editor?.keepTogether !== false,
-      },
+      displayNumber: start.displayNumber || examSetExplicitQuestionMarker(start.line?.text)?.number || "",
+      boundaryMethod: start.method,
+      startIndex: start.index,
+      endIndex,
+      startLine: start.line,
+      nextStartLine: next?.line || null,
+      // Marker belongs to the block. This preserves trailing answer notes before the
+      // next marker as evidence for the current question.
+      lines: source.slice(start.index, endIndex),
     };
   });
 }
+
+function examSetBlockCode(block) {
+  const lines = (block?.lines || []).slice(0, 14);
+  for (let index = 0; index < lines.length; index += 1) {
+    const value = examSetNormalizeSourceText(lines[index]?.text);
+    const code = examSetQuestionCode(value);
+    if (!code) continue;
+    const upper = value.toUpperCase();
+    // A stable exam code is trusted only when it is structurally placed as a
+    // standalone line, at the beginning of one of the first block lines, or
+    // immediately after a "Spørgsmål X" heading. This prevents medical tokens
+    // such as vitamin B12/CD4/T4 inside the stem from becoming question IDs.
+    if (upper === code) return code;
+    if (index <= 2 && upper.startsWith(`${code} `)) return code;
+    const marker = examSetExplicitQuestionMarker(value);
+    if (marker) {
+      const markerText = examSetNormalizeSourceText(marker.text).toUpperCase();
+      if (markerText === code || markerText.startsWith(`${code} `)) return code;
+    }
+  }
+  return "";
+}
+
+function examSetParseQuestionBlock(block) {
+  const code = examSetBlockCode(block);
+  const contentLines = (block?.lines || []).flatMap((line) => {
+    const marker = examSetExplicitQuestionMarker(line?.text);
+    if (!marker) return [line];
+    return marker.text ? [{ ...line, text: marker.text }] : [];
+  });
+  const run = examSetOptionRun(contentLines);
+  const options = (run?.options || []).filter((option) => option?.text);
+  return {
+    displayNumber: block?.displayNumber || "",
+    code,
+    text: run ? examSetQuestionTextFromRun(run, code) : examSetNormalizeSourceText(contentLines.map((line) => line?.text).join(" ")),
+    options: options.map(({ label, text }) => ({ label, text })),
+    page: Number(block?.startLine?.page) || Number(block?.lines?.[0]?.page) || null,
+    lines: block?.lines || [],
+    block,
+    optionRun: run,
+  };
+}
+
+function examSetOptionAtFlatPosition(run, position) {
+  return run?.options?.find((option) => position >= option.start && position < option.end) || null;
+}
+
+function examSetExplicitAnswerEvidence(block, options) {
+  const validLabels = new Set((options || []).map((option) => String(option.label || "").toUpperCase()));
+  if (!validLabels.size) return [];
+  const blockText = examSetNormalizeSourceText((block?.lines || []).map((line) => line?.text).join(" "));
+  const patterns = [
+    /Rigtigt\s+svar\s*(?:er\s*)?[:\-]?\s*\(?([1-9A-H])\)?/gi,
+    /Korrekt(?:e)?\s+svar\s*(?:er\s*)?[:\-]?\s*\(?([1-9A-H])\)?/gi,
+    /Det\s+(?:korrekte|rigtige)\s+svar\s*(?:er\s*)?[:\-]?\s*\(?([1-9A-H])\)?/gi,
+    /Svar(?:et)?(?:\s+nummer)?\s*[:\-]?\s*([1-9A-H])\s*(?:er\s+korrekt|er\s+det\s+rigtige\s+svar)?/gi,
+    /([1-9A-H])\)\s*er\s+det\s+rigtige\s+svar/gi,
+    /Nr\.?\s*([1-9A-H])\s*er\s+svaret/gi,
+    /Svaret\s+er\s*:?\s*\(?([1-9A-H])\)?/gi,
+  ];
+  const evidence = [];
+  const seenEvidence = new Set();
+  patterns.forEach((pattern) => {
+    let match;
+    while ((match = pattern.exec(blockText))) {
+      const label = String(match[1] || "").toUpperCase();
+      if (!validLabels.has(label)) continue;
+      const key = `${label}:${match.index}:${String(match[0] || "").toLowerCase()}`;
+      if (seenEvidence.has(key)) continue;
+      seenEvidence.add(key);
+      evidence.push({
+        type: "explicit",
+        channel: "text",
+        label,
+        strength: 1,
+        text: match[0],
+        page: null,
+      });
+    }
+  });
+
+  // SDU answer documents sometimes use a standalone "(4)" immediately after
+  // the options. Restrict this to an entire line to avoid interpreting medical
+  // parenthetical numbers inside the question as an answer key.
+  (block?.lines || []).forEach((line) => {
+    const match = examSetNormalizeSourceText(line?.text).match(/^\(([1-9A-H])\)$/i);
+    if (!match) return;
+    const label = match[1].toUpperCase();
+    if (!validLabels.has(label)) return;
+    evidence.push({ type: "explicit", channel: "text", label, strength: .99, text: match[0], page: Number(line?.page) || null });
+  });
+  return evidence;
+}
+
+function examSetCollectAnswerEvidence(block, run) {
+  const options = run?.options || [];
+  const evidence = examSetExplicitAnswerEvidence(block, options);
+
+  for (const offset of run?.offsets || []) {
+    const line = offset?.row?.line || {};
+    const markers = [];
+    if (line.highlight) markers.push(line.highlight);
+    (line.markers || []).forEach((marker) => markers.push(marker));
+    const markerKeys = new Set();
+    for (const marker of markers) {
+      if (!marker) continue;
+      const markerKey = `${marker.kind || "pixel"}:${Number(marker.startRatio || 0).toFixed(3)}:${Number(marker.endRatio || 0).toFixed(3)}`;
+      if (markerKeys.has(markerKey)) continue;
+      markerKeys.add(markerKey);
+      const center = (examSetClamp(marker.startRatio ?? 0) + examSetClamp(marker.endRatio ?? marker.startRatio ?? 0)) / 2;
+      const position = offset.start + Math.round(offset.row.text.length * center);
+      const option = examSetOptionAtFlatPosition(run, position);
+      if (!option) continue;
+      const annotation = marker.kind === "annotation";
+      evidence.push({
+        type: annotation ? "annotation" : "pixel_marker",
+        channel: "visual",
+        label: option.label,
+        strength: examSetClamp(marker.score ?? (annotation ? .98 : .84)),
+        page: Number(line.page) || null,
+        text: annotation ? `PDF ${marker.subtype || "annotation"}` : `Farvet markering${marker.colorHex ? ` ${marker.colorHex}` : ""}`,
+        marker,
+      });
+    }
+  }
+
+  options.forEach((option) => {
+    if (!/[✔✓]/.test(run.flatText.slice(option.contentStart, option.end))) return;
+    evidence.push({ type: "checkmark", channel: "visual", label: option.label, strength: .95, text: "✓", page: null });
+  });
+  return evidence;
+}
+
+function examSetResolveAnswerEvidence(evidence, validLabels) {
+  const valid = new Set((validLabels || []).map((label) => String(label || "").toUpperCase()));
+  const clean = (Array.isArray(evidence) ? evidence : [])
+    .filter((item) => item && valid.has(String(item.label || "").toUpperCase()))
+    .map((item) => ({ ...item, label: String(item.label).toUpperCase(), strength: examSetClamp(item.strength) }));
+  if (!clean.length) {
+    return { status: "review", label: null, candidateLabel: null, confidence: 0, conflict: false, evidence: [] };
+  }
+
+  const byLabel = new Map();
+  clean.forEach((item) => {
+    if (!byLabel.has(item.label)) byLabel.set(item.label, []);
+    byLabel.get(item.label).push(item);
+  });
+  const ranked = [...byLabel.entries()].map(([label, items]) => ({
+    label,
+    items,
+    max: Math.max(...items.map((item) => item.strength)),
+    sum: items.reduce((sum, item) => sum + item.strength, 0),
+    channels: new Set(items.map((item) => item.channel || item.type)).size,
+    explicit: items.some((item) => item.type === "explicit" && item.strength >= .95),
+  })).sort((left, right) => right.sum - left.sum || right.max - left.max);
+
+  const strongLabels = ranked.filter((entry) => entry.max >= .8);
+  if (strongLabels.length > 1) {
+    return { status: "review", label: null, candidateLabel: ranked[0].label, confidence: ranked[0].max, conflict: true, evidence: clean };
+  }
+  const winner = ranked[0];
+  if (winner.explicit) {
+    return { status: "verified", label: winner.label, candidateLabel: winner.label, confidence: winner.max, conflict: false, evidence: clean };
+  }
+  // Two independent deterministic channels agreeing is sufficient. One visual
+  // channel alone is deliberately REVIEW and is sent to the vision resolver.
+  if (winner.channels >= 2 && winner.max >= .8 && winner.sum >= 1.55) {
+    return { status: "verified", label: winner.label, candidateLabel: winner.label, confidence: examSetClamp(winner.sum / 2), conflict: false, evidence: clean };
+  }
+  return { status: "review", label: null, candidateLabel: winner.label, confidence: winner.max, conflict: false, evidence: clean };
+}
+
+function examSetParseAnswerBlock(block) {
+  const base = examSetParseQuestionBlock(block);
+  const contentLines = (block?.lines || []).flatMap((line) => {
+    const marker = examSetExplicitQuestionMarker(line?.text);
+    if (!marker) return [line];
+    return marker.text ? [{ ...line, text: marker.text }] : [];
+  });
+  const run = examSetOptionRun(contentLines);
+  const evidence = examSetCollectAnswerEvidence(block, run);
+  const resolution = examSetResolveAnswerEvidence(evidence, base.options.map((option) => option.label));
+  return { ...base, evidence, resolution };
+}
+
+function examSetFingerprintTokens(text) {
+  return examSetNormalizeSourceText(text)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9æøå]+/gi, " ")
+    .split(/\s+/)
+    .filter((token) => token.length >= 2);
+}
+
+function examSetDiceSimilarity(leftText, rightText) {
+  const left = examSetFingerprintTokens(leftText);
+  const right = examSetFingerprintTokens(rightText);
+  if (!left.length || !right.length) return 0;
+  const counts = new Map();
+  left.forEach((token) => counts.set(token, (counts.get(token) || 0) + 1));
+  let intersection = 0;
+  right.forEach((token) => {
+    const count = counts.get(token) || 0;
+    if (count <= 0) return;
+    intersection += 1;
+    counts.set(token, count - 1);
+  });
+  return (2 * intersection) / (left.length + right.length);
+}
+
+function examSetOptionAlignment(source, answer) {
+  const sourceOptions = source?.options || [];
+  const answerOptions = answer?.options || [];
+  if (!sourceOptions.length || !answerOptions.length) return { score: 0, mapping: {}, minSimilarity: 0, matchedCount: 0 };
+  const matrix = sourceOptions.map((sourceOption) => answerOptions.map((answerOption) => examSetDiceSimilarity(sourceOption.text, answerOption.text)));
+  const assignment = examSetHungarianMaxAssignment(matrix);
+  const similarities = assignment.map(({ sourceIndex, answerIndex }) => Number(matrix[sourceIndex]?.[answerIndex]) || 0);
+  const matchedCount = similarities.length;
+  const coverage = matchedCount / Math.max(sourceOptions.length, answerOptions.length);
+  const average = matchedCount ? similarities.reduce((sum, value) => sum + value, 0) / matchedCount : 0;
+  const mapping = {};
+  assignment.forEach(({ sourceIndex, answerIndex }) => {
+    const sourceLabel = sourceOptions[sourceIndex]?.label;
+    const answerLabel = answerOptions[answerIndex]?.label;
+    if (sourceLabel && answerLabel) mapping[String(answerLabel).toUpperCase()] = String(sourceLabel).toUpperCase();
+  });
+  return {
+    score: examSetClamp(average * coverage),
+    mapping,
+    minSimilarity: similarities.length ? Math.min(...similarities) : 0,
+    matchedCount,
+  };
+}
+
+function examSetOptionSimilarity(source, answer) {
+  return examSetOptionAlignment(source, answer).score;
+}
+
+function examSetQuestionPairScore(source, answer) {
+  const codeExact = Boolean(source?.code && answer?.code && source.code === answer.code);
+  const codeConflict = Boolean(source?.code && answer?.code && source.code !== answer.code);
+  const stem = examSetDiceSimilarity(source?.text, answer?.text);
+  const options = examSetOptionSimilarity(source, answer);
+  const number = source?.displayNumber && answer?.displayNumber && source.displayNumber === answer.displayNumber ? 1 : 0;
+  const semanticScore = examSetClamp((stem * .64) + (options * .35) + (number * .01));
+  let score = codeExact
+    ? (.56 + (stem * .27) + (options * .16) + (number * .01))
+    : semanticScore;
+  if (codeConflict) score = 0;
+  if (!codeExact && !codeConflict && stem < .35 && options < .35) score = Math.max(0, score - .18);
+  return { score: examSetClamp(score), semanticScore, codeExact, codeConflict, stem, options, number };
+}
+
+// Hungarian assignment maximizes the total global one-to-one source↔answer
+// similarity, preventing two source questions from independently claiming the
+// same answer block. This is safer than a per-question greedy nearest match.
+function examSetHungarianMaxAssignment(weightMatrix) {
+  const rows = Array.isArray(weightMatrix) ? weightMatrix.length : 0;
+  const cols = rows ? Math.max(...weightMatrix.map((row) => row.length)) : 0;
+  const size = Math.max(rows, cols);
+  if (!size) return [];
+  const cost = Array.from({ length: size }, (_, i) => Array.from({ length: size }, (_, j) => 1 - examSetClamp(weightMatrix[i]?.[j] || 0)));
+  const u = new Array(size + 1).fill(0);
+  const v = new Array(size + 1).fill(0);
+  const p = new Array(size + 1).fill(0);
+  const way = new Array(size + 1).fill(0);
+  for (let i = 1; i <= size; i += 1) {
+    p[0] = i;
+    let j0 = 0;
+    const minv = new Array(size + 1).fill(Infinity);
+    const used = new Array(size + 1).fill(false);
+    do {
+      used[j0] = true;
+      const i0 = p[j0];
+      let delta = Infinity;
+      let j1 = 0;
+      for (let j = 1; j <= size; j += 1) {
+        if (used[j]) continue;
+        const cur = cost[i0 - 1][j - 1] - u[i0] - v[j];
+        if (cur < minv[j]) { minv[j] = cur; way[j] = j0; }
+        if (minv[j] < delta) { delta = minv[j]; j1 = j; }
+      }
+      for (let j = 0; j <= size; j += 1) {
+        if (used[j]) { u[p[j]] += delta; v[j] -= delta; }
+        else minv[j] -= delta;
+      }
+      j0 = j1;
+    } while (p[j0] !== 0);
+    do {
+      const j1 = way[j0];
+      p[j0] = p[j1];
+      j0 = j1;
+    } while (j0 !== 0);
+  }
+  const assignment = [];
+  for (let j = 1; j <= size; j += 1) {
+    const i = p[j] - 1;
+    const col = j - 1;
+    if (i >= 0 && i < rows && col >= 0 && col < cols) assignment.push({ sourceIndex: i, answerIndex: col });
+  }
+  return assignment;
+}
+
+function examSetMatchQuestionSets(sourceQuestions, answerQuestions) {
+  const sources = Array.isArray(sourceQuestions) ? sourceQuestions : [];
+  const answers = Array.isArray(answerQuestions) ? answerQuestions : [];
+  const sourceCodeCounts = new Map();
+  const answerCodeCounts = new Map();
+  sources.forEach((question) => { if (question?.code) sourceCodeCounts.set(question.code, (sourceCodeCounts.get(question.code) || 0) + 1); });
+  answers.forEach((question) => { if (question?.code) answerCodeCounts.set(question.code, (answerCodeCounts.get(question.code) || 0) + 1); });
+  const details = sources.map((source) => answers.map((answer) => {
+    const detail = examSetQuestionPairScore(source, answer);
+    const codeAmbiguous = Boolean(detail.codeExact && ((sourceCodeCounts.get(source.code) || 0) > 1 || (answerCodeCounts.get(answer.code) || 0) > 1));
+    return codeAmbiguous ? { ...detail, score: detail.semanticScore, codeAmbiguous, codeTrusted: false } : { ...detail, codeAmbiguous: false, codeTrusted: detail.codeExact };
+  }));
+  const weights = details.map((row) => row.map((detail) => detail.codeConflict ? 0 : detail.score));
+  const assignment = examSetHungarianMaxAssignment(weights);
+  const bySource = new Map(assignment.map((item) => [item.sourceIndex, item.answerIndex]));
+
+  return sources.map((source, sourceIndex) => {
+    const answerIndex = bySource.get(sourceIndex);
+    if (answerIndex == null || !answers[answerIndex]) {
+      return { source, answer: null, answerIndex: null, score: 0, margin: 0, matchStatus: "blocked", detail: null };
+    }
+    const answer = answers[answerIndex];
+    const detail = details[sourceIndex][answerIndex];
+    const plausible = detail.score >= .62 && !detail.codeConflict && (detail.codeTrusted || detail.stem >= .60 || (detail.stem >= .48 && detail.options >= .72));
+    if (!plausible) {
+      return { source, answer: null, answerIndex: null, score: detail.score, margin: 0, matchStatus: "blocked", detail };
+    }
+    const alternatives = details[sourceIndex]
+      .map((candidate, index) => ({ ...candidate, index }))
+      .filter((candidate) => candidate.index !== answerIndex && !candidate.codeConflict)
+      .sort((left, right) => right.score - left.score);
+    const margin = detail.score - (alternatives[0]?.score || 0);
+    const strong = detail.codeTrusted
+      ? detail.score >= .82 && detail.stem >= .55 && margin >= .02
+      : detail.score >= .78 && detail.stem >= .72 && detail.options >= .68 && margin >= .08;
+    return {
+      source,
+      answer,
+      answerIndex,
+      score: detail.score,
+      margin,
+      matchStatus: strong ? "matched" : "review",
+      detail,
+    };
+  });
+}
+
+function examSetQuestionRegionsFromBlock(pdfData, block) {
+  const pages = [...new Set((block?.lines || []).map((line) => Number(line?.page)).filter(Boolean))].sort((left, right) => left - right);
+  const fallbackPage = Number(block?.startLine?.page) || 1;
+  const normalizedPages = pages.length ? pages : [fallbackPage];
+  const startLine = block?.startLine || block?.lines?.[0] || null;
+  const endLine = block?.nextStartLine || null;
+  return normalizedPages.map((page) => examSetQuestionSourceRegion(
+    page,
+    page === Number(startLine?.page) ? startLine : null,
+    endLine && page === Number(endLine?.page) ? endLine : null,
+    pdfData?.pageDimensions || {}
+  ));
+}
+
+function examSetVisualRegionsForSource(pdfData, sourceRegions) {
+  const visualRegions = [];
+  (sourceRegions || []).forEach((region) => {
+    const images = pdfData?.pageImages?.[region.page] || pdfData?.pageImages?.[String(region.page)] || [];
+    images.forEach((image) => {
+      const area = Math.max(1, Number(image.width) * Number(image.height));
+      const overlap = examSetRectOverlapArea(region, image);
+      if (area >= 900 && overlap / area >= .3) visualRegions.push({ ...image, page: Number(region.page) });
+    });
+  });
+  return visualRegions;
+}
+
+function examSetBuildSourceQuestions(questionPdf) {
+  const blocks = examSetQuestionBlocks(questionPdf?.lines || []);
+  return blocks.map((block, index) => {
+    const parsed = examSetParseQuestionBlock(block);
+    if (!parsed.text || parsed.options.length < 2) return null;
+    const sourceRegions = examSetQuestionRegionsFromBlock(questionPdf, block);
+    const sourcePages = sourceRegions.map((region) => Number(region.page));
+    const visualRegions = examSetVisualRegionsForSource(questionPdf, sourceRegions);
+    const startPage = sourcePages[0] || parsed.page || 1;
+    const endPage = sourcePages[sourcePages.length - 1] || startPage;
+    return {
+      id: parsed.code ? `q-${parsed.code}-${index + 1}` : `q-source-${index + 1}`,
+      sourceNumber: parsed.displayNumber || String(index + 1),
+      displayNumber: parsed.displayNumber || "",
+      code: parsed.code,
+      text: parsed.text,
+      options: parsed.options,
+      correctLabel: null,
+      candidateCorrectLabel: null,
+      page: startPage,
+      sourcePages,
+      sourceRegions,
+      visualRegions,
+      hasVisual: visualRegions.length > 0,
+      contentSource: "question-pdf",
+      sourceType: "paired-original-pdf",
+      sourceMatch: "source-block",
+      sourceMatchConfidence: 1,
+      editor: { startPage, endPage, pageBreakBefore: false, keepTogether: true },
+      _parsed: parsed,
+    };
+  }).filter(Boolean);
+}
+
+function examSetBuildAnswerQuestions(answerPdf) {
+  const blocks = examSetQuestionBlocks(answerPdf?.lines || [], { answerDocument: true });
+  return blocks.map((block, index) => {
+    const parsed = examSetParseAnswerBlock(block);
+    if (!parsed.text || parsed.options.length < 2) return null;
+    const regions = examSetQuestionRegionsFromBlock(answerPdf, block);
+    return {
+      ...parsed,
+      id: parsed.code ? `answer-${parsed.code}-${index + 1}` : `answer-${index + 1}`,
+      answerPage: regions[0]?.page || parsed.page || null,
+      answerPages: regions.map((region) => Number(region.page)),
+      answerRegions: regions,
+    };
+  }).filter(Boolean);
+}
+
+function examSetVerificationStatus(match, resolution) {
+  if (!match?.answer || match.matchStatus === "blocked") return "blocked";
+  if (match.matchStatus !== "matched") return "review";
+  if (resolution?.status === "verified" && resolution?.label) return "verified";
+  return "review";
+}
+
+function examSetAnswerToSourceLabelMap(source, answer) {
+  const sourceOptions = source?.options || [];
+  const answerOptions = answer?.options || [];
+  const mapping = {};
+  const sourceLabels = new Set(sourceOptions.map((option) => String(option.label || "").toUpperCase()));
+  const answerLabels = new Set(answerOptions.map((option) => String(option.label || "").toUpperCase()));
+  const sameScheme = sourceLabels.size === answerLabels.size && [...sourceLabels].every((label) => answerLabels.has(label));
+  if (sameScheme) {
+    sourceLabels.forEach((label) => { mapping[label] = label; });
+    return { mapping, safe: true, method: "same-labels", score: 1 };
+  }
+  if (sourceOptions.length !== answerOptions.length || sourceOptions.length < 2) return { mapping: {}, safe: false, method: "incompatible-option-count", score: 0 };
+  const alignment = examSetOptionAlignment(source, answer);
+  const safe = alignment.matchedCount === sourceOptions.length && alignment.score >= .78 && alignment.minSimilarity >= .58;
+  return { mapping: safe ? alignment.mapping : {}, safe, method: safe ? "option-text-alignment" : "unsafe-option-alignment", score: alignment.score };
+}
+
+function examSetMapAnswerResolutionToSource(source, answer, resolution) {
+  const labelMap = examSetAnswerToSourceLabelMap(source, answer);
+  const mapLabel = (label) => label ? (labelMap.mapping[String(label).toUpperCase()] || null) : null;
+  const evidence = (resolution?.evidence || answer?.evidence || []).map((item) => {
+    const mapped = mapLabel(item?.label);
+    return mapped ? { ...item, answerDocumentLabel: String(item.label || "").toUpperCase(), label: mapped } : { ...item, unmappedAnswerDocumentLabel: String(item?.label || "").toUpperCase(), label: null };
+  }).filter((item) => item.label);
+  const mappedLabel = mapLabel(resolution?.label);
+  const mappedCandidate = mapLabel(resolution?.candidateLabel);
+  const status = resolution?.status === "verified" && resolution?.label && !mappedLabel ? "review" : (resolution?.status || "review");
+  return {
+    ...(resolution || {}),
+    status,
+    label: status === "verified" ? mappedLabel : null,
+    candidateLabel: mappedCandidate || mappedLabel || null,
+    evidence,
+    labelMapping: labelMap,
+  };
+}
+
+function examSetMergeMatchedQuestion(match) {
+  const source = match.source;
+  if (!match.answer) {
+    return {
+      ...source,
+      verificationStatus: "blocked",
+      answerMatch: { status: "blocked", score: match.score || 0, margin: match.margin || 0, reason: "no-plausible-answer-block" },
+      answerEvidence: [],
+      automaticResolution: { status: "review", label: null, candidateLabel: null, confidence: 0, conflict: false, evidence: [] },
+      answerPage: null,
+      correctLabel: null,
+      candidateCorrectLabel: null,
+    };
+  }
+  const answer = match.answer;
+  const rawResolution = answer.resolution || { status: "review", label: null, candidateLabel: null, confidence: 0, conflict: false, evidence: [] };
+  const resolution = examSetMapAnswerResolutionToSource(source, answer, rawResolution);
+  const verificationStatus = examSetVerificationStatus(match, resolution);
+  return {
+    ...source,
+    answerPage: answer.answerPage || answer.page || null,
+    answerPages: answer.answerPages || (answer.page ? [answer.page] : []),
+    answerRegions: answer.answerRegions || [],
+    answerSourceNumber: answer.displayNumber || "",
+    answerCode: answer.code || "",
+    answerMatch: {
+      status: match.matchStatus,
+      score: match.score,
+      margin: match.margin,
+      codeExact: Boolean(match.detail?.codeExact),
+      codeConflict: Boolean(match.detail?.codeConflict),
+      stemSimilarity: Number(match.detail?.stem) || 0,
+      optionSimilarity: Number(match.detail?.options) || 0,
+      displayedNumberSame: Boolean(match.detail?.number),
+      codeAmbiguous: Boolean(match.detail?.codeAmbiguous),
+      optionLabelMapping: resolution.labelMapping || null,
+    },
+    answerEvidence: resolution.evidence || [],
+    automaticResolution: resolution,
+    verificationStatus,
+    correctLabel: verificationStatus === "verified" ? resolution.label : null,
+    candidateCorrectLabel: resolution.label || resolution.candidateLabel || null,
+    sourceMatch: match.matchStatus,
+    sourceMatchConfidence: match.score,
+  };
+}
+
+function examSetMergeAiEvidence(baseResolution, ai, validLabels) {
+  const base = baseResolution || { status: "review", label: null, candidateLabel: null, confidence: 0, conflict: false, evidence: [] };
+  const valid = new Set((validLabels || []).map((label) => String(label || "").toUpperCase()));
+  const detectedLabel = String(ai?.detectedLabel || "").toUpperCase();
+  if (!ai?.documentEvidencePresent || !valid.has(detectedLabel)) return { ...base, ai: ai || null };
+  const aiEvidence = {
+    type: "ai_document_interpretation",
+    channel: "ai",
+    label: detectedLabel,
+    strength: examSetClamp(ai?.confidence),
+    text: ai?.evidenceText || "",
+    markerType: ai?.markerType || "unknown",
+    boundingBox: ai?.boundingBox || null,
+    page: Number(ai?.page) || null,
+  };
+  const nextEvidence = [...(base.evidence || []), aiEvidence];
+  if (base.conflict) return { ...base, ai, evidence: nextEvidence };
+  if (base.status === "verified") {
+    if (base.label === detectedLabel) return { ...base, ai, evidence: nextEvidence, confidence: Math.max(base.confidence || 0, examSetClamp(ai.confidence)) };
+    return { ...base, status: "review", label: null, candidateLabel: base.label || detectedLabel, conflict: true, ai, evidence: nextEvidence };
+  }
+  const deterministicSame = (base.evidence || []).filter((item) => item.label === detectedLabel && item.channel !== "ai");
+  const hasStrongVisual = deterministicSame.some((item) => ["annotation", "pixel_marker", "checkmark"].includes(item.type) && Number(item.strength) >= .8);
+  // Critical safety rule: AI alone never verifies. It may only confirm a strong
+  // visual document signal already observed deterministically.
+  if (hasStrongVisual && Number(ai.confidence) >= .9) {
+    return {
+      status: "verified",
+      label: detectedLabel,
+      candidateLabel: detectedLabel,
+      confidence: Math.max(base.confidence || 0, examSetClamp(ai.confidence)),
+      conflict: false,
+      evidence: nextEvidence,
+      ai,
+    };
+  }
+  return {
+    ...base,
+    status: "review",
+    label: null,
+    candidateLabel: detectedLabel,
+    confidence: Math.max(base.confidence || 0, examSetClamp(ai.confidence)),
+    evidence: nextEvidence,
+    ai,
+  };
+}
+
+function examSetRecomputeQuestionVerification(question, resolution = question?.automaticResolution) {
+  const matchStatus = question?.answerMatch?.status || question?.sourceMatch || "blocked";
+  const match = { answer: question?.answerPage ? true : null, matchStatus };
+  const verificationStatus = question?.manualVerification?.label
+    ? "verified"
+    : examSetVerificationStatus(match, resolution);
+  const manualLabel = question?.manualVerification?.label || null;
+  return {
+    ...question,
+    automaticResolution: resolution,
+    answerEvidence: resolution?.evidence || question?.answerEvidence || [],
+    verificationStatus,
+    correctLabel: manualLabel || (verificationStatus === "verified" ? resolution?.label || null : null),
+    candidateCorrectLabel: manualLabel || resolution?.label || resolution?.candidateLabel || question?.candidateCorrectLabel || null,
+  };
+}
+
+function examSetEvidenceSummary(evidence) {
+  return (Array.isArray(evidence) ? evidence : []).map((item) => ({
+    type: item.type || "unknown",
+    channel: item.channel || "unknown",
+    label: item.label || null,
+    strength: Number(item.strength) || 0,
+    text: String(item.text || "").slice(0, 240),
+    page: Number(item.page) || null,
+    markerType: item.markerType || item.marker?.subtype || item.marker?.kind || null,
+  }));
+}
+
+function examSetDetectionMeta(questions, questionPdf, answerPdf, extra = {}) {
+  const list = Array.isArray(questions) ? questions : [];
+  const verifiedQuestions = list.filter((question) => question.verificationStatus === "verified" && question.correctLabel).length;
+  const reviewQuestions = list.filter((question) => question.verificationStatus === "review").length;
+  const blockedQuestions = list.filter((question) => question.verificationStatus === "blocked").length;
+  const parseStatus = list.length && reviewQuestions === 0 && blockedQuestions === 0 ? "ready" : "needs_review";
+  return {
+    parseVersion: EXAM_SET_PARSE_VERSION,
+    parseStatus,
+    questionPdfPages: questionPdf?.pageCount || 0,
+    answerPdfPages: answerPdf?.pageCount || 0,
+    extractedQuestionLines: questionPdf?.extractedLineCount || 0,
+    extractedAnswerLines: answerPdf?.extractedLineCount || 0,
+    questionCount: list.length,
+    questionsWithKey: list.filter((question) => Boolean(question.correctLabel)).length,
+    verifiedQuestions,
+    reviewQuestions,
+    blockedQuestions,
+    questionsWithVisuals: list.filter((question) => question.hasVisual).length,
+    sourceMatched: list.filter((question) => question.answerMatch?.status === "matched").length,
+    multiPageQuestions: list.filter((question) => (question.sourcePages || []).length > 1).length,
+    lowConfidenceQuestions: list.filter((question) => question.answerMatch?.status !== "matched").length,
+    aiReviewedQuestions: list.filter((question) => Boolean(question.aiReview)).length,
+    pageImageRects: questionPdf?.pageImages || {},
+    pageDimensions: questionPdf?.pageDimensions || {},
+    editorVersion: 2,
+    sampleProfile: "source-first-global-evidence",
+    safetyPolicy: "manual-review-over-guess",
+    ...extra,
+  };
+}
+
 
 function examSetMatrixMultiply(left, right) {
   const [a1,b1,c1,d1,e1,f1] = left;
@@ -32327,6 +32871,73 @@ function examSetPdfImageRects(pdfjs, operatorList, viewport, pageNumber) {
   return regions;
 }
 
+function examSetRectIntersectionRatio(left, right) {
+  const overlap = examSetRectOverlapArea(left, right);
+  const base = Math.max(1, Number(left?.width) * Number(left?.height));
+  return overlap / base;
+}
+
+async function examSetApplyPageAnnotations(page, viewport, pageLines) {
+  if (!page?.getAnnotations || !Array.isArray(pageLines) || !pageLines.length) return pageLines;
+  let annotations = [];
+  try { annotations = await page.getAnnotations({ intent: "display" }); } catch { return pageLines; }
+  const supported = new Set(["Highlight", "Underline", "Squiggly", "StrikeOut", "Square", "Ink"]);
+  const rectangles = [];
+  (annotations || []).forEach((annotation) => {
+    const subtype = String(annotation?.subtype || "");
+    if (!supported.has(subtype) || !Array.isArray(annotation?.rect) || annotation.rect.length < 4) return;
+    let rect = annotation.rect.map((value) => Number(value) || 0);
+    if (viewport?.convertToViewportRectangle) rect = viewport.convertToViewportRectangle(rect);
+    const x = Math.min(rect[0], rect[2]);
+    const y = Math.min(rect[1], rect[3]);
+    const width = Math.max(1, Math.abs(rect[2] - rect[0]));
+    const height = Math.max(1, Math.abs(rect[3] - rect[1]));
+    rectangles.push({
+      x, y, width, height,
+      subtype,
+      color: Array.isArray(annotation?.color) ? annotation.color : null,
+      score: ["Highlight", "Underline", "StrikeOut"].includes(subtype) ? .99 : .92,
+    });
+  });
+  if (!rectangles.length) return pageLines;
+  return pageLines.map((line) => {
+    const lineRect = { x: Number(line.x) || 0, y: Number(line.top) || 0, width: Math.max(1, Number(line.width) || 1), height: Math.max(1, Number(line.height) || 1) };
+    const markers = [...(line.markers || [])];
+    rectangles.forEach((rectangle) => {
+      const intersection = examSetRectOverlapArea(lineRect, rectangle);
+      if (intersection <= 0 || examSetRectIntersectionRatio(lineRect, rectangle) < .04) return;
+      const overlapLeft = Math.max(lineRect.x, rectangle.x);
+      const overlapRight = Math.min(lineRect.x + lineRect.width, rectangle.x + rectangle.width);
+      markers.push({
+        kind: "annotation",
+        subtype: rectangle.subtype,
+        startRatio: examSetClamp((overlapLeft - lineRect.x) / lineRect.width),
+        endRatio: examSetClamp((overlapRight - lineRect.x) / lineRect.width),
+        score: rectangle.score,
+        rect: rectangle,
+      });
+    });
+    return markers.length ? { ...line, markers } : line;
+  });
+}
+
+function examSetPixelLooksMarked(red, green, blue) {
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const spread = max - min;
+  const brightness = (red * .299) + (green * .587) + (blue * .114);
+  // Exclude paper, grayscale text and dark image pixels. What remains is a
+  // deliberately broad detector for yellow/green/blue/pink digital markers.
+  if (red > 242 && green > 242 && blue > 242) return false;
+  if (spread < 24) return false;
+  if (brightness < 135) return false;
+  return max >= 170 && spread >= 30;
+}
+
+function examSetRgbHex(red, green, blue) {
+  return `#${[red, green, blue].map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0")).join("")}`;
+}
+
 async function examSetDetectPageHighlights(page, viewport, pageLines) {
   if (typeof document === "undefined" || !pageLines?.length) return pageLines;
   const canvas = document.createElement("canvas");
@@ -32339,39 +32950,49 @@ async function examSetDetectPageHighlights(page, viewport, pageLines) {
   const width = canvas.width;
   const height = canvas.height;
   return pageLines.map((line) => {
-    const left = Math.max(0, Math.floor(Number(line.x) - 2));
-    const right = Math.min(width - 1, Math.ceil(Number(line.x) + Number(line.width) + 2));
-    const top = Math.max(0, Math.floor(Number(line.top) - 2));
-    const bottom = Math.min(height - 1, Math.ceil(Number(line.top) + Number(line.height) + 2));
+    const left = Math.max(0, Math.floor(Number(line.x) - 3));
+    const right = Math.min(width - 1, Math.ceil(Number(line.x) + Number(line.width) + 3));
+    const top = Math.max(0, Math.floor(Number(line.top) - 3));
+    const bottom = Math.min(height - 1, Math.ceil(Number(line.top) + Number(line.height) + 3));
     let hits = 0;
     let minX = right;
     let maxX = left;
+    let redSum = 0;
+    let greenSum = 0;
+    let blueSum = 0;
     for (let y = top; y <= bottom; y += 2) {
       for (let x = left; x <= right; x += 2) {
         const offset = (y * width + x) * 4;
         const red = pixels[offset];
         const green = pixels[offset + 1];
         const blue = pixels[offset + 2];
-        const yellow = red >= 185 && green >= 175 && blue <= 185 && ((red + green) / 2 - blue) >= 45 && Math.abs(red - green) <= 90;
-        if (!yellow) continue;
+        if (!examSetPixelLooksMarked(red, green, blue)) continue;
         hits += 1;
         minX = Math.min(minX, x);
         maxX = Math.max(maxX, x);
+        redSum += red;
+        greenSum += green;
+        blueSum += blue;
       }
     }
     const sampleArea = Math.max(1, Math.ceil((right - left + 1) / 2) * Math.ceil((bottom - top + 1) / 2));
-    if (hits < Math.max(5, sampleArea * .012)) return line;
+    const coverage = hits / sampleArea;
+    if (hits < Math.max(5, sampleArea * .012) || coverage < .012) return line;
+    const marker = {
+      kind: "pixel-color",
+      startRatio: examSetClamp((minX - Number(line.x)) / Math.max(1, Number(line.width))),
+      endRatio: examSetClamp((maxX - Number(line.x)) / Math.max(1, Number(line.width))),
+      score: examSetClamp(.72 + Math.min(.2, coverage * 2.4)),
+      coverage,
+      colorHex: examSetRgbHex(redSum / hits, greenSum / hits, blueSum / hits),
+    };
     return {
       ...line,
-      highlight: {
-        startRatio: Math.max(0, Math.min(1, (minX - Number(line.x)) / Math.max(1, Number(line.width)))),
-        endRatio: Math.max(0, Math.min(1, (maxX - Number(line.x)) / Math.max(1, Number(line.width)))),
-        score: hits / sampleArea,
-      },
+      highlight: marker, // backwards compatibility with previous renderer/parser
+      markers: [...(line.markers || []), marker],
     };
   });
 }
-
 async function examSetReadPdfSource(source, { detectHighlights = false } = {}) {
   const pdfjs = await loadLecturePdfJs();
   let loadingTask;
@@ -32390,15 +33011,20 @@ async function examSetReadPdfSource(source, { detectHighlights = false } = {}) {
     const pageVisuals = {};
     const pageImages = {};
     const pageDimensions = {};
+    const pageMarkerCounts = {};
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
       const page = await pdf.getPage(pageNumber);
       const viewport = page.getViewport({ scale: 1 });
       pageDimensions[pageNumber] = { width: viewport.width, height: viewport.height };
       const content = await page.getTextContent();
-      let pageLines = examSetPdfItemsToLines(content?.items, pageNumber, viewport);
+      let pageLines = examSetPdfItemsToLines(content?.items, pageNumber, viewport, content?.styles || {});
+      // Native PDF annotations are higher-quality evidence than rendered pixels,
+      // so always collect them in the answer document path before pixel scanning.
       if (detectHighlights) {
+        try { pageLines = await examSetApplyPageAnnotations(page, viewport, pageLines); } catch {}
         try { pageLines = await examSetDetectPageHighlights(page, viewport, pageLines); } catch {}
       }
+      pageMarkerCounts[pageNumber] = pageLines.reduce((sum, line) => sum + (line.markers || []).length, 0);
       lines.push(...pageLines);
       try {
         const operatorList = await page.getOperatorList();
@@ -32410,73 +33036,344 @@ async function examSetReadPdfSource(source, { detectHighlights = false } = {}) {
         pageVisuals[pageNumber] = false;
       }
     }
-    return { lines, pageVisuals, pageImages, pageDimensions, pageCount: pdf.numPages, extractedLineCount: lines.length };
+    return {
+      lines,
+      pageVisuals,
+      pageImages,
+      pageDimensions,
+      pageMarkerCounts,
+      pageCount: pdf.numPages,
+      extractedLineCount: lines.length,
+    };
+  } finally {
+    try { await loadingTask.destroy?.(); } catch {}
+    try { await pdf?.destroy?.(); } catch {}
+  }
+}
+async function examSetRenderPdfPageDataUrl(source, pageNumber, { maxWidth = 1200, quality = .8, region = null, padding = 18 } = {}) {
+  if (!source || !pageNumber || typeof document === "undefined") return "";
+  const pdfjs = await loadLecturePdfJs();
+  let loadingTask;
+  if (source instanceof Blob) loadingTask = pdfjs.getDocument({ data: new Uint8Array(await source.arrayBuffer()) });
+  else if (source instanceof ArrayBuffer || ArrayBuffer.isView(source)) loadingTask = pdfjs.getDocument({ data: source instanceof ArrayBuffer ? new Uint8Array(source) : source });
+  else loadingTask = pdfjs.getDocument({ url: source });
+  let pdf = null;
+  try {
+    pdf = await loadingTask.promise;
+    const page = await pdf.getPage(Math.max(1, Math.min(pdf.numPages, Number(pageNumber) || 1)));
+    const base = page.getViewport({ scale: 1 });
+    const scale = Math.max(1, Math.min(2.2, maxWidth / Math.max(1, base.width)));
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.ceil(viewport.width));
+    canvas.height = Math.max(1, Math.ceil(viewport.height));
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) return "";
+    await page.render({ canvasContext: context, viewport }).promise;
+    if (!region) return canvas.toDataURL("image/jpeg", quality);
+
+    const x = Math.max(0, Math.floor((Number(region.x) || 0) * scale - padding));
+    const y = Math.max(0, Math.floor((Number(region.y) || 0) * scale - padding));
+    const right = Math.min(canvas.width, Math.ceil(((Number(region.x) || 0) + Math.max(1, Number(region.width) || base.width)) * scale + padding));
+    const bottom = Math.min(canvas.height, Math.ceil(((Number(region.y) || 0) + Math.max(1, Number(region.height) || base.height)) * scale + padding));
+    const crop = document.createElement("canvas");
+    crop.width = Math.max(1, right - x);
+    crop.height = Math.max(1, bottom - y);
+    const cropContext = crop.getContext("2d", { alpha: false });
+    if (!cropContext) return canvas.toDataURL("image/jpeg", quality);
+    cropContext.drawImage(canvas, x, y, crop.width, crop.height, 0, 0, crop.width, crop.height);
+    return crop.toDataURL("image/jpeg", quality);
   } finally {
     try { await loadingTask.destroy?.(); } catch {}
     try { await pdf?.destroy?.(); } catch {}
   }
 }
 
-async function examSetParsePairedSources(questionSource, answerSource = null) {
-  const questionPdf = await examSetReadPdfSource(questionSource, { detectHighlights: false });
-  const answerPdf = answerSource ? await examSetReadPdfSource(answerSource, { detectHighlights: true }) : { lines: [], pageCount: 0, extractedLineCount: 0, pageImages: {}, pageDimensions: {} };
-  let answerQuestions = examSetParseAnswerQuestions(answerPdf);
+async function examSetCallDocumentAi(mode, payload) {
+  if (typeof fetch !== "function") throw new Error("AI-resolver er ikke tilgængelig i dette miljø.");
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (!accessToken) throw new Error("Du skal være logget ind for at bruge AI-dokumentanalyse.");
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeout = controller ? window.setTimeout(() => controller.abort(), 45000) : null;
+  try {
+    const response = await fetch("/api/exam-resolver", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ mode, ...payload }),
+      signal: controller?.signal,
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body?.error || `AI-dokumentanalyse fejlede (${response.status}).`);
+    return body?.result || body;
+  } finally {
+    if (timeout) window.clearTimeout(timeout);
+  }
+}
 
-  // Fallback for pairs where the answer PDF has no usable sequential headings:
-  // parse the question PDF itself, but never fabricate an answer key.
-  if (!answerQuestions.length) {
-    const questionBlocks = examSetSequentialQuestionBlocks(questionPdf.lines);
-    answerQuestions = questionBlocks.map((block) => {
-      let code = "";
-      for (const line of block.lines.slice(0, 8)) {
-        code = examSetQuestionCode(line?.text);
-        if (code) break;
-      }
-      const run = examSetOptionRun(block.lines);
-      if (!run || run.options.length < 2) return null;
-      return {
-        id: `q-${block.number}`,
-        sourceNumber: block.number,
-        code,
-        text: examSetQuestionTextFromRun(run, code),
-        options: run.options.map(({ label, text }) => ({ label, text })),
-        correctLabel: null,
-        answerPage: null,
-        sourceType: "original-pdf",
-      };
-    }).filter(Boolean);
+function examSetQuestionForAi(question) {
+  return {
+    sourceNumber: question?.sourceNumber || null,
+    code: question?.code || "",
+    text: question?.text || "",
+    options: (question?.options || []).map((option) => ({ label: option.label, text: option.text })),
+    answerSourceNumber: question?.answerSourceNumber || null,
+    answerCode: question?.answerCode || "",
+    answerPage: question?.answerPage || null,
+    match: question?.answerMatch || {},
+    deterministicEvidence: examSetEvidenceSummary(question?.answerEvidence || []),
+  };
+}
+
+function examSetRepresentativePatternPages(questions) {
+  const scored = (Array.isArray(questions) ? questions : [])
+    .filter((question) => question.answerPage)
+    .map((question) => ({
+      page: Number(question.answerPage),
+      score: (question.answerEvidence || []).reduce((sum, item) => sum + Number(item.strength || 0), 0)
+        + ((question.answerEvidence || []).some((item) => item.channel === "visual") ? 2 : 0)
+        + (question.answerMatch?.status === "matched" ? 1 : 0),
+      question,
+    }))
+    .sort((left, right) => right.score - left.score || left.page - right.page);
+  const pages = [];
+  const seen = new Set();
+  for (const row of scored) {
+    if (seen.has(row.page)) continue;
+    seen.add(row.page);
+    pages.push(row);
+    if (pages.length >= EXAM_SET_AI_PATTERN_PAGE_LIMIT) break;
+  }
+  return pages;
+}
+
+
+function examSetHexRgb(value) {
+  const match = String(value || "").trim().match(/^#?([0-9a-f]{6})$/i);
+  if (!match) return null;
+  return [0, 2, 4].map((offset) => parseInt(match[1].slice(offset, offset + 2), 16));
+}
+
+function examSetPatternSupportsVisualEvidence(profile, evidence) {
+  const markerText = [profile?.patternSummary, ...(profile?.markerTypes || [])].join(" ").toLowerCase();
+  if (evidence?.type === "checkmark" && !/check|tick|flueben|hak|mark/.test(markerText)) return false;
+  if (evidence?.type === "pixel_marker" && !/highlight|background|colour|color|farve|marker|mark/.test(markerText)) return false;
+  if (evidence?.type === "annotation" && !/highlight|underline|circle|annotation|mark|marker|farve|color|colour/.test(markerText)) return false;
+  const detectedHex = examSetHexRgb(evidence?.marker?.colorHex);
+  const profileHexes = (profile?.colors || []).map(examSetHexRgb).filter(Boolean);
+  if (detectedHex && profileHexes.length) {
+    const close = profileHexes.some((rgb) => Math.sqrt(rgb.reduce((sum, value, index) => sum + ((value - detectedHex[index]) ** 2), 0)) <= 125);
+    if (!close) return false;
+  }
+  return true;
+}
+
+function examSetPatternCalibrationCount(questions, patternProfile) {
+  const calibratedPages = new Set();
+  (Array.isArray(questions) ? questions : []).forEach((question) => {
+    if (question?.answerMatch?.status !== "matched" || question?.automaticResolution?.status !== "verified" || !question?.automaticResolution?.label) return;
+    const label = question.automaticResolution.label;
+    const evidence = question.automaticResolution.evidence || question.answerEvidence || [];
+    const explicit = evidence.some((item) => item.type === "explicit" && item.label === label && Number(item.strength) >= .95);
+    const visual = evidence.some((item) => ["annotation", "pixel_marker", "checkmark"].includes(item.type)
+      && item.label === label && Number(item.strength) >= .82 && examSetPatternSupportsVisualEvidence(patternProfile, item));
+    if (explicit && visual && question.answerPage) calibratedPages.add(Number(question.answerPage));
+  });
+  return calibratedPages.size;
+}
+
+function examSetApplyPatternProfile(question, patternProfile, representativePageCount, calibrationCount = 0) {
+  if (!question || question.verificationStatus !== "review" || question.answerMatch?.status !== "matched") return question;
+  if (!patternProfile?.stableAnswerConvention || !patternProfile?.markerMeansCorrectAnswer || patternProfile?.requiresQuestionSpecificCheck) return question;
+  // Bulk pattern promotion is deliberately stricter than one-question AI review:
+  // the convention must have been calibrated on at least two DISTINCT pages where
+  // explicit answer text and deterministic visual evidence agree on the same label.
+  if (Number(patternProfile?.confidence) < .96 || Number(representativePageCount) < 2 || Number(calibrationCount) < 2) return question;
+  const resolution = question.automaticResolution || {};
+  if (resolution.conflict) return question;
+  const strongVisual = (resolution.evidence || question.answerEvidence || []).filter((item) =>
+    ["annotation", "pixel_marker", "checkmark"].includes(item.type)
+    && Number(item.strength) >= .82
+    && examSetPatternSupportsVisualEvidence(patternProfile, item)
+  );
+  const labels = [...new Set(strongVisual.map((item) => item.label).filter(Boolean))];
+  if (labels.length !== 1) return question;
+  const label = labels[0];
+  const patternEvidence = {
+    type: "ai_pattern_confirmation",
+    channel: "ai-pattern",
+    label,
+    strength: examSetClamp(patternProfile.confidence),
+    text: String(patternProfile.patternSummary || "Stabil facitmarkering bekræftet på repræsentative sider").slice(0, 260),
+    page: question.answerPage || null,
+  };
+  const merged = {
+    ...resolution,
+    status: "verified",
+    label,
+    candidateLabel: label,
+    confidence: Math.min(1, Math.max(...strongVisual.map((item) => Number(item.strength) || 0), Number(patternProfile.confidence) || 0)),
+    conflict: false,
+    evidence: [...(resolution.evidence || []), patternEvidence],
+    patternConfirmed: true,
+  };
+  return examSetRecomputeQuestionVerification({ ...question, aiPatternApplied: true }, merged);
+}
+
+async function examSetAnalyzeQuestionsWithVision(answerSource, answerPdf, questions) {
+  if (!answerSource || typeof window === "undefined" || !Array.isArray(questions) || !questions.length) {
+    return { questions, aiMeta: { aiStatus: "skipped", aiReason: "no-answer-source" } };
+  }
+  let patternProfile = null;
+  let aiStatus = "available";
+  let aiError = "";
+  let patternPages = [];
+  try {
+    const representatives = examSetRepresentativePatternPages(questions);
+    patternPages = representatives.map((row) => row.page);
+    const pages = [];
+    for (const row of representatives) {
+      const imageDataUrl = await examSetRenderPdfPageDataUrl(answerSource, row.page, { maxWidth: 1050, quality: .72 });
+      if (!imageDataUrl) continue;
+      const pageLines = (answerPdf?.lines || []).filter((line) => Number(line.page) === row.page).map((line) => line.text).join("\n").slice(0, 9000);
+      pages.push({ page: row.page, imageDataUrl, extractedText: pageLines });
+    }
+    if (pages.length) {
+      patternProfile = await examSetCallDocumentAi("discover_pattern", {
+        pages,
+        instruction: "Find only how the document visually/textually marks official answers. Never solve any medical question.",
+      });
+    }
+  } catch (error) {
+    aiStatus = "unavailable";
+    aiError = error?.name === "AbortError" ? "AI-resolver timeout" : String(error?.message || error);
   }
 
-  const questions = examSetAttachOriginalSource(questionPdf, answerQuestions);
-  const matchedCount = questions.filter((question) => question.sourceMatch !== "unmatched").length;
-  const multiPageCount = questions.filter((question) => (question.sourcePages || []).length > 1).length;
-  const lowConfidenceCount = questions.filter((question) => Number(question.sourceMatchConfidence) < .8).length;
-  const questionsWithKey = questions.filter((question) => question.correctLabel).length;
-  const questionsWithVisuals = questions.filter((question) => question.hasVisual).length;
-  const parseStatus = questions.length && matchedCount >= Math.ceil(questions.length * .8) ? "ready" : "needs_review";
+  const next = [...questions];
+  const patternCalibrationCount = aiStatus !== "unavailable" && patternProfile
+    ? examSetPatternCalibrationCount(next, patternProfile)
+    : 0;
+  if (aiStatus !== "unavailable" && patternProfile) {
+    for (let index = 0; index < next.length; index += 1) {
+      next[index] = examSetApplyPatternProfile(next[index], patternProfile, patternPages.length, patternCalibrationCount);
+    }
+  }
+  if (aiStatus !== "unavailable") {
+    const candidates = next
+      .map((question, index) => ({ question, index }))
+      .filter(({ question }) => question.verificationStatus === "review" && question.answerPage && question.answerMatch?.status !== "blocked")
+      .sort((left, right) => {
+        const leftVisual = (left.question.answerEvidence || []).some((item) => item.channel === "visual") ? 1 : 0;
+        const rightVisual = (right.question.answerEvidence || []).some((item) => item.channel === "visual") ? 1 : 0;
+        return rightVisual - leftVisual || Number(right.question.answerMatch?.score || 0) - Number(left.question.answerMatch?.score || 0);
+      })
+      .slice(0, EXAM_SET_AI_MAX_QUESTION_CALLS);
+
+    // Small batches avoid flooding the backend/model while still keeping upload latency sane.
+    for (let start = 0; start < candidates.length; start += 3) {
+      const batch = candidates.slice(start, start + 3);
+      const results = await Promise.all(batch.map(async ({ question, index }) => {
+        try {
+          const focusRegion = (question.answerRegions || []).find((region) => Number(region.page) === Number(question.answerPage)) || null;
+          const imageDataUrl = await examSetRenderPdfPageDataUrl(answerSource, question.answerPage, {
+            maxWidth: 1350,
+            quality: .82,
+            region: focusRegion,
+            padding: 24,
+          });
+          if (!imageDataUrl) return { index, error: "Kunne ikke rendere facit-udsnit." };
+          const result = await examSetCallDocumentAi("resolve_question", {
+            patternProfile,
+            question: examSetQuestionForAi(question),
+            page: Number(question.answerPage),
+            imageDataUrl,
+            focusRegion,
+          });
+          return { index, result };
+        } catch (error) {
+          return { index, error: String(error?.message || error) };
+        }
+      }));
+      results.forEach(({ index, result, error }) => {
+        const question = next[index];
+        if (!question) return;
+        if (error || !result) {
+          next[index] = { ...question, aiReview: { status: "error", error: error || "Ukendt AI-fejl" } };
+          return;
+        }
+        const merged = examSetMergeAiEvidence(question.automaticResolution, result, question.options.map((option) => option.label));
+        next[index] = examSetRecomputeQuestionVerification({
+          ...question,
+          aiReview: { status: "completed", ...result },
+        }, merged);
+      });
+    }
+  }
+
   return {
-    questions,
-    meta: {
-      parseVersion: EXAM_SET_PARSE_VERSION,
-      parseStatus,
-      questionPdfPages: questionPdf.pageCount,
-      answerPdfPages: answerPdf.pageCount || 0,
-      extractedQuestionLines: questionPdf.extractedLineCount,
-      extractedAnswerLines: answerPdf.extractedLineCount || 0,
-      questionCount: questions.length,
-      questionsWithKey,
-      questionsWithVisuals,
-      sourceMatched: matchedCount,
-      multiPageQuestions: multiPageCount,
-      lowConfidenceQuestions: lowConfidenceCount,
-      pageImageRects: questionPdf.pageImages || {},
-      pageDimensions: questionPdf.pageDimensions || {},
-      editorVersion: 1,
-      sampleProfile: questions.length >= 40 && questions.slice(0, 3).every((question) => question.code) ? "sdu-sequential-paired" : "paired-pdf",
+    questions: next,
+    aiMeta: {
+      aiStatus,
+      aiError,
+      aiModelRole: "document-marking-only",
+      aiPatternProfile: patternProfile,
+      aiPatternPages: patternPages,
+      aiPatternCalibrationPages: patternCalibrationCount,
+      aiReviewedQuestions: next.filter((question) => question.aiReview?.status === "completed").length,
+      aiPatternVerifiedQuestions: next.filter((question) => question.aiPatternApplied).length,
+      aiReviewErrors: next.filter((question) => question.aiReview?.status === "error").length,
     },
   };
 }
 
+async function examSetParsePairedSources(questionSource, answerSource = null) {
+  const questionPdf = await examSetReadPdfSource(questionSource, { detectHighlights: false });
+  const answerPdf = answerSource
+    ? await examSetReadPdfSource(answerSource, { detectHighlights: true })
+    : { lines: [], pageCount: 0, extractedLineCount: 0, pageImages: {}, pageDimensions: {}, pageMarkerCounts: {} };
+
+  // Source-first: never let the answer document define which questions exist.
+  const sourceQuestions = examSetBuildSourceQuestions(questionPdf);
+  if (!sourceQuestions.length) {
+    return { questions: [], meta: examSetDetectionMeta([], questionPdf, answerPdf, { aiStatus: "skipped", parserReason: "no-source-questions" }) };
+  }
+
+  let questions;
+  if (answerSource) {
+    const answerQuestions = examSetBuildAnswerQuestions(answerPdf);
+    const matches = examSetMatchQuestionSets(sourceQuestions, answerQuestions);
+    questions = matches.map(examSetMergeMatchedQuestion);
+  } else {
+    questions = sourceQuestions.map((question) => ({
+      ...question,
+      verificationStatus: "blocked",
+      answerMatch: { status: "blocked", score: 0, margin: 0, reason: "answer-pdf-missing" },
+      answerEvidence: [],
+      automaticResolution: { status: "review", label: null, candidateLabel: null, confidence: 0, conflict: false, evidence: [] },
+    }));
+  }
+
+  let aiMeta = { aiStatus: "skipped", aiReason: answerSource ? "no-review-needed" : "answer-pdf-missing" };
+  if (answerSource && questions.some((question) => question.verificationStatus === "review")) {
+    const vision = await examSetAnalyzeQuestionsWithVision(answerSource, answerPdf, questions);
+    questions = vision.questions;
+    aiMeta = vision.aiMeta;
+  }
+
+  // Remove parser-only references before persistence. Evidence/fingerprints remain auditable.
+  questions = questions.map((question) => {
+    const { _parsed, ...persistable } = question;
+    return persistable;
+  });
+
+  return {
+    questions,
+    meta: examSetDetectionMeta(questions, questionPdf, answerPdf, {
+      ...aiMeta,
+      answerMarkerPages: Object.entries(answerPdf.pageMarkerCounts || {}).filter(([, count]) => Number(count) > 0).map(([page]) => Number(page)),
+    }),
+  };
+}
 async function examSetExtractQuestionsFromPdf(url) {
   const parsed = await examSetParsePairedSources(url, null);
   return {
@@ -33082,16 +33979,16 @@ function ExamSourcePagePreview({ url, pageNumber = 1, fileName = "Original eksam
   );
 }
 
-function ExamOriginalPageModal({ c, url, pageNumber, fileName, copy, onClose }) {
+function ExamOriginalPageModal({ c, url, pageNumber, fileName, copy, onClose, title = null, sourceLabel = null }) {
   return (
     <Modal c={c} onClose={onClose} size="large">
       <div className="exam-set-original-modal">
         <header className="exam-set-original-modal-header">
-          <div><strong>{copy.examSetOriginalTitle}</strong><small>{fileName} · {copy.examSetSourcePage} {pageNumber} · {copy.examSetOriginalNoAnswers}</small></div>
+          <div><strong>{title || copy.examSetOriginalTitle}</strong><small>{fileName} · {copy.examSetSourcePage} {pageNumber}{sourceLabel ? ` · ${sourceLabel}` : ` · ${copy.examSetOriginalNoAnswers}`}</small></div>
           <button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button>
         </header>
         <div className="exam-set-original-modal-body">
-          <LecturePdfViewer url={url} materialId={`exam-original-${fileName}-${pageNumber}`} fileName={fileName} savedState={{ page: pageNumber, zoomMode: "fit-width", scale: 1.25 }} onStateChange={() => {}} copy={copy} />
+          <LecturePdfViewer url={url} materialId={`exam-original-${fileName}-${pageNumber}-${sourceLabel || "source"}`} fileName={fileName} savedState={{ page: pageNumber, zoomMode: "fit-width", scale: 1.25 }} onStateChange={() => {}} copy={copy} />
         </div>
       </div>
     </Modal>
@@ -33172,17 +34069,21 @@ function ExamQuestionOriginalVisuals({ url, question, fileName, copy, onOpen }) 
   );
 }
 
-function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, onRebuild, onPrint, saving = false }) {
+function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, onRebuild, onPrint, saving = false, questionPdfUrl = "", answerPdfUrl = "", questionFileName = "Spørgsmål.pdf", answerFileName = "Svar.pdf" }) {
   const [draft, setDraft] = useState(() => (Array.isArray(questions) ? questions.map((question) => ({ ...question, editor: { ...(question.editor || {}) } })) : []));
   const [includeAnswers, setIncludeAnswers] = useState(false);
+  const [evidencePreview, setEvidencePreview] = useState(null);
 
   useEffect(() => {
     setDraft(Array.isArray(questions) ? questions.map((question) => ({ ...question, editor: { ...(question.editor || {}) } })) : []);
   }, [questions]);
 
   const pageCount = Math.max(1, Number(parseMeta?.questionPdfPages) || 1);
+  const answerPageCount = Math.max(1, Number(parseMeta?.answerPdfPages) || 1);
   const multiPage = draft.filter((question) => (question.sourcePages || []).length > 1).length;
-  const uncertain = draft.filter((question) => question.sourceMatch === "unmatched" || Number(question.sourceMatchConfidence) < .8).length;
+  const verified = draft.filter((question) => question.verificationStatus === "verified" && question.correctLabel).length;
+  const review = draft.filter((question) => question.verificationStatus === "review").length;
+  const blocked = draft.filter((question) => question.verificationStatus === "blocked").length;
 
   function updateRange(index, key, value) {
     setDraft((current) => current.map((question, questionIndex) => {
@@ -33198,51 +34099,170 @@ function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, on
     setDraft((current) => current.map((question, questionIndex) => questionIndex === index ? { ...question, editor: { ...(question.editor || {}), ...patch, manual: true } } : question));
   }
 
+  function updateAnswerPage(index, page) {
+    const normalizedPage = Math.max(1, Math.min(answerPageCount, Number(page) || 1));
+    setDraft((current) => current.map((question, questionIndex) => questionIndex === index ? {
+      ...question,
+      answerPage: normalizedPage,
+      answerPages: [normalizedPage],
+      answerMatch: { ...(question.answerMatch || {}), status: question.answerMatch?.status === "matched" ? "matched" : "manual-page" },
+    } : question));
+  }
+
+  function updateReviewSelection(index, label) {
+    setDraft((current) => current.map((question, questionIndex) => questionIndex === index ? { ...question, reviewSelection: label || "" } : question));
+  }
+
+  function approveAnswer(index) {
+    setDraft((current) => current.map((question, questionIndex) => {
+      if (questionIndex !== index) return question;
+      const valid = new Set((question.options || []).map((option) => option.label));
+      const label = question.reviewSelection || question.manualVerification?.label || question.candidateCorrectLabel || question.correctLabel || "";
+      if (!valid.has(label) || !question.answerPage || !answerPdfUrl) return question;
+      const manualVerification = { label, verifiedAt: new Date().toISOString(), source: "admin-pdf-review" };
+      const withoutOldManual = (question.answerEvidence || []).filter((item) => item.type !== "manual_verification");
+      return {
+        ...question,
+        reviewSelection: label,
+        manualVerification,
+        verificationStatus: "verified",
+        correctLabel: label,
+        candidateCorrectLabel: label,
+        answerEvidence: [...withoutOldManual, { type: "manual_verification", channel: "manual", label, strength: 1, text: "Manuelt verificeret mod svar-PDF", page: question.answerPage || null }],
+      };
+    }));
+  }
+
+  function clearManualApproval(index) {
+    setDraft((current) => current.map((question, questionIndex) => {
+      if (questionIndex !== index) return question;
+      const baseEvidence = (question.automaticResolution?.evidence || question.answerEvidence || []).filter((item) => item.type !== "manual_verification");
+      const automatic = { ...(question.automaticResolution || {}), evidence: baseEvidence };
+      return examSetRecomputeQuestionVerification({ ...question, manualVerification: null, reviewSelection: question.candidateCorrectLabel || "", answerEvidence: baseEvidence }, automatic);
+    }));
+  }
+
+  function statusLabel(status) {
+    if (status === "verified") return copy.examSetEditorVerified;
+    if (status === "blocked") return copy.examSetEditorBlocked;
+    return copy.examSetEditorReview;
+  }
+
+  function evidenceLabel(item) {
+    if (item.type === "explicit") return "Tekst";
+    if (item.type === "annotation") return "PDF-markering";
+    if (item.type === "pixel_marker") return "Visuel markering";
+    if (item.type === "checkmark") return "Flueben";
+    if (item.type === "ai_document_interpretation") return "AI-dokumentkontrol";
+    if (item.type === "manual_verification") return "Manuel kontrol";
+    return item.type || "Evidens";
+  }
+
   return (
-    <Modal c={c} onClose={() => !saving && onClose()} size="large">
-      <div className="exam-pdf-editor-modal">
-        <header className="exam-pdf-editor-header">
-          <div><span><Icon name="edit" size={15} /></span><div><strong>{copy.examSetEditorTitle}</strong><small>{copy.examSetEditorIntro}</small></div></div>
-          <button type="button" className="ui-button ui-button--secondary" disabled={saving} onClick={onClose}>{copy.close}</button>
-        </header>
-        <div className="exam-pdf-editor-summary">
-          <span><strong>{draft.length}</strong><small>{copy.examSetEditorQuestions}</small></span>
-          <span><strong>{multiPage}</strong><small>{copy.examSetEditorMultiPage}</small></span>
-          <span data-warning={uncertain ? "true" : "false"}><strong>{uncertain}</strong><small>{copy.examSetEditorNeedsCheck}</small></span>
-          <span><strong>{EXAM_SET_STANDARD_FONT.split(",")[0]}</strong><small>{copy.examSetEditorFont}</small></span>
-        </div>
-        <div className="exam-pdf-editor-note"><Icon name="flag" size={11} /><span>{copy.examSetEditorPurpose}</span></div>
-        <div className="exam-pdf-editor-list">
-          {draft.map((question, index) => {
-            const startPage = Number(question.editor?.startPage || question.sourcePages?.[0] || 1);
-            const endPage = Number(question.editor?.endPage || question.sourcePages?.[question.sourcePages.length - 1] || startPage);
-            const needsCheck = question.sourceMatch === "unmatched" || Number(question.sourceMatchConfidence) < .8;
-            return (
-              <div key={question.id || index} className="exam-pdf-editor-row" data-warning={needsCheck ? "true" : "false"}>
-                <div className="exam-pdf-editor-question"><strong>{copy.examSetQuestion} {question.sourceNumber || index + 1}</strong><small>{question.code || "—"} · {question.hasVisual ? copy.examSetEditorHasImage : copy.examSetEditorNoImage}{needsCheck ? ` · ${copy.examSetEditorCheck}` : ""}</small></div>
-                <label><span>{copy.examSetEditorStartPage}</span><input type="number" min="1" max={pageCount} value={startPage} onChange={(event) => updateRange(index, "start", event.target.value)} /></label>
-                <label><span>{copy.examSetEditorEndPage}</span><input type="number" min={startPage} max={pageCount} value={endPage} onChange={(event) => updateRange(index, "end", event.target.value)} /></label>
-                <label className="exam-pdf-editor-check"><input type="checkbox" checked={question.editor?.keepTogether !== false} onChange={(event) => updateLayout(index, { keepTogether: event.target.checked })} /><span>{copy.examSetEditorKeepTogether}</span></label>
-                <label className="exam-pdf-editor-check"><input type="checkbox" checked={Boolean(question.editor?.pageBreakBefore)} onChange={(event) => updateLayout(index, { pageBreakBefore: event.target.checked })} /><span>{copy.examSetEditorPageBreak}</span></label>
-              </div>
-            );
-          })}
-        </div>
-        <footer className="exam-pdf-editor-footer">
-          <div className="exam-pdf-editor-print">
-            <label><input type="checkbox" checked={includeAnswers} onChange={(event) => setIncludeAnswers(event.target.checked)} /><span>{copy.examSetEditorPrintAnswers}</span></label>
-            <button type="button" className="ui-button ui-button--secondary" disabled={saving || !draft.length} onClick={() => onPrint(draft, includeAnswers)}><Icon name="file" size={12} />{copy.examSetEditorGeneratePdf}</button>
+    <>
+      <Modal c={c} onClose={() => !saving && onClose()} size="large">
+        <div className="exam-pdf-editor-modal">
+          <header className="exam-pdf-editor-header">
+            <div><span><Icon name="edit" size={15} /></span><div><strong>{copy.examSetEditorTitle}</strong><small>{copy.examSetEditorIntro}</small></div></div>
+            <button type="button" className="ui-button ui-button--secondary" disabled={saving} onClick={onClose}>{copy.close}</button>
+          </header>
+          <div className="exam-pdf-editor-summary">
+            <span><strong>{draft.length}</strong><small>{copy.examSetEditorQuestions}</small></span>
+            <span data-status="verified"><strong>{verified}</strong><small>{copy.examSetEditorVerified}</small></span>
+            <span data-warning={review ? "true" : "false"}><strong>{review}</strong><small>{copy.examSetEditorReview}</small></span>
+            <span data-warning={blocked ? "true" : "false"}><strong>{blocked}</strong><small>{copy.examSetEditorBlocked}</small></span>
+            <span><strong>{multiPage}</strong><small>{copy.examSetEditorMultiPage}</small></span>
           </div>
-          <div>
-            <button type="button" className="ui-button ui-button--secondary" disabled={saving} onClick={onRebuild}><Icon name="reset" size={12} />{copy.examSetEditorReanalyse}</button>
-            <button type="button" className="ui-button ui-button--primary" disabled={saving || !draft.length} onClick={() => onSave(draft)}>{saving ? copy.examSetEditorSaving : copy.examSetEditorSave}</button>
+          <div className="exam-pdf-editor-note"><Icon name="flag" size={11} /><span>{copy.examSetEditorPurpose} · Kun VERIFIED eller manuelt godkendte facit bruges i øvelsen.</span></div>
+          <div className="exam-pdf-editor-list">
+            {draft.map((question, index) => {
+              const startPage = Number(question.editor?.startPage || question.sourcePages?.[0] || 1);
+              const endPage = Number(question.editor?.endPage || question.sourcePages?.[question.sourcePages.length - 1] || startPage);
+              const status = question.verificationStatus || "review";
+              const needsCheck = status !== "verified";
+              const evidence = question.answerEvidence || [];
+              const selectedLabel = question.reviewSelection || question.manualVerification?.label || question.correctLabel || question.candidateCorrectLabel || "";
+              const matchPercent = Math.round(Number(question.answerMatch?.score || 0) * 100);
+              return (
+                <div key={question.id || index} className="exam-pdf-editor-row" data-warning={needsCheck ? "true" : "false"} data-verification={status}>
+                  <div className="exam-pdf-editor-question">
+                    <strong>{copy.examSetQuestion} {question.sourceNumber || index + 1}</strong>
+                    <small>{question.code || "—"} · {question.hasVisual ? copy.examSetEditorHasImage : copy.examSetEditorNoImage}</small>
+                    <span className="exam-pdf-status-pill" data-status={status}>{statusLabel(status)}</span>
+                  </div>
+                  <label><span>{copy.examSetEditorStartPage}</span><input type="number" min="1" max={pageCount} value={startPage} onChange={(event) => updateRange(index, "start", event.target.value)} /></label>
+                  <label><span>{copy.examSetEditorEndPage}</span><input type="number" min={startPage} max={pageCount} value={endPage} onChange={(event) => updateRange(index, "end", event.target.value)} /></label>
+                  <label className="exam-pdf-editor-check"><input type="checkbox" checked={question.editor?.keepTogether !== false} onChange={(event) => updateLayout(index, { keepTogether: event.target.checked })} /><span>{copy.examSetEditorKeepTogether}</span></label>
+                  <label className="exam-pdf-editor-check"><input type="checkbox" checked={Boolean(question.editor?.pageBreakBefore)} onChange={(event) => updateLayout(index, { pageBreakBefore: event.target.checked })} /><span>{copy.examSetEditorPageBreak}</span></label>
+
+                  <div className="exam-pdf-evidence-panel">
+                    <div className="exam-pdf-evidence-head">
+                      <div>
+                        <strong>{copy.examSetEditorEvidence}</strong>
+                        <small>{copy.examSetEditorMatch}: {question.answerMatch?.status || "blocked"} · {matchPercent}%{question.answerSourceNumber ? ` · ${copy.examSetQuestion} ${question.answerSourceNumber}` : ""}{question.answerCode ? ` · ${question.answerCode}` : ""}</small>
+                      </div>
+                      <div className="exam-pdf-evidence-actions">
+                        {questionPdfUrl && question.page ? <button type="button" className="ui-button ui-button--secondary" onClick={() => setEvidencePreview({ kind: "question", url: questionPdfUrl, page: question.page, fileName: questionFileName })}>{copy.examSetSourcePage} {question.page}</button> : null}
+                        {answerPdfUrl && question.answerPage ? <button type="button" className="ui-button ui-button--secondary" onClick={() => setEvidencePreview({ kind: "answer", url: answerPdfUrl, page: question.answerPage, fileName: answerFileName })}>{copy.examSetEditorOpenAnswerPage} {question.answerPage}</button> : null}
+                      </div>
+                    </div>
+                    {evidence.length ? (
+                      <div className="exam-pdf-evidence-list">
+                        {evidence.slice(0, 8).map((item, evidenceIndex) => (
+                          <span key={`${item.type}-${item.label}-${evidenceIndex}`} data-channel={item.channel || item.type}>
+                            <b>{evidenceLabel(item)}</b><em>{item.label || "?"}</em><small>{item.text || ""}{Number(item.strength) ? ` · ${Math.round(Number(item.strength) * 100)}%` : ""}</small>
+                          </span>
+                        ))}
+                      </div>
+                    ) : <div className="exam-pdf-no-evidence">{copy.examSetEditorNoEvidence}</div>}
+                    {question.aiReview?.status === "completed" ? <div className="exam-pdf-ai-note"><Icon name="sparkle" size={11} />{copy.examSetEditorAiChecked}{question.aiReview.markerType ? ` · ${question.aiReview.markerType}` : ""}</div> : null}
+                    <div className="exam-pdf-review-controls">
+                      <label>
+                        <span>{copy.examSetEditorAnswerPage}</span>
+                        <input type="number" min="1" max={answerPageCount} value={question.answerPage || ""} placeholder="—" onChange={(event) => updateAnswerPage(index, event.target.value)} />
+                      </label>
+                      <label>
+                        <span>{copy.examSetEditorCandidate}</span>
+                        <select value={selectedLabel} onChange={(event) => updateReviewSelection(index, event.target.value)}>
+                          <option value="">—</option>
+                          {(question.options || []).map((option) => <option key={option.label} value={option.label}>{option.label}. {option.text}</option>)}
+                        </select>
+                      </label>
+                      <button type="button" className="ui-button ui-button--primary" disabled={!selectedLabel || !question.answerPage || !answerPdfUrl || saving} onClick={() => approveAnswer(index)}>{question.manualVerification?.label ? copy.examSetEditorApproved : copy.examSetEditorApprove}</button>
+                      {question.manualVerification?.label ? <button type="button" className="ui-button ui-button--secondary" disabled={saving} onClick={() => clearManualApproval(index)}>{copy.examSetEditorClearApproval}</button> : null}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </footer>
-      </div>
-    </Modal>
+          <footer className="exam-pdf-editor-footer">
+            <div className="exam-pdf-editor-print">
+              <label><input type="checkbox" checked={includeAnswers} onChange={(event) => setIncludeAnswers(event.target.checked)} /><span>{copy.examSetEditorPrintAnswers}</span></label>
+              <button type="button" className="ui-button ui-button--secondary" disabled={saving || !draft.length} onClick={() => onPrint(draft, includeAnswers)}><Icon name="file" size={12} />{copy.examSetEditorGeneratePdf}</button>
+            </div>
+            <div>
+              <button type="button" className="ui-button ui-button--secondary" disabled={saving} onClick={onRebuild}><Icon name="reset" size={12} />{copy.examSetEditorReanalyse}</button>
+              <button type="button" className="ui-button ui-button--primary" disabled={saving || !draft.length} onClick={() => onSave(draft)}>{saving ? copy.examSetEditorSaving : copy.examSetEditorSave}</button>
+            </div>
+          </footer>
+        </div>
+      </Modal>
+      {evidencePreview ? (
+        <ExamOriginalPageModal
+          c={c}
+          url={evidencePreview.url}
+          pageNumber={evidencePreview.page}
+          fileName={evidencePreview.fileName}
+          copy={copy}
+          title={evidencePreview.kind === "answer" ? copy.examSetEditorEvidence : copy.examSetOriginalTitle}
+          sourceLabel={evidencePreview.kind === "answer" ? copy.examSetAnswerPdf : copy.examSetOriginalNoAnswers}
+          onClose={() => setEvidencePreview(null)}
+        />
+      ) : null}
+    </>
   );
 }
-
 
 function WorkspaceShell({ c, label, drByteOpen = false, closing = false, children }) {
   return (
@@ -33449,12 +34469,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetOriginalImage: "1 billede",
       examSetOriginalImagesCount: (count) => `${count} billeder`,
       examSetEditorTitle: "PDF-editor",
-      examSetEditorIntro: "Kontrollér hvilke originalsider der hører til hvert spørgsmål, og styr sideskift i den standardiserede PDF.",
+      examSetEditorIntro: "Kontrollér sidekobling, dokumentmatch og facit-evidens. Usikre svar kræver manuel godkendelse.",
       examSetEditorQuestions: "spørgsmål",
       examSetEditorMultiPage: "går over flere sider",
       examSetEditorNeedsCheck: "kræver kontrol",
       examSetEditorFont: "standardfont",
-      examSetEditorPurpose: "Editoren ændrer kun sidekobling og layout. Spørgsmål, svarmuligheder og billeder forbliver fra originaleksamen.",
+      examSetEditorPurpose: "Spørgsmål, svarmuligheder og billeder forbliver fra spørgsmål-PDF’en. Facit godkendes kun ved sikker dokumentevidens eller manuel kontrol mod svar-PDF’en.",
       examSetEditorStartPage: "Fra side",
       examSetEditorEndPage: "Til side",
       examSetEditorKeepTogether: "Hold samlet",
@@ -33467,6 +34487,19 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetEditorReanalyse: "Genanalysér PDF'er",
       examSetEditorSave: "Gem rettelser",
       examSetEditorSaving: "Gemmer…",
+      examSetEditorVerified: "verificeret",
+      examSetEditorReview: "kræver kontrol",
+      examSetEditorBlocked: "blokeret",
+      examSetEditorEvidence: "Facit-evidens",
+      examSetEditorMatch: "Dokumentmatch",
+      examSetEditorAnswerPage: "Facit-side",
+      examSetEditorCandidate: "Kandidat",
+      examSetEditorApprove: "Godkend facit",
+      examSetEditorApproved: "Manuelt verificeret",
+      examSetEditorClearApproval: "Fjern manuel godkendelse",
+      examSetEditorNoEvidence: "Ingen sikker facit-evidens fundet",
+      examSetEditorAiChecked: "AI har kontrolleret dokumentmarkeringen",
+      examSetEditorOpenAnswerPage: "Se facit-side",
       examSetEditorOpen: "PDF-editor",
       examSetEditorSaved: "PDF-editorens sidekoblinger er gemt.",
       examSetEditorOwnerOnly: "Kun uploaderen kan ændre den fælles PDF-editor.",
@@ -33762,12 +34795,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetOriginalImage: "1 image",
       examSetOriginalImagesCount: (count) => `${count} images`,
       examSetEditorTitle: "PDF editor",
-      examSetEditorIntro: "Check which original pages belong to each question and control page breaks in the standardized PDF.",
+      examSetEditorIntro: "Review page mapping, document matching, and answer evidence. Uncertain answers require manual approval.",
       examSetEditorQuestions: "questions",
       examSetEditorMultiPage: "span multiple pages",
       examSetEditorNeedsCheck: "need review",
       examSetEditorFont: "standard font",
-      examSetEditorPurpose: "The editor only changes page mapping and layout. Questions, options and images remain from the original exam.",
+      examSetEditorPurpose: "Questions, options, and images remain from the question PDF. Answers are approved only with safe document evidence or manual review against the answer PDF.",
       examSetEditorStartPage: "From page",
       examSetEditorEndPage: "To page",
       examSetEditorKeepTogether: "Keep together",
@@ -33780,6 +34813,19 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetEditorReanalyse: "Re-analyse PDFs",
       examSetEditorSave: "Save corrections",
       examSetEditorSaving: "Saving…",
+      examSetEditorVerified: "verified",
+      examSetEditorReview: "needs review",
+      examSetEditorBlocked: "blocked",
+      examSetEditorEvidence: "Answer evidence",
+      examSetEditorMatch: "Document match",
+      examSetEditorAnswerPage: "Answer page",
+      examSetEditorCandidate: "Candidate",
+      examSetEditorApprove: "Approve answer key",
+      examSetEditorApproved: "Manually verified",
+      examSetEditorClearApproval: "Remove manual approval",
+      examSetEditorNoEvidence: "No safe answer evidence found",
+      examSetEditorAiChecked: "AI checked the document marking",
+      examSetEditorOpenAnswerPage: "View answer page",
       examSetEditorOpen: "PDF editor",
       examSetEditorSaved: "The PDF editor page mappings were saved.",
       examSetEditorOwnerOnly: "Only the uploader can change the shared PDF editor.",
@@ -34079,7 +35125,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetEditorMultiPage: "تمتد على عدة صفحات",
       examSetEditorNeedsCheck: "تحتاج مراجعة",
       examSetEditorFont: "الخط القياسي",
-      examSetEditorPurpose: "يغيّر المحرر ربط الصفحات والتخطيط فقط. تبقى الأسئلة والخيارات والصور من الامتحان الأصلي.",
+      examSetEditorPurpose: "تبقى الأسئلة والخيارات والصور من ملف الأسئلة. لا تُعتمد الإجابة إلا بدليل مستند آمن أو مراجعة يدوية مقابل ملف الإجابات.",
       examSetEditorStartPage: "من صفحة",
       examSetEditorEndPage: "إلى صفحة",
       examSetEditorKeepTogether: "إبقاء السؤال معاً",
@@ -34092,6 +35138,19 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetEditorReanalyse: "إعادة تحليل ملفات PDF",
       examSetEditorSave: "حفظ التصحيحات",
       examSetEditorSaving: "جارٍ الحفظ…",
+      examSetEditorVerified: "تم التحقق",
+      examSetEditorReview: "يحتاج مراجعة",
+      examSetEditorBlocked: "محظور",
+      examSetEditorEvidence: "دليل الإجابة",
+      examSetEditorMatch: "مطابقة المستند",
+      examSetEditorAnswerPage: "صفحة الإجابة",
+      examSetEditorCandidate: "مرشح",
+      examSetEditorApprove: "اعتماد الإجابة",
+      examSetEditorApproved: "تم التحقق يدويًا",
+      examSetEditorClearApproval: "إزالة الاعتماد اليدوي",
+      examSetEditorNoEvidence: "لم يتم العثور على دليل إجابة آمن",
+      examSetEditorAiChecked: "تحقق الذكاء الاصطناعي من علامة المستند",
+      examSetEditorOpenAnswerPage: "عرض صفحة الإجابة",
       examSetEditorOpen: "محرر PDF",
       examSetEditorSaved: "تم حفظ ربط الصفحات في محرر PDF.",
       examSetEditorOwnerOnly: "يمكن للرافع فقط تعديل محرر PDF المشترك.",
@@ -35995,14 +37054,24 @@ async function downloadExamSetDocument(examDocument = selectedExamDocument) {
 async function persistExamSetParsedModel(questions, meta, { message = "" } = {}) {
   if (!selectedExamDocument?.id || selectedExamDocument.ownerUserId !== userId) return false;
   const normalizedQuestions = Array.isArray(questions) ? questions : [];
+  const verifiedQuestions = normalizedQuestions.filter((question) => question.verificationStatus === "verified" && question.correctLabel).length;
+  const reviewQuestions = normalizedQuestions.filter((question) => question.verificationStatus === "review").length;
+  const blockedQuestions = normalizedQuestions.filter((question) => question.verificationStatus === "blocked").length;
+  const parseStatus = normalizedQuestions.length && reviewQuestions === 0 && blockedQuestions === 0 ? "ready" : "needs_review";
   const normalizedMeta = {
     ...(meta && typeof meta === "object" ? meta : {}),
     parseVersion: EXAM_SET_PARSE_VERSION,
+    parseStatus,
     questionCount: normalizedQuestions.length,
     questionsWithKey: normalizedQuestions.filter((question) => question.correctLabel).length,
+    verifiedQuestions,
+    reviewQuestions,
+    blockedQuestions,
     questionsWithVisuals: normalizedQuestions.filter((question) => question.hasVisual).length,
     multiPageQuestions: normalizedQuestions.filter((question) => (question.sourcePages || []).length > 1).length,
-    lowConfidenceQuestions: normalizedQuestions.filter((question) => question.sourceMatch === "unmatched" || Number(question.sourceMatchConfidence) < .8).length,
+    lowConfidenceQuestions: normalizedQuestions.filter((question) => question.answerMatch?.status !== "matched").length,
+    aiReviewedQuestions: normalizedQuestions.filter((question) => question.aiReview?.status === "completed").length,
+    manuallyVerifiedQuestions: normalizedQuestions.filter((question) => Boolean(question.manualVerification?.label)).length,
     editorUpdatedAt: new Date().toISOString(),
   };
   const { error } = await supabase
@@ -36010,7 +37079,7 @@ async function persistExamSetParsedModel(questions, meta, { message = "" } = {})
     .update({
       parsed_questions: normalizedQuestions,
       parse_meta: normalizedMeta,
-      parse_status: normalizedQuestions.length ? "ready" : "needs_review",
+      parse_status: parseStatus,
       parse_version: EXAM_SET_PARSE_VERSION,
       updated_at: new Date().toISOString(),
     })
@@ -36018,7 +37087,7 @@ async function persistExamSetParsedModel(questions, meta, { message = "" } = {})
     .eq("user_id", userId);
   if (error) throw error;
   const nextDocuments = documents.map((document) => document.id === selectedExamDocument.id
-    ? { ...document, parsedQuestions: normalizedQuestions, parseMeta: normalizedMeta, parseStatus: normalizedQuestions.length ? "ready" : "needs_review", parseVersion: EXAM_SET_PARSE_VERSION, updatedAt: new Date().toISOString() }
+    ? { ...document, parsedQuestions: normalizedQuestions, parseMeta: normalizedMeta, parseStatus, parseVersion: EXAM_SET_PARSE_VERSION, updatedAt: new Date().toISOString() }
     : document);
   updateDocuments(nextDocuments);
   setExamSetQuestions(normalizedQuestions);
@@ -36027,7 +37096,6 @@ async function persistExamSetParsedModel(questions, meta, { message = "" } = {})
   if (message) setExamSetStatus({ state: "success", message });
   return true;
 }
-
 async function createExamSetViewer() {
   if (!selectedExamDocument || !examSetPreviewUrl || examSetPreviewState !== "ready") return null;
   if (examSetQuestionDocumentId === selectedExamDocument.id && examSetQuestions.length && examSetParseMeta?.parseVersion === EXAM_SET_PARSE_VERSION) {
@@ -36881,6 +37949,10 @@ examSetMode === "exam" ? (
           parseMeta={examSetQuestionDocumentId === selectedExamDocument.id ? (examSetParseMeta || selectedExamDocument.parseMeta) : selectedExamDocument.parseMeta}
           copy={copy}
           saving={examSetEditorSaving}
+          questionPdfUrl={examSetPreviewUrl}
+          answerPdfUrl={examSetAnswerPreviewUrl}
+          questionFileName={selectedExamDocument.questionFileName || selectedExamDocument.name}
+          answerFileName={selectedExamDocument.answerFileName || "Svar.pdf"}
           onClose={() => setExamSetEditorOpen(false)}
           onSave={saveExamSetEditorQuestions}
           onRebuild={rebuildExamSetSources}
