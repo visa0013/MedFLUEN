@@ -13220,6 +13220,176 @@ select.ui-control {
   .lecture-material-chip { width: 150px; min-width: 150px; }
 }
 
+/* ============================================================
+   FORELÆSNINGSVISER 2.0 — CONTINUOUS PDF + COMPACT WORKSPACE
+   ============================================================ */
+.lecture-pdf-viewer--continuous { border-radius: 6px; box-shadow: none; background: #d9dee6; }
+.lecture-pdf-viewer--continuous .lecture-pdf-toolbar { min-height: 36px; justify-content: center; border-bottom-color: color-mix(in srgb,var(--ui-border) 82%,transparent); }
+.lecture-pdf-viewer--continuous .lecture-pdf-surface { padding: 14px 14px 42px; scroll-behavior: auto; }
+.lecture-pdf-pages { min-width: 100%; display: grid; justify-items: center; align-content: start; gap: 18px; }
+.lecture-pdf-continuous-page { position: relative; max-width: none; flex-shrink: 0; background: #fff; box-shadow: 0 7px 24px rgba(20,35,60,.16); transition: box-shadow 140ms ease; }
+.lecture-pdf-continuous-page[data-current="true"] { box-shadow: 0 8px 28px rgba(20,35,60,.20), 0 0 0 1px color-mix(in srgb,var(--ui-blue) 28%,transparent); }
+.lecture-pdf-continuous-page-inner { position: relative; display: block; overflow: hidden; background: #fff; }
+.lecture-pdf-continuous-page canvas { display: block; max-width: none; background: #fff; }
+.lecture-pdf-page-placeholder { position: absolute; inset: 0; background: linear-gradient(115deg,#fff 0%,#f8f9fb 48%,#fff 100%); }
+.lecture-pdf-page-number { position: absolute; inset-block-end: -15px; inset-inline: 0; color: #667080; font-size: 7px; font-weight: 800; text-align: center; pointer-events: none; }
+
+.lecture-viewer-v2 .document-workspace-header { height: 50px; padding: 0 10px; gap: 8px; }
+.lecture-viewer-v2 .document-workspace-title-block { gap: 7px; }
+.lecture-viewer-v2 .document-workspace-mark { width: 30px; height: 30px; border-radius: 8px; }
+.lecture-viewer-v2 .document-workspace-title-block strong { font-size: 11px; }
+.lecture-viewer-v2 .document-workspace-title-block small { display: none; }
+.lecture-viewer-v2 .document-workspace-header-actions { gap: 5px; }
+.lecture-viewer-v2 .document-upload-button { width: 32px; min-width: 32px; min-height: 32px !important; padding: 0 !important; justify-content: center; font-size: 0 !important; }
+.lecture-viewer-v2-header-tools { display: inline-flex; align-items: center; gap: 3px; padding: 2px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
+.lecture-viewer-v2-panel-toggle { min-width: 31px; height: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 7px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-muted); font-size: 8px; font-weight: 800; }
+.lecture-viewer-v2-panel-toggle:hover { background: var(--ui-panel); color: var(--ui-text); }
+.lecture-viewer-v2-panel-toggle[data-active="true"] { background: var(--ui-panel); color: var(--ui-blue); box-shadow: 0 1px 4px rgba(20,35,60,.08); }
+
+.lecture-viewer-v2 .document-workspace-grid--notes { position: relative; grid-template-columns: 252px minmax(0,1fr) 310px; grid-template-rows: 58px minmax(0,1fr); transition: grid-template-columns 160ms ease; }
+.lecture-viewer-v2[data-library="false"] .document-workspace-grid--notes { grid-template-columns: 0 minmax(0,1fr) 310px; }
+.lecture-viewer-v2[data-notes="false"] .document-workspace-grid--notes { grid-template-columns: 252px minmax(0,1fr) 0; }
+.lecture-viewer-v2[data-library="false"][data-notes="false"] .document-workspace-grid--notes { grid-template-columns: 0 minmax(0,1fr) 0; }
+.lecture-viewer-v2[data-library="false"] .document-library-panel,
+.lecture-viewer-v2[data-notes="false"] .lecture-notes-panel { display: none; }
+.lecture-viewer-v2 .document-library-panel { border-inline-end: 1px solid var(--ui-border); box-shadow: none; }
+.lecture-viewer-v2 .lecture-notes-panel { border-inline-start: 1px solid var(--ui-border); box-shadow: none; }
+.lecture-viewer-v2 .document-search-box { height: 34px; margin: 8px; padding-inline: 9px; border-radius: 8px; }
+.lecture-viewer-v2 .document-search-box input { font-size: 9.5px; }
+.lecture-viewer-v2 .lecture-module-overview-wrap { display: none; }
+.lecture-viewer-v2 .lecture-overview-controls { padding: 0 6px 4px; border-bottom: 1px solid var(--ui-border); }
+.lecture-viewer-v2 .lecture-filter-strip { gap: 3px; padding: 1px 2px 3px; }
+.lecture-viewer-v2 .lecture-filter-strip button { min-height: 26px; padding: 0 7px; border-radius: 7px; font-size: 7.5px; }
+.lecture-viewer-v2 .lecture-filter-strip button strong { min-width: 14px; height: 14px; font-size: 6.5px; }
+.lecture-viewer-v2 .lecture-overview-result-count { padding: 2px 4px 0; font-size: 7px; }
+.lecture-viewer-v2 .lecture-overview-list { padding: 5px 5px 10px; }
+.lecture-viewer-v2 .lecture-group-section { margin-bottom: 4px; border: 0; border-radius: 8px; background: transparent; }
+.lecture-viewer-v2 .lecture-group-heading { min-height: 32px; padding: 0 6px; border: 0; border-radius: 7px; }
+.lecture-viewer-v2 .lecture-group-heading-icon { width: 22px; height: 22px; background: var(--ui-soft); }
+.lecture-viewer-v2 .lecture-group-heading-copy strong { font-size: 8.5px; }
+.lecture-viewer-v2 .lecture-group-rows { padding: 1px 0 4px; }
+.lecture-viewer-v2 .lecture-overview-row { min-height: 45px; margin: 1px 0; padding: 0; border-radius: 8px; }
+.lecture-viewer-v2 .lecture-overview-row .document-library-main { min-height: 43px; padding: 5px 4px 5px 6px; gap: 7px; }
+.lecture-viewer-v2 .lecture-overview-row .document-library-code { width: 28px; height: 28px; border-radius: 7px; font-size: 8px; }
+.lecture-viewer-v2 .lecture-overview-row .document-library-copy strong { font-size: 9.2px; }
+.lecture-viewer-v2 .lecture-overview-row .lecture-learning-meta { display: none !important; }
+.lecture-viewer-v2 .lecture-overview-row .lecture-row-meta { margin-top: 2px; font-size: 7px; }
+.lecture-viewer-v2 .lecture-overview-row .lecture-progress-actions { width: auto !important; display: flex !important; grid-template-columns: none !important; align-items: center; gap: 2px; padding-inline-end: 4px; }
+.lecture-viewer-v2 .lecture-overview-row .lecture-status-toggle,
+.lecture-viewer-v2 .lecture-overview-row .lecture-mastery-toggle { display: none; }
+.lecture-viewer-v2 .lecture-overview-row .document-library-file-state,
+.lecture-favorite-toggle { width: 25px; height: 25px; display: grid; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--ui-muted); }
+.lecture-favorite-toggle:hover { border-color: color-mix(in srgb,#d7a22f 35%,var(--ui-border)); background: color-mix(in srgb,#d7a22f 8%,var(--ui-panel)); color: #a6750f; }
+.lecture-favorite-toggle[data-active="true"] { border-color: color-mix(in srgb,#d7a22f 36%,var(--ui-border)); background: color-mix(in srgb,#d7a22f 12%,var(--ui-panel)); color: #a6750f; }
+.lecture-favorite-toggle--header { width: 30px; height: 30px; flex-shrink: 0; border-color: var(--ui-border); background: var(--ui-panel); }
+
+.lecture-viewer-v2 .lecture-detail-header { min-height: 58px; grid-template-columns: minmax(180px,1fr) auto; gap: 8px; padding: 6px 9px; box-shadow: none; }
+.lecture-viewer-v2 .lecture-detail-heading { grid-template-columns: 31px minmax(0,1fr); gap: 8px; }
+.lecture-viewer-v2 .lecture-detail-code { width: 31px; height: 31px; border-radius: 8px; font-size: 8px; }
+.lecture-viewer-v2 .lecture-detail-copy { gap: 1px; }
+.lecture-viewer-v2 .lecture-detail-copy > small { font-size: 6.5px; }
+.lecture-viewer-v2 .lecture-detail-copy > strong { font-size: 10.5px; }
+.lecture-viewer-v2 .lecture-detail-meta { gap: 3px 6px; }
+.lecture-viewer-v2 .lecture-detail-meta > span,
+.lecture-viewer-v2 .lecture-detail-meta > a { font-size: 6.8px; }
+.lecture-viewer-v2 .lecture-detail-tools { gap: 4px; flex-wrap: nowrap; }
+.lecture-viewer-v2 .lecture-detail-statuses { gap: 3px; }
+.lecture-viewer-v2 .lecture-detail-status-button { width: 30px; min-width: 30px; height: 30px; grid-template-columns: 1fr; padding: 0; border-radius: 8px; }
+.lecture-viewer-v2 .lecture-detail-status-button > span:first-child { width: 22px; height: 22px; margin: auto; }
+.lecture-viewer-v2 .lecture-detail-status-button > span:last-child { display: none; }
+.lecture-viewer-v2 .lecture-follow-up-trigger { width: 30px; min-width: 30px; height: 30px; grid-template-columns: 1fr; padding: 0; border-radius: 8px; }
+.lecture-viewer-v2 .lecture-follow-up-trigger > span:first-child { width: 22px; height: 22px; margin: auto; }
+.lecture-viewer-v2 .lecture-follow-up-trigger > span:last-child { display: none; }
+.lecture-viewer-v2 .lecture-detail-navigation { height: 30px; padding: 2px; border-radius: 8px; }
+.lecture-viewer-v2 .lecture-detail-nav-button { width: 25px; height: 25px; }
+.lecture-viewer-v2 .lecture-detail-navigation > span { min-width: 34px; font-size: 6.8px; }
+.lecture-material-menu-trigger { height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 7px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 7.5px; font-weight: 800; }
+.lecture-material-menu-trigger:hover,
+.lecture-material-menu-trigger[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-material-menu-trigger strong { min-width: 15px; height: 15px; display: grid; place-items: center; padding: 0 3px; border-radius: 99px; background: var(--ui-soft); font-size: 6.5px; }
+
+.lecture-viewer-v2 .document-viewer-panel { position: relative; background: #e2e6ec; }
+.lecture-viewer-v2 .document-viewer-toolbar { height: 41px; padding: 0 9px; }
+.lecture-viewer-v2 .document-viewer-toolbar strong { font-size: 9px; }
+.lecture-viewer-v2 .document-viewer-canvas { padding: 7px; }
+.lecture-materials-popover { display: none !important; }
+.lecture-materials-popover[data-open="true"] { position: absolute; z-index: 28; inset-block-start: 47px; inset-inline: 10px; max-height: min(310px,50%); display: grid !important; grid-template-columns: 140px minmax(0,1fr); overflow: hidden; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); }
+.lecture-material-popover-actions { display: flex; align-items: center; gap: 3px; }
+.lecture-material-popover-close { width: 26px !important; min-width: 26px !important; padding: 0 !important; justify-content: center !important; }
+.lecture-material-actions-menu { position: relative; flex-shrink: 0; }
+.lecture-material-actions-menu > summary { height: 29px; display: inline-flex; align-items: center; gap: 5px; padding: 0 7px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 7.5px; font-weight: 800; list-style: none; cursor: pointer; }
+.lecture-material-actions-menu > summary::-webkit-details-marker { display: none; }
+.lecture-material-actions-menu[open] > summary { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-material-actions-menu .lecture-material-actions { position: absolute; z-index: 36; inset-block-start: calc(100% + 5px); inset-inline-end: 0; width: 190px; display: grid; gap: 2px; padding: 5px; overflow: visible; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); }
+.document-viewer-toolbar .lecture-material-actions-menu .lecture-material-actions button { width: 100%; min-height: 30px; justify-content: flex-start; padding: 0 8px; font-size: 7.5px !important; }
+
+.lecture-viewer-v2[data-focus="true"] .document-workspace-header { display: none; }
+.lecture-viewer-v2[data-focus="true"] .document-workspace-grid--notes { grid-template-columns: 1fr; grid-template-rows: 44px minmax(0,1fr); }
+.lecture-viewer-v2[data-focus="true"] .document-library-panel,
+.lecture-viewer-v2[data-focus="true"] .lecture-notes-panel { display: none; }
+.lecture-viewer-v2[data-focus="true"] .lecture-detail-header { grid-column: 1; grid-row: 1; min-height: 44px; padding-block: 4px; }
+.lecture-viewer-v2[data-focus="true"] .document-viewer-panel { grid-column: 1; grid-row: 2; }
+.lecture-viewer-v2[data-focus="true"] .lecture-detail-meta,
+.lecture-viewer-v2[data-focus="true"] .lecture-detail-statuses,
+.lecture-viewer-v2[data-focus="true"] .lecture-follow-up-trigger,
+.lecture-viewer-v2[data-focus="true"] .lecture-favorite-toggle--header,
+.lecture-viewer-v2[data-focus="true"] .lecture-material-menu-trigger { display: none; }
+.lecture-viewer-v2[data-focus="true"] .lecture-detail-heading { grid-template-columns: 27px minmax(0,1fr); }
+.lecture-viewer-v2[data-focus="true"] .lecture-detail-code { width: 27px; height: 27px; }
+.lecture-viewer-v2[data-focus="true"] .lecture-detail-copy > small { display: none; }
+.lecture-viewer-v2[data-focus="true"] .document-viewer-toolbar { height: 36px; }
+.lecture-viewer-v2[data-focus="true"] .document-viewer-canvas { padding: 0; }
+.lecture-viewer-v2[data-focus="true"] .lecture-pdf-viewer { border-radius: 0; }
+
+.lecture-focus-exit { display: none; height: 29px; align-items: center; gap: 5px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 7px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 7.5px; font-weight: 800; }
+.lecture-viewer-v2[data-focus="true"] .lecture-focus-exit { display: inline-flex; }
+.lecture-viewer-v2[data-focus="true"] .lecture-detail-tools { margin-inline-start: auto; }
+
+@media (max-width: 900px) {
+  .lecture-viewer-v2 .document-workspace-grid--notes { grid-template-columns: minmax(0,1fr); grid-template-rows: 58px minmax(0,1fr); }
+  .lecture-viewer-v2 .lecture-detail-header { grid-column: 1; grid-row: 1; }
+  .lecture-viewer-v2 .document-viewer-panel { grid-column: 1; grid-row: 2; }
+  .lecture-viewer-v2 .document-library-panel { position: absolute; z-index: 42; inset-block: 0; inset-inline-start: 0; width: min(286px,82vw); border-inline-end: 1px solid var(--ui-border); box-shadow: var(--ui-shadow-lg); }
+  .lecture-viewer-v2 .lecture-notes-panel { position: absolute; z-index: 42; inset-block: 0; inset-inline-end: 0; width: min(330px,86vw); border-inline-start: 1px solid var(--ui-border); box-shadow: var(--ui-shadow-lg); }
+  .lecture-viewer-v2[data-library="false"] .document-library-panel,
+  .lecture-viewer-v2[data-notes="false"] .lecture-notes-panel { display: none; }
+  .lecture-viewer-v2 .lecture-detail-header { grid-template-columns: minmax(150px,1fr) auto; }
+  .lecture-viewer-v2 .lecture-detail-meta > span:not(.lecture-detail-schedule-state),
+  .lecture-viewer-v2 .lecture-detail-meta > a,
+  .lecture-viewer-v2 .lecture-sdu-session-summary,
+  .lecture-viewer-v2 .lecture-sdu-match-trigger { display: none; }
+  .lecture-material-menu-trigger > span { display: none; }
+  .lecture-material-actions-menu > summary span { display: none; }
+}
+
+@media (max-width: 760px) {
+  .lecture-viewer-v2 .document-workspace-header { height: 46px; padding-inline: 6px; }
+  .lecture-viewer-v2 .document-workspace-title-block > span:last-child { display: none; }
+  .lecture-viewer-v2 .document-workspace-mark { width: 29px; height: 29px; }
+  .lecture-viewer-v2-header-tools { margin-inline-start: auto; }
+  .lecture-viewer-v2-panel-toggle { width: 29px; min-width: 29px; padding: 0; }
+  .lecture-viewer-v2-panel-toggle span { display: none; }
+  .lecture-viewer-v2 .document-upload-button { display: none; }
+  .lecture-viewer-v2 .document-workspace-grid--notes { grid-template-rows: 50px minmax(0,1fr); }
+  .lecture-viewer-v2 .lecture-detail-header { min-height: 50px; padding: 5px 6px; }
+  .lecture-viewer-v2 .lecture-detail-copy > small,
+  .lecture-viewer-v2 .lecture-detail-meta { display: none; }
+  .lecture-viewer-v2 .lecture-detail-tools { gap: 2px; }
+  .lecture-viewer-v2 .lecture-detail-statuses { display: none; }
+  .lecture-viewer-v2 .lecture-follow-up-trigger { display: none; }
+  .lecture-viewer-v2 .lecture-detail-navigation > span { display: none; }
+  .lecture-viewer-v2 .lecture-detail-navigation { border: 0; background: transparent; }
+  .lecture-viewer-v2 .document-viewer-toolbar { height: 36px; padding-inline: 6px; }
+  .lecture-viewer-v2 .document-viewer-toolbar > span > svg { display: none; }
+  .lecture-viewer-v2 .document-viewer-canvas { padding: 0; }
+  .lecture-viewer-v2 .lecture-pdf-viewer { border-radius: 0; }
+  .lecture-pdf-viewer--continuous .lecture-pdf-surface { padding: 7px 6px 32px; }
+  .lecture-pdf-pages { gap: 12px; }
+  .lecture-materials-popover[data-open="true"] { inset-block-start: 40px; inset-inline: 5px; grid-template-columns: 1fr; max-height: 56%; }
+  .lecture-materials-popover .lecture-material-strip-heading { border-inline-end: 0; border-bottom: 1px solid var(--ui-border); }
+  .lecture-material-actions-menu .lecture-material-actions { position: fixed; inset-inline: 8px; inset-block-start: auto; inset-block-end: 74px; width: auto; }
+}
+
     `}
 </style>
   );
@@ -20469,6 +20639,10 @@ function Dashboard({
   const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [calendarDailyPlanner, setCalendarDailyPlanner] = useStoredState(STORAGE.calendarDailyPlanner, {});
   const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
+  const [lectureFavorites, setLectureFavorites] = useState([]);
+  const [lectureFavoriteStatus, setLectureFavoriteStatus] = useState("idle");
+  const [lectureViewerFocus, setLectureViewerFocus] = useState(false);
+  const [lectureMaterialsOpen, setLectureMaterialsOpen] = useState(false);
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
   const [pomodoroMinutesLog] = useStoredState(STORAGE.pomodoroMinutesLog, {});
@@ -33439,6 +33613,80 @@ function lecturePdfClamp(value, min, max) {
   return Math.min(max, Math.max(min, Number(value) || min));
 }
 
+function lecturePdfPageWindow(pageNumber, numPages, radius = 2) {
+  const current = lecturePdfClamp(pageNumber, 1, Math.max(1, numPages));
+  const pages = new Set();
+  for (let page = Math.max(1, current - radius); page <= Math.min(numPages, current + radius); page += 1) pages.add(page);
+  return pages;
+}
+
+function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scale, active, fileName, copy }) {
+  const canvasRef = useRef(null);
+  const renderTaskRef = useRef(null);
+  const [renderState, setRenderState] = useState("idle");
+  const safeBaseWidth = Math.max(1, Number(baseWidth) || 595);
+  const safeBaseHeight = Math.max(1, Number(baseHeight) || 842);
+  const displayWidth = Math.max(1, Math.round(safeBaseWidth * scale));
+  const displayHeight = Math.max(1, Math.round(safeBaseHeight * scale));
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !pdf) return undefined;
+    let cancelled = false;
+    if (!active) {
+      try { renderTaskRef.current?.cancel?.(); } catch {}
+      renderTaskRef.current = null;
+      canvas.width = 0;
+      canvas.height = 0;
+      canvas.style.width = "0px";
+      canvas.style.height = "0px";
+      setRenderState("idle");
+      return undefined;
+    }
+
+    async function renderPage() {
+      setRenderState("rendering");
+      try {
+        const page = await pdf.getPage(pageNumber);
+        if (cancelled) return;
+        const viewport = page.getViewport({ scale });
+        const outputScale = Math.min(2.25, Math.max(1, window.devicePixelRatio || 1));
+        const context = canvas.getContext("2d", { alpha: false });
+        if (!context) throw new Error("Canvas unavailable");
+        try { renderTaskRef.current?.cancel?.(); } catch {}
+        canvas.width = Math.max(1, Math.floor(viewport.width * outputScale));
+        canvas.height = Math.max(1, Math.floor(viewport.height * outputScale));
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+        const renderTask = page.render({ canvasContext: context, transform, viewport });
+        renderTaskRef.current = renderTask;
+        await renderTask.promise;
+        if (!cancelled) setRenderState("ready");
+      } catch (error) {
+        if (cancelled || error?.name === "RenderingCancelledException") return;
+        setRenderState("error");
+      }
+    }
+
+    renderPage();
+    return () => {
+      cancelled = true;
+      try { renderTaskRef.current?.cancel?.(); } catch {}
+      renderTaskRef.current = null;
+    };
+  }, [pdf, pageNumber, scale, active]);
+
+  return (
+    <div className="lecture-pdf-continuous-page-inner" style={{ width: displayWidth, height: displayHeight }}>
+      <canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />
+      {active && renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}
+      {active && renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}
+      {!active && <span className="lecture-pdf-page-placeholder" aria-hidden="true" />}
+    </div>
+  );
+}
+
 function LecturePdfViewer({
   url,
   materialId,
@@ -33446,6 +33694,7 @@ function LecturePdfViewer({
   savedState = {},
   onStateChange,
   copy,
+  continuous = false,
 }) {
   const canvasRef = useRef(null);
   const surfaceRef = useRef(null);
@@ -33454,13 +33703,21 @@ function LecturePdfViewer({
   const renderTaskRef = useRef(null);
   const stateChangeRef = useRef(onStateChange);
   const scrollSaveTimerRef = useRef(null);
-  const restoreScrollRef = useRef(Number(savedState?.scrollTop) || 0);
+  const scrollFrameRef = useRef(null);
+  const pageRefs = useRef(new Map());
+  const restoreScrollRef = useRef({
+    scrollTop: Math.max(0, Number(savedState?.scrollTop) || 0),
+    page: Math.max(1, Number(savedState?.page) || 1),
+    pageOffset: lecturePdfClamp(savedState?.pageOffset || 0, 0, 1),
+  });
   const [loadState, setLoadState] = useState("loading");
   const [renderState, setRenderState] = useState("idle");
   const [pdfRevision, setPdfRevision] = useState(0);
   const [pageNumber, setPageNumber] = useState(Math.max(1, Number(savedState?.page) || 1));
   const [pageDraft, setPageDraft] = useState(String(Math.max(1, Number(savedState?.page) || 1)));
   const [numPages, setNumPages] = useState(0);
+  const [pageMetrics, setPageMetrics] = useState([]);
+  const [renderPages, setRenderPages] = useState(() => new Set([Math.max(1, Number(savedState?.page) || 1)]));
   const [zoomMode, setZoomMode] = useState(savedState?.zoomMode === "custom" ? "custom" : "fit-width");
   const [customScale, setCustomScale] = useState(lecturePdfClamp(savedState?.scale || 1.25, .5, 3.5));
   const [effectiveScale, setEffectiveScale] = useState(1);
@@ -33476,7 +33733,13 @@ function LecturePdfViewer({
     setPageDraft(String(page));
     setZoomMode(savedState?.zoomMode === "custom" ? "custom" : "fit-width");
     setCustomScale(lecturePdfClamp(savedState?.scale || 1.25, .5, 3.5));
-    restoreScrollRef.current = Math.max(0, Number(savedState?.scrollTop) || 0);
+    setPageMetrics([]);
+    setRenderPages(new Set([page]));
+    restoreScrollRef.current = {
+      scrollTop: Math.max(0, Number(savedState?.scrollTop) || 0),
+      page,
+      pageOffset: lecturePdfClamp(savedState?.pageOffset || 0, 0, 1),
+    };
   }, [materialId]);
 
   useEffect(() => {
@@ -33491,13 +33754,14 @@ function LecturePdfViewer({
     const observer = new ResizeObserver(measure);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [materialId, loadState]);
+  }, [materialId, loadState, continuous]);
 
   useEffect(() => {
     let cancelled = false;
     setLoadState("loading");
     setRenderState("idle");
     setNumPages(0);
+    setPageMetrics([]);
     pdfRef.current = null;
 
     loadLecturePdfJs()
@@ -33507,7 +33771,7 @@ function LecturePdfViewer({
         loadingTaskRef.current = loadingTask;
         return loadingTask.promise;
       })
-      .then((pdf) => {
+      .then(async (pdf) => {
         if (!pdf || cancelled) {
           pdf?.destroy?.();
           return;
@@ -33518,6 +33782,25 @@ function LecturePdfViewer({
         setNumPages(total);
         setPageNumber(restoredPage);
         setPageDraft(String(restoredPage));
+        setRenderPages(lecturePdfPageWindow(restoredPage, total, 2));
+
+        if (continuous) {
+          const metrics = new Array(total);
+          const batchSize = 10;
+          for (let start = 1; start <= total && !cancelled; start += batchSize) {
+            const end = Math.min(total, start + batchSize - 1);
+            const batch = [];
+            for (let pageIndex = start; pageIndex <= end; pageIndex += 1) {
+              batch.push(pdf.getPage(pageIndex).then((page) => {
+                const viewport = page.getViewport({ scale: 1 });
+                metrics[pageIndex - 1] = { width: viewport.width, height: viewport.height };
+              }));
+            }
+            await Promise.all(batch);
+          }
+          if (cancelled) return;
+          setPageMetrics(metrics.map((metric) => metric || { width: 595, height: 842 }));
+        }
         setLoadState("ready");
         setPdfRevision((value) => value + 1);
       })
@@ -33528,17 +33811,19 @@ function LecturePdfViewer({
     return () => {
       cancelled = true;
       window.clearTimeout(scrollSaveTimerRef.current);
+      if (scrollFrameRef.current) window.cancelAnimationFrame(scrollFrameRef.current);
       try { renderTaskRef.current?.cancel?.(); } catch {}
       renderTaskRef.current = null;
       try { loadingTaskRef.current?.destroy?.(); } catch {}
       loadingTaskRef.current = null;
       try { pdfRef.current?.destroy?.(); } catch {}
       pdfRef.current = null;
+      pageRefs.current.clear();
     };
-  }, [url, materialId]);
+  }, [url, materialId, continuous]);
 
   useEffect(() => {
-    if (loadState !== "ready" || !pdfRef.current || !canvasRef.current || !surfaceRef.current) return undefined;
+    if (continuous || loadState !== "ready" || !pdfRef.current || !canvasRef.current || !surfaceRef.current) return undefined;
     let cancelled = false;
     const pdf = pdfRef.current;
     const canvas = canvasRef.current;
@@ -33570,11 +33855,11 @@ function LecturePdfViewer({
         if (cancelled) return;
         setEffectiveScale(scale);
         setRenderState("ready");
-        const restoreTop = restoreScrollRef.current;
+        const restore = restoreScrollRef.current;
         restoreScrollRef.current = null;
-        if (restoreTop != null) {
+        if (restore?.scrollTop != null) {
           window.requestAnimationFrame(() => {
-            if (surfaceRef.current) surfaceRef.current.scrollTop = Math.max(0, restoreTop);
+            if (surfaceRef.current) surfaceRef.current.scrollTop = Math.max(0, restore.scrollTop);
           });
         }
       } catch (error) {
@@ -33588,21 +33873,113 @@ function LecturePdfViewer({
       cancelled = true;
       try { renderTaskRef.current?.cancel?.(); } catch {}
     };
-  }, [loadState, pdfRevision, pageNumber, zoomMode, customScale, surfaceWidth]);
+  }, [continuous, loadState, pdfRevision, pageNumber, zoomMode, customScale, surfaceWidth]);
+
+  const currentMetric = pageMetrics[Math.max(0, pageNumber - 1)] || pageMetrics[0] || { width: 595, height: 842 };
+  const continuousAvailableWidth = Math.max(260, (surfaceWidth || currentMetric.width) - 40);
+  const continuousFitScale = lecturePdfClamp(continuousAvailableWidth / Math.max(1, currentMetric.width), .35, 3.5);
+  const continuousScale = zoomMode === "fit-width" ? continuousFitScale : lecturePdfClamp(customScale, .5, 3.5);
+  const toolbarScale = continuous ? continuousScale : effectiveScale;
+
+  useEffect(() => {
+    if (!continuous || loadState !== "ready" || !surfaceRef.current || !pageMetrics.length) return undefined;
+    const surface = surfaceRef.current;
+    const restore = restoreScrollRef.current;
+    if (!restore) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const node = pageRefs.current.get(lecturePdfClamp(restore.page, 1, numPages));
+      if (!node) return;
+      const offset = lecturePdfClamp(restore.pageOffset || 0, 0, 1);
+      surface.scrollTop = Math.max(0, node.offsetTop + (node.offsetHeight * offset) - 12);
+      restoreScrollRef.current = null;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [continuous, loadState, pageMetrics.length, materialId, numPages]);
+
+  useEffect(() => {
+    if (!continuous || loadState !== "ready" || !surfaceRef.current || !numPages) return undefined;
+    const surface = surfaceRef.current;
+    const nodes = [...pageRefs.current.values()];
+    if (typeof IntersectionObserver === "undefined") {
+      setRenderPages(lecturePdfPageWindow(pageNumber, numPages, 2));
+      return undefined;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      setRenderPages((current) => {
+        const next = new Set(current);
+        entries.forEach((entry) => {
+          const page = Number(entry.target?.dataset?.pdfPage || 0);
+          if (!page) return;
+          if (entry.isIntersecting) next.add(page);
+          else if (Math.abs(page - pageNumber) > 2) next.delete(page);
+        });
+        lecturePdfPageWindow(pageNumber, numPages, 2).forEach((page) => next.add(page));
+        return next;
+      });
+    }, { root: surface, rootMargin: "1400px 0px 1400px 0px", threshold: 0.01 });
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [continuous, loadState, pageMetrics.length, pageNumber, numPages]);
+
+  useEffect(() => {
+    if (!continuous || !numPages) return;
+    setRenderPages((current) => {
+      const next = new Set(current);
+      lecturePdfPageWindow(pageNumber, numPages, 2).forEach((page) => next.add(page));
+      return next;
+    });
+  }, [continuous, pageNumber, numPages]);
 
   useEffect(() => {
     if (!materialId) return;
-    stateChangeRef.current?.({
-      page: pageNumber,
-      zoomMode,
-      scale: customScale,
-    });
+    stateChangeRef.current?.({ page: pageNumber, zoomMode, scale: customScale });
   }, [materialId, pageNumber, zoomMode, customScale]);
+
+  function locateContinuousPage(surface) {
+    const top = surface.scrollTop + 18;
+    let bestPage = pageNumber;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    let bestNode = pageRefs.current.get(bestPage) || null;
+    pageRefs.current.forEach((node, page) => {
+      const pageTop = node.offsetTop;
+      const pageBottom = pageTop + node.offsetHeight;
+      const distance = top >= pageTop && top <= pageBottom ? 0 : Math.min(Math.abs(top - pageTop), Math.abs(top - pageBottom));
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestPage = page;
+        bestNode = node;
+      }
+    });
+    const pageOffset = bestNode
+      ? lecturePdfClamp((surface.scrollTop - bestNode.offsetTop + 12) / Math.max(1, bestNode.offsetHeight), 0, 1)
+      : 0;
+    return { page: bestPage, pageOffset };
+  }
+
+  function scrollToContinuousPage(nextPage, pageOffset = 0, smooth = true) {
+    if (!surfaceRef.current || !numPages) return;
+    const next = lecturePdfClamp(nextPage, 1, numPages);
+    const node = pageRefs.current.get(next);
+    setPageNumber(next);
+    setPageDraft(String(next));
+    setRenderPages((current) => {
+      const expanded = new Set(current);
+      lecturePdfPageWindow(next, numPages, 2).forEach((page) => expanded.add(page));
+      return expanded;
+    });
+    if (!node) return;
+    const top = Math.max(0, node.offsetTop + (node.offsetHeight * lecturePdfClamp(pageOffset, 0, 1)) - 12);
+    surfaceRef.current.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
+  }
 
   function changePage(nextPage) {
     if (!numPages) return;
     const next = lecturePdfClamp(nextPage, 1, numPages);
-    restoreScrollRef.current = 0;
+    if (continuous) {
+      scrollToContinuousPage(next, 0, true);
+      return;
+    }
+    restoreScrollRef.current = { scrollTop: 0, page: next, pageOffset: 0 };
     setPageNumber(next);
     setPageDraft(String(next));
   }
@@ -33617,17 +33994,33 @@ function LecturePdfViewer({
   }
 
   function changeZoom(delta) {
-    const base = zoomMode === "fit-width" ? effectiveScale : customScale;
+    const base = zoomMode === "fit-width" ? (toolbarScale || 1) : customScale;
     setCustomScale(lecturePdfClamp(base + delta, .5, 3.5));
     setZoomMode("custom");
   }
 
   function rememberScroll(event) {
-    const top = Math.max(0, event.currentTarget.scrollTop || 0);
+    const surface = event.currentTarget;
+    const top = Math.max(0, surface.scrollTop || 0);
+    if (continuous) {
+      if (scrollFrameRef.current) window.cancelAnimationFrame(scrollFrameRef.current);
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        const position = locateContinuousPage(surface);
+        if (position.page !== pageNumber) {
+          setPageNumber(position.page);
+          setPageDraft(String(position.page));
+        }
+      });
+    }
     window.clearTimeout(scrollSaveTimerRef.current);
     scrollSaveTimerRef.current = window.setTimeout(() => {
-      stateChangeRef.current?.({ scrollTop: top, page: pageNumber });
-    }, 140);
+      if (continuous) {
+        const position = locateContinuousPage(surface);
+        stateChangeRef.current?.({ scrollTop: top, page: position.page, pageOffset: position.pageOffset, zoomMode, scale: customScale });
+      } else {
+        stateChangeRef.current?.({ scrollTop: top, page: pageNumber, zoomMode, scale: customScale });
+      }
+    }, 160);
   }
 
   function handleKeys(event) {
@@ -33660,7 +34053,7 @@ function LecturePdfViewer({
   }
 
   return (
-    <div className="lecture-pdf-viewer" tabIndex={0} onKeyDown={handleKeys}>
+    <div className={`lecture-pdf-viewer ${continuous ? "lecture-pdf-viewer--continuous" : ""}`} tabIndex={0} onKeyDown={handleKeys}>
       <div className="lecture-pdf-toolbar" role="toolbar" aria-label={copy.pdfViewerControls}>
         <div className="lecture-pdf-toolbar-group">
           <button type="button" title={copy.pdfPreviousPage} disabled={loadState !== "ready" || pageNumber <= 1} onClick={() => changePage(pageNumber - 1)}><Icon name="left" size={13} /></button>
@@ -33673,7 +34066,7 @@ function LecturePdfViewer({
         <span className="lecture-pdf-toolbar-divider" />
         <div className="lecture-pdf-toolbar-group">
           <button type="button" title={copy.pdfZoomOut} disabled={loadState !== "ready"} onClick={() => changeZoom(-.15)}>−</button>
-          <span className="lecture-pdf-zoom-value">{Math.round((effectiveScale || 1) * 100)}%</span>
+          <span className="lecture-pdf-zoom-value">{Math.round((toolbarScale || 1) * 100)}%</span>
           <button type="button" title={copy.pdfZoomIn} disabled={loadState !== "ready"} onClick={() => changeZoom(.15)}>+</button>
           <button type="button" className="lecture-pdf-fit-button" data-active={zoomMode === "fit-width" ? "true" : "false"} title={copy.pdfFitWidth} disabled={loadState !== "ready"} onClick={() => setZoomMode("fit-width")}><Icon name="expand" size={12} /><span>{copy.pdfFitWidth}</span></button>
         </div>
@@ -33681,6 +34074,31 @@ function LecturePdfViewer({
       <div ref={surfaceRef} className="lecture-pdf-surface" onScroll={rememberScroll}>
         {loadState === "loading" ? (
           <div className="lecture-pdf-state"><span className="lecture-pdf-spinner" /><strong>{copy.pdfLoading}</strong></div>
+        ) : continuous ? (
+          <div className="lecture-pdf-pages">
+            {pageMetrics.map((metric, index) => {
+              const page = index + 1;
+              const availableWidth = Math.max(260, (surfaceWidth || metric.width) - 40);
+              const fitScale = lecturePdfClamp(availableWidth / Math.max(1, metric.width), .35, 3.5);
+              const scale = zoomMode === "fit-width" ? fitScale : lecturePdfClamp(customScale, .5, 3.5);
+              const displayWidth = Math.max(1, Math.round(metric.width * scale));
+              const displayHeight = Math.max(1, Math.round(metric.height * scale));
+              return (
+                <section
+                  key={page}
+                  ref={(node) => { if (node) pageRefs.current.set(page, node); else pageRefs.current.delete(page); }}
+                  className="lecture-pdf-continuous-page"
+                  data-pdf-page={page}
+                  data-current={page === pageNumber ? "true" : "false"}
+                  style={{ width: displayWidth, minHeight: displayHeight }}
+                  aria-label={`${copy.pdfPage} ${page}`}
+                >
+                  <LecturePdfContinuousPage pdf={pdfRef.current} pageNumber={page} baseWidth={metric.width} baseHeight={metric.height} scale={scale} active={renderPages.has(page)} fileName={fileName} copy={copy} />
+                  <span className="lecture-pdf-page-number">{page}</span>
+                </section>
+              );
+            })}
+          </div>
         ) : (
           <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}>
             <canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />
@@ -34569,6 +34987,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       moduleOverviewFollowUp: "Følg op",
       moduleOverviewMissingMaterial: "Mangler materiale",
       filterAll: "Alle",
+      filterFavorites: "Stjernemarkerede",
+      favoriteLecture: "Stjernemarkér forelæsning",
+      unfavoriteLecture: "Fjern stjernemarkering",
+      viewerLibrary: "Forelæsninger",
+      viewerNotes: "Noter",
+      viewerFocus: "Fokus",
+      viewerExitFocus: "Forlad fokus",
+      viewerMaterials: "Materialer",
+      viewerShowPanel: "Vis panel",
+      viewerHidePanel: "Skjul panel",
       filterUpcoming: "Kommende",
       filterHeld: "Afholdte",
       filterNotReviewed: "Ikke gennemgået",
@@ -34961,6 +35389,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       moduleOverviewFollowUp: "Follow up",
       moduleOverviewMissingMaterial: "Missing material",
       filterAll: "All",
+      filterFavorites: "Starred",
+      favoriteLecture: "Star lecture",
+      unfavoriteLecture: "Remove star",
+      viewerLibrary: "Lectures",
+      viewerNotes: "Notes",
+      viewerFocus: "Focus",
+      viewerExitFocus: "Exit focus",
+      viewerMaterials: "Materials",
+      viewerShowPanel: "Show panel",
+      viewerHidePanel: "Hide panel",
       filterUpcoming: "Upcoming",
       filterHeld: "Held",
       filterNotReviewed: "Not reviewed",
@@ -35353,6 +35791,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       moduleOverviewFollowUp: "متابعة",
       moduleOverviewMissingMaterial: "بدون مواد",
       filterAll: "الكل",
+      filterFavorites: "المميزة",
+      favoriteLecture: "تمييز المحاضرة",
+      unfavoriteLecture: "إزالة التمييز",
+      viewerLibrary: "المحاضرات",
+      viewerNotes: "الملاحظات",
+      viewerFocus: "تركيز",
+      viewerExitFocus: "إنهاء التركيز",
+      viewerMaterials: "المواد",
+      viewerShowPanel: "إظهار اللوحة",
+      viewerHidePanel: "إخفاء اللوحة",
       filterUpcoming: "القادمة",
       filterHeld: "المنعقدة",
       filterNotReviewed: "لم تتم مراجعتها",
@@ -35544,6 +35992,42 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         }
         setLectureMaterials(Array.isArray(data) ? data : []);
         setMaterialStatus({ state: "ready", message: "" });
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, moduleName]);
+
+  useEffect(() => {
+    if (!isLectureLibrary || !moduleName) {
+      setLectureFavorites([]);
+      setLectureFavoriteStatus("idle");
+      return undefined;
+    }
+    const cache = Array.isArray(workspaceState.lectureFavorites?.[moduleName]) ? workspaceState.lectureFavorites[moduleName] : [];
+    setLectureFavorites(cache);
+    if (!userId) {
+      setLectureFavoriteStatus("local");
+      return undefined;
+    }
+    let cancelled = false;
+    setLectureFavoriteStatus("loading");
+    supabase
+      .from("lecture_favorites")
+      .select("lecture_id")
+      .eq("user_id", userId)
+      .eq("module_name", moduleName)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setLectureFavoriteStatus("local");
+          return;
+        }
+        const remote = [...new Set((data || []).map((row) => row.lecture_id).filter(Boolean))];
+        setLectureFavorites(remote);
+        setWorkspaceState((current) => ({
+          ...current,
+          lectureFavorites: { ...(current.lectureFavorites || {}), [moduleName]: remote },
+        }));
+        setLectureFavoriteStatus("ready");
       });
     return () => { cancelled = true; };
   }, [isLectureLibrary, userId, moduleName]);
@@ -35961,6 +36445,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const masteryOrder = ["unrated", "uncertain", "developing", "confident"];
   const lectureOverviewKey = moduleName || "module";
   const lectureOverviewPreferences = workspaceState.lectureOverview?.[lectureOverviewKey] || {};
+  const lectureViewerV2 = workspaceState.lectureViewerV2?.[lectureOverviewKey] || {};
+  const lectureLibraryOpen = lectureViewerFocus ? false : lectureViewerV2.libraryOpen !== false;
+  const lectureNotesOpen = lectureViewerFocus ? false : lectureViewerV2.notesOpen !== false;
   const lectureFilter = lectureOverviewPreferences.filter || "all";
   const collapsedLectureGroups = new Set(lectureOverviewPreferences.collapsedGroups || []);
   const mergedLectureCalendarEvents = isLectureLibrary
@@ -35975,6 +36462,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     const scheduleView = lectureScheduleDefinition(schedule);
     const materialCount = lectureMaterials.filter((material) => material.lecture_id === lecture.id).length;
     const hasPdf = materialCount > 0;
+    const favorite = lectureFavorites.includes(lecture.id);
     const localFollowUp = lectureFollowUpState(progressState);
     const plannedFollowUp = studyPlans[moduleName]?.followUps?.[lecture.id] || null;
     const followUp = localFollowUp.active || !plannedFollowUp
@@ -35986,10 +36474,11 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           updatedAt: Number(plannedFollowUp.updatedAt) || 0,
           sentToStudyPlanAt: Number(plannedFollowUp.sentAt) || Number(plannedFollowUp.updatedAt) || 0,
         };
-    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, hasPdf, materialCount, followUp };
+    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, hasPdf, materialCount, favorite, followUp };
   });
   const lectureFilterCounts = {
     all: lectureRows.length,
+    favorites: lectureRows.filter((row) => row.favorite).length,
     upcoming: lectureRows.filter((row) => row.scheduleView.key === "upcoming").length,
     held: lectureRows.filter((row) => row.scheduleView.key === "held").length,
     reviewed: lectureRows.filter((row) => row.selfStudyStatus === "reviewed").length,
@@ -36006,6 +36495,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   ];
   const lectureFilters = [
     { id: "all", label: copy.filterAll },
+    { id: "favorites", label: copy.filterFavorites },
     { id: "upcoming", label: copy.filterUpcoming },
     { id: "held", label: copy.filterHeld },
     { id: "notReviewed", label: copy.filterNotReviewed },
@@ -36016,6 +36506,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const filteredLectureRows = lectureRows.filter((row) => {
     const matchesQuery = `${row.lecture.id} ${row.lecture.title} ${row.lecture.group}`.toLowerCase().includes(normalizedQuery);
     if (!matchesQuery) return false;
+    if (lectureFilter === "favorites") return row.favorite;
     if (lectureFilter === "upcoming") return row.scheduleView.key === "upcoming";
     if (lectureFilter === "held") return row.scheduleView.key === "held";
     if (lectureFilter === "reviewed") return row.selfStudyStatus === "reviewed";
@@ -36044,6 +36535,26 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const nextLecture = selectedLectureIndex >= 0 && selectedLectureIndex < lectures.length - 1
     ? lectures[selectedLectureIndex + 1]
     : null;
+  const selectedLectureFavorite = Boolean(selectedLecture?.id && lectureFavorites.includes(selectedLecture.id));
+
+  useEffect(() => {
+    if (!isLectureLibrary) return undefined;
+    const handleLectureViewerKeys = (event) => {
+      if (event.target?.matches?.("input,textarea,select,[contenteditable=true]")) return;
+      if (event.key === "Escape" && lectureViewerFocus) {
+        event.preventDefault();
+        setLectureViewerFocus(false);
+      } else if (event.key === "[" && previousLecture) {
+        event.preventDefault();
+        selectAdjacentLecture(previousLecture);
+      } else if (event.key === "]" && nextLecture) {
+        event.preventDefault();
+        selectAdjacentLecture(nextLecture);
+      }
+    };
+    window.addEventListener("keydown", handleLectureViewerKeys);
+    return () => window.removeEventListener("keydown", handleLectureViewerKeys);
+  }, [isLectureLibrary, lectureViewerFocus, previousLecture?.id, nextLecture?.id]);
   const moduleSduEvents = isLectureLibrary
     ? mergedLectureCalendarEvents
         .filter((event) => calendarIsSduScheduleEvent(event, moduleName))
@@ -36271,6 +36782,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     flushCurrentLectureNote();
     setFollowUpEditorOpen(false);
     setFollowUpMessage("");
+    setLectureMaterialsOpen(false);
     setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }));
   }
 
@@ -36402,6 +36914,47 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
 
   function selectLectureFilter(filter) {
     updateLectureOverviewPreferences({ filter });
+  }
+
+  function updateLectureViewerV2(patch) {
+    setWorkspaceState((current) => ({
+      ...current,
+      lectureViewerV2: {
+        ...(current.lectureViewerV2 || {}),
+        [lectureOverviewKey]: { ...(current.lectureViewerV2?.[lectureOverviewKey] || {}), ...patch },
+      },
+    }));
+  }
+
+  async function toggleLectureFavorite(lectureId) {
+    if (!lectureId || !moduleName) return;
+    const wasFavorite = lectureFavorites.includes(lectureId);
+    const previous = [...lectureFavorites];
+    const next = wasFavorite ? previous.filter((id) => id !== lectureId) : [...new Set([...previous, lectureId])];
+    setLectureFavorites(next);
+    setWorkspaceState((current) => ({
+      ...current,
+      lectureFavorites: { ...(current.lectureFavorites || {}), [moduleName]: next },
+    }));
+    if (!userId) {
+      setLectureFavoriteStatus("local");
+      return;
+    }
+    setLectureFavoriteStatus("saving");
+    try {
+      const result = wasFavorite
+        ? await supabase.from("lecture_favorites").delete().eq("user_id", userId).eq("module_name", moduleName).eq("lecture_id", lectureId)
+        : await supabase.from("lecture_favorites").insert({ user_id: userId, module_name: moduleName, lecture_id: lectureId });
+      if (result.error) throw result.error;
+      setLectureFavoriteStatus("ready");
+    } catch {
+      setLectureFavorites(previous);
+      setWorkspaceState((current) => ({
+        ...current,
+        lectureFavorites: { ...(current.lectureFavorites || {}), [moduleName]: previous },
+      }));
+      setLectureFavoriteStatus("local");
+    }
   }
 
   function toggleLectureGroup(group) {
@@ -37825,7 +38378,13 @@ async function openExamSetPdfEditor() {
         : "neutral";
 
   return (
-    <div className="document-workspace" dir={language === "ar" ? "rtl" : "ltr"}>
+    <div
+      className={`document-workspace ${isLectureLibrary ? "lecture-viewer-v2" : ""}`}
+      data-focus={lectureViewerFocus ? "true" : "false"}
+      data-library={lectureLibraryOpen ? "true" : "false"}
+      data-notes={lectureNotesOpen ? "true" : "false"}
+      dir={language === "ar" ? "rtl" : "ltr"}
+    >
       <header className="document-workspace-header">
         <div className="document-workspace-title-block">
           <span className="document-workspace-mark"><Icon name={isLectureLibrary ? "book" : "cards"} size={18} /></span>
@@ -37835,6 +38394,13 @@ async function openExamSetPdfEditor() {
           <input ref={uploadRef} type="file" accept={isLectureLibrary ? LECTURE_MATERIAL_ACCEPT : "application/pdf,.pdf"} multiple={isLectureLibrary} onChange={handleUpload} hidden />
           {!isLectureLibrary && <input ref={answerUploadRef} type="file" accept="application/pdf,.pdf" onChange={handleExamSetAnswerFile} hidden />}
           {isLectureLibrary && <input ref={replaceUploadRef} type="file" accept={LECTURE_MATERIAL_ACCEPT} onChange={replaceLectureMaterialFile} hidden />}
+          {isLectureLibrary && (
+            <div className="lecture-viewer-v2-header-tools" role="group" aria-label={copy.lectureHeader}>
+              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureLibraryOpen ? "true" : "false"} title={copy.viewerLibrary} aria-label={copy.viewerLibrary} onClick={() => updateLectureViewerV2({ libraryOpen: !lectureLibraryOpen })}><Icon name="list" size={13} /><span>{copy.viewerLibrary}</span></button>
+              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureNotesOpen ? "true" : "false"} title={copy.viewerNotes} aria-label={copy.viewerNotes} onClick={() => updateLectureViewerV2({ notesOpen: !lectureNotesOpen })}><Icon name="notebook" size={13} /><span>{copy.viewerNotes}</span></button>
+              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureViewerFocus ? "true" : "false"} title={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} aria-label={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} onClick={() => setLectureViewerFocus((value) => !value)}><Icon name="expand" size={13} /><span>{lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus}</span></button>
+            </div>
+          )}
           <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary ? (!selectedLecture || materialSaving) : examSetSaving}>
             <Icon name="upload" size={14} />{isLectureLibrary ? copy.addMaterial : copy.upload}
           </button>
@@ -37907,7 +38473,7 @@ async function openExamSetPdfEditor() {
                     </button>
                     {!collapsed && (
                       <div className="lecture-group-rows">
-                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, hasPdf, materialCount, followUp }) => {
+                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, hasPdf, materialCount, favorite, followUp }) => {
                           const selected = lecture.id === selectedLecture?.id;
                           const mastery = masteryDefinition(progressState.mastery);
                           const attendance = attendanceDefinition(attendanceStatus);
@@ -37940,6 +38506,7 @@ async function openExamSetPdfEditor() {
                                 </span>
                               </button>
                               <div className="lecture-progress-actions">
+                                <button type="button" className="lecture-favorite-toggle" data-active={favorite ? "true" : "false"} title={favorite ? copy.unfavoriteLecture : copy.favoriteLecture} aria-label={favorite ? copy.unfavoriteLecture : copy.favoriteLecture} onClick={() => toggleLectureFavorite(lecture.id)}><Icon name="star" size={11} /></button>
                                 <button type="button" className="lecture-status-toggle" data-tone={attendance.tone} title={`${copy.attendance}: ${attendance.label}`} aria-label={`${copy.attendance}: ${attendance.label}`} onClick={() => cycleLectureAttendance(lecture.id)}><Icon name={attendance.icon} size={11} /></button>
                                 <button type="button" className="lecture-status-toggle" data-tone={selfStudy.tone} title={`${copy.selfStudyStatus}: ${selfStudy.label}`} aria-label={`${copy.selfStudyStatus}: ${selfStudy.label}`} onClick={() => cycleLectureSelfStudy(lecture.id)}><Icon name={selfStudy.icon} size={11} /></button>
                                 <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
@@ -38011,6 +38578,9 @@ async function openExamSetPdfEditor() {
             </div>
 
             <div className="lecture-detail-tools">
+              <button type="button" className="lecture-focus-exit" onClick={() => setLectureViewerFocus(false)} title={copy.viewerExitFocus} aria-label={copy.viewerExitFocus}><Icon name="collapse" size={12} /><span>{copy.viewerExitFocus}</span></button>
+              <button type="button" className="lecture-favorite-toggle lecture-favorite-toggle--header" data-active={selectedLectureFavorite ? "true" : "false"} title={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} aria-label={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} onClick={() => toggleLectureFavorite(selectedLecture.id)}><Icon name="star" size={13} /></button>
+              <button type="button" className="lecture-material-menu-trigger" data-active={lectureMaterialsOpen ? "true" : "false"} onClick={() => setLectureMaterialsOpen((value) => !value)} title={copy.viewerMaterials}><Icon name="folder" size={12} /><span>{copy.viewerMaterials}</span><strong>{selectedLectureMaterials.length}</strong><Icon name={lectureMaterialsOpen ? "up" : "down"} size={10} /></button>
               <div className="lecture-detail-statuses" role="group" aria-label={copy.lectureHeader}>
                 <button
                   type="button"
@@ -38094,10 +38664,10 @@ async function openExamSetPdfEditor() {
 
         <main className="document-viewer-panel">
           {isLectureLibrary && (
-            <div className="lecture-material-strip">
+            <div className="lecture-material-strip lecture-materials-popover" data-open={lectureMaterialsOpen ? "true" : "false"}>
               <div className="lecture-material-strip-heading">
                 <span><Icon name="folder" size={13} /><strong>{copy.materialLibrary}</strong><small>{selectedLectureMaterials.length}</small></span>
-                <button type="button" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="plus" size={12} />{copy.addMaterial}</button>
+                <div className="lecture-material-popover-actions"><button type="button" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="plus" size={12} />{copy.addMaterial}</button><button type="button" className="lecture-material-popover-close" onClick={() => setLectureMaterialsOpen(false)} aria-label={copy.close} title={copy.close}><Icon name="close" size={12} /></button></div>
               </div>
               <div className="lecture-material-strip-body">
                 {materialStatus.state === "loading" ? (
@@ -38128,14 +38698,17 @@ async function openExamSetPdfEditor() {
           <div className="document-viewer-toolbar">
             <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong>{activeLectureMaterial?.is_primary && <em className="lecture-primary-badge"><Icon name="star" size={9} />{copy.materialPrimaryLabel}</em>}{!isLectureLibrary && activeDocument && <em className="lecture-primary-badge"><Icon name="share" size={9} />{copy.examSetShared}</em>}</span>
             {isLectureLibrary && activeLectureMaterial ? (
-              <div className="lecture-material-actions">
-                {!activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="star" size={12} />{copy.materialSetPrimary}</button>}
-                <button type="button" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other" })}><Icon name="edit" size={12} />{copy.materialRename}</button>
-                <button type="button" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><Icon name="upload" size={12} />{copy.materialReplace}</button>
-                <button type="button" onClick={() => downloadLectureMaterial()}><Icon name="down" size={12} />{copy.materialDownload}</button>
-                <button type="button" onClick={() => openLectureMaterial()}><Icon name="expand" size={12} />{copy.materialOpen}</button>
-                <button type="button" className="lecture-material-delete" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><Icon name="trash" size={12} />{copy.materialDelete}</button>
-              </div>
+              <details className="lecture-material-actions-menu">
+                <summary title={copy.materialLibrary}><Icon name="more" size={14} /><span>{copy.materialLibrary}</span></summary>
+                <div className="lecture-material-actions">
+                  {!activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="star" size={12} />{copy.materialSetPrimary}</button>}
+                  <button type="button" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other" })}><Icon name="edit" size={12} />{copy.materialRename}</button>
+                  <button type="button" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><Icon name="upload" size={12} />{copy.materialReplace}</button>
+                  <button type="button" onClick={() => downloadLectureMaterial()}><Icon name="down" size={12} />{copy.materialDownload}</button>
+                  <button type="button" onClick={() => openLectureMaterial()}><Icon name="expand" size={12} />{copy.materialOpen}</button>
+                  <button type="button" className="lecture-material-delete" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><Icon name="trash" size={12} />{copy.materialDelete}</button>
+                </div>
+              </details>
             ) : activeDocument && !isLectureLibrary ? (
               <div className="exam-set-viewer-actions">
                 <span className="exam-set-mode-toggle" role="tablist" aria-label={copy.examSetViewerMode}>
@@ -38172,6 +38745,7 @@ async function openExamSetPdfEditor() {
                     savedState={workspaceState.documentViewer?.[activeLectureMaterial.id] || {}}
                     onStateChange={(patch) => updateLectureViewerState(activeLectureMaterial.id, patch)}
                     copy={copy}
+                    continuous={true}
                   />
                 ) : (
                   <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialNoPreview}</strong><small>{copy.materialOpenExternally}</small><div className="lecture-material-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => downloadLectureMaterial()}>{copy.materialDownload}</button><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureMaterial()}>{copy.materialOpen}</button></div></div>
