@@ -11033,6 +11033,73 @@ select.ui-control {
 .exam-set-source-region-canvas-wrap { min-width: 0; min-height: 88px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 8px; background: #fff; }
 .exam-set-source-region-canvas-wrap[data-state="loading"], .exam-set-source-region-canvas-wrap[data-state="error"] { padding: 18px; }
 .exam-set-source-region-canvas { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; background: #fff; }
+
+.exam-review-workspace { height: 100%; min-height: 0; overflow: auto; display: grid; align-content: start; gap: 12px; padding: 18px; background: var(--ui-soft); }
+.exam-review-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 15px 16px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-panel); }
+.exam-review-header > div:first-child { min-width: 0; }
+.exam-review-eyebrow { display: block; margin-bottom: 4px; color: var(--ui-blue); font-size: 7px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.exam-review-header h2 { margin: 0; color: var(--ui-text); font-size: 15px; font-weight: 900; }
+.exam-review-header p { max-width: 680px; margin: 4px 0 0; color: var(--ui-muted); font-size: 8.5px; font-weight: 650; line-height: 1.5; }
+.exam-review-summary { flex: 0 0 auto; display: grid; grid-template-columns: repeat(3,minmax(82px,1fr)); gap: 6px; }
+.exam-review-summary span { display: grid; gap: 2px; min-width: 82px; padding: 8px 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); text-align: center; }
+.exam-review-summary strong { color: var(--ui-text); font-size: 13px; font-weight: 900; }
+.exam-review-summary small { color: var(--ui-muted); font-size: 7px; font-weight: 780; }
+.exam-review-sync { display: flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 8px; font-weight: 750; }
+.exam-review-sync[data-state="error"] { border-color: color-mix(in srgb,var(--ui-red) 34%,var(--ui-border)); background: var(--ui-red-soft); color: var(--ui-red); }
+.exam-review-sync[data-state="saving"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.exam-review-filters { display: grid; grid-template-columns: .7fr .8fr minmax(170px,1.5fr) 1fr auto; gap: 7px; align-items: end; padding: 10px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); }
+.exam-review-filters > label:not(.exam-review-include) { min-width: 0; display: grid; gap: 4px; }
+.exam-review-filters label > span { color: var(--ui-muted); font-size: 7px; font-weight: 800; }
+.exam-review-filters select { width: 100%; min-height: 31px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); color: var(--ui-text); font-size: 8px; font-weight: 750; outline: none; }
+.exam-review-filters select:focus { border-color: var(--ui-blue-border); }
+.exam-review-include { min-height: 31px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); white-space: nowrap; }
+.exam-review-include input, .exam-review-exclude input { accent-color: var(--ui-blue); }
+.exam-review-area-summary { display: grid; gap: 7px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); }
+.exam-review-area-summary > strong { color: var(--ui-muted); font-size: 7px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.exam-review-area-summary > div { display: flex; gap: 6px; flex-wrap: wrap; }
+.exam-review-area-summary button { min-width: 150px; display: grid; gap: 2px; padding: 7px 9px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); color: var(--ui-text); text-align: start; }
+.exam-review-area-summary button:hover { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); }
+.exam-review-area-summary button span { overflow: hidden; font-size: 8px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.exam-review-area-summary button small { color: var(--ui-muted); font-size: 6.8px; font-weight: 700; }
+.exam-review-list { display: grid; gap: 8px; }
+.exam-review-card { display: grid; grid-template-columns: minmax(0,1fr) 190px; gap: 0; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); }
+.exam-review-card[data-excluded="true"] { opacity: .66; }
+.exam-review-card-main { min-width: 0; display: grid; gap: 10px; padding: 12px 13px; }
+.exam-review-card-main > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.exam-review-card-main > header > div:first-child { min-width: 0; display: grid; gap: 2px; }
+.exam-review-set-name { overflow: hidden; color: var(--ui-blue); font-size: 7px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.exam-review-card-main header strong { color: var(--ui-text); font-size: 11px; font-weight: 900; }
+.exam-review-card-main header small { color: var(--ui-muted); font-size: 7.5px; font-weight: 700; }
+.exam-review-reasons { display: flex; justify-content: flex-end; gap: 4px; flex-wrap: wrap; }
+.exam-review-reasons span { padding: 3px 6px; border-radius: 999px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 6.7px; font-weight: 850; white-space: nowrap; }
+.exam-review-reasons span[data-reason="wrong"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.exam-review-reasons span[data-reason="unanswered"] { background: color-mix(in srgb,#c9822f 10%,var(--ui-panel)); color: #b56f1f; }
+.exam-review-reasons span[data-reason="marked"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
+.exam-review-answer-line { display: flex; align-items: stretch; gap: 6px; flex-wrap: wrap; }
+.exam-review-answer-line > span { min-width: 120px; display: grid; gap: 2px; padding: 6px 8px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); }
+.exam-review-answer-line small { color: var(--ui-muted); font-size: 6.6px; font-weight: 750; }
+.exam-review-answer-line b { color: var(--ui-text); font-size: 8px; font-weight: 900; }
+.exam-review-note { display: grid; gap: 4px; }
+.exam-review-note > span { color: var(--ui-muted); font-size: 7px; font-weight: 800; }
+.exam-review-note textarea { width: 100%; min-height: 58px; resize: vertical; padding: 8px 9px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); color: var(--ui-text); font: inherit; font-size: 8.5px; line-height: 1.45; outline: none; }
+.exam-review-note textarea:focus { border-color: var(--ui-blue-border); background: var(--ui-panel); }
+.exam-review-card-actions { display: grid; align-content: start; gap: 9px; padding: 12px; border-inline-start: 1px solid var(--ui-border); background: var(--ui-soft); }
+.exam-review-card-actions > label:not(.exam-review-exclude) { display: grid; gap: 4px; }
+.exam-review-card-actions label > span { color: var(--ui-muted); font-size: 7px; font-weight: 800; }
+.exam-review-card-actions select { width: 100%; min-height: 31px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-text); font-size: 8px; font-weight: 780; }
+.exam-review-exclude { display: flex; align-items: center; gap: 6px; padding: 7px 0; }
+.exam-review-source-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.exam-review-source-actions button { min-height: 31px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 0 6px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 7px; font-weight: 850; }
+.exam-review-source-actions button:hover:not(:disabled) { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.exam-review-source-actions button:disabled { opacity: .4; }
+.exam-review-save-state { min-height: 14px; color: var(--ui-muted); font-size: 6.8px; font-weight: 780; text-align: end; }
+.exam-review-save-state[data-state="saved"] { color: var(--ui-green); }
+.exam-review-save-state[data-state="error"] { color: var(--ui-red); }
+.exam-review-empty, .exam-review-loading { min-height: 220px; display: grid; place-items: center; align-content: center; gap: 6px; padding: 30px; border: 1px dashed var(--ui-border); border-radius: 12px; background: var(--ui-panel); text-align: center; }
+.exam-review-empty > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: var(--ui-soft); color: var(--ui-blue); }
+.exam-review-empty strong, .exam-review-loading strong { color: var(--ui-text); font-size: 10px; font-weight: 900; }
+.exam-review-empty p { max-width: 460px; margin: 0; color: var(--ui-muted); font-size: 8px; font-weight: 650; line-height: 1.5; }
+
 .exam-pdf-editor-modal { width: min(1120px,95vw); height: min(860px,90vh); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 14px; background: var(--ui-panel); }
 .exam-pdf-editor-header { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--ui-border); }
 .exam-pdf-editor-header > div:first-child { min-width: 0; display: flex; align-items: center; gap: 10px; }
@@ -11087,10 +11154,19 @@ select.ui-control {
 .exam-pdf-editor-print label { display: inline-flex; align-items: center; gap: 6px; color: var(--ui-secondary); font-size: 7.5px; font-weight: 750; }
 .exam-pdf-editor-print input { width: 14px; height: 14px; accent-color: var(--ui-blue); }
 @media (max-width: 980px) {
+  .exam-review-card { grid-template-columns: minmax(0,1fr) 170px; }
+  .exam-review-filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .exam-review-include { align-self: end; }
   .exam-set-practice-shell { grid-template-columns: minmax(0,1fr) 196px; }
   .exam-set-question-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
 }
 @media (max-width: 760px) {
+  .exam-review-workspace { padding: 10px; }
+  .exam-review-header { flex-direction: column; }
+  .exam-review-summary { width: 100%; }
+  .exam-review-filters { grid-template-columns: 1fr; }
+  .exam-review-card { grid-template-columns: 1fr; }
+  .exam-review-card-actions { border-inline-start: 0; border-top: 1px solid var(--ui-border); }
   .exam-set-dialog-grid, .exam-set-paired-files { grid-template-columns: 1fr; }
   .exam-set-viewer-actions button { font-size: 0 !important; }
   .exam-set-viewer-actions button svg { width: 13px; height: 13px; }
@@ -31412,7 +31488,7 @@ async function examSetDocumentSha256(file) {
 }
 
 function examSetPracticeEmpty() {
-  return { answers: {}, marked: {}, currentIndex: 0, submittedAt: null, updatedAt: null };
+  return { answers: {}, marked: {}, currentIndex: 0, submittedAt: null, lastSubmissionId: null, updatedAt: null };
 }
 
 function examSetPracticeFromRow(row) {
@@ -31424,8 +31500,68 @@ function examSetPracticeFromRow(row) {
     marked: { ...marked },
     currentIndex: Math.max(0, Number(source.current_index) || 0),
     submittedAt: source.submitted_at || null,
+    lastSubmissionId: source.last_submission_id || null,
     updatedAt: source.updated_at || null,
   };
+}
+
+const EXAM_REVIEW_STATUSES = ["unreviewed", "reviewed", "revisit"];
+
+function examReviewBuildSubmissionEvents(questions, practice, submissionId, parseVersion = EXAM_SET_PARSE_VERSION) {
+  const safeQuestions = Array.isArray(questions) ? questions : [];
+  const answers = practice?.answers && typeof practice.answers === "object" ? practice.answers : {};
+  const marked = practice?.marked && typeof practice.marked === "object" ? practice.marked : {};
+  if (!submissionId) return [];
+  const events = [];
+  safeQuestions.forEach((question) => {
+    const questionId = String(question?.id || "").trim();
+    if (!questionId) return;
+    const selected = String(answers[questionId] || "").trim();
+    const verifiedOfficial = question?.verificationStatus === "verified" && question?.correctLabel
+      ? String(question.correctLabel).trim()
+      : "";
+    const base = {
+      question_id: questionId,
+      source_number: question?.sourceNumber != null ? String(question.sourceNumber).slice(0, 64) : null,
+      user_answer: selected || null,
+      official_answer: verifiedOfficial || null,
+      parse_version: String(parseVersion || "").slice(0, 120) || null,
+    };
+    if (!selected) events.push({ ...base, reason: "unanswered" });
+    else if (verifiedOfficial && selected !== verifiedOfficial) events.push({ ...base, reason: "wrong" });
+    if (Boolean(marked[questionId])) events.push({ ...base, reason: "marked" });
+  });
+  return events;
+}
+
+function examReviewItemFromRow(row) {
+  const source = row && typeof row === "object" ? row : {};
+  const status = EXAM_REVIEW_STATUSES.includes(source.status) ? source.status : "unreviewed";
+  return {
+    id: source.id || null,
+    examSetId: source.exam_set_id || null,
+    questionId: String(source.question_id || ""),
+    sourceNumber: source.source_number != null ? String(source.source_number) : "",
+    status,
+    note: String(source.note || ""),
+    excluded: Boolean(source.excluded),
+    wrongCount: Math.max(0, Number(source.wrong_count) || 0),
+    unansweredCount: Math.max(0, Number(source.unanswered_count) || 0),
+    markedCount: Math.max(0, Number(source.marked_count) || 0),
+    lastUserAnswer: source.last_user_answer != null ? String(source.last_user_answer) : null,
+    officialAnswer: source.official_answer != null ? String(source.official_answer) : null,
+    firstSeenAt: source.first_seen_at || null,
+    lastSeenAt: source.last_seen_at || null,
+    updatedAt: source.updated_at || null,
+  };
+}
+
+function examReviewResolveQuestion(item, documents) {
+  const document = (Array.isArray(documents) ? documents : []).find((candidate) => candidate?.id === item?.examSetId) || null;
+  const question = document && Array.isArray(document.parsedQuestions)
+    ? document.parsedQuestions.find((candidate) => String(candidate?.id || "") === String(item?.questionId || "")) || null
+    : null;
+  return { document, question };
 }
 
 function examSetNormalizeSourceText(value) {
@@ -33861,6 +33997,118 @@ function WorkspaceShell({ c, label, drByteOpen = false, closing = false, childre
   );
 }
 
+
+function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, filters, setFilters, saveState, syncState, onPatch, onOpen, sessionLabel }) {
+  const safeItems = Array.isArray(items) ? items : [];
+  const safeDocuments = Array.isArray(documents) ? documents : [];
+  const examReviewActiveCount = safeItems.filter((item) => !item.excluded && item.status !== "reviewed").length;
+  const revisitCount = safeItems.filter((item) => !item.excluded && item.status === "revisit").length;
+  const reviewedCount = safeItems.filter((item) => !item.excluded && item.status === "reviewed").length;
+  const years = [...new Set(safeDocuments.map((document) => String(document?.year || "")).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
+  const sessions = [...new Set(safeDocuments.map((document) => document?.examSession).filter(Boolean))];
+  const documentMap = new Map(safeDocuments.map((document) => [document.id, document]));
+  const statusLabel = (status) => status === "reviewed" ? copy.examReviewStatusReviewed : status === "revisit" ? copy.examReviewStatusRevisit : copy.examReviewStatusUnreviewed;
+  const filtered = safeItems.filter((item) => {
+    const document = documentMap.get(item.examSetId);
+    if (!document) return false;
+    if (!filters.includeExcluded && item.excluded) return false;
+    if (filters.year !== "all" && String(document.year || "") !== filters.year) return false;
+    if (filters.session !== "all" && String(document.examSession || "") !== filters.session) return false;
+    if (filters.examSetId !== "all" && item.examSetId !== filters.examSetId) return false;
+    if (filters.status === "active" && item.status === "reviewed") return false;
+    if (!["all", "active"].includes(filters.status) && item.status !== filters.status) return false;
+    return true;
+  }).sort((a, b) => {
+    const rank = { revisit: 0, unreviewed: 1, reviewed: 2 };
+    const byStatus = (rank[a.status] ?? 3) - (rank[b.status] ?? 3);
+    if (byStatus) return byStatus;
+    return String(b.lastSeenAt || "").localeCompare(String(a.lastSeenAt || ""));
+  });
+  const summaries = safeDocuments.map((document) => {
+    const count = safeItems.filter((item) => item.examSetId === document.id && !item.excluded && item.status !== "reviewed").length;
+    const assessed = (Array.isArray(document.parsedQuestions) ? document.parsedQuestions : []).filter((question) => question?.verificationStatus === "verified" && question?.correctLabel).length;
+    return { document, count, assessed };
+  }).filter((entry) => entry.count > 0);
+  const setFilter = (key, value) => setFilters((current) => ({ ...current, [key]: value }));
+
+  if (loadState === "loading") {
+    return <div className="exam-review-workspace exam-review-loading"><span className="lecture-pdf-spinner" /><strong>{copy.examReviewLoading}</strong></div>;
+  }
+  if (loadState === "error") {
+    return <div className="exam-review-workspace exam-review-empty"><span><Icon name="flag" size={22} /></span><strong>{copy.examReviewSetupMissing}</strong><p>{copy.examReviewSetupHint}</p></div>;
+  }
+
+  return (
+    <section className="exam-review-workspace">
+      <header className="exam-review-header">
+        <div><span className="exam-review-eyebrow">{copy.examReviewPrivate}</span><h2>{copy.examReviewTitle}</h2><p>{copy.examReviewIntro}</p></div>
+        <div className="exam-review-summary" aria-label={copy.examReviewTitle}>
+          <span><strong>{examReviewActiveCount}</strong><small>{copy.examReviewActive}</small></span>
+          <span><strong>{revisitCount}</strong><small>{copy.examReviewRevisitCount}</small></span>
+          <span><strong>{reviewedCount}</strong><small>{copy.examReviewReviewedCount}</small></span>
+        </div>
+      </header>
+
+      {syncState === "error" && <div className="exam-review-sync" data-state="error"><Icon name="flag" size={11} /><span>{copy.examReviewSyncError}</span></div>}
+      {syncState === "saving" && <div className="exam-review-sync" data-state="saving"><Icon name="clock" size={11} /><span>{copy.examReviewSyncing}</span></div>}
+
+      <div className="exam-review-filters">
+        <label><span>{copy.examReviewFilterYear}</span><select value={filters.year} onChange={(event) => setFilter("year", event.target.value)}><option value="all">{copy.examReviewAll}</option>{years.map((year) => <option key={year} value={year}>{year}</option>)}</select></label>
+        <label><span>{copy.examReviewFilterSession}</span><select value={filters.session} onChange={(event) => setFilter("session", event.target.value)}><option value="all">{copy.examReviewAll}</option>{sessions.map((session) => <option key={session} value={session}>{sessionLabel(session)}</option>)}</select></label>
+        <label><span>{copy.examReviewFilterSet}</span><select value={filters.examSetId} onChange={(event) => setFilter("examSetId", event.target.value)}><option value="all">{copy.examReviewAll}</option>{safeDocuments.map((document) => <option key={document.id} value={document.id}>{document.name} · {document.year || "—"}</option>)}</select></label>
+        <label><span>{copy.examReviewFilterStatus}</span><select value={filters.status} onChange={(event) => setFilter("status", event.target.value)}><option value="active">{copy.examReviewFilterActive}</option><option value="unreviewed">{copy.examReviewStatusUnreviewed}</option><option value="revisit">{copy.examReviewStatusRevisit}</option><option value="reviewed">{copy.examReviewStatusReviewed}</option><option value="all">{copy.examReviewAll}</option></select></label>
+        <label className="exam-review-include"><input type="checkbox" checked={filters.includeExcluded} onChange={(event) => setFilter("includeExcluded", event.target.checked)} /><span>{copy.examReviewIncludeExcluded}</span></label>
+      </div>
+
+      {summaries.length > 0 && (
+        <div className="exam-review-area-summary">
+          <strong>{copy.examReviewDataBasis}</strong>
+          <div>{summaries.map(({ document, count, assessed }) => <button key={document.id} type="button" onClick={() => setFilters((current) => ({ ...current, examSetId: document.id }))}><span>{document.name}</span><small>{copy.examReviewAbsoluteSummary(count, assessed)}</small></button>)}</div>
+        </div>
+      )}
+
+      {filtered.length === 0 ? (
+        <div className="exam-review-empty"><span><Icon name="check" size={22} /></span><strong>{safeItems.length ? copy.examReviewNoMatches : copy.examReviewEmptyTitle}</strong><p>{safeItems.length ? copy.examReviewNoMatchesHint : copy.examReviewEmptyText}</p></div>
+      ) : (
+        <div className="exam-review-list">
+          {filtered.map((item) => {
+            const { document, question } = examReviewResolveQuestion(item, safeDocuments);
+            const sourceNumber = question?.sourceNumber || item.sourceNumber || "—";
+            const page = Number(question?.page || question?.sourcePages?.[0] || 0);
+            const reasonChips = [
+              item.wrongCount > 0 ? { key: "wrong", label: copy.examReviewWrongCount(item.wrongCount) } : null,
+              item.unansweredCount > 0 ? { key: "unanswered", label: copy.examReviewUnansweredCount(item.unansweredCount) } : null,
+              item.markedCount > 0 ? { key: "marked", label: copy.examReviewMarkedCount(item.markedCount) } : null,
+            ].filter(Boolean);
+            const itemSave = saveState[item.id] || "idle";
+            return (
+              <article key={item.id} className="exam-review-card" data-excluded={item.excluded ? "true" : "false"}>
+                <div className="exam-review-card-main">
+                  <header>
+                    <div><span className="exam-review-set-name">{document?.name || copy.examReviewUnknownSet}</span><strong>{copy.examSetQuestion} {sourceNumber}</strong><small>{document?.year || "—"} · {sessionLabel(document?.examSession)}{page ? ` · ${copy.examSetSourcePage} ${page}` : ""}</small></div>
+                    <div className="exam-review-reasons">{reasonChips.map((reason) => <span key={reason.key} data-reason={reason.key}>{reason.label}</span>)}</div>
+                  </header>
+                  <div className="exam-review-answer-line">
+                    {item.lastUserAnswer ? <span><small>{copy.examReviewYourAnswer}</small><b>{item.lastUserAnswer}</b></span> : <span><small>{copy.examReviewYourAnswer}</small><b>—</b></span>}
+                    {item.officialAnswer ? <span><small>{copy.examReviewOfficialAnswer}</small><b>{item.officialAnswer}</b></span> : <span><small>{copy.examReviewOfficialAnswer}</small><b>{copy.examReviewNoVerifiedAnswer}</b></span>}
+                  </div>
+                  <label className="exam-review-note"><span>{copy.examReviewNote}</span><textarea value={item.note} maxLength={4000} placeholder={copy.examReviewNotePlaceholder} onChange={(event) => onPatch(item.id, { note: event.target.value })} /></label>
+                </div>
+                <aside className="exam-review-card-actions">
+                  <label><span>{copy.examReviewStatus}</span><select value={item.status} onChange={(event) => onPatch(item.id, { status: event.target.value }, { immediate: true })}>{EXAM_REVIEW_STATUSES.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>
+                  <label className="exam-review-exclude"><input type="checkbox" checked={item.excluded} onChange={(event) => onPatch(item.id, { excluded: event.target.checked }, { immediate: true })} /><span>{copy.examReviewNotRelevant}</span></label>
+                  <div className="exam-review-source-actions"><button type="button" onClick={() => onOpen(item, "mcq")} disabled={!question}><Icon name="cards" size={11} />{copy.examReviewOpenMcq}</button><button type="button" onClick={() => onOpen(item, "pdf")} disabled={!question}><Icon name="file" size={11} />{copy.examReviewOpenPdf}</button></div>
+                  <span className="exam-review-save-state" data-state={itemSave}>{itemSave === "saving" ? copy.examReviewSaving : itemSave === "saved" ? copy.examReviewSaved : itemSave === "error" ? copy.examReviewSaveError : ""}</span>
+                </aside>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, spacedData = {}, importedQuestions = [] }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
@@ -33931,6 +34179,15 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const examSetPracticeDirtyRef = useRef(false);
   const examSetPracticeSaveTimerRef = useRef(null);
   const examSetPracticeLoadTokenRef = useRef(0);
+  const [examReviewItems, setExamReviewItems] = useState([]);
+  const [examReviewLoadState, setExamReviewLoadState] = useState("idle");
+  const [examReviewSyncState, setExamReviewSyncState] = useState("idle");
+  const [examReviewRefreshKey, setExamReviewRefreshKey] = useState(0);
+  const [examReviewFilters, setExamReviewFilters] = useState({ year: "all", session: "all", examSetId: "all", status: "active", includeExcluded: false });
+  const [examReviewSaveState, setExamReviewSaveState] = useState({});
+  const examReviewSaveTimersRef = useRef(new Map());
+  const examReviewPendingOpenRef = useRef(null);
+  const examReviewReconciledRef = useRef(new Set());
   const uploadRef = useRef(null);
   const replaceUploadRef = useRef(null);
   const answerUploadRef = useRef(null);
@@ -34038,6 +34295,51 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "Gemmer…",
       examSetPracticeSaved: "Gemt privat",
       examSetPracticeError: "Din øvelse kunne ikke gemmes. Kontroller Segment 6.2 FINAL SQL.",
+      examReviewMode: "Fejl og review",
+      examReviewTitle: "Fejl og review",
+      examReviewPrivate: "Privat review-backlog",
+      examReviewIntro: "Forkerte, ubesvarede og markerede spørgsmål samles her uden at ændre det originale eksamensindhold.",
+      examReviewLoading: "Henter din private fejllog…",
+      examReviewSetupMissing: "Fejlloggen er ikke klargjort endnu.",
+      examReviewSetupHint: "Kør SQL-filen til Segment 6.4 i Supabase og genindlæs siden.",
+      examReviewActive: "aktive",
+      examReviewRevisitCount: "skal ses igen",
+      examReviewReviewedCount: "gennemgået",
+      examReviewSyncing: "Synkroniserer seneste aflevering med fejlloggen…",
+      examReviewSyncError: "Afleveringen er gemt, men fejlloggen kunne ikke synkroniseres. Tryk Aflever igen for at prøve sikkert igen.",
+      examReviewFilterYear: "År",
+      examReviewFilterSession: "Termin",
+      examReviewFilterSet: "Eksamenssæt",
+      examReviewFilterStatus: "Review-status",
+      examReviewFilterActive: "Aktiv backlog",
+      examReviewAll: "Alle",
+      examReviewIncludeExcluded: "Vis ikke relevante",
+      examReviewDataBasis: "Datagrundlag",
+      examReviewAbsoluteSummary: (count, assessed) => `${count} reviewspørgsmål · ${assessed} spørgsmål med sikkert facit`,
+      examReviewStatus: "Status",
+      examReviewStatusUnreviewed: "Ikke gennemgået",
+      examReviewStatusReviewed: "Gennemgået",
+      examReviewStatusRevisit: "Skal ses igen",
+      examReviewNotRelevant: "Ikke relevant for review",
+      examReviewNote: "Privat læringsnote",
+      examReviewNotePlaceholder: "Skriv kort, hvad du vil huske næste gang…",
+      examReviewWrongCount: (count) => `${count} fejl`,
+      examReviewUnansweredCount: (count) => `${count} ubesvaret`,
+      examReviewMarkedCount: (count) => `${count} markeret`,
+      examReviewYourAnswer: "Dit seneste svar",
+      examReviewOfficialAnswer: "Officielt facit",
+      examReviewNoVerifiedAnswer: "Intet sikkert facit",
+      examReviewOpenMcq: "Åbn MCQ",
+      examReviewOpenPdf: "Original PDF",
+      examReviewSaving: "Gemmer…",
+      examReviewSaved: "Gemt",
+      examReviewSaveError: "Kunne ikke gemme",
+      examReviewEmptyTitle: "Ingen reviewspørgsmål endnu",
+      examReviewEmptyText: "Når du afleverer en øvelse, kommer relevante spørgsmål automatisk herind.",
+      examReviewNoMatches: "Ingen poster matcher filtrene",
+      examReviewNoMatchesHint: "Juster filtrene eller vis ikke-relevante poster.",
+      examReviewUnknownSet: "Ukendt eksamenssæt",
+      examReviewSourceMissing: "Kildespørgsmålet kunne ikke findes sikkert via question-ID. Intet er blevet gættet.",
       examSetOriginalImages: "Originale billeder",
       examSetOriginalImage: "1 billede",
       examSetOriginalImagesCount: (count) => `${count} billeder`,
@@ -34364,6 +34666,51 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "Saving…",
       examSetPracticeSaved: "Saved privately",
       examSetPracticeError: "Your practice could not be saved. Check the Segment 6.2 FINAL SQL.",
+      examReviewMode: "Errors & review",
+      examReviewTitle: "Errors & review",
+      examReviewPrivate: "Private review backlog",
+      examReviewIntro: "Incorrect, unanswered and marked questions are collected here without changing the original exam content.",
+      examReviewLoading: "Loading your private review log…",
+      examReviewSetupMissing: "The review log is not configured yet.",
+      examReviewSetupHint: "Run the Segment 6.4 SQL file in Supabase and reload the page.",
+      examReviewActive: "active",
+      examReviewRevisitCount: "revisit",
+      examReviewReviewedCount: "reviewed",
+      examReviewSyncing: "Syncing the latest submission to your review log…",
+      examReviewSyncError: "The submission is saved, but the review log could not sync. Submit again to retry safely.",
+      examReviewFilterYear: "Year",
+      examReviewFilterSession: "Session",
+      examReviewFilterSet: "Exam set",
+      examReviewFilterStatus: "Review status",
+      examReviewFilterActive: "Active backlog",
+      examReviewAll: "All",
+      examReviewIncludeExcluded: "Show not relevant",
+      examReviewDataBasis: "Data basis",
+      examReviewAbsoluteSummary: (count, assessed) => `${count} review questions · ${assessed} questions with verified key`,
+      examReviewStatus: "Status",
+      examReviewStatusUnreviewed: "Not reviewed",
+      examReviewStatusReviewed: "Reviewed",
+      examReviewStatusRevisit: "Revisit",
+      examReviewNotRelevant: "Not relevant for review",
+      examReviewNote: "Private learning note",
+      examReviewNotePlaceholder: "Write a short point to remember next time…",
+      examReviewWrongCount: (count) => `${count} incorrect`,
+      examReviewUnansweredCount: (count) => `${count} unanswered`,
+      examReviewMarkedCount: (count) => `${count} marked`,
+      examReviewYourAnswer: "Your latest answer",
+      examReviewOfficialAnswer: "Official key",
+      examReviewNoVerifiedAnswer: "No verified key",
+      examReviewOpenMcq: "Open MCQ",
+      examReviewOpenPdf: "Original PDF",
+      examReviewSaving: "Saving…",
+      examReviewSaved: "Saved",
+      examReviewSaveError: "Could not save",
+      examReviewEmptyTitle: "No review questions yet",
+      examReviewEmptyText: "Relevant questions will appear here automatically after you submit practice.",
+      examReviewNoMatches: "No items match the filters",
+      examReviewNoMatchesHint: "Adjust the filters or include items marked not relevant.",
+      examReviewUnknownSet: "Unknown exam set",
+      examReviewSourceMissing: "The source question could not be found safely by question ID. Nothing was guessed.",
       examSetOriginalImages: "Original images",
       examSetOriginalImage: "1 image",
       examSetOriginalImagesCount: (count) => `${count} images`,
@@ -34689,6 +35036,51 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "جارٍ الحفظ…",
       examSetPracticeSaved: "محفوظ بشكل خاص",
       examSetPracticeError: "تعذر حفظ تدريبك. تحقق من SQL الخاص بـ Segment 6.2 FINAL.",
+      examReviewMode: "الأخطاء والمراجعة",
+      examReviewTitle: "الأخطاء والمراجعة",
+      examReviewPrivate: "قائمة مراجعة خاصة",
+      examReviewIntro: "تُجمع الأسئلة الخاطئة وغير المجابة والمعلّمة هنا دون تغيير محتوى الامتحان الأصلي.",
+      examReviewLoading: "جارٍ تحميل سجل المراجعة الخاص بك…",
+      examReviewSetupMissing: "لم يتم إعداد سجل المراجعة بعد.",
+      examReviewSetupHint: "شغّل ملف SQL الخاص بـ Segment 6.4 في Supabase ثم أعد تحميل الصفحة.",
+      examReviewActive: "نشطة",
+      examReviewRevisitCount: "تحتاج مراجعة أخرى",
+      examReviewReviewedCount: "تمت مراجعتها",
+      examReviewSyncing: "جارٍ مزامنة آخر تسليم مع سجل المراجعة…",
+      examReviewSyncError: "تم حفظ التسليم، لكن تعذرت مزامنة سجل المراجعة. اضغط تسليم مرة أخرى لإعادة المحاولة بأمان.",
+      examReviewFilterYear: "السنة",
+      examReviewFilterSession: "الفترة",
+      examReviewFilterSet: "مجموعة الامتحان",
+      examReviewFilterStatus: "حالة المراجعة",
+      examReviewFilterActive: "القائمة النشطة",
+      examReviewAll: "الكل",
+      examReviewIncludeExcluded: "إظهار غير ذي الصلة",
+      examReviewDataBasis: "حجم البيانات",
+      examReviewAbsoluteSummary: (count, assessed) => `${count} سؤال للمراجعة · ${assessed} سؤال بإجابة رسمية موثقة`,
+      examReviewStatus: "الحالة",
+      examReviewStatusUnreviewed: "لم تتم مراجعته",
+      examReviewStatusReviewed: "تمت مراجعته",
+      examReviewStatusRevisit: "راجع مرة أخرى",
+      examReviewNotRelevant: "غير ذي صلة للمراجعة",
+      examReviewNote: "ملاحظة تعلم خاصة",
+      examReviewNotePlaceholder: "اكتب نقطة قصيرة تريد تذكرها في المرة القادمة…",
+      examReviewWrongCount: (count) => `${count} خطأ`,
+      examReviewUnansweredCount: (count) => `${count} دون إجابة`,
+      examReviewMarkedCount: (count) => `${count} معلّم`,
+      examReviewYourAnswer: "آخر إجابة لك",
+      examReviewOfficialAnswer: "الإجابة الرسمية",
+      examReviewNoVerifiedAnswer: "لا توجد إجابة موثقة",
+      examReviewOpenMcq: "فتح MCQ",
+      examReviewOpenPdf: "PDF الأصلي",
+      examReviewSaving: "جارٍ الحفظ…",
+      examReviewSaved: "تم الحفظ",
+      examReviewSaveError: "تعذر الحفظ",
+      examReviewEmptyTitle: "لا توجد أسئلة للمراجعة بعد",
+      examReviewEmptyText: "ستظهر الأسئلة ذات الصلة هنا تلقائيًا بعد تسليم التدريب.",
+      examReviewNoMatches: "لا توجد عناصر تطابق عوامل التصفية",
+      examReviewNoMatchesHint: "غيّر عوامل التصفية أو أظهر العناصر غير ذات الصلة.",
+      examReviewUnknownSet: "مجموعة امتحان غير معروفة",
+      examReviewSourceMissing: "تعذر العثور على السؤال الأصلي بأمان باستخدام معرّف السؤال. لم يتم التخمين.",
       examSetOriginalImages: "الصور الأصلية",
       examSetOriginalImage: "صورة واحدة",
       examSetOriginalImagesCount: (count) => `${count} صور`,
@@ -35121,7 +35513,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     let cancelled = false;
     supabase
       .from("exam_set_practice")
-      .select("user_id,exam_set_id,answers,marked,current_index,submitted_at,updated_at")
+      .select("user_id,exam_set_id,answers,marked,current_index,submitted_at,last_submission_id,updated_at")
       .eq("user_id", userId)
       .eq("exam_set_id", selectedExamDocument.id)
       .maybeSingle()
@@ -35149,6 +35541,65 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       }
     };
   }, [isLectureLibrary, userId, selectedExamDocument?.id]);
+
+  useEffect(() => {
+    if (isLectureLibrary || !userId) {
+      setExamReviewItems([]);
+      setExamReviewLoadState("idle");
+      return undefined;
+    }
+    const examSetIds = documents.map((document) => document?.id).filter(Boolean);
+    if (!examSetIds.length) {
+      setExamReviewItems([]);
+      setExamReviewLoadState("ready");
+      return undefined;
+    }
+    let cancelled = false;
+    setExamReviewLoadState("loading");
+    supabase
+      .from("exam_review_items")
+      .select("id,exam_set_id,question_id,source_number,status,note,excluded,wrong_count,unanswered_count,marked_count,last_user_answer,official_answer,first_seen_at,last_seen_at,updated_at")
+      .eq("user_id", userId)
+      .in("exam_set_id", examSetIds)
+      .order("last_seen_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setExamReviewItems([]);
+          setExamReviewLoadState("error");
+          return;
+        }
+        setExamReviewItems((Array.isArray(data) ? data : []).map(examReviewItemFromRow));
+        setExamReviewLoadState("ready");
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, documents, examReviewRefreshKey]);
+
+  useEffect(() => {
+    if (isLectureLibrary || !selectedExamDocument?.id) return;
+    const snapshot = examSetPracticeRef.current;
+    if (!snapshot?.submittedAt || !snapshot?.lastSubmissionId) return;
+    const questions = examSetQuestionDocumentId === selectedExamDocument.id && examSetQuestions.length
+      ? examSetQuestions
+      : selectedExamDocument.parsedQuestions;
+    if (!Array.isArray(questions) || !questions.length) return;
+    const scope = examSetPracticeScopeRef.current;
+    if (!scope?.examSetId || scope.examSetId !== selectedExamDocument.id) return;
+    reconcileExamReviewSubmission(scope, snapshot, questions);
+  }, [isLectureLibrary, selectedExamDocument?.id, selectedExamDocument?.parsedQuestions, examSetQuestionDocumentId, examSetQuestions, examSetPractice.submittedAt, examSetPractice.lastSubmissionId]);
+
+  useEffect(() => {
+    if (isLectureLibrary) return;
+    const pending = examReviewPendingOpenRef.current;
+    if (!pending || pending.examSetId !== selectedExamDocument?.id || examSetPreviewState !== "ready") return;
+    examReviewPendingOpenRef.current = null;
+    openExamReviewItem({ examSetId: pending.examSetId, questionId: pending.questionId }, pending.target);
+  }, [isLectureLibrary, selectedExamDocument?.id, examSetPreviewState]);
+
+  useEffect(() => () => {
+    examReviewSaveTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    examReviewSaveTimersRef.current.clear();
+  }, []);
 
   const normalizedQuery = query.trim().toLowerCase();
   function examSetSessionLabel(session) {
@@ -36577,6 +37028,72 @@ async function downloadExamSetDocument(examDocument = selectedExamDocument) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+  async function reconcileExamReviewSubmission(scope, snapshot, questions) {
+    if (!scope?.examSetId || !snapshot?.lastSubmissionId || !snapshot?.submittedAt) return false;
+    const key = `${scope.examSetId}:${snapshot.lastSubmissionId}`;
+    if (examReviewReconciledRef.current.has(key)) return true;
+    const events = examReviewBuildSubmissionEvents(questions, snapshot, snapshot.lastSubmissionId, EXAM_SET_PARSE_VERSION);
+    setExamReviewSyncState("saving");
+    try {
+      const { error } = await supabase.rpc("record_exam_review_submission", {
+        p_exam_set_id: scope.examSetId,
+        p_submission_id: snapshot.lastSubmissionId,
+        p_events: events,
+      });
+      if (error) throw error;
+      examReviewReconciledRef.current.add(key);
+      setExamReviewSyncState("saved");
+      setExamReviewRefreshKey((value) => value + 1);
+      return true;
+    } catch (error) {
+      examReviewReconciledRef.current.delete(key);
+      setExamReviewSyncState("error");
+      return false;
+    }
+  }
+
+  async function persistExamReviewItem(itemId, patch) {
+    if (!userId || !itemId) return false;
+    const payload = {};
+    if (patch?.status != null && EXAM_REVIEW_STATUSES.includes(patch.status)) payload.status = patch.status;
+    if (patch?.note != null) payload.note = String(patch.note).slice(0, 4000);
+    if (patch?.excluded != null) payload.excluded = Boolean(patch.excluded);
+    if (!Object.keys(payload).length) return true;
+    setExamReviewSaveState((current) => ({ ...current, [itemId]: "saving" }));
+    try {
+      const { data, error } = await supabase.from("exam_review_items").update(payload)
+        .eq("id", itemId)
+        .eq("user_id", userId)
+        .select("id,updated_at")
+        .single();
+      if (error) throw error;
+      setExamReviewItems((current) => current.map((item) => item.id === itemId ? { ...item, ...payload, updatedAt: data?.updated_at || item.updatedAt } : item));
+      setExamReviewSaveState((current) => ({ ...current, [itemId]: "saved" }));
+      return true;
+    } catch (error) {
+      setExamReviewSaveState((current) => ({ ...current, [itemId]: "error" }));
+      return false;
+    }
+  }
+
+  function updateExamReviewItem(itemId, patch, { immediate = false } = {}) {
+    if (!itemId) return;
+    setExamReviewItems((current) => current.map((item) => item.id === itemId ? { ...item, ...patch } : item));
+    const existing = examReviewSaveTimersRef.current.get(itemId);
+    if (existing) window.clearTimeout(existing);
+    if (immediate) {
+      examReviewSaveTimersRef.current.delete(itemId);
+      persistExamReviewItem(itemId, patch);
+      return;
+    }
+    setExamReviewSaveState((current) => ({ ...current, [itemId]: "saving" }));
+    const timer = window.setTimeout(() => {
+      examReviewSaveTimersRef.current.delete(itemId);
+      persistExamReviewItem(itemId, patch);
+    }, 500);
+    examReviewSaveTimersRef.current.set(itemId, timer);
+  }
+
   async function persistExamSetPractice(scope, snapshot, { background = false } = {}) {
     if (!scope?.userId || !scope?.examSetId) return false;
     try {
@@ -36589,8 +37106,9 @@ async function downloadExamSetDocument(examDocument = selectedExamDocument) {
           marked: snapshot?.marked || {},
           current_index: Math.max(0, Number(snapshot?.currentIndex) || 0),
           submitted_at: snapshot?.submittedAt || null,
+          last_submission_id: snapshot?.lastSubmissionId || null,
         }, { onConflict: "user_id,exam_set_id" })
-        .select("updated_at")
+        .select("updated_at,last_submission_id")
         .single();
       if (error) throw error;
       examSetPracticeDirtyRef.current = false;
@@ -36777,6 +37295,43 @@ function openOriginalExamPage(question) {
   setExamSetOriginalPage(page);
 }
 
+async function openExamReviewItem(item, target = "mcq") {
+  const { document, question } = examReviewResolveQuestion(item, documents);
+  if (!document || !question || String(question.id || "") !== String(item?.questionId || "")) {
+    setExamSetStatus({ state: "error", message: copy.examReviewSourceMissing });
+    return false;
+  }
+  const pending = {
+    examSetId: document.id,
+    questionId: item.questionId,
+    target: target === "pdf" ? "pdf" : "mcq",
+  };
+  if (selectedExamDocument?.id !== document.id || examSetPreviewState !== "ready") {
+    examReviewPendingOpenRef.current = pending;
+    if (selectedExamDocument?.id !== document.id) {
+      setWorkspaceState((current) => ({ ...current, [selectedStateKey]: document.id }));
+    }
+    return true;
+  }
+  if (pending.target === "pdf") {
+    setExamSetMode("pdf");
+    setExamSetPdfSource("questions");
+    const page = Number(question.page || question.sourcePages?.[0] || 1);
+    if (Number.isFinite(page)) setExamSetOriginalPage(page);
+    return true;
+  }
+  const result = await createExamSetViewer();
+  const questions = result?.questions || (examSetQuestionDocumentId === document.id ? examSetQuestions : document.parsedQuestions) || [];
+  const index = questions.findIndex((candidate) => String(candidate?.id || "") === String(question.id || ""));
+  if (index < 0) {
+    setExamSetStatus({ state: "error", message: copy.examReviewSourceMissing });
+    return false;
+  }
+  updateExamSetPractice((current) => ({ ...current, currentIndex: index }), { save: false });
+  setExamSetMode("exam");
+  return true;
+}
+
 async function openExamSetPdfEditor() {
   if (!selectedExamDocument?.id || selectedExamDocument.ownerUserId !== userId) {
     setExamSetStatus({ state: "error", message: copy.examSetEditorOwnerOnly });
@@ -36800,6 +37355,7 @@ async function openExamSetPdfEditor() {
     updateExamSetPractice((current) => ({
       ...current,
       submittedAt: null,
+      lastSubmissionId: null,
       answers: { ...current.answers, [questionId]: optionLabel },
     }));
   }
@@ -36807,12 +37363,31 @@ async function openExamSetPdfEditor() {
   function toggleExamSetMarked(questionId) {
     updateExamSetPractice((current) => ({
       ...current,
+      submittedAt: null,
+      lastSubmissionId: null,
       marked: { ...current.marked, [questionId]: !current.marked?.[questionId] },
     }));
   }
 
-  function submitExamSetPractice() {
-    updateExamSetPractice((current) => ({ ...current, submittedAt: new Date().toISOString() }));
+  async function submitExamSetPractice() {
+    const scope = examSetPracticeScopeRef.current ? { ...examSetPracticeScopeRef.current } : null;
+    if (!scope?.examSetId || !examSetPracticeHydratedRef.current) return;
+    const current = examSetPracticeRef.current || examSetPracticeEmpty();
+    const snapshot = {
+      ...current,
+      submittedAt: current.submittedAt || new Date().toISOString(),
+      lastSubmissionId: current.lastSubmissionId || examSetUuid(),
+    };
+    examSetPracticeRef.current = snapshot;
+    setExamSetPractice(snapshot);
+    setExamSetPracticeSaveState("saving");
+    window.clearTimeout(examSetPracticeSaveTimerRef.current);
+    const persisted = await persistExamSetPractice(scope, snapshot);
+    if (!persisted) return;
+    const questions = examSetQuestionDocumentId === scope.examSetId && examSetQuestions.length
+      ? examSetQuestions
+      : (selectedExamDocument?.id === scope.examSetId ? selectedExamDocument.parsedQuestions : []);
+    await reconcileExamReviewSubmission(scope, snapshot, questions || []);
   }
 
   function updateDocuments(next) {
@@ -37193,6 +37768,7 @@ async function openExamSetPdfEditor() {
                 <span className="exam-set-mode-toggle" role="tablist" aria-label={copy.examSetViewerMode}>
                   <button type="button" role="tab" aria-selected={examSetMode === "pdf"} data-active={examSetMode === "pdf" ? "true" : "false"} onClick={() => setExamSetMode("pdf")}><Icon name="file" size={12} />{copy.examSetPdfMode}</button>
                   <button type="button" role="tab" aria-selected={examSetMode === "exam"} data-active={examSetMode === "exam" ? "true" : "false"} className="exam-set-create-viewer" disabled={examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={createExamSetViewer}><Icon name="cards" size={12} />{examSetQuestionDocumentId === selectedExamDocument?.id && examSetQuestions.length ? copy.examSetViewerMode : copy.examSetCreateViewer}</button>
+                  <button type="button" role="tab" aria-selected={examSetMode === "review"} data-active={examSetMode === "review" ? "true" : "false"} onClick={() => setExamSetMode("review")}><Icon name="flag" size={12} />{copy.examReviewMode}</button>
                 </span>
                 {selectedExamDocument?.ownerUserId === userId && <button type="button" className="exam-set-editor-open" disabled={examSetSaving || examSetEditorSaving || examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={openExamSetPdfEditor}><Icon name="edit" size={12} />{copy.examSetEditorOpen}</button>}
                 {examSetMode === "pdf" && <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetPdfMode}>
@@ -37230,8 +37806,24 @@ async function openExamSetPdfEditor() {
               ) : (
                 <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{!selectedLecture ? copy.selectItem : copy.materialLibraryEmpty}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="upload" size={14} />{copy.addMaterial}</button></div>
               )
-            ) : activeDocument ? (
-examSetMode === "exam" ? (
+             ) : activeDocument ? (
+examSetMode === "review" ? (
+  <ExamReviewWorkspace
+    c={c}
+    copy={copy}
+    language={language}
+    items={examReviewItems}
+    documents={documents}
+    loadState={examReviewLoadState}
+    filters={examReviewFilters}
+    setFilters={setExamReviewFilters}
+    saveState={examReviewSaveState}
+    syncState={examReviewSyncState}
+    onPatch={updateExamReviewItem}
+    onOpen={openExamReviewItem}
+    sessionLabel={examSetSessionLabel}
+  />
+) : examSetMode === "exam" ? (
   examSetParseState === "loading" ? (
     <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetExtracting}</strong><p>{copy.examSetExtractHint}</p></div>
   ) : examSetQuestions.length ? (() => {
