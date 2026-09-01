@@ -11010,6 +11010,30 @@ select.ui-control {
 .exam-set-grid-submit { width: 100%; min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 8px; background: var(--ui-blue); color: #fff; font-size: 9px; font-weight: 850; }
 .exam-set-grid-submit:hover { filter: brightness(.97); }
 .exam-set-grid-submit[data-submitted="true"] { background: var(--ui-green); }
+.exam-simulation-start, .exam-simulation-exit { min-height: 28px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid var(--ui-blue-border); border-radius: 8px; background: var(--ui-blue-soft); color: var(--ui-blue); font-size: 8px; font-weight: 850; white-space: nowrap; }
+.exam-simulation-timer { min-height: 28px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid var(--ui-blue-border); border-radius: 8px; background: var(--ui-blue-soft); color: var(--ui-blue); font-size: 7.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.exam-simulation-timer strong { font-size: 10px; letter-spacing: .02em; }
+.exam-simulation-timer[data-low="true"] { border-color: color-mix(in srgb,var(--ui-red) 40%,var(--ui-border)); background: var(--ui-red-soft); color: var(--ui-red); }
+.exam-simulation-result-banner { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 8px 11px; border-bottom: 1px solid var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); font-size: 8px; }
+.exam-simulation-result-banner span { display: inline-flex; align-items: center; gap: 4px; font-weight: 850; }
+.exam-simulation-result-banner strong { margin-left: auto; font-size: 10px; }
+.exam-simulation-result-banner small { color: var(--ui-secondary); font-weight: 700; }
+.exam-simulation-dialog { display: grid; gap: 14px; min-width: min(520px,78vw); }
+.exam-simulation-dialog-head { display: flex; gap: 10px; align-items: flex-start; }
+.exam-simulation-dialog-head > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--ui-blue-soft); color: var(--ui-blue); }
+.exam-simulation-dialog-head div { display: grid; gap: 4px; }
+.exam-simulation-dialog-head strong { color: var(--ui-text); font-size: 14px; font-weight: 900; }
+.exam-simulation-dialog-head small { max-width: 470px; color: var(--ui-muted); font-size: 8.5px; line-height: 1.5; font-weight: 650; }
+.exam-simulation-facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; }
+.exam-simulation-facts span { display: grid; gap: 3px; padding: 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); text-align: center; }
+.exam-simulation-facts strong { color: var(--ui-text); font-size: 12px; font-weight: 900; }
+.exam-simulation-facts small { color: var(--ui-muted); font-size: 7px; font-weight: 750; }
+.exam-simulation-duration { display: grid; gap: 5px; }
+.exam-simulation-duration > span { color: var(--ui-secondary); font-size: 8px; font-weight: 850; }
+.exam-simulation-duration input { min-height: 38px; padding: 0 11px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-text); font: inherit; font-size: 12px; font-weight: 800; outline: none; }
+.exam-simulation-duration input:focus { border-color: var(--ui-blue-border); }
+.exam-simulation-duration small { color: var(--ui-muted); font-size: 7.5px; line-height: 1.45; }
+.exam-simulation-dialog-actions { display: flex; justify-content: flex-end; gap: 7px; }
 .exam-set-grid-legend { display: flex; flex-wrap: wrap; gap: 5px 8px; color: var(--ui-muted); font-size: 7px; font-weight: 700; }
 .exam-set-grid-legend span { display: inline-flex; align-items: center; gap: 4px; }
 .exam-set-grid-legend i { width: 7px; height: 7px; border-radius: 3px; border: 1px solid var(--ui-border); background: var(--ui-panel); }
@@ -31505,9 +31529,67 @@ function examSetPracticeFromRow(row) {
   };
 }
 
+function examSimulationEmpty() {
+  return {
+    id: null, examSetId: null, status: "idle", durationMinutes: 0, startedAt: null, submittedAt: null,
+    answers: {}, marked: {}, currentIndex: 0, result: null, parseVersion: null, updatedAt: null,
+  };
+}
+
+function examSimulationResultFromRpc(result) {
+  const source = result && typeof result === "object" ? result : {};
+  return {
+    totalQuestions: Math.max(0, Number(source.total_questions ?? source.totalQuestions) || 0),
+    answeredCount: Math.max(0, Number(source.answered_count ?? source.answeredCount) || 0),
+    unansweredCount: Math.max(0, Number(source.unanswered_count ?? source.unansweredCount) || 0),
+    markedCount: Math.max(0, Number(source.marked_count ?? source.markedCount) || 0),
+    assessedCount: Math.max(0, Number(source.assessed_count ?? source.assessedCount) || 0),
+    correctCount: Math.max(0, Number(source.correct_count ?? source.correctCount) || 0),
+    wrongCount: Math.max(0, Number(source.wrong_count ?? source.wrongCount) || 0),
+  };
+}
+
+function examSimulationFromRow(row) {
+  const source = row && typeof row === "object" ? row : {};
+  const answers = source.answers && typeof source.answers === "object" && !Array.isArray(source.answers) ? source.answers : {};
+  const marked = source.marked && typeof source.marked === "object" && !Array.isArray(source.marked) ? source.marked : {};
+  return {
+    id: source.id || null,
+    examSetId: source.exam_set_id || source.examSetId || null,
+    status: source.status === "submitted" ? "submitted" : source.id ? "active" : "idle",
+    durationMinutes: Math.max(0, Number(source.duration_minutes ?? source.durationMinutes) || 0),
+    startedAt: source.started_at || source.startedAt || null,
+    submittedAt: source.submitted_at || source.submittedAt || null,
+    answers: { ...answers },
+    marked: { ...marked },
+    currentIndex: Math.max(0, Number(source.current_index ?? source.currentIndex) || 0),
+    result: source.result ? examSimulationResultFromRpc(source.result) : null,
+    parseVersion: source.parse_version || source.parseVersion || null,
+    updatedAt: source.updated_at || source.updatedAt || null,
+  };
+}
+
+function examSimulationRemainingSeconds(session, nowMs = Date.now()) {
+  if (!session || session.status !== "active" || !session.startedAt || !(Number(session.durationMinutes) > 0)) return 0;
+  const startMs = new Date(session.startedAt).getTime();
+  if (!Number.isFinite(startMs)) return 0;
+  const endMs = startMs + Number(session.durationMinutes) * 60 * 1000;
+  return Math.max(0, Math.ceil((endMs - Number(nowMs || Date.now())) / 1000));
+}
+
+function examSimulationFormatTime(totalSeconds) {
+  const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const rest = seconds % 60;
+  return hours > 0
+    ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`
+    : `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+}
+
 const EXAM_REVIEW_STATUSES = ["unreviewed", "reviewed", "revisit"];
 
-function examReviewBuildSubmissionEvents(questions, practice, submissionId, parseVersion = EXAM_SET_PARSE_VERSION) {
+function examReviewBuildSubmissionEvents(questions, practice, submissionId, parseVersion = EXAM_SET_PARSE_VERSION, attemptId = null) {
   const safeQuestions = Array.isArray(questions) ? questions : [];
   const answers = practice?.answers && typeof practice.answers === "object" ? practice.answers : {};
   const marked = practice?.marked && typeof practice.marked === "object" ? practice.marked : {};
@@ -31526,6 +31608,7 @@ function examReviewBuildSubmissionEvents(questions, practice, submissionId, pars
       user_answer: selected || null,
       official_answer: verifiedOfficial || null,
       parse_version: String(parseVersion || "").slice(0, 120) || null,
+      attempt_id: attemptId ? String(attemptId) : null,
     };
     if (!selected) events.push({ ...base, reason: "unanswered" });
     else if (verifiedOfficial && selected !== verifiedOfficial) events.push({ ...base, reason: "wrong" });
@@ -34179,6 +34262,17 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const examSetPracticeDirtyRef = useRef(false);
   const examSetPracticeSaveTimerRef = useRef(null);
   const examSetPracticeLoadTokenRef = useRef(0);
+  const [examSimulation, setExamSimulation] = useState(() => examSimulationEmpty());
+  const [examSimulationLoadState, setExamSimulationLoadState] = useState("idle");
+  const [examSimulationSaveState, setExamSimulationSaveState] = useState("idle");
+  const [examSimulationNow, setExamSimulationNow] = useState(() => Date.now());
+  const [examSimulationStartDialog, setExamSimulationStartDialog] = useState(false);
+  const [examSimulationSubmitDialog, setExamSimulationSubmitDialog] = useState(false);
+  const [examSimulationDurationDraft, setExamSimulationDurationDraft] = useState("180");
+  const examSimulationRef = useRef(examSimulationEmpty());
+  const examSimulationSaveTimerRef = useRef(null);
+  const examSimulationDirtyRef = useRef(false);
+  const examSimulationSubmittingRef = useRef(false);
   const [examReviewItems, setExamReviewItems] = useState([]);
   const [examReviewLoadState, setExamReviewLoadState] = useState("idle");
   const [examReviewSyncState, setExamReviewSyncState] = useState("idle");
@@ -34295,6 +34389,28 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "Gemmer…",
       examSetPracticeSaved: "Gemt privat",
       examSetPracticeError: "Din øvelse kunne ikke gemmes. Kontroller Segment 6.2 FINAL SQL.",
+      examSimulationStart: "Start eksamenssimulation",
+      examSimulationResume: "Fortsæt simulation",
+      examSimulationTitle: "Eksamenssimulation",
+      examSimulationIntro: "Kør sættet under eksamenslignende forhold. Facit er låst, indtil du afleverer.",
+      examSimulationDuration: "Varighed (minutter)",
+      examSimulationDurationHint: "Timeren gemmes som starttid + varighed og fortsætter korrekt efter reload.",
+      examSimulationSafeKey: "med sikkert facit",
+      examSimulationNoKey: "uden sikkert facit",
+      examSimulationBegin: "Start nu",
+      examSimulationCancel: "Annuller",
+      examSimulationActive: "Simulation aktiv",
+      examSimulationTimeLeft: "Tid tilbage",
+      examSimulationSubmit: "Aflever eksamen",
+      examSimulationSubmitTitle: "Aflever eksamenssimulation?",
+      examSimulationSubmitHint: "Efter aflevering låses denne session permanent. Resultatet beregnes kun på spørgsmål med sikkert officielt facit.",
+      examSimulationConfirmSubmit: "Bekræft aflevering",
+      examSimulationSubmitted: "Simulation afleveret",
+      examSimulationBackToPractice: "Tilbage til fri øvelse",
+      examSimulationAssessed: "vurderet",
+      examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} korrekte`,
+      examSimulationAutosaveError: "Simulationen kunne ikke gemmes. Kør Segment 6.5 SQL i Supabase.",
+      examSimulationSetupHint: "Kør Segment 6.5 SQL i Supabase og genindlæs siden.",
       examReviewMode: "Fejl og review",
       examReviewTitle: "Fejl og review",
       examReviewPrivate: "Privat review-backlog",
@@ -34666,6 +34782,28 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "Saving…",
       examSetPracticeSaved: "Saved privately",
       examSetPracticeError: "Your practice could not be saved. Check the Segment 6.2 FINAL SQL.",
+      examSimulationStart: "Start exam simulation",
+      examSimulationResume: "Resume simulation",
+      examSimulationTitle: "Exam simulation",
+      examSimulationIntro: "Run the set under exam-like conditions. Answer keys stay locked until submission.",
+      examSimulationDuration: "Duration (minutes)",
+      examSimulationDurationHint: "The timer uses start time + duration and survives reloads accurately.",
+      examSimulationSafeKey: "with verified answer key",
+      examSimulationNoKey: "without verified answer key",
+      examSimulationBegin: "Start now",
+      examSimulationCancel: "Cancel",
+      examSimulationActive: "Simulation active",
+      examSimulationTimeLeft: "Time left",
+      examSimulationSubmit: "Submit exam",
+      examSimulationSubmitTitle: "Submit exam simulation?",
+      examSimulationSubmitHint: "After submission this session is permanently locked. Results use verified official answer keys only.",
+      examSimulationConfirmSubmit: "Confirm submission",
+      examSimulationSubmitted: "Simulation submitted",
+      examSimulationBackToPractice: "Back to free practice",
+      examSimulationAssessed: "assessed",
+      examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} correct`,
+      examSimulationAutosaveError: "The simulation could not be saved. Run Segment 6.5 SQL in Supabase.",
+      examSimulationSetupHint: "Run Segment 6.5 SQL in Supabase and reload.",
       examReviewMode: "Errors & review",
       examReviewTitle: "Errors & review",
       examReviewPrivate: "Private review backlog",
@@ -35036,6 +35174,28 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetPracticeSaving: "جارٍ الحفظ…",
       examSetPracticeSaved: "محفوظ بشكل خاص",
       examSetPracticeError: "تعذر حفظ تدريبك. تحقق من SQL الخاص بـ Segment 6.2 FINAL.",
+      examSimulationStart: "بدء محاكاة الامتحان",
+      examSimulationResume: "متابعة المحاكاة",
+      examSimulationTitle: "محاكاة الامتحان",
+      examSimulationIntro: "أجرِ المجموعة كاختبار حقيقي. تبقى الإجابات الصحيحة مخفية حتى التسليم.",
+      examSimulationDuration: "المدة (بالدقائق)",
+      examSimulationDurationHint: "يعتمد المؤقت على وقت البدء والمدة ويستمر بدقة بعد إعادة التحميل.",
+      examSimulationSafeKey: "بإجابة رسمية مؤكدة",
+      examSimulationNoKey: "دون إجابة رسمية مؤكدة",
+      examSimulationBegin: "ابدأ الآن",
+      examSimulationCancel: "إلغاء",
+      examSimulationActive: "المحاكاة نشطة",
+      examSimulationTimeLeft: "الوقت المتبقي",
+      examSimulationSubmit: "تسليم الامتحان",
+      examSimulationSubmitTitle: "تسليم محاكاة الامتحان؟",
+      examSimulationSubmitHint: "بعد التسليم تُقفل الجلسة نهائياً، وتُحسب النتيجة فقط للأسئلة ذات الإجابة الرسمية المؤكدة.",
+      examSimulationConfirmSubmit: "تأكيد التسليم",
+      examSimulationSubmitted: "تم تسليم المحاكاة",
+      examSimulationBackToPractice: "العودة إلى التدريب الحر",
+      examSimulationAssessed: "مُقيّم",
+      examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} صحيحة`,
+      examSimulationAutosaveError: "تعذر حفظ المحاكاة. شغّل SQL الخاص بـ Segment 6.5 في Supabase.",
+      examSimulationSetupHint: "شغّل SQL الخاص بـ Segment 6.5 في Supabase ثم أعد التحميل.",
       examReviewMode: "الأخطاء والمراجعة",
       examReviewTitle: "الأخطاء والمراجعة",
       examReviewPrivate: "قائمة مراجعة خاصة",
@@ -35541,6 +35701,74 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       }
     };
   }, [isLectureLibrary, userId, selectedExamDocument?.id]);
+
+  useEffect(() => {
+    window.clearTimeout(examSimulationSaveTimerRef.current);
+    examSimulationDirtyRef.current = false;
+    examSimulationSubmittingRef.current = false;
+    const empty = examSimulationEmpty();
+    examSimulationRef.current = empty;
+    setExamSimulation(empty);
+    setExamSimulationLoadState(isLectureLibrary || !userId || !selectedExamDocument?.id ? "idle" : "loading");
+    setExamSimulationSaveState("idle");
+    setExamSimulationStartDialog(false);
+    setExamSimulationSubmitDialog(false);
+    setExamSimulationNow(Date.now());
+    if (isLectureLibrary || !userId || !selectedExamDocument?.id) return undefined;
+    let cancelled = false;
+    const examSetId = selectedExamDocument.id;
+    supabase
+      .from("exam_simulation_sessions")
+      .select("id,user_id,exam_set_id,status,duration_minutes,started_at,submitted_at,answers,marked,current_index,result,parse_version,updated_at")
+      .eq("user_id", userId)
+      .eq("exam_set_id", examSetId)
+      .eq("status", "active")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setExamSimulationLoadState("error");
+          return;
+        }
+        const next = examSimulationFromRow(data);
+        examSimulationRef.current = next;
+        setExamSimulation(next);
+        setExamSimulationLoadState("ready");
+        if (next.status === "active") {
+          setExamSetShowAnswers(false);
+          setExamSetPdfSource("questions");
+          setExamSetMode("exam");
+        }
+      });
+    return () => {
+      cancelled = true;
+      window.clearTimeout(examSimulationSaveTimerRef.current);
+      const current = examSimulationRef.current;
+      if (examSimulationDirtyRef.current && current?.status === "active" && current?.examSetId === examSetId) {
+        persistExamSimulationProgress(current, { background: true });
+      }
+    };
+  }, [isLectureLibrary, userId, selectedExamDocument?.id]);
+
+  useEffect(() => {
+    if (examSimulation.status !== "active") return undefined;
+    setExamSimulationNow(Date.now());
+    const timer = window.setInterval(() => setExamSimulationNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [examSimulation.id, examSimulation.status]);
+
+  useEffect(() => {
+    if (isLectureLibrary || examSimulation.status !== "active" || !selectedExamDocument?.id || examSetPreviewState !== "ready") return;
+    if (examSetQuestionDocumentId !== selectedExamDocument.id || !examSetQuestions.length) createExamSetViewer();
+  }, [isLectureLibrary, examSimulation.id, examSimulation.status, selectedExamDocument?.id, examSetPreviewState]);
+
+  useEffect(() => {
+    if (examSimulation.status !== "active" || !examSimulation.id) return;
+    if (examSimulationRemainingSeconds(examSimulation, examSimulationNow) > 0) return;
+    if (!examSimulationSubmittingRef.current) submitExamSimulation({ automatic: true });
+  }, [examSimulation.id, examSimulation.status, examSimulationNow]);
 
   useEffect(() => {
     if (isLectureLibrary || !userId) {
@@ -37028,11 +37256,11 @@ async function downloadExamSetDocument(examDocument = selectedExamDocument) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-  async function reconcileExamReviewSubmission(scope, snapshot, questions) {
+  async function reconcileExamReviewSubmission(scope, snapshot, questions, attemptId = null) {
     if (!scope?.examSetId || !snapshot?.lastSubmissionId || !snapshot?.submittedAt) return false;
     const key = `${scope.examSetId}:${snapshot.lastSubmissionId}`;
     if (examReviewReconciledRef.current.has(key)) return true;
-    const events = examReviewBuildSubmissionEvents(questions, snapshot, snapshot.lastSubmissionId, EXAM_SET_PARSE_VERSION);
+    const events = examReviewBuildSubmissionEvents(questions, snapshot, snapshot.lastSubmissionId, EXAM_SET_PARSE_VERSION, attemptId);
     setExamReviewSyncState("saving");
     try {
       const { error } = await supabase.rpc("record_exam_review_submission", {
@@ -37345,13 +37573,149 @@ async function openExamSetPdfEditor() {
   if (readyQuestions.length) setExamSetEditorOpen(true);
 }
 
+  async function persistExamSimulationProgress(snapshot, { background = false } = {}) {
+    if (!snapshot?.id || snapshot.status !== "active") return false;
+    if (!background) setExamSimulationSaveState("saving");
+    try {
+      const { data, error } = await supabase.rpc("save_exam_simulation_progress", {
+        p_session_id: snapshot.id,
+        p_answers: snapshot.answers || {},
+        p_marked: snapshot.marked || {},
+        p_current_index: Math.max(0, Number(snapshot.currentIndex) || 0),
+      });
+      if (error) throw error;
+      examSimulationDirtyRef.current = false;
+      const row = Array.isArray(data) ? data[0] : data;
+      const saved = examSimulationFromRow(row || snapshot);
+      if (examSimulationRef.current?.id === snapshot.id && examSimulationRef.current?.status === "active") {
+        examSimulationRef.current = saved;
+        setExamSimulation(saved);
+        if (!background) setExamSimulationSaveState("saved");
+      }
+      return true;
+    } catch (error) {
+      if (!background) setExamSimulationSaveState("error");
+      return false;
+    }
+  }
+
+  function updateExamSimulationProgress(updater, { save = true } = {}) {
+    const current = examSimulationRef.current;
+    if (!current?.id || current.status !== "active") return;
+    const nextRaw = typeof updater === "function" ? updater(current) : updater;
+    const next = { ...current, ...nextRaw, answers: { ...(nextRaw?.answers || current.answers || {}) }, marked: { ...(nextRaw?.marked || current.marked || {}) } };
+    examSimulationRef.current = next;
+    setExamSimulation(next);
+    if (!save) return;
+    examSimulationDirtyRef.current = true;
+    setExamSimulationSaveState("saving");
+    window.clearTimeout(examSimulationSaveTimerRef.current);
+    examSimulationSaveTimerRef.current = window.setTimeout(() => persistExamSimulationProgress(examSimulationRef.current), 450);
+  }
+
+  async function openExamSimulationStart() {
+    let readyQuestions = examSetQuestionDocumentId === selectedExamDocument?.id ? examSetQuestions : [];
+    if (!readyQuestions.length) {
+      const result = await createExamSetViewer();
+      readyQuestions = result?.questions || [];
+    }
+    if (!readyQuestions.length) return;
+    const official = Number(selectedExamDocument?.parseMeta?.officialDurationMinutes || 0);
+    setExamSimulationDurationDraft(String(official > 0 ? official : 180));
+    setExamSimulationStartDialog(true);
+  }
+
+  async function startExamSimulation() {
+    if (!selectedExamDocument?.id || examSimulationSubmittingRef.current) return;
+    const duration = Math.max(1, Math.min(720, Math.round(Number(examSimulationDurationDraft) || 0)));
+    if (!duration) return;
+    examSimulationSubmittingRef.current = true;
+    setExamSimulationSaveState("saving");
+    try {
+      const { data, error } = await supabase.rpc("start_exam_simulation", {
+        p_exam_set_id: selectedExamDocument.id,
+        p_duration_minutes: duration,
+        p_parse_version: selectedExamDocument.parseVersion || EXAM_SET_PARSE_VERSION,
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      const next = examSimulationFromRow(row);
+      examSimulationRef.current = next;
+      setExamSimulation(next);
+      setExamSimulationStartDialog(false);
+      setExamSimulationSaveState("saved");
+      setExamSimulationNow(Date.now());
+      setExamSetShowAnswers(false);
+      setExamSetPdfSource("questions");
+      setExamSetMode("exam");
+    } catch (error) {
+      setExamSimulationSaveState("error");
+      setExamSetStatus({ state: "error", message: copy.examSimulationSetupHint });
+    } finally {
+      examSimulationSubmittingRef.current = false;
+    }
+  }
+
+  async function submitExamSimulation({ automatic = false } = {}) {
+    const current = examSimulationRef.current;
+    if (!current?.id || current.status !== "active" || examSimulationSubmittingRef.current) return;
+    examSimulationSubmittingRef.current = true;
+    setExamSimulationSaveState("saving");
+    window.clearTimeout(examSimulationSaveTimerRef.current);
+    try {
+      const progressSaved = await persistExamSimulationProgress(current);
+      if (!progressSaved) throw new Error(copy.examSimulationAutosaveError);
+      const latest = examSimulationRef.current;
+      const { data, error } = await supabase.rpc("submit_exam_simulation", { p_session_id: latest.id });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      const submitted = examSimulationFromRow(row);
+      examSimulationDirtyRef.current = false;
+      examSimulationRef.current = submitted;
+      setExamSimulation(submitted);
+      setExamSimulationSaveState("saved");
+      setExamSimulationSubmitDialog(false);
+      setExamSetShowAnswers(false);
+      const questions = examSetQuestionDocumentId === selectedExamDocument?.id && examSetQuestions.length ? examSetQuestions : (selectedExamDocument?.parsedQuestions || []);
+      const reviewSnapshot = { ...submitted, submittedAt: submitted.submittedAt, lastSubmissionId: submitted.id };
+      await reconcileExamReviewSubmission({ userId, examSetId: submitted.examSetId }, reviewSnapshot, questions, submitted.id);
+      if (automatic) setExamSetStatus({ state: "success", message: copy.examSimulationSubmitted });
+    } catch (error) {
+      setExamSimulationSaveState("error");
+      setExamSetStatus({ state: "error", message: error?.message || copy.examSimulationAutosaveError });
+    } finally {
+      examSimulationSubmittingRef.current = false;
+    }
+  }
+
+  function leaveExamSimulationResult() {
+    const empty = examSimulationEmpty();
+    examSimulationRef.current = empty;
+    setExamSimulation(empty);
+    setExamSetShowAnswers(false);
+  }
+
   function selectExamSetQuestion(index) {
     if (!examSetQuestions.length) return;
     const nextIndex = Math.min(examSetQuestions.length - 1, Math.max(0, Number(index) || 0));
+    if (examSimulationRef.current?.id && examSimulationRef.current.examSetId === selectedExamDocument?.id) {
+      if (examSimulationRef.current.status === "active") updateExamSimulationProgress((current) => ({ ...current, currentIndex: nextIndex }));
+      else {
+        const next = { ...examSimulationRef.current, currentIndex: nextIndex };
+        examSimulationRef.current = next;
+        setExamSimulation(next);
+      }
+      return;
+    }
     updateExamSetPractice((current) => ({ ...current, currentIndex: nextIndex }));
   }
 
   function answerExamSetQuestion(questionId, optionLabel) {
+    if (examSimulationRef.current?.id && examSimulationRef.current.examSetId === selectedExamDocument?.id) {
+      if (examSimulationRef.current.status !== "active") return;
+      updateExamSimulationProgress((current) => ({ ...current, answers: { ...current.answers, [questionId]: optionLabel } }));
+      return;
+    }
     updateExamSetPractice((current) => ({
       ...current,
       submittedAt: null,
@@ -37361,6 +37725,11 @@ async function openExamSetPdfEditor() {
   }
 
   function toggleExamSetMarked(questionId) {
+    if (examSimulationRef.current?.id && examSimulationRef.current.examSetId === selectedExamDocument?.id) {
+      if (examSimulationRef.current.status !== "active") return;
+      updateExamSimulationProgress((current) => ({ ...current, marked: { ...current.marked, [questionId]: !current.marked?.[questionId] } }));
+      return;
+    }
     updateExamSetPractice((current) => ({
       ...current,
       submittedAt: null,
@@ -37439,6 +37808,10 @@ async function openExamSetPdfEditor() {
 
   const title = isLectureLibrary ? copy.lectures : copy.examSets;
   const subtitle = isLectureLibrary ? copy.lectureSubtitle : copy.examSubtitle;
+  const examSimulationForSelected = Boolean(examSimulation.id && examSimulation.examSetId === selectedExamDocument?.id);
+  const examSimulationActive = Boolean(examSimulationForSelected && examSimulation.status === "active");
+  const examSimulationSubmitted = Boolean(examSimulationForSelected && examSimulation.status === "submitted");
+  const examSimulationSecondsLeft = examSimulationActive ? examSimulationRemainingSeconds(examSimulation, examSimulationNow) : 0;
   const selectedAttendance = selectedLectureRow ? attendanceDefinition(selectedLectureRow.attendanceStatus) : null;
   const selectedSelfStudy = selectedLectureRow ? selfStudyDefinition(selectedLectureRow.selfStudyStatus) : null;
   const selectedMastery = selectedLectureRow ? masteryDefinition(selectedLectureRow.progressState.mastery) : null;
@@ -37773,7 +38146,7 @@ async function openExamSetPdfEditor() {
                 {selectedExamDocument?.ownerUserId === userId && <button type="button" className="exam-set-editor-open" disabled={examSetSaving || examSetEditorSaving || examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={openExamSetPdfEditor}><Icon name="edit" size={12} />{copy.examSetEditorOpen}</button>}
                 {examSetMode === "pdf" && <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetPdfMode}>
                   <button type="button" role="tab" aria-selected={examSetPdfSource === "questions"} data-active={examSetPdfSource === "questions" ? "true" : "false"} onClick={() => setExamSetPdfSource("questions")}><Icon name="file" size={11} />{copy.examSetQuestionsSource}</button>
-                  <button type="button" role="tab" aria-selected={examSetPdfSource === "answers"} data-active={examSetPdfSource === "answers" ? "true" : "false"} disabled={!selectedExamDocument?.answerStoragePath || examSetAnswerPreviewState !== "ready"} onClick={() => setExamSetPdfSource("answers")}><Icon name="check" size={11} />{copy.examSetAnswersSource}</button>
+                  <button type="button" role="tab" aria-selected={examSetPdfSource === "answers"} data-active={examSetPdfSource === "answers" ? "true" : "false"} disabled={examSimulationActive || !selectedExamDocument?.answerStoragePath || examSetAnswerPreviewState !== "ready"} onClick={() => !examSimulationActive && setExamSetPdfSource("answers")}><Icon name="check" size={11} />{copy.examSetAnswersSource}</button>
                 </span>}
                 <button type="button" onClick={() => openExamSetDocument()}><Icon name="external" size={12} />{copy.examSetOpen}</button>
                 <button type="button" onClick={() => downloadExamSetDocument()}><Icon name="download" size={12} />{copy.examSetDownload}</button>
@@ -37827,26 +38200,35 @@ examSetMode === "review" ? (
   examSetParseState === "loading" ? (
     <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetExtracting}</strong><p>{copy.examSetExtractHint}</p></div>
   ) : examSetQuestions.length ? (() => {
-    const currentIndex = Math.min(Math.max(0, examSetPractice.currentIndex || 0), examSetQuestions.length - 1);
+    const viewerAttempt = examSimulationForSelected ? examSimulation : examSetPractice;
+    const currentIndex = Math.min(Math.max(0, viewerAttempt.currentIndex || 0), examSetQuestions.length - 1);
     const question = examSetQuestions[currentIndex];
-    const selectedAnswer = examSetPractice.answers?.[question.id] || "";
-    const isMarked = Boolean(examSetPractice.marked?.[question.id]);
-    const answeredCount = examSetQuestions.filter((item) => examSetPractice.answers?.[item.id]).length;
-    const markedCount = examSetQuestions.filter((item) => examSetPractice.marked?.[item.id]).length;
-    const submitted = Boolean(examSetPractice.submittedAt);
+    const selectedAnswer = viewerAttempt.answers?.[question.id] || "";
+    const isMarked = Boolean(viewerAttempt.marked?.[question.id]);
+    const answeredCount = examSetQuestions.filter((item) => viewerAttempt.answers?.[item.id]).length;
+    const markedCount = examSetQuestions.filter((item) => viewerAttempt.marked?.[item.id]).length;
+    const submitted = examSimulationForSelected ? examSimulationSubmitted : Boolean(examSetPractice.submittedAt);
     const keyedCount = examSetQuestions.filter((item) => item.correctLabel).length;
     const correctCount = submitted ? examSetQuestions.filter((item) => item.correctLabel && examSetPractice.answers?.[item.id] === item.correctLabel).length : 0;
     const selectedIsCorrect = submitted && question.correctLabel && selectedAnswer ? selectedAnswer === question.correctLabel : null;
     return (
       <div className="exam-set-practice-shell">
+        {examSimulationSubmitted && examSimulation.result && <div className="exam-simulation-result-banner"><span><Icon name="check" size={12} />{copy.examSimulationSubmitted}</span><strong>{copy.examSimulationCorrectOfAssessed(examSimulation.result.correctCount, examSimulation.result.assessedCount)}</strong><small>{examSimulation.result.answeredCount} {copy.examSetAnswered.toLowerCase()} · {examSimulation.result.unansweredCount} {copy.examSetUnanswered.toLowerCase()} · {examSimulation.result.markedCount} {copy.examSetMarked.toLowerCase()}</small></div>}
         <section className="exam-set-question-stage">
           <header className="exam-set-question-header">
             <div><strong>{copy.examSetQuestion} {currentIndex + 1} / {examSetQuestions.length}</strong><small>{copy.examSetExtracted(examSetQuestions.length, keyedCount, examSetQuestions.filter((item) => item.hasVisual).length)}</small></div>
             <div className="exam-set-question-header-actions">
-              <span className="exam-set-practice-save" data-state={examSetPracticeSaveState}>{examSetPracticeLoadState === "loading" ? copy.examSetPracticeLoading : examSetPracticeSaveState === "saving" ? copy.examSetPracticeSaving : examSetPracticeSaveState === "saved" ? copy.examSetPracticeSaved : examSetPracticeSaveState === "error" ? copy.examSetPracticeError : ""}</span>
+              {examSimulationActive ? (
+                <span className="exam-simulation-timer" data-low={examSimulationSecondsLeft <= 300 ? "true" : "false"}><Icon name="clock" size={11} /><span>{copy.examSimulationTimeLeft}</span><strong>{examSimulationFormatTime(examSimulationSecondsLeft)}</strong></span>
+              ) : examSimulationSubmitted ? (
+                <button type="button" className="exam-simulation-exit" onClick={leaveExamSimulationResult}>{copy.examSimulationBackToPractice}</button>
+              ) : (
+                <button type="button" className="exam-simulation-start" onClick={openExamSimulationStart} disabled={examSimulationLoadState === "loading"}><Icon name="clock" size={11} />{copy.examSimulationStart}</button>
+              )}
+              <span className="exam-set-practice-save" data-state={examSimulationForSelected ? examSimulationSaveState : examSetPracticeSaveState}>{examSimulationForSelected ? (examSimulationSaveState === "saving" ? copy.examSetPracticeSaving : examSimulationSaveState === "saved" ? copy.examSetPracticeSaved : examSimulationSaveState === "error" ? copy.examSimulationAutosaveError : "") : (examSetPracticeLoadState === "loading" ? copy.examSetPracticeLoading : examSetPracticeSaveState === "saving" ? copy.examSetPracticeSaving : examSetPracticeSaveState === "saved" ? copy.examSetPracticeSaved : examSetPracticeSaveState === "error" ? copy.examSetPracticeError : "")}</span>
               <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetShowAnswers}>
                 <button type="button" role="tab" aria-selected={!examSetShowAnswers} data-active={!examSetShowAnswers ? "true" : "false"} onClick={() => setExamSetShowAnswers(false)}>{copy.examSetHideAnswers}</button>
-                <button type="button" role="tab" aria-selected={examSetShowAnswers} data-active={examSetShowAnswers ? "true" : "false"} onClick={() => setExamSetShowAnswers(true)} disabled={!keyedCount}>{copy.examSetShowAnswers}</button>
+                <button type="button" role="tab" aria-selected={examSetShowAnswers} data-active={examSetShowAnswers ? "true" : "false"} onClick={() => !examSimulationActive && setExamSetShowAnswers(true)} disabled={examSimulationActive || !keyedCount}>{copy.examSetShowAnswers}</button>
               </span>
             </div>
           </header>
@@ -37867,7 +38249,7 @@ examSetMode === "review" ? (
                   return <button key={option.label} type="button" className="exam-set-option" data-selected={selectedAnswer === option.label ? "true" : "false"} data-result={result || undefined} onClick={() => answerExamSetQuestion(question.id, option.label)}><span className="exam-set-option-label">{option.label}</span><span className="exam-set-option-text">{option.text}</span></button>;
                 })}
               </div>
-              {examSetShowAnswers && (
+              {examSetShowAnswers && !examSimulationActive && (
                 <div className="exam-set-answer-feedback" data-tone={question.correctLabel && selectedAnswer ? (selectedIsCorrect ? "correct" : "wrong") : ""}>
                   {question.correctLabel ? copy.examSetCorrectAnswer(question.correctLabel) : copy.examSetAnswerKeyMissing}
                 </div>
@@ -37883,15 +38265,21 @@ examSetMode === "review" ? (
           <div className="exam-set-grid-header"><strong>{copy.examSetGridTitle}</strong><small>{copy.examSetGridHint}</small></div>
           <div className="exam-set-question-grid">
             {examSetQuestions.map((item, index) => {
-              const state = examSetQuestionGridState(item, examSetPractice);
-              const marked = Boolean(examSetPractice.marked?.[item.id]);
+              const state = examSetQuestionGridState(item, viewerAttempt);
+              const marked = Boolean(viewerAttempt.marked?.[item.id]);
               return <button key={item.id} type="button" className="exam-set-grid-cell" data-state={state} data-marked={marked ? "true" : "false"} data-current={index === currentIndex ? "true" : "false"} title={`${copy.examSetSourceQuestion} ${item.sourceNumber}`} onClick={() => selectExamSetQuestion(index)}>{index + 1}</button>;
             })}
           </div>
           <div className="exam-set-grid-summary">
-            <div className="exam-set-grid-stats"><span><strong>{answeredCount}</strong><small>{copy.examSetAnswered}</small></span><span><strong>{markedCount}</strong><small>{copy.examSetMarked}</small></span><span><strong>{submitted && keyedCount ? `${correctCount}/${keyedCount}` : keyedCount}</strong><small>{submitted ? copy.examSetCorrect : "Facit"}</small></span></div>
+            <div className="exam-set-grid-stats"><span><strong>{answeredCount}</strong><small>{copy.examSetAnswered}</small></span><span><strong>{markedCount}</strong><small>{copy.examSetMarked}</small></span><span><strong>{examSimulationSubmitted && examSimulation.result ? `${examSimulation.result.correctCount}/${examSimulation.result.assessedCount}` : submitted && keyedCount ? `${correctCount}/${keyedCount}` : keyedCount}</strong><small>{submitted ? copy.examSetCorrect : "Facit"}</small></span></div>
             <div className="exam-set-grid-legend"><span><i />{copy.examSetUnanswered}</span><span><i data-tone="answered" />{copy.examSetAnswered}</span><span><i data-tone="marked" />{copy.examSetMarked}</span>{submitted && <><span><i data-tone="correct" />{copy.examSetCorrect}</span><span><i data-tone="wrong" />{copy.examSetWrong}</span></>}</div>
-            <button type="button" className="exam-set-grid-submit" data-submitted={submitted ? "true" : "false"} onClick={submitExamSetPractice}><Icon name={submitted ? "check" : "flag"} size={12} />{submitted ? copy.examSetSubmitted : copy.examSetSubmit}</button>
+            {examSimulationActive ? (
+              <button type="button" className="exam-set-grid-submit" onClick={() => setExamSimulationSubmitDialog(true)}><Icon name="flag" size={12} />{copy.examSimulationSubmit}</button>
+            ) : examSimulationSubmitted ? (
+              <button type="button" className="exam-set-grid-submit" data-submitted="true" disabled><Icon name="check" size={12} />{copy.examSimulationSubmitted}</button>
+            ) : (
+              <button type="button" className="exam-set-grid-submit" data-submitted={submitted ? "true" : "false"} onClick={submitExamSetPractice}><Icon name={submitted ? "check" : "flag"} size={12} />{submitted ? copy.examSetSubmitted : copy.examSetSubmit}</button>
+            )}
           </div>
         </aside>
       </div>
@@ -38072,6 +38460,37 @@ examSetMode === "review" ? (
           </div>
         </Modal>
       )}
+
+{examSimulationStartDialog && !isLectureLibrary && (
+  <Modal c={c} onClose={() => !examSimulationSubmittingRef.current && setExamSimulationStartDialog(false)}>
+    <div className="exam-simulation-dialog">
+      <div className="exam-simulation-dialog-head"><span><Icon name="clock" size={17} /></span><div><strong>{copy.examSimulationTitle}</strong><small>{copy.examSimulationIntro}</small></div></div>
+      <div className="exam-simulation-facts">
+        <span><strong>{selectedExamDocument?.year || "—"}</strong><small>{examSetSessionLabel(selectedExamDocument?.examSession)}</small></span>
+        <span><strong>{examSetQuestions.length}</strong><small>{copy.examSetQuestion}</small></span>
+        <span><strong>{examSetQuestions.filter((item) => item.verificationStatus === "verified" && item.correctLabel).length}</strong><small>{copy.examSimulationSafeKey}</small></span>
+        <span><strong>{examSetQuestions.filter((item) => !(item.verificationStatus === "verified" && item.correctLabel)).length}</strong><small>{copy.examSimulationNoKey}</small></span>
+      </div>
+      <label className="exam-simulation-duration"><span>{copy.examSimulationDuration}</span><input type="number" min="1" max="720" step="1" value={examSimulationDurationDraft} onChange={(event) => setExamSimulationDurationDraft(event.target.value)} /><small>{copy.examSimulationDurationHint}</small></label>
+      <div className="exam-simulation-dialog-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => setExamSimulationStartDialog(false)}>{copy.examSimulationCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={!Number(examSimulationDurationDraft) || examSimulationSubmittingRef.current} onClick={startExamSimulation}><Icon name="clock" size={12} />{copy.examSimulationBegin}</button></div>
+    </div>
+  </Modal>
+)}
+
+{examSimulationSubmitDialog && examSimulationActive && !isLectureLibrary && (
+  <Modal c={c} onClose={() => !examSimulationSubmittingRef.current && setExamSimulationSubmitDialog(false)}>
+    <div className="exam-simulation-dialog">
+      <div className="exam-simulation-dialog-head"><span><Icon name="flag" size={17} /></span><div><strong>{copy.examSimulationSubmitTitle}</strong><small>{copy.examSimulationSubmitHint}</small></div></div>
+      <div className="exam-simulation-facts">
+        <span><strong>{examSetQuestions.filter((item) => examSimulation.answers?.[item.id]).length}</strong><small>{copy.examSetAnswered}</small></span>
+        <span><strong>{examSetQuestions.filter((item) => !examSimulation.answers?.[item.id]).length}</strong><small>{copy.examSetUnanswered}</small></span>
+        <span><strong>{examSetQuestions.filter((item) => examSimulation.marked?.[item.id]).length}</strong><small>{copy.examSetMarked}</small></span>
+        <span><strong>{examSimulationFormatTime(examSimulationSecondsLeft)}</strong><small>{copy.examSimulationTimeLeft}</small></span>
+      </div>
+      <div className="exam-simulation-dialog-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => setExamSimulationSubmitDialog(false)}>{copy.examSimulationCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={examSimulationSubmittingRef.current} onClick={() => submitExamSimulation()}><Icon name="flag" size={12} />{copy.examSimulationConfirmSubmit}</button></div>
+    </div>
+  </Modal>
+)}
 
 {examSetDialog && !isLectureLibrary && (
   <Modal c={c} onClose={() => !examSetSaving && setExamSetDialog(null)}>
