@@ -13256,6 +13256,8 @@ select.ui-control {
 .lecture-viewer-v2 .lecture-notes-panel { border-inline-start: 1px solid var(--ui-border); box-shadow: none; }
 .lecture-viewer-v2 .document-search-box { height: 34px; margin: 8px; padding-inline: 9px; border-radius: 8px; }
 .lecture-viewer-v2 .document-search-box input { font-size: 9.5px; }
+.lecture-viewer-v2 .document-search-shortcut { min-width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid var(--ui-border); border-radius: 5px; background: var(--ui-soft); color: var(--ui-muted); font: 800 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace; box-shadow: inset 0 -1px 0 rgba(20,35,60,.06); }
+.lecture-viewer-v2 .document-search-box:focus-within .document-search-shortcut { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
 .lecture-viewer-v2 .lecture-module-overview-wrap { display: none; }
 .lecture-viewer-v2 .lecture-overview-controls { padding: 0 6px 4px; border-bottom: 1px solid var(--ui-border); }
 .lecture-viewer-v2 .lecture-filter-strip { gap: 3px; padding: 1px 2px 3px; }
@@ -13302,6 +13304,13 @@ select.ui-control {
 .lecture-viewer-v2 .lecture-follow-up-trigger > span:last-child { display: none; }
 .lecture-viewer-v2 .lecture-detail-navigation { height: 30px; padding: 2px; border-radius: 8px; }
 .lecture-viewer-v2 .lecture-detail-nav-button { width: 25px; height: 25px; }
+.lecture-favorite-navigation { height: 30px; display: inline-flex; align-items: center; gap: 1px; padding: 2px; border: 1px solid color-mix(in srgb,#d7a22f 24%,var(--ui-border)); border-radius: 8px; background: color-mix(in srgb,#d7a22f 5%,var(--ui-panel)); }
+.lecture-favorite-nav-button { width: 29px; height: 25px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #9b7219; cursor: pointer; transition: background 120ms ease,color 120ms ease,transform 120ms ease; }
+.lecture-favorite-nav-button:hover:not(:disabled) { background: color-mix(in srgb,#d7a22f 13%,var(--ui-panel)); color: #7c5709; transform: translateY(-1px); }
+.lecture-favorite-nav-button:disabled { opacity: .25; cursor: default; }
+.lecture-resume-chip { border-color: color-mix(in srgb,var(--ui-blue) 18%,var(--ui-border)) !important; background: color-mix(in srgb,var(--ui-blue) 5%,var(--ui-panel)); color: var(--ui-blue) !important; }
+.lecture-viewer-v2 .lecture-overview-row { transition: background 120ms ease,border-color 120ms ease,transform 120ms ease; }
+.lecture-viewer-v2 .lecture-overview-row:hover { transform: translateX(1px); }
 .lecture-viewer-v2 .lecture-detail-navigation > span { min-width: 34px; font-size: 6.8px; }
 .lecture-material-menu-trigger { height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 7px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 7.5px; font-weight: 800; }
 .lecture-material-menu-trigger:hover,
@@ -34606,6 +34615,25 @@ function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, f
   );
 }
 
+function lectureFavoriteNeighbor(lectures, favoriteIds, selectedId, direction = 1) {
+  const list = Array.isArray(lectures) ? lectures.filter((lecture) => lecture?.id) : [];
+  if (!list.length) return null;
+  const favorites = new Set(Array.isArray(favoriteIds) ? favoriteIds.filter(Boolean) : []);
+  if (!favorites.size) return null;
+  const step = Number(direction) < 0 ? -1 : 1;
+  const selectedIndex = list.findIndex((lecture) => lecture.id === selectedId);
+  if (selectedIndex < 0) {
+    const ordered = step > 0 ? list : [...list].reverse();
+    return ordered.find((lecture) => favorites.has(lecture.id)) || null;
+  }
+  for (let offset = 1; offset < list.length; offset += 1) {
+    const index = (selectedIndex + (offset * step) + list.length) % list.length;
+    const lecture = list[index];
+    if (lecture?.id !== selectedId && favorites.has(lecture?.id)) return lecture;
+  }
+  return null;
+}
+
 function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, spacedData = {}, importedQuestions = [] }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
@@ -34640,6 +34668,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [lectureFavoriteStatus, setLectureFavoriteStatus] = useState("idle");
   const [lectureViewerFocus, setLectureViewerFocus] = useState(false);
   const [lectureMaterialsOpen, setLectureMaterialsOpen] = useState(false);
+  const lectureSearchRef = useRef(null);
   const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
@@ -35053,6 +35082,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       showingLectures: (shown, total) => `${shown} af ${total} forelæsninger`,
       previousLecture: "Forrige forelæsning",
       nextLecture: "Næste forelæsning",
+      favoritePreviousLecture: "Forrige stjernemarkerede forelæsning",
+      favoriteNextLecture: "Næste stjernemarkerede forelæsning",
+      viewerResumePage: (page) => `Fortsætter · side ${page}`,
+      viewerSearchShortcut: "Tryk / for at søge",
       lecturePosition: (current, total) => `${current}/${total}`,
       openLectureLink: "Åbn undervisningslink",
       scheduleLocation: "Sted",
@@ -35455,6 +35488,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       showingLectures: (shown, total) => `${shown} of ${total} lectures`,
       previousLecture: "Previous lecture",
       nextLecture: "Next lecture",
+      favoritePreviousLecture: "Previous starred lecture",
+      favoriteNextLecture: "Next starred lecture",
+      viewerResumePage: (page) => `Resume · page ${page}`,
+      viewerSearchShortcut: "Press / to search",
       lecturePosition: (current, total) => `${current}/${total}`,
       openLectureLink: "Open teaching link",
       scheduleLocation: "Location",
@@ -35857,6 +35894,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       showingLectures: (shown, total) => `${shown} من ${total} محاضرة`,
       previousLecture: "المحاضرة السابقة",
       nextLecture: "المحاضرة التالية",
+      favoritePreviousLecture: "المحاضرة المميزة السابقة",
+      favoriteNextLecture: "المحاضرة المميزة التالية",
+      viewerResumePage: (page) => `متابعة · الصفحة ${page}`,
+      viewerSearchShortcut: "اضغط / للبحث",
       lecturePosition: (current, total) => `${current}/${total}`,
       openLectureLink: "فتح رابط المحاضرة",
       scheduleLocation: "المكان",
@@ -35930,7 +35971,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const lectures = isLectureLibrary ? (MODULE_LECTURES[moduleName] || []) : [];
   const selectedStateKey = isLectureLibrary ? "selectedLectureId" : "selectedExamDocumentId";
   const initialLectureId = lectures[0]?.id || null;
-  const selectedId = workspaceState[selectedStateKey] || (isLectureLibrary ? initialLectureId : documents[0]?.id || null);
+  const lectureResumeState = isLectureLibrary ? (workspaceState.lectureViewerHistory?.[moduleName || "module"] || null) : null;
+  const resumeLectureId = lectureResumeState?.lectureId && lectures.some((lecture) => lecture.id === lectureResumeState.lectureId)
+    ? lectureResumeState.lectureId
+    : null;
+  const rememberedLectureId = workspaceState[selectedStateKey] && lectures.some((lecture) => lecture.id === workspaceState[selectedStateKey])
+    ? workspaceState[selectedStateKey]
+    : null;
+  const selectedId = isLectureLibrary
+    ? (resumeLectureId || rememberedLectureId || initialLectureId)
+    : (workspaceState[selectedStateKey] || documents[0]?.id || null);
 
   useEffect(() => {
     if (selectedId) return;
@@ -35943,7 +35993,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const selectedLectureMaterials = isLectureLibrary && selectedLecture
     ? lectureMaterials.filter((material) => material.lecture_id === selectedLecture.id)
     : [];
-  const selectedMaterialId = materialScopeKey ? workspaceState.lectureMaterialSelection?.[materialScopeKey] : null;
+  const resumeMaterialId = lectureResumeState?.lectureId === selectedLecture?.id ? lectureResumeState?.materialId : null;
+  const selectedMaterialId = materialScopeKey ? (workspaceState.lectureMaterialSelection?.[materialScopeKey] || resumeMaterialId) : null;
   const activeLectureMaterial = selectedLectureMaterials.find((material) => material.id === selectedMaterialId)
     || selectedLectureMaterials.find((material) => material.is_primary)
     || selectedLectureMaterials[0]
@@ -36536,14 +36587,39 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     ? lectures[selectedLectureIndex + 1]
     : null;
   const selectedLectureFavorite = Boolean(selectedLecture?.id && lectureFavorites.includes(selectedLecture.id));
+  const previousFavoriteLecture = lectureFavoriteNeighbor(lectures, lectureFavorites, selectedLecture?.id, -1);
+  const nextFavoriteLecture = lectureFavoriteNeighbor(lectures, lectureFavorites, selectedLecture?.id, 1);
+  const activeLectureViewerState = activeLectureMaterial?.id ? (workspaceState.documentViewer?.[activeLectureMaterial.id] || {}) : {};
+  const lectureResumePage = Math.max(1, Number(activeLectureViewerState.page || lectureResumeState?.page) || 1);
 
   useEffect(() => {
     if (!isLectureLibrary) return undefined;
     const handleLectureViewerKeys = (event) => {
-      if (event.target?.matches?.("input,textarea,select,[contenteditable=true]")) return;
-      if (event.key === "Escape" && lectureViewerFocus) {
+      if (event.target?.matches?.("input,textarea,select,[contenteditable=true]")) {
+        if (event.target === lectureSearchRef.current && event.key === "Escape") {
+          event.preventDefault();
+          setQuery("");
+          event.target.blur?.();
+        }
+        return;
+      }
+      if (event.key === "/" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        if (lectureViewerFocus) setLectureViewerFocus(false);
+        updateLectureViewerV2({ libraryOpen: true });
+        window.requestAnimationFrame(() => lectureSearchRef.current?.focus());
+      } else if (event.key === "Escape" && lectureViewerFocus) {
         event.preventDefault();
         setLectureViewerFocus(false);
+      } else if (event.key === "Escape" && query) {
+        event.preventDefault();
+        setQuery("");
+      } else if (event.altKey && event.key === "[" && previousFavoriteLecture) {
+        event.preventDefault();
+        selectAdjacentLecture(previousFavoriteLecture);
+      } else if (event.altKey && event.key === "]" && nextFavoriteLecture) {
+        event.preventDefault();
+        selectAdjacentLecture(nextFavoriteLecture);
       } else if (event.key === "[" && previousLecture) {
         event.preventDefault();
         selectAdjacentLecture(previousLecture);
@@ -36554,7 +36630,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     };
     window.addEventListener("keydown", handleLectureViewerKeys);
     return () => window.removeEventListener("keydown", handleLectureViewerKeys);
-  }, [isLectureLibrary, lectureViewerFocus, previousLecture?.id, nextLecture?.id]);
+  }, [isLectureLibrary, lectureViewerFocus, query, previousLecture?.id, nextLecture?.id, previousFavoriteLecture?.id, nextFavoriteLecture?.id]);
   const moduleSduEvents = isLectureLibrary
     ? mergedLectureCalendarEvents
         .filter((event) => calendarIsSduScheduleEvent(event, moduleName))
@@ -36783,7 +36859,18 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setFollowUpEditorOpen(false);
     setFollowUpMessage("");
     setLectureMaterialsOpen(false);
-    setWorkspaceState((current) => ({ ...current, [selectedStateKey]: lecture.id }));
+    setWorkspaceState((current) => ({
+      ...current,
+      [selectedStateKey]: lecture.id,
+      lectureViewerHistory: {
+        ...(current.lectureViewerHistory || {}),
+        [moduleName || "module"]: {
+          ...(current.lectureViewerHistory?.[moduleName || "module"] || {}),
+          lectureId: lecture.id,
+          updatedAt: Date.now(),
+        },
+      },
+    }));
   }
 
   function handleDocumentWorkspaceClose() {
@@ -37327,6 +37414,15 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         ...(current.lectureMaterialSelection || {}),
         [materialScopeKey]: materialId,
       },
+      lectureViewerHistory: isLectureLibrary && selectedLecture?.id ? {
+        ...(current.lectureViewerHistory || {}),
+        [moduleName || "module"]: {
+          ...(current.lectureViewerHistory?.[moduleName || "module"] || {}),
+          lectureId: selectedLecture.id,
+          materialId,
+          updatedAt: Date.now(),
+        },
+      } : current.lectureViewerHistory,
     }));
   }
 
@@ -37343,6 +37439,17 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           updatedAt: Date.now(),
         },
       },
+      lectureViewerHistory: isLectureLibrary && selectedLecture?.id ? {
+        ...(current.lectureViewerHistory || {}),
+        [moduleName || "module"]: {
+          ...(current.lectureViewerHistory?.[moduleName || "module"] || {}),
+          lectureId: selectedLecture.id,
+          materialId,
+          page: Number(patch.page || current.documentViewer?.[materialId]?.page) || 1,
+          pageOffset: Number.isFinite(Number(patch.pageOffset)) ? Number(patch.pageOffset) : (Number(current.documentViewer?.[materialId]?.pageOffset) || 0),
+          updatedAt: Date.now(),
+        },
+      } : current.lectureViewerHistory,
     }));
   }
 
@@ -38410,7 +38517,7 @@ async function openExamSetPdfEditor() {
 
       <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : ""}`}>
         <aside className="document-library-panel">
-          <label className="document-search-box"><Icon name="search" size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} /></label>
+          <label className="document-search-box"><Icon name="search" size={14} /><input ref={isLectureLibrary ? lectureSearchRef : undefined} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} aria-keyshortcuts={isLectureLibrary ? "/" : undefined} />{isLectureLibrary && <kbd className="document-search-shortcut" title={copy.viewerSearchShortcut}>/</kbd>}</label>
           {isLectureLibrary && (
             <div className="lecture-overview-controls">
               <div className="lecture-module-overview-wrap">
@@ -38546,6 +38653,7 @@ async function openExamSetPdfEditor() {
                   <span className="lecture-detail-schedule-state" data-state={selectedLectureRow.scheduleView.key}>
                     <i />{selectedLectureRow.scheduleView.label}
                   </span>
+                  {lectureResumePage > 1 && <span className="lecture-resume-chip" title={copy.viewerResumePage(lectureResumePage)}><Icon name="clock" size={9} />{copy.viewerResumePage(lectureResumePage)}</span>}
                   {(selectedScheduleDate || selectedScheduleTime) && (
                     <span><Icon name="calendar" size={10} />{[selectedScheduleDate, selectedScheduleTime].filter(Boolean).join(" · ")}</span>
                   )}
@@ -38627,6 +38735,11 @@ async function openExamSetPdfEditor() {
                 <span><Icon name="flag" size={11} /></span>
                 <span><small>{copy.followUp}</small><strong>{selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? copy.followUpPlanOutdated : copy.followUpPlanCurrent) : (selectedFollowUp.active ? copy.followUpShort : copy.followUp)}</strong></span>
               </button>
+
+              <nav className="lecture-favorite-navigation" aria-label={copy.filterFavorites}>
+                <button type="button" className="lecture-favorite-nav-button" disabled={!previousFavoriteLecture} title={`${copy.favoritePreviousLecture} · Alt + [`} aria-label={copy.favoritePreviousLecture} onClick={() => selectAdjacentLecture(previousFavoriteLecture)}><Icon name={language === "ar" ? "right" : "left"} size={10} /><Icon name="star" size={10} /></button>
+                <button type="button" className="lecture-favorite-nav-button" disabled={!nextFavoriteLecture} title={`${copy.favoriteNextLecture} · Alt + ]`} aria-label={copy.favoriteNextLecture} onClick={() => selectAdjacentLecture(nextFavoriteLecture)}><Icon name="star" size={10} /><Icon name={language === "ar" ? "left" : "right"} size={10} /></button>
+              </nav>
 
               <nav className="lecture-detail-navigation" aria-label={copy.lectureHeader}>
                 <button type="button" className="lecture-detail-nav-button" disabled={!previousLecture} title={copy.previousLecture} aria-label={copy.previousLecture} onClick={() => selectAdjacentLecture(previousLecture)}><Icon name={language === "ar" ? "right" : "left"} size={13} /></button>
