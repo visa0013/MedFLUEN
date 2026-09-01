@@ -106,11 +106,11 @@ const TEXT = {
     drByteBasedOnLabel: "Baseret på dette spørgsmål",
     drByteAiSectionTitle: "Dr. Byte AI",
     drByteAiToggleLabel: "Aktivér AI-svar",
-    drByteAiToggleDescription: "Lad Dr. Byte generere rigtige svar baseret på jeres MCQ-data",
+    drByteAiToggleDescription: "Gratis AI-svar via MedFLUENs server — ingen API-nøgle kræves af studerende",
     drByteAiKeyLabel: "OpenAI API-nøgle",
     drByteAiKeyPlaceholder: "sk-...",
     drByteAiModelLabel: "Model",
-    drByteAiKeyHint: "Din nøgle gemmes kun lokalt i din browser og sendes direkte til OpenAI — aldrig til en tredjepartsserver.",
+    drByteAiKeyHint: "Kører server-side via Gemini Free Tier. Studerende skal ikke indtaste eller kunne se en API-nøgle.",
     drByteWebSearchLabel: "Tillad websøgning",
     drByteWebSearchDescription: "Lad AI'en søge information op på nettet, når spørgsmålsbanken ikke er tilstrækkelig",
     drByteUsedWebSearch: "Svaret inkluderer information fundet via websøgning",
@@ -391,11 +391,11 @@ reorderHint: "Træk boksene for at ændre rækkefølgen",
     drByteBasedOnLabel: "Based on this question",
     drByteAiSectionTitle: "Dr. Byte AI",
     drByteAiToggleLabel: "Enable AI answers",
-    drByteAiToggleDescription: "Let Dr. Byte generate real answers based on your MCQ data",
+    drByteAiToggleDescription: "Free AI answers through MedFLUEN’s server — students do not need an API key",
     drByteAiKeyLabel: "OpenAI API key",
     drByteAiKeyPlaceholder: "sk-...",
     drByteAiModelLabel: "Model",
-    drByteAiKeyHint: "Your key is stored only locally in your browser and sent directly to OpenAI — never to a third-party server.",
+    drByteAiKeyHint: "Runs server-side using the Gemini Free Tier. Students do not enter or see an API key.",
     drByteWebSearchLabel: "Allow web search",
     drByteWebSearchDescription: "Let the AI look up information online when the question bank is not enough",
     drByteUsedWebSearch: "This answer includes information found via web search",
@@ -676,11 +676,11 @@ reorderHint: "Drag the boxes to change their order",
     drByteBasedOnLabel: "بناءً على هذا السؤال",
     drByteAiSectionTitle: "الذكاء الاصطناعي للدكتور بايت",
     drByteAiToggleLabel: "تفعيل إجابات الذكاء الاصطناعي",
-    drByteAiToggleDescription: "دع الدكتور بايت يولّد إجابات حقيقية بناءً على بيانات أسئلتك",
+    drByteAiToggleDescription: "إجابات مجانية عبر خادم MedFLUEN — لا يحتاج الطلاب إلى مفتاح API",
     drByteAiKeyLabel: "مفتاح OpenAI API",
     drByteAiKeyPlaceholder: "sk-...",
     drByteAiModelLabel: "النموذج",
-    drByteAiKeyHint: "يتم تخزين مفتاحك محليًا فقط في متصفحك وإرساله مباشرة إلى OpenAI — لا يُرسل أبدًا إلى خادم خارجي.",
+    drByteAiKeyHint: "يعمل عبر الخادم باستخدام المستوى المجاني من Gemini. لا يحتاج الطلاب إلى إدخال مفتاح API أو رؤيته.",
     drByteWebSearchLabel: "السماح بالبحث على الويب",
     drByteWebSearchDescription: "دع الذكاء الاصطناعي يبحث عن معلومات على الإنترنت عندما لا يكون بنك الأسئلة كافيًا",
     drByteUsedWebSearch: "تحتوي هذه الإجابة على معلومات تم العثور عليها عبر البحث على الويب",
@@ -3535,251 +3535,70 @@ function buildDirectAnswer(matches, language) {
   };
 }
 
-function buildAiContextBlock(matches, language) {
-  return matches
-    .map(({ question }, index) => {
-      const optionLines = (question.options || [])
-        .map((option, optionIndex) => `${String.fromCharCode(65 + optionIndex)}. ${translate(option, language)}`)
-        .join("\n");
-      return [
-        `[Spørgsmål ${index + 1}] (id: ${question.id})`,
-        `Kategori: ${translate(question.category, language)}`,
-        `Spørgsmål: ${translate(question.question, language)}`,
-        `Svarmuligheder:\n${optionLines}`,
-        `Korrekt svar: ${String.fromCharCode(65 + question.correct)}. ${translate((question.options || [])[question.correct], language)}`,
-        `Forklaring: ${translate(question.explanation, language)}`,
-      ].join("\n");
-    })
-    .join("\n\n---\n\n");
-}
-
-const DR_BYTE_SYSTEM_PROMPT = {
-  da: [
-    "Du er Dr. Byte, en kyndig og hjælpsom studieassistent for medicinstuderende med bred medicinsk fagkundskab.",
-    "Du får muligvis et udpluk af relevante MCQ-spørgsmål fra brugerens egen spørgsmålsbank som ekstra kontekst — men du er IKKE begrænset til kun at svare, hvis der findes et matchende MCQ.",
-    "Din primære opgave er altid at BESVARE brugerens spørgsmål korrekt og fagligt fyldestgørende, uanset om det handler om selve MCQ'en, en specifik svarmulighed (også en forkert), eller et generelt medicinsk emne.",
-    "Hvis brugeren spørger, hvorfor en bestemt svarmulighed i et MCQ er forkert, skal du forklare det fagligt og konkret, ikke bare gengive det korrekte svar.",
-    "Hvis der findes relevante MCQ'er i konteksten, brug dem som faglig reference og nævn dem (fx 'jf. Spørgsmål 2'), hvor det er naturligt.",
-    "Hvis der IKKE findes nogen relevant MCQ i konteksten, er det helt i orden — svar stadig på spørgsmålet ud fra din egen medicinske fagkundskab, uden at nævne MCQ-referencer.",
-    "Svar altid på dansk, klart og præcist. Gæt aldrig på et faktuelt forkert svar — hvis du er usikker, sig det ærligt.",
-  ].join(" "),
-  en: [
-    "You are Dr. Byte, a knowledgeable and helpful study assistant for medical students with broad medical expertise.",
-    "You may receive a set of relevant MCQ questions from the user's own question bank as extra context — but you are NOT limited to only answering when a matching MCQ exists.",
-    "Your primary task is always to ANSWER the user's question correctly and thoroughly, whether it concerns the MCQ itself, a specific answer option (including an incorrect one), or a general medical topic.",
-    "If the user asks why a specific answer option in an MCQ is wrong, explain it with concrete medical reasoning, not just restate the correct answer.",
-    "If relevant MCQs exist in the context, use them as supporting reference and mention them (e.g. 'see Question 2') where natural.",
-    "If NO relevant MCQ exists in the context, that's fine — still answer the question using your own medical knowledge, without mentioning MCQ references.",
-    "Always answer concisely and clearly. Never guess a factually wrong answer — if uncertain, say so honestly.",
-  ].join(" "),
-  ar: [
-    "أنت الدكتور بايت، مساعد دراسي بارع ومفيد لطلاب الطب يتمتع بمعرفة طبية واسعة.",
-    "قد تحصل على مجموعة من أسئلة الاختيار من متعدد ذات الصلة من بنك أسئلة المستخدم كسياق إضافي — لكنك لست مقيدًا بالإجابة فقط عند وجود سؤال مطابق.",
-    "مهمتك الأساسية هي دائمًا الإجابة على سؤال المستخدم بدقة وبشكل شامل، سواء كان يتعلق بالسؤال نفسه، أو بخيار إجابة معين (حتى لو كان خاطئًا)، أو بموضوع طبي عام.",
-    "إذا سأل المستخدم عن سبب خطأ خيار إجابة معين، فاشرح ذلك بمنطق طبي ملموس، لا مجرد إعادة ذكر الإجابة الصحيحة.",
-    "إذا وُجدت أسئلة ذات صلة في السياق، استخدمها كمرجع داعم واذكرها عند الحاجة.",
-    "إذا لم يوجد أي سؤال ذي صلة في السياق، فهذا أمر طبيعي — أجب على السؤال باستخدام معرفتك الطبية الخاصة دون ذكر أي مرجع.",
-    "أجب دائمًا بإيجاز ووضوح. لا تخمن إجابة خاطئة علميًا مطلقًا — إذا كنت غير متأكد، فقل ذلك بصراحة.",
-  ].join(" "),
-};
-
-
-
-// Security: no provider secret is embedded in the client bundle. NVIDIA remains an
-// optional Dr. Byte provider and requires a user-supplied key (or a server proxy).
-const NVIDIA_DEFAULT_API_KEY = "";
-
-const NVIDIA_CORS_ERROR_HINT = {
-  da: "NVIDIA's API tillader ikke direkte kald fra en browser (CORS er ikke aktiveret på deres endpoint). Dette er en begrænsning hos NVIDIA, ikke en fejl i appen. Tilføj en 'Proxy-URL' i AI-indstillingerne, der peger på en lille mellemled-server, for at løse det permanent.",
-  en: "NVIDIA's API does not allow direct calls from a browser (CORS is not enabled on their endpoint). This is a limitation on NVIDIA's side, not a bug in the app. Add a 'Proxy URL' in the AI settings pointing to a small relay server to fix this permanently.",
-  ar: "لا تسمح واجهة برمجة تطبيقات NVIDIA بالاتصال المباشر من المتصفح (CORS غير مُفعّل على نقطة النهاية الخاصة بهم). هذا قيد من جانب NVIDIA، وليس خطأ في التطبيق. أضف 'عنوان URL للوكيل' في إعدادات الذكاء الاصطناعي لحل هذا بشكل دائم.",
-};
-
-async function callDrByteNvidiaAI({ apiKey, model, userQuestion, matches, language, conversationHistory = [], proxyUrl = "" }) {
-  const contextBlock = buildAiContextBlock(matches, language);
-  const basePrompt = DR_BYTE_SYSTEM_PROMPT[language] || DR_BYTE_SYSTEM_PROMPT.da;
-
-  const contextNote = contextBlock
-    ? `Relevante spørgsmål fra spørgsmålsbanken (brug som reference hvis relevant, men du er ikke begrænset til dem):\n\n${contextBlock}`
-    : "Der blev ikke fundet nogen relevant MCQ i spørgsmålsbanken til dette spørgsmål. Svar alligevel ud fra din egen medicinske fagkundskab.";
-
-  const historyMessages = conversationHistory.slice(-6).map((entry) => ({
-    role: entry.role === "user" ? "user" : "assistant",
-    content: entry.text || entry.aiText || entry.directAnswer?.text || "",
-  }));
-
-  // NVIDIA's integrate.api.nvidia.com endpoint does not send CORS headers, so a direct
-  // browser fetch will always fail with a generic "Failed to fetch" (the browser blocks it
-  // before any response is readable). If a proxyUrl is configured, route the request through
-  // that same-origin (or CORS-enabled) relay instead of calling NVIDIA directly.
-  const targetUrl = proxyUrl ? proxyUrl.replace(/\/$/, "") : "https://integrate.api.nvidia.com/v1/chat/completions";
-
-  let response;
-  try {
-    response = await fetch(targetUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey || NVIDIA_DEFAULT_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: model || "deepseek-ai/deepseek-v4-pro",
-        messages: [
-          { role: "system", content: basePrompt },
-          ...historyMessages,
-          { role: "user", content: `${contextNote}\n\nBrugerens spørgsmål: ${userQuestion}` },
-        ],
-        temperature: 1,
-        top_p: 0.95,
-        max_tokens: 16384,
-        chat_template_kwargs: { thinking: false },
-        stream: false,
-      }),
-    });
-  } catch (networkError) {
-    if (!proxyUrl) {
-      const hint = NVIDIA_CORS_ERROR_HINT[language] || NVIDIA_CORS_ERROR_HINT.da;
-      throw new Error(hint);
+function drByteServerQuestion(question, language) {
+  const localized = (value) => {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      return value[language] || value.da || value.en || value.ar || Object.values(value)[0] || "";
     }
-    throw new Error(`${networkError.message} (proxy: ${targetUrl})`);
-  }
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`NVIDIA AI request failed (${response.status}): ${errorBody.slice(0, 200)}`);
-  }
-
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content?.trim() || "";
-  return { text, usedWebSearch: false };
-}
-
-async function callDrByteGroqAI({ apiKey, model, userQuestion, matches, language, conversationHistory = [] }) {
-  const contextBlock = buildAiContextBlock(matches, language);
-  const basePrompt = DR_BYTE_SYSTEM_PROMPT[language] || DR_BYTE_SYSTEM_PROMPT.da;
-
-  const contextNote = contextBlock
-    ? `Relevante spørgsmål fra spørgsmålsbanken (brug som reference hvis relevant, men du er ikke begrænset til dem):\n\n${contextBlock}`
-    : "Der blev ikke fundet nogen relevant MCQ i spørgsmålsbanken til dette spørgsmål. Svar alligevel ud fra din egen medicinske fagkundskab.";
-
-  const historyMessages = conversationHistory.slice(-6).map((entry) => ({
-    role: entry.role === "user" ? "user" : "assistant",
-    content: entry.text || entry.aiText || entry.directAnswer?.text || "",
-  }));
-
-  // Groq's API (api.groq.com) has CORS enabled, so it can be called directly from the
-  // browser without a proxy, unlike NVIDIA's integrate.api.nvidia.com endpoint.
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: model || "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: basePrompt },
-        ...historyMessages,
-        { role: "user", content: `${contextNote}\n\nBrugerens spørgsmål: ${userQuestion}` },
-      ],
-      temperature: 0.4,
-      max_tokens: 2048,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Groq AI request failed (${response.status}): ${errorBody.slice(0, 200)}`);
-  }
-
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content?.trim() || "";
-  return { text, usedWebSearch: false };
-}
-
-const DR_BYTE_WEB_SEARCH_NOTE = {
-  da: "Du har adgang til et web_search-værktøj. Brug det, hvis den medfølgende MCQ-kontekst ikke er tilstrækkelig til at besvare spørgsmålet fagligt korrekt, eller hvis spørgsmålet handler om et emne, der ikke er dækket af spørgsmålsbanken. Prioriter altid pålidelige medicinske kilder (fx lærebøger, guidelines, videnskabelige oversigtsartikler).",
-  en: "You have access to a web_search tool. Use it if the provided MCQ context is not sufficient to answer the question accurately, or if the question concerns a topic not covered by the question bank. Always prioritize reliable medical sources (e.g. textbooks, guidelines, peer-reviewed reviews).",
-  ar: "لديك إمكانية الوصول إلى أداة البحث على الويب. استخدمها إذا لم يكن سياق الأسئلة المتوفر كافيًا للإجابة بدقة، أو إذا كان السؤال يتعلق بموضوع غير مغطى في بنك الأسئلة. أعط الأولوية دائمًا للمصادر الطبية الموثوقة.",
-};
-
-async function callDrByteAI({ apiKey, model, userQuestion, matches, language, conversationHistory = [], allowWebSearch = true, provider = "openai", proxyUrl = "" }) {
-  if (provider === "nvidia") {
-    return callDrByteNvidiaAI({ apiKey, model, userQuestion, matches, language, conversationHistory, proxyUrl });
-  }
-  if (provider === "groq") {
-    return callDrByteGroqAI({ apiKey, model, userQuestion, matches, language, conversationHistory });
-  }
-
-  const contextBlock = buildAiContextBlock(matches, language);
-  const basePrompt = DR_BYTE_SYSTEM_PROMPT[language] || DR_BYTE_SYSTEM_PROMPT.da;
-  const webNote = DR_BYTE_WEB_SEARCH_NOTE[language] || DR_BYTE_WEB_SEARCH_NOTE.da;
-  const systemPrompt = allowWebSearch ? `${basePrompt} ${webNote}` : basePrompt;
-
-  const contextNote = contextBlock
-    ? `Relevante spørgsmål fra spørgsmålsbanken (brug som reference hvis relevant, men du er ikke begrænset til dem):\n\n${contextBlock}`
-    : "Der blev ikke fundet nogen relevant MCQ i spørgsmålsbanken til dette spørgsmål. Svar alligevel ud fra din egen medicinske fagkundskab, og brug web_search-værktøjet hvis nødvendigt for et fagligt korrekt svar.";
-
-  const historyInputs = conversationHistory.slice(-6).map((entry) => ({
-    role: entry.role === "user" ? "user" : "assistant",
-    content: entry.text || entry.aiText || entry.directAnswer?.text || "",
-  }));
-
-  const requestBody = {
-    model: model || "gpt-4o-mini",
-    input: [
-      { role: "system", content: systemPrompt },
-      ...historyInputs,
-      { role: "user", content: `${contextNote}\n\nBrugerens spørgsmål: ${userQuestion}` },
-    ],
-    temperature: 0.3,
-    max_output_tokens: 700,
+    return value || "";
   };
+  return {
+    id: question?.id || "",
+    category: localized(question?.category),
+    question: localized(question?.question),
+    options: (question?.options || []).map((option) => localized(option)),
+    correct: question?.correct != null && Number.isInteger(Number(question.correct)) ? Number(question.correct) : null,
+    explanation: localized(question?.explanation),
+  };
+}
 
-  if (allowWebSearch) {
-    requestBody.tools = [{ type: "web_search" }];
+async function callDrByteAI({ userQuestion, matches, language, conversationHistory = [] }) {
+  if (typeof fetch !== "function") throw new Error("Dr. Byte AI er ikke tilgængelig i dette miljø.");
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (!accessToken) throw new Error("Du skal være logget ind for at bruge Dr. Byte AI.");
+
+  const safeMatches = (Array.isArray(matches) ? matches : []).slice(0, 6).map((match) => ({
+    matchPercent: Number(match?.matchPercent) || 0,
+    question: drByteServerQuestion(match?.question || {}, language),
+  }));
+  const safeHistory = (Array.isArray(conversationHistory) ? conversationHistory : []).slice(-8).map((entry) => ({
+    role: entry?.role === "assistant" ? "assistant" : "user",
+    text: entry?.text || entry?.aiText || entry?.directAnswer?.text || "",
+  })).filter((entry) => entry.text);
+
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeout = controller && typeof window !== "undefined" ? window.setTimeout(() => controller.abort(), 35000) : null;
+  try {
+    const response = await fetch("/api/dr-byte", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({
+        question: String(userQuestion || "").slice(0, 6000),
+        language: ["da", "en", "ar"].includes(language) ? language : "da",
+        history: safeHistory,
+        matches: safeMatches,
+      }),
+      signal: controller?.signal,
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body?.error || `Dr. Byte AI fejlede (${response.status}).`);
+    const text = String(body?.text || "").trim();
+    if (!text) throw new Error("Dr. Byte returnerede ikke et svar.");
+    return { text, usedWebSearch: false, model: body?.meta?.model || "gemini-3.7-flash" };
+  } catch (error) {
+    if (error?.name === "AbortError") throw new Error("Dr. Byte tog for lang tid om at svare. Prøv igen.");
+    throw error;
+  } finally {
+    if (timeout && typeof window !== "undefined") window.clearTimeout(timeout);
   }
-
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`AI request failed (${response.status}): ${errorBody.slice(0, 200)}`);
-  }
-
-  const data = await response.json();
-
-  // Extract the assistant's final text output and detect whether a web search was used.
-  const outputItems = data.output || [];
-  let text = "";
-  let usedWebSearch = false;
-
-  outputItems.forEach((item) => {
-    if (item.type === "web_search_call") usedWebSearch = true;
-    if (item.type === "message" && Array.isArray(item.content)) {
-      item.content.forEach((part) => {
-        if (part.type === "output_text" && part.text) text += part.text;
-      });
-    }
-  });
-
-  if (!text && typeof data.output_text === "string") text = data.output_text;
-
-  return { text: text.trim(), usedWebSearch };
 }
 
 function DrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion }) {
   const [messages, setMessages] = useStoredState("medlearn-drbyte-chat", []);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
-  const [aiSettings] = useStoredState(STORAGE.aiSettings, { apiKey: "", model: "gpt-4o-mini", enabled: false, webSearch: true, provider: "openai", nvidiaApiKey: "", nvidiaModel: "deepseek-ai/deepseek-v4-pro", nvidiaProxyUrl: "", groqApiKey: "", groqModel: "llama-3.3-70b-versatile" });
+  const [aiSettings] = useStoredState(STORAGE.aiSettings, { serverAiEnabled: true });
   const scrollRef = useRef(null);
 
   // Recomputed on every render so the empty-state count always reflects the
@@ -3807,31 +3626,14 @@ function DrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion
 
     const matches = findMatchingQuestions(trimmed, currentBank, language, 6);
 
-    const effectiveApiKey =
-      aiSettings.provider === "nvidia" ? (aiSettings.nvidiaApiKey || NVIDIA_DEFAULT_API_KEY) :
-      aiSettings.provider === "groq" ? aiSettings.groqApiKey :
-      aiSettings.apiKey;
-    if (aiSettings.enabled && effectiveApiKey) {
+    const serverAiEnabled = aiSettings.serverAiEnabled !== false;
+    if (serverAiEnabled) {
       try {
-        const activeProvider = aiSettings.provider || "openai";
-        const providerApiKey =
-          activeProvider === "nvidia" ? aiSettings.nvidiaApiKey :
-          activeProvider === "groq" ? aiSettings.groqApiKey :
-          aiSettings.apiKey;
-        const providerModel =
-          activeProvider === "nvidia" ? aiSettings.nvidiaModel :
-          activeProvider === "groq" ? aiSettings.groqModel :
-          aiSettings.model;
         const aiResult = await callDrByteAI({
-          apiKey: providerApiKey,
-          model: providerModel,
           userQuestion: trimmed,
           matches,
           language,
           conversationHistory: messages,
-          allowWebSearch: aiSettings.webSearch !== false,
-          provider: activeProvider,
-          proxyUrl: aiSettings.nvidiaProxyUrl || "",
         });
         const replyMessage = {
           id: `a-${Date.now()}`,
@@ -30985,7 +30787,7 @@ function SettingsModal({
   setPreferences,
   onClose,
 }) {
-  const [aiSettings, setAiSettings] = useStoredState(STORAGE.aiSettings, { apiKey: "", model: "gpt-4o-mini", enabled: false, webSearch: true, provider: "openai", nvidiaApiKey: "", nvidiaModel: "deepseek-ai/deepseek-v4-pro", nvidiaProxyUrl: "", groqApiKey: "", groqModel: "llama-3.3-70b-versatile" });
+  const [aiSettings, setAiSettings] = useStoredState(STORAGE.aiSettings, { serverAiEnabled: true });
 
   return (
     <Modal c={c} onClose={onClose} size="large">
@@ -31038,14 +30840,14 @@ function SettingsModal({
           </div>
           <button
             type="button"
-            onClick={() => setAiSettings((prev) => ({ ...prev, enabled: !prev.enabled }))}
+            onClick={() => setAiSettings((prev) => ({ ...prev, serverAiEnabled: prev.serverAiEnabled === false }))}
             style={{
               width: 44,
               height: 26,
               borderRadius: 99,
               border: "none",
               flexShrink: 0,
-              background: aiSettings.enabled ? c.blue : c.border,
+              background: aiSettings.serverAiEnabled !== false ? c.blue : c.border,
               position: "relative",
               cursor: "pointer",
               transition: "background 160ms ease",
@@ -31055,7 +30857,7 @@ function SettingsModal({
               style={{
                 position: "absolute",
                 top: 3,
-                insetInlineStart: aiSettings.enabled ? 22 : 3,
+                insetInlineStart: aiSettings.serverAiEnabled !== false ? 22 : 3,
                 width: 20,
                 height: 20,
                 borderRadius: "50%",
@@ -31066,247 +30868,18 @@ function SettingsModal({
             />
           </button>
         </div>
-
-        <div>
-          <label style={{ color: c.secondary, fontSize: 11, fontWeight: 650, display: "block", marginBottom: 5 }}>
-            {t.drByteAiProviderLabel}
-          </label>
-          <select
-          className="ui-control ui-control--compact"
-            value={aiSettings.provider || "openai"}
-            onChange={(event) => setAiSettings((prev) => ({ ...prev, provider: event.target.value }))}
-            style={{
-              width: "100%",
-              height: 40,
-              padding: "0 12px",
-              borderRadius: 11,
-              border: `1px solid ${c.border}`,
-              background: c.soft,
-              color: c.text,
-              fontSize: 12.5,
-            }}
-          >
-            <option value="openai">OpenAI</option>
-            <option value="groq">Groq (Llama)</option>
-            <option value="nvidia">NVIDIA (DeepSeek)</option>
-          </select>
+        <div
+          style={{
+            borderRadius: 11,
+            padding: "10px 12px",
+            background: c.soft,
+            color: c.secondary,
+            fontSize: 11,
+            lineHeight: 1.55,
+          }}
+        >
+          <strong style={{ color: c.text }}>Gemini 3.7 Flash</strong> · {t.drByteAiKeyHint}
         </div>
-
-        {(aiSettings.provider || "openai") === "groq" ? (
-          <>
-            <div>
-              <label style={{ color: c.secondary, fontSize: 11, fontWeight: 650, display: "block", marginBottom: 5 }}>
-                {t.drByteGroqKeyLabel}
-              </label>
-              <input
-             className="ui-control ui-control--compact"
-                type="password"
-                value={aiSettings.groqApiKey}
-                onChange={(event) => setAiSettings((prev) => ({ ...prev, groqApiKey: event.target.value }))}
-                placeholder={t.drByteGroqKeyPlaceholder}
-                style={{
-                  width: "100%",
-                  height: 40,
-                  padding: "0 12px",
-                  borderRadius: 11,
-                  border: `1px solid ${c.border}`,
-                  background: c.soft,
-                  color: c.text,
-                  fontSize: 12.5,
-                }}
-              />
-              <div style={{ color: c.muted, fontSize: 10.5, lineHeight: 1.5, marginTop: 5 }}>{t.drByteGroqKeyHint}</div>
-            </div>
-
-            <div>
-              <label style={{ color: c.secondary, fontSize: 11, fontWeight: 650, display: "block", marginBottom: 5 }}>
-                {t.drByteAiModelLabel}
-              </label>
-              <select
-                className="ui-control ui-control--compact"
-                value={aiSettings.groqModel}
-                onChange={(event) => setAiSettings((prev) => ({ ...prev, groqModel: event.target.value }))}
-                style={{
-                  width: "100%",
-                  height: 40,
-                  padding: "0 12px",
-                  borderRadius: 11,
-                  border: `1px solid ${c.border}`,
-                  background: c.soft,
-                  color: c.text,
-                  fontSize: 12.5,
-                }}
-              >
-                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
-                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
-                <option value="gemma2-9b-it">gemma2-9b-it</option>
-              </select>
-            </div>
-          </>
-        ) : (aiSettings.provider || "openai") === "openai" ? (
-          <>
-            <div>
-              <label style={{ color: c.secondary, fontSize: 11, fontWeight: 650, display: "block", marginBottom: 5 }}>
-                {t.drByteAiKeyLabel}
-              </label>
-              <input
-                className="ui-control ui-control--compact"
-                type="password"
-                value={aiSettings.apiKey}
-                onChange={(event) => setAiSettings((prev) => ({ ...prev, apiKey: event.target.value }))}
-                placeholder={t.drByteAiKeyPlaceholder}
-                style={{
-                  width: "100%",
-                  height: 40,
-                  padding: "0 12px",
-                  borderRadius: 11,
-                  border: `1px solid ${c.border}`,
-                  background: c.soft,
-                  color: c.text,
-                  fontSize: 12.5,
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ color: c.secondary, fontSize: 11, fontWeight: 650, display: "block", marginBottom: 5 }}>
-                {t.drByteAiModelLabel}
-              </label>
-              <select
-                className="ui-control ui-control--compact"
-                value={aiSettings.model}
-                onChange={(event) => setAiSettings((prev) => ({ ...prev, model: event.target.value }))}
-                style={{
-                  width: "100%",
-                  height: 40,
-                  padding: "0 12px",
-                  borderRadius: 11,
-                  border: `1px solid ${c.border}`,
-                  background: c.soft,
-                  color: c.text,
-                  fontSize: 12.5,
-                }}
-              >
-                <option value="gpt-4o-mini">gpt-4o-mini</option>
-                <option value="gpt-4o">gpt-4o</option>
-                <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-              </select>
-            </div>
-          </>
-        ) : (
-          <>
-            <div>
-              <label style={{ color: c.secondary, fontSize: 11, fontWeight: 650, display: "block", marginBottom: 5 }}>
-                {t.drByteNvidiaKeyLabel}
-              </label>
-              <input
-                className="ui-control ui-control--compact"
-                type="password"
-                value={aiSettings.nvidiaApiKey}
-                onChange={(event) => setAiSettings((prev) => ({ ...prev, nvidiaApiKey: event.target.value }))}
-                placeholder={t.drByteNvidiaKeyPlaceholder}
-                style={{
-                  width: "100%",
-                  height: 40,
-                  padding: "0 12px",
-                  borderRadius: 11,
-                  border: `1px solid ${c.border}`,
-                  background: c.soft,
-                  color: c.text,
-                  fontSize: 12.5,
-                }}
-              />
-              <div style={{ color: c.muted, fontSize: 10.5, lineHeight: 1.5, marginTop: 5 }}>{t.drByteNvidiaKeyHint}</div>
-            </div>
-
-            <div>
-              <label style={{ color: c.secondary, fontSize: 11, fontWeight: 650, display: "block", marginBottom: 5 }}>
-                {t.drByteAiModelLabel}
-              </label>
-              <input
-                className="ui-control ui-control--compact"
-                type="text"
-                value={aiSettings.nvidiaModel}
-                onChange={(event) => setAiSettings((prev) => ({ ...prev, nvidiaModel: event.target.value }))}
-                placeholder="deepseek-ai/deepseek-v4-pro"
-                style={{
-                  width: "100%",
-                  height: 40,
-                  padding: "0 12px",
-                  borderRadius: 11,
-                  border: `1px solid ${c.border}`,
-                  background: c.soft,
-                  color: c.text,
-                  fontSize: 12.5,
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ color: c.secondary, fontSize: 11, fontWeight: 650, display: "block", marginBottom: 5 }}>
-                {t.drByteNvidiaProxyLabel}
-              </label>
-              <input
-                className="ui-control ui-control--compact"
-                type="text"
-                value={aiSettings.nvidiaProxyUrl}
-                onChange={(event) => setAiSettings((prev) => ({ ...prev, nvidiaProxyUrl: event.target.value }))}
-                placeholder={t.drByteNvidiaProxyPlaceholder}
-                style={{
-                  width: "100%",
-                  height: 40,
-                  padding: "0 12px",
-                  borderRadius: 11,
-                  border: `1px solid ${c.border}`,
-                  background: c.soft,
-                  color: c.text,
-                  fontSize: 12.5,
-                }}
-              />
-              <div style={{ color: c.muted, fontSize: 10.5, lineHeight: 1.5, marginTop: 5 }}>{t.drByteNvidiaProxyHint}</div>
-            </div>
-          </>
-        )}
-
-        {!aiSettings.provider || aiSettings.provider === "openai" ? (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div>
-            <div style={{ color: c.text, fontSize: 12.5, fontWeight: 700 }}>{t.drByteWebSearchLabel}</div>
-            <div style={{ color: c.secondary, fontSize: 11, marginTop: 2 }}>{t.drByteWebSearchDescription}</div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setAiSettings((prev) => ({ ...prev, webSearch: !prev.webSearch }))}
-            style={{
-              width: 44,
-              height: 26,
-              borderRadius: 99,
-              border: "none",
-              flexShrink: 0,
-              background: aiSettings.webSearch ? c.blue : c.border,
-              position: "relative",
-              cursor: "pointer",
-              transition: "background 160ms ease",
-            }}
-          >
-            <span
-              style={{
-                position: "absolute",
-                top: 3,
-                insetInlineStart: aiSettings.webSearch ? 22 : 3,
-                width: 20,
-                height: 20,
-                borderRadius: "50%",
-                background: "#fff",
-                transition: "inset-inline-start 160ms ease",
-                boxShadow: "0 1px 3px rgba(0,0,0,.25)",
-              }}
-            />
-          </button>
-        </div>
-        ) : null}
-
-        <div style={{ color: c.muted, fontSize: 10.5, lineHeight: 1.5 }}>{t.drByteAiKeyHint}</div>
       </div>
 
       <div
