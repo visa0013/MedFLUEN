@@ -13221,6 +13221,89 @@ select.ui-control {
 }
 
 /* ============================================================
+   FORELÆSNINGSVISER FV5 — PRIVATE PDF WORKSPACE
+   ============================================================ */
+.lecture-pdf-viewer--workspace { min-width:0; background:#d9dee6; }
+.lecture-pdf-viewer--workspace:fullscreen { width:100vw; height:100vh; border-radius:0; background:#d9dee6; }
+.lecture-pdf-viewer--workspace .lecture-pdf-toolbar { justify-content:center; gap:5px; flex-wrap:wrap; padding:4px 7px; background:color-mix(in srgb,var(--ui-panel) 96%,transparent); }
+.lecture-pdf-workspace-actions button[data-active="true"] { color:var(--ui-blue); background:var(--ui-blue-soft); }
+.lecture-pdf-workspace-body { min-height:0; flex:1; display:flex; overflow:hidden; }
+.lecture-pdf-workspace-body > .lecture-pdf-surface { flex:1; min-width:0; }
+.lecture-pdf-side-rail { width:184px; min-width:184px; display:flex; flex-direction:column; min-height:0; border-inline-end:1px solid var(--ui-border); background:color-mix(in srgb,var(--ui-panel) 97%,transparent); }
+.lecture-pdf-thumbnail-list { flex:1; min-height:0; overflow:auto; padding:8px 6px 18px; display:grid; justify-content:center; align-content:start; gap:7px; }
+.lecture-pdf-thumbnail { width:114px; display:grid; justify-items:center; gap:4px; padding:6px; border:1px solid transparent; border-radius:8px; background:transparent; color:var(--ui-muted); cursor:pointer; }
+.lecture-pdf-thumbnail:hover { background:var(--ui-soft); color:var(--ui-text); }
+.lecture-pdf-thumbnail[data-current="true"] { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); color:var(--ui-blue); }
+.lecture-pdf-thumbnail-canvas { width:96px; min-height:70px; display:grid; place-items:center; overflow:hidden; border:1px solid #d6dbe3; border-radius:3px; background:#fff; box-shadow:0 2px 7px rgba(20,35,60,.10); }
+.lecture-pdf-thumbnail-canvas canvas { display:block; max-width:96px; height:auto; }
+.lecture-pdf-thumbnail-canvas i { width:90px; height:118px; background:linear-gradient(115deg,#fff,#f4f6f9,#fff); }
+.lecture-pdf-thumbnail small { font-size:7.5px; font-weight:800; }
+.lecture-pdf-search-head { padding:8px; display:grid; gap:5px; border-bottom:1px solid var(--ui-border); }
+.lecture-pdf-search-head label { height:31px; display:flex; align-items:center; gap:6px; padding:0 8px; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-panel); }
+.lecture-pdf-search-head label:focus-within { border-color:var(--ui-blue-border); box-shadow:0 0 0 3px var(--ui-ring); }
+.lecture-pdf-search-head input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--ui-text); font-size:9px; }
+.lecture-pdf-search-head small { color:var(--ui-muted); font-size:7px; font-weight:700; }
+.lecture-pdf-search-results { flex:1; min-height:0; overflow:auto; padding:5px; display:grid; align-content:start; gap:3px; }
+.lecture-pdf-search-results button { display:grid; gap:2px; padding:7px; text-align:start; border:1px solid transparent; border-radius:7px; background:transparent; cursor:pointer; }
+.lecture-pdf-search-results button:hover { background:var(--ui-soft); }
+.lecture-pdf-search-results button[data-current="true"] { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
+.lecture-pdf-search-results strong { color:var(--ui-text); font-size:7.5px; }
+.lecture-pdf-search-results span { color:var(--ui-muted); font-size:7.2px; line-height:1.35; }
+.lecture-pdf-side-empty { padding:18px 8px; color:var(--ui-muted); font-size:8px; text-align:center; }
+.lecture-pdf-annotation-toolbar { min-height:37px; display:flex; align-items:center; gap:5px; padding:3px 7px; border-bottom:1px solid var(--ui-border); background:var(--ui-panel); overflow-x:auto; scrollbar-width:thin; }
+.lecture-pdf-toolset,.lecture-pdf-color-set,.lecture-pdf-history-actions { display:flex; align-items:center; gap:2px; flex-shrink:0; }
+.lecture-pdf-toolset button { min-width:35px; height:28px; display:flex; align-items:center; justify-content:center; gap:4px; padding:0 6px; border:0; border-radius:6px; background:transparent; color:var(--ui-muted); cursor:pointer; }
+.lecture-pdf-toolset button:hover,.lecture-pdf-toolset button[data-active="true"] { background:var(--ui-soft); color:var(--ui-text); }
+.lecture-pdf-toolset button[data-active="true"] { background:var(--ui-blue-soft); color:var(--ui-blue); }
+.lecture-pdf-toolset button > span { font-size:10px; font-weight:900; }
+.lecture-pdf-toolset button > small { font-size:6.8px; font-weight:800; white-space:nowrap; }
+.lecture-pdf-color-set button { width:18px; height:18px; border:2px solid transparent; border-radius:50%; background:var(--pdf-color); box-shadow:inset 0 0 0 1px rgba(0,0,0,.10); cursor:pointer; }
+.lecture-pdf-color-set button[data-active="true"] { border-color:var(--ui-text); box-shadow:0 0 0 2px var(--ui-panel),0 0 0 3px var(--ui-border); }
+.lecture-pdf-history-actions button { width:27px; height:27px; border:0; border-radius:6px; background:transparent; color:var(--ui-muted); font-size:15px; cursor:pointer; }
+.lecture-pdf-history-actions button:hover:not(:disabled) { background:var(--ui-soft); color:var(--ui-text); }
+.lecture-pdf-history-actions button:disabled { opacity:.35; cursor:default; }
+.lecture-pdf-private-state { margin-inline-start:auto; display:inline-flex; align-items:center; gap:4px; color:var(--ui-muted); font-size:6.8px; font-weight:700; white-space:nowrap; }
+.lecture-pdf-private-state i { width:5px; height:5px; border-radius:50%; background:#7c8798; }
+.lecture-pdf-private-state[data-state="saving"] i { background:#d49a22; }
+.lecture-pdf-private-state[data-state="ready"] i { background:#2f9b62; }
+.lecture-pdf-annotation-layer { position:absolute; inset:0; z-index:3; overflow:visible; touch-action:pan-y; }
+.lecture-pdf-annotation-layer[data-tool="pen"],.lecture-pdf-annotation-layer[data-tool="highlight"],.lecture-pdf-annotation-layer[data-tool="underline"],.lecture-pdf-annotation-layer[data-tool="strike"] { cursor:crosshair; touch-action:none; }
+.lecture-pdf-annotation-layer[data-tool="sticky"] { cursor:copy; }
+.lecture-pdf-annotation-layer[data-tool="eraser"] { cursor:not-allowed; }
+.lecture-pdf-search-hit { position:absolute; z-index:1; background:rgba(255,192,0,.34); outline:1px solid rgba(202,140,0,.28); pointer-events:none; }
+.lecture-pdf-mark { position:absolute; z-index:2; margin:0; padding:0; border:0; pointer-events:auto; cursor:pointer; }
+.lecture-pdf-mark--highlight { background:color-mix(in srgb,var(--pdf-annotation-color) 48%,transparent); mix-blend-mode:multiply; }
+.lecture-pdf-mark--underline { background:transparent; border-bottom:3px solid var(--pdf-annotation-color); }
+.lecture-pdf-mark--strike { background:linear-gradient(to bottom,transparent 46%,var(--pdf-annotation-color) 46%,var(--pdf-annotation-color) 56%,transparent 56%); }
+.lecture-pdf-mark--preview { opacity:.65; pointer-events:none; }
+.lecture-pdf-ink { position:absolute; inset:0; width:100%; height:100%; z-index:2; overflow:visible; pointer-events:auto; }
+.lecture-pdf-ink path { fill:none; stroke-width:2.4px; stroke-linecap:round; stroke-linejoin:round; }
+.lecture-pdf-ink--preview { opacity:.65; pointer-events:none; }
+.lecture-pdf-sticky { position:absolute; z-index:4; width:22px; height:22px; transform:translate(-6px,-6px); display:grid; place-items:center; padding:0; border:1px solid rgba(0,0,0,.16); border-radius:6px 6px 6px 1px; background:var(--pdf-annotation-color); color:#3b3420; font-size:11px; font-weight:900; box-shadow:0 2px 7px rgba(20,35,60,.22); cursor:pointer; }
+.lecture-pdf-note-editor { position:absolute; z-index:20; width:190px; transform:translate(6px,6px); padding:6px; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-panel); box-shadow:0 10px 30px rgba(20,35,60,.24); }
+.lecture-pdf-note-editor--center { left:50%!important; top:50%!important; transform:translate(-50%,-50%); }
+.lecture-pdf-note-editor textarea { width:100%; min-height:82px; resize:vertical; padding:7px; border:1px solid var(--ui-border); border-radius:6px; outline:0; background:var(--ui-soft); color:var(--ui-text); font-size:9px; line-height:1.4; }
+.lecture-pdf-note-editor textarea:focus { border-color:var(--ui-blue-border); }
+.lecture-pdf-note-editor > div { display:flex; justify-content:flex-end; gap:4px; padding-top:5px; }
+.lecture-pdf-note-editor button { min-height:25px; padding:0 8px; border:1px solid var(--ui-border); border-radius:6px; background:var(--ui-panel); color:var(--ui-text); font-size:7px; font-weight:800; }
+.lecture-pdf-note-editor button[data-primary="true"] { border-color:var(--ui-blue-border); background:var(--ui-blue); color:#fff; }
+.lecture-pdf-continuous-page-inner > canvas { position:relative; z-index:0; }
+.lecture-pdf-page-placeholder { z-index:5; }
+@media (max-width:980px) {
+  .lecture-pdf-side-rail { width:150px; min-width:150px; }
+  .lecture-pdf-toolset button small { display:none; }
+  .lecture-pdf-toolset button { min-width:27px; padding:0 5px; }
+  .lecture-pdf-private-state { display:none; }
+}
+@media (max-width:720px) {
+  .lecture-pdf-side-rail { position:absolute; inset-block:0; inset-inline-start:0; z-index:30; width:min(76vw,260px); box-shadow:8px 0 28px rgba(20,35,60,.18); }
+  .lecture-pdf-workspace-body { position:relative; }
+  .lecture-pdf-annotation-toolbar { min-height:34px; }
+  .lecture-pdf-toolset button { min-width:25px; }
+}
+
+
+/* ============================================================
    FORELÆSNINGSVISER 2.0 — CONTINUOUS PDF + COMPACT WORKSPACE
    ============================================================ */
 .lecture-pdf-viewer--continuous { border-radius: 6px; box-shadow: none; background: #d9dee6; }
@@ -33625,7 +33708,262 @@ function lecturePdfPageWindow(pageNumber, numPages, radius = 2) {
   return pages;
 }
 
-function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scale, active, fileName, copy }) {
+function lecturePdfAnnotationId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (token) => {
+    const value = Math.floor(Math.random() * 16);
+    const nibble = token === "x" ? value : (value & 0x3) | 0x8;
+    return nibble.toString(16);
+  });
+}
+
+function lecturePdfWorkspaceLabels(language = "da") {
+  const labels = {
+    da: {
+      search: "Søg i PDF", searchPlaceholder: "Søg i dokumentet…", noSearchResults: "Ingen resultater", searchResults: "resultater",
+      thumbnails: "Miniaturer", fitPage: "Tilpas side", bookmark: "Bogmærke", bookmarked: "Bogmærket",
+      select: "Læs", highlight: "Highlight", underline: "Understreg", strike: "Overstreg", pen: "Pen", sticky: "Note", eraser: "Viskelæder",
+      undo: "Fortryd", redo: "Gentag", copyPage: "Kopiér sidetekst", copied: "Kopieret", fullscreen: "Fuld skærm", exitFullscreen: "Forlad fuld skærm",
+      notePlaceholder: "Skriv note…", save: "Gem", cancel: "Annuller", annotationsPrivate: "Dine markeringer gemmes privat på din konto",
+      annotationSaving: "Gemmer…", annotationSaved: "Gemt", annotationLocal: "Kun lokalt", pageTextUnavailable: "Sidetekst kunne ikke kopieres",
+    },
+    en: {
+      search: "Search PDF", searchPlaceholder: "Search document…", noSearchResults: "No results", searchResults: "results",
+      thumbnails: "Thumbnails", fitPage: "Fit page", bookmark: "Bookmark", bookmarked: "Bookmarked",
+      select: "Read", highlight: "Highlight", underline: "Underline", strike: "Strikeout", pen: "Pen", sticky: "Note", eraser: "Eraser",
+      undo: "Undo", redo: "Redo", copyPage: "Copy page text", copied: "Copied", fullscreen: "Fullscreen", exitFullscreen: "Exit fullscreen",
+      notePlaceholder: "Write note…", save: "Save", cancel: "Cancel", annotationsPrivate: "Your annotations are saved privately to your account",
+      annotationSaving: "Saving…", annotationSaved: "Saved", annotationLocal: "Local only", pageTextUnavailable: "Page text could not be copied",
+    },
+    ar: {
+      search: "البحث في PDF", searchPlaceholder: "ابحث في المستند…", noSearchResults: "لا توجد نتائج", searchResults: "نتائج",
+      thumbnails: "صور مصغرة", fitPage: "ملاءمة الصفحة", bookmark: "إشارة مرجعية", bookmarked: "محفوظ",
+      select: "قراءة", highlight: "تمييز", underline: "تسطير", strike: "شطب", pen: "قلم", sticky: "ملاحظة", eraser: "ممحاة",
+      undo: "تراجع", redo: "إعادة", copyPage: "نسخ نص الصفحة", copied: "تم النسخ", fullscreen: "ملء الشاشة", exitFullscreen: "الخروج من ملء الشاشة",
+      notePlaceholder: "اكتب ملاحظة…", save: "حفظ", cancel: "إلغاء", annotationsPrivate: "تُحفظ علاماتك بشكل خاص في حسابك",
+      annotationSaving: "جارٍ الحفظ…", annotationSaved: "محفوظ", annotationLocal: "محلي فقط", pageTextUnavailable: "تعذر نسخ نص الصفحة",
+    },
+  };
+  return labels[language] || labels.da;
+}
+
+function lecturePdfNormalizedPoint(event, node) {
+  const rect = node.getBoundingClientRect();
+  return {
+    x: lecturePdfClamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1),
+    y: lecturePdfClamp((event.clientY - rect.top) / Math.max(1, rect.height), 0, 1),
+  };
+}
+
+function lecturePdfRectFromPoints(a, b) {
+  const x = Math.min(a.x, b.x);
+  const y = Math.min(a.y, b.y);
+  return { x, y, w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) };
+}
+
+function lecturePdfSearchExcerpt(text, query) {
+  const source = String(text || "").replace(/\s+/g, " ").trim();
+  if (!source) return "";
+  const lower = source.toLowerCase();
+  const needle = String(query || "").toLowerCase();
+  const index = lower.indexOf(needle);
+  if (index < 0) return source.slice(0, 130);
+  const start = Math.max(0, index - 45);
+  const end = Math.min(source.length, index + needle.length + 70);
+  return `${start > 0 ? "…" : ""}${source.slice(start, end)}${end < source.length ? "…" : ""}`;
+}
+
+function LecturePdfThumbnail({ pdf, pageNumber, active, current, bookmarked, onSelect, label }) {
+  const canvasRef = useRef(null);
+  const taskRef = useRef(null);
+  const [state, setState] = useState("idle");
+
+  useEffect(() => {
+    if (!pdf || !active || !canvasRef.current) return undefined;
+    let cancelled = false;
+    async function render() {
+      setState("loading");
+      try {
+        const page = await pdf.getPage(pageNumber);
+        if (cancelled || !canvasRef.current) return;
+        const base = page.getViewport({ scale: 1 });
+        const scale = 92 / Math.max(1, base.width);
+        const viewport = page.getViewport({ scale });
+        const canvas = canvasRef.current;
+        const context = canvas.getContext("2d", { alpha: false });
+        if (!context) return;
+        const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+        canvas.width = Math.max(1, Math.floor(viewport.width * dpr));
+        canvas.height = Math.max(1, Math.floor(viewport.height * dpr));
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+        try { taskRef.current?.cancel?.(); } catch {}
+        const task = page.render({ canvasContext: context, viewport, transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null });
+        taskRef.current = task;
+        await task.promise;
+        if (!cancelled) setState("ready");
+      } catch (error) {
+        if (!cancelled && error?.name !== "RenderingCancelledException") setState("error");
+      }
+    }
+    render();
+    return () => { cancelled = true; try { taskRef.current?.cancel?.(); } catch {} };
+  }, [pdf, pageNumber, active]);
+
+  return (
+    <button type="button" className="lecture-pdf-thumbnail" data-current={current ? "true" : "false"} onClick={onSelect} title={`${label} ${pageNumber}`}>
+      <span className="lecture-pdf-thumbnail-canvas" data-state={state}>
+        {active ? <canvas ref={canvasRef} /> : <i />}
+      </span>
+      <small>{pageNumber}{bookmarked ? " · ◆" : ""}</small>
+    </button>
+  );
+}
+
+function LecturePdfAnnotationLayer({
+  pageNumber,
+  annotations = [],
+  searchBoxes = [],
+  activeTool = "select",
+  activeColor = "#f7d85c",
+  labels,
+  onCreate,
+  onUpdate,
+  onDelete,
+}) {
+  const layerRef = useRef(null);
+  const drawingRef = useRef(null);
+  const [preview, setPreview] = useState(null);
+  const [noteDraft, setNoteDraft] = useState(null);
+  const [editingNote, setEditingNote] = useState(null);
+
+  function beginPointer(event) {
+    if (!layerRef.current || event.button !== 0) return;
+    if (activeTool === "select" || activeTool === "eraser") return;
+    const point = lecturePdfNormalizedPoint(event, layerRef.current);
+    if (activeTool === "sticky") {
+      event.preventDefault();
+      setNoteDraft({ x: point.x, y: point.y, text: "" });
+      return;
+    }
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    if (activeTool === "pen") {
+      drawingRef.current = { type: "pen", points: [point] };
+      setPreview({ type: "pen", points: [point] });
+    } else if (["highlight", "underline", "strike"].includes(activeTool)) {
+      drawingRef.current = { type: activeTool, start: point, end: point };
+      setPreview({ type: activeTool, rect: { x: point.x, y: point.y, w: 0, h: 0 } });
+    }
+  }
+
+  function movePointer(event) {
+    const drawing = drawingRef.current;
+    if (!drawing || !layerRef.current) return;
+    event.preventDefault();
+    const point = lecturePdfNormalizedPoint(event, layerRef.current);
+    if (drawing.type === "pen") {
+      const last = drawing.points[drawing.points.length - 1];
+      if (!last || Math.hypot(point.x - last.x, point.y - last.y) > .002) drawing.points.push(point);
+      setPreview({ type: "pen", points: [...drawing.points] });
+    } else {
+      drawing.end = point;
+      setPreview({ type: drawing.type, rect: lecturePdfRectFromPoints(drawing.start, point) });
+    }
+  }
+
+  function finishPointer(event) {
+    const drawing = drawingRef.current;
+    if (!drawing) return;
+    event.preventDefault();
+    drawingRef.current = null;
+    setPreview(null);
+    if (drawing.type === "pen") {
+      if (drawing.points.length >= 2) onCreate?.({ id: lecturePdfAnnotationId(), page: pageNumber, type: "pen", color: activeColor, payload: { points: drawing.points, normalized: true } });
+      return;
+    }
+    const rect = lecturePdfRectFromPoints(drawing.start, drawing.end);
+    if (rect.w < .006 || rect.h < .004) return;
+    onCreate?.({ id: lecturePdfAnnotationId(), page: pageNumber, type: drawing.type, color: activeColor, payload: { rect, normalized: true } });
+  }
+
+  function annotationClick(event, annotation) {
+    event.stopPropagation();
+    if (activeTool === "eraser") {
+      event.preventDefault();
+      onDelete?.(annotation);
+      return;
+    }
+    if (annotation.type === "sticky" && activeTool === "select") {
+      event.preventDefault();
+      setEditingNote({ annotation, text: String(annotation.payload?.text || "") });
+    }
+  }
+
+  function saveNewNote() {
+    const text = String(noteDraft?.text || "").trim();
+    if (!noteDraft || !text) { setNoteDraft(null); return; }
+    onCreate?.({ id: lecturePdfAnnotationId(), page: pageNumber, type: "sticky", color: activeColor, payload: { x: noteDraft.x, y: noteDraft.y, text, normalized: true } });
+    setNoteDraft(null);
+  }
+
+  function saveEditedNote() {
+    if (!editingNote?.annotation) return;
+    const text = String(editingNote.text || "").trim();
+    if (!text) { onDelete?.(editingNote.annotation); setEditingNote(null); return; }
+    onUpdate?.({ ...editingNote.annotation, payload: { ...(editingNote.annotation.payload || {}), text, normalized: true } }, editingNote.annotation);
+    setEditingNote(null);
+  }
+
+  function rectStyle(rect) {
+    return { left: `${rect.x * 100}%`, top: `${rect.y * 100}%`, width: `${rect.w * 100}%`, height: `${rect.h * 100}%` };
+  }
+
+  return (
+    <div
+      ref={layerRef}
+      className="lecture-pdf-annotation-layer"
+      data-tool={activeTool}
+      onPointerDown={beginPointer}
+      onPointerMove={movePointer}
+      onPointerUp={finishPointer}
+      onPointerCancel={() => { drawingRef.current = null; setPreview(null); }}
+    >
+      {searchBoxes.map((box, index) => <span key={`search-${index}`} className="lecture-pdf-search-hit" style={rectStyle(box)} />)}
+      {annotations.filter((annotation) => annotation.type !== "bookmark").map((annotation) => {
+        if (annotation.type === "pen") {
+          const points = Array.isArray(annotation.payload?.points) ? annotation.payload.points : [];
+          const d = points.map((point, index) => `${index ? "L" : "M"}${point.x} ${point.y}`).join(" ");
+          return <svg key={annotation.id} className="lecture-pdf-ink" viewBox="0 0 1 1" preserveAspectRatio="none" onClick={(event) => annotationClick(event, annotation)}><path d={d} vectorEffect="non-scaling-stroke" style={{ stroke: annotation.color || activeColor }} /></svg>;
+        }
+        if (annotation.type === "sticky") {
+          const x = lecturePdfClamp(annotation.payload?.x || 0, 0, 1);
+          const y = lecturePdfClamp(annotation.payload?.y || 0, 0, 1);
+          return <button key={annotation.id} type="button" className="lecture-pdf-sticky" style={{ left: `${x * 100}%`, top: `${y * 100}%`, "--pdf-annotation-color": annotation.color || activeColor }} title={String(annotation.payload?.text || "")} onClick={(event) => annotationClick(event, annotation)}>✎</button>;
+        }
+        const rect = annotation.payload?.rect;
+        if (!rect) return null;
+        return <button key={annotation.id} type="button" className={`lecture-pdf-mark lecture-pdf-mark--${annotation.type}`} style={{ ...rectStyle(rect), "--pdf-annotation-color": annotation.color || activeColor }} onClick={(event) => annotationClick(event, annotation)} aria-label={annotation.type} />;
+      })}
+      {preview?.rect && <span className={`lecture-pdf-mark lecture-pdf-mark--${preview.type} lecture-pdf-mark--preview`} style={{ ...rectStyle(preview.rect), "--pdf-annotation-color": activeColor }} />}
+      {preview?.type === "pen" && <svg className="lecture-pdf-ink lecture-pdf-ink--preview" viewBox="0 0 1 1" preserveAspectRatio="none"><path d={(preview.points || []).map((point, index) => `${index ? "L" : "M"}${point.x} ${point.y}`).join(" ")} vectorEffect="non-scaling-stroke" style={{ stroke: activeColor }} /></svg>}
+      {noteDraft && (
+        <div className="lecture-pdf-note-editor" style={{ left: `${noteDraft.x * 100}%`, top: `${noteDraft.y * 100}%` }} onPointerDown={(event) => event.stopPropagation()}>
+          <textarea autoFocus value={noteDraft.text} placeholder={labels.notePlaceholder} onChange={(event) => setNoteDraft((current) => ({ ...current, text: event.target.value }))} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") saveNewNote(); if (event.key === "Escape") setNoteDraft(null); }} />
+          <div><button type="button" onClick={() => setNoteDraft(null)}>{labels.cancel}</button><button type="button" data-primary="true" onClick={saveNewNote}>{labels.save}</button></div>
+        </div>
+      )}
+      {editingNote && (
+        <div className="lecture-pdf-note-editor lecture-pdf-note-editor--center" onPointerDown={(event) => event.stopPropagation()}>
+          <textarea autoFocus value={editingNote.text} placeholder={labels.notePlaceholder} onChange={(event) => setEditingNote((current) => ({ ...current, text: event.target.value }))} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") saveEditedNote(); if (event.key === "Escape") setEditingNote(null); }} />
+          <div><button type="button" onClick={() => setEditingNote(null)}>{labels.cancel}</button><button type="button" data-primary="true" onClick={saveEditedNote}>{labels.save}</button></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scale, active, fileName, copy, annotations = [], searchBoxes = [], activeTool = "select", activeColor, labels, onCreateAnnotation, onUpdateAnnotation, onDeleteAnnotation, workspace = false }) {
   const canvasRef = useRef(null);
   const renderTaskRef = useRef(null);
   const [renderState, setRenderState] = useState("idle");
@@ -33648,7 +33986,6 @@ function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scal
       setRenderState("idle");
       return undefined;
     }
-
     async function renderPage() {
       setRenderState("rendering");
       try {
@@ -33673,18 +34010,14 @@ function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scal
         setRenderState("error");
       }
     }
-
     renderPage();
-    return () => {
-      cancelled = true;
-      try { renderTaskRef.current?.cancel?.(); } catch {}
-      renderTaskRef.current = null;
-    };
+    return () => { cancelled = true; try { renderTaskRef.current?.cancel?.(); } catch {} renderTaskRef.current = null; };
   }, [pdf, pageNumber, scale, active]);
 
   return (
     <div className="lecture-pdf-continuous-page-inner" style={{ width: displayWidth, height: displayHeight }}>
       <canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />
+      {workspace && <LecturePdfAnnotationLayer pageNumber={pageNumber} annotations={annotations} searchBoxes={searchBoxes} activeTool={activeTool} activeColor={activeColor} labels={labels} onCreate={onCreateAnnotation} onUpdate={onUpdateAnnotation} onDelete={onDeleteAnnotation} />}
       {active && renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}
       {active && renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}
       {!active && <span className="lecture-pdf-page-placeholder" aria-hidden="true" />}
@@ -33700,9 +34033,17 @@ function LecturePdfViewer({
   onStateChange,
   copy,
   continuous = false,
+  workspace = false,
+  language = "da",
+  annotations = [],
+  annotationStatus = "idle",
+  onCreateAnnotation,
+  onUpdateAnnotation,
+  onDeleteAnnotation,
 }) {
   const canvasRef = useRef(null);
   const surfaceRef = useRef(null);
+  const rootRef = useRef(null);
   const pdfRef = useRef(null);
   const loadingTaskRef = useRef(null);
   const renderTaskRef = useRef(null);
@@ -33710,11 +34051,12 @@ function LecturePdfViewer({
   const scrollSaveTimerRef = useRef(null);
   const scrollFrameRef = useRef(null);
   const pageRefs = useRef(new Map());
-  const restoreScrollRef = useRef({
-    scrollTop: Math.max(0, Number(savedState?.scrollTop) || 0),
-    page: Math.max(1, Number(savedState?.page) || 1),
-    pageOffset: lecturePdfClamp(savedState?.pageOffset || 0, 0, 1),
-  });
+  const searchInputRef = useRef(null);
+  const searchTokenRef = useRef(0);
+  const undoStackRef = useRef([]);
+  const redoStackRef = useRef([]);
+  const restoreScrollRef = useRef({ scrollTop: Math.max(0, Number(savedState?.scrollTop) || 0), page: Math.max(1, Number(savedState?.page) || 1), pageOffset: lecturePdfClamp(savedState?.pageOffset || 0, 0, 1) });
+  const labels = lecturePdfWorkspaceLabels(language);
   const [loadState, setLoadState] = useState("loading");
   const [renderState, setRenderState] = useState("idle");
   const [pdfRevision, setPdfRevision] = useState(0);
@@ -33723,394 +34065,276 @@ function LecturePdfViewer({
   const [numPages, setNumPages] = useState(0);
   const [pageMetrics, setPageMetrics] = useState([]);
   const [renderPages, setRenderPages] = useState(() => new Set([Math.max(1, Number(savedState?.page) || 1)]));
-  const [zoomMode, setZoomMode] = useState(savedState?.zoomMode === "custom" ? "custom" : "fit-width");
+  const [zoomMode, setZoomMode] = useState(["fit-width", "fit-page", "custom"].includes(savedState?.zoomMode) ? savedState.zoomMode : "fit-width");
   const [customScale, setCustomScale] = useState(lecturePdfClamp(savedState?.scale || 1.25, .5, 3.5));
   const [effectiveScale, setEffectiveScale] = useState(1);
   const [surfaceWidth, setSurfaceWidth] = useState(0);
+  const [surfaceHeight, setSurfaceHeight] = useState(0);
+  const [thumbnailOpen, setThumbnailOpen] = useState(Boolean(savedState?.thumbnailsOpen));
+  const [searchOpen, setSearchOpen] = useState(Boolean(savedState?.searchOpen));
+  const [pdfSearchQuery, setPdfSearchQuery] = useState(String(savedState?.searchQuery || ""));
+  const [pdfSearchResults, setPdfSearchResults] = useState([]);
+  const [pdfSearchState, setPdfSearchState] = useState("idle");
+  const [activeTool, setActiveTool] = useState(savedState?.activeTool || "select");
+  const [activeColor, setActiveColor] = useState(savedState?.activeColor || "#f7d85c");
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const [copyState, setCopyState] = useState("idle");
+  const [fullscreen, setFullscreen] = useState(false);
 
-  useEffect(() => {
-    stateChangeRef.current = onStateChange;
-  }, [onStateChange]);
+  useEffect(() => { stateChangeRef.current = onStateChange; }, [onStateChange]);
 
   useEffect(() => {
     const page = Math.max(1, Number(savedState?.page) || 1);
-    setPageNumber(page);
-    setPageDraft(String(page));
-    setZoomMode(savedState?.zoomMode === "custom" ? "custom" : "fit-width");
+    setPageNumber(page); setPageDraft(String(page));
+    setZoomMode(["fit-width", "fit-page", "custom"].includes(savedState?.zoomMode) ? savedState.zoomMode : "fit-width");
     setCustomScale(lecturePdfClamp(savedState?.scale || 1.25, .5, 3.5));
-    setPageMetrics([]);
-    setRenderPages(new Set([page]));
-    restoreScrollRef.current = {
-      scrollTop: Math.max(0, Number(savedState?.scrollTop) || 0),
-      page,
-      pageOffset: lecturePdfClamp(savedState?.pageOffset || 0, 0, 1),
-    };
-  }, [materialId]);
+    setThumbnailOpen(Boolean(savedState?.thumbnailsOpen));
+    setSearchOpen(Boolean(savedState?.searchOpen));
+    setPdfSearchQuery(String(savedState?.searchQuery || ""));
+    setActiveTool(savedState?.activeTool || "select");
+    setActiveColor(savedState?.activeColor || "#f7d85c");
+    setPageMetrics([]); setRenderPages(new Set([page]));
+    undoStackRef.current = []; redoStackRef.current = []; setHistoryRevision((value) => value + 1);
+    restoreScrollRef.current = { scrollTop: Math.max(0, Number(savedState?.scrollTop) || 0), page, pageOffset: lecturePdfClamp(savedState?.pageOffset || 0, 0, 1) };
+  }, [materialId, savedState?.remoteRevision]);
 
   useEffect(() => {
     const node = surfaceRef.current;
     if (!node) return undefined;
-    const measure = () => setSurfaceWidth(Math.round(node.clientWidth || 0));
+    const measure = () => { setSurfaceWidth(Math.round(node.clientWidth || 0)); setSurfaceHeight(Math.round(node.clientHeight || 0)); };
     measure();
-    if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", measure);
-      return () => window.removeEventListener("resize", measure);
-    }
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [materialId, loadState, continuous]);
+    if (typeof ResizeObserver === "undefined") { window.addEventListener("resize", measure); return () => window.removeEventListener("resize", measure); }
+    const observer = new ResizeObserver(measure); observer.observe(node); return () => observer.disconnect();
+  }, [materialId, loadState, continuous, thumbnailOpen, searchOpen]);
+
+  useEffect(() => {
+    const handler = () => setFullscreen(document.fullscreenElement === rootRef.current);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    setLoadState("loading");
-    setRenderState("idle");
-    setNumPages(0);
-    setPageMetrics([]);
-    pdfRef.current = null;
-
-    loadLecturePdfJs()
-      .then((pdfjs) => {
-        if (cancelled) return null;
-        const loadingTask = pdfjs.getDocument({ url });
-        loadingTaskRef.current = loadingTask;
-        return loadingTask.promise;
-      })
-      .then(async (pdf) => {
-        if (!pdf || cancelled) {
-          pdf?.destroy?.();
-          return;
+    setLoadState("loading"); setRenderState("idle"); setNumPages(0); setPageMetrics([]); pdfRef.current = null;
+    loadLecturePdfJs().then((pdfjs) => {
+      if (cancelled) return null;
+      const loadingTask = pdfjs.getDocument({ url }); loadingTaskRef.current = loadingTask; return loadingTask.promise;
+    }).then(async (pdf) => {
+      if (!pdf || cancelled) { pdf?.destroy?.(); return; }
+      pdfRef.current = pdf;
+      const total = Math.max(1, Number(pdf.numPages) || 1);
+      const restoredPage = lecturePdfClamp(savedState?.page || pageNumber, 1, total);
+      setNumPages(total); setPageNumber(restoredPage); setPageDraft(String(restoredPage)); setRenderPages(lecturePdfPageWindow(restoredPage, total, workspace ? 3 : 2));
+      if (continuous) {
+        const metrics = new Array(total); const batchSize = 10;
+        for (let start = 1; start <= total && !cancelled; start += batchSize) {
+          const batch = [];
+          for (let pageIndex = start; pageIndex <= Math.min(total, start + batchSize - 1); pageIndex += 1) batch.push(pdf.getPage(pageIndex).then((page) => { const viewport = page.getViewport({ scale: 1 }); metrics[pageIndex - 1] = { width: viewport.width, height: viewport.height }; }));
+          await Promise.all(batch);
         }
-        pdfRef.current = pdf;
-        const total = Math.max(1, Number(pdf.numPages) || 1);
-        const restoredPage = lecturePdfClamp(savedState?.page || pageNumber, 1, total);
-        setNumPages(total);
-        setPageNumber(restoredPage);
-        setPageDraft(String(restoredPage));
-        setRenderPages(lecturePdfPageWindow(restoredPage, total, 2));
-
-        if (continuous) {
-          const metrics = new Array(total);
-          const batchSize = 10;
-          for (let start = 1; start <= total && !cancelled; start += batchSize) {
-            const end = Math.min(total, start + batchSize - 1);
-            const batch = [];
-            for (let pageIndex = start; pageIndex <= end; pageIndex += 1) {
-              batch.push(pdf.getPage(pageIndex).then((page) => {
-                const viewport = page.getViewport({ scale: 1 });
-                metrics[pageIndex - 1] = { width: viewport.width, height: viewport.height };
-              }));
-            }
-            await Promise.all(batch);
-          }
-          if (cancelled) return;
-          setPageMetrics(metrics.map((metric) => metric || { width: 595, height: 842 }));
-        }
-        setLoadState("ready");
-        setPdfRevision((value) => value + 1);
-      })
-      .catch(() => {
-        if (!cancelled) setLoadState("fallback");
-      });
-
+        if (cancelled) return;
+        setPageMetrics(metrics.map((metric) => metric || { width: 595, height: 842 }));
+      }
+      setLoadState("ready"); setPdfRevision((value) => value + 1);
+    }).catch(() => { if (!cancelled) setLoadState("fallback"); });
     return () => {
-      cancelled = true;
-      window.clearTimeout(scrollSaveTimerRef.current);
-      if (scrollFrameRef.current) window.cancelAnimationFrame(scrollFrameRef.current);
-      try { renderTaskRef.current?.cancel?.(); } catch {}
-      renderTaskRef.current = null;
-      try { loadingTaskRef.current?.destroy?.(); } catch {}
-      loadingTaskRef.current = null;
-      try { pdfRef.current?.destroy?.(); } catch {}
-      pdfRef.current = null;
-      pageRefs.current.clear();
+      cancelled = true; window.clearTimeout(scrollSaveTimerRef.current); if (scrollFrameRef.current) window.cancelAnimationFrame(scrollFrameRef.current);
+      try { renderTaskRef.current?.cancel?.(); } catch {} renderTaskRef.current = null;
+      try { loadingTaskRef.current?.destroy?.(); } catch {} loadingTaskRef.current = null;
+      try { pdfRef.current?.destroy?.(); } catch {} pdfRef.current = null; pageRefs.current.clear();
     };
   }, [url, materialId, continuous]);
 
   useEffect(() => {
-    if (continuous || loadState !== "ready" || !pdfRef.current || !canvasRef.current || !surfaceRef.current) return undefined;
-    let cancelled = false;
-    const pdf = pdfRef.current;
-    const canvas = canvasRef.current;
-    const surface = surfaceRef.current;
+    if (!workspace || !pdfRef.current || loadState !== "ready") return undefined;
+    const query = pdfSearchQuery.trim();
+    if (query.length < 2) { setPdfSearchResults([]); setPdfSearchState("idle"); return undefined; }
+    const token = ++searchTokenRef.current;
+    const timer = window.setTimeout(async () => {
+      setPdfSearchState("loading");
+      const results = [];
+      try {
+        for (let pageIndex = 1; pageIndex <= numPages && results.length < 140; pageIndex += 1) {
+          if (token !== searchTokenRef.current) return;
+          const page = await pdfRef.current.getPage(pageIndex);
+          const viewport = page.getViewport({ scale: 1 });
+          const content = await page.getTextContent();
+          const pageText = (content.items || []).map((item) => item.str || "").join(" ");
+          const boxes = [];
+          (content.items || []).forEach((item) => {
+            const text = String(item.str || "");
+            if (!text.toLowerCase().includes(query.toLowerCase())) return;
+            const transform = item.transform || [1, 0, 0, 1, 0, 0];
+            const height = Math.max(6, Math.abs(transform[3] || item.height || 10));
+            const x = Number(transform[4] || 0);
+            const yBottom = Number(transform[5] || 0);
+            const width = Math.max(5, Number(item.width || text.length * height * .45));
+            boxes.push({ x: lecturePdfClamp(x / viewport.width, 0, 1), y: lecturePdfClamp((viewport.height - yBottom - height) / viewport.height, 0, 1), w: lecturePdfClamp(width / viewport.width, .003, 1), h: lecturePdfClamp((height * 1.18) / viewport.height, .003, .2) });
+          });
+          if (pageText.toLowerCase().includes(query.toLowerCase())) results.push({ id: `${pageIndex}-${results.length}`, page: pageIndex, excerpt: lecturePdfSearchExcerpt(pageText, query), boxes: boxes.slice(0, 20) });
+        }
+        if (token === searchTokenRef.current) { setPdfSearchResults(results); setPdfSearchState("ready"); }
+      } catch { if (token === searchTokenRef.current) setPdfSearchState("error"); }
+    }, 260);
+    return () => window.clearTimeout(timer);
+  }, [workspace, pdfSearchQuery, numPages, loadState, pdfRevision]);
 
+  useEffect(() => {
+    if (continuous || loadState !== "ready" || !pdfRef.current || !canvasRef.current || !surfaceRef.current) return undefined;
+    let cancelled = false; const pdf = pdfRef.current; const canvas = canvasRef.current; const surface = surfaceRef.current;
     async function renderPage() {
       setRenderState("rendering");
       try {
-        const page = await pdf.getPage(pageNumber);
-        if (cancelled) return;
+        const page = await pdf.getPage(pageNumber); if (cancelled) return;
         const baseViewport = page.getViewport({ scale: 1 });
         const availableWidth = Math.max(240, (surface.clientWidth || surfaceWidth || baseViewport.width) - 34);
-        const fitScale = lecturePdfClamp(availableWidth / Math.max(1, baseViewport.width), .35, 3.5);
-        const scale = zoomMode === "fit-width" ? fitScale : lecturePdfClamp(customScale, .5, 3.5);
-        const viewport = page.getViewport({ scale });
-        const outputScale = Math.min(2.5, Math.max(1, window.devicePixelRatio || 1));
-        const context = canvas.getContext("2d", { alpha: false });
-        if (!context) throw new Error("Canvas unavailable");
-
+        const availableHeight = Math.max(240, (surface.clientHeight || surfaceHeight || baseViewport.height) - 30);
+        const fitWidth = lecturePdfClamp(availableWidth / Math.max(1, baseViewport.width), .35, 3.5);
+        const fitPage = lecturePdfClamp(Math.min(fitWidth, availableHeight / Math.max(1, baseViewport.height)), .35, 3.5);
+        const scale = zoomMode === "fit-width" ? fitWidth : zoomMode === "fit-page" ? fitPage : lecturePdfClamp(customScale, .5, 3.5);
+        const viewport = page.getViewport({ scale }); const outputScale = Math.min(2.5, Math.max(1, window.devicePixelRatio || 1));
+        const context = canvas.getContext("2d", { alpha: false }); if (!context) throw new Error("Canvas unavailable");
         try { renderTaskRef.current?.cancel?.(); } catch {}
-        canvas.width = Math.max(1, Math.floor(viewport.width * outputScale));
-        canvas.height = Math.max(1, Math.floor(viewport.height * outputScale));
-        canvas.style.width = `${Math.floor(viewport.width)}px`;
-        canvas.style.height = `${Math.floor(viewport.height)}px`;
-        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-        const renderTask = page.render({ canvasContext: context, transform, viewport });
-        renderTaskRef.current = renderTask;
-        await renderTask.promise;
-        if (cancelled) return;
-        setEffectiveScale(scale);
-        setRenderState("ready");
-        const restore = restoreScrollRef.current;
-        restoreScrollRef.current = null;
-        if (restore?.scrollTop != null) {
-          window.requestAnimationFrame(() => {
-            if (surfaceRef.current) surfaceRef.current.scrollTop = Math.max(0, restore.scrollTop);
-          });
-        }
-      } catch (error) {
-        if (cancelled || error?.name === "RenderingCancelledException") return;
-        setRenderState("error");
-      }
+        canvas.width = Math.max(1, Math.floor(viewport.width * outputScale)); canvas.height = Math.max(1, Math.floor(viewport.height * outputScale)); canvas.style.width = `${Math.floor(viewport.width)}px`; canvas.style.height = `${Math.floor(viewport.height)}px`;
+        const task = page.render({ canvasContext: context, transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null, viewport }); renderTaskRef.current = task; await task.promise;
+        if (cancelled) return; setEffectiveScale(scale); setRenderState("ready");
+      } catch (error) { if (!cancelled && error?.name !== "RenderingCancelledException") setRenderState("error"); }
     }
-
-    renderPage();
-    return () => {
-      cancelled = true;
-      try { renderTaskRef.current?.cancel?.(); } catch {}
-    };
-  }, [continuous, loadState, pdfRevision, pageNumber, zoomMode, customScale, surfaceWidth]);
+    renderPage(); return () => { cancelled = true; try { renderTaskRef.current?.cancel?.(); } catch {} };
+  }, [continuous, loadState, pdfRevision, pageNumber, zoomMode, customScale, surfaceWidth, surfaceHeight]);
 
   const currentMetric = pageMetrics[Math.max(0, pageNumber - 1)] || pageMetrics[0] || { width: 595, height: 842 };
-  const continuousAvailableWidth = Math.max(260, (surfaceWidth || currentMetric.width) - 40);
-  const continuousFitScale = lecturePdfClamp(continuousAvailableWidth / Math.max(1, currentMetric.width), .35, 3.5);
-  const continuousScale = zoomMode === "fit-width" ? continuousFitScale : lecturePdfClamp(customScale, .5, 3.5);
+  const availableWidth = Math.max(260, (surfaceWidth || currentMetric.width) - 40);
+  const availableHeight = Math.max(260, (surfaceHeight || currentMetric.height) - 26);
+  const continuousFitWidth = lecturePdfClamp(availableWidth / Math.max(1, currentMetric.width), .35, 3.5);
+  const continuousFitPage = lecturePdfClamp(Math.min(continuousFitWidth, availableHeight / Math.max(1, currentMetric.height)), .35, 3.5);
+  const continuousScale = zoomMode === "fit-width" ? continuousFitWidth : zoomMode === "fit-page" ? continuousFitPage : lecturePdfClamp(customScale, .5, 3.5);
   const toolbarScale = continuous ? continuousScale : effectiveScale;
 
   useEffect(() => {
     if (!continuous || loadState !== "ready" || !surfaceRef.current || !pageMetrics.length) return undefined;
-    const surface = surfaceRef.current;
-    const restore = restoreScrollRef.current;
-    if (!restore) return undefined;
-    const frame = window.requestAnimationFrame(() => {
-      const node = pageRefs.current.get(lecturePdfClamp(restore.page, 1, numPages));
-      if (!node) return;
-      const offset = lecturePdfClamp(restore.pageOffset || 0, 0, 1);
-      surface.scrollTop = Math.max(0, node.offsetTop + (node.offsetHeight * offset) - 12);
-      restoreScrollRef.current = null;
-    });
+    const restore = restoreScrollRef.current; if (!restore) return undefined;
+    const frame = window.requestAnimationFrame(() => { const node = pageRefs.current.get(lecturePdfClamp(restore.page, 1, numPages)); if (!node) return; surfaceRef.current.scrollTop = Math.max(0, node.offsetTop + node.offsetHeight * lecturePdfClamp(restore.pageOffset || 0, 0, 1) - 12); restoreScrollRef.current = null; });
     return () => window.cancelAnimationFrame(frame);
   }, [continuous, loadState, pageMetrics.length, materialId, numPages]);
 
   useEffect(() => {
     if (!continuous || loadState !== "ready" || !surfaceRef.current || !numPages) return undefined;
-    const surface = surfaceRef.current;
-    const nodes = [...pageRefs.current.values()];
-    if (typeof IntersectionObserver === "undefined") {
-      setRenderPages(lecturePdfPageWindow(pageNumber, numPages, 2));
-      return undefined;
-    }
+    const surface = surfaceRef.current; const nodes = [...pageRefs.current.values()];
+    if (typeof IntersectionObserver === "undefined") { setRenderPages(lecturePdfPageWindow(pageNumber, numPages, workspace ? 3 : 2)); return undefined; }
     const observer = new IntersectionObserver((entries) => {
-      setRenderPages((current) => {
-        const next = new Set(current);
-        entries.forEach((entry) => {
-          const page = Number(entry.target?.dataset?.pdfPage || 0);
-          if (!page) return;
-          if (entry.isIntersecting) next.add(page);
-          else if (Math.abs(page - pageNumber) > 2) next.delete(page);
-        });
-        lecturePdfPageWindow(pageNumber, numPages, 2).forEach((page) => next.add(page));
-        return next;
-      });
-    }, { root: surface, rootMargin: "1400px 0px 1400px 0px", threshold: 0.01 });
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
-  }, [continuous, loadState, pageMetrics.length, pageNumber, numPages]);
+      setRenderPages((current) => { const next = new Set(current); entries.forEach((entry) => { const page = Number(entry.target?.dataset?.pdfPage || 0); if (!page) return; if (entry.isIntersecting) next.add(page); else if (Math.abs(page - pageNumber) > (workspace ? 3 : 2)) next.delete(page); }); lecturePdfPageWindow(pageNumber, numPages, workspace ? 3 : 2).forEach((page) => next.add(page)); return next; });
+    }, { root: surface, rootMargin: "1900px 0px 1900px 0px", threshold: .01 });
+    nodes.forEach((node) => observer.observe(node)); return () => observer.disconnect();
+  }, [continuous, loadState, pageMetrics.length, pageNumber, numPages, workspace]);
 
-  useEffect(() => {
-    if (!continuous || !numPages) return;
-    setRenderPages((current) => {
-      const next = new Set(current);
-      lecturePdfPageWindow(pageNumber, numPages, 2).forEach((page) => next.add(page));
-      return next;
-    });
-  }, [continuous, pageNumber, numPages]);
-
-  useEffect(() => {
-    if (!materialId) return;
-    stateChangeRef.current?.({ page: pageNumber, zoomMode, scale: customScale });
-  }, [materialId, pageNumber, zoomMode, customScale]);
+  useEffect(() => { if (!materialId) return; stateChangeRef.current?.({ page: pageNumber, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor }); }, [materialId, pageNumber, zoomMode, customScale, thumbnailOpen, searchOpen, pdfSearchQuery, activeTool, activeColor]);
 
   function locateContinuousPage(surface) {
-    const top = surface.scrollTop + 18;
-    let bestPage = pageNumber;
-    let bestDistance = Number.POSITIVE_INFINITY;
-    let bestNode = pageRefs.current.get(bestPage) || null;
-    pageRefs.current.forEach((node, page) => {
-      const pageTop = node.offsetTop;
-      const pageBottom = pageTop + node.offsetHeight;
-      const distance = top >= pageTop && top <= pageBottom ? 0 : Math.min(Math.abs(top - pageTop), Math.abs(top - pageBottom));
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestPage = page;
-        bestNode = node;
-      }
-    });
-    const pageOffset = bestNode
-      ? lecturePdfClamp((surface.scrollTop - bestNode.offsetTop + 12) / Math.max(1, bestNode.offsetHeight), 0, 1)
-      : 0;
-    return { page: bestPage, pageOffset };
+    const top = surface.scrollTop + 18; let bestPage = pageNumber; let bestDistance = Number.POSITIVE_INFINITY; let bestNode = pageRefs.current.get(bestPage) || null;
+    pageRefs.current.forEach((node, page) => { const pageTop = node.offsetTop; const pageBottom = pageTop + node.offsetHeight; const distance = top >= pageTop && top <= pageBottom ? 0 : Math.min(Math.abs(top - pageTop), Math.abs(top - pageBottom)); if (distance < bestDistance) { bestDistance = distance; bestPage = page; bestNode = node; } });
+    const pageOffset = bestNode ? lecturePdfClamp((surface.scrollTop - bestNode.offsetTop + 12) / Math.max(1, bestNode.offsetHeight), 0, 1) : 0; return { page: bestPage, pageOffset };
   }
 
   function scrollToContinuousPage(nextPage, pageOffset = 0, smooth = true) {
-    if (!surfaceRef.current || !numPages) return;
-    const next = lecturePdfClamp(nextPage, 1, numPages);
-    const node = pageRefs.current.get(next);
-    setPageNumber(next);
-    setPageDraft(String(next));
-    setRenderPages((current) => {
-      const expanded = new Set(current);
-      lecturePdfPageWindow(next, numPages, 2).forEach((page) => expanded.add(page));
-      return expanded;
-    });
-    if (!node) return;
-    const top = Math.max(0, node.offsetTop + (node.offsetHeight * lecturePdfClamp(pageOffset, 0, 1)) - 12);
-    surfaceRef.current.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
+    if (!surfaceRef.current || !numPages) return; const next = lecturePdfClamp(nextPage, 1, numPages); const node = pageRefs.current.get(next);
+    setPageNumber(next); setPageDraft(String(next)); setRenderPages((current) => { const expanded = new Set(current); lecturePdfPageWindow(next, numPages, workspace ? 3 : 2).forEach((page) => expanded.add(page)); return expanded; });
+    if (!node) return; const top = Math.max(0, node.offsetTop + node.offsetHeight * lecturePdfClamp(pageOffset, 0, 1) - 12); surfaceRef.current.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
   }
-
-  function changePage(nextPage) {
-    if (!numPages) return;
-    const next = lecturePdfClamp(nextPage, 1, numPages);
-    if (continuous) {
-      scrollToContinuousPage(next, 0, true);
-      return;
-    }
-    restoreScrollRef.current = { scrollTop: 0, page: next, pageOffset: 0 };
-    setPageNumber(next);
-    setPageDraft(String(next));
-  }
-
-  function commitPageDraft() {
-    const parsed = Number(pageDraft);
-    if (!Number.isFinite(parsed)) {
-      setPageDraft(String(pageNumber));
-      return;
-    }
-    changePage(parsed);
-  }
-
-  function changeZoom(delta) {
-    const base = zoomMode === "fit-width" ? (toolbarScale || 1) : customScale;
-    setCustomScale(lecturePdfClamp(base + delta, .5, 3.5));
-    setZoomMode("custom");
-  }
-
+  function changePage(nextPage) { if (!numPages) return; const next = lecturePdfClamp(nextPage, 1, numPages); if (continuous) return scrollToContinuousPage(next, 0, true); setPageNumber(next); setPageDraft(String(next)); }
+  function commitPageDraft() { const parsed = Number(pageDraft); if (!Number.isFinite(parsed)) return setPageDraft(String(pageNumber)); changePage(parsed); }
+  function changeZoom(delta) { const base = zoomMode === "custom" ? customScale : (toolbarScale || 1); setCustomScale(lecturePdfClamp(base + delta, .5, 3.5)); setZoomMode("custom"); }
   function rememberScroll(event) {
-    const surface = event.currentTarget;
-    const top = Math.max(0, surface.scrollTop || 0);
-    if (continuous) {
-      if (scrollFrameRef.current) window.cancelAnimationFrame(scrollFrameRef.current);
-      scrollFrameRef.current = window.requestAnimationFrame(() => {
-        const position = locateContinuousPage(surface);
-        if (position.page !== pageNumber) {
-          setPageNumber(position.page);
-          setPageDraft(String(position.page));
-        }
-      });
-    }
-    window.clearTimeout(scrollSaveTimerRef.current);
-    scrollSaveTimerRef.current = window.setTimeout(() => {
-      if (continuous) {
-        const position = locateContinuousPage(surface);
-        stateChangeRef.current?.({ scrollTop: top, page: position.page, pageOffset: position.pageOffset, zoomMode, scale: customScale });
-      } else {
-        stateChangeRef.current?.({ scrollTop: top, page: pageNumber, zoomMode, scale: customScale });
-      }
-    }, 160);
+    const surface = event.currentTarget; const top = Math.max(0, surface.scrollTop || 0);
+    if (continuous) { if (scrollFrameRef.current) window.cancelAnimationFrame(scrollFrameRef.current); scrollFrameRef.current = window.requestAnimationFrame(() => { const position = locateContinuousPage(surface); if (position.page !== pageNumber) { setPageNumber(position.page); setPageDraft(String(position.page)); } }); }
+    window.clearTimeout(scrollSaveTimerRef.current); scrollSaveTimerRef.current = window.setTimeout(() => { if (continuous) { const position = locateContinuousPage(surface); stateChangeRef.current?.({ scrollTop: top, page: position.page, pageOffset: position.pageOffset, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor }); } else stateChangeRef.current?.({ scrollTop: top, page: pageNumber, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor }); }, 180);
   }
+
+  function pushHistory(action) { undoStackRef.current.push(action); if (undoStackRef.current.length > 60) undoStackRef.current.shift(); redoStackRef.current = []; setHistoryRevision((value) => value + 1); }
+  function createAnnotation(annotation, record = true) { onCreateAnnotation?.(annotation); if (record) pushHistory({ kind: "create", annotation }); }
+  function deleteAnnotation(annotation, record = true) { onDeleteAnnotation?.(annotation); if (record) pushHistory({ kind: "delete", annotation }); }
+  function updateAnnotation(next, previous, record = true) { onUpdateAnnotation?.(next, previous); if (record) pushHistory({ kind: "update", next, previous }); }
+  function undoAnnotation() { const action = undoStackRef.current.pop(); if (!action) return; if (action.kind === "create") onDeleteAnnotation?.(action.annotation); if (action.kind === "delete") onCreateAnnotation?.(action.annotation); if (action.kind === "update") onUpdateAnnotation?.(action.previous, action.next); redoStackRef.current.push(action); setHistoryRevision((value) => value + 1); }
+  function redoAnnotation() { const action = redoStackRef.current.pop(); if (!action) return; if (action.kind === "create") onCreateAnnotation?.(action.annotation); if (action.kind === "delete") onDeleteAnnotation?.(action.annotation); if (action.kind === "update") onUpdateAnnotation?.(action.next, action.previous); undoStackRef.current.push(action); setHistoryRevision((value) => value + 1); }
+
+  const currentBookmark = annotations.find((annotation) => annotation.type === "bookmark" && Number(annotation.page) === pageNumber);
+  function toggleBookmark() { if (currentBookmark) deleteAnnotation(currentBookmark); else createAnnotation({ id: lecturePdfAnnotationId(), page: pageNumber, type: "bookmark", color: "#4777d9", payload: { normalized: true } }); }
+
+  async function copyCurrentPageText() {
+    if (!pdfRef.current) return; setCopyState("loading");
+    try { const page = await pdfRef.current.getPage(pageNumber); const content = await page.getTextContent(); const text = (content.items || []).map((item) => item.str || "").join(" ").replace(/\s+/g, " ").trim(); if (!text) throw new Error("empty"); await navigator.clipboard.writeText(text); setCopyState("copied"); window.setTimeout(() => setCopyState("idle"), 1400); } catch { setCopyState("error"); window.setTimeout(() => setCopyState("idle"), 1800); }
+  }
+
+  function toggleFullscreen() { if (!rootRef.current) return; if (document.fullscreenElement === rootRef.current) document.exitFullscreen?.(); else rootRef.current.requestFullscreen?.(); }
 
   function handleKeys(event) {
+    if (workspace && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") { event.preventDefault(); setSearchOpen(true); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); return; }
     if (event.target?.matches?.("input,textarea,select")) return;
-    if (event.key === "PageDown" || event.key === "ArrowRight") {
-      event.preventDefault();
-      changePage(pageNumber + 1);
-    } else if (event.key === "PageUp" || event.key === "ArrowLeft") {
-      event.preventDefault();
-      changePage(pageNumber - 1);
-    } else if ((event.ctrlKey || event.metaKey) && (event.key === "+" || event.key === "=")) {
-      event.preventDefault();
-      changeZoom(.15);
-    } else if ((event.ctrlKey || event.metaKey) && event.key === "-") {
-      event.preventDefault();
-      changeZoom(-.15);
-    } else if ((event.ctrlKey || event.metaKey) && event.key === "0") {
-      event.preventDefault();
-      setZoomMode("fit-width");
-    }
+    if (workspace && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey) { event.preventDefault(); undoAnnotation(); return; }
+    if (workspace && ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.key.toLowerCase() === "z" && event.shiftKey)))) { event.preventDefault(); redoAnnotation(); return; }
+    if (event.key === "PageDown" || event.key === "ArrowRight") { event.preventDefault(); changePage(pageNumber + 1); }
+    else if (event.key === "PageUp" || event.key === "ArrowLeft") { event.preventDefault(); changePage(pageNumber - 1); }
+    else if ((event.ctrlKey || event.metaKey) && (event.key === "+" || event.key === "=")) { event.preventDefault(); changeZoom(.15); }
+    else if ((event.ctrlKey || event.metaKey) && event.key === "-") { event.preventDefault(); changeZoom(-.15); }
+    else if ((event.ctrlKey || event.metaKey) && event.key === "0") { event.preventDefault(); setZoomMode("fit-width"); }
   }
 
-  if (loadState === "fallback") {
-    return (
-      <div className="lecture-pdf-viewer lecture-pdf-viewer--fallback">
-        <div className="lecture-pdf-fallback-note">{copy.pdfViewerFallback}</div>
-        <iframe title={fileName} src={url} />
-      </div>
-    );
-  }
+  const searchBoxesByPage = new Map();
+  pdfSearchResults.forEach((result) => searchBoxesByPage.set(result.page, [...(searchBoxesByPage.get(result.page) || []), ...(result.boxes || [])]));
+  const colors = ["#f7d85c", "#8be0a4", "#88c7ff", "#f3a6c8"];
+  const toolDefs = [
+    ["select", "↖", labels.select], ["highlight", "▰", labels.highlight], ["underline", "U̲", labels.underline], ["strike", "S̶", labels.strike], ["pen", "✎", labels.pen], ["sticky", "▣", labels.sticky], ["eraser", "⌫", labels.eraser],
+  ];
+
+  if (loadState === "fallback") return <div className="lecture-pdf-viewer lecture-pdf-viewer--fallback"><div className="lecture-pdf-fallback-note">{copy.pdfViewerFallback}</div><iframe title={fileName} src={url} /></div>;
 
   return (
-    <div className={`lecture-pdf-viewer ${continuous ? "lecture-pdf-viewer--continuous" : ""}`} tabIndex={0} onKeyDown={handleKeys}>
+    <div ref={rootRef} className={`lecture-pdf-viewer ${continuous ? "lecture-pdf-viewer--continuous" : ""} ${workspace ? "lecture-pdf-viewer--workspace" : ""}`} data-fullscreen={fullscreen ? "true" : "false"} tabIndex={0} onKeyDown={handleKeys}>
       <div className="lecture-pdf-toolbar" role="toolbar" aria-label={copy.pdfViewerControls}>
         <div className="lecture-pdf-toolbar-group">
           <button type="button" title={copy.pdfPreviousPage} disabled={loadState !== "ready" || pageNumber <= 1} onClick={() => changePage(pageNumber - 1)}><Icon name="left" size={13} /></button>
-          <label className="lecture-pdf-page-control" title={copy.pdfPage}>
-            <input type="number" min="1" max={numPages || 1} value={pageDraft} onChange={(event) => setPageDraft(event.target.value)} onBlur={commitPageDraft} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitPageDraft(); event.currentTarget.blur(); } }} />
-            <span>/ {numPages || "—"}</span>
-          </label>
+          <label className="lecture-pdf-page-control" title={copy.pdfPage}><input type="number" min="1" max={numPages || 1} value={pageDraft} onChange={(event) => setPageDraft(event.target.value)} onBlur={commitPageDraft} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitPageDraft(); event.currentTarget.blur(); } }} /><span>/ {numPages || "—"}</span></label>
           <button type="button" title={copy.pdfNextPage} disabled={loadState !== "ready" || !numPages || pageNumber >= numPages} onClick={() => changePage(pageNumber + 1)}><Icon name="right" size={13} /></button>
         </div>
         <span className="lecture-pdf-toolbar-divider" />
         <div className="lecture-pdf-toolbar-group">
-          <button type="button" title={copy.pdfZoomOut} disabled={loadState !== "ready"} onClick={() => changeZoom(-.15)}>−</button>
-          <span className="lecture-pdf-zoom-value">{Math.round((toolbarScale || 1) * 100)}%</span>
-          <button type="button" title={copy.pdfZoomIn} disabled={loadState !== "ready"} onClick={() => changeZoom(.15)}>+</button>
+          <button type="button" title={copy.pdfZoomOut} disabled={loadState !== "ready"} onClick={() => changeZoom(-.15)}>−</button><span className="lecture-pdf-zoom-value">{Math.round((toolbarScale || 1) * 100)}%</span><button type="button" title={copy.pdfZoomIn} disabled={loadState !== "ready"} onClick={() => changeZoom(.15)}>+</button>
           <button type="button" className="lecture-pdf-fit-button" data-active={zoomMode === "fit-width" ? "true" : "false"} title={copy.pdfFitWidth} disabled={loadState !== "ready"} onClick={() => setZoomMode("fit-width")}><Icon name="expand" size={12} /><span>{copy.pdfFitWidth}</span></button>
+          {workspace && <button type="button" className="lecture-pdf-fit-button" data-active={zoomMode === "fit-page" ? "true" : "false"} title={labels.fitPage} disabled={loadState !== "ready"} onClick={() => setZoomMode("fit-page")}><span>□</span><span>{labels.fitPage}</span></button>}
         </div>
+        {workspace && <><span className="lecture-pdf-toolbar-divider" /><div className="lecture-pdf-toolbar-group lecture-pdf-workspace-actions">
+          <button type="button" data-active={thumbnailOpen ? "true" : "false"} title={labels.thumbnails} onClick={() => { setThumbnailOpen((value) => !value); setSearchOpen(false); }}><span>▦</span></button>
+          <button type="button" data-active={searchOpen ? "true" : "false"} title={`${labels.search} · Ctrl/Cmd+F`} onClick={() => { setSearchOpen((value) => !value); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); }}><span>⌕</span></button>
+          <button type="button" data-active={Boolean(currentBookmark) ? "true" : "false"} title={currentBookmark ? labels.bookmarked : labels.bookmark} onClick={toggleBookmark}><span>◆</span></button>
+          <button type="button" title={copyState === "copied" ? labels.copied : copyState === "error" ? labels.pageTextUnavailable : labels.copyPage} onClick={copyCurrentPageText}><span>{copyState === "copied" ? "✓" : "⧉"}</span></button>
+          <button type="button" title={fullscreen ? labels.exitFullscreen : labels.fullscreen} onClick={toggleFullscreen}><Icon name={fullscreen ? "collapse" : "expand"} size={12} /></button>
+        </div></>}
       </div>
-      <div ref={surfaceRef} className="lecture-pdf-surface" onScroll={rememberScroll}>
-        {loadState === "loading" ? (
-          <div className="lecture-pdf-state"><span className="lecture-pdf-spinner" /><strong>{copy.pdfLoading}</strong></div>
-        ) : continuous ? (
-          <div className="lecture-pdf-pages">
-            {pageMetrics.map((metric, index) => {
-              const page = index + 1;
-              const availableWidth = Math.max(260, (surfaceWidth || metric.width) - 40);
-              const fitScale = lecturePdfClamp(availableWidth / Math.max(1, metric.width), .35, 3.5);
-              const scale = zoomMode === "fit-width" ? fitScale : lecturePdfClamp(customScale, .5, 3.5);
-              const displayWidth = Math.max(1, Math.round(metric.width * scale));
-              const displayHeight = Math.max(1, Math.round(metric.height * scale));
-              return (
-                <section
-                  key={page}
-                  ref={(node) => { if (node) pageRefs.current.set(page, node); else pageRefs.current.delete(page); }}
-                  className="lecture-pdf-continuous-page"
-                  data-pdf-page={page}
-                  data-current={page === pageNumber ? "true" : "false"}
-                  style={{ width: displayWidth, minHeight: displayHeight }}
-                  aria-label={`${copy.pdfPage} ${page}`}
-                >
-                  <LecturePdfContinuousPage pdf={pdfRef.current} pageNumber={page} baseWidth={metric.width} baseHeight={metric.height} scale={scale} active={renderPages.has(page)} fileName={fileName} copy={copy} />
-                  <span className="lecture-pdf-page-number">{page}</span>
-                </section>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}>
-            <canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />
-            {renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}
-            {renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}
-          </div>
-        )}
+      {workspace && <div className="lecture-pdf-annotation-toolbar" role="toolbar" aria-label={labels.annotationsPrivate}>
+        <div className="lecture-pdf-toolset">{toolDefs.map(([id, glyph, title]) => <button key={id} type="button" data-active={activeTool === id ? "true" : "false"} title={title} onClick={() => setActiveTool(id)}><span>{glyph}</span><small>{title}</small></button>)}</div>
+        <span className="lecture-pdf-toolbar-divider" />
+        <div className="lecture-pdf-color-set" aria-label="Annotation colors">{colors.map((color) => <button key={color} type="button" data-active={activeColor === color ? "true" : "false"} aria-label={color} title={color} style={{ "--pdf-color": color }} onClick={() => setActiveColor(color)} />)}</div>
+        <span className="lecture-pdf-toolbar-divider" />
+        <div className="lecture-pdf-history-actions"><button type="button" disabled={!undoStackRef.current.length} title={`${labels.undo} · Ctrl/Cmd+Z`} onClick={undoAnnotation}>↶</button><button type="button" disabled={!redoStackRef.current.length} title={`${labels.redo} · Ctrl/Cmd+Y`} onClick={redoAnnotation}>↷</button></div>
+        <span className="lecture-pdf-private-state" data-state={annotationStatus}><i />{annotationStatus === "saving" ? labels.annotationSaving : annotationStatus === "ready" ? labels.annotationSaved : labels.annotationsPrivate}</span>
+        <span style={{ display: "none" }}>{historyRevision}</span>
+      </div>}
+      <div className="lecture-pdf-workspace-body">
+        {workspace && (thumbnailOpen || searchOpen) && <aside className="lecture-pdf-side-rail" data-mode={searchOpen ? "search" : "thumbnails"}>
+          {searchOpen ? <>
+            <div className="lecture-pdf-search-head"><label><span>⌕</span><input ref={searchInputRef} value={pdfSearchQuery} onChange={(event) => setPdfSearchQuery(event.target.value)} placeholder={labels.searchPlaceholder} /></label><small>{pdfSearchState === "loading" ? "…" : `${pdfSearchResults.length} ${labels.searchResults}`}</small></div>
+            <div className="lecture-pdf-search-results">{pdfSearchResults.map((result) => <button key={result.id} type="button" data-current={result.page === pageNumber ? "true" : "false"} onClick={() => scrollToContinuousPage(result.page, 0, true)}><strong>{copy.pdfPage} {result.page}</strong><span>{result.excerpt}</span></button>)}{pdfSearchState === "ready" && !pdfSearchResults.length && pdfSearchQuery.trim().length >= 2 && <div className="lecture-pdf-side-empty">{labels.noSearchResults}</div>}</div>
+          </> : <div className="lecture-pdf-thumbnail-list">{Array.from({ length: numPages }, (_, index) => { const page = index + 1; const bookmarked = annotations.some((annotation) => annotation.type === "bookmark" && Number(annotation.page) === page); return <LecturePdfThumbnail key={page} pdf={pdfRef.current} pageNumber={page} active={Math.abs(page - pageNumber) <= 7} current={page === pageNumber} bookmarked={bookmarked} onSelect={() => scrollToContinuousPage(page, 0, true)} label={copy.pdfPage} />; })}</div>}
+        </aside>}
+        <div ref={surfaceRef} className="lecture-pdf-surface" onScroll={rememberScroll}>
+          {loadState === "loading" ? <div className="lecture-pdf-state"><span className="lecture-pdf-spinner" /><strong>{copy.pdfLoading}</strong></div> : continuous ? <div className="lecture-pdf-pages">{pageMetrics.map((metric, index) => {
+            const page = index + 1; const fitWidth = lecturePdfClamp(Math.max(260, (surfaceWidth || metric.width) - 40) / Math.max(1, metric.width), .35, 3.5); const fitPage = lecturePdfClamp(Math.min(fitWidth, Math.max(260, (surfaceHeight || metric.height) - 26) / Math.max(1, metric.height)), .35, 3.5); const scale = zoomMode === "fit-width" ? fitWidth : zoomMode === "fit-page" ? fitPage : lecturePdfClamp(customScale, .5, 3.5); const displayWidth = Math.max(1, Math.round(metric.width * scale)); const displayHeight = Math.max(1, Math.round(metric.height * scale));
+            return <section key={page} ref={(node) => { if (node) pageRefs.current.set(page, node); else pageRefs.current.delete(page); }} className="lecture-pdf-continuous-page" data-pdf-page={page} data-current={page === pageNumber ? "true" : "false"} style={{ width: displayWidth, minHeight: displayHeight }} aria-label={`${copy.pdfPage} ${page}`}>
+              <LecturePdfContinuousPage pdf={pdfRef.current} pageNumber={page} baseWidth={metric.width} baseHeight={metric.height} scale={scale} active={renderPages.has(page)} fileName={fileName} copy={copy} workspace={workspace} annotations={annotations.filter((annotation) => Number(annotation.page) === page)} searchBoxes={searchBoxesByPage.get(page) || []} activeTool={activeTool} activeColor={activeColor} labels={labels} onCreateAnnotation={(annotation) => createAnnotation(annotation)} onUpdateAnnotation={(next, previous) => updateAnnotation(next, previous)} onDeleteAnnotation={(annotation) => deleteAnnotation(annotation)} />
+              <span className="lecture-pdf-page-number">{page}</span>
+            </section>;
+          })}</div> : <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}><canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />{renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}{renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}</div>}
+        </div>
       </div>
     </div>
   );
@@ -34668,6 +34892,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [lectureFavoriteStatus, setLectureFavoriteStatus] = useState("idle");
   const [lectureViewerFocus, setLectureViewerFocus] = useState(false);
   const [lectureMaterialsOpen, setLectureMaterialsOpen] = useState(false);
+  const [lecturePdfAnnotations, setLecturePdfAnnotations] = useState([]);
+  const lecturePdfAnnotationsRef = useRef([]);
+  const [lecturePdfRemoteState, setLecturePdfRemoteState] = useState({});
+  const [lecturePdfRemoteRevision, setLecturePdfRemoteRevision] = useState(0);
+  const [lecturePdfWorkspaceStatus, setLecturePdfWorkspaceStatus] = useState("idle");
+  const lecturePdfScopeRef = useRef(null);
+  const lecturePdfStateSaveTimerRef = useRef(null);
+  const lecturePdfPendingStateRef = useRef({});
   const lectureSearchRef = useRef(null);
   const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
@@ -36017,6 +36249,89 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     : selectedExamDocument
       ? { ...selectedExamDocument, url: examSetPreviewUrl }
       : null;
+
+  useEffect(() => {
+    if (!isLectureLibrary || !activeLectureMaterial?.id || lectureMaterialPreviewKind(activeLectureMaterial) !== "pdf") {
+      lecturePdfScopeRef.current = null;
+      setLecturePdfAnnotations([]);
+      setLecturePdfRemoteState({});
+      setLecturePdfWorkspaceStatus("idle");
+      return undefined;
+    }
+
+    const materialId = activeLectureMaterial.id;
+    const lectureId = selectedLecture?.id || activeLectureMaterial.lecture_id;
+    const scope = { userId, materialId, moduleName, lectureId };
+    lecturePdfScopeRef.current = scope;
+    const localUserKey = userId || "anonymous";
+    const localState = workspaceState.lecturePdfUserCache?.[localUserKey]?.[materialId] || workspaceState.documentViewer?.[materialId] || {};
+    const localAnnotations = Array.isArray(workspaceState.lecturePdfAnnotationCache?.[localUserKey]?.[materialId]) ? workspaceState.lecturePdfAnnotationCache[localUserKey][materialId] : [];
+    setLecturePdfRemoteState({ ...localState, materialId, remoteRevision: Date.now() });
+    lecturePdfAnnotationsRef.current = localAnnotations;
+    setLecturePdfAnnotations(localAnnotations);
+
+    if (!userId) {
+      setLecturePdfWorkspaceStatus("local");
+      return undefined;
+    }
+
+    let cancelled = false;
+    setLecturePdfWorkspaceStatus("loading");
+    Promise.all([
+      supabase
+        .from("lecture_pdf_annotations")
+        .select("id,page_number,annotation_type,color,payload,created_at,updated_at")
+        .eq("user_id", userId)
+        .eq("material_id", materialId)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("lecture_pdf_user_state")
+        .select("page,page_offset,zoom_mode,scale,thumbnails_open,search_open,search_query,active_tool,active_color,updated_at")
+        .eq("user_id", userId)
+        .eq("material_id", materialId)
+        .maybeSingle(),
+    ]).then(([annotationsResult, stateResult]) => {
+      if (cancelled || lecturePdfScopeRef.current?.materialId !== materialId) return;
+      if (annotationsResult.error || stateResult.error) {
+        setLecturePdfWorkspaceStatus("local");
+        return;
+      }
+      const remoteAnnotations = (annotationsResult.data || []).map((row) => ({
+        id: row.id,
+        page: Number(row.page_number) || 1,
+        type: row.annotation_type,
+        color: row.color || "#f7d85c",
+        payload: row.payload && typeof row.payload === "object" ? row.payload : {},
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+      const remote = stateResult.data ? {
+        page: Number(stateResult.data.page) || 1,
+        pageOffset: Number(stateResult.data.page_offset) || 0,
+        zoomMode: stateResult.data.zoom_mode || "fit-width",
+        scale: Number(stateResult.data.scale) || 1.25,
+        thumbnailsOpen: Boolean(stateResult.data.thumbnails_open),
+        searchOpen: Boolean(stateResult.data.search_open),
+        searchQuery: stateResult.data.search_query || "",
+        activeTool: stateResult.data.active_tool || "select",
+        activeColor: stateResult.data.active_color || "#f7d85c",
+      } : {};
+      lecturePdfAnnotationsRef.current = remoteAnnotations;
+      setLecturePdfAnnotations(remoteAnnotations);
+      setLecturePdfRemoteRevision((value) => value + 1);
+      setLecturePdfRemoteState({ ...localState, ...remote, materialId, remoteRevision: Date.now() });
+      setWorkspaceState((current) => ({
+        ...current,
+        lecturePdfAnnotationCache: { ...(current.lecturePdfAnnotationCache || {}), [localUserKey]: { ...(current.lecturePdfAnnotationCache?.[localUserKey] || {}), [materialId]: remoteAnnotations } },
+        lecturePdfUserCache: { ...(current.lecturePdfUserCache || {}), [localUserKey]: { ...(current.lecturePdfUserCache?.[localUserKey] || {}), [materialId]: { ...localState, ...remote, updatedAt: Date.now() } } },
+      }));
+      setLecturePdfWorkspaceStatus("ready");
+    });
+
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, moduleName, selectedLecture?.id, activeLectureMaterial?.id]);
+
+  useEffect(() => () => window.clearTimeout(lecturePdfStateSaveTimerRef.current), []);
 
   useEffect(() => {
     if (!isLectureLibrary) return undefined;
@@ -37427,15 +37742,132 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }
 
 
+  function scheduleLecturePdfUserState(materialId, patch) {
+    if (!isLectureLibrary || !materialId || activeLectureMaterial?.id !== materialId || !patch || typeof patch !== "object") return;
+    if (lecturePdfWorkspaceStatus === "loading") return;
+    const localUserKey = userId || "anonymous";
+    setLecturePdfRemoteState((current) => ({ ...current, ...patch, materialId }));
+    setWorkspaceState((current) => ({
+      ...current,
+      lecturePdfUserCache: { ...(current.lecturePdfUserCache || {}), [localUserKey]: { ...(current.lecturePdfUserCache?.[localUserKey] || {}), [materialId]: { ...(current.lecturePdfUserCache?.[localUserKey]?.[materialId] || {}), ...patch, updatedAt: Date.now() } } },
+    }));
+    lecturePdfPendingStateRef.current = { ...(lecturePdfPendingStateRef.current || {}), ...patch };
+    if (!userId || !selectedLecture?.id) {
+      setLecturePdfWorkspaceStatus("local");
+      return;
+    }
+    setLecturePdfWorkspaceStatus((current) => current === "loading" ? current : "saving");
+    window.clearTimeout(lecturePdfStateSaveTimerRef.current);
+    const scope = { userId, materialId, moduleName, lectureId: selectedLecture.id };
+    lecturePdfStateSaveTimerRef.current = window.setTimeout(async () => {
+      if (lecturePdfScopeRef.current?.materialId !== materialId) return;
+      const pending = lecturePdfPendingStateRef.current || {};
+      lecturePdfPendingStateRef.current = {};
+      const payload = {
+        user_id: scope.userId,
+        material_id: scope.materialId,
+        module_name: scope.moduleName,
+        lecture_id: scope.lectureId,
+        page: Math.max(1, Number(pending.page ?? lecturePdfRemoteState.page) || 1),
+        page_offset: lecturePdfClamp(Number(pending.pageOffset ?? lecturePdfRemoteState.pageOffset) || 0, 0, 1),
+        zoom_mode: ["fit-width", "fit-page", "custom"].includes(pending.zoomMode ?? lecturePdfRemoteState.zoomMode) ? (pending.zoomMode ?? lecturePdfRemoteState.zoomMode) : "fit-width",
+        scale: lecturePdfClamp(Number(pending.scale ?? lecturePdfRemoteState.scale) || 1.25, .35, 4),
+        thumbnails_open: Boolean(pending.thumbnailsOpen ?? lecturePdfRemoteState.thumbnailsOpen),
+        search_open: Boolean(pending.searchOpen ?? lecturePdfRemoteState.searchOpen),
+        search_query: String(pending.searchQuery ?? lecturePdfRemoteState.searchQuery ?? "").slice(0, 500),
+        active_tool: ["select", "highlight", "underline", "strike", "pen", "sticky", "eraser"].includes(pending.activeTool ?? lecturePdfRemoteState.activeTool) ? (pending.activeTool ?? lecturePdfRemoteState.activeTool) : "select",
+        active_color: String(pending.activeColor ?? lecturePdfRemoteState.activeColor ?? "#f7d85c").slice(0, 32),
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from("lecture_pdf_user_state").upsert(payload, { onConflict: "user_id,material_id" });
+      if (lecturePdfScopeRef.current?.materialId !== materialId) return;
+      setLecturePdfWorkspaceStatus(error ? "local" : "ready");
+    }, 520);
+  }
+
+  function setLecturePdfAnnotationsForCurrentMaterial(nextAnnotations) {
+    const materialId = activeLectureMaterial?.id;
+    if (!materialId) return;
+    const localUserKey = userId || "anonymous";
+    const next = Array.isArray(nextAnnotations) ? nextAnnotations : [];
+    lecturePdfAnnotationsRef.current = next;
+    setLecturePdfAnnotations(next);
+    setWorkspaceState((current) => ({
+      ...current,
+      lecturePdfAnnotationCache: { ...(current.lecturePdfAnnotationCache || {}), [localUserKey]: { ...(current.lecturePdfAnnotationCache?.[localUserKey] || {}), [materialId]: next } },
+    }));
+  }
+
+  async function createLecturePdfAnnotation(annotation) {
+    if (!annotation?.id || !activeLectureMaterial?.id || !selectedLecture?.id) return;
+    const materialId = activeLectureMaterial.id;
+    const next = { ...annotation, page: Math.max(1, Number(annotation.page) || 1), payload: { ...(annotation.payload || {}), normalized: true } };
+    setLecturePdfAnnotationsForCurrentMaterial([...lecturePdfAnnotationsRef.current.filter((item) => item.id !== next.id), next]);
+    if (!userId) { setLecturePdfWorkspaceStatus("local"); return; }
+    setLecturePdfWorkspaceStatus("saving");
+    const { error } = await supabase.from("lecture_pdf_annotations").upsert({
+      id: next.id,
+      user_id: userId,
+      module_name: moduleName,
+      lecture_id: selectedLecture.id,
+      material_id: materialId,
+      page_number: next.page,
+      annotation_type: next.type,
+      color: next.color || "#f7d85c",
+      payload: next.payload,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "id" });
+    if (lecturePdfScopeRef.current?.materialId !== materialId) return;
+    if (error) {
+      setLecturePdfAnnotationsForCurrentMaterial(lecturePdfAnnotationsRef.current.filter((item) => item.id !== next.id));
+      setLecturePdfWorkspaceStatus("local");
+    } else setLecturePdfWorkspaceStatus("ready");
+  }
+
+  async function updateLecturePdfAnnotation(next, previous = null) {
+    if (!next?.id || !activeLectureMaterial?.id) return;
+    const materialId = activeLectureMaterial.id;
+    const normalized = { ...next, page: Math.max(1, Number(next.page) || 1), payload: { ...(next.payload || {}), normalized: true } };
+    setLecturePdfAnnotationsForCurrentMaterial(lecturePdfAnnotationsRef.current.map((item) => item.id === normalized.id ? normalized : item));
+    if (!userId) { setLecturePdfWorkspaceStatus("local"); return; }
+    setLecturePdfWorkspaceStatus("saving");
+    const { error } = await supabase.from("lecture_pdf_annotations").update({
+      page_number: normalized.page,
+      annotation_type: normalized.type,
+      color: normalized.color || "#f7d85c",
+      payload: normalized.payload,
+      updated_at: new Date().toISOString(),
+    }).eq("id", normalized.id).eq("user_id", userId).eq("material_id", materialId);
+    if (lecturePdfScopeRef.current?.materialId !== materialId) return;
+    if (error && previous) setLecturePdfAnnotationsForCurrentMaterial(lecturePdfAnnotationsRef.current.map((item) => item.id === previous.id ? previous : item));
+    setLecturePdfWorkspaceStatus(error ? "local" : "ready");
+  }
+
+  async function deleteLecturePdfAnnotation(annotation) {
+    if (!annotation?.id || !activeLectureMaterial?.id) return;
+    const materialId = activeLectureMaterial.id;
+    setLecturePdfAnnotationsForCurrentMaterial(lecturePdfAnnotationsRef.current.filter((item) => item.id !== annotation.id));
+    if (!userId) { setLecturePdfWorkspaceStatus("local"); return; }
+    setLecturePdfWorkspaceStatus("saving");
+    const { error } = await supabase.from("lecture_pdf_annotations").delete().eq("id", annotation.id).eq("user_id", userId).eq("material_id", materialId);
+    if (lecturePdfScopeRef.current?.materialId !== materialId) return;
+    if (error) setLecturePdfAnnotationsForCurrentMaterial([...lecturePdfAnnotationsRef.current.filter((item) => item.id !== annotation.id), annotation]);
+    setLecturePdfWorkspaceStatus(error ? "local" : "ready");
+  }
+
   function updateLectureViewerState(materialId, patch) {
     if (!materialId || !patch || typeof patch !== "object") return;
+    scheduleLecturePdfUserState(materialId, patch);
+    const sharedViewerPatch = isLectureLibrary && activeLectureMaterial?.id === materialId
+      ? { page: patch.page, pageOffset: patch.pageOffset, zoomMode: patch.zoomMode, scale: patch.scale }
+      : patch;
     setWorkspaceState((current) => ({
       ...current,
       documentViewer: {
         ...(current.documentViewer || {}),
         [materialId]: {
           ...(current.documentViewer?.[materialId] || {}),
-          ...patch,
+          ...sharedViewerPatch,
           updatedAt: Date.now(),
         },
       },
@@ -38855,10 +39287,17 @@ async function openExamSetPdfEditor() {
                     url={activeDocument.url}
                     materialId={activeLectureMaterial.id}
                     fileName={activeDocument.name}
-                    savedState={workspaceState.documentViewer?.[activeLectureMaterial.id] || {}}
+                    savedState={{ ...(workspaceState.documentViewer?.[activeLectureMaterial.id] || {}), ...(lecturePdfRemoteState.materialId === activeLectureMaterial.id ? lecturePdfRemoteState : {}), remoteRevision: lecturePdfRemoteRevision }}
                     onStateChange={(patch) => updateLectureViewerState(activeLectureMaterial.id, patch)}
                     copy={copy}
                     continuous={true}
+                    workspace={true}
+                    language={language}
+                    annotations={lecturePdfAnnotations}
+                    annotationStatus={lecturePdfWorkspaceStatus}
+                    onCreateAnnotation={createLecturePdfAnnotation}
+                    onUpdateAnnotation={updateLecturePdfAnnotation}
+                    onDeleteAnnotation={deleteLecturePdfAnnotation}
                   />
                 ) : (
                   <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialNoPreview}</strong><small>{copy.materialOpenExternally}</small><div className="lecture-material-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => downloadLectureMaterial()}>{copy.materialDownload}</button><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureMaterial()}>{copy.materialOpen}</button></div></div>
