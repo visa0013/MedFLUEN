@@ -16571,6 +16571,26 @@ function calendarIsSduScheduleEvent(event, moduleName = null) {
   return event.importedSchedule === "sdu" || event.source === "sdu-schedule" || event.source === "sdu";
 }
 
+function applyCanonicalSduMatches(events, canonicalMatches, moduleName = null) {
+  const matches = canonicalMatches && typeof canonicalMatches === "object" ? canonicalMatches : {};
+  return (Array.isArray(events) ? events : []).map((event) => {
+    if (!calendarIsSduScheduleEvent(event) || (moduleName && event.planModuleId && event.planModuleId !== moduleName)) return event;
+    const base = { ...event };
+    // FV7.1: personal/manual calendar metadata is not authoritative for lecture linking.
+    // The lecture viewer uses the global admin mapping when present, otherwise the automatic SDU match.
+    delete base.manualLectureIds;
+    delete base.manualLectureMatchUpdatedAt;
+    if (!event?.id || !Object.prototype.hasOwnProperty.call(matches, event.id)) return base;
+    const lectureIds = Array.isArray(matches[event.id]) ? [...new Set(matches[event.id].filter(Boolean))] : [];
+    return {
+      ...base,
+      manualLectureIds: lectureIds,
+      canonicalLectureIds: lectureIds,
+      canonicalLectureMatch: true,
+    };
+  });
+}
+
 function calendarLectureScheduleStatus(moduleName, lectureId, events, nowMs = Date.now()) {
   const scheduleEvents = (events || [])
     .filter((event) => {
@@ -35995,7 +36015,7 @@ function lectureViewportKind(width) {
   return "desktop";
 }
 
-function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, spacedData = {}, importedQuestions = [] }) {
+function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [] }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
@@ -36056,6 +36076,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [followUpMessage, setFollowUpMessage] = useState("");
   const [sduMatchDialogOpen, setSduMatchDialogOpen] = useState(false);
   const [sduMatchQuery, setSduMatchQuery] = useState("");
+  const [canonicalSduMatches, setCanonicalSduMatches] = useState({});
+  const [canonicalSduMatchStatus, setCanonicalSduMatchStatus] = useState("idle");
   const [lectureMaterials, setLectureMaterials] = useState([]);
   const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
   const [materialPreviewUrl, setMaterialPreviewUrl] = useState("");
@@ -36475,13 +36497,13 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sduSessions: (count) => count === 1 ? "1 undervisningsgang" : `${count} undervisningsgange`,
       sduMatchEdit: "Ret SDU-match",
       sduMatchTitle: "Tilknyt SDU-undervisning",
-      sduMatchIntro: "Korrigér kun matchningen mellem skemaaktiviteten og forelæsningen. Noter, materialer og din progression påvirkes ikke.",
+      sduMatchIntro: "Admin-match gemmes globalt og bruges af alle studerende. Private kalenderdata deles ikke.",
       sduMatchSearch: "Søg i SDU-aktiviteter…",
       sduMatchCurrent: "Tilknyttet denne forelæsning",
       sduMatchAttach: "Tilknyt",
       sduMatchRemove: "Fjern",
       sduMatchAutomatic: "Brug automatisk match",
-      sduMatchManual: "Manuelt match",
+      sduMatchManual: "Globalt admin-match",
       sduMatchOtherLecture: "Matchet til",
       sduMatchNone: "Ingen forelæsning",
       sduMatchEmpty: "Ingen SDU-aktiviteter matcher søgningen.",
@@ -36884,13 +36906,13 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sduSessions: (count) => count === 1 ? "1 teaching session" : `${count} teaching sessions`,
       sduMatchEdit: "Fix SDU match",
       sduMatchTitle: "Link SDU teaching",
-      sduMatchIntro: "Correct only the link between the timetable event and this lecture. Notes, materials and progress are not changed.",
+      sduMatchIntro: "Admin matches are saved globally and used by every student. Private calendar data is never shared.",
       sduMatchSearch: "Search SDU events…",
       sduMatchCurrent: "Linked to this lecture",
       sduMatchAttach: "Link",
       sduMatchRemove: "Remove",
       sduMatchAutomatic: "Use automatic match",
-      sduMatchManual: "Manual match",
+      sduMatchManual: "Global admin match",
       sduMatchOtherLecture: "Matched to",
       sduMatchNone: "No lecture",
       sduMatchEmpty: "No SDU events match the search.",
@@ -37293,13 +37315,13 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sduSessions: (count) => count === 1 ? "جلسة تدريس واحدة" : `${count} جلسات تدريس`,
       sduMatchEdit: "تصحيح مطابقة SDU",
       sduMatchTitle: "ربط تدريس SDU",
-      sduMatchIntro: "صحّح فقط الربط بين حدث الجدول والمحاضرة. لن تتغير الملاحظات أو المواد أو تقدمك.",
+      sduMatchIntro: "تُحفظ مطابقة المسؤول عالميًا وتُستخدم لجميع الطلاب، بينما تبقى بيانات التقويم الخاصة خاصة.",
       sduMatchSearch: "البحث في أحداث SDU…",
       sduMatchCurrent: "مرتبط بهذه المحاضرة",
       sduMatchAttach: "ربط",
       sduMatchRemove: "إزالة",
       sduMatchAutomatic: "استخدام المطابقة التلقائية",
-      sduMatchManual: "مطابقة يدوية",
+      sduMatchManual: "مطابقة مسؤول عامة",
       sduMatchOtherLecture: "مطابق لـ",
       sduMatchNone: "بدون محاضرة",
       sduMatchEmpty: "لا توجد أحداث SDU مطابقة للبحث.",
@@ -38004,6 +38026,33 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
 
 
   useEffect(() => {
+    let cancelled = false;
+    if (!isLectureLibrary || !userId || !moduleName) {
+      setCanonicalSduMatches({});
+      setCanonicalSduMatchStatus("idle");
+      return undefined;
+    }
+    setCanonicalSduMatchStatus("loading");
+    supabase
+      .from("lecture_calendar_canonical_matches")
+      .select("event_id,lecture_ids")
+      .eq("module_name", moduleName)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.warn("Kunne ikke hente globale SDU-match:", error);
+          setCanonicalSduMatches({});
+          setCanonicalSduMatchStatus("unavailable");
+          return;
+        }
+        const next = Object.fromEntries((data || []).map((row) => [row.event_id, Array.isArray(row.lecture_ids) ? row.lecture_ids.filter(Boolean) : []]));
+        setCanonicalSduMatches(next);
+        setCanonicalSduMatchStatus("ready");
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, moduleName]);
+
+  useEffect(() => {
     if (!isLectureLibrary || !selectedLecture || !userId || !moduleName) {
       sharedNoteLoadTokenRef.current += 1;
       setSharedLectureNotes([]);
@@ -38044,7 +38093,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const lectureSort = lectureOverviewPreferences.sort === "date" ? "date" : "number";
   const collapsedLectureGroups = new Set(lectureOverviewPreferences.collapsedGroups || []);
   const mergedLectureCalendarEvents = isLectureLibrary
-    ? mergeCalendarEventMeta(calendarEvents, calendarEventMeta)
+    ? applyCanonicalSduMatches(mergeCalendarEventMeta(calendarEvents, calendarEventMeta), canonicalSduMatches, moduleName)
     : [];
   const lectureScheduleEventIndex = calendarLectureScheduleIndex(moduleName, mergedLectureCalendarEvents);
   const lectureMaterialCounts = lectureMaterialCountIndex(lectureMaterials);
@@ -38633,28 +38682,68 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     selectLecture(lecture);
   }
 
-  function setSduEventManualLectureMatch(eventId, lectureIds) {
-    if (!eventId) return;
+  async function setSduEventManualLectureMatch(eventId, lectureIds) {
+    if (!isAdmin || !eventId || !moduleName) return;
     const nextIds = Array.isArray(lectureIds) ? [...new Set(lectureIds.filter(Boolean))] : [];
-    setCalendarEventMeta((current) => ({
-      ...current,
-      [eventId]: {
-        ...(current[eventId] || {}),
-        manualLectureIds: nextIds,
-        manualLectureMatchUpdatedAt: Date.now(),
-      },
-    }));
+    const previous = { ...canonicalSduMatches };
+    setCanonicalSduMatches((current) => ({ ...current, [eventId]: nextIds }));
+    setCanonicalSduMatchStatus("saving");
+    try {
+      const { error } = await supabase
+        .from("lecture_calendar_canonical_matches")
+        .upsert({
+          module_name: moduleName,
+          event_id: eventId,
+          lecture_ids: nextIds,
+          updated_by: userId || null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "module_name,event_id" });
+      if (error) throw error;
+      // Remove any legacy per-user override from the admin's private calendar metadata.
+      setCalendarEventMeta((current) => {
+        if (!current[eventId]) return current;
+        const metadata = { ...current[eventId] };
+        delete metadata.manualLectureIds;
+        delete metadata.manualLectureMatchUpdatedAt;
+        return { ...current, [eventId]: metadata };
+      });
+      setCanonicalSduMatchStatus("ready");
+    } catch (error) {
+      console.error("Kunne ikke gemme globalt SDU-match:", error);
+      setCanonicalSduMatches(previous);
+      setCanonicalSduMatchStatus("error");
+    }
   }
 
-  function clearSduEventManualLectureMatch(eventId) {
-    if (!eventId) return;
-    setCalendarEventMeta((current) => {
-      if (!current[eventId]) return current;
-      const metadata = { ...current[eventId] };
-      delete metadata.manualLectureIds;
-      delete metadata.manualLectureMatchUpdatedAt;
-      return { ...current, [eventId]: metadata };
+  async function clearSduEventManualLectureMatch(eventId) {
+    if (!isAdmin || !eventId || !moduleName) return;
+    const previous = { ...canonicalSduMatches };
+    setCanonicalSduMatches((current) => {
+      const next = { ...current };
+      delete next[eventId];
+      return next;
     });
+    setCanonicalSduMatchStatus("saving");
+    try {
+      const { error } = await supabase
+        .from("lecture_calendar_canonical_matches")
+        .delete()
+        .eq("module_name", moduleName)
+        .eq("event_id", eventId);
+      if (error) throw error;
+      setCalendarEventMeta((current) => {
+        if (!current[eventId]) return current;
+        const metadata = { ...current[eventId] };
+        delete metadata.manualLectureIds;
+        delete metadata.manualLectureMatchUpdatedAt;
+        return { ...current, [eventId]: metadata };
+      });
+      setCanonicalSduMatchStatus("ready");
+    } catch (error) {
+      console.error("Kunne ikke fjerne globalt SDU-match:", error);
+      setCanonicalSduMatches(previous);
+      setCanonicalSduMatchStatus("error");
+    }
   }
 
   function openSduMatchDialog() {
@@ -40437,7 +40526,7 @@ async function openExamSetPdfEditor() {
                       </div>
                     </details>
                   )}
-                  <button type="button" className="lecture-sdu-match-trigger" onClick={openSduMatchDialog}><Icon name="edit" size={9} />{copy.sduMatchEdit}</button>
+                  {isAdmin && <button type="button" className="lecture-sdu-match-trigger" onClick={openSduMatchDialog}><Icon name="edit" size={9} />{copy.sduMatchEdit}</button>}
                 </div>
               </div>
             </div>
@@ -40536,7 +40625,7 @@ async function openExamSetPdfEditor() {
                     <button type="button" className="lecture-favorite-nav-button" disabled={!previousFavoriteLecture} title={`${copy.favoritePreviousLecture} · Alt + [`} aria-label={copy.favoritePreviousLecture} onClick={() => selectAdjacentLecture(previousFavoriteLecture)}><Icon name={language === "ar" ? "right" : "left"} size={10} /><Icon name="star" size={10} /></button>
                     <button type="button" className="lecture-favorite-nav-button" disabled={!nextFavoriteLecture} title={`${copy.favoriteNextLecture} · Alt + ]`} aria-label={copy.favoriteNextLecture} onClick={() => selectAdjacentLecture(nextFavoriteLecture)}><Icon name="star" size={10} /><Icon name={language === "ar" ? "left" : "right"} size={10} /></button>
                   </nav>
-                  <button type="button" className="lecture-detail-more-action" onClick={openSduMatchDialog}><Icon name="edit" size={11} />{copy.sduMatchEdit}</button>
+                  {isAdmin && <button type="button" className="lecture-detail-more-action" onClick={openSduMatchDialog}><Icon name="edit" size={11} />{copy.sduMatchEdit}</button>}
                 </div>
               </details>
 
@@ -40887,7 +40976,7 @@ examSetMode === "review" ? (
         )}
       </div>
 
-      {sduMatchDialogOpen && selectedLecture && (
+      {isAdmin && sduMatchDialogOpen && selectedLecture && (
         <Modal c={c} size="large" onClose={() => setSduMatchDialogOpen(false)}>
           <div className="lecture-sdu-match-dialog">
             <div className="lecture-sdu-match-heading">
@@ -40898,13 +40987,13 @@ examSetMode === "review" ? (
               <button type="button" className="lecture-detail-nav-button" title={copy.sduMatchClose} aria-label={copy.sduMatchClose} onClick={() => setSduMatchDialogOpen(false)}><Icon name="close" size={14} /></button>
             </div>
             <input className="lecture-sdu-match-search" value={sduMatchQuery} onChange={(event) => setSduMatchQuery(event.target.value)} placeholder={copy.sduMatchSearch} autoFocus />
-            <div className="lecture-sdu-match-current">{copy.sduMatchCurrent}<span>{selectedScheduleEvents.length}</span></div>
+            <div className="lecture-sdu-match-current">{copy.sduMatchCurrent}<span>{selectedScheduleEvents.length}</span>{canonicalSduMatchStatus === "saving" && <small>Gemmer globalt…</small>}{canonicalSduMatchStatus === "error" && <small>Kunne ikke gemme</small>}</div>
             <div className="lecture-sdu-match-list">
               {sduMatchCandidates.length ? sduMatchCandidates.map((event) => {
                 const effectiveIds = calendarLectureIds(event);
                 const automaticIds = calendarAutomaticLectureIds(event);
                 const matchedHere = effectiveIds.includes(selectedLecture.id);
-                const hasManualOverride = Object.prototype.hasOwnProperty.call(event, "manualLectureIds");
+                const hasManualOverride = event.canonicalLectureMatch === true;
                 const automaticHere = automaticIds.includes(selectedLecture.id);
                 return (
                   <div key={event.id} className="lecture-sdu-match-row" data-selected={matchedHere ? "true" : "false"}>
@@ -43066,7 +43155,7 @@ useEffect(() => {
             <Notebook c={c} t={t} onClose={closeWorkspace} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} spacedData={spacedData} importedQuestions={importedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} isAdmin={isAdmin} spacedData={spacedData} importedQuestions={importedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} userId={session?.user?.id} />
@@ -43406,3 +43495,5 @@ onNavigate={navigateFromShell}
 export default App;
 
 /* FORELÆSNINGSVISER FV7 — PERFORMANCE, CALENDAR & FINISH */
+
+/* FORELÆSNINGSVISER FV7.1 — GLOBAL ADMIN CALENDAR MATCHING */
