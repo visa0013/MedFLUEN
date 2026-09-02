@@ -4,6 +4,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
+import { createPptxViewer } from "pptx-vanilla-viewer";
+import "pptx-vanilla-viewer/styles.css";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -13924,6 +13926,44 @@ select.ui-control {
   background:color-mix(in srgb,var(--pdf-annotation-color) 58%,transparent);
   mix-blend-mode:screen;
 }
+
+/* ================================================================
+   POWERPOINT VIEWER 1.0 - native PPTX rendering with MedFLUEN shell
+   ================================================================ */
+.lecture-pptx-viewer { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; background:#e9ecef; color:var(--ui-text); }
+.lecture-pptx-viewer:focus { outline:none; }
+.lecture-pptx-toolbar { min-height:42px; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 8px; border-bottom:1px solid var(--ui-border); background:color-mix(in srgb,var(--ui-panel) 97%,transparent); }
+.lecture-pptx-toolbar-group { display:flex; align-items:center; gap:3px; min-width:0; }
+.lecture-pptx-toolbar button { width:30px; height:30px; display:grid; place-items:center; padding:0; border:0; border-radius:7px; background:transparent; color:var(--ui-muted); cursor:pointer; }
+.lecture-pptx-toolbar button:hover:not(:disabled), .lecture-pptx-toolbar button[data-active="true"] { background:var(--ui-soft); color:var(--ui-text); }
+.lecture-pptx-toolbar button:disabled { opacity:.32; cursor:default; }
+.lecture-pptx-counter { min-width:74px; height:30px; display:flex; align-items:center; justify-content:center; gap:5px; padding:0 9px; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-panel); color:var(--ui-text); font-size:8px; font-weight:820; font-variant-numeric:tabular-nums; }
+.lecture-pptx-counter span { color:var(--ui-muted); font-weight:700; }
+.lecture-pptx-zoom { min-width:42px; color:var(--ui-muted); font-size:7.5px; font-weight:760; text-align:center; font-variant-numeric:tabular-nums; }
+.lecture-pptx-stage-wrap { position:relative; flex:1; min-height:0; overflow:hidden; display:grid; place-items:center; padding:14px; }
+.lecture-pptx-stage { width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; border-radius:4px; }
+.lecture-pptx-stage > .pptxv { width:100% !important; height:100% !important; min-height:0 !important; background:transparent !important; }
+.lecture-pptx-stage .pptxv-stage, .lecture-pptx-stage .pptxv-canvas, .lecture-pptx-stage [data-pptx-stage] { max-width:100%; max-height:100%; }
+.lecture-pptx-state { width:100%; height:100%; display:grid; place-items:center; align-content:center; gap:8px; color:var(--ui-muted); text-align:center; }
+.lecture-pptx-state strong { font-size:9px; color:var(--ui-secondary); }
+.lecture-pptx-state small { max-width:420px; font-size:7px; line-height:1.45; }
+.lecture-pptx-spinner { width:18px; height:18px; border:2px solid color-mix(in srgb,var(--ui-blue) 18%,transparent); border-top-color:var(--ui-blue); border-radius:50%; animation:lecturePdfSpin 750ms linear infinite; }
+.lecture-pptx-popover { position:absolute; z-index:40; top:10px; right:10px; width:min(320px,calc(100% - 20px)); max-height:min(440px,calc(100% - 20px)); overflow:auto; padding:7px; border:1px solid var(--ui-border); border-radius:11px; background:var(--ui-panel); box-shadow:0 18px 48px rgba(22,35,55,.16); }
+.lecture-pptx-popover-head { display:flex; align-items:center; gap:6px; padding:2px 2px 7px; }
+.lecture-pptx-popover-head label { flex:1; min-width:0; height:31px; display:flex; align-items:center; gap:6px; padding:0 8px; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-soft); }
+.lecture-pptx-popover-head label:focus-within { border-color:color-mix(in srgb,var(--ui-border) 68%,var(--ui-text) 32%); box-shadow:0 0 0 2px rgba(25,38,58,.04); }
+.lecture-pptx-popover-head input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--ui-text); font:inherit; font-size:8px; }
+.lecture-pptx-results { display:grid; gap:2px; }
+.lecture-pptx-result { width:100%; display:grid; grid-template-columns:34px minmax(0,1fr); gap:7px; align-items:start; padding:7px; border:0; border-radius:7px; background:transparent; color:var(--ui-secondary); text-align:start; cursor:pointer; }
+.lecture-pptx-result:hover, .lecture-pptx-result[data-current="true"] { background:var(--ui-soft); color:var(--ui-text); }
+.lecture-pptx-result b { font-size:7px; color:var(--ui-blue); }
+.lecture-pptx-result span { overflow:hidden; font-size:7.3px; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.lecture-pptx-slide-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; }
+.lecture-pptx-slide-grid button { height:34px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-panel); color:var(--ui-secondary); font-size:7.5px; font-weight:800; cursor:pointer; }
+.lecture-pptx-slide-grid button:hover, .lecture-pptx-slide-grid button[data-current="true"] { border-color:color-mix(in srgb,var(--ui-blue) 32%,var(--ui-border)); background:var(--ui-blue-soft); color:var(--ui-blue); }
+.lecture-pptx-viewer:fullscreen { width:100vw; height:100vh; background:#111827; }
+.lecture-pptx-viewer:fullscreen .lecture-pptx-stage-wrap { padding:0; }
+@media (max-width:720px) { .lecture-pptx-toolbar { gap:3px; padding-inline:5px; } .lecture-pptx-toolbar button { width:28px; } .lecture-pptx-zoom { display:none; } .lecture-pptx-stage-wrap { padding:5px; } .lecture-pptx-slide-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
     `}
 </style>
   );
@@ -32137,6 +32177,7 @@ function lectureMaterialPreviewKind(material) {
   const mime = String(material?.mime_type || "").toLowerCase();
   const extension = lectureMaterialExtension(material?.file_name);
   if (mime === "application/pdf" || extension === ".pdf") return "pdf";
+  if (mime === "application/vnd.openxmlformats-officedocument.presentationml.presentation" || extension === ".pptx") return "pptx";
   if (mime.startsWith("image/") || [".png", ".jpg", ".jpeg", ".webp"].includes(extension)) return "image";
   return "external";
 }
@@ -34881,6 +34922,241 @@ function LecturePdfViewer({
   );
 }
 
+function lecturePptxCollectText(value, depth = 0, seen = new Set()) {
+  if (value == null || depth > 8) return [];
+  if (typeof value === "string") {
+    const clean = value.replace(/\s+/g, " ").trim();
+    if (!clean || clean.length > 5000 || /^data:|^blob:|^https?:\/\//i.test(clean)) return [];
+    return [clean];
+  }
+  if (typeof value !== "object" || seen.has(value)) return [];
+  seen.add(value);
+  const output = [];
+  for (const [key, child] of Object.entries(value)) {
+    if (/^(raw|xml|data|src|imageData|blob|relationships)$/i.test(key)) continue;
+    output.push(...lecturePptxCollectText(child, depth + 1, seen));
+    if (output.join(" ").length > 12000) break;
+  }
+  return output;
+}
+
+function lecturePptxSlideText(slide) {
+  return [...new Set(lecturePptxCollectText(slide))].join(" ").replace(/\s+/g, " ").trim();
+}
+
+function lecturePptxSearch(slides, query) {
+  const needle = String(query || "").trim().toLocaleLowerCase();
+  if (!needle) return [];
+  return (Array.isArray(slides) ? slides : []).map((slide, index) => {
+    const text = lecturePptxSlideText(slide);
+    const lower = text.toLocaleLowerCase();
+    const hit = lower.indexOf(needle);
+    if (hit < 0) return null;
+    const start = Math.max(0, hit - 55);
+    const end = Math.min(text.length, hit + needle.length + 95);
+    return { index, snippet: `${start ? "…" : ""}${text.slice(start, end)}${end < text.length ? "…" : ""}` };
+  }).filter(Boolean);
+}
+
+function isEditableTarget(target) {
+  const node = target && target.nodeType === 1 ? target : target?.parentElement;
+  if (!node) return false;
+  if (node.isContentEditable) return true;
+  return Boolean(node.closest?.("input, textarea, select, [contenteditable=\"true\"], [role=\"textbox\"]"));
+}
+
+function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onStateChange, language = "da" }) {
+  const hostRef = useRef(null);
+  const shellRef = useRef(null);
+  const viewerRef = useRef(null);
+  const stateChangeRef = useRef(onStateChange);
+  const [status, setStatus] = useState("loading");
+  const [error, setError] = useState("");
+  const [slideIndex, setSlideIndex] = useState(Math.max(0, Number(savedState.slideIndex) || 0));
+  const [slideCount, setSlideCount] = useState(0);
+  const [zoom, setZoom] = useState(Number(savedState.zoom) > 0 ? Number(savedState.zoom) : 1);
+  const [slides, setSlides] = useState([]);
+  const [panel, setPanel] = useState(null);
+  const [query, setQuery] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const restoreRevisionRef = useRef(0);
+
+  const labels = ({
+    da: { loading: "Indlæser PowerPoint…", error: "PowerPoint-filen kunne ikke vises.", previous: "Forrige slide", next: "Næste slide", overview: "Slideoversigt", search: "Søg i PowerPoint", placeholder: "Søg i slides…", noResults: "Ingen slides matcher søgningen.", fit: "Tilpas slide", fullscreen: "Fuld skærm", close: "Luk", slide: "Slide" },
+    en: { loading: "Loading PowerPoint…", error: "The PowerPoint file could not be displayed.", previous: "Previous slide", next: "Next slide", overview: "Slide overview", search: "Search PowerPoint", placeholder: "Search slides…", noResults: "No slides match your search.", fit: "Fit slide", fullscreen: "Fullscreen", close: "Close", slide: "Slide" },
+    ar: { loading: "جارٍ تحميل PowerPoint…", error: "تعذر عرض ملف PowerPoint.", previous: "الشريحة السابقة", next: "الشريحة التالية", overview: "نظرة عامة على الشرائح", search: "بحث في PowerPoint", placeholder: "ابحث في الشرائح…", noResults: "لا توجد شرائح مطابقة.", fit: "ملاءمة الشريحة", fullscreen: "ملء الشاشة", close: "إغلاق", slide: "شريحة" },
+  })[language] || {};
+
+  useEffect(() => { stateChangeRef.current = onStateChange; }, [onStateChange]);
+
+  useEffect(() => {
+    if (!url || !hostRef.current) return undefined;
+    let disposed = false;
+    let viewer = null;
+    hostRef.current.replaceChildren();
+    setStatus("loading");
+    setError("");
+    setSlides([]);
+    setSlideCount(0);
+    const initialSlide = Math.max(0, Number(savedState.slideIndex) || 0);
+    try {
+      viewer = createPptxViewer(hostRef.current, {
+        source: url,
+        fileName: fileName || "presentation.pptx",
+        initialSlide,
+        editable: false,
+        showToolbar: false,
+        showThumbnails: false,
+        showFormatToolbar: false,
+        locale: "en",
+        theme: { colors: { primary: "#3567d4", background: "#ffffff" }, radius: "0.45rem" },
+        onLoad: ({ slideCount: total } = {}) => {
+          if (disposed) return;
+          const count = Math.max(0, Number(total) || Number(viewer?.getSlideCount?.()) || 0);
+          const allSlides = Array.isArray(viewer?.getSlides?.()) ? viewer.getSlides() : [];
+          setSlideCount(count || allSlides.length);
+          setSlides(allSlides);
+          setStatus("ready");
+          const requestedZoom = Number(savedState.zoom);
+          if (Number.isFinite(requestedZoom) && requestedZoom >= 0.35 && requestedZoom <= 4) {
+            viewer?.setZoom?.(requestedZoom);
+            setZoom(requestedZoom);
+          } else {
+            viewer?.zoomToFit?.();
+            const actual = Number(viewer?.getZoom?.());
+            if (Number.isFinite(actual) && actual > 0) setZoom(actual);
+          }
+        },
+        onSlideChange: (index) => {
+          if (disposed) return;
+          const safe = Math.max(0, Number(index) || 0);
+          setSlideIndex(safe);
+          stateChangeRef.current?.({ slideIndex: safe });
+        },
+        onError: (message) => {
+          if (disposed) return;
+          setError(String(message || labels.error));
+          setStatus("error");
+        },
+      });
+      viewerRef.current = viewer;
+    } catch (caught) {
+      setError(String(caught?.message || labels.error));
+      setStatus("error");
+    }
+    return () => {
+      disposed = true;
+      try { viewer?.destroy?.(); } catch {}
+      if (viewerRef.current === viewer) viewerRef.current = null;
+      if (hostRef.current) hostRef.current.replaceChildren();
+    };
+    // The viewer is recreated only when the source material changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, materialId]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || status !== "ready") return;
+    const target = Math.max(0, Number(savedState.slideIndex) || 0);
+    const revision = Number(savedState.remoteRevision) || 0;
+    if (revision <= restoreRevisionRef.current || target === slideIndex) return;
+    restoreRevisionRef.current = revision;
+    viewer.goToSlide?.(target);
+  }, [savedState.slideIndex, savedState.remoteRevision, status, slideIndex]);
+
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFullscreen(document.fullscreenElement === shellRef.current);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) return undefined;
+    const onKeyDown = (event) => {
+      if (isEditableTarget(event.target) || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        viewerRef.current?.prev?.();
+      } else if (event.key === "ArrowRight" || event.key === "PageDown") {
+        event.preventDefault();
+        viewerRef.current?.next?.();
+      }
+    };
+    shell.addEventListener("keydown", onKeyDown);
+    return () => shell.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const syncZoom = () => {
+    const actual = Number(viewerRef.current?.getZoom?.());
+    if (!Number.isFinite(actual) || actual <= 0) return;
+    setZoom(actual);
+    stateChangeRef.current?.({ zoom: actual });
+  };
+  const move = (direction) => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    if (direction < 0) viewer.prev?.(); else viewer.next?.();
+  };
+  const goTo = (index) => {
+    const safe = Math.max(0, Math.min(Math.max(0, slideCount - 1), Number(index) || 0));
+    viewerRef.current?.goToSlide?.(safe);
+    setPanel(null);
+  };
+  const changeZoom = (direction) => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    if (direction < 0) viewer.zoomOut?.(); else viewer.zoomIn?.();
+    window.setTimeout(syncZoom, 0);
+  };
+  const fit = () => {
+    viewerRef.current?.zoomToFit?.();
+    window.setTimeout(syncZoom, 0);
+  };
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement === shellRef.current) await document.exitFullscreen?.();
+      else await shellRef.current?.requestFullscreen?.();
+    } catch {}
+  };
+  const results = lecturePptxSearch(slides, query);
+
+  return (
+    <section ref={shellRef} className="lecture-pptx-viewer" data-status={status} tabIndex={0}>
+      <div className="lecture-pptx-toolbar" role="toolbar" aria-label="PowerPoint">
+        <div className="lecture-pptx-toolbar-group">
+          <button type="button" title={labels.previous} aria-label={labels.previous} disabled={status !== "ready" || slideIndex <= 0} onClick={() => move(-1)}><Icon name="left" size={14} /></button>
+          <div className="lecture-pptx-counter"><strong>{Math.min(slideCount || 1, slideIndex + 1)}</strong><span>/ {slideCount || "—"}</span></div>
+          <button type="button" title={labels.next} aria-label={labels.next} disabled={status !== "ready" || slideIndex >= slideCount - 1} onClick={() => move(1)}><Icon name="right" size={14} /></button>
+        </div>
+        <div className="lecture-pptx-toolbar-group">
+          <button type="button" title={labels.overview} aria-label={labels.overview} data-active={panel === "overview" ? "true" : "false"} disabled={status !== "ready"} onClick={() => setPanel((current) => current === "overview" ? null : "overview")}><Icon name="thumbnails" size={14} /></button>
+          <button type="button" title={labels.search} aria-label={labels.search} data-active={panel === "search" ? "true" : "false"} disabled={status !== "ready"} onClick={() => setPanel((current) => current === "search" ? null : "search")}><Icon name="search" size={14} /></button>
+          <button type="button" title="Zoom ud" aria-label="Zoom ud" disabled={status !== "ready"} onClick={() => changeZoom(-1)}><Icon name="zoomOut" size={14} /></button>
+          <span className="lecture-pptx-zoom">{Math.round((Number(zoom) || 1) * 100)}%</span>
+          <button type="button" title="Zoom ind" aria-label="Zoom ind" disabled={status !== "ready"} onClick={() => changeZoom(1)}><Icon name="zoomIn" size={14} /></button>
+          <button type="button" title={labels.fit} aria-label={labels.fit} disabled={status !== "ready"} onClick={fit}><Icon name="fit" size={14} /></button>
+          <button type="button" title={labels.fullscreen} aria-label={labels.fullscreen} data-active={isFullscreen ? "true" : "false"} disabled={status !== "ready"} onClick={toggleFullscreen}><Icon name={isFullscreen ? "collapse" : "expand"} size={14} /></button>
+        </div>
+      </div>
+      <div className="lecture-pptx-stage-wrap">
+        <div ref={hostRef} className="lecture-pptx-stage" />
+        {status === "loading" && <div className="lecture-pptx-state"><span className="lecture-pptx-spinner" /><strong>{labels.loading}</strong></div>}
+        {status === "error" && <div className="lecture-pptx-state"><Icon name="file" size={24} /><strong>{labels.error}</strong>{error && <small>{error}</small>}</div>}
+        {panel === "search" && status === "ready" && (
+          <div className="lecture-pptx-popover">
+            <div className="lecture-pptx-popover-head"><label><Icon name="search" size={13} /><input autoFocus value={query} placeholder={labels.placeholder} onChange={(event) => setQuery(event.target.value)} /></label><button type="button" aria-label={labels.close} title={labels.close} onClick={() => setPanel(null)}><Icon name="close" size={12} /></button></div>
+            <div className="lecture-pptx-results">{query && !results.length ? <div className="lecture-pptx-state"><small>{labels.noResults}</small></div> : results.map((result) => <button type="button" key={result.index} className="lecture-pptx-result" data-current={result.index === slideIndex ? "true" : "false"} onClick={() => goTo(result.index)}><b>{labels.slide} {result.index + 1}</b><span>{result.snippet}</span></button>)}</div>
+          </div>
+        )}
+        {panel === "overview" && status === "ready" && (
+          <div className="lecture-pptx-popover"><div className="lecture-pptx-popover-head"><strong style={{ flex: 1, fontSize: 8 }}>{labels.overview}</strong><button type="button" aria-label={labels.close} title={labels.close} onClick={() => setPanel(null)}><Icon name="close" size={12} /></button></div><div className="lecture-pptx-slide-grid">{Array.from({ length: slideCount }, (_, index) => <button type="button" key={index} data-current={index === slideIndex ? "true" : "false"} onClick={() => goTo(index)}>{index + 1}</button>)}</div></div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function ExamSourcePagePreview({ url, pageNumber = 1, fileName = "Original eksamen", copy, onOpen }) {
   const canvasRef = useRef(null);
   const surfaceRef = useRef(null);
@@ -35441,6 +35717,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const lecturePdfScopeRef = useRef(null);
   const lecturePdfStateSaveTimerRef = useRef(null);
   const lecturePdfPendingStateRef = useRef({});
+  const [lecturePptxRemoteState, setLecturePptxRemoteState] = useState({});
+  const [lecturePptxRemoteRevision, setLecturePptxRemoteRevision] = useState(0);
+  const [lecturePptxWorkspaceStatus, setLecturePptxWorkspaceStatus] = useState("idle");
+  const lecturePptxScopeRef = useRef(null);
+  const lecturePptxStateSaveTimerRef = useRef(null);
+  const lecturePptxPendingStateRef = useRef({});
   const lectureSearchRef = useRef(null);
   const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
@@ -36873,7 +37155,58 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     return () => { cancelled = true; };
   }, [isLectureLibrary, userId, moduleName, selectedLecture?.id, activeLectureMaterial?.id]);
 
-  useEffect(() => () => window.clearTimeout(lecturePdfStateSaveTimerRef.current), []);
+  useEffect(() => {
+    if (!isLectureLibrary || !activeLectureMaterial?.id || lectureMaterialPreviewKind(activeLectureMaterial) !== "pptx") {
+      lecturePptxScopeRef.current = null;
+      setLecturePptxRemoteState({});
+      setLecturePptxWorkspaceStatus("idle");
+      return undefined;
+    }
+    const materialId = activeLectureMaterial.id;
+    const lectureId = selectedLecture?.id || activeLectureMaterial.lecture_id;
+    const scope = { userId, materialId, moduleName, lectureId };
+    lecturePptxScopeRef.current = scope;
+    const localUserKey = userId || "anonymous";
+    const localState = workspaceState.lecturePptxUserCache?.[localUserKey]?.[materialId] || {};
+    setLecturePptxRemoteState({ ...localState, materialId, remoteRevision: Date.now() });
+    if (!userId) {
+      setLecturePptxWorkspaceStatus("local");
+      return undefined;
+    }
+    let cancelled = false;
+    setLecturePptxWorkspaceStatus("loading");
+    supabase
+      .from("lecture_pptx_user_state")
+      .select("slide_index,zoom,updated_at")
+      .eq("user_id", userId)
+      .eq("material_id", materialId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled || lecturePptxScopeRef.current?.materialId !== materialId) return;
+        if (error) {
+          setLecturePptxWorkspaceStatus("local");
+          return;
+        }
+        const remote = data ? {
+          slideIndex: Math.max(0, Number(data.slide_index) || 0),
+          zoom: Math.max(.35, Math.min(4, Number(data.zoom) || 1)),
+        } : {};
+        const merged = { ...localState, ...remote, materialId, remoteRevision: Date.now() };
+        setLecturePptxRemoteRevision((value) => value + 1);
+        setLecturePptxRemoteState(merged);
+        setWorkspaceState((current) => ({
+          ...current,
+          lecturePptxUserCache: { ...(current.lecturePptxUserCache || {}), [localUserKey]: { ...(current.lecturePptxUserCache?.[localUserKey] || {}), [materialId]: { ...merged, updatedAt: Date.now() } } },
+        }));
+        setLecturePptxWorkspaceStatus("ready");
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, moduleName, selectedLecture?.id, activeLectureMaterial?.id]);
+
+  useEffect(() => () => {
+    window.clearTimeout(lecturePdfStateSaveTimerRef.current);
+    window.clearTimeout(lecturePptxStateSaveTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!isLectureLibrary) return undefined;
@@ -38397,6 +38730,58 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setLecturePdfWorkspaceStatus(error ? "local" : "ready");
   }
 
+  function scheduleLecturePptxUserState(materialId, patch) {
+    if (!isLectureLibrary || !materialId || activeLectureMaterial?.id !== materialId || !patch || typeof patch !== "object") return;
+    if (lecturePptxWorkspaceStatus === "loading") return;
+    const localUserKey = userId || "anonymous";
+    const nextLocal = { ...(lecturePptxRemoteState || {}), ...patch, materialId };
+    setLecturePptxRemoteState(nextLocal);
+    setWorkspaceState((current) => ({
+      ...current,
+      lecturePptxUserCache: { ...(current.lecturePptxUserCache || {}), [localUserKey]: { ...(current.lecturePptxUserCache?.[localUserKey] || {}), [materialId]: { ...(current.lecturePptxUserCache?.[localUserKey]?.[materialId] || {}), ...patch, updatedAt: Date.now() } } },
+      lectureViewerHistory: selectedLecture?.id ? {
+        ...(current.lectureViewerHistory || {}),
+        [moduleName || "module"]: {
+          ...(current.lectureViewerHistory?.[moduleName || "module"] || {}),
+          lectureId: selectedLecture.id,
+          materialId,
+          slideIndex: Math.max(0, Number(patch.slideIndex ?? current.lecturePptxUserCache?.[localUserKey]?.[materialId]?.slideIndex) || 0),
+          updatedAt: Date.now(),
+        },
+      } : current.lectureViewerHistory,
+    }));
+    lecturePptxPendingStateRef.current = { ...(lecturePptxPendingStateRef.current || {}), ...patch };
+    if (!userId || !selectedLecture?.id) {
+      setLecturePptxWorkspaceStatus("local");
+      return;
+    }
+    setLecturePptxWorkspaceStatus((current) => current === "loading" ? current : "saving");
+    window.clearTimeout(lecturePptxStateSaveTimerRef.current);
+    const scope = { userId, materialId, moduleName, lectureId: selectedLecture.id };
+    lecturePptxStateSaveTimerRef.current = window.setTimeout(async () => {
+      if (lecturePptxScopeRef.current?.materialId !== materialId) return;
+      const pending = lecturePptxPendingStateRef.current || {};
+      lecturePptxPendingStateRef.current = {};
+      const currentState = { ...(lecturePptxRemoteState || {}), ...pending };
+      const payload = {
+        user_id: scope.userId,
+        material_id: scope.materialId,
+        module_name: scope.moduleName,
+        lecture_id: scope.lectureId,
+        slide_index: Math.max(0, Number(currentState.slideIndex) || 0),
+        zoom: Math.max(.35, Math.min(4, Number(currentState.zoom) || 1)),
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from("lecture_pptx_user_state").upsert(payload, { onConflict: "user_id,material_id" });
+      if (lecturePptxScopeRef.current?.materialId !== materialId) return;
+      setLecturePptxWorkspaceStatus(error ? "local" : "ready");
+    }, 520);
+  }
+
+  function updateLecturePptxViewerState(materialId, patch) {
+    scheduleLecturePptxUserState(materialId, patch);
+  }
+
   function updateLectureViewerState(materialId, patch) {
     if (!materialId || !patch || typeof patch !== "object") return;
     scheduleLecturePdfUserState(materialId, patch);
@@ -39835,6 +40220,15 @@ async function openExamSetPdfEditor() {
                     onCreateAnnotation={createLecturePdfAnnotation}
                     onUpdateAnnotation={updateLecturePdfAnnotation}
                     onDeleteAnnotation={deleteLecturePdfAnnotation}
+                  />
+                ) : activeDocument?.previewKind === "pptx" && activeDocument.url ? (
+                  <LecturePptxViewer
+                    url={activeDocument.url}
+                    materialId={activeLectureMaterial.id}
+                    fileName={activeDocument.name}
+                    savedState={{ ...(workspaceState.lecturePptxUserCache?.[userId || "anonymous"]?.[activeLectureMaterial.id] || {}), ...(lecturePptxRemoteState.materialId === activeLectureMaterial.id ? lecturePptxRemoteState : {}), remoteRevision: lecturePptxRemoteRevision }}
+                    onStateChange={(patch) => updateLecturePptxViewerState(activeLectureMaterial.id, patch)}
+                    language={language}
                   />
                 ) : (
                   <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialNoPreview}</strong><small>{copy.materialOpenExternally}</small><div className="lecture-material-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => downloadLectureMaterial()}>{copy.materialDownload}</button><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureMaterial()}>{copy.materialOpen}</button></div></div>
