@@ -35942,6 +35942,440 @@ function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, on
   );
 }
 
+/* SEGMENT_6_7_RUNTIME_START
+   MedFLUEN Segment 6.7 — emne- og forelæsningskobling.
+   Dette lag er KUN metadata. Det ændrer aldrig parsed_questions, svarmuligheder,
+   billeder, facit eller historiske attempt-snapshots.
+*/
+
+const EXAM_CURRICULUM_SUGGESTION_VERSION = "6.7-lexical-1";
+const EXAM_CURRICULUM_TABLE = "exam_question_curriculum_links";
+const EXAM_CURRICULUM_TOPIC_TABLE = "exam_curriculum_topics";
+
+const EXAM_CURRICULUM_STOPWORDS = new Set([
+  "og","i","jeg","det","at","en","den","til","er","som","på","de","med","af","for","ikke","der","et","har","om","vi","fra","du","eller","hvad","skal","kan","denne","dette","disse","hvilken","hvilket","hvilke","være","hvordan","hvorfor","spørgsmål","spørg","find","viser","noget","nogen","meget","mere","mest","funktion","funktioner","betydning","årsag","årsager","effekt","effekter","egenskab","egenskaber","vigtig","vigtigt","primær","primært","generelt","typisk","forklar","forklaring","korrekt","patient","patienten",
+  "the","is","at","which","on","a","an","and","or","of","to","in","for","with","that","this","these","those","what","who","how","why","when","where","find","show","question","questions","about","can","could","would","should","does","are","was","were","be","been","it","its","function","meaning","cause","effect","important","primary","main","general","typical","explain","correct","patient"
+]);
+
+function examCurriculumCopy(language) {
+  return ({
+    da: {
+      related: "Relateret pensum", lecture: "Forelæsning", topic: "Emne", adminButton: "Pensummapping",
+      managerTitle: "Pensummapping", managerIntro: "Kobl eksamensspørgsmålet til eksisterende forelæsninger og kontrollerede emner. Det originale eksamensindhold ændres ikke.",
+      all: "Alle", mapped: "Mappet", unmapped: "Ikke mappet", search: "Søg i spørgsmål…", previous: "Forrige", next: "Næste", close: "Luk",
+      currentMapping: "Godkendt pensum", noMapping: "Ingen godkendt mapping endnu", lectures: "Forelæsninger", topics: "Emner", suggestions: "Forslag",
+      strongSuggestion: "Stærkt forslag", possibleSuggestion: "Muligt forslag", accept: "Godkend", remove: "Fjern", add: "Tilføj", createTopic: "Nyt emne",
+      topicPlaceholder: "Fx Cerebrovaskulær sygdom", topicHint: "Emnet oprettes én gang for modulet og kan genbruges på andre spørgsmål.",
+      saving: "Gemmer…", saved: "Gemt", error: "Kunne ikke gemme mappingen", loading: "Henter pensummapping…",
+      setupMissing: "Segment 6.7-databasen er ikke oprettet endnu. Kør den medfølgende segment_6_7.sql i Supabase først.",
+      noQuestions: "Der er ingen strukturerede spørgsmål at mappe i dette sæt.", noSuggestions: "Ingen tilstrækkeligt sikre forslag. Vælg manuelt, hvis du kender koblingen.",
+      original: "Åbn original", sourceQuestion: "Originalt spørgsmål", mappedCount: (a,b) => `${a} af ${b} spørgsmål mappet`,
+      filterLecture: "Forelæsning", filterTopic: "Emne", curriculumFilter: "Pensumfilter", currentMappingNote: "Filteret bruger den aktuelle godkendte pensummapping. Historiske svar og scores ændres ikke.",
+      noCurriculumFilter: "Alt pensum", manual: "Manuel", acceptedSuggestion: "Godkendt forslag", suggestionsVersion: "Forslagsmotor",
+    },
+    en: {
+      related: "Related curriculum", lecture: "Lecture", topic: "Topic", adminButton: "Curriculum mapping",
+      managerTitle: "Curriculum mapping", managerIntro: "Link exam questions to existing lectures and controlled topics. Original exam content is never changed.",
+      all: "All", mapped: "Mapped", unmapped: "Unmapped", search: "Search questions…", previous: "Previous", next: "Next", close: "Close",
+      currentMapping: "Approved curriculum", noMapping: "No approved mapping yet", lectures: "Lectures", topics: "Topics", suggestions: "Suggestions",
+      strongSuggestion: "Strong suggestion", possibleSuggestion: "Possible suggestion", accept: "Accept", remove: "Remove", add: "Add", createTopic: "New topic",
+      topicPlaceholder: "E.g. Cerebrovascular disease", topicHint: "The topic is created once for the module and can be reused across questions.",
+      saving: "Saving…", saved: "Saved", error: "Could not save mapping", loading: "Loading curriculum mapping…",
+      setupMissing: "The Segment 6.7 database is not set up yet. Run the included segment_6_7.sql in Supabase first.",
+      noQuestions: "There are no structured questions to map in this set.", noSuggestions: "No sufficiently reliable suggestions. Map manually if you know the relation.",
+      original: "Open original", sourceQuestion: "Original question", mappedCount: (a,b) => `${a} of ${b} questions mapped`,
+      filterLecture: "Lecture", filterTopic: "Topic", curriculumFilter: "Curriculum filter", currentMappingNote: "This filter uses the current approved curriculum mapping. Historical answers and scores are not changed.",
+      noCurriculumFilter: "All curriculum", manual: "Manual", acceptedSuggestion: "Accepted suggestion", suggestionsVersion: "Suggestion engine",
+    },
+    ar: {
+      related: "المنهج المرتبط", lecture: "المحاضرة", topic: "الموضوع", adminButton: "ربط المنهج",
+      managerTitle: "ربط المنهج", managerIntro: "اربط أسئلة الامتحان بالمحاضرات والموضوعات المعتمدة دون تغيير محتوى الامتحان الأصلي.",
+      all: "الكل", mapped: "مرتبط", unmapped: "غير مرتبط", search: "ابحث في الأسئلة…", previous: "السابق", next: "التالي", close: "إغلاق",
+      currentMapping: "المنهج المعتمد", noMapping: "لا يوجد ربط معتمد بعد", lectures: "المحاضرات", topics: "الموضوعات", suggestions: "اقتراحات",
+      strongSuggestion: "اقتراح قوي", possibleSuggestion: "اقتراح محتمل", accept: "اعتماد", remove: "إزالة", add: "إضافة", createTopic: "موضوع جديد",
+      topicPlaceholder: "مثال: أمراض الأوعية الدماغية", topicHint: "يُنشأ الموضوع مرة واحدة للوحدة ويمكن إعادة استخدامه.",
+      saving: "جارٍ الحفظ…", saved: "تم الحفظ", error: "تعذر حفظ الربط", loading: "جارٍ تحميل ربط المنهج…",
+      setupMissing: "قاعدة بيانات Segment 6.7 غير مهيأة بعد. شغّل ملف segment_6_7.sql المرفق في Supabase أولاً.",
+      noQuestions: "لا توجد أسئلة منظمة لربطها في هذه المجموعة.", noSuggestions: "لا توجد اقتراحات موثوقة بما يكفي. اختر يدويًا إذا كنت تعرف العلاقة.",
+      original: "فتح الأصل", sourceQuestion: "السؤال الأصلي", mappedCount: (a,b) => `${a} من ${b} أسئلة مرتبطة`,
+      filterLecture: "المحاضرة", filterTopic: "الموضوع", curriculumFilter: "تصفية المنهج", currentMappingNote: "يستخدم المرشح الربط الحالي المعتمد ولا يغير الإجابات أو النتائج التاريخية.",
+      noCurriculumFilter: "كل المنهج", manual: "يدوي", acceptedSuggestion: "اقتراح معتمد", suggestionsVersion: "محرك الاقتراح",
+    },
+  })[language] || examCurriculumCopy("da");
+}
+
+function examCurriculumLocalize(value, language = "da") {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object") return "";
+  return value[language] || value.da || value.en || value.ar || "";
+}
+
+function examCurriculumStem(word) {
+  return word
+    .replace(/(erne|ernes|ene|enes|ende|else|elser)$/i, "")
+    .replace(/(ing|ede|et|es|er|en|e|s)$/i, (ending) => word.length - ending.length >= 4 ? "" : ending);
+}
+
+function examCurriculumTokens(text) {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9æøå\s-]/gi, " ")
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter((word) => word.length >= 3 && !EXAM_CURRICULUM_STOPWORDS.has(word))
+    .map(examCurriculumStem)
+    .filter((word) => word.length >= 3);
+}
+
+function examCurriculumRelatedness(first, second) {
+  if (first === second) return 1;
+  if (first.length >= 4 && second.length >= 4 && (first.includes(second) || second.includes(first))) return .72;
+  return 0;
+}
+
+function examCurriculumOverlapScore(queryTokens, targetTokens) {
+  if (!queryTokens.length || !targetTokens.length) return 0;
+  let score = 0;
+  const unique = [...new Set(queryTokens)];
+  unique.forEach((queryToken) => {
+    let best = 0;
+    targetTokens.forEach((targetToken) => { best = Math.max(best, examCurriculumRelatedness(queryToken, targetToken)); });
+    if (best) score += best * (queryToken.length >= 10 ? 1.7 : queryToken.length >= 7 ? 1.3 : 1);
+  });
+  return score / Math.max(2, Math.sqrt(unique.length * Math.max(2, new Set(targetTokens).size)));
+}
+
+function examCurriculumQuestionText(question, language = "da") {
+  const options = (question?.options || []).map((option) => typeof option === "string" ? option : option?.text || examCurriculumLocalize(option, language)).join(" ");
+  return [question?.text || examCurriculumLocalize(question?.question, language), options].filter(Boolean).join(" ");
+}
+
+function examCurriculumBankQuestionText(question, language = "da") {
+  return [
+    examCurriculumLocalize(question?.question, language),
+    examCurriculumLocalize(question?.category, language),
+    examCurriculumLocalize(question?.explanation, language),
+    ...(question?.options || []).map((option) => examCurriculumLocalize(option, language)),
+  ].filter(Boolean).join(" ");
+}
+
+function examCurriculumSuggestLectures({ question, moduleName, importedQuestions = [], language = "da", existingLectureIds = [] }) {
+  const lectures = MODULE_LECTURES[moduleName] || [];
+  const queryTokens = examCurriculumTokens(examCurriculumQuestionText(question, language));
+  if (queryTokens.length < 2) return [];
+  const existing = new Set(existingLectureIds || []);
+  const moduleBank = (importedQuestions || []).filter((item) => item?.moduleId === moduleName && item?.lectureId);
+  const scored = lectures.filter((lecture) => !existing.has(lecture.id)).map((lecture) => {
+    const titleScore = examCurriculumOverlapScore(queryTokens, examCurriculumTokens(`${lecture.id} ${lecture.title || ""}`));
+    const groupScore = examCurriculumOverlapScore(queryTokens, examCurriculumTokens(lecture.group || ""));
+    const examples = moduleBank.filter((item) => item.lectureId === lecture.id).slice(0, 24);
+    let corpusScore = 0;
+    examples.forEach((example) => { corpusScore = Math.max(corpusScore, examCurriculumOverlapScore(queryTokens, examCurriculumTokens(examCurriculumBankQuestionText(example, language)))); });
+    const exactTitleHit = examCurriculumTokens(lecture.title || "").some((token) => queryTokens.some((queryToken) => examCurriculumRelatedness(queryToken, token) >= .72));
+    return { lectureId: lecture.id, lecture, score: titleScore * 3.1 + corpusScore * 2.3 + groupScore * .45 + (exactTitleHit ? .55 : 0) };
+  }).filter((entry) => entry.score >= .72).sort((a, b) => b.score - a.score).slice(0, 3)
+    .map((entry, index) => ({ ...entry, strength: entry.score >= 2.15 && index === 0 ? "strong" : "possible" }));
+  if (!scored.length) return [];
+  if (scored[0].score < .9 && (scored[1]?.score || 0) < .75) return [];
+  return scored;
+}
+
+function examCurriculumSlug(value) {
+  return String(value || "")
+    .toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9æøå]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+}
+
+function examCurriculumQuestionLinks(links, examSetId, questionId) {
+  return (Array.isArray(links) ? links : []).filter((link) => link.examSetId === examSetId && String(link.questionId) === String(questionId));
+}
+
+function examCurriculumLecture(moduleName, lectureId) {
+  return (MODULE_LECTURES[moduleName] || []).find((lecture) => lecture.id === lectureId) || null;
+}
+
+function examCurriculumNormalizeLink(row) {
+  return {
+    id: row?.id || null,
+    examSetId: row?.exam_set_id || row?.examSetId || null,
+    questionId: row?.question_id || row?.questionId || null,
+    moduleName: row?.module_name || row?.moduleName || null,
+    lectureId: row?.lecture_id || row?.lectureId || null,
+    topicId: row?.topic_id || row?.topicId || null,
+    source: row?.source || "manual",
+    createdBy: row?.created_by || row?.createdBy || null,
+    createdAt: row?.created_at || row?.createdAt || null,
+    updatedAt: row?.updated_at || row?.updatedAt || null,
+  };
+}
+
+function examCurriculumNormalizeTopic(row) {
+  return {
+    id: row?.id || null,
+    moduleName: row?.module_name || row?.moduleName || null,
+    slug: row?.slug || "",
+    label: row?.label || "",
+    createdBy: row?.created_by || row?.createdBy || null,
+    createdAt: row?.created_at || row?.createdAt || null,
+    updatedAt: row?.updated_at || row?.updatedAt || null,
+  };
+}
+
+function examCurriculumMissingTable(error) {
+  const code = String(error?.code || "");
+  const message = String(error?.message || "").toLowerCase();
+  return code === "42P01" || code === "PGRST205" || message.includes("exam_question_curriculum_links") && message.includes("not find");
+}
+
+function useExamCurriculumData({ moduleName, examSetIds = [], enabled = true }) {
+  const [topics, setTopics] = useState([]);
+  const [links, setLinks] = useState([]);
+  const [loadState, setLoadState] = useState("idle");
+  const [error, setError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const idsKey = [...new Set((examSetIds || []).filter(Boolean))].sort().join(",");
+
+  useEffect(() => {
+    if (!enabled || !moduleName) {
+      setTopics([]); setLinks([]); setLoadState("idle"); setError(null);
+      return undefined;
+    }
+    let cancelled = false;
+    setLoadState("loading"); setError(null);
+    async function load() {
+      try {
+        let topicQuery = supabase.from(EXAM_CURRICULUM_TOPIC_TABLE).select("id,module_name,slug,label,created_by,created_at,updated_at").eq("module_name", moduleName).order("label", { ascending: true });
+        let linkQuery = supabase.from(EXAM_CURRICULUM_TABLE).select("id,exam_set_id,question_id,module_name,lecture_id,topic_id,source,created_by,created_at,updated_at").eq("module_name", moduleName);
+        const ids = idsKey ? idsKey.split(",") : [];
+        if (ids.length) linkQuery = linkQuery.in("exam_set_id", ids);
+        const [topicResult, linkResult] = await Promise.all([topicQuery, linkQuery]);
+        if (topicResult.error) throw topicResult.error;
+        if (linkResult.error) throw linkResult.error;
+        if (cancelled) return;
+        setTopics((topicResult.data || []).map(examCurriculumNormalizeTopic));
+        setLinks((linkResult.data || []).map(examCurriculumNormalizeLink));
+        setLoadState("ready");
+      } catch (loadError) {
+        if (cancelled) return;
+        setTopics([]); setLinks([]); setError(loadError);
+        setLoadState(examCurriculumMissingTable(loadError) ? "setup-missing" : "error");
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [enabled, moduleName, idsKey, refreshKey]);
+
+  return { topics, links, loadState, error, refresh: () => setRefreshKey((value) => value + 1) };
+}
+
+function ExamCurriculumRelated({ language, moduleName, examSetId, questionId, links, topics }) {
+  const copy = examCurriculumCopy(language);
+  const related = examCurriculumQuestionLinks(links, examSetId, questionId);
+  if (!related.length) return null;
+  const topicMap = new Map((topics || []).map((topic) => [topic.id, topic]));
+  return (
+    <section className="exam-curriculum-related" aria-label={copy.related} style={{ margin: "-5px 0 18px", padding: "9px 10px", border: "1px solid var(--ui-border)", borderRadius: 10, background: "var(--ui-soft)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, color: "var(--ui-muted)", fontSize: 8.5, fontWeight: 850, letterSpacing: ".04em", textTransform: "uppercase" }}><Icon name="book" size={11} />{copy.related}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {related.map((link) => {
+          const lecture = link.lectureId ? examCurriculumLecture(moduleName, link.lectureId) : null;
+          const topic = link.topicId ? topicMap.get(link.topicId) : null;
+          const label = lecture ? `${lecture.id} · ${lecture.title}` : topic?.label;
+          if (!label) return null;
+          return <span key={link.id} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 7px", borderRadius: 99, border: "1px solid var(--ui-border-strong)", background: "var(--ui-panel)", color: "var(--ui-text)", fontSize: 9, fontWeight: 750 }}><Icon name={lecture ? "book" : "target"} size={10} />{label}</span>;
+        })}
+      </div>
+    </section>
+  );
+}
+
+function ExamCurriculumFilterBar({ c, language, moduleName, links, topics, lectureId, setLectureId, topicId, setTopicId }) {
+  const copy = examCurriculumCopy(language);
+  const lectureIds = [...new Set((links || []).map((link) => link.lectureId).filter(Boolean))];
+  const topicIds = [...new Set((links || []).map((link) => link.topicId).filter(Boolean))];
+  const topicMap = new Map((topics || []).map((topic) => [topic.id, topic]));
+  if (!lectureIds.length && !topicIds.length) return null;
+  return (
+    <div style={{ display: "flex", alignItems: "end", gap: 8, flexWrap: "wrap", padding: "10px 12px", marginBottom: 10, border: `1px solid ${c?.border || "var(--ui-border)"}`, borderRadius: 12, background: c?.soft || "var(--ui-soft)" }}>
+      <div style={{ display: "grid", gap: 2, marginInlineEnd: 4 }}><strong style={{ color: c?.text || "var(--ui-text)", fontSize: 9.5 }}>{copy.curriculumFilter}</strong><small style={{ color: c?.muted || "var(--ui-muted)", fontSize: 7.5 }}>{copy.currentMappingNote}</small></div>
+      <label style={{ display: "grid", gap: 3, color: c?.secondary || "var(--ui-muted)", fontSize: 8, fontWeight: 750 }}><span>{copy.filterLecture}</span><select value={lectureId} onChange={(event) => { setLectureId(event.target.value); if (event.target.value !== "all") setTopicId("all"); }} style={{ minHeight: 31, borderRadius: 8, border: `1px solid ${c?.border || "var(--ui-border)"}`, background: c?.panel || "var(--ui-panel)", color: c?.text || "var(--ui-text)", padding: "0 8px" }}><option value="all">{copy.noCurriculumFilter}</option>{lectureIds.map((id) => { const lecture = examCurriculumLecture(moduleName, id); return <option key={id} value={id}>{lecture ? `${lecture.id} · ${lecture.title}` : id}</option>; })}</select></label>
+      <label style={{ display: "grid", gap: 3, color: c?.secondary || "var(--ui-muted)", fontSize: 8, fontWeight: 750 }}><span>{copy.filterTopic}</span><select value={topicId} onChange={(event) => { setTopicId(event.target.value); if (event.target.value !== "all") setLectureId("all"); }} style={{ minHeight: 31, borderRadius: 8, border: `1px solid ${c?.border || "var(--ui-border)"}`, background: c?.panel || "var(--ui-panel)", color: c?.text || "var(--ui-text)", padding: "0 8px" }}><option value="all">{copy.noCurriculumFilter}</option>{topicIds.map((id) => <option key={id} value={id}>{topicMap.get(id)?.label || id}</option>)}</select></label>
+    </div>
+  );
+}
+
+function ExamReviewWorkspace67(props) {
+  const [lectureId, setLectureId] = useState("all");
+  const [topicId, setTopicId] = useState("all");
+  const links = Array.isArray(props.curriculumLinks) ? props.curriculumLinks : [];
+  const filteredItems = (Array.isArray(props.items) ? props.items : []).filter((item) => {
+    if (lectureId === "all" && topicId === "all") return true;
+    const related = examCurriculumQuestionLinks(links, item.examSetId, item.questionId);
+    if (lectureId !== "all" && !related.some((link) => link.lectureId === lectureId)) return false;
+    if (topicId !== "all" && !related.some((link) => link.topicId === topicId)) return false;
+    return true;
+  });
+  return <div><ExamCurriculumFilterBar c={props.c} language={props.language} moduleName={props.moduleName} links={links} topics={props.curriculumTopics} lectureId={lectureId} setLectureId={setLectureId} topicId={topicId} setTopicId={setTopicId} /><ExamReviewWorkspace {...props} items={filteredItems} /></div>;
+}
+
+function examCurriculumAttemptMatches(attempt, links, lectureId, topicId) {
+  if (lectureId === "all" && topicId === "all") return true;
+  const questions = Array.isArray(attempt?.questionSnapshot) ? attempt.questionSnapshot : [];
+  return questions.some((question) => {
+    const related = examCurriculumQuestionLinks(links, attempt?.examSetId, question?.id || question?.questionId);
+    if (lectureId !== "all" && related.some((link) => link.lectureId === lectureId)) return true;
+    if (topicId !== "all" && related.some((link) => link.topicId === topicId)) return true;
+    return false;
+  });
+}
+
+function ExamAttemptHistoryWorkspace67(props) {
+  const [lectureId, setLectureId] = useState("all");
+  const [topicId, setTopicId] = useState("all");
+  const links = Array.isArray(props.curriculumLinks) ? props.curriculumLinks : [];
+  const filteredAttempts = (Array.isArray(props.attempts) ? props.attempts : []).filter((attempt) => examCurriculumAttemptMatches(attempt, links, lectureId, topicId));
+  return <div><ExamCurriculumFilterBar c={props.c} language={props.language} moduleName={props.moduleName} links={links} topics={props.curriculumTopics} lectureId={lectureId} setLectureId={setLectureId} topicId={topicId} setTopicId={setTopicId} /><ExamAttemptHistoryWorkspace {...props} attempts={filteredAttempts} /></div>;
+}
+
+function ExamCurriculumManager({ c, language, moduleName, examSet, questions, topics, links, importedQuestions, userId, loadState, onRefresh, onClose, onOpenOriginal }) {
+  const copy = examCurriculumCopy(language);
+  const safeQuestions = Array.isArray(questions) ? questions : [];
+  const safeLinks = Array.isArray(links) ? links : [];
+  const safeTopics = Array.isArray(topics) ? topics : [];
+  const [filter, setFilter] = useState("all");
+  const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState(safeQuestions[0]?.id || null);
+  const [saveState, setSaveState] = useState("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [topicDraft, setTopicDraft] = useState("");
+  const lectures = MODULE_LECTURES[moduleName] || [];
+  const topicMap = new Map(safeTopics.map((topic) => [topic.id, topic]));
+  const mappedQuestionIds = new Set(safeLinks.filter((link) => link.examSetId === examSet?.id).map((link) => String(link.questionId)));
+
+  useEffect(() => {
+    if (!safeQuestions.some((question) => String(question.id) === String(selectedId))) setSelectedId(safeQuestions[0]?.id || null);
+  }, [examSet?.id, safeQuestions.length]);
+
+  useEffect(() => {
+    function onKey(event) { if (event.key === "Escape") onClose(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const filtered = safeQuestions.filter((question) => {
+    const isMapped = mappedQuestionIds.has(String(question.id));
+    if (filter === "mapped" && !isMapped) return false;
+    if (filter === "unmapped" && isMapped) return false;
+    const needle = query.trim().toLowerCase();
+    if (!needle) return true;
+    return String(question.sourceNumber || question.id || "").toLowerCase().includes(needle) || String(question.text || "").toLowerCase().includes(needle);
+  });
+  const selectedQuestion = safeQuestions.find((question) => String(question.id) === String(selectedId)) || filtered[0] || safeQuestions[0] || null;
+  const selectedLinks = selectedQuestion ? examCurriculumQuestionLinks(safeLinks, examSet?.id, selectedQuestion.id) : [];
+  const selectedLectureIds = selectedLinks.map((link) => link.lectureId).filter(Boolean);
+  const suggestions = selectedQuestion ? examCurriculumSuggestLectures({ question: selectedQuestion, moduleName, importedQuestions, language, existingLectureIds: selectedLectureIds }) : [];
+  const mappedCount = safeQuestions.filter((question) => mappedQuestionIds.has(String(question.id))).length;
+  const visibleIndex = selectedQuestion ? filtered.findIndex((question) => String(question.id) === String(selectedQuestion.id)) : -1;
+
+  async function runMutation(operation) {
+    setSaveState("saving"); setErrorMessage("");
+    try {
+      await operation();
+      await onRefresh?.();
+      setSaveState("saved");
+      window.setTimeout(() => setSaveState((state) => state === "saved" ? "idle" : state), 900);
+    } catch (error) {
+      setErrorMessage(error?.message || copy.error); setSaveState("error");
+    }
+  }
+
+  function addLecture(lectureId, source = "manual") {
+    if (!selectedQuestion || !examSet?.id || selectedLectureIds.includes(lectureId)) return;
+    runMutation(async () => {
+      const { error } = await supabase.from(EXAM_CURRICULUM_TABLE).insert({ exam_set_id: examSet.id, question_id: String(selectedQuestion.id), module_name: moduleName, lecture_id: lectureId, topic_id: null, source, created_by: userId || null });
+      if (error) throw error;
+    });
+  }
+
+  function removeLink(linkId) {
+    if (!linkId) return;
+    runMutation(async () => {
+      const { error } = await supabase.from(EXAM_CURRICULUM_TABLE).delete().eq("id", linkId);
+      if (error) throw error;
+    });
+  }
+
+  function toggleTopic(topicId) {
+    if (!selectedQuestion || !examSet?.id) return;
+    const existing = selectedLinks.find((link) => link.topicId === topicId);
+    if (existing) { removeLink(existing.id); return; }
+    runMutation(async () => {
+      const { error } = await supabase.from(EXAM_CURRICULUM_TABLE).insert({ exam_set_id: examSet.id, question_id: String(selectedQuestion.id), module_name: moduleName, lecture_id: null, topic_id: topicId, source: "manual", created_by: userId || null });
+      if (error) throw error;
+    });
+  }
+
+  function createTopic() {
+    const label = topicDraft.trim();
+    const slug = examCurriculumSlug(label);
+    if (!label || !slug || !selectedQuestion || !examSet?.id) return;
+    runMutation(async () => {
+      let { data: topic, error: topicError } = await supabase.from(EXAM_CURRICULUM_TOPIC_TABLE).upsert({ module_name: moduleName, slug, label, created_by: userId || null }, { onConflict: "module_name,slug" }).select("id,module_name,slug,label").single();
+      if (topicError) throw topicError;
+      const { error: linkError } = await supabase.from(EXAM_CURRICULUM_TABLE).insert({ exam_set_id: examSet.id, question_id: String(selectedQuestion.id), module_name: moduleName, lecture_id: null, topic_id: topic.id, source: "manual", created_by: userId || null });
+      if (linkError && String(linkError.code) !== "23505") throw linkError;
+      setTopicDraft("");
+    });
+  }
+
+  function step(delta) {
+    if (!filtered.length) return;
+    const current = visibleIndex >= 0 ? visibleIndex : 0;
+    const next = Math.max(0, Math.min(filtered.length - 1, current + delta));
+    setSelectedId(filtered[next]?.id || null);
+  }
+
+  if (typeof document === "undefined") return null;
+  const panel = (
+    <div className="exam-curriculum-overlay" style={{ position: "fixed", inset: 0, zIndex: 1600, background: "rgba(8,14,24,.62)", display: "grid", placeItems: "center", padding: 18 }}>
+      <style>{`@media(max-width:900px){.exam-curriculum-manager-grid{grid-template-columns:1fr!important}.exam-curriculum-manager-list{max-height:180px!important}.exam-curriculum-manager-side{max-height:none!important}}`}</style>
+      <section style={{ width: "min(1280px,96vw)", height: "min(860px,94vh)", display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 18, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg || "0 30px 80px rgba(0,0,0,.28)" }} aria-label={copy.managerTitle}>
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 16px", borderBottom: `1px solid ${c.border}` }}>
+          <div><strong style={{ color: c.text, fontSize: 14 }}>{copy.managerTitle}</strong><div style={{ marginTop: 3, color: c.secondary, fontSize: 10.5 }}>{examSet?.name || ""} · {copy.mappedCount(mappedCount, safeQuestions.length)}</div></div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: saveState === "error" ? c.red : saveState === "saved" ? c.green : c.muted, fontSize: 9, fontWeight: 750 }}>{saveState === "saving" ? copy.saving : saveState === "saved" ? copy.saved : saveState === "error" ? copy.error : ""}</span><button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button></div>
+        </header>
+        <div style={{ padding: "9px 16px", borderBottom: `1px solid ${c.border}`, color: c.secondary, fontSize: 10.5, lineHeight: 1.45 }}>{copy.managerIntro}<span style={{ marginInlineStart: 8, color: c.muted, fontSize: 8.5 }}>{copy.suggestionsVersion}: {EXAM_CURRICULUM_SUGGESTION_VERSION}</span></div>
+        {loadState === "setup-missing" ? <div style={{ margin: 18, padding: 16, borderRadius: 12, background: c.redSoft, border: `1px solid ${c.redBorder}`, color: c.red, fontSize: 11.5 }}>{copy.setupMissing}</div> : loadState === "loading" ? <div style={{ padding: 30, textAlign: "center", color: c.muted }}>{copy.loading}</div> : !safeQuestions.length ? <div style={{ padding: 30, textAlign: "center", color: c.muted }}>{copy.noQuestions}</div> : (
+          <div className="exam-curriculum-manager-grid" style={{ minHeight: 0, flex: 1, display: "grid", gridTemplateColumns: "260px minmax(0,1fr) 350px" }}>
+            <aside style={{ minHeight: 0, display: "flex", flexDirection: "column", borderInlineEnd: `1px solid ${c.border}` }}>
+              <div style={{ padding: 10, display: "grid", gap: 7, borderBottom: `1px solid ${c.border}` }}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.search} style={{ height: 34, borderRadius: 9, border: `1px solid ${c.border}`, background: c.soft, color: c.text, padding: "0 10px" }} /><div style={{ display: "flex", gap: 5 }}>{[["all",copy.all],["unmapped",copy.unmapped],["mapped",copy.mapped]].map(([value,label]) => <button key={value} type="button" onClick={() => setFilter(value)} style={{ flex: 1, height: 29, borderRadius: 8, border: `1px solid ${filter === value ? c.blueBorder : c.border}`, background: filter === value ? c.blueSoft : c.panel, color: filter === value ? c.blue : c.secondary, fontSize: 8.5, fontWeight: 750 }}>{label}</button>)}</div></div>
+              <div className="exam-curriculum-manager-list" style={{ minHeight: 0, flex: 1, overflowY: "auto", padding: 7, display: "grid", alignContent: "start", gap: 5 }}>{filtered.map((question, index) => { const active = String(question.id) === String(selectedQuestion?.id); const mapped = mappedQuestionIds.has(String(question.id)); return <button key={question.id} type="button" onClick={() => setSelectedId(question.id)} style={{ display: "grid", gridTemplateColumns: "28px 1fr 10px", gap: 7, alignItems: "start", textAlign: "start", padding: "8px 7px", borderRadius: 9, border: `1px solid ${active ? c.blueBorder : c.border}`, background: active ? c.blueSoft : c.panel, color: c.text }}><strong style={{ color: active ? c.blue : c.secondary, fontSize: 9 }}>Q{question.sourceNumber || index + 1}</strong><span style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", fontSize: 9, lineHeight: 1.35 }}>{question.text || "—"}</span><i style={{ width: 7, height: 7, marginTop: 2, borderRadius: 99, background: mapped ? c.green : c.borderStrong }} /></button>; })}</div>
+            </aside>
+            <main style={{ minWidth: 0, minHeight: 0, overflowY: "auto", padding: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 13 }}><div style={{ display: "flex", gap: 6, flexWrap: "wrap", color: c.muted, fontSize: 8.5, fontWeight: 750 }}><span>{copy.sourceQuestion} {selectedQuestion?.sourceNumber || "—"}</span>{selectedQuestion?.sourcePages?.length ? <span>· PDF {selectedQuestion.sourcePages.join("–")}</span> : null}</div>{selectedQuestion && onOpenOriginal && <button type="button" className="ui-button ui-button--secondary" onClick={() => onOpenOriginal(selectedQuestion)}><Icon name="file" size={11} />{copy.original}</button>}</div>
+              <h2 style={{ margin: 0, color: c.text, fontSize: 17, lineHeight: 1.55, fontWeight: 750, whiteSpace: "pre-wrap" }}>{selectedQuestion?.text || "—"}</h2>
+              <div style={{ display: "grid", gap: 8, marginTop: 18 }}>{(selectedQuestion?.options || []).map((option) => <div key={option.label} style={{ display: "grid", gridTemplateColumns: "28px 1fr", gap: 9, padding: "9px 10px", border: `1px solid ${c.border}`, borderRadius: 10, background: c.panel }}><strong style={{ width: 27, height: 27, display: "grid", placeItems: "center", borderRadius: 8, background: c.soft, color: c.secondary, fontSize: 10 }}>{option.label}</strong><span style={{ color: c.text, fontSize: 11, lineHeight: 1.45 }}>{option.text}</span></div>)}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 18 }}><button type="button" className="ui-button ui-button--secondary" disabled={visibleIndex <= 0} onClick={() => step(-1)}><Icon name="left" size={11} />{copy.previous}</button><button type="button" className="ui-button ui-button--secondary" disabled={visibleIndex < 0 || visibleIndex >= filtered.length - 1} onClick={() => step(1)}>{copy.next}<Icon name="right" size={11} /></button></div>
+            </main>
+            <aside className="exam-curriculum-manager-side" style={{ minHeight: 0, overflowY: "auto", padding: 14, borderInlineStart: `1px solid ${c.border}`, background: c.soft }}>
+              {errorMessage && <div style={{ marginBottom: 10, padding: 9, borderRadius: 9, background: c.redSoft, color: c.red, fontSize: 9.5 }}>{errorMessage}</div>}
+              <section style={{ padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.currentMapping}</strong><div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>{selectedLinks.length ? selectedLinks.map((link) => { const lecture = link.lectureId ? examCurriculumLecture(moduleName, link.lectureId) : null; const topic = link.topicId ? topicMap.get(link.topicId) : null; return <button key={link.id} type="button" title={copy.remove} disabled={saveState === "saving"} onClick={() => removeLink(link.id)} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 7px", borderRadius: 99, border: `1px solid ${c.borderStrong}`, background: c.soft, color: c.text, fontSize: 8.5, fontWeight: 750 }}><Icon name={lecture ? "book" : "target"} size={9} />{lecture ? `${lecture.id} · ${lecture.title}` : topic?.label || "—"}<Icon name="close" size={8} /></button>; }) : <span style={{ color: c.muted, fontSize: 9 }}>{copy.noMapping}</span>}</div></section>
+              <section style={{ marginTop: 10, padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.suggestions}</strong><div style={{ display: "grid", gap: 6, marginTop: 8 }}>{suggestions.length ? suggestions.map((suggestion) => <div key={suggestion.lectureId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 7, padding: 8, borderRadius: 9, background: suggestion.strength === "strong" ? c.blueSoft : c.soft, border: `1px solid ${suggestion.strength === "strong" ? c.blueBorder : c.border}` }}><div><strong style={{ display: "block", color: c.text, fontSize: 8.8 }}>{suggestion.lecture.id} · {suggestion.lecture.title}</strong><small style={{ color: suggestion.strength === "strong" ? c.blue : c.muted, fontSize: 7.5, fontWeight: 750 }}>{suggestion.strength === "strong" ? copy.strongSuggestion : copy.possibleSuggestion}</small></div><button type="button" disabled={saveState === "saving"} onClick={() => addLecture(suggestion.lectureId, "accepted_suggestion")} style={{ border: 0, borderRadius: 7, background: c.blue, color: "#fff", padding: "5px 7px", fontSize: 8, fontWeight: 800 }}>{copy.accept}</button></div>) : <span style={{ color: c.muted, fontSize: 8.5, lineHeight: 1.4 }}>{copy.noSuggestions}</span>}</div></section>
+              <section style={{ marginTop: 10, padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.lectures}</strong><div style={{ display: "grid", gap: 7, marginTop: 8 }}>{[...new Set(lectures.map((lecture) => lecture.group))].map((group) => <details key={group}><summary style={{ cursor: "pointer", color: c.secondary, fontSize: 8.5, fontWeight: 800 }}>{group}</summary><div style={{ display: "grid", gap: 4, marginTop: 5 }}>{lectures.filter((lecture) => lecture.group === group).map((lecture) => { const linked = selectedLectureIds.includes(lecture.id); return <button key={lecture.id} type="button" disabled={saveState === "saving"} onClick={() => linked ? removeLink(selectedLinks.find((link) => link.lectureId === lecture.id)?.id) : addLecture(lecture.id)} style={{ display: "flex", justifyContent: "space-between", gap: 7, padding: "6px 7px", textAlign: "start", borderRadius: 8, border: `1px solid ${linked ? c.greenBorder : c.border}`, background: linked ? c.greenSoft : c.soft, color: c.text, fontSize: 8.5 }}><span><strong>{lecture.id}</strong> · {lecture.title}</span><Icon name={linked ? "check" : "plus"} size={9} /></button>; })}</div></details>)}</div></section>
+              <section style={{ marginTop: 10, padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.topics}</strong><div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 8 }}>{safeTopics.length ? safeTopics.map((topic) => { const linked = selectedLinks.some((link) => link.topicId === topic.id); return <button key={topic.id} type="button" disabled={saveState === "saving"} onClick={() => toggleTopic(topic.id)} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "5px 7px", borderRadius: 99, border: `1px solid ${linked ? c.greenBorder : c.border}`, background: linked ? c.greenSoft : c.soft, color: c.text, fontSize: 8.5, fontWeight: 700 }}>{linked && <Icon name="check" size={8} />}{topic.label}</button>; }) : <span style={{ color: c.muted, fontSize: 8.5 }}>{copy.noMapping}</span>}</div><div style={{ display: "flex", gap: 5, marginTop: 8 }}><input value={topicDraft} onChange={(event) => setTopicDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); createTopic(); } }} placeholder={copy.topicPlaceholder} style={{ minWidth: 0, flex: 1, height: 31, borderRadius: 8, border: `1px solid ${c.border}`, background: c.soft, color: c.text, padding: "0 8px", fontSize: 8.5 }} /><button type="button" disabled={!topicDraft.trim() || saveState === "saving"} onClick={createTopic} className="ui-button ui-button--secondary"><Icon name="plus" size={9} />{copy.createTopic}</button></div><small style={{ display: "block", marginTop: 5, color: c.muted, fontSize: 7.4, lineHeight: 1.35 }}>{copy.topicHint}</small></section>
+            </aside>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+  return createPortal(panel, document.body);
+}
+
+/* SEGMENT_6_7_RUNTIME_END */
+
 function WorkspaceShell({ c, label, drByteOpen = false, closing = false, children }) {
   return (
     <section
@@ -36180,6 +36614,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
+  const [examCurriculumManagerOpen, setExamCurriculumManagerOpen] = useState(false);
+  const examCurriculumData = useExamCurriculumData({ moduleName, examSetIds: documents.map((document) => document?.id).filter(Boolean), enabled: !isLectureLibrary && Boolean(moduleName) });
+
+  async function openExamCurriculumManager() {
+    if (!selectedExamDocument?.id || !isAdmin) return;
+    if (examSetQuestionDocumentId !== selectedExamDocument.id || !examSetQuestions.length) {
+      try { await createExamSetViewer(); } catch { /* parserens egen UI viser fejlen */ }
+    }
+    setExamCurriculumManagerOpen(true);
+  }
   const [query, setQuery] = useState("");
   const [noteMode, setNoteMode] = useState("own");
   const [workspaceState, setWorkspaceState] = useStoredState(STORAGE.workspaceState, {});
@@ -40962,6 +41406,7 @@ async function openExamSetPdfEditor() {
                   <button type="button" role="tab" aria-selected={examSetMode === "review"} data-active={examSetMode === "review" ? "true" : "false"} onClick={() => setExamSetMode("review")}><Icon name="flag" size={12} />{copy.examReviewMode}</button>
                   <button type="button" role="tab" aria-selected={examSetMode === "history"} data-active={examSetMode === "history" ? "true" : "false"} onClick={() => setExamSetMode("history")}><Icon name="clock" size={12} />{copy.examAttemptHistoryMode}</button>
                 </span>
+                {isAdmin && <button type="button" className="exam-curriculum-admin-open ui-button ui-button--secondary" onClick={openExamCurriculumManager} disabled={!selectedExamDocument || examSetParseState === "loading"}><Icon name="book" size={11} />{examCurriculumCopy(language).adminButton}</button>}
                 {selectedExamDocument?.ownerUserId === userId && <button type="button" className="exam-set-editor-open" disabled={examSetSaving || examSetEditorSaving || examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={openExamSetPdfEditor}><Icon name="edit" size={12} />{copy.examSetEditorOpen}</button>}
                 {examSetMode === "pdf" && <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetPdfMode}>
                   <button type="button" role="tab" aria-selected={examSetPdfSource === "questions"} data-active={examSetPdfSource === "questions" ? "true" : "false"} onClick={() => setExamSetPdfSource("questions")}><Icon name="file" size={11} />{copy.examSetQuestionsSource}</button>
@@ -41017,15 +41462,16 @@ async function openExamSetPdfEditor() {
               )
              ) : activeDocument ? (
 examSetMode === "history" ? (
-  <ExamAttemptHistoryWorkspace
+  <ExamAttemptHistoryWorkspace67
     copy={copy}
     language={language}
     attempts={examAttemptHistory}
     loadState={examAttemptHistoryLoadState}
     onOpen={setExamAttemptViewer}
-  />
+  
+        c={c} moduleName={moduleName} curriculumLinks={examCurriculumData.links} curriculumTopics={examCurriculumData.topics} />
 ) : examSetMode === "review" ? (
-  <ExamReviewWorkspace
+  <ExamReviewWorkspace67
     c={c}
     copy={copy}
     language={language}
@@ -41039,7 +41485,8 @@ examSetMode === "history" ? (
     onPatch={updateExamReviewItem}
     onOpen={openExamReviewItem}
     sessionLabel={examSetSessionLabel}
-  />
+  
+        moduleName={moduleName} curriculumLinks={examCurriculumData.links} curriculumTopics={examCurriculumData.topics} />
 ) : examSetMode === "exam" ? (
   examSetParseState === "loading" ? (
     <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetExtracting}</strong><p>{copy.examSetExtractHint}</p></div>
@@ -41080,6 +41527,7 @@ examSetMode === "history" ? (
             <article className="exam-set-question-card">
               <div className="exam-set-question-source"><span>{copy.examSetSourceQuestion} {question.sourceNumber}</span>{question.sourcePages?.length ? <span>{copy.examSetSourcePage} {question.sourcePages.join("–")}</span> : question.page ? <span>{copy.examSetSourcePage} {question.page}</span> : null}{question.hasVisual && <span>{copy.examSetOriginalExcerpt}</span>}</div>
               <h2 className="exam-set-question-text">{question.text}</h2>
+              {!examSimulationActive && <ExamCurriculumRelated language={language} moduleName={moduleName} examSetId={selectedExamDocument?.id} questionId={question.id} links={examCurriculumData.links} topics={examCurriculumData.topics} />}
               {question.hasVisual && examSetPreviewUrl && <ExamQuestionOriginalVisuals url={examSetPreviewUrl} question={question} fileName={selectedExamDocument?.questionFileName || selectedExamDocument?.name} copy={copy} onOpen={() => openOriginalExamPage(question)} />}
               <div className="exam-set-options">
                 {question.options.map((option) => {
@@ -41369,6 +41817,24 @@ examSetMode === "history" ? (
     </div>
   </Modal>
 )}
+
+      {examCurriculumManagerOpen && selectedExamDocument && !isLectureLibrary && isAdmin && (
+        <ExamCurriculumManager
+          c={c}
+          language={language}
+          moduleName={moduleName}
+          examSet={selectedExamDocument}
+          questions={examSetQuestionDocumentId === selectedExamDocument.id && examSetQuestions.length ? examSetQuestions : (Array.isArray(selectedExamDocument.parsedQuestions) ? selectedExamDocument.parsedQuestions : [])}
+          topics={examCurriculumData.topics}
+          links={examCurriculumData.links}
+          importedQuestions={importedQuestions}
+          userId={userId}
+          loadState={examCurriculumData.loadState}
+          onRefresh={examCurriculumData.refresh}
+          onClose={() => setExamCurriculumManagerOpen(false)}
+          onOpenOriginal={openOriginalExamPage}
+        />
+      )}
 
       {examSetEditorOpen && selectedExamDocument && !isLectureLibrary && (
         <ExamPdfEditorModal
@@ -43451,7 +43917,7 @@ useEffect(() => {
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} isAdmin={isAdmin} spacedData={spacedData} importedQuestions={importedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} userId={session?.user?.id} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={isAdmin} importedQuestions={importedQuestions} />
           )}
         </WorkspaceShell>
       )}
