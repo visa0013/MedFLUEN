@@ -13907,6 +13907,23 @@ select.ui-control {
   mix-blend-mode:multiply; border-radius:1px;
 }
 .lecture-pdf-viewer--workspace[data-view-mode="annotations"] .lecture-pdf-continuous-page[data-current="true"] { outline-color:color-mix(in srgb,var(--ui-border) 70%,transparent); }
+
+/* ================================================================
+   FORELÆSNINGSVISER FV5.5 — ADAPTIVE HIGHLIGHT ENGINE
+   Glyph-tight geometry · adaptive dark/light blending · clearer palette
+   ================================================================ */
+.lecture-pdf-mark--highlight {
+  border-radius:.5px;
+  box-shadow:none;
+}
+.lecture-pdf-continuous-page-inner[data-tone="light"] .lecture-pdf-mark--highlight {
+  background:color-mix(in srgb,var(--pdf-annotation-color) 50%,transparent);
+  mix-blend-mode:multiply;
+}
+.lecture-pdf-continuous-page-inner[data-tone="dark"] .lecture-pdf-mark--highlight {
+  background:color-mix(in srgb,var(--pdf-annotation-color) 58%,transparent);
+  mix-blend-mode:screen;
+}
     `}
 </style>
   );
@@ -34321,8 +34338,10 @@ function lecturePdfAnnotationRectStyle(rect, type) {
   let h = lecturePdfClamp(Number(rect?.h) || 0, 0, 1 - y);
 
   if (type === "highlight") {
-    const topInset = h * 0.12;
-    const heightRatio = 0.76;
+    // Selection rectangles include PDF text leading above/below the visible glyphs.
+    // Keep the marker inside the visual text band so it behaves like a real highlighter.
+    const topInset = h * 0.18;
+    const heightRatio = 0.66;
     y = lecturePdfClamp(y + topInset, 0, 1);
     h = lecturePdfClamp(h * heightRatio, 0, 1 - y);
   }
@@ -34437,10 +34456,36 @@ function LecturePdfInkLayer({
   );
 }
 
+function lecturePdfCanvasTone(canvas) {
+  try {
+    if (!canvas?.width || !canvas?.height) return "light";
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return "light";
+    const columns = 7;
+    const rows = 7;
+    let luminance = 0;
+    let samples = 0;
+    for (let row = 0; row < rows; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        const x = Math.min(canvas.width - 1, Math.max(0, Math.floor(((column + 0.5) / columns) * canvas.width)));
+        const y = Math.min(canvas.height - 1, Math.max(0, Math.floor(((row + 0.5) / rows) * canvas.height)));
+        const pixel = context.getImageData(x, y, 1, 1).data;
+        if (!pixel || pixel[3] < 16) continue;
+        luminance += (0.2126 * pixel[0] + 0.7152 * pixel[1] + 0.0722 * pixel[2]) / 255;
+        samples += 1;
+      }
+    }
+    return samples && luminance / samples < 0.46 ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
+
 function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scale, active, fileName, copy, annotations = [], searchBoxes = [], activeTool = "select", activeColor, labels, onCreateAnnotation, onUpdateAnnotation, onDeleteAnnotation, workspace = false, showAnnotations = false }) {
   const canvasRef = useRef(null);
   const renderTaskRef = useRef(null);
   const [renderState, setRenderState] = useState("idle");
+  const [pageTone, setPageTone] = useState("light");
   const safeBaseWidth = Math.max(1, Number(baseWidth) || 595);
   const safeBaseHeight = Math.max(1, Number(baseHeight) || 842);
   const displayWidth = Math.max(1, Math.round(safeBaseWidth * scale));
@@ -34475,7 +34520,10 @@ function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scal
         const renderTask = page.render({ canvasContext: context, transform, viewport });
         renderTaskRef.current = renderTask;
         await renderTask.promise;
-        if (!cancelled) setRenderState("ready");
+        if (!cancelled) {
+          setPageTone(lecturePdfCanvasTone(canvas));
+          setRenderState("ready");
+        }
       } catch (error) {
         if (cancelled || error?.name === "RenderingCancelledException") return;
         setRenderState("error");
@@ -34486,7 +34534,7 @@ function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scal
   }, [pdf, pageNumber, scale, active]);
 
   return (
-    <div className="lecture-pdf-continuous-page-inner" style={{ width: displayWidth, height: displayHeight, aspectRatio: `${safeBaseWidth} / ${safeBaseHeight}` }}>
+    <div className="lecture-pdf-continuous-page-inner" data-tone={pageTone} style={{ width: displayWidth, height: displayHeight, aspectRatio: `${safeBaseWidth} / ${safeBaseHeight}` }}>
       <canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />
       {workspace && active && <LecturePdfTextLayer pdf={pdf} pageNumber={pageNumber} scale={scale} active={active} activeTool={activeTool} showAnnotations={showAnnotations} onCreate={onCreateAnnotation} />}
       {workspace && active && <LecturePdfInkLayer pageNumber={pageNumber} annotations={annotations} searchBoxes={searchBoxes} activeTool={activeTool} activeColor={activeColor} labels={labels} showAnnotations={showAnnotations} onCreate={onCreateAnnotation} onUpdate={onUpdateAnnotation} onDelete={onDeleteAnnotation} />}
@@ -34755,7 +34803,7 @@ function LecturePdfViewer({
 
   const searchBoxesByPage = new Map();
   pdfSearchResults.forEach((result) => searchBoxesByPage.set(result.page, [...(searchBoxesByPage.get(result.page) || []), ...(result.boxes || [])]));
-  const colors = ["#f7d85c", "#8be0a4", "#88c7ff", "#f3a6c8"];
+  const colors = ["#FFD84D", "#6FD38B", "#68B7FF", "#F08FB6"];
   const toolDefs = [
     ["select", "cursor", labels.select], ["highlight", "highlight", labels.highlight], ["underline", "underline", labels.underline], ["strike", "strike", labels.strike], ["pen", "pen", labels.pen], ["sticky", "sticky", labels.sticky], ["eraser", "eraser", labels.eraser],
   ];
