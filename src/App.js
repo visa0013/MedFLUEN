@@ -13846,6 +13846,32 @@ select.ui-control {
   .lecture-viewer-shell-revamp .lecture-detail-navigation > span { display:none; }
 }
 
+/* ================================================================
+   FORELÆSNINGSVISER FV5.3 — UI COHERENCE + SELECTION FIX
+   ================================================================ */
+.lecture-viewer-shell-revamp .lecture-detail-more-popover {
+  width:238px; padding:6px; border:1px solid color-mix(in srgb,var(--ui-border) 86%,transparent); border-radius:12px; background:var(--ui-panel); box-shadow:0 18px 48px rgba(22,35,55,.16);
+}
+.lecture-viewer-shell-revamp .lecture-detail-more-section { padding:5px 4px 7px; }
+.lecture-viewer-shell-revamp .lecture-detail-more-section + .lecture-detail-more-section { margin-top:2px; padding-top:8px; border-top:1px solid var(--lecture-shell-line); }
+.lecture-viewer-shell-revamp .lecture-detail-more-section--material { border-bottom:0; }
+.lecture-viewer-shell-revamp .lecture-detail-more-label { margin:0 5px 5px; font-size:6.4px; letter-spacing:.075em; }
+.lecture-viewer-shell-revamp .lecture-detail-menu-list { display:grid; gap:1px; }
+.lecture-viewer-shell-revamp .lecture-detail-menu-row {
+  width:100%; min-height:31px; display:grid; grid-template-columns:25px minmax(0,1fr); align-items:center; gap:7px; padding:0 7px; border:0; border-radius:7px; background:transparent; color:var(--ui-secondary); font-size:7.7px; font-weight:760; line-height:1.2; font-family:inherit; text-align:start; cursor:pointer;
+}
+.lecture-viewer-shell-revamp .lecture-detail-menu-row > span:first-child { width:23px; height:23px; display:grid; place-items:center; border-radius:6px; background:var(--ui-soft); color:var(--ui-muted); }
+.lecture-viewer-shell-revamp .lecture-detail-menu-row:hover:not(:disabled) { background:var(--ui-soft); color:var(--ui-text); }
+.lecture-viewer-shell-revamp .lecture-detail-menu-row:hover:not(:disabled) > span:first-child { background:var(--ui-panel); color:var(--ui-text); }
+.lecture-viewer-shell-revamp .lecture-detail-menu-row:disabled { opacity:.42; cursor:default; }
+.lecture-viewer-shell-revamp .lecture-detail-menu-row--danger { color:#b64b4b; }
+.lecture-viewer-shell-revamp .lecture-detail-menu-row--danger > span:first-child { background:rgba(190,68,68,.08); color:#b64b4b; }
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-detail-status-button,
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-follow-up-trigger--menu,
+.lecture-viewer-shell-revamp .lecture-detail-more-action { min-height:31px; border-radius:7px; }
+/* Keep selectable PDF text geometry, but never repaint glyphs above the canvas. */
+.lecture-pdf-text-layer > span { color:transparent !important; -webkit-text-fill-color:transparent !important; text-shadow:none !important; }
+.lecture-pdf-text-layer ::selection { background:rgba(74,119,217,.23); color:transparent !important; -webkit-text-fill-color:transparent !important; text-shadow:none !important; }
     `}
 </style>
   );
@@ -39540,24 +39566,24 @@ async function openExamSetPdfEditor() {
               <button type="button" className="lecture-favorite-toggle lecture-favorite-toggle--header" data-active={selectedLectureFavorite ? "true" : "false"} title={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} aria-label={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} onClick={() => toggleLectureFavorite(selectedLecture.id)}><Icon name="star" size={13} /></button>
               <div className="lecture-material-compact-control">
                 <button type="button" className="lecture-material-menu-trigger" data-active={lectureMaterialsOpen ? "true" : "false"} onClick={() => setLectureMaterialsOpen((value) => !value)} title={copy.viewerMaterials}><Icon name="folder" size={12} /><span>{copy.viewerMaterials}</span>{selectedLectureMaterials.length > 0 && <strong>{selectedLectureMaterials.length}</strong>}<Icon name={lectureMaterialsOpen ? "up" : "down"} size={10} /></button>
-                {activeLectureMaterial && (
-                  <details className="lecture-material-actions-menu lecture-material-actions-menu--header">
-                    <summary title={copy.viewerMore} aria-label={copy.viewerMore}><Icon name="more" size={13} /></summary>
-                    <div className="lecture-material-actions">
-                      {!activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="star" size={12} />{copy.materialSetPrimary}</button>}
-                      <button type="button" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other" })}><Icon name="edit" size={12} />{copy.materialRename}</button>
-                      <button type="button" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><Icon name="upload" size={12} />{copy.materialReplace}</button>
-                      <button type="button" onClick={() => downloadLectureMaterial()}><Icon name="down" size={12} />{copy.materialDownload}</button>
-                      <button type="button" onClick={() => openLectureMaterial()}><Icon name="expand" size={12} />{copy.materialOpen}</button>
-                      <button type="button" className="lecture-material-delete" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><Icon name="trash" size={12} />{copy.materialDelete}</button>
-                    </div>
-                  </details>
-                )}
               </div>
 
               <details className="lecture-detail-more-menu">
                 <summary title={copy.viewerMore} aria-label={copy.viewerMore}><Icon name="more" size={13} /></summary>
                 <div className="lecture-detail-more-popover">
+                  {activeLectureMaterial && (
+                    <div className="lecture-detail-more-section lecture-detail-more-section--material">
+                      <span className="lecture-detail-more-label">{copy.viewerMaterials}</span>
+                      <div className="lecture-detail-menu-list">
+                        {!activeLectureMaterial.is_primary && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><span><Icon name="star" size={11} /></span><span>{copy.materialSetPrimary}</span></button>}
+                        <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other" })}><span><Icon name="edit" size={11} /></span><span>{copy.materialRename}</span></button>
+                        <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><span><Icon name="upload" size={11} /></span><span>{copy.materialReplace}</span></button>
+                        <button type="button" className="lecture-detail-menu-row" onClick={() => downloadLectureMaterial()}><span><Icon name="down" size={11} /></span><span>{copy.materialDownload}</span></button>
+                        <button type="button" className="lecture-detail-menu-row" onClick={() => openLectureMaterial()}><span><Icon name="expand" size={11} /></span><span>{copy.materialOpen}</span></button>
+                        <button type="button" className="lecture-detail-menu-row lecture-detail-menu-row--danger" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><span><Icon name="trash" size={11} /></span><span>{copy.materialDelete}</span></button>
+                      </div>
+                    </div>
+                  )}
                   <div className="lecture-detail-more-section">
                     <span className="lecture-detail-more-label">{copy.lectureHeader}</span>
                     <div className="lecture-detail-statuses" role="group" aria-label={copy.lectureHeader}>
