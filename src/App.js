@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
-import { createPptxViewer } from "pptx-vanilla-viewer";
+import { createPptxViewer, vermilionLightTheme } from "pptx-vanilla-viewer";
 import "pptx-vanilla-viewer/styles.css";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
@@ -14020,7 +14020,7 @@ select.ui-control {
 /* ================================================================
    POWERPOINT VIEWER 1.0 - native PPTX rendering with MedFLUEN shell
    ================================================================ */
-.lecture-pptx-viewer { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; background:#e9ecef; color:var(--ui-text); }
+.lecture-pptx-viewer { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; background:var(--ui-bg); color:var(--ui-text); }
 .lecture-pptx-viewer:focus { outline:none; }
 .lecture-pptx-toolbar { min-height:42px; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 8px; border-bottom:1px solid var(--ui-border); background:color-mix(in srgb,var(--ui-panel) 97%,transparent); }
 .lecture-pptx-toolbar-group { display:flex; align-items:center; gap:3px; min-width:0; }
@@ -14030,10 +14030,9 @@ select.ui-control {
 .lecture-pptx-counter { min-width:74px; height:30px; display:flex; align-items:center; justify-content:center; gap:5px; padding:0 9px; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-panel); color:var(--ui-text); font-size:8px; font-weight:820; font-variant-numeric:tabular-nums; }
 .lecture-pptx-counter span { color:var(--ui-muted); font-weight:700; }
 .lecture-pptx-zoom { min-width:42px; color:var(--ui-muted); font-size:7.5px; font-weight:760; text-align:center; font-variant-numeric:tabular-nums; }
-.lecture-pptx-stage-wrap { position:relative; flex:1; min-height:0; overflow:hidden; display:grid; place-items:center; padding:14px; }
-.lecture-pptx-stage { width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; border-radius:4px; }
-.lecture-pptx-stage > .pptxv { width:100% !important; height:100% !important; min-height:0 !important; background:transparent !important; }
-.lecture-pptx-stage .pptxv-stage, .lecture-pptx-stage .pptxv-canvas, .lecture-pptx-stage [data-pptx-stage] { max-width:100%; max-height:100%; }
+.lecture-pptx-stage-wrap { position:relative; flex:1; min-height:0; overflow:hidden; display:grid; place-items:center; padding:14px; background:var(--ui-soft); }
+.lecture-pptx-stage { width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; border-radius:4px; background:#fff; }
+.lecture-pptx-stage > .pptxv { width:100% !important; height:100% !important; min-height:0 !important; background:#fff !important; color-scheme:light; }
 .lecture-pptx-state { width:100%; height:100%; display:grid; place-items:center; align-content:center; gap:8px; color:var(--ui-muted); text-align:center; }
 .lecture-pptx-state strong { font-size:9px; color:var(--ui-secondary); }
 .lecture-pptx-state small { max-width:420px; font-size:7px; line-height:1.45; }
@@ -14051,7 +14050,7 @@ select.ui-control {
 .lecture-pptx-slide-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; }
 .lecture-pptx-slide-grid button { height:34px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-panel); color:var(--ui-secondary); font-size:7.5px; font-weight:800; cursor:pointer; }
 .lecture-pptx-slide-grid button:hover, .lecture-pptx-slide-grid button[data-current="true"] { border-color:color-mix(in srgb,var(--ui-blue) 32%,var(--ui-border)); background:var(--ui-blue-soft); color:var(--ui-blue); }
-.lecture-pptx-viewer:fullscreen { width:100vw; height:100vh; background:#111827; }
+.lecture-pptx-viewer:fullscreen { width:100vw; height:100vh; background:#fff; }
 .lecture-pptx-viewer:fullscreen .lecture-pptx-stage-wrap { padding:0; }
 @media (max-width:720px) { .lecture-pptx-toolbar { gap:3px; padding-inline:5px; } .lecture-pptx-toolbar button { width:28px; } .lecture-pptx-zoom { display:none; } .lecture-pptx-stage-wrap { padding:5px; } .lecture-pptx-slide-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
     `}
@@ -35070,6 +35069,8 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
   const [query, setQuery] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const restoreRevisionRef = useRef(0);
+  const pptxFitModeRef = useRef(true);
+  const pptxFitFrameRef = useRef(0);
 
   const labels = ({
     da: { loading: "Indlæser PowerPoint…", error: "PowerPoint-filen kunne ikke vises.", previous: "Forrige slide", next: "Næste slide", overview: "Slideoversigt", search: "Søg i PowerPoint", placeholder: "Søg i slides…", noResults: "Ingen slides matcher søgningen.", fit: "Tilpas slide", fullscreen: "Fuld skærm", close: "Luk", slide: "Slide" },
@@ -35099,7 +35100,7 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
         showThumbnails: false,
         showFormatToolbar: false,
         locale: "en",
-        theme: { colors: { primary: "#3567d4", background: "#ffffff" }, radius: "0.45rem" },
+        theme: vermilionLightTheme,
         onLoad: ({ slideCount: total } = {}) => {
           if (disposed) return;
           const count = Math.max(0, Number(total) || Number(viewer?.getSlideCount?.()) || 0);
@@ -35107,15 +35108,17 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
           setSlideCount(count || allSlides.length);
           setSlides(allSlides);
           setStatus("ready");
-          const requestedZoom = Number(savedState.zoom);
-          if (Number.isFinite(requestedZoom) && requestedZoom >= 0.35 && requestedZoom <= 4) {
-            viewer?.setZoom?.(requestedZoom);
-            setZoom(requestedZoom);
-          } else {
+          // Always start fitted to the current viewport. A stored numeric zoom is
+          // viewport-specific and can clip a deck when the notes/sidebar width differs
+          // across devices or sessions. Manual zoom is still persisted after load.
+          pptxFitModeRef.current = true;
+          window.cancelAnimationFrame(pptxFitFrameRef.current);
+          pptxFitFrameRef.current = window.requestAnimationFrame(() => {
+            if (disposed) return;
             viewer?.zoomToFit?.();
             const actual = Number(viewer?.getZoom?.());
             if (Number.isFinite(actual) && actual > 0) setZoom(actual);
-          }
+          });
         },
         onSlideChange: (index) => {
           if (disposed) return;
@@ -35153,6 +35156,35 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
     restoreRevisionRef.current = revision;
     viewer.goToSlide?.(target);
   }, [savedState.slideIndex, savedState.remoteRevision, status, slideIndex]);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host || status !== "ready") return undefined;
+    const refit = () => {
+      if (!pptxFitModeRef.current || !viewerRef.current) return;
+      window.cancelAnimationFrame(pptxFitFrameRef.current);
+      pptxFitFrameRef.current = window.requestAnimationFrame(() => {
+        if (!pptxFitModeRef.current || !viewerRef.current) return;
+        viewerRef.current?.zoomToFit?.();
+        const actual = Number(viewerRef.current?.getZoom?.());
+        if (Number.isFinite(actual) && actual > 0) setZoom(actual);
+      });
+    };
+    refit();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", refit);
+      return () => {
+        window.removeEventListener("resize", refit);
+        window.cancelAnimationFrame(pptxFitFrameRef.current);
+      };
+    }
+    const observer = new ResizeObserver(() => { refit(); });
+    observer.observe(host);
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(pptxFitFrameRef.current);
+    };
+  }, [status, materialId]);
 
   useEffect(() => {
     const onFullscreenChange = () => setIsFullscreen(document.fullscreenElement === shellRef.current);
@@ -35196,10 +35228,12 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
   const changeZoom = (direction) => {
     const viewer = viewerRef.current;
     if (!viewer) return;
+    pptxFitModeRef.current = false;
     if (direction < 0) viewer.zoomOut?.(); else viewer.zoomIn?.();
     window.setTimeout(syncZoom, 0);
   };
   const fit = () => {
+    pptxFitModeRef.current = true;
     viewerRef.current?.zoomToFit?.();
     window.setTimeout(syncZoom, 0);
   };
@@ -43095,4 +43129,3 @@ onNavigate={navigateFromShell}
 }
 
 export default App;
- 
