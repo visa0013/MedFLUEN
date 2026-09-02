@@ -13662,6 +13662,190 @@ select.ui-control {
   .lecture-pdf-viewer--workspace .lecture-pdf-pages { gap:10px; padding-block:7px 28px; }
 }
 
+
+/* ============================================================
+   FORELÆSNINGSVISER FV5.2 — MINIMAL SHELL REVAMP
+   Quiet chrome · PDF-first hierarchy · secondary actions on demand
+   ============================================================ */
+.lecture-viewer-shell-revamp {
+  --lecture-shell-line: color-mix(in srgb,var(--ui-border) 76%,transparent);
+  --lecture-shell-muted: color-mix(in srgb,var(--ui-muted) 88%,transparent);
+  --lecture-shell-hover: color-mix(in srgb,var(--ui-soft) 72%,transparent);
+}
+.lecture-viewer-shell-revamp .document-workspace-header {
+  height:44px; padding:0 9px; border-bottom:1px solid var(--lecture-shell-line); background:var(--ui-panel);
+}
+.lecture-viewer-shell-revamp .document-workspace-title-block { gap:7px; }
+.lecture-viewer-shell-revamp .document-workspace-mark {
+  width:27px; height:27px; border:0; border-radius:7px; background:transparent; color:var(--ui-blue);
+}
+.lecture-viewer-shell-revamp .document-workspace-title-block strong { font-size:10.5px; letter-spacing:-.01em; }
+.lecture-viewer-shell-revamp .document-workspace-header-actions { gap:3px; }
+.lecture-viewer-shell-revamp .document-upload-button { display:none !important; }
+.lecture-viewer-shell-revamp .lecture-viewer-v2-header-tools { gap:1px; padding:0; border:0; background:transparent; }
+.lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle {
+  width:30px; min-width:30px; height:30px; padding:0; border-radius:8px; color:var(--lecture-shell-muted);
+}
+.lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle span { display:none; }
+.lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle[data-active="true"] { background:var(--lecture-shell-hover); color:var(--ui-blue); box-shadow:none; }
+.lecture-viewer-shell-revamp .document-workspace-header-actions > .ui-icon-button { width:30px !important; height:30px !important; border-radius:8px !important; }
+
+.lecture-viewer-shell-revamp .document-workspace-grid--notes {
+  grid-template-columns:228px minmax(0,1fr) 286px; grid-template-rows:50px minmax(0,1fr); background:var(--ui-panel);
+}
+.lecture-viewer-shell-revamp[data-library="false"] .document-workspace-grid--notes { grid-template-columns:0 minmax(0,1fr) 286px; }
+.lecture-viewer-shell-revamp[data-notes="false"] .document-workspace-grid--notes { grid-template-columns:228px minmax(0,1fr) 0; }
+.lecture-viewer-shell-revamp[data-library="false"][data-notes="false"] .document-workspace-grid--notes { grid-template-columns:0 minmax(0,1fr) 0; }
+.lecture-viewer-shell-revamp .document-library-panel,
+.lecture-viewer-shell-revamp .lecture-notes-panel { background:var(--ui-panel); }
+
+/* Library: search + three quiet filters + compact rows. */
+.lecture-viewer-shell-revamp .document-search-box {
+  height:32px; margin:7px 7px 5px; padding-inline:9px; border:1px solid transparent; border-radius:8px; background:var(--ui-soft);
+}
+.lecture-viewer-shell-revamp .document-search-box:focus-within { border-color:var(--ui-blue-border); background:var(--ui-panel); box-shadow:0 0 0 2px var(--ui-ring); }
+.lecture-viewer-shell-revamp .document-search-shortcut { border:0; background:transparent; box-shadow:none; }
+.lecture-viewer-shell-revamp .lecture-overview-controls { padding:0 7px 5px; border-bottom:0; }
+.lecture-viewer-shell-revamp .lecture-filter-strip { gap:12px; padding:2px 1px 3px; border-bottom:1px solid var(--lecture-shell-line); }
+.lecture-viewer-shell-revamp .lecture-filter-strip button {
+  min-height:25px; padding:0; border:0 !important; border-radius:0; background:transparent !important; color:var(--ui-muted); font-size:7.6px;
+}
+.lecture-viewer-shell-revamp .lecture-filter-strip button[data-active="true"] { color:var(--ui-blue); box-shadow:inset 0 -1.5px 0 var(--ui-blue); }
+.lecture-viewer-shell-revamp .lecture-filter-strip button strong { min-width:0; height:auto; margin-inline-start:3px; padding:0; background:transparent !important; color:inherit; font-size:6.8px; }
+.lecture-viewer-shell-revamp .lecture-overview-result-count { display:none; }
+.lecture-viewer-shell-revamp .lecture-overview-list { padding:4px 4px 12px; }
+.lecture-viewer-shell-revamp .lecture-group-section { margin-bottom:7px; }
+.lecture-viewer-shell-revamp .lecture-group-heading { min-height:29px; padding:0 6px; opacity:.9; }
+.lecture-viewer-shell-revamp .lecture-group-heading-icon { width:19px; height:19px; background:transparent; color:var(--ui-muted); }
+.lecture-viewer-shell-revamp .lecture-group-heading-copy strong { font-size:8px; }
+.lecture-viewer-shell-revamp .lecture-overview-row { min-height:42px; margin:0; border:0; border-radius:7px; }
+.lecture-viewer-shell-revamp .lecture-overview-row .document-library-main { min-height:42px; padding:5px 4px 5px 6px; gap:6px; }
+.lecture-viewer-shell-revamp .lecture-overview-row .document-library-code { width:27px; height:27px; border-radius:7px; }
+.lecture-viewer-shell-revamp .lecture-overview-row .document-library-copy strong { font-size:8.8px; font-weight:760; }
+.lecture-viewer-shell-revamp .lecture-overview-row .lecture-row-meta { font-size:6.7px; opacity:.8; }
+.lecture-viewer-shell-revamp .lecture-overview-row .document-library-file-state { display:none !important; }
+.lecture-viewer-shell-revamp .lecture-overview-row .lecture-progress-actions { padding-inline-end:2px; }
+.lecture-viewer-shell-revamp .lecture-overview-row .lecture-favorite-toggle:not([data-active="true"]) { opacity:0; }
+.lecture-viewer-shell-revamp .lecture-overview-row:hover .lecture-favorite-toggle { opacity:1; }
+.lecture-viewer-shell-revamp .lecture-favorite-toggle { border:0; background:transparent; }
+.lecture-viewer-shell-revamp .lecture-favorite-toggle[data-active="true"] { border:0; background:transparent; color:#9a7117; }
+.lecture-viewer-shell-revamp .document-session-note { display:none; }
+
+/* One calm lecture bar. */
+.lecture-viewer-shell-revamp .lecture-detail-header {
+  min-height:50px; height:50px; grid-template-columns:minmax(160px,1fr) auto; gap:10px; padding:5px 8px 5px 10px; border-bottom:1px solid var(--lecture-shell-line); background:var(--ui-panel);
+}
+.lecture-viewer-shell-revamp .lecture-detail-heading { grid-template-columns:29px minmax(0,1fr); gap:8px; }
+.lecture-viewer-shell-revamp .lecture-detail-code { width:29px; height:29px; border-radius:8px; font-size:7.5px; }
+.lecture-viewer-shell-revamp .lecture-detail-copy > small { display:none; }
+.lecture-viewer-shell-revamp .lecture-detail-copy > strong { font-size:10px; font-weight:820; letter-spacing:-.01em; }
+.lecture-viewer-shell-revamp .lecture-detail-meta { margin-top:2px; gap:6px; }
+.lecture-viewer-shell-revamp .lecture-detail-meta > *:not(.lecture-detail-schedule-state):not(.lecture-resume-chip) { display:none !important; }
+.lecture-viewer-shell-revamp .lecture-detail-meta > .lecture-detail-schedule-state,
+.lecture-viewer-shell-revamp .lecture-detail-meta > .lecture-resume-chip { font-size:6.5px; color:var(--ui-muted); background:transparent; border:0 !important; padding:0 !important; }
+.lecture-viewer-shell-revamp .lecture-detail-tools--minimal { gap:3px; }
+.lecture-viewer-shell-revamp .lecture-focus-exit { display:none; }
+.lecture-viewer-shell-revamp[data-focus="true"] .lecture-focus-exit { display:inline-flex; }
+.lecture-viewer-shell-revamp .lecture-favorite-toggle--header { width:29px; height:29px; border:0; background:transparent; }
+.lecture-viewer-shell-revamp .lecture-material-compact-control { display:inline-flex; align-items:center; gap:1px; position:relative; }
+.lecture-viewer-shell-revamp .lecture-material-menu-trigger { height:29px; min-width:31px; padding:0 7px; border:0; border-radius:8px; background:transparent; color:var(--ui-secondary); }
+.lecture-viewer-shell-revamp .lecture-material-menu-trigger:hover,
+.lecture-viewer-shell-revamp .lecture-material-menu-trigger[data-active="true"] { background:var(--lecture-shell-hover); color:var(--ui-text); }
+.lecture-viewer-shell-revamp .lecture-material-menu-trigger strong { min-width:13px; height:13px; display:grid; place-items:center; border-radius:999px; background:var(--ui-soft); color:var(--ui-muted); font-size:6px; }
+.lecture-viewer-shell-revamp .lecture-material-actions-menu--header { position:relative; }
+.lecture-viewer-shell-revamp .lecture-material-actions-menu--header > summary,
+.lecture-viewer-shell-revamp .lecture-detail-more-menu > summary {
+  width:29px; height:29px; display:grid; place-items:center; list-style:none; border:0; border-radius:8px; background:transparent; color:var(--ui-muted); cursor:pointer;
+}
+.lecture-viewer-shell-revamp .lecture-material-actions-menu--header > summary::-webkit-details-marker,
+.lecture-viewer-shell-revamp .lecture-detail-more-menu > summary::-webkit-details-marker { display:none; }
+.lecture-viewer-shell-revamp .lecture-material-actions-menu--header[open] > summary,
+.lecture-viewer-shell-revamp .lecture-detail-more-menu[open] > summary { background:var(--lecture-shell-hover); color:var(--ui-text); }
+.lecture-viewer-shell-revamp .lecture-material-actions-menu--header .lecture-material-actions { inset-block-start:33px; inset-inline-end:0; }
+.lecture-viewer-shell-revamp .lecture-detail-more-menu { position:relative; }
+.lecture-viewer-shell-revamp .lecture-detail-more-popover {
+  position:absolute; z-index:70; inset-block-start:34px; inset-inline-end:0; width:220px; padding:7px; border:1px solid var(--ui-border); border-radius:11px; background:var(--ui-panel); box-shadow:0 16px 42px rgba(20,35,60,.16);
+}
+.lecture-viewer-shell-revamp .lecture-detail-more-section { padding:3px 3px 7px; border-bottom:1px solid var(--lecture-shell-line); }
+.lecture-viewer-shell-revamp .lecture-detail-more-label { display:block; margin-bottom:5px; color:var(--ui-muted); font-size:6.5px; font-weight:820; text-transform:uppercase; letter-spacing:.06em; }
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-detail-statuses { display:grid; grid-template-columns:1fr; gap:3px; }
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-detail-status-button,
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-follow-up-trigger--menu {
+  width:100%; min-width:0; height:34px; display:grid; grid-template-columns:24px minmax(0,1fr); align-items:center; gap:7px; padding:0 7px; border:0; border-radius:7px; background:transparent; text-align:start;
+}
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-detail-status-button:hover,
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-follow-up-trigger--menu:hover { background:var(--ui-soft); }
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-detail-status-button > span:first-child,
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-follow-up-trigger--menu > span:first-child { width:22px; height:22px; display:grid; place-items:center; margin:0; }
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-detail-status-button > span:last-child,
+.lecture-viewer-shell-revamp .lecture-detail-more-popover .lecture-follow-up-trigger--menu > span:last-child { display:flex; min-width:0; flex-direction:column; align-items:flex-start; }
+.lecture-viewer-shell-revamp .lecture-detail-more-popover small { color:var(--ui-muted); font-size:6px; }
+.lecture-viewer-shell-revamp .lecture-detail-more-popover strong { color:var(--ui-text); font-size:7.5px; }
+.lecture-viewer-shell-revamp .lecture-favorite-navigation--menu { width:100%; height:31px; margin-top:5px; border:0; background:transparent; justify-content:flex-start; }
+.lecture-viewer-shell-revamp .lecture-detail-more-action { width:100%; height:31px; display:flex; align-items:center; gap:7px; margin-top:2px; padding:0 8px; border:0; border-radius:7px; background:transparent; color:var(--ui-secondary); font-size:7.5px; font-weight:760; cursor:pointer; }
+.lecture-viewer-shell-revamp .lecture-detail-more-action:hover { background:var(--ui-soft); color:var(--ui-text); }
+.lecture-viewer-shell-revamp .lecture-detail-navigation { height:29px; padding:0; border:0; background:transparent; }
+.lecture-viewer-shell-revamp .lecture-detail-nav-button { width:27px; height:27px; }
+.lecture-viewer-shell-revamp .lecture-detail-navigation > span { min-width:30px; color:var(--ui-muted); font-size:6.4px; }
+
+/* Remove the redundant material bar; actions live in the header popover. */
+.lecture-viewer-shell-revamp .document-viewer-toolbar { display:none; }
+.lecture-viewer-shell-revamp .document-viewer-canvas { padding:0; }
+.lecture-viewer-shell-revamp .document-viewer-panel { background:#e9ecef; }
+.lecture-viewer-shell-revamp .lecture-materials-popover[data-open="true"] { inset-block-start:7px; inset-inline:8px auto; width:min(360px,calc(100% - 16px)); max-height:min(430px,70%); grid-template-columns:1fr; border-radius:12px; box-shadow:0 18px 48px rgba(20,35,60,.18); }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-strip-heading { border-inline-end:0; border-bottom:1px solid var(--lecture-shell-line); }
+
+/* Notes: one tab row, one quiet mode row, then writing space. */
+.lecture-viewer-shell-revamp .lecture-notes-panel { min-width:0; }
+.lecture-viewer-shell-revamp .lecture-notes-tabs { height:39px; padding:4px 7px; gap:4px; border-bottom:1px solid var(--lecture-shell-line); }
+.lecture-viewer-shell-revamp .lecture-notes-tabs button { min-height:29px; border:0; border-radius:7px; background:transparent; font-size:8px; }
+.lecture-viewer-shell-revamp .lecture-notes-tabs button[data-active="true"] { background:var(--ui-soft); color:var(--ui-blue); box-shadow:none; }
+.lecture-viewer-shell-revamp .lecture-own-note-toolbar { min-height:34px; padding:4px 7px; border-bottom:0; }
+.lecture-viewer-shell-revamp .lecture-note-view-toggle { padding:2px; border:0; background:var(--ui-soft); }
+.lecture-viewer-shell-revamp .lecture-note-view-toggle button { min-height:24px; padding:0 7px; border:0; font-size:7px; }
+.lecture-viewer-shell-revamp .lecture-note-toolbar-actions { gap:2px; }
+.lecture-viewer-shell-revamp .lecture-note-save-state span { display:none; }
+.lecture-viewer-shell-revamp .lecture-note-export-button { width:25px; height:25px; border:0; background:transparent; }
+.lecture-viewer-shell-revamp .lecture-note-share-bar { min-height:31px; padding:3px 8px; border-block:1px solid var(--lecture-shell-line); background:transparent; }
+.lecture-viewer-shell-revamp .lecture-note-share-status { gap:6px; }
+.lecture-viewer-shell-revamp .lecture-note-share-status > span { width:20px; height:20px; border:0; background:var(--ui-soft); }
+.lecture-viewer-shell-revamp .lecture-note-share-status strong { font-size:7px; }
+.lecture-viewer-shell-revamp .lecture-note-share-status small { display:none; }
+.lecture-viewer-shell-revamp .lecture-note-share-button { min-height:25px; padding:0 7px; border:0; border-radius:7px; font-size:6.8px; }
+.lecture-viewer-shell-revamp .lecture-note-free { padding:0; }
+.lecture-viewer-shell-revamp .lecture-note-free textarea { padding:14px 13px; border:0; border-radius:0; font-size:10.5px; line-height:1.7; }
+.lecture-viewer-shell-revamp .lecture-note-structured { padding:7px; gap:6px; }
+.lecture-viewer-shell-revamp .lecture-note-section { border-radius:8px; }
+
+@media (max-width:1180px) {
+  .lecture-viewer-shell-revamp .document-workspace-grid--notes { grid-template-columns:210px minmax(0,1fr) 270px; }
+  .lecture-viewer-shell-revamp[data-library="false"] .document-workspace-grid--notes { grid-template-columns:0 minmax(0,1fr) 270px; }
+  .lecture-viewer-shell-revamp[data-notes="false"] .document-workspace-grid--notes { grid-template-columns:210px minmax(0,1fr) 0; }
+  .lecture-viewer-shell-revamp .lecture-material-menu-trigger > span { display:none; }
+}
+@media (max-width:900px) {
+  .lecture-viewer-shell-revamp .document-workspace-grid--notes { grid-template-columns:minmax(0,1fr); grid-template-rows:48px minmax(0,1fr); }
+  .lecture-viewer-shell-revamp .lecture-detail-header { grid-column:1; grid-row:1; height:48px; min-height:48px; }
+  .lecture-viewer-shell-revamp .document-viewer-panel { grid-column:1; grid-row:2; }
+  .lecture-viewer-shell-revamp .document-library-panel,
+  .lecture-viewer-shell-revamp .lecture-notes-panel { position:absolute; z-index:60; inset-block:0; width:min(300px,88vw); box-shadow:0 18px 48px rgba(20,35,60,.18); }
+  .lecture-viewer-shell-revamp .document-library-panel { inset-inline-start:0; }
+  .lecture-viewer-shell-revamp .lecture-notes-panel { inset-inline-end:0; }
+  .lecture-viewer-shell-revamp[data-library="false"] .document-library-panel,
+  .lecture-viewer-shell-revamp[data-notes="false"] .lecture-notes-panel { display:none; }
+}
+@media (max-width:620px) {
+  .lecture-viewer-shell-revamp .document-workspace-header { height:42px; padding-inline:6px; }
+  .lecture-viewer-shell-revamp .lecture-detail-code { display:none; }
+  .lecture-viewer-shell-revamp .lecture-detail-heading { grid-template-columns:minmax(0,1fr); }
+  .lecture-viewer-shell-revamp .lecture-detail-meta { display:none; }
+  .lecture-viewer-shell-revamp .lecture-material-menu-trigger { width:29px; padding:0; justify-content:center; }
+  .lecture-viewer-shell-revamp .lecture-material-menu-trigger > span,
+  .lecture-viewer-shell-revamp .lecture-material-menu-trigger > strong,
+  .lecture-viewer-shell-revamp .lecture-material-menu-trigger > svg:last-child { display:none; }
+  .lecture-viewer-shell-revamp .lecture-detail-navigation > span { display:none; }
+}
+
     `}
 </style>
   );
@@ -35487,7 +35671,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       viewerNotes: "Noter",
       viewerFocus: "Fokus",
       viewerExitFocus: "Forlad fokus",
-      viewerMaterials: "Materialer",
+      viewerMaterials: "Materialer", viewerMore: "Mere",
       viewerShowPanel: "Vis panel",
       viewerHidePanel: "Skjul panel",
       filterUpcoming: "Kommende",
@@ -35893,7 +36077,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       viewerNotes: "Notes",
       viewerFocus: "Focus",
       viewerExitFocus: "Exit focus",
-      viewerMaterials: "Materials",
+      viewerMaterials: "Materials", viewerMore: "More",
       viewerShowPanel: "Show panel",
       viewerHidePanel: "Hide panel",
       filterUpcoming: "Upcoming",
@@ -36299,7 +36483,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       viewerNotes: "الملاحظات",
       viewerFocus: "تركيز",
       viewerExitFocus: "إنهاء التركيز",
-      viewerMaterials: "المواد",
+      viewerMaterials: "المواد", viewerMore: "المزيد",
       viewerShowPanel: "إظهار اللوحة",
       viewerHidePanel: "إخفاء اللوحة",
       filterUpcoming: "القادمة",
@@ -39152,7 +39336,7 @@ async function openExamSetPdfEditor() {
 
   return (
     <div
-      className={`document-workspace ${isLectureLibrary ? "lecture-viewer-v2" : ""}`}
+      className={`document-workspace ${isLectureLibrary ? "lecture-viewer-v2 lecture-viewer-shell-revamp" : ""}`}
       data-focus={lectureViewerFocus ? "true" : "false"}
       data-library={lectureLibraryOpen ? "true" : "false"}
       data-notes={lectureNotesOpen ? "true" : "false"}
@@ -39351,61 +39535,57 @@ async function openExamSetPdfEditor() {
               </div>
             </div>
 
-            <div className="lecture-detail-tools">
+            <div className="lecture-detail-tools lecture-detail-tools--minimal">
               <button type="button" className="lecture-focus-exit" onClick={() => setLectureViewerFocus(false)} title={copy.viewerExitFocus} aria-label={copy.viewerExitFocus}><Icon name="collapse" size={12} /><span>{copy.viewerExitFocus}</span></button>
               <button type="button" className="lecture-favorite-toggle lecture-favorite-toggle--header" data-active={selectedLectureFavorite ? "true" : "false"} title={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} aria-label={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} onClick={() => toggleLectureFavorite(selectedLecture.id)}><Icon name="star" size={13} /></button>
-              <button type="button" className="lecture-material-menu-trigger" data-active={lectureMaterialsOpen ? "true" : "false"} onClick={() => setLectureMaterialsOpen((value) => !value)} title={copy.viewerMaterials}><Icon name="folder" size={12} /><span>{copy.viewerMaterials}</span><strong>{selectedLectureMaterials.length}</strong><Icon name={lectureMaterialsOpen ? "up" : "down"} size={10} /></button>
-              <div className="lecture-detail-statuses" role="group" aria-label={copy.lectureHeader}>
-                <button
-                  type="button"
-                  className="lecture-detail-status-button"
-                  data-tone={selectedAttendance?.tone || "neutral"}
-                  title={`${copy.attendance}: ${selectedAttendance?.label || copy.attendanceUnmarked}`}
-                  onClick={() => cycleLectureAttendance(selectedLecture.id)}
-                >
-                  <span><Icon name={selectedAttendance?.icon || "user"} size={11} /></span>
-                  <span><small>{copy.attendance}</small><strong>{selectedAttendance?.label || copy.attendanceUnmarked}</strong></span>
-                </button>
-                <button
-                  type="button"
-                  className="lecture-detail-status-button"
-                  data-tone={selectedSelfStudy?.tone || "neutral"}
-                  title={`${copy.selfStudyStatus}: ${selectedSelfStudy?.label || copy.selfStudyNotStarted}`}
-                  onClick={() => cycleLectureSelfStudy(selectedLecture.id)}
-                >
-                  <span><Icon name={selectedSelfStudy?.icon || "book"} size={11} /></span>
-                  <span><small>{copy.selfStudyStatus}</small><strong>{selectedSelfStudy?.label || copy.selfStudyNotStarted}</strong></span>
-                </button>
-                <button
-                  type="button"
-                  className="lecture-detail-status-button"
-                  data-kind="mastery"
-                  data-tone={selectedMasteryTone}
-                  style={{ "--lecture-status-accent": selectedMastery?.color || c.borderStrong }}
-                  title={`${copy.mastery}: ${selectedMastery?.label || copy.masteryUnrated}`}
-                  onClick={() => cycleLectureMastery(selectedLecture.id)}
-                >
-                  <span aria-hidden="true" />
-                  <span><small>{copy.mastery}</small><strong>{selectedMastery?.label || copy.masteryUnrated}</strong></span>
-                </button>
+              <div className="lecture-material-compact-control">
+                <button type="button" className="lecture-material-menu-trigger" data-active={lectureMaterialsOpen ? "true" : "false"} onClick={() => setLectureMaterialsOpen((value) => !value)} title={copy.viewerMaterials}><Icon name="folder" size={12} /><span>{copy.viewerMaterials}</span>{selectedLectureMaterials.length > 0 && <strong>{selectedLectureMaterials.length}</strong>}<Icon name={lectureMaterialsOpen ? "up" : "down"} size={10} /></button>
+                {activeLectureMaterial && (
+                  <details className="lecture-material-actions-menu lecture-material-actions-menu--header">
+                    <summary title={copy.viewerMore} aria-label={copy.viewerMore}><Icon name="more" size={13} /></summary>
+                    <div className="lecture-material-actions">
+                      {!activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="star" size={12} />{copy.materialSetPrimary}</button>}
+                      <button type="button" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other" })}><Icon name="edit" size={12} />{copy.materialRename}</button>
+                      <button type="button" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><Icon name="upload" size={12} />{copy.materialReplace}</button>
+                      <button type="button" onClick={() => downloadLectureMaterial()}><Icon name="down" size={12} />{copy.materialDownload}</button>
+                      <button type="button" onClick={() => openLectureMaterial()}><Icon name="expand" size={12} />{copy.materialOpen}</button>
+                      <button type="button" className="lecture-material-delete" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><Icon name="trash" size={12} />{copy.materialDelete}</button>
+                    </div>
+                  </details>
+                )}
               </div>
 
-              <button
-                type="button"
-                className="lecture-follow-up-trigger"
-                data-active={selectedFollowUp.active ? "true" : "false"}
-                data-plan={selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? "outdated" : "sent") : "local"}
-                title={selectedFollowUp.active ? `${copy.followUp}: ${selectedFollowUpReasonText || copy.followUpShort}` : copy.followUpTitle}
-                onClick={() => followUpEditorOpen ? setFollowUpEditorOpen(false) : openLectureFollowUpEditor()}
-              >
-                <span><Icon name="flag" size={11} /></span>
-                <span><small>{copy.followUp}</small><strong>{selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? copy.followUpPlanOutdated : copy.followUpPlanCurrent) : (selectedFollowUp.active ? copy.followUpShort : copy.followUp)}</strong></span>
-              </button>
-
-              <nav className="lecture-favorite-navigation" aria-label={copy.filterFavorites}>
-                <button type="button" className="lecture-favorite-nav-button" disabled={!previousFavoriteLecture} title={`${copy.favoritePreviousLecture} · Alt + [`} aria-label={copy.favoritePreviousLecture} onClick={() => selectAdjacentLecture(previousFavoriteLecture)}><Icon name={language === "ar" ? "right" : "left"} size={10} /><Icon name="star" size={10} /></button>
-                <button type="button" className="lecture-favorite-nav-button" disabled={!nextFavoriteLecture} title={`${copy.favoriteNextLecture} · Alt + ]`} aria-label={copy.favoriteNextLecture} onClick={() => selectAdjacentLecture(nextFavoriteLecture)}><Icon name="star" size={10} /><Icon name={language === "ar" ? "left" : "right"} size={10} /></button>
-              </nav>
+              <details className="lecture-detail-more-menu">
+                <summary title={copy.viewerMore} aria-label={copy.viewerMore}><Icon name="more" size={13} /></summary>
+                <div className="lecture-detail-more-popover">
+                  <div className="lecture-detail-more-section">
+                    <span className="lecture-detail-more-label">{copy.lectureHeader}</span>
+                    <div className="lecture-detail-statuses" role="group" aria-label={copy.lectureHeader}>
+                      <button type="button" className="lecture-detail-status-button" data-tone={selectedAttendance?.tone || "neutral"} title={`${copy.attendance}: ${selectedAttendance?.label || copy.attendanceUnmarked}`} onClick={() => cycleLectureAttendance(selectedLecture.id)}>
+                        <span><Icon name={selectedAttendance?.icon || "user"} size={11} /></span>
+                        <span><small>{copy.attendance}</small><strong>{selectedAttendance?.label || copy.attendanceUnmarked}</strong></span>
+                      </button>
+                      <button type="button" className="lecture-detail-status-button" data-tone={selectedSelfStudy?.tone || "neutral"} title={`${copy.selfStudyStatus}: ${selectedSelfStudy?.label || copy.selfStudyNotStarted}`} onClick={() => cycleLectureSelfStudy(selectedLecture.id)}>
+                        <span><Icon name={selectedSelfStudy?.icon || "book"} size={11} /></span>
+                        <span><small>{copy.selfStudyStatus}</small><strong>{selectedSelfStudy?.label || copy.selfStudyNotStarted}</strong></span>
+                      </button>
+                      <button type="button" className="lecture-detail-status-button" data-kind="mastery" data-tone={selectedMasteryTone} style={{ "--lecture-status-accent": selectedMastery?.color || c.borderStrong }} title={`${copy.mastery}: ${selectedMastery?.label || copy.masteryUnrated}`} onClick={() => cycleLectureMastery(selectedLecture.id)}>
+                        <span aria-hidden="true" />
+                        <span><small>{copy.mastery}</small><strong>{selectedMastery?.label || copy.masteryUnrated}</strong></span>
+                      </button>
+                    </div>
+                  </div>
+                  <button type="button" className="lecture-follow-up-trigger lecture-follow-up-trigger--menu" data-active={selectedFollowUp.active ? "true" : "false"} data-plan={selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? "outdated" : "sent") : "local"} title={selectedFollowUp.active ? `${copy.followUp}: ${selectedFollowUpReasonText || copy.followUpShort}` : copy.followUpTitle} onClick={() => followUpEditorOpen ? setFollowUpEditorOpen(false) : openLectureFollowUpEditor()}>
+                    <span><Icon name="flag" size={11} /></span>
+                    <span><small>{copy.followUp}</small><strong>{selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? copy.followUpPlanOutdated : copy.followUpPlanCurrent) : (selectedFollowUp.active ? copy.followUpShort : copy.followUp)}</strong></span>
+                  </button>
+                  <nav className="lecture-favorite-navigation lecture-favorite-navigation--menu" aria-label={copy.filterFavorites}>
+                    <button type="button" className="lecture-favorite-nav-button" disabled={!previousFavoriteLecture} title={`${copy.favoritePreviousLecture} · Alt + [`} aria-label={copy.favoritePreviousLecture} onClick={() => selectAdjacentLecture(previousFavoriteLecture)}><Icon name={language === "ar" ? "right" : "left"} size={10} /><Icon name="star" size={10} /></button>
+                    <button type="button" className="lecture-favorite-nav-button" disabled={!nextFavoriteLecture} title={`${copy.favoriteNextLecture} · Alt + ]`} aria-label={copy.favoriteNextLecture} onClick={() => selectAdjacentLecture(nextFavoriteLecture)}><Icon name="star" size={10} /><Icon name={language === "ar" ? "left" : "right"} size={10} /></button>
+                  </nav>
+                  <button type="button" className="lecture-detail-more-action" onClick={openSduMatchDialog}><Icon name="edit" size={11} />{copy.sduMatchEdit}</button>
+                </div>
+              </details>
 
               <nav className="lecture-detail-navigation" aria-label={copy.lectureHeader}>
                 <button type="button" className="lecture-detail-nav-button" disabled={!previousLecture} title={copy.previousLecture} aria-label={copy.previousLecture} onClick={() => selectAdjacentLecture(previousLecture)}><Icon name={language === "ar" ? "right" : "left"} size={13} /></button>
