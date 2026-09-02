@@ -13872,6 +13872,41 @@ select.ui-control {
 /* Keep selectable PDF text geometry, but never repaint glyphs above the canvas. */
 .lecture-pdf-text-layer > span { color:transparent !important; -webkit-text-fill-color:transparent !important; text-shadow:none !important; }
 .lecture-pdf-text-layer ::selection { background:rgba(74,119,217,.23); color:transparent !important; -webkit-text-fill-color:transparent !important; text-shadow:none !important; }
+
+
+/* ================================================================
+   FORELÆSNINGSVISER FV5.4 — PRECISION POLISH
+   Neutral focus · quiet resume chrome · refined swatches · glyph-bound highlights
+   ================================================================ */
+.lecture-pdf-search-head label:focus-within {
+  border-color:color-mix(in srgb,var(--ui-border) 72%,var(--ui-text) 28%);
+  box-shadow:0 0 0 2px rgba(25,38,58,.045);
+}
+.lecture-pdf-search-head input:focus-visible { outline:none; box-shadow:none; }
+.lecture-pdf-note-editor textarea:focus,
+.lecture-pdf-note-editor textarea:focus-visible {
+  border-color:color-mix(in srgb,var(--ui-border) 70%,var(--ui-text) 30%);
+  outline:none; box-shadow:none;
+}
+.lecture-pdf-color-set { gap:4px; }
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-color-set button {
+  position:relative; width:18px; height:18px; padding:0; border:0; border-radius:50%;
+  background:transparent; box-shadow:none; display:grid; place-items:center;
+}
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-color-set button::before {
+  content:""; width:12px; height:12px; border-radius:50%; background:var(--pdf-color);
+  box-shadow:inset 0 0 0 1px rgba(20,35,60,.13); transition:width .14s ease,height .14s ease,box-shadow .14s ease,transform .14s ease;
+}
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-color-set button:hover::before { transform:scale(1.08); }
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-color-set button[data-active="true"] { border:0; background:transparent; box-shadow:none; }
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-color-set button[data-active="true"]::before {
+  width:14px; height:14px; box-shadow:inset 0 0 0 1px rgba(20,35,60,.18),0 0 0 2px color-mix(in srgb,var(--ui-text) 14%,transparent);
+}
+.lecture-pdf-mark--highlight {
+  background:color-mix(in srgb,var(--pdf-annotation-color) 66%,transparent);
+  mix-blend-mode:multiply; border-radius:1px;
+}
+.lecture-pdf-viewer--workspace[data-view-mode="annotations"] .lecture-pdf-continuous-page[data-current="true"] { outline-color:color-mix(in srgb,var(--ui-border) 70%,transparent); }
     `}
 </style>
   );
@@ -34279,6 +34314,22 @@ function LecturePdfTextLayer({ pdf, pageNumber, scale, active, activeTool = "sel
   );
 }
 
+function lecturePdfAnnotationRectStyle(rect, type) {
+  const x = lecturePdfClamp(Number(rect?.x) || 0, 0, 1);
+  let y = lecturePdfClamp(Number(rect?.y) || 0, 0, 1);
+  const w = lecturePdfClamp(Number(rect?.w) || 0, 0, 1 - x);
+  let h = lecturePdfClamp(Number(rect?.h) || 0, 0, 1 - y);
+
+  if (type === "highlight") {
+    const topInset = h * 0.12;
+    const heightRatio = 0.76;
+    y = lecturePdfClamp(y + topInset, 0, 1);
+    h = lecturePdfClamp(h * heightRatio, 0, 1 - y);
+  }
+
+  return { left: `${x * 100}%`, top: `${y * 100}%`, width: `${w * 100}%`, height: `${h * 100}%` };
+}
+
 function LecturePdfInkLayer({
   pageNumber,
   annotations = [],
@@ -34354,13 +34405,13 @@ function LecturePdfInkLayer({
     setEditingNote(null);
   }
 
-  function rectStyle(rect) {
-    return { left: `${rect.x * 100}%`, top: `${rect.y * 100}%`, width: `${rect.w * 100}%`, height: `${rect.h * 100}%` };
+  function rectStyle(rect, type = null) {
+    return lecturePdfAnnotationRectStyle(rect, type);
   }
 
   function renderMark(annotation) {
     const rects = Array.isArray(annotation.payload?.rects) && annotation.payload.rects.length ? annotation.payload.rects : (annotation.payload?.rect ? [annotation.payload.rect] : []);
-    return rects.map((rect, index) => <button key={`${annotation.id}-${index}`} type="button" className={`lecture-pdf-mark lecture-pdf-mark--${annotation.type}`} style={{ ...rectStyle(rect), "--pdf-annotation-color": annotation.color || activeColor }} onClick={(event) => annotationClick(event, annotation)} aria-label={annotation.type} />);
+    return rects.map((rect, index) => <button key={`${annotation.id}-${index}`} type="button" className={`lecture-pdf-mark lecture-pdf-mark--${annotation.type}`} style={{ ...rectStyle(rect, annotation.type), "--pdf-annotation-color": annotation.color || activeColor }} onClick={(event) => annotationClick(event, annotation)} aria-label={annotation.type} />);
   }
 
   return (
@@ -37348,7 +37399,6 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const previousFavoriteLecture = lectureFavoriteNeighbor(lectures, lectureFavorites, selectedLecture?.id, -1);
   const nextFavoriteLecture = lectureFavoriteNeighbor(lectures, lectureFavorites, selectedLecture?.id, 1);
   const activeLectureViewerState = activeLectureMaterial?.id ? (workspaceState.documentViewer?.[activeLectureMaterial.id] || {}) : {};
-  const lectureResumePage = Math.max(1, Number(activeLectureViewerState.page || lectureResumeState?.page) || 1);
 
   useEffect(() => {
     if (!isLectureLibrary) return undefined;
@@ -39529,7 +39579,6 @@ async function openExamSetPdfEditor() {
                   <span className="lecture-detail-schedule-state" data-state={selectedLectureRow.scheduleView.key}>
                     <i />{selectedLectureRow.scheduleView.label}
                   </span>
-                  {lectureResumePage > 1 && <span className="lecture-resume-chip" title={copy.viewerResumePage(lectureResumePage)}><Icon name="clock" size={9} />{copy.viewerResumePage(lectureResumePage)}</span>}
                   {(selectedScheduleDate || selectedScheduleTime) && (
                     <span><Icon name="calendar" size={10} />{[selectedScheduleDate, selectedScheduleTime].filter(Boolean).join(" · ")}</span>
                   )}
