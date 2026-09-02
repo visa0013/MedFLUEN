@@ -11152,6 +11152,43 @@ select.ui-control {
 .exam-set-source-region-canvas-wrap[data-state="loading"], .exam-set-source-region-canvas-wrap[data-state="error"] { padding: 18px; }
 .exam-set-source-region-canvas { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; background: #fff; }
 
+.exam-attempt-workspace { height: 100%; min-height: 0; overflow: auto; display: grid; align-content: start; gap: 12px; padding: 18px; background: var(--ui-soft); }
+.exam-attempt-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 15px 16px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-panel); }
+.exam-attempt-header h2 { margin: 0; color: var(--ui-text); font-size: 15px; font-weight: 900; }
+.exam-attempt-header p { max-width: 660px; margin: 4px 0 0; color: var(--ui-muted); font-size: 8.5px; line-height: 1.5; font-weight: 650; }
+.exam-attempt-header-summary { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.exam-attempt-header-summary span { min-width: 78px; display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); text-align: center; }
+.exam-attempt-header-summary strong { color: var(--ui-text); font-size: 13px; font-weight: 900; }
+.exam-attempt-header-summary small { color: var(--ui-muted); font-size: 7px; font-weight: 780; }
+.exam-attempt-repeat { display: flex; align-items: center; gap: 7px; padding: 9px 11px; border: 1px solid color-mix(in srgb,var(--ui-red) 24%,var(--ui-border)); border-radius: 10px; background: color-mix(in srgb,var(--ui-red) 5%,var(--ui-panel)); color: var(--ui-secondary); font-size: 8px; font-weight: 700; }
+.exam-attempt-repeat strong { color: var(--ui-red); }
+.exam-attempt-list { display: grid; gap: 8px; }
+.exam-attempt-card { display: grid; grid-template-columns: minmax(0,1.2fr) repeat(4,minmax(78px,.45fr)) auto; align-items: center; gap: 8px; padding: 11px 12px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); }
+.exam-attempt-card-main { min-width: 0; display: grid; gap: 3px; }
+.exam-attempt-card-main strong { color: var(--ui-text); font-size: 10px; font-weight: 900; }
+.exam-attempt-card-main small { color: var(--ui-muted); font-size: 7.5px; font-weight: 700; }
+.exam-attempt-metric { min-width: 0; display: grid; gap: 2px; text-align: center; }
+.exam-attempt-metric strong { color: var(--ui-text); font-size: 11px; font-weight: 900; }
+.exam-attempt-metric small { color: var(--ui-muted); font-size: 6.8px; font-weight: 750; }
+.exam-attempt-delta { font-size: 7px !important; font-weight: 850 !important; }
+.exam-attempt-delta[data-tone="positive"] { color: var(--ui-green) !important; }
+.exam-attempt-delta[data-tone="negative"] { color: var(--ui-red) !important; }
+.exam-attempt-open { min-height: 30px; padding: 0 10px; border: 1px solid var(--ui-blue-border); border-radius: 8px; background: var(--ui-blue-soft); color: var(--ui-blue); font-size: 8px; font-weight: 850; }
+.exam-attempt-empty { min-height: 220px; display: grid; place-items: center; align-content: center; gap: 8px; padding: 24px; border: 1px dashed var(--ui-border-strong); border-radius: 11px; background: var(--ui-panel); text-align: center; }
+.exam-attempt-empty strong { color: var(--ui-text); font-size: 10px; }
+.exam-attempt-empty p { max-width: 440px; margin: 0; color: var(--ui-muted); font-size: 8px; line-height: 1.5; }
+.exam-attempt-snapshot { width: min(980px,94vw); height: min(820px,90vh); display: flex; flex-direction: column; overflow: hidden; }
+.exam-attempt-snapshot-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--ui-border); }
+.exam-attempt-snapshot-head > div { display: grid; gap: 3px; }
+.exam-attempt-snapshot-head strong { color: var(--ui-text); font-size: 13px; font-weight: 900; }
+.exam-attempt-snapshot-head small { color: var(--ui-muted); font-size: 8px; }
+.exam-attempt-snapshot-body { min-height: 0; flex: 1; overflow: auto; padding: 16px 4px 10px; }
+.exam-attempt-snapshot .exam-set-option { cursor: default; }
+.exam-attempt-snapshot .exam-set-option:disabled { opacity: 1; transform: none; }
+.exam-attempt-snapshot-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--ui-border); }
+.exam-attempt-source-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+@media (max-width: 760px) { .exam-attempt-header { display: grid; } .exam-attempt-card { grid-template-columns: 1fr 1fr; } .exam-attempt-card-main { grid-column: 1 / -1; } .exam-attempt-open { grid-column: 1 / -1; } }
+
 .exam-review-workspace { height: 100%; min-height: 0; overflow: auto; display: grid; align-content: start; gap: 12px; padding: 18px; background: var(--ui-soft); }
 .exam-review-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 15px 16px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-panel); }
 .exam-review-header > div:first-child { min-width: 0; }
@@ -32587,8 +32624,60 @@ function examSimulationFromRow(row) {
     currentIndex: Math.max(0, Number(source.current_index ?? source.currentIndex) || 0),
     result: source.result ? examSimulationResultFromRpc(source.result) : null,
     parseVersion: source.parse_version || source.parseVersion || null,
+    attemptNumber: Math.max(0, Number(source.attempt_number ?? source.attemptNumber) || 0),
+    questionSnapshot: Array.isArray(source.question_snapshot) ? source.question_snapshot : Array.isArray(source.questionSnapshot) ? source.questionSnapshot : [],
+    examSnapshot: source.exam_snapshot && typeof source.exam_snapshot === "object" && !Array.isArray(source.exam_snapshot) ? source.exam_snapshot : source.examSnapshot && typeof source.examSnapshot === "object" ? source.examSnapshot : {},
+    snapshotVersion: source.snapshot_version || source.snapshotVersion || null,
     updatedAt: source.updated_at || source.updatedAt || null,
   };
+}
+
+function examAttemptHistoryFromRows(rows) {
+  return (Array.isArray(rows) ? rows : [])
+    .map(examSimulationFromRow)
+    .filter((attempt) => attempt.id && attempt.status === "submitted")
+    .sort((a, b) => new Date(b.submittedAt || b.startedAt || 0).getTime() - new Date(a.submittedAt || a.startedAt || 0).getTime());
+}
+
+function examAttemptAccuracy(attempt) {
+  const assessed = Math.max(0, Number(attempt?.result?.assessedCount) || 0);
+  const correct = Math.max(0, Number(attempt?.result?.correctCount) || 0);
+  return assessed ? correct / assessed : null;
+}
+
+function examAttemptCompare(current, previous) {
+  if (!current || !previous) return null;
+  const currentAccuracy = examAttemptAccuracy(current);
+  const previousAccuracy = examAttemptAccuracy(previous);
+  return {
+    correctDelta: (Number(current?.result?.correctCount) || 0) - (Number(previous?.result?.correctCount) || 0),
+    wrongDelta: (Number(current?.result?.wrongCount) || 0) - (Number(previous?.result?.wrongCount) || 0),
+    accuracyDelta: currentAccuracy == null || previousAccuracy == null ? null : currentAccuracy - previousAccuracy,
+  };
+}
+
+function examAttemptRepeatedWrongQuestions(attempts) {
+  const counts = new Map();
+  (Array.isArray(attempts) ? attempts : []).forEach((attempt) => {
+    const answers = attempt?.answers || {};
+    (Array.isArray(attempt?.questionSnapshot) ? attempt.questionSnapshot : []).forEach((question) => {
+      const questionId = String(question?.id || "").trim();
+      const official = question?.verificationStatus === "verified" && question?.correctLabel ? String(question.correctLabel).trim() : "";
+      const selected = String(answers[questionId] || "").trim();
+      if (!questionId || !official || !selected || selected === official) return;
+      const current = counts.get(questionId) || { questionId, sourceNumber: question?.sourceNumber || "", count: 0 };
+      current.count += 1;
+      if (!current.sourceNumber && question?.sourceNumber) current.sourceNumber = question.sourceNumber;
+      counts.set(questionId, current);
+    });
+  });
+  return [...counts.values()].filter((item) => item.count >= 2).sort((a, b) => b.count - a.count || String(a.sourceNumber).localeCompare(String(b.sourceNumber), undefined, { numeric: true }));
+}
+
+function examAttemptElapsedSeconds(attempt) {
+  const start = new Date(attempt?.startedAt || 0).getTime();
+  const end = new Date(attempt?.submittedAt || 0).getTime();
+  return Number.isFinite(start) && Number.isFinite(end) && end >= start ? Math.round((end - start) / 1000) : 0;
 }
 
 function examSimulationRemainingSeconds(session, nowMs = Date.now()) {
@@ -35878,6 +35967,78 @@ function WorkspaceShell({ c, label, drByteOpen = false, closing = false, childre
 }
 
 
+function ExamAttemptHistoryWorkspace({ copy, language, attempts, loadState, onOpen }) {
+  const safeAttempts = Array.isArray(attempts) ? attempts : [];
+  const repeated = examAttemptRepeatedWrongQuestions(safeAttempts);
+  const latest = safeAttempts[0] || null;
+  const dateLocale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+  const latestAccuracy = examAttemptAccuracy(latest);
+  return (
+    <section className="exam-attempt-workspace">
+      <header className="exam-attempt-header">
+        <div><span className="exam-review-eyebrow">{copy.examAttemptPrivate}</span><h2>{copy.examAttemptHistoryTitle}</h2><p>{copy.examAttemptHistoryIntro}</p></div>
+        <div className="exam-attempt-header-summary">
+          <span><strong>{safeAttempts.length}</strong><small>{copy.examAttemptCount}</small></span>
+          <span><strong>{latest?.result ? `${latest.result.correctCount}/${latest.result.assessedCount}` : "—"}</strong><small>{copy.examAttemptLatest}</small></span>
+          <span><strong>{latestAccuracy == null ? "—" : `${Math.round(latestAccuracy * 100)}%`}</strong><small>{copy.examAttemptAccuracy}</small></span>
+        </div>
+      </header>
+      {repeated.length > 0 && <div className="exam-attempt-repeat"><Icon name="flag" size={12} /><span><strong>{repeated.length}</strong> {copy.examAttemptRepeatedErrors}{repeated.slice(0, 6).length ? ` · ${repeated.slice(0, 6).map((item) => `Q${item.sourceNumber || "?"}×${item.count}`).join(" · ")}` : ""}</span></div>}
+      {loadState === "loading" ? <div className="exam-attempt-empty"><Icon name="clock" size={21} /><strong>{copy.examAttemptLoading}</strong></div> : loadState === "error" ? <div className="exam-attempt-empty"><Icon name="flag" size={21} /><strong>{copy.examAttemptSetupMissing}</strong><p>{copy.examAttemptSetupHint}</p></div> : safeAttempts.length === 0 ? <div className="exam-attempt-empty"><Icon name="clock" size={21} /><strong>{copy.examAttemptEmpty}</strong><p>{copy.examAttemptEmptyHint}</p></div> : (
+        <div className="exam-attempt-list">
+          {safeAttempts.map((attempt, index) => {
+            const previous = safeAttempts[index + 1] || null;
+            const comparison = examAttemptCompare(attempt, previous);
+            const accuracy = examAttemptAccuracy(attempt);
+            const elapsed = examAttemptElapsedSeconds(attempt);
+            const submittedAt = attempt.submittedAt ? new Date(attempt.submittedAt) : null;
+            const delta = comparison?.accuracyDelta;
+            const deltaTone = delta == null || Math.abs(delta) < .0005 ? "neutral" : delta > 0 ? "positive" : "negative";
+            return <article key={attempt.id} className="exam-attempt-card">
+              <div className="exam-attempt-card-main"><strong>{copy.examAttemptNumber(attempt.attemptNumber || safeAttempts.length - index)}</strong><small>{submittedAt && !Number.isNaN(submittedAt.getTime()) ? submittedAt.toLocaleString(dateLocale, { dateStyle: "medium", timeStyle: "short" }) : "—"} · {attempt.snapshotVersion || "legacy"}</small></div>
+              <span className="exam-attempt-metric"><strong>{attempt.result ? `${attempt.result.correctCount}/${attempt.result.assessedCount}` : "—"}</strong><small>{copy.examAttemptScore}</small></span>
+              <span className="exam-attempt-metric"><strong>{accuracy == null ? "—" : `${Math.round(accuracy * 100)}%`}</strong><small>{copy.examAttemptAccuracy}</small>{delta != null && <em className="exam-attempt-delta" data-tone={deltaTone}>{delta > 0 ? "+" : ""}{Math.round(delta * 100)} pp</em>}</span>
+              <span className="exam-attempt-metric"><strong>{attempt.result?.wrongCount ?? "—"}</strong><small>{copy.examSetWrong}</small></span>
+              <span className="exam-attempt-metric"><strong>{elapsed ? examSimulationFormatTime(elapsed) : "—"}</strong><small>{copy.examAttemptDuration}</small></span>
+              <button type="button" className="exam-attempt-open" onClick={() => onOpen(attempt)}><Icon name="cards" size={11} /> {copy.examAttemptOpen}</button>
+            </article>;
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ExamAttemptSnapshotModal({ c, copy, language, attempt, onClose, onOpenSource }) {
+  const questions = Array.isArray(attempt?.questionSnapshot) ? attempt.questionSnapshot : [];
+  const [index, setIndex] = useState(0);
+  useEffect(() => { setIndex(0); }, [attempt?.id]);
+  if (!attempt) return null;
+  const safeIndex = Math.max(0, Math.min(questions.length - 1, index));
+  const question = questions[safeIndex] || null;
+  const selected = question ? String(attempt.answers?.[question.id] || "") : "";
+  const official = question?.verificationStatus === "verified" && question?.correctLabel ? String(question.correctLabel) : "";
+  const submittedAt = attempt.submittedAt ? new Date(attempt.submittedAt) : null;
+  const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+  return <Modal c={c} onClose={onClose} size="large">
+    <div className="exam-attempt-snapshot">
+      <header className="exam-attempt-snapshot-head"><div><strong>{copy.examAttemptNumber(attempt.attemptNumber || 1)} · {copy.examAttemptReadOnly}</strong><small>{submittedAt && !Number.isNaN(submittedAt.getTime()) ? submittedAt.toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" }) : "—"} · {attempt.result ? `${attempt.result.correctCount}/${attempt.result.assessedCount}` : "—"}</small></div><button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button></header>
+      <div className="exam-attempt-snapshot-body">
+        {!question ? <div className="exam-attempt-empty"><strong>{copy.examAttemptSnapshotMissing}</strong></div> : <article className="exam-set-question-card">
+          <div className="exam-set-question-source"><span>{copy.examSetQuestion} {safeIndex + 1} / {questions.length}</span><span>{copy.examSetSourceQuestion} {question.sourceNumber || "—"}</span>{question.sourcePages?.length ? <span>{copy.examSetSourcePage} {question.sourcePages.join("–")}</span> : null}</div>
+          <h2 className="exam-set-question-text">{question.text}</h2>
+          <div className="exam-set-options">{(question.options || []).map((option) => {
+            const result = official ? option.label === official ? "correct" : selected === option.label ? "wrong" : "" : "";
+            return <button key={option.label} type="button" className="exam-set-option" data-selected={selected === option.label ? "true" : "false"} data-result={result || undefined} disabled={Boolean(attempt)}><span className="exam-set-option-label">{option.label}</span><span className="exam-set-option-text">{option.text}</span></button>;
+          })}</div>
+          <div className="exam-set-answer-feedback" data-tone={official && selected ? (selected === official ? "correct" : "wrong") : ""}>{official ? copy.examSetCorrectAnswer(official) : copy.examSetAnswerKeyMissing}</div>
+        </article>}
+      </div>
+      <footer className="exam-attempt-snapshot-foot"><div className="exam-set-question-nav"><button type="button" disabled={safeIndex <= 0} onClick={() => setIndex((value) => Math.max(0, value - 1))}><Icon name="left" size={11} />{copy.examSetPreviousQuestion}</button><button type="button" disabled={safeIndex >= questions.length - 1} onClick={() => setIndex((value) => Math.min(questions.length - 1, value + 1))}>{copy.examSetNextQuestion}<Icon name="right" size={11} /></button></div>{question && <div className="exam-attempt-source-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => onOpenSource(attempt, question, "questions")}><Icon name="file" size={11} />{copy.examAttemptQuestionPdf}</button><button type="button" className="ui-button ui-button--secondary" disabled={!attempt.examSnapshot?.answer_storage_path || !question.answerPage} onClick={() => onOpenSource(attempt, question, "answers")}><Icon name="check" size={11} />{copy.examAttemptAnswerPdf}</button></div>}</footer>
+    </div>
+  </Modal>;
+}
+
 function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, filters, setFilters, saveState, syncState, onPatch, onOpen, sessionLabel }) {
   const safeItems = Array.isArray(items) ? items : [];
   const safeDocuments = Array.isArray(documents) ? documents : [];
@@ -36121,6 +36282,11 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const examSimulationSaveTimerRef = useRef(null);
   const examSimulationDirtyRef = useRef(false);
   const examSimulationSubmittingRef = useRef(false);
+  const [examAttemptHistory, setExamAttemptHistory] = useState([]);
+  const [examAttemptHistoryLoadState, setExamAttemptHistoryLoadState] = useState("idle");
+  const [examAttemptHistoryRefreshKey, setExamAttemptHistoryRefreshKey] = useState(0);
+  const [examAttemptViewer, setExamAttemptViewer] = useState(null);
+  const [examAttemptOriginalPreview, setExamAttemptOriginalPreview] = useState(null);
   const [examReviewItems, setExamReviewItems] = useState([]);
   const [examReviewLoadState, setExamReviewLoadState] = useState("idle");
   const [examReviewSyncState, setExamReviewSyncState] = useState("idle");
@@ -36259,6 +36425,27 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} korrekte`,
       examSimulationAutosaveError: "Simulationen kunne ikke gemmes. Kør Segment 6.5 SQL i Supabase.",
       examSimulationSetupHint: "Kør Segment 6.5 SQL i Supabase og genindlæs siden.",
+      examAttemptHistoryMode: "Forsøg",
+      examAttemptHistoryTitle: "Forsøg og historik",
+      examAttemptPrivate: "Privat eksamenshistorik",
+      examAttemptHistoryIntro: "Hvert afleveret simulationsforsøg er et permanent, skrivebeskyttet snapshot af spørgsmål, svar, markeringer, resultat og parser-version.",
+      examAttemptCount: "forsøg",
+      examAttemptLatest: "seneste",
+      examAttemptAccuracy: "træfsikkerhed",
+      examAttemptScore: "korrekte",
+      examAttemptDuration: "tid",
+      examAttemptRepeatedErrors: "spørgsmål er besvaret forkert i mindst to forsøg",
+      examAttemptLoading: "Henter din private forsøgshistorik…",
+      examAttemptSetupMissing: "Forsøgshistorik er ikke klargjort.",
+      examAttemptSetupHint: "Kør Segment 6.6 SQL i Supabase og genindlæs siden.",
+      examAttemptEmpty: "Ingen afleverede simulationsforsøg endnu",
+      examAttemptEmptyHint: "Når du afleverer en eksamenssimulation, gemmes den her uden at overskrive tidligere forsøg.",
+      examAttemptNumber: (number) => `Forsøg ${number}`,
+      examAttemptOpen: "Åbn forsøg",
+      examAttemptReadOnly: "skrivebeskyttet snapshot",
+      examAttemptSnapshotMissing: "Dette ældre forsøg har ikke et komplet spørgsmålssnapshot.",
+      examAttemptQuestionPdf: "Spørgsmål-PDF",
+      examAttemptAnswerPdf: "Svar-PDF",
       examReviewMode: "Fejl og review",
       examReviewTitle: "Fejl og review",
       examReviewPrivate: "Privat review-backlog",
@@ -36669,6 +36856,27 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} correct`,
       examSimulationAutosaveError: "The simulation could not be saved. Run Segment 6.5 SQL in Supabase.",
       examSimulationSetupHint: "Run Segment 6.5 SQL in Supabase and reload.",
+      examAttemptHistoryMode: "Attempts",
+      examAttemptHistoryTitle: "Attempts & history",
+      examAttemptPrivate: "Private exam history",
+      examAttemptHistoryIntro: "Every submitted simulation is stored as a permanent read-only snapshot of questions, answers, flags, result and parser version.",
+      examAttemptCount: "attempts",
+      examAttemptLatest: "latest",
+      examAttemptAccuracy: "accuracy",
+      examAttemptScore: "correct",
+      examAttemptDuration: "time",
+      examAttemptRepeatedErrors: "questions were answered incorrectly in at least two attempts",
+      examAttemptLoading: "Loading your private attempt history…",
+      examAttemptSetupMissing: "Attempt history is not configured.",
+      examAttemptSetupHint: "Run the Segment 6.6 SQL file in Supabase and reload.",
+      examAttemptEmpty: "No submitted simulation attempts yet",
+      examAttemptEmptyHint: "When you submit an exam simulation, it is stored here without overwriting earlier attempts.",
+      examAttemptNumber: (number) => `Attempt ${number}`,
+      examAttemptOpen: "Open attempt",
+      examAttemptReadOnly: "read-only snapshot",
+      examAttemptSnapshotMissing: "This legacy attempt does not contain a complete question snapshot.",
+      examAttemptQuestionPdf: "Question PDF",
+      examAttemptAnswerPdf: "Answer PDF",
       examReviewMode: "Errors & review",
       examReviewTitle: "Errors & review",
       examReviewPrivate: "Private review backlog",
@@ -37078,6 +37286,27 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} صحيحة`,
       examSimulationAutosaveError: "تعذر حفظ المحاكاة. شغّل SQL الخاص بـ Segment 6.5 في Supabase.",
       examSimulationSetupHint: "شغّل SQL الخاص بـ Segment 6.5 في Supabase ثم أعد التحميل.",
+      examAttemptHistoryMode: "المحاولات",
+      examAttemptHistoryTitle: "المحاولات والسجل",
+      examAttemptPrivate: "سجل امتحان خاص",
+      examAttemptHistoryIntro: "تُحفظ كل محاكاة مُسلّمة كلقطة دائمة للقراءة فقط للأسئلة والإجابات والنتيجة وإصدار المحلل.",
+      examAttemptCount: "محاولات",
+      examAttemptLatest: "الأحدث",
+      examAttemptAccuracy: "الدقة",
+      examAttemptScore: "صحيح",
+      examAttemptDuration: "الوقت",
+      examAttemptRepeatedErrors: "أسئلة أُجيب عنها خطأ في محاولتين على الأقل",
+      examAttemptLoading: "جارٍ تحميل سجل المحاولات الخاص…",
+      examAttemptSetupMissing: "سجل المحاولات غير مُعد بعد.",
+      examAttemptSetupHint: "شغّل SQL الخاص بالمقطع 6.6 في Supabase ثم أعد التحميل.",
+      examAttemptEmpty: "لا توجد محاولات محاكاة مُسلّمة بعد",
+      examAttemptEmptyHint: "عند تسليم محاكاة امتحان ستُحفظ هنا دون الكتابة فوق المحاولات السابقة.",
+      examAttemptNumber: (number) => `المحاولة ${number}`,
+      examAttemptOpen: "فتح المحاولة",
+      examAttemptReadOnly: "لقطة للقراءة فقط",
+      examAttemptSnapshotMissing: "هذه المحاولة القديمة لا تحتوي على لقطة أسئلة كاملة.",
+      examAttemptQuestionPdf: "PDF الأسئلة",
+      examAttemptAnswerPdf: "PDF الإجابات",
       examReviewMode: "الأخطاء والمراجعة",
       examReviewTitle: "الأخطاء والمراجعة",
       examReviewPrivate: "قائمة مراجعة خاصة",
@@ -37831,6 +38060,36 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       }
     };
   }, [isLectureLibrary, userId, selectedExamDocument?.id]);
+
+  useEffect(() => {
+    setExamAttemptViewer(null);
+    setExamAttemptOriginalPreview(null);
+    if (isLectureLibrary || !userId || !selectedExamDocument?.id) {
+      setExamAttemptHistory([]);
+      setExamAttemptHistoryLoadState("idle");
+      return undefined;
+    }
+    let cancelled = false;
+    setExamAttemptHistoryLoadState("loading");
+    supabase
+      .from("exam_simulation_sessions")
+      .select("id,user_id,exam_set_id,status,duration_minutes,started_at,submitted_at,answers,marked,current_index,result,parse_version,attempt_number,question_snapshot,exam_snapshot,snapshot_version,updated_at")
+      .eq("user_id", userId)
+      .eq("exam_set_id", selectedExamDocument.id)
+      .eq("status", "submitted")
+      .order("submitted_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setExamAttemptHistory([]);
+          setExamAttemptHistoryLoadState("error");
+          return;
+        }
+        setExamAttemptHistory(examAttemptHistoryFromRows(data));
+        setExamAttemptHistoryLoadState("ready");
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, selectedExamDocument?.id, examAttemptHistoryRefreshKey]);
 
   useEffect(() => {
     if (examSimulation.status !== "active") return undefined;
@@ -39672,7 +39931,8 @@ async function saveExamSetDocument() {
       const { error } = await supabase.from("exam_set_documents").update(updatePayload).eq("id", document.id).eq("user_id", userId);
       if (error) throw error;
       if (answerFile && document.answerStoragePath && document.answerStoragePath !== answerStoragePath) {
-        await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove([document.answerStoragePath]);
+        // Segment 6.6: preserve replaced answer PDFs for historical attempt snapshots.
+        // Submitted attempts may still reference this exact storage path via exam_snapshot.
       }
       await refreshExamSetDocuments();
       setExamSetDialog(null);
@@ -40019,6 +40279,21 @@ function openOriginalExamPage(question) {
   setExamSetOriginalPage(page);
 }
 
+async function openExamAttemptSnapshotPage(attempt, question, kind = "questions") {
+  const snapshot = attempt?.examSnapshot || {};
+  const answer = kind === "answers";
+  const storagePath = answer ? snapshot.answer_storage_path : snapshot.question_storage_path;
+  const fileName = answer ? snapshot.answer_file_name : snapshot.question_file_name;
+  const page = Number(answer ? (question?.answerPage || question?.answerPages?.[0] || 1) : (question?.page || question?.sourcePages?.[0] || 1));
+  if (!storagePath || !Number.isFinite(page)) return;
+  const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(storagePath, 60 * 60);
+  if (error || !data?.signedUrl) {
+    setExamSetStatus({ state: "error", message: copy.examReviewSourceMissing });
+    return;
+  }
+  setExamAttemptOriginalPreview({ url: data.signedUrl, page, fileName: fileName || (answer ? "Svar.pdf" : "Spørgsmål.pdf") });
+}
+
 async function openExamReviewItem(item, target = "mcq") {
   const { document, question } = examReviewResolveQuestion(item, documents);
   if (!document || !question || String(question.id || "") !== String(item?.questionId || "")) {
@@ -40172,9 +40447,10 @@ async function openExamSetPdfEditor() {
       setExamSimulationSaveState("saved");
       setExamSimulationSubmitDialog(false);
       setExamSetShowAnswers(false);
-      const questions = examSetQuestionDocumentId === selectedExamDocument?.id && examSetQuestions.length ? examSetQuestions : (selectedExamDocument?.parsedQuestions || []);
+      const questions = submitted.questionSnapshot?.length ? submitted.questionSnapshot : (examSetQuestionDocumentId === selectedExamDocument?.id && examSetQuestions.length ? examSetQuestions : (selectedExamDocument?.parsedQuestions || []));
       const reviewSnapshot = { ...submitted, submittedAt: submitted.submittedAt, lastSubmissionId: submitted.id };
       await reconcileExamReviewSubmission({ userId, examSetId: submitted.examSetId }, reviewSnapshot, questions, submitted.id);
+      setExamAttemptHistoryRefreshKey((value) => value + 1);
       if (automatic) setExamSetStatus({ state: "success", message: copy.examSimulationSubmitted });
     } catch (error) {
       setExamSimulationSaveState("error");
@@ -40684,6 +40960,7 @@ async function openExamSetPdfEditor() {
                   <button type="button" role="tab" aria-selected={examSetMode === "pdf"} data-active={examSetMode === "pdf" ? "true" : "false"} onClick={() => setExamSetMode("pdf")}><Icon name="file" size={12} />{copy.examSetPdfMode}</button>
                   <button type="button" role="tab" aria-selected={examSetMode === "exam"} data-active={examSetMode === "exam" ? "true" : "false"} className="exam-set-create-viewer" disabled={examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={createExamSetViewer}><Icon name="cards" size={12} />{examSetQuestionDocumentId === selectedExamDocument?.id && examSetQuestions.length ? copy.examSetViewerMode : copy.examSetCreateViewer}</button>
                   <button type="button" role="tab" aria-selected={examSetMode === "review"} data-active={examSetMode === "review" ? "true" : "false"} onClick={() => setExamSetMode("review")}><Icon name="flag" size={12} />{copy.examReviewMode}</button>
+                  <button type="button" role="tab" aria-selected={examSetMode === "history"} data-active={examSetMode === "history" ? "true" : "false"} onClick={() => setExamSetMode("history")}><Icon name="clock" size={12} />{copy.examAttemptHistoryMode}</button>
                 </span>
                 {selectedExamDocument?.ownerUserId === userId && <button type="button" className="exam-set-editor-open" disabled={examSetSaving || examSetEditorSaving || examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={openExamSetPdfEditor}><Icon name="edit" size={12} />{copy.examSetEditorOpen}</button>}
                 {examSetMode === "pdf" && <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetPdfMode}>
@@ -40739,7 +41016,15 @@ async function openExamSetPdfEditor() {
                 <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{!selectedLecture ? copy.selectItem : copy.materialLibraryEmpty}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="upload" size={14} />{copy.addMaterial}</button></div>
               )
              ) : activeDocument ? (
-examSetMode === "review" ? (
+examSetMode === "history" ? (
+  <ExamAttemptHistoryWorkspace
+    copy={copy}
+    language={language}
+    attempts={examAttemptHistory}
+    loadState={examAttemptHistoryLoadState}
+    onOpen={setExamAttemptViewer}
+  />
+) : examSetMode === "review" ? (
   <ExamReviewWorkspace
     c={c}
     copy={copy}
@@ -41105,6 +41390,14 @@ examSetMode === "review" ? (
 
       {examSetOriginalPage && selectedExamDocument && examSetPreviewUrl && (
         <ExamOriginalPageModal c={c} url={examSetPreviewUrl} pageNumber={examSetOriginalPage} fileName={selectedExamDocument.questionFileName || selectedExamDocument.name} copy={copy} onClose={() => setExamSetOriginalPage(null)} />
+      )}
+
+      {examAttemptViewer && !isLectureLibrary && (
+        <ExamAttemptSnapshotModal c={c} copy={copy} language={language} attempt={examAttemptViewer} onClose={() => setExamAttemptViewer(null)} onOpenSource={openExamAttemptSnapshotPage} />
+      )}
+
+      {examAttemptOriginalPreview && !isLectureLibrary && (
+        <ExamOriginalPageModal c={c} url={examAttemptOriginalPreview.url} pageNumber={examAttemptOriginalPreview.page} fileName={examAttemptOriginalPreview.fileName} copy={copy} onClose={() => setExamAttemptOriginalPreview(null)} />
       )}
 
       {materialDialog && (
@@ -43497,3 +43790,5 @@ export default App;
 /* FORELÆSNINGSVISER FV7 — PERFORMANCE, CALENDAR & FINISH */
 
 /* FORELÆSNINGSVISER FV7.1 — GLOBAL ADMIN CALENDAR MATCHING */
+
+/* SEGMENT 6.6 — FORSØG OG HISTORIK */
