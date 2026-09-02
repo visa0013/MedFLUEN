@@ -14053,6 +14053,108 @@ select.ui-control {
 .lecture-pptx-viewer:fullscreen { width:100vw; height:100vh; background:#fff; }
 .lecture-pptx-viewer:fullscreen .lecture-pptx-stage-wrap { padding:0; }
 @media (max-width:720px) { .lecture-pptx-toolbar { gap:3px; padding-inline:5px; } .lecture-pptx-toolbar button { width:28px; } .lecture-pptx-zoom { display:none; } .lecture-pptx-stage-wrap { padding:5px; } .lecture-pptx-slide-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+
+/* ================================================================
+   FORELÆSNINGSVISER FV6 — MOBILE & TABLET
+   Document-first · mutually exclusive slide-over panels · touch-safe controls
+   ================================================================ */
+.lecture-viewer-shell-revamp .lecture-compact-backdrop { display:none; }
+
+@media (max-width:900px) {
+  .lecture-viewer-shell-revamp { height:100dvh; min-height:100dvh; overflow:hidden; }
+  .lecture-viewer-shell-revamp .document-workspace-header {
+    height:50px; padding-inline:max(7px,env(safe-area-inset-left)) max(7px,env(safe-area-inset-right));
+  }
+  .lecture-viewer-shell-revamp .document-workspace-title-block small { display:none; }
+  .lecture-viewer-shell-revamp .lecture-viewer-v2-header-tools { gap:2px; }
+  .lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle,
+  .lecture-viewer-shell-revamp .document-workspace-header-actions > .ui-icon-button {
+    width:44px !important; min-width:44px; height:44px !important; min-height:44px; border-radius:10px !important; touch-action:manipulation;
+  }
+  .lecture-viewer-shell-revamp .document-workspace-grid--notes {
+    position:relative; isolation:isolate; grid-template-columns:minmax(0,1fr); grid-template-rows:50px minmax(0,1fr); overflow:hidden;
+  }
+  .lecture-viewer-shell-revamp .lecture-detail-header { grid-column:1; grid-row:1; height:50px; min-height:50px; z-index:3; }
+  .lecture-viewer-shell-revamp .document-viewer-panel { grid-column:1; grid-row:2; min-width:0; min-height:0; overflow:hidden; }
+  .lecture-viewer-shell-revamp .lecture-compact-backdrop {
+    display:block; position:absolute; inset:0; z-index:64; width:100%; height:100%; padding:0; border:0; background:rgba(18,28,44,.20); backdrop-filter:blur(1px); cursor:default; touch-action:manipulation;
+  }
+  .lecture-viewer-shell-revamp .document-library-panel,
+  .lecture-viewer-shell-revamp .lecture-notes-panel {
+    display:flex !important; position:absolute; z-index:70; inset-block:0; width:min(340px,92vw); max-width:92vw; min-width:0; padding-bottom:env(safe-area-inset-bottom); background:var(--ui-panel); box-shadow:0 22px 58px rgba(18,30,48,.20); visibility:hidden; pointer-events:none; transition:transform 180ms ease,visibility 180ms ease; will-change:transform;
+  }
+  .lecture-viewer-shell-revamp .document-library-panel { inset-inline-start:0; transform:translateX(-102%); }
+  .lecture-viewer-shell-revamp .lecture-notes-panel { inset-inline-end:0; transform:translateX(102%); }
+  .lecture-viewer-shell-revamp[dir="rtl"] .document-library-panel { transform:translateX(102%); }
+  .lecture-viewer-shell-revamp[dir="rtl"] .lecture-notes-panel { transform:translateX(-102%); }
+  .lecture-viewer-shell-revamp[data-library="true"] .document-library-panel,
+  .lecture-viewer-shell-revamp[data-notes="true"] .lecture-notes-panel { transform:translateX(0); visibility:visible; pointer-events:auto; }
+  .lecture-viewer-shell-revamp .document-search-box { min-height:44px; height:44px; margin:8px; }
+  .lecture-viewer-shell-revamp .lecture-filter-strip button { min-height:40px; touch-action:manipulation; }
+  .lecture-viewer-shell-revamp .lecture-overview-row { min-height:52px; }
+  .lecture-viewer-shell-revamp .lecture-overview-row .document-library-main { min-height:52px; touch-action:manipulation; }
+  .lecture-viewer-shell-revamp .lecture-favorite-toggle { min-width:40px; min-height:40px; opacity:1 !important; touch-action:manipulation; }
+  .lecture-viewer-shell-revamp .lecture-detail-tools--minimal button,
+  .lecture-viewer-shell-revamp .lecture-material-menu-trigger,
+  .lecture-viewer-shell-revamp .lecture-detail-nav-button { min-width:40px; min-height:40px; touch-action:manipulation; }
+  .lecture-viewer-shell-revamp .lecture-material-compact-control .lecture-materials-popover[data-open="true"] { width:min(330px,calc(100vw - 20px)); max-height:min(68dvh,520px); }
+
+  .lecture-pdf-viewer--workspace .lecture-pdf-toolbar--pro {
+    display:flex; align-items:center; justify-content:flex-start; gap:6px; min-height:46px; padding:4px 6px; overflow-x:auto; overflow-y:hidden; overscroll-behavior-inline:contain; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  .lecture-pdf-viewer--workspace .lecture-pdf-toolbar--pro::-webkit-scrollbar,
+  .lecture-pptx-toolbar::-webkit-scrollbar,
+  .lecture-pdf-annotation-toolbar--pro::-webkit-scrollbar { display:none; }
+  .lecture-pdf-toolbar-group--pages, .lecture-pdf-toolbar-group--tools, .lecture-pdf-mode-toggle { flex:0 0 auto; justify-self:auto; }
+  .lecture-pdf-icon-control { width:40px !important; min-width:40px !important; height:40px !important; min-height:40px; touch-action:manipulation; }
+  .lecture-pdf-page-control { min-height:40px; }
+  .lecture-pdf-mode-toggle { height:40px; }
+  .lecture-pdf-mode-toggle button { height:34px; min-height:34px; }
+  .lecture-pdf-annotation-toolbar--pro { min-height:44px; overflow-x:auto; overflow-y:hidden; flex-wrap:nowrap; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .lecture-pdf-annotation-toolbar--pro .lecture-pdf-color-set { display:flex; flex:0 0 auto; }
+  .lecture-pdf-surface { overscroll-behavior:contain; touch-action:pan-y pinch-zoom; -webkit-overflow-scrolling:touch; }
+  .lecture-pdf-side-rail--overlay { width:min(330px,90vw); max-width:90vw; }
+  .lecture-pdf-viewer--workspace .lecture-pdf-pages { padding-inline:8px; }
+
+  .lecture-pptx-toolbar {
+    min-height:48px; justify-content:flex-start; gap:8px; padding:4px 6px; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  .lecture-pptx-toolbar-group { flex:0 0 auto; }
+  .lecture-pptx-toolbar button { width:40px; min-width:40px; height:40px; min-height:40px; touch-action:manipulation; }
+  .lecture-pptx-counter { height:40px; min-height:40px; }
+  .lecture-pptx-stage-wrap { padding:6px; touch-action:pan-y pinch-zoom; overscroll-behavior:contain; }
+  .lecture-pptx-popover { top:8px; right:8px; width:min(340px,calc(100% - 16px)); max-height:calc(100% - 16px); }
+}
+
+@media (max-width:620px) {
+  .lecture-viewer-shell-revamp .document-workspace-header { height:48px; }
+  .lecture-viewer-shell-revamp .document-workspace-title-block strong { font-size:10px; }
+  .lecture-viewer-shell-revamp .document-workspace-mark { display:none; }
+  .lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle,
+  .lecture-viewer-shell-revamp .document-workspace-header-actions > .ui-icon-button { width:42px !important; min-width:42px; height:42px !important; min-height:42px; }
+  .lecture-viewer-shell-revamp .document-workspace-grid--notes { grid-template-rows:48px minmax(0,1fr); }
+  .lecture-viewer-shell-revamp .lecture-detail-header { height:48px; min-height:48px; padding-inline:6px; }
+  .lecture-viewer-shell-revamp .document-library-panel,
+  .lecture-viewer-shell-revamp .lecture-notes-panel { width:min(360px,94vw); max-width:94vw; }
+  .lecture-viewer-shell-revamp .lecture-detail-copy > strong { max-width:44vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lecture-pdf-viewer--workspace .lecture-pdf-toolbar--pro { min-height:44px; gap:4px; }
+  .lecture-pdf-toolbar-group--pages > button { display:grid !important; }
+  .lecture-pdf-page-control { min-width:68px; }
+  .lecture-pdf-mode-toggle button { padding-inline:8px; font-size:7px; }
+  .lecture-pdf-viewer--workspace .lecture-pdf-pages { gap:8px; padding-block:5px calc(24px + env(safe-area-inset-bottom)); }
+  .lecture-pdf-continuous-page--pro { max-width:calc(100vw - 18px); }
+  .lecture-pptx-stage-wrap { padding:4px; }
+  .lecture-pptx-slide-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+
+@media (hover:none) and (pointer:coarse) {
+  .lecture-viewer-shell-revamp button, .lecture-pdf-viewer button, .lecture-pptx-viewer button { -webkit-tap-highlight-color:transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lecture-viewer-shell-revamp .document-library-panel,
+  .lecture-viewer-shell-revamp .lecture-notes-panel { transition:none !important; }
+}
     `}
 </style>
   );
@@ -35071,6 +35173,7 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
   const restoreRevisionRef = useRef(0);
   const pptxFitModeRef = useRef(true);
   const pptxFitFrameRef = useRef(0);
+  const pptxTouchRef = useRef(null);
 
   const labels = ({
     da: { loading: "Indlæser PowerPoint…", error: "PowerPoint-filen kunne ikke vises.", previous: "Forrige slide", next: "Næste slide", overview: "Slideoversigt", search: "Søg i PowerPoint", placeholder: "Søg i slides…", noResults: "Ingen slides matcher søgningen.", fit: "Tilpas slide", fullscreen: "Fuld skærm", close: "Luk", slide: "Slide" },
@@ -35243,6 +35346,23 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
       else await shellRef.current?.requestFullscreen?.();
     } catch {}
   };
+  const handleStageTouchStart = (event) => {
+    const touch = event.touches?.[0];
+    if (!touch || event.touches?.length !== 1) return;
+    pptxTouchRef.current = { x: touch.clientX, y: touch.clientY, at: Date.now() };
+  };
+  const handleStageTouchEnd = (event) => {
+    const start = pptxTouchRef.current;
+    const touch = event.changedTouches?.[0];
+    pptxTouchRef.current = null;
+    if (!start || !touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    const elapsed = Date.now() - start.at;
+    if (elapsed > 700 || Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+    move(dx > 0 ? -1 : 1);
+  };
+
   const results = lecturePptxSearch(slides, query);
 
   return (
@@ -35263,7 +35383,7 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
           <button type="button" title={labels.fullscreen} aria-label={labels.fullscreen} data-active={isFullscreen ? "true" : "false"} disabled={status !== "ready"} onClick={toggleFullscreen}><Icon name={isFullscreen ? "collapse" : "expand"} size={14} /></button>
         </div>
       </div>
-      <div className="lecture-pptx-stage-wrap">
+      <div className="lecture-pptx-stage-wrap" onTouchStart={handleStageTouchStart} onTouchEnd={handleStageTouchEnd}>
         <div ref={hostRef} className="lecture-pptx-stage" />
         {status === "loading" && <div className="lecture-pptx-state"><span className="lecture-pptx-spinner" /><strong>{labels.loading}</strong></div>}
         {status === "error" && <div className="lecture-pptx-state"><Icon name="file" size={24} /><strong>{labels.error}</strong>{error && <small>{error}</small>}</div>}
@@ -35799,6 +35919,13 @@ function lectureFavoriteNeighbor(lectures, favoriteIds, selectedId, direction = 
   return null;
 }
 
+function lectureViewportKind(width) {
+  const value = Number(width);
+  if (Number.isFinite(value) && value <= 620) return "phone";
+  if (Number.isFinite(value) && value <= 900) return "tablet";
+  return "desktop";
+}
+
 function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, spacedData = {}, importedQuestions = [] }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
@@ -35832,6 +35959,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [lectureFavorites, setLectureFavorites] = useState([]);
   const [lectureFavoriteStatus, setLectureFavoriteStatus] = useState("idle");
   const [lectureViewerFocus, setLectureViewerFocus] = useState(false);
+  const [lectureViewport, setLectureViewport] = useState(() => typeof window === "undefined" ? "desktop" : lectureViewportKind(window.innerWidth));
+  const [lectureCompactPanel, setLectureCompactPanel] = useState(null);
+  const lectureCompactViewport = lectureViewport !== "desktop";
+  const lecturePhoneViewport = lectureViewport === "phone";
   const [lectureMaterialsOpen, setLectureMaterialsOpen] = useState(false);
   const [lecturePdfAnnotations, setLecturePdfAnnotations] = useState([]);
   const lecturePdfAnnotationsRef = useRef([]);
@@ -37807,12 +37938,30 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     return () => { sharedNoteLoadTokenRef.current += 1; };
   }, [isLectureLibrary, selectedLecture?.id, userId, moduleName]);
 
+  useEffect(() => {
+    if (!isLectureLibrary || typeof window === "undefined") return undefined;
+    const syncViewport = () => setLectureViewport(lectureViewportKind(window.innerWidth));
+    syncViewport();
+    window.addEventListener("resize", syncViewport, { passive: true });
+    window.addEventListener("orientationchange", syncViewport, { passive: true });
+    return () => {
+      window.removeEventListener("resize", syncViewport);
+      window.removeEventListener("orientationchange", syncViewport);
+    };
+  }, [isLectureLibrary]);
+
+  useEffect(() => {
+    if (!lectureCompactViewport) setLectureCompactPanel(null);
+  }, [lectureCompactViewport]);
+
   const masteryOrder = ["unrated", "uncertain", "developing", "confident"];
   const lectureOverviewKey = moduleName || "module";
   const lectureOverviewPreferences = workspaceState.lectureOverview?.[lectureOverviewKey] || {};
   const lectureViewerV2 = workspaceState.lectureViewerV2?.[lectureOverviewKey] || {};
   const lectureLibraryOpen = lectureViewerFocus ? false : lectureViewerV2.libraryOpen !== false;
   const lectureNotesOpen = lectureViewerFocus ? false : lectureViewerV2.notesOpen !== false;
+  const lectureLibraryVisible = lectureViewerFocus ? false : (lectureCompactViewport ? lectureCompactPanel === "library" : lectureLibraryOpen);
+  const lectureNotesVisible = lectureViewerFocus ? false : (lectureCompactViewport ? lectureCompactPanel === "notes" : lectureNotesOpen);
   const lectureFilter = lectureOverviewPreferences.filter || "all";
   const collapsedLectureGroups = new Set(lectureOverviewPreferences.collapsedGroups || []);
   const mergedLectureCalendarEvents = isLectureLibrary
@@ -37919,8 +38068,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       if (event.key === "/" && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
         if (lectureViewerFocus) setLectureViewerFocus(false);
-        updateLectureViewerV2({ libraryOpen: true });
+        if (lectureCompactViewport) setLectureCompactPanel("library");
+        else updateLectureViewerV2({ libraryOpen: true });
         window.requestAnimationFrame(() => lectureSearchRef.current?.focus());
+      } else if (event.key === "Escape" && lectureCompactViewport && lectureCompactPanel) {
+        event.preventDefault();
+        setLectureCompactPanel(null);
       } else if (event.key === "Escape" && lectureViewerFocus) {
         event.preventDefault();
         setLectureViewerFocus(false);
@@ -37943,7 +38096,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     };
     window.addEventListener("keydown", handleLectureViewerKeys);
     return () => window.removeEventListener("keydown", handleLectureViewerKeys);
-  }, [isLectureLibrary, lectureViewerFocus, query, previousLecture?.id, nextLecture?.id, previousFavoriteLecture?.id, nextFavoriteLecture?.id]);
+  }, [isLectureLibrary, lectureViewerFocus, lectureCompactViewport, lectureCompactPanel, query, previousLecture?.id, nextLecture?.id, previousFavoriteLecture?.id, nextFavoriteLecture?.id]);
   const moduleSduEvents = isLectureLibrary
     ? mergedLectureCalendarEvents
         .filter((event) => calendarIsSduScheduleEvent(event, moduleName))
@@ -38172,6 +38325,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setFollowUpEditorOpen(false);
     setFollowUpMessage("");
     setLectureMaterialsOpen(false);
+    if (lectureCompactViewport) setLectureCompactPanel(null);
     setWorkspaceState((current) => ({
       ...current,
       [selectedStateKey]: lecture.id,
@@ -38314,6 +38468,17 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
 
   function selectLectureFilter(filter) {
     updateLectureOverviewPreferences({ filter });
+  }
+
+  function handleLecturePanelToggle(panel) {
+    if (panel !== "library" && panel !== "notes") return;
+    if (lectureViewerFocus) setLectureViewerFocus(false);
+    if (lectureCompactViewport) {
+      setLectureCompactPanel((current) => current === panel ? null : panel);
+      return;
+    }
+    if (panel === "library") updateLectureViewerV2({ libraryOpen: !lectureLibraryOpen });
+    else updateLectureViewerV2({ notesOpen: !lectureNotesOpen });
   }
 
   function updateLectureViewerV2(patch) {
@@ -39971,8 +40136,11 @@ async function openExamSetPdfEditor() {
     <div
       className={`document-workspace ${isLectureLibrary ? "lecture-viewer-v2 lecture-viewer-shell-revamp" : ""}`}
       data-focus={lectureViewerFocus ? "true" : "false"}
-      data-library={lectureLibraryOpen ? "true" : "false"}
-      data-notes={lectureNotesOpen ? "true" : "false"}
+      data-library={lectureLibraryVisible ? "true" : "false"}
+      data-notes={lectureNotesVisible ? "true" : "false"}
+      data-viewport={isLectureLibrary ? lectureViewport : "desktop"}
+      data-compact-panel={isLectureLibrary ? (lectureCompactPanel || "none") : "none"}
+      data-phone={isLectureLibrary && lecturePhoneViewport ? "true" : "false"}
       dir={language === "ar" ? "rtl" : "ltr"}
     >
       <header className="document-workspace-header">
@@ -39986,9 +40154,9 @@ async function openExamSetPdfEditor() {
           {isLectureLibrary && <input ref={replaceUploadRef} type="file" accept={LECTURE_MATERIAL_ACCEPT} onChange={replaceLectureMaterialFile} hidden />}
           {isLectureLibrary && (
             <div className="lecture-viewer-v2-header-tools" role="group" aria-label={copy.lectureHeader}>
-              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureLibraryOpen ? "true" : "false"} title={copy.viewerLibrary} aria-label={copy.viewerLibrary} onClick={() => updateLectureViewerV2({ libraryOpen: !lectureLibraryOpen })}><Icon name="list" size={13} /><span>{copy.viewerLibrary}</span></button>
-              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureNotesOpen ? "true" : "false"} title={copy.viewerNotes} aria-label={copy.viewerNotes} onClick={() => updateLectureViewerV2({ notesOpen: !lectureNotesOpen })}><Icon name="notebook" size={13} /><span>{copy.viewerNotes}</span></button>
-              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureViewerFocus ? "true" : "false"} title={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} aria-label={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} onClick={() => setLectureViewerFocus((value) => !value)}><Icon name="expand" size={13} /><span>{lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus}</span></button>
+              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureLibraryVisible ? "true" : "false"} title={copy.viewerLibrary} aria-label={copy.viewerLibrary} aria-expanded={lectureLibraryVisible} onClick={() => handleLecturePanelToggle("library")}><Icon name="list" size={13} /><span>{copy.viewerLibrary}</span></button>
+              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureNotesVisible ? "true" : "false"} title={copy.viewerNotes} aria-label={copy.viewerNotes} aria-expanded={lectureNotesVisible} onClick={() => handleLecturePanelToggle("notes")}><Icon name="notebook" size={13} /><span>{copy.viewerNotes}</span></button>
+              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureViewerFocus ? "true" : "false"} title={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} aria-label={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} onClick={() => { setLectureCompactPanel(null); setLectureViewerFocus((value) => !value); }}><Icon name="expand" size={13} /><span>{lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus}</span></button>
             </div>
           )}
           <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary ? (!selectedLecture || materialSaving) : examSetSaving}>
@@ -39999,6 +40167,7 @@ async function openExamSetPdfEditor() {
       </header>
 
       <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : ""}`}>
+        {isLectureLibrary && lectureCompactViewport && lectureCompactPanel && <button type="button" className="lecture-compact-backdrop" aria-label={copy.close} onClick={() => setLectureCompactPanel(null)} />}
         <aside className="document-library-panel">
           <label className="document-search-box"><Icon name="search" size={14} /><input ref={isLectureLibrary ? lectureSearchRef : undefined} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} aria-keyshortcuts={isLectureLibrary ? "/" : undefined} />{isLectureLibrary && <kbd className="document-search-shortcut" title={copy.viewerSearchShortcut}>/</kbd>}</label>
           {isLectureLibrary && (
