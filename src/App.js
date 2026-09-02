@@ -42483,6 +42483,7 @@ function Sidebar({
 
       <div style={{ position: "relative", marginTop: "auto", paddingTop: 10 }}>
         <button ref={profileButtonRef} type="button" title={t.profile} aria-label={t.profile} aria-expanded={profileOpen} aria-haspopup="menu" onClick={() => setProfileOpen((value) => !value)} className="sidebar-profile-btn" style={{ width: 40, height: 40, display: "grid", placeItems: "center", padding: 0, borderRadius: 11, border: `1px solid ${profileOpen ? c.blueBorder : c.border}`, background: profileOpen ? c.blueSoft : c.soft, color: profileOpen ? c.blue : c.text, fontSize: 12, fontWeight: 900 }}>{userInitial}</button>
+        {adminMode && <span className="sidebar-admin-mode-dot" title={copy.adminActive} aria-label={copy.adminActive} style={{ position: "absolute", top: 7, insetInlineEnd: -2, width: 9, height: 9, borderRadius: "50%", background: c.red, border: `2px solid ${c.panel}`, boxSizing: "border-box", pointerEvents: "none" }} />}
         {profileOpen && (
           <div ref={profileMenuRef} role="menu" className="sidebar-profile-menu" style={{ position: "fixed", zIndex: 1200, insetInlineStart: 86, bottom: 12, width: 258, padding: 8, borderRadius: 14, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg, direction: menuDirection }}>
             <div className="sidebar-profile-summary"><span>{userInitial}</span><div><strong>{displayName}</strong><small>{moduleLabel}{adminMode ? ` · ${copy.adminActive}` : ""}</small></div></div>
@@ -44311,7 +44312,6 @@ useEffect(() => {
       <CalendarReminderManager events={shellMergedEvents} />
       {theme === "light" && <div className="app-blue-hue" aria-hidden="true" />}
       {theme === "dark" && <div className="app-blue-hue-dark" aria-hidden="true" />}
-      {effectiveAdmin && <AdminModeIndicator c={c} language={language} onExit={() => setAdminMode(false)} />}
 
       {isFullscreen && (
         <div
