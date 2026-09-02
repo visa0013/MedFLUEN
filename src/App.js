@@ -4025,6 +4025,96 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
         <path d="M5 4h13l-3 4 3 4H5" />
       </>
     ),
+    cursor: (
+      <>
+        <path d="m5 3 12 9-6 1.5L9 20Z" />
+      </>
+    ),
+    highlight: (
+      <>
+        <path d="m7 16 8.5-8.5 3 3L10 19H7Z" />
+        <path d="M5 21h14" />
+      </>
+    ),
+    underline: (
+      <>
+        <path d="M7 4v6a5 5 0 0 0 10 0V4" />
+        <path d="M5 21h14" />
+      </>
+    ),
+    strike: (
+      <>
+        <path d="M7 7.5C7 5.6 8.8 4 12 4s5 1.5 5 3.5" />
+        <path d="M6 12h12" />
+        <path d="M17 16.5c0 2-1.8 3.5-5 3.5s-5-1.6-5-3.5" />
+      </>
+    ),
+    pen: (
+      <>
+        <path d="M4 20l4.2-1 10-10-3.2-3.2-10 10Z" />
+        <path d="m13.8 7 3.2 3.2" />
+      </>
+    ),
+    sticky: (
+      <>
+        <path d="M5 4h14v11l-5 5H5Z" />
+        <path d="M14 20v-5h5" />
+      </>
+    ),
+    eraser: (
+      <>
+        <path d="m7 18-3-3L14 5l5 5-8 8Z" />
+        <path d="M9 18h10" />
+      </>
+    ),
+    bookmark: (
+      <>
+        <path d="M7 4h10v17l-5-3-5 3Z" />
+      </>
+    ),
+    thumbnails: (
+      <>
+        <rect x="4" y="4" width="6" height="7" rx="1" />
+        <rect x="14" y="4" width="6" height="7" rx="1" />
+        <rect x="4" y="14" width="6" height="6" rx="1" />
+        <rect x="14" y="14" width="6" height="6" rx="1" />
+      </>
+    ),
+    zoomIn: (
+      <>
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6" />
+      </>
+    ),
+    zoomOut: (
+      <>
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="M15.5 15.5 21 21M7.5 10.5h6" />
+      </>
+    ),
+    fit: (
+      <>
+        <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
+      </>
+    ),
+    copy: (
+      <>
+        <rect x="8" y="8" width="11" height="11" rx="2" />
+        <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+      </>
+    ),
+    undo: (
+      <>
+        <path d="M9 7 4 12l5 5" />
+        <path d="M5 12h8a6 6 0 0 1 6 6" />
+      </>
+    ),
+    redo: (
+      <>
+        <path d="m15 7 5 5-5 5" />
+        <path d="M19 12h-8a6 6 0 0 0-6 6" />
+      </>
+    ),
     logo: (
       <>
         <path d="M3 12h4l2.5-7 4.5 14 2.5-7H21" />
@@ -13480,6 +13570,96 @@ select.ui-control {
   .lecture-materials-popover[data-open="true"] { inset-block-start: 40px; inset-inline: 5px; grid-template-columns: 1fr; max-height: 56%; }
   .lecture-materials-popover .lecture-material-strip-heading { border-inline-end: 0; border-bottom: 1px solid var(--ui-border); }
   .lecture-material-actions-menu .lecture-material-actions { position: fixed; inset-inline: 8px; inset-block-start: auto; inset-block-end: 74px; width: auto; }
+}
+
+
+/* ============================================================
+   FORELÆSNINGSVISER FV5.1 — PRO PDF WORKSPACE
+   Minimal UI · stable scroll · text-bound annotations
+   ============================================================ */
+.lecture-pdf-viewer--workspace { background:#eef1f4; }
+.lecture-pdf-viewer--workspace .lecture-pdf-toolbar--pro {
+  min-height:40px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+  gap:8px; padding:5px 8px; border-bottom:1px solid var(--ui-border); background:var(--ui-panel);
+  flex-wrap:nowrap; justify-content:initial;
+}
+.lecture-pdf-toolbar-group--pages { justify-self:start; }
+.lecture-pdf-toolbar-group--tools { justify-self:end; }
+.lecture-pdf-icon-control {
+  width:28px !important; min-width:28px !important; height:28px !important; display:grid !important; place-items:center;
+  padding:0 !important; border:0 !important; border-radius:7px !important; background:transparent !important;
+  color:var(--ui-muted) !important; transition:background .14s ease,color .14s ease,transform .14s ease;
+}
+.lecture-pdf-icon-control:hover:not(:disabled) { background:var(--ui-soft) !important; color:var(--ui-text) !important; }
+.lecture-pdf-icon-control[data-active="true"] { background:var(--ui-blue-soft) !important; color:var(--ui-blue) !important; }
+.lecture-pdf-icon-control:active:not(:disabled) { transform:scale(.94); }
+.lecture-pdf-mode-toggle { height:30px; display:flex; align-items:center; padding:2px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); }
+.lecture-pdf-mode-toggle button { height:24px; padding:0 10px; border:0; border-radius:6px; background:transparent; color:var(--ui-muted); font-size:7.5px; font-weight:820; white-space:nowrap; cursor:pointer; }
+.lecture-pdf-mode-toggle button[data-active="true"] { background:var(--ui-panel); color:var(--ui-text); box-shadow:0 1px 4px rgba(20,35,60,.10); }
+.lecture-pdf-zoom-value { min-width:34px; font-size:7px !important; font-variant-numeric:tabular-nums; }
+.lecture-pdf-annotation-toolbar--pro {
+  min-height:35px; height:35px; padding:3px 8px; gap:5px; overflow:hidden; border-bottom:1px solid var(--ui-border);
+  background:color-mix(in srgb,var(--ui-panel) 98%,transparent); box-shadow:none;
+}
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-toolset button { width:28px; min-width:28px; height:27px; padding:0; border:0; border-radius:7px; }
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-toolset button svg { width:14px; height:14px; }
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-color-set button { width:15px; height:15px; }
+.lecture-pdf-annotation-toolbar--pro .lecture-pdf-history-actions button { width:27px; height:27px; display:grid; place-items:center; font-size:0; }
+.lecture-pdf-tool-hint { min-width:0; overflow:hidden; color:var(--ui-muted); font-size:7px; font-weight:720; text-overflow:ellipsis; white-space:nowrap; }
+.lecture-pdf-private-state { font-size:6.6px; }
+.lecture-pdf-workspace-body { position:relative; background:#e7eaee; }
+.lecture-pdf-side-rail--overlay { position:absolute; z-index:20; inset-block:8px; inset-inline-start:8px; width:210px; min-width:210px; border:1px solid var(--ui-border); border-radius:10px; background:color-mix(in srgb,var(--ui-panel) 98%,transparent); box-shadow:0 16px 40px rgba(25,38,58,.16); overflow:hidden; }
+.lecture-pdf-drawer-title { height:34px; display:flex; align-items:center; justify-content:space-between; padding:0 7px 0 10px; border-bottom:1px solid var(--ui-border); }
+.lecture-pdf-drawer-title strong { color:var(--ui-text); font-size:8px; font-weight:850; }
+.lecture-pdf-drawer-title button { width:25px; height:25px; display:grid; place-items:center; border:0; border-radius:6px; background:transparent; color:var(--ui-muted); cursor:pointer; }
+.lecture-pdf-drawer-title button:hover { background:var(--ui-soft); color:var(--ui-text); }
+.lecture-pdf-viewer--workspace .lecture-pdf-surface { overflow:auto; scrollbar-gutter:stable; background:#e7eaee; }
+.lecture-pdf-viewer--workspace .lecture-pdf-pages { gap:18px; align-items:center; padding-block:14px 42px; }
+.lecture-pdf-continuous-page--pro { flex:none; min-height:0 !important; overflow:visible; background:#fff; box-shadow:0 3px 15px rgba(20,35,60,.11); contain:layout paint; }
+.lecture-pdf-continuous-page--pro .lecture-pdf-continuous-page-inner { position:relative; width:100%; height:100%; overflow:hidden; background:#fff; }
+.lecture-pdf-continuous-page--pro canvas { position:absolute; inset:0; z-index:1; display:block; width:100%; height:100%; }
+.lecture-pdf-text-layer { position:absolute; inset:0; z-index:2; overflow:hidden; user-select:text; -webkit-user-select:text; }
+.lecture-pdf-text-layer > span { position:absolute; display:block; transform-origin:0 0; white-space:pre; line-height:1; color:transparent; font-family:Arial,sans-serif; cursor:text; user-select:text; -webkit-user-select:text; }
+.lecture-pdf-text-layer[data-marking="true"] > span { cursor:text; }
+.lecture-pdf-text-layer ::selection { background:rgba(74,119,217,.23); }
+.lecture-pdf-ink-layer { position:absolute; inset:0; z-index:3; overflow:visible; pointer-events:none; touch-action:pan-y; }
+.lecture-pdf-ink-layer[data-tool="pen"],.lecture-pdf-ink-layer[data-tool="sticky"],.lecture-pdf-ink-layer[data-tool="eraser"] { pointer-events:auto; }
+.lecture-pdf-ink-layer[data-tool="pen"] { cursor:crosshair; touch-action:none; }
+.lecture-pdf-ink-layer[data-tool="sticky"] { cursor:copy; }
+.lecture-pdf-ink-layer[data-tool="eraser"] { cursor:cell; }
+.lecture-pdf-search-overlay { position:absolute; inset:0; pointer-events:none; }
+.lecture-pdf-search-hit { position:absolute; border-radius:2px; background:rgba(255,200,40,.28); box-shadow:inset 0 0 0 1px rgba(210,150,0,.14); pointer-events:none; }
+.lecture-pdf-mark { position:absolute; display:block; padding:0; border:0; border-radius:1px; background:transparent; pointer-events:none; }
+.lecture-pdf-ink-layer[data-tool="eraser"] .lecture-pdf-mark,.lecture-pdf-ink-layer[data-tool="eraser"] .lecture-pdf-ink,.lecture-pdf-ink-layer[data-tool="eraser"] .lecture-pdf-sticky { pointer-events:auto; cursor:pointer; }
+.lecture-pdf-mark--highlight { background:color-mix(in srgb,var(--pdf-annotation-color) 48%,transparent); mix-blend-mode:multiply; }
+.lecture-pdf-mark--underline { border-bottom:2px solid var(--pdf-annotation-color); }
+.lecture-pdf-mark--strike { background:linear-gradient(to bottom,transparent calc(50% - 1px),var(--pdf-annotation-color) calc(50% - 1px),var(--pdf-annotation-color) calc(50% + 1px),transparent calc(50% + 1px)); }
+.lecture-pdf-ink { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.lecture-pdf-ink path { fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+.lecture-pdf-sticky { position:absolute; z-index:5; width:24px; height:24px; display:grid; place-items:center; transform:translate(-4px,-4px); padding:0; border:1px solid color-mix(in srgb,var(--pdf-annotation-color) 70%,#9b7d1e); border-radius:7px; background:color-mix(in srgb,var(--pdf-annotation-color) 36%,#fff); color:#615316; box-shadow:0 3px 10px rgba(20,35,60,.14); pointer-events:auto; cursor:pointer; }
+.lecture-pdf-note-editor { z-index:30; width:min(260px,70%); padding:8px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-panel); box-shadow:0 14px 34px rgba(20,35,60,.20); pointer-events:auto; }
+.lecture-pdf-note-editor textarea { min-height:82px; border-radius:7px; font-size:9px; }
+.lecture-pdf-thumbnail small { display:flex; align-items:center; gap:3px; }
+.lecture-pdf-thumbnail small::after { content:""; }
+.lecture-pdf-viewer--workspace[data-view-mode="original"] .lecture-pdf-private-state { display:none; }
+.lecture-pdf-viewer--workspace[data-view-mode="original"] .lecture-pdf-text-layer { z-index:2; }
+.lecture-pdf-viewer--workspace[data-view-mode="annotations"] .lecture-pdf-continuous-page[data-current="true"] { outline:1px solid color-mix(in srgb,var(--ui-blue-border) 55%,transparent); outline-offset:3px; }
+@media (max-width:900px) {
+  .lecture-pdf-viewer--workspace .lecture-pdf-toolbar--pro { grid-template-columns:auto 1fr auto; gap:4px; }
+  .lecture-pdf-mode-toggle { justify-self:center; }
+  .lecture-pdf-mode-toggle button { padding:0 7px; }
+  .lecture-pdf-tool-hint,.lecture-pdf-private-state { display:none; }
+}
+@media (max-width:680px) {
+  .lecture-pdf-viewer--workspace .lecture-pdf-toolbar--pro { min-height:38px; padding-inline:5px; }
+  .lecture-pdf-toolbar-group--pages > button { display:none !important; }
+  .lecture-pdf-toolbar-group--tools .lecture-pdf-toolbar-divider,.lecture-pdf-toolbar-group--tools .lecture-pdf-zoom-value { display:none; }
+  .lecture-pdf-mode-toggle button { padding:0 6px; font-size:6.8px; }
+  .lecture-pdf-icon-control { width:26px !important; min-width:26px !important; }
+  .lecture-pdf-annotation-toolbar--pro { padding-inline:5px; }
+  .lecture-pdf-annotation-toolbar--pro .lecture-pdf-color-set { display:none; }
+  .lecture-pdf-side-rail--overlay { inset-inline:5px auto; width:min(220px,78vw); min-width:0; }
+  .lecture-pdf-viewer--workspace .lecture-pdf-pages { gap:10px; padding-block:7px 28px; }
 }
 
     `}
@@ -33724,7 +33904,7 @@ function lecturePdfWorkspaceLabels(language = "da") {
       thumbnails: "Miniaturer", fitPage: "Tilpas side", bookmark: "Bogmærke", bookmarked: "Bogmærket",
       select: "Læs", highlight: "Highlight", underline: "Understreg", strike: "Overstreg", pen: "Pen", sticky: "Note", eraser: "Viskelæder",
       undo: "Fortryd", redo: "Gentag", copyPage: "Kopiér sidetekst", copied: "Kopieret", fullscreen: "Fuld skærm", exitFullscreen: "Forlad fuld skærm",
-      notePlaceholder: "Skriv note…", save: "Gem", cancel: "Annuller", annotationsPrivate: "Dine markeringer gemmes privat på din konto",
+      notePlaceholder: "Skriv note…", save: "Gem", cancel: "Annuller", annotationsPrivate: "Dine markeringer gemmes privat på din konto", originalPdf: "Original PDF", myAnnotations: "Mine markeringer", markTextHint: "Markér tekst direkte i PDF’en",
       annotationSaving: "Gemmer…", annotationSaved: "Gemt", annotationLocal: "Kun lokalt", pageTextUnavailable: "Sidetekst kunne ikke kopieres",
     },
     en: {
@@ -33732,7 +33912,7 @@ function lecturePdfWorkspaceLabels(language = "da") {
       thumbnails: "Thumbnails", fitPage: "Fit page", bookmark: "Bookmark", bookmarked: "Bookmarked",
       select: "Read", highlight: "Highlight", underline: "Underline", strike: "Strikeout", pen: "Pen", sticky: "Note", eraser: "Eraser",
       undo: "Undo", redo: "Redo", copyPage: "Copy page text", copied: "Copied", fullscreen: "Fullscreen", exitFullscreen: "Exit fullscreen",
-      notePlaceholder: "Write note…", save: "Save", cancel: "Cancel", annotationsPrivate: "Your annotations are saved privately to your account",
+      notePlaceholder: "Write note…", save: "Save", cancel: "Cancel", annotationsPrivate: "Your annotations are saved privately to your account", originalPdf: "Original PDF", myAnnotations: "My annotations", markTextHint: "Select text directly in the PDF",
       annotationSaving: "Saving…", annotationSaved: "Saved", annotationLocal: "Local only", pageTextUnavailable: "Page text could not be copied",
     },
     ar: {
@@ -33740,7 +33920,7 @@ function lecturePdfWorkspaceLabels(language = "da") {
       thumbnails: "صور مصغرة", fitPage: "ملاءمة الصفحة", bookmark: "إشارة مرجعية", bookmarked: "محفوظ",
       select: "قراءة", highlight: "تمييز", underline: "تسطير", strike: "شطب", pen: "قلم", sticky: "ملاحظة", eraser: "ممحاة",
       undo: "تراجع", redo: "إعادة", copyPage: "نسخ نص الصفحة", copied: "تم النسخ", fullscreen: "ملء الشاشة", exitFullscreen: "الخروج من ملء الشاشة",
-      notePlaceholder: "اكتب ملاحظة…", save: "حفظ", cancel: "إلغاء", annotationsPrivate: "تُحفظ علاماتك بشكل خاص في حسابك",
+      notePlaceholder: "اكتب ملاحظة…", save: "حفظ", cancel: "إلغاء", annotationsPrivate: "تُحفظ علاماتك بشكل خاص في حسابك", originalPdf: "PDF الأصلي", myAnnotations: "علاماتي", markTextHint: "حدد النص مباشرة في ملف PDF",
       annotationSaving: "جارٍ الحفظ…", annotationSaved: "محفوظ", annotationLocal: "محلي فقط", pageTextUnavailable: "تعذر نسخ نص الصفحة",
     },
   };
@@ -33815,18 +33995,88 @@ function LecturePdfThumbnail({ pdf, pageNumber, active, current, bookmarked, onS
       <span className="lecture-pdf-thumbnail-canvas" data-state={state}>
         {active ? <canvas ref={canvasRef} /> : <i />}
       </span>
-      <small>{pageNumber}{bookmarked ? " · ◆" : ""}</small>
+      <small><span>{pageNumber}</span>{bookmarked ? <Icon name="bookmark" size={8} /> : null}</small>
     </button>
   );
 }
 
-function LecturePdfAnnotationLayer({
+function lecturePdfSelectionRects(selection, layer) {
+  if (!selection || selection.isCollapsed || !layer || selection.rangeCount < 1) return [];
+  const range = selection.getRangeAt(0);
+  const common = range.commonAncestorContainer?.nodeType === 1 ? range.commonAncestorContainer : range.commonAncestorContainer?.parentElement;
+  if (!common || !layer.contains(common)) return [];
+  const bounds = layer.getBoundingClientRect();
+  if (!bounds.width || !bounds.height) return [];
+  const rects = Array.from(range.getClientRects()).map((rect) => ({
+    x: lecturePdfClamp((rect.left - bounds.left) / bounds.width, 0, 1),
+    y: lecturePdfClamp((rect.top - bounds.top) / bounds.height, 0, 1),
+    w: lecturePdfClamp(rect.width / bounds.width, 0, 1),
+    h: lecturePdfClamp(rect.height / bounds.height, 0, 1),
+  })).filter((rect) => rect.w > .0015 && rect.h > .0015 && rect.x < 1 && rect.y < 1);
+  const merged = [];
+  rects.forEach((rect) => {
+    const previous = merged[merged.length - 1];
+    if (previous && Math.abs(previous.y - rect.y) < .004 && Math.abs(previous.h - rect.h) < .008 && rect.x <= previous.x + previous.w + .008) {
+      previous.w = Math.min(1 - previous.x, Math.max(previous.w, rect.x + rect.w - previous.x));
+      previous.y = Math.min(previous.y, rect.y);
+      previous.h = Math.max(previous.h, rect.h);
+    } else merged.push({ ...rect });
+  });
+  return merged.slice(0, 80);
+}
+
+function LecturePdfTextLayer({ pdf, pageNumber, scale, active, activeTool = "select", showAnnotations = false, onCreate }) {
+  const layerRef = useRef(null);
+  const [items, setItems] = useState([]);
+  const textTool = showAnnotations && ["highlight", "underline", "strike"].includes(activeTool);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!pdf || !active) { setItems([]); return undefined; }
+    Promise.all([pdf.getPage(pageNumber), loadLecturePdfJs()]).then(async ([page, pdfjs]) => {
+      const viewport = page.getViewport({ scale });
+      const content = await page.getTextContent();
+      if (cancelled) return;
+      const next = (content.items || []).map((item, index) => {
+        const text = String(item.str || "");
+        if (!text) return null;
+        const transform = Array.isArray(item.transform) ? item.transform : [1, 0, 0, 1, 0, 0];
+        const tx = pdfjs.Util?.transform ? pdfjs.Util.transform(viewport.transform, transform) : transform;
+        const fontSize = Math.max(1, Math.hypot(Number(tx[2]) || 0, Number(tx[3]) || 0));
+        const angle = Math.atan2(Number(tx[1]) || 0, Number(tx[0]) || 1);
+        const width = Math.max(1, Number(item.width || 0) * scale);
+        return { id: `${pageNumber}-${index}`, text, left: Number(tx[4]) || 0, top: (Number(tx[5]) || 0) - fontSize, fontSize, angle, width, dir: item.dir || "ltr" };
+      }).filter(Boolean);
+      setItems(next);
+    }).catch(() => { if (!cancelled) setItems([]); });
+    return () => { cancelled = true; };
+  }, [pdf, pageNumber, scale, active]);
+
+  function finishTextSelection() {
+    if (!textTool || !layerRef.current) return;
+    const selection = window.getSelection();
+    const rects = lecturePdfSelectionRects(selection, layerRef.current);
+    const text = String(selection?.toString?.() || "").replace(/\s+/g, " ").trim();
+    if (!rects.length || !text) return;
+    onCreate?.({ id: lecturePdfAnnotationId(), page: pageNumber, type: activeTool, color: null, payload: { rects, text: text.slice(0, 4000), normalized: true } });
+    selection?.removeAllRanges?.();
+  }
+
+  return (
+    <div ref={layerRef} className="lecture-pdf-text-layer" data-marking={textTool ? "true" : "false"} onMouseUp={finishTextSelection}>
+      {items.map((item) => <span key={item.id} dir={item.dir} style={{ left: item.left, top: item.top, fontSize: item.fontSize, width: item.width, transform: `rotate(${item.angle}rad)` }}>{item.text}</span>)}
+    </div>
+  );
+}
+
+function LecturePdfInkLayer({
   pageNumber,
   annotations = [],
   searchBoxes = [],
   activeTool = "select",
   activeColor = "#f7d85c",
   labels,
+  showAnnotations = false,
   onCreate,
   onUpdate,
   onDelete,
@@ -33836,68 +34086,47 @@ function LecturePdfAnnotationLayer({
   const [preview, setPreview] = useState(null);
   const [noteDraft, setNoteDraft] = useState(null);
   const [editingNote, setEditingNote] = useState(null);
+  const pointerTool = showAnnotations && ["pen", "sticky", "eraser"].includes(activeTool);
 
   function beginPointer(event) {
-    if (!layerRef.current || event.button !== 0) return;
-    if (activeTool === "select" || activeTool === "eraser") return;
+    if (!pointerTool || !layerRef.current || event.button !== 0) return;
     const point = lecturePdfNormalizedPoint(event, layerRef.current);
     if (activeTool === "sticky") {
       event.preventDefault();
       setNoteDraft({ x: point.x, y: point.y, text: "" });
       return;
     }
+    if (activeTool !== "pen") return;
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    if (activeTool === "pen") {
-      drawingRef.current = { type: "pen", points: [point] };
-      setPreview({ type: "pen", points: [point] });
-    } else if (["highlight", "underline", "strike"].includes(activeTool)) {
-      drawingRef.current = { type: activeTool, start: point, end: point };
-      setPreview({ type: activeTool, rect: { x: point.x, y: point.y, w: 0, h: 0 } });
-    }
+    drawingRef.current = { type: "pen", points: [point] };
+    setPreview({ type: "pen", points: [point] });
   }
 
   function movePointer(event) {
     const drawing = drawingRef.current;
-    if (!drawing || !layerRef.current) return;
+    if (!drawing || !layerRef.current || activeTool !== "pen") return;
     event.preventDefault();
     const point = lecturePdfNormalizedPoint(event, layerRef.current);
-    if (drawing.type === "pen") {
-      const last = drawing.points[drawing.points.length - 1];
-      if (!last || Math.hypot(point.x - last.x, point.y - last.y) > .002) drawing.points.push(point);
-      setPreview({ type: "pen", points: [...drawing.points] });
-    } else {
-      drawing.end = point;
-      setPreview({ type: drawing.type, rect: lecturePdfRectFromPoints(drawing.start, point) });
-    }
+    const last = drawing.points[drawing.points.length - 1];
+    if (!last || Math.hypot(point.x - last.x, point.y - last.y) > .002) drawing.points.push(point);
+    setPreview({ type: "pen", points: [...drawing.points] });
   }
 
   function finishPointer(event) {
     const drawing = drawingRef.current;
-    if (!drawing) return;
+    if (!drawing || activeTool !== "pen") return;
     event.preventDefault();
     drawingRef.current = null;
     setPreview(null);
-    if (drawing.type === "pen") {
-      if (drawing.points.length >= 2) onCreate?.({ id: lecturePdfAnnotationId(), page: pageNumber, type: "pen", color: activeColor, payload: { points: drawing.points, normalized: true } });
-      return;
-    }
-    const rect = lecturePdfRectFromPoints(drawing.start, drawing.end);
-    if (rect.w < .006 || rect.h < .004) return;
-    onCreate?.({ id: lecturePdfAnnotationId(), page: pageNumber, type: drawing.type, color: activeColor, payload: { rect, normalized: true } });
+    if (drawing.points.length >= 2) onCreate?.({ id: lecturePdfAnnotationId(), page: pageNumber, type: "pen", color: activeColor, payload: { points: drawing.points, normalized: true } });
   }
 
   function annotationClick(event, annotation) {
     event.stopPropagation();
-    if (activeTool === "eraser") {
-      event.preventDefault();
-      onDelete?.(annotation);
-      return;
-    }
-    if (annotation.type === "sticky" && activeTool === "select") {
-      event.preventDefault();
-      setEditingNote({ annotation, text: String(annotation.payload?.text || "") });
-    }
+    if (!showAnnotations) return;
+    if (activeTool === "eraser") { event.preventDefault(); onDelete?.(annotation); return; }
+    if (annotation.type === "sticky" && activeTool === "select") { event.preventDefault(); setEditingNote({ annotation, text: String(annotation.payload?.text || "") }); }
   }
 
   function saveNewNote() {
@@ -33919,18 +34148,15 @@ function LecturePdfAnnotationLayer({
     return { left: `${rect.x * 100}%`, top: `${rect.y * 100}%`, width: `${rect.w * 100}%`, height: `${rect.h * 100}%` };
   }
 
+  function renderMark(annotation) {
+    const rects = Array.isArray(annotation.payload?.rects) && annotation.payload.rects.length ? annotation.payload.rects : (annotation.payload?.rect ? [annotation.payload.rect] : []);
+    return rects.map((rect, index) => <button key={`${annotation.id}-${index}`} type="button" className={`lecture-pdf-mark lecture-pdf-mark--${annotation.type}`} style={{ ...rectStyle(rect), "--pdf-annotation-color": annotation.color || activeColor }} onClick={(event) => annotationClick(event, annotation)} aria-label={annotation.type} />);
+  }
+
   return (
-    <div
-      ref={layerRef}
-      className="lecture-pdf-annotation-layer"
-      data-tool={activeTool}
-      onPointerDown={beginPointer}
-      onPointerMove={movePointer}
-      onPointerUp={finishPointer}
-      onPointerCancel={() => { drawingRef.current = null; setPreview(null); }}
-    >
-      {searchBoxes.map((box, index) => <span key={`search-${index}`} className="lecture-pdf-search-hit" style={rectStyle(box)} />)}
-      {annotations.filter((annotation) => annotation.type !== "bookmark").map((annotation) => {
+    <div ref={layerRef} className="lecture-pdf-ink-layer" data-tool={showAnnotations ? activeTool : "hidden"} onPointerDown={beginPointer} onPointerMove={movePointer} onPointerUp={finishPointer} onPointerCancel={() => { drawingRef.current = null; setPreview(null); }}>
+      <div className="lecture-pdf-search-overlay" aria-hidden="true">{searchBoxes.map((box, index) => <span key={`search-${index}`} className="lecture-pdf-search-hit" style={rectStyle(box)} />)}</div>
+      {showAnnotations && annotations.filter((annotation) => annotation.type !== "bookmark").map((annotation) => {
         if (annotation.type === "pen") {
           const points = Array.isArray(annotation.payload?.points) ? annotation.payload.points : [];
           const d = points.map((point, index) => `${index ? "L" : "M"}${point.x} ${point.y}`).join(" ");
@@ -33939,31 +34165,18 @@ function LecturePdfAnnotationLayer({
         if (annotation.type === "sticky") {
           const x = lecturePdfClamp(annotation.payload?.x || 0, 0, 1);
           const y = lecturePdfClamp(annotation.payload?.y || 0, 0, 1);
-          return <button key={annotation.id} type="button" className="lecture-pdf-sticky" style={{ left: `${x * 100}%`, top: `${y * 100}%`, "--pdf-annotation-color": annotation.color || activeColor }} title={String(annotation.payload?.text || "")} onClick={(event) => annotationClick(event, annotation)}>✎</button>;
+          return <button key={annotation.id} type="button" className="lecture-pdf-sticky" style={{ left: `${x * 100}%`, top: `${y * 100}%`, "--pdf-annotation-color": annotation.color || activeColor }} title={String(annotation.payload?.text || "")} onClick={(event) => annotationClick(event, annotation)}><Icon name="sticky" size={13} /></button>;
         }
-        const rect = annotation.payload?.rect;
-        if (!rect) return null;
-        return <button key={annotation.id} type="button" className={`lecture-pdf-mark lecture-pdf-mark--${annotation.type}`} style={{ ...rectStyle(rect), "--pdf-annotation-color": annotation.color || activeColor }} onClick={(event) => annotationClick(event, annotation)} aria-label={annotation.type} />;
+        return <React.Fragment key={annotation.id}>{renderMark(annotation)}</React.Fragment>;
       })}
-      {preview?.rect && <span className={`lecture-pdf-mark lecture-pdf-mark--${preview.type} lecture-pdf-mark--preview`} style={{ ...rectStyle(preview.rect), "--pdf-annotation-color": activeColor }} />}
-      {preview?.type === "pen" && <svg className="lecture-pdf-ink lecture-pdf-ink--preview" viewBox="0 0 1 1" preserveAspectRatio="none"><path d={(preview.points || []).map((point, index) => `${index ? "L" : "M"}${point.x} ${point.y}`).join(" ")} vectorEffect="non-scaling-stroke" style={{ stroke: activeColor }} /></svg>}
-      {noteDraft && (
-        <div className="lecture-pdf-note-editor" style={{ left: `${noteDraft.x * 100}%`, top: `${noteDraft.y * 100}%` }} onPointerDown={(event) => event.stopPropagation()}>
-          <textarea autoFocus value={noteDraft.text} placeholder={labels.notePlaceholder} onChange={(event) => setNoteDraft((current) => ({ ...current, text: event.target.value }))} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") saveNewNote(); if (event.key === "Escape") setNoteDraft(null); }} />
-          <div><button type="button" onClick={() => setNoteDraft(null)}>{labels.cancel}</button><button type="button" data-primary="true" onClick={saveNewNote}>{labels.save}</button></div>
-        </div>
-      )}
-      {editingNote && (
-        <div className="lecture-pdf-note-editor lecture-pdf-note-editor--center" onPointerDown={(event) => event.stopPropagation()}>
-          <textarea autoFocus value={editingNote.text} placeholder={labels.notePlaceholder} onChange={(event) => setEditingNote((current) => ({ ...current, text: event.target.value }))} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") saveEditedNote(); if (event.key === "Escape") setEditingNote(null); }} />
-          <div><button type="button" onClick={() => setEditingNote(null)}>{labels.cancel}</button><button type="button" data-primary="true" onClick={saveEditedNote}>{labels.save}</button></div>
-        </div>
-      )}
+      {showAnnotations && preview?.type === "pen" && <svg className="lecture-pdf-ink lecture-pdf-ink--preview" viewBox="0 0 1 1" preserveAspectRatio="none"><path d={(preview.points || []).map((point, index) => `${index ? "L" : "M"}${point.x} ${point.y}`).join(" ")} vectorEffect="non-scaling-stroke" style={{ stroke: activeColor }} /></svg>}
+      {showAnnotations && noteDraft && <div className="lecture-pdf-note-editor" style={{ left: `${noteDraft.x * 100}%`, top: `${noteDraft.y * 100}%` }} onPointerDown={(event) => event.stopPropagation()}><textarea autoFocus value={noteDraft.text} placeholder={labels.notePlaceholder} onChange={(event) => setNoteDraft((current) => ({ ...current, text: event.target.value }))} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") saveNewNote(); if (event.key === "Escape") setNoteDraft(null); }} /><div><button type="button" onClick={() => setNoteDraft(null)}>{labels.cancel}</button><button type="button" data-primary="true" onClick={saveNewNote}>{labels.save}</button></div></div>}
+      {showAnnotations && editingNote && <div className="lecture-pdf-note-editor lecture-pdf-note-editor--center" onPointerDown={(event) => event.stopPropagation()}><textarea autoFocus value={editingNote.text} placeholder={labels.notePlaceholder} onChange={(event) => setEditingNote((current) => ({ ...current, text: event.target.value }))} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") saveEditedNote(); if (event.key === "Escape") setEditingNote(null); }} /><div><button type="button" onClick={() => setEditingNote(null)}>{labels.cancel}</button><button type="button" data-primary="true" onClick={saveEditedNote}>{labels.save}</button></div></div>}
     </div>
   );
 }
 
-function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scale, active, fileName, copy, annotations = [], searchBoxes = [], activeTool = "select", activeColor, labels, onCreateAnnotation, onUpdateAnnotation, onDeleteAnnotation, workspace = false }) {
+function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scale, active, fileName, copy, annotations = [], searchBoxes = [], activeTool = "select", activeColor, labels, onCreateAnnotation, onUpdateAnnotation, onDeleteAnnotation, workspace = false, showAnnotations = false }) {
   const canvasRef = useRef(null);
   const renderTaskRef = useRef(null);
   const [renderState, setRenderState] = useState("idle");
@@ -33979,10 +34192,7 @@ function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scal
     if (!active) {
       try { renderTaskRef.current?.cancel?.(); } catch {}
       renderTaskRef.current = null;
-      canvas.width = 0;
-      canvas.height = 0;
-      canvas.style.width = "0px";
-      canvas.style.height = "0px";
+      canvas.width = 0; canvas.height = 0; canvas.style.width = "0px"; canvas.style.height = "0px";
       setRenderState("idle");
       return undefined;
     }
@@ -34015,9 +34225,10 @@ function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scal
   }, [pdf, pageNumber, scale, active]);
 
   return (
-    <div className="lecture-pdf-continuous-page-inner" style={{ width: displayWidth, height: displayHeight }}>
+    <div className="lecture-pdf-continuous-page-inner" style={{ width: displayWidth, height: displayHeight, aspectRatio: `${safeBaseWidth} / ${safeBaseHeight}` }}>
       <canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />
-      {workspace && <LecturePdfAnnotationLayer pageNumber={pageNumber} annotations={annotations} searchBoxes={searchBoxes} activeTool={activeTool} activeColor={activeColor} labels={labels} onCreate={onCreateAnnotation} onUpdate={onUpdateAnnotation} onDelete={onDeleteAnnotation} />}
+      {workspace && active && <LecturePdfTextLayer pdf={pdf} pageNumber={pageNumber} scale={scale} active={active} activeTool={activeTool} showAnnotations={showAnnotations} onCreate={onCreateAnnotation} />}
+      {workspace && active && <LecturePdfInkLayer pageNumber={pageNumber} annotations={annotations} searchBoxes={searchBoxes} activeTool={activeTool} activeColor={activeColor} labels={labels} showAnnotations={showAnnotations} onCreate={onCreateAnnotation} onUpdate={onUpdateAnnotation} onDelete={onDeleteAnnotation} />}
       {active && renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}
       {active && renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}
       {!active && <span className="lecture-pdf-page-placeholder" aria-hidden="true" />}
@@ -34077,6 +34288,7 @@ function LecturePdfViewer({
   const [pdfSearchState, setPdfSearchState] = useState("idle");
   const [activeTool, setActiveTool] = useState(savedState?.activeTool || "select");
   const [activeColor, setActiveColor] = useState(savedState?.activeColor || "#f7d85c");
+  const [annotationViewMode, setAnnotationViewMode] = useState(savedState?.viewMode === "annotations" ? "annotations" : "original");
   const [historyRevision, setHistoryRevision] = useState(0);
   const [copyState, setCopyState] = useState("idle");
   const [fullscreen, setFullscreen] = useState(false);
@@ -34093,6 +34305,7 @@ function LecturePdfViewer({
     setPdfSearchQuery(String(savedState?.searchQuery || ""));
     setActiveTool(savedState?.activeTool || "select");
     setActiveColor(savedState?.activeColor || "#f7d85c");
+    setAnnotationViewMode(savedState?.viewMode === "annotations" ? "annotations" : "original");
     setPageMetrics([]); setRenderPages(new Set([page]));
     undoStackRef.current = []; redoStackRef.current = []; setHistoryRevision((value) => value + 1);
     restoreScrollRef.current = { scrollTop: Math.max(0, Number(savedState?.scrollTop) || 0), page, pageOffset: lecturePdfClamp(savedState?.pageOffset || 0, 0, 1) };
@@ -34228,7 +34441,7 @@ function LecturePdfViewer({
     nodes.forEach((node) => observer.observe(node)); return () => observer.disconnect();
   }, [continuous, loadState, pageMetrics.length, pageNumber, numPages, workspace]);
 
-  useEffect(() => { if (!materialId) return; stateChangeRef.current?.({ page: pageNumber, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor }); }, [materialId, pageNumber, zoomMode, customScale, thumbnailOpen, searchOpen, pdfSearchQuery, activeTool, activeColor]);
+  useEffect(() => { if (!materialId) return; stateChangeRef.current?.({ page: pageNumber, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor, viewMode: annotationViewMode }); }, [materialId, pageNumber, zoomMode, customScale, thumbnailOpen, searchOpen, pdfSearchQuery, activeTool, activeColor, annotationViewMode]);
 
   function locateContinuousPage(surface) {
     const top = surface.scrollTop + 18; let bestPage = pageNumber; let bestDistance = Number.POSITIVE_INFINITY; let bestNode = pageRefs.current.get(bestPage) || null;
@@ -34247,7 +34460,7 @@ function LecturePdfViewer({
   function rememberScroll(event) {
     const surface = event.currentTarget; const top = Math.max(0, surface.scrollTop || 0);
     if (continuous) { if (scrollFrameRef.current) window.cancelAnimationFrame(scrollFrameRef.current); scrollFrameRef.current = window.requestAnimationFrame(() => { const position = locateContinuousPage(surface); if (position.page !== pageNumber) { setPageNumber(position.page); setPageDraft(String(position.page)); } }); }
-    window.clearTimeout(scrollSaveTimerRef.current); scrollSaveTimerRef.current = window.setTimeout(() => { if (continuous) { const position = locateContinuousPage(surface); stateChangeRef.current?.({ scrollTop: top, page: position.page, pageOffset: position.pageOffset, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor }); } else stateChangeRef.current?.({ scrollTop: top, page: pageNumber, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor }); }, 180);
+    window.clearTimeout(scrollSaveTimerRef.current); scrollSaveTimerRef.current = window.setTimeout(() => { if (continuous) { const position = locateContinuousPage(surface); stateChangeRef.current?.({ scrollTop: top, page: position.page, pageOffset: position.pageOffset, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor, viewMode: annotationViewMode }); } else stateChangeRef.current?.({ scrollTop: top, page: pageNumber, zoomMode, scale: customScale, thumbnailsOpen: thumbnailOpen, searchOpen, searchQuery: pdfSearchQuery, activeTool, activeColor, viewMode: annotationViewMode }); }, 180);
   }
 
   function pushHistory(action) { undoStackRef.current.push(action); if (undoStackRef.current.length > 60) undoStackRef.current.shift(); redoStackRef.current = []; setHistoryRevision((value) => value + 1); }
@@ -34270,8 +34483,8 @@ function LecturePdfViewer({
   function handleKeys(event) {
     if (workspace && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") { event.preventDefault(); setSearchOpen(true); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); return; }
     if (event.target?.matches?.("input,textarea,select")) return;
-    if (workspace && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey) { event.preventDefault(); undoAnnotation(); return; }
-    if (workspace && ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.key.toLowerCase() === "z" && event.shiftKey)))) { event.preventDefault(); redoAnnotation(); return; }
+    if (workspace && annotationViewMode === "annotations" && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey) { event.preventDefault(); undoAnnotation(); return; }
+    if (workspace && annotationViewMode === "annotations" && ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.key.toLowerCase() === "z" && event.shiftKey)))) { event.preventDefault(); redoAnnotation(); return; }
     if (event.key === "PageDown" || event.key === "ArrowRight") { event.preventDefault(); changePage(pageNumber + 1); }
     else if (event.key === "PageUp" || event.key === "ArrowLeft") { event.preventDefault(); changePage(pageNumber - 1); }
     else if ((event.ctrlKey || event.metaKey) && (event.key === "+" || event.key === "=")) { event.preventDefault(); changeZoom(.15); }
@@ -34283,54 +34496,73 @@ function LecturePdfViewer({
   pdfSearchResults.forEach((result) => searchBoxesByPage.set(result.page, [...(searchBoxesByPage.get(result.page) || []), ...(result.boxes || [])]));
   const colors = ["#f7d85c", "#8be0a4", "#88c7ff", "#f3a6c8"];
   const toolDefs = [
-    ["select", "↖", labels.select], ["highlight", "▰", labels.highlight], ["underline", "U̲", labels.underline], ["strike", "S̶", labels.strike], ["pen", "✎", labels.pen], ["sticky", "▣", labels.sticky], ["eraser", "⌫", labels.eraser],
+    ["select", "cursor", labels.select], ["highlight", "highlight", labels.highlight], ["underline", "underline", labels.underline], ["strike", "strike", labels.strike], ["pen", "pen", labels.pen], ["sticky", "sticky", labels.sticky], ["eraser", "eraser", labels.eraser],
   ];
+  const showAnnotations = workspace && annotationViewMode === "annotations";
+  const drawerOpen = workspace && (thumbnailOpen || searchOpen);
+
+  function changeViewMode(mode) {
+    const next = mode === "annotations" ? "annotations" : "original";
+    setAnnotationViewMode(next);
+    if (next === "original") setActiveTool("select");
+  }
 
   if (loadState === "fallback") return <div className="lecture-pdf-viewer lecture-pdf-viewer--fallback"><div className="lecture-pdf-fallback-note">{copy.pdfViewerFallback}</div><iframe title={fileName} src={url} /></div>;
 
   return (
-    <div ref={rootRef} className={`lecture-pdf-viewer ${continuous ? "lecture-pdf-viewer--continuous" : ""} ${workspace ? "lecture-pdf-viewer--workspace" : ""}`} data-fullscreen={fullscreen ? "true" : "false"} tabIndex={0} onKeyDown={handleKeys}>
-      <div className="lecture-pdf-toolbar" role="toolbar" aria-label={copy.pdfViewerControls}>
-        <div className="lecture-pdf-toolbar-group">
-          <button type="button" title={copy.pdfPreviousPage} disabled={loadState !== "ready" || pageNumber <= 1} onClick={() => changePage(pageNumber - 1)}><Icon name="left" size={13} /></button>
+    <div ref={rootRef} className={`lecture-pdf-viewer ${continuous ? "lecture-pdf-viewer--continuous" : ""} ${workspace ? "lecture-pdf-viewer--workspace" : ""}`} data-fullscreen={fullscreen ? "true" : "false"} data-view-mode={annotationViewMode} tabIndex={0} onKeyDown={handleKeys}>
+      <div className="lecture-pdf-toolbar lecture-pdf-toolbar--pro" role="toolbar" aria-label={copy.pdfViewerControls}>
+        <div className="lecture-pdf-toolbar-group lecture-pdf-toolbar-group--pages">
+          <button type="button" className="lecture-pdf-icon-control" title={copy.pdfPreviousPage} disabled={loadState !== "ready" || pageNumber <= 1} onClick={() => changePage(pageNumber - 1)}><Icon name="left" size={14} /></button>
           <label className="lecture-pdf-page-control" title={copy.pdfPage}><input type="number" min="1" max={numPages || 1} value={pageDraft} onChange={(event) => setPageDraft(event.target.value)} onBlur={commitPageDraft} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitPageDraft(); event.currentTarget.blur(); } }} /><span>/ {numPages || "—"}</span></label>
-          <button type="button" title={copy.pdfNextPage} disabled={loadState !== "ready" || !numPages || pageNumber >= numPages} onClick={() => changePage(pageNumber + 1)}><Icon name="right" size={13} /></button>
+          <button type="button" className="lecture-pdf-icon-control" title={copy.pdfNextPage} disabled={loadState !== "ready" || !numPages || pageNumber >= numPages} onClick={() => changePage(pageNumber + 1)}><Icon name="right" size={14} /></button>
         </div>
-        <span className="lecture-pdf-toolbar-divider" />
-        <div className="lecture-pdf-toolbar-group">
-          <button type="button" title={copy.pdfZoomOut} disabled={loadState !== "ready"} onClick={() => changeZoom(-.15)}>−</button><span className="lecture-pdf-zoom-value">{Math.round((toolbarScale || 1) * 100)}%</span><button type="button" title={copy.pdfZoomIn} disabled={loadState !== "ready"} onClick={() => changeZoom(.15)}>+</button>
-          <button type="button" className="lecture-pdf-fit-button" data-active={zoomMode === "fit-width" ? "true" : "false"} title={copy.pdfFitWidth} disabled={loadState !== "ready"} onClick={() => setZoomMode("fit-width")}><Icon name="expand" size={12} /><span>{copy.pdfFitWidth}</span></button>
-          {workspace && <button type="button" className="lecture-pdf-fit-button" data-active={zoomMode === "fit-page" ? "true" : "false"} title={labels.fitPage} disabled={loadState !== "ready"} onClick={() => setZoomMode("fit-page")}><span>□</span><span>{labels.fitPage}</span></button>}
+
+        {workspace && <div className="lecture-pdf-mode-toggle" aria-label={labels.annotationsPrivate}>
+          <button type="button" data-active={annotationViewMode === "original" ? "true" : "false"} onClick={() => changeViewMode("original")}>{labels.originalPdf}</button>
+          <button type="button" data-active={annotationViewMode === "annotations" ? "true" : "false"} onClick={() => changeViewMode("annotations")}>{labels.myAnnotations}</button>
+        </div>}
+
+        <div className="lecture-pdf-toolbar-group lecture-pdf-toolbar-group--tools">
+          <button type="button" className="lecture-pdf-icon-control" title={copy.pdfZoomOut} disabled={loadState !== "ready"} onClick={() => changeZoom(-.15)}><Icon name="zoomOut" size={14} /></button>
+          <span className="lecture-pdf-zoom-value">{Math.round((toolbarScale || 1) * 100)}%</span>
+          <button type="button" className="lecture-pdf-icon-control" title={copy.pdfZoomIn} disabled={loadState !== "ready"} onClick={() => changeZoom(.15)}><Icon name="zoomIn" size={14} /></button>
+          <button type="button" className="lecture-pdf-icon-control" data-active={zoomMode === "fit-width" ? "true" : "false"} title={copy.pdfFitWidth} disabled={loadState !== "ready"} onClick={() => setZoomMode("fit-width")}><Icon name="fit" size={14} /></button>
+          {workspace && <>
+            <span className="lecture-pdf-toolbar-divider" />
+            <button type="button" className="lecture-pdf-icon-control" data-active={thumbnailOpen ? "true" : "false"} title={labels.thumbnails} onClick={() => { setThumbnailOpen((value) => !value); setSearchOpen(false); }}><Icon name="thumbnails" size={14} /></button>
+            <button type="button" className="lecture-pdf-icon-control" data-active={searchOpen ? "true" : "false"} title={`${labels.search} · Ctrl/Cmd+F`} onClick={() => { setSearchOpen((value) => !value); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); }}><Icon name="search" size={14} /></button>
+            <button type="button" className="lecture-pdf-icon-control" data-active={Boolean(currentBookmark) ? "true" : "false"} title={currentBookmark ? labels.bookmarked : labels.bookmark} onClick={toggleBookmark}><Icon name="bookmark" size={14} /></button>
+            <button type="button" className="lecture-pdf-icon-control" title={copyState === "copied" ? labels.copied : copyState === "error" ? labels.pageTextUnavailable : labels.copyPage} onClick={copyCurrentPageText}><Icon name={copyState === "copied" ? "check" : "copy"} size={14} /></button>
+            <button type="button" className="lecture-pdf-icon-control" title={fullscreen ? labels.exitFullscreen : labels.fullscreen} onClick={toggleFullscreen}><Icon name={fullscreen ? "collapse" : "expand"} size={14} /></button>
+          </>}
         </div>
-        {workspace && <><span className="lecture-pdf-toolbar-divider" /><div className="lecture-pdf-toolbar-group lecture-pdf-workspace-actions">
-          <button type="button" data-active={thumbnailOpen ? "true" : "false"} title={labels.thumbnails} onClick={() => { setThumbnailOpen((value) => !value); setSearchOpen(false); }}><span>▦</span></button>
-          <button type="button" data-active={searchOpen ? "true" : "false"} title={`${labels.search} · Ctrl/Cmd+F`} onClick={() => { setSearchOpen((value) => !value); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); }}><span>⌕</span></button>
-          <button type="button" data-active={Boolean(currentBookmark) ? "true" : "false"} title={currentBookmark ? labels.bookmarked : labels.bookmark} onClick={toggleBookmark}><span>◆</span></button>
-          <button type="button" title={copyState === "copied" ? labels.copied : copyState === "error" ? labels.pageTextUnavailable : labels.copyPage} onClick={copyCurrentPageText}><span>{copyState === "copied" ? "✓" : "⧉"}</span></button>
-          <button type="button" title={fullscreen ? labels.exitFullscreen : labels.fullscreen} onClick={toggleFullscreen}><Icon name={fullscreen ? "collapse" : "expand"} size={12} /></button>
-        </div></>}
       </div>
-      {workspace && <div className="lecture-pdf-annotation-toolbar" role="toolbar" aria-label={labels.annotationsPrivate}>
-        <div className="lecture-pdf-toolset">{toolDefs.map(([id, glyph, title]) => <button key={id} type="button" data-active={activeTool === id ? "true" : "false"} title={title} onClick={() => setActiveTool(id)}><span>{glyph}</span><small>{title}</small></button>)}</div>
+
+      {showAnnotations && <div className="lecture-pdf-annotation-toolbar lecture-pdf-annotation-toolbar--pro" role="toolbar" aria-label={labels.annotationsPrivate}>
+        <div className="lecture-pdf-toolset">{toolDefs.map(([id, iconName, title]) => <button key={id} type="button" data-active={activeTool === id ? "true" : "false"} title={title} aria-label={title} onClick={() => setActiveTool(id)}><Icon name={iconName} size={14} /></button>)}</div>
         <span className="lecture-pdf-toolbar-divider" />
         <div className="lecture-pdf-color-set" aria-label="Annotation colors">{colors.map((color) => <button key={color} type="button" data-active={activeColor === color ? "true" : "false"} aria-label={color} title={color} style={{ "--pdf-color": color }} onClick={() => setActiveColor(color)} />)}</div>
         <span className="lecture-pdf-toolbar-divider" />
-        <div className="lecture-pdf-history-actions"><button type="button" disabled={!undoStackRef.current.length} title={`${labels.undo} · Ctrl/Cmd+Z`} onClick={undoAnnotation}>↶</button><button type="button" disabled={!redoStackRef.current.length} title={`${labels.redo} · Ctrl/Cmd+Y`} onClick={redoAnnotation}>↷</button></div>
+        <div className="lecture-pdf-history-actions"><button type="button" disabled={!undoStackRef.current.length} title={`${labels.undo} · Ctrl/Cmd+Z`} onClick={undoAnnotation}><Icon name="undo" size={14} /></button><button type="button" disabled={!redoStackRef.current.length} title={`${labels.redo} · Ctrl/Cmd+Y`} onClick={redoAnnotation}><Icon name="redo" size={14} /></button></div>
+        <span className="lecture-pdf-tool-hint">{["highlight", "underline", "strike"].includes(activeTool) ? labels.markTextHint : labels[activeTool] || labels.annotationsPrivate}</span>
         <span className="lecture-pdf-private-state" data-state={annotationStatus}><i />{annotationStatus === "saving" ? labels.annotationSaving : annotationStatus === "ready" ? labels.annotationSaved : labels.annotationsPrivate}</span>
         <span style={{ display: "none" }}>{historyRevision}</span>
       </div>}
+
       <div className="lecture-pdf-workspace-body">
-        {workspace && (thumbnailOpen || searchOpen) && <aside className="lecture-pdf-side-rail" data-mode={searchOpen ? "search" : "thumbnails"}>
+        {drawerOpen && <aside className="lecture-pdf-side-rail lecture-pdf-side-rail--overlay" data-mode={searchOpen ? "search" : "thumbnails"}>
+          <div className="lecture-pdf-drawer-title"><strong>{searchOpen ? labels.search : labels.thumbnails}</strong><button type="button" onClick={() => { setSearchOpen(false); setThumbnailOpen(false); }} title={copy.close}><Icon name="close" size={13} /></button></div>
           {searchOpen ? <>
-            <div className="lecture-pdf-search-head"><label><span>⌕</span><input ref={searchInputRef} value={pdfSearchQuery} onChange={(event) => setPdfSearchQuery(event.target.value)} placeholder={labels.searchPlaceholder} /></label><small>{pdfSearchState === "loading" ? "…" : `${pdfSearchResults.length} ${labels.searchResults}`}</small></div>
+            <div className="lecture-pdf-search-head"><label><Icon name="search" size={13} /><input ref={searchInputRef} value={pdfSearchQuery} onChange={(event) => setPdfSearchQuery(event.target.value)} placeholder={labels.searchPlaceholder} /></label><small>{pdfSearchState === "loading" ? "…" : `${pdfSearchResults.length} ${labels.searchResults}`}</small></div>
             <div className="lecture-pdf-search-results">{pdfSearchResults.map((result) => <button key={result.id} type="button" data-current={result.page === pageNumber ? "true" : "false"} onClick={() => scrollToContinuousPage(result.page, 0, true)}><strong>{copy.pdfPage} {result.page}</strong><span>{result.excerpt}</span></button>)}{pdfSearchState === "ready" && !pdfSearchResults.length && pdfSearchQuery.trim().length >= 2 && <div className="lecture-pdf-side-empty">{labels.noSearchResults}</div>}</div>
           </> : <div className="lecture-pdf-thumbnail-list">{Array.from({ length: numPages }, (_, index) => { const page = index + 1; const bookmarked = annotations.some((annotation) => annotation.type === "bookmark" && Number(annotation.page) === page); return <LecturePdfThumbnail key={page} pdf={pdfRef.current} pageNumber={page} active={Math.abs(page - pageNumber) <= 7} current={page === pageNumber} bookmarked={bookmarked} onSelect={() => scrollToContinuousPage(page, 0, true)} label={copy.pdfPage} />; })}</div>}
         </aside>}
         <div ref={surfaceRef} className="lecture-pdf-surface" onScroll={rememberScroll}>
           {loadState === "loading" ? <div className="lecture-pdf-state"><span className="lecture-pdf-spinner" /><strong>{copy.pdfLoading}</strong></div> : continuous ? <div className="lecture-pdf-pages">{pageMetrics.map((metric, index) => {
             const page = index + 1; const fitWidth = lecturePdfClamp(Math.max(260, (surfaceWidth || metric.width) - 40) / Math.max(1, metric.width), .35, 3.5); const fitPage = lecturePdfClamp(Math.min(fitWidth, Math.max(260, (surfaceHeight || metric.height) - 26) / Math.max(1, metric.height)), .35, 3.5); const scale = zoomMode === "fit-width" ? fitWidth : zoomMode === "fit-page" ? fitPage : lecturePdfClamp(customScale, .5, 3.5); const displayWidth = Math.max(1, Math.round(metric.width * scale)); const displayHeight = Math.max(1, Math.round(metric.height * scale));
-            return <section key={page} ref={(node) => { if (node) pageRefs.current.set(page, node); else pageRefs.current.delete(page); }} className="lecture-pdf-continuous-page" data-pdf-page={page} data-current={page === pageNumber ? "true" : "false"} style={{ width: displayWidth, minHeight: displayHeight }} aria-label={`${copy.pdfPage} ${page}`}>
-              <LecturePdfContinuousPage pdf={pdfRef.current} pageNumber={page} baseWidth={metric.width} baseHeight={metric.height} scale={scale} active={renderPages.has(page)} fileName={fileName} copy={copy} workspace={workspace} annotations={annotations.filter((annotation) => Number(annotation.page) === page)} searchBoxes={searchBoxesByPage.get(page) || []} activeTool={activeTool} activeColor={activeColor} labels={labels} onCreateAnnotation={(annotation) => createAnnotation(annotation)} onUpdateAnnotation={(next, previous) => updateAnnotation(next, previous)} onDeleteAnnotation={(annotation) => deleteAnnotation(annotation)} />
+            return <section key={page} ref={(node) => { if (node) pageRefs.current.set(page, node); else pageRefs.current.delete(page); }} className="lecture-pdf-continuous-page lecture-pdf-continuous-page--pro" data-pdf-page={page} data-current={page === pageNumber ? "true" : "false"} style={{ width: displayWidth, height: displayHeight }} aria-label={`${copy.pdfPage} ${page}`}>
+              <LecturePdfContinuousPage pdf={pdfRef.current} pageNumber={page} baseWidth={metric.width} baseHeight={metric.height} scale={scale} active={renderPages.has(page)} fileName={fileName} copy={copy} workspace={workspace} showAnnotations={showAnnotations} annotations={annotations.filter((annotation) => Number(annotation.page) === page)} searchBoxes={searchBoxesByPage.get(page) || []} activeTool={activeTool} activeColor={activeColor} labels={labels} onCreateAnnotation={(annotation) => createAnnotation({ ...annotation, color: annotation.color || activeColor })} onUpdateAnnotation={(next, previous) => updateAnnotation(next, previous)} onDeleteAnnotation={(annotation) => deleteAnnotation(annotation)} />
               <span className="lecture-pdf-page-number">{page}</span>
             </section>;
           })}</div> : <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}><canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />{renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}{renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}</div>}
@@ -36286,7 +36518,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         .order("created_at", { ascending: true }),
       supabase
         .from("lecture_pdf_user_state")
-        .select("page,page_offset,zoom_mode,scale,thumbnails_open,search_open,search_query,active_tool,active_color,updated_at")
+        .select("page,page_offset,zoom_mode,scale,thumbnails_open,search_open,search_query,active_tool,active_color,view_mode,updated_at")
         .eq("user_id", userId)
         .eq("material_id", materialId)
         .maybeSingle(),
@@ -36315,6 +36547,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         searchQuery: stateResult.data.search_query || "",
         activeTool: stateResult.data.active_tool || "select",
         activeColor: stateResult.data.active_color || "#f7d85c",
+        viewMode: stateResult.data.view_mode === "annotations" ? "annotations" : "original",
       } : {};
       lecturePdfAnnotationsRef.current = remoteAnnotations;
       setLecturePdfAnnotations(remoteAnnotations);
@@ -37777,6 +38010,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         search_query: String(pending.searchQuery ?? lecturePdfRemoteState.searchQuery ?? "").slice(0, 500),
         active_tool: ["select", "highlight", "underline", "strike", "pen", "sticky", "eraser"].includes(pending.activeTool ?? lecturePdfRemoteState.activeTool) ? (pending.activeTool ?? lecturePdfRemoteState.activeTool) : "select",
         active_color: String(pending.activeColor ?? lecturePdfRemoteState.activeColor ?? "#f7d85c").slice(0, 32),
+        view_mode: (pending.viewMode ?? lecturePdfRemoteState.viewMode) === "annotations" ? "annotations" : "original",
         updated_at: new Date().toISOString(),
       };
       const { error } = await supabase.from("lecture_pdf_user_state").upsert(payload, { onConflict: "user_id,material_id" });
