@@ -13797,6 +13797,96 @@ select.ui-control {
 .lecture-viewer-shell-revamp .lecture-materials-popover[data-open="true"] { inset-block-start:7px; inset-inline:8px auto; width:min(360px,calc(100% - 16px)); max-height:min(430px,70%); grid-template-columns:1fr; border-radius:12px; box-shadow:0 18px 48px rgba(20,35,60,.18); }
 .lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-strip-heading { border-inline-end:0; border-bottom:1px solid var(--lecture-shell-line); }
 
+/* PowerPoint Viewer 1.1 — material picker anchored to its trigger. */
+.lecture-viewer-shell-revamp .lecture-material-compact-control { position:relative; z-index:85; }
+.lecture-viewer-shell-revamp .lecture-material-compact-control .lecture-materials-popover[data-open="true"] {
+  position:absolute;
+  z-index:90;
+  inset-block-start:calc(100% + 6px);
+  inset-inline-end:0;
+  inset-inline-start:auto;
+  width:min(320px,calc(100vw - 24px));
+  max-height:min(390px,calc(100vh - 110px));
+  display:grid !important;
+  grid-template-columns:1fr;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--ui-border) 86%,transparent);
+  border-radius:12px;
+  background:var(--ui-panel);
+  box-shadow:0 14px 38px rgba(20,35,60,.16),0 2px 8px rgba(20,35,60,.06);
+}
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-strip-heading {
+  min-height:36px;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 10px 7px;
+  border:0;
+  border-bottom:1px solid var(--lecture-shell-line);
+}
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-strip-heading > span { gap:6px; }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-strip-heading strong { color:var(--ui-text); font-size:8px; font-weight:820; }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-strip-heading small { min-width:17px; padding:2px 5px; font-size:6.4px; background:var(--ui-soft); }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-strip-body {
+  min-width:0;
+  display:block;
+  padding:6px;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-list {
+  min-width:0;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:3px;
+  overflow:visible;
+  padding:0;
+}
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-chip {
+  width:100%;
+  min-width:0;
+  height:46px;
+  grid-template-columns:28px minmax(0,1fr) 18px;
+  gap:7px;
+  padding:5px 7px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  box-shadow:none;
+}
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-chip:hover { background:var(--ui-soft); }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-chip[data-active="true"] { background:var(--ui-blue-soft); color:var(--ui-blue); box-shadow:none; }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-chip > span:first-child { width:28px; height:28px; border-radius:7px; }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-chip > span:nth-child(2) { min-width:0; display:grid; gap:2px; }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-chip > svg { color:var(--ui-blue); justify-self:center; }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-chip strong { font-size:7.7px; }
+.lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-chip small { font-size:6.5px; }
+.lecture-viewer-shell-revamp .lecture-material-popover-footer {
+  padding:6px;
+  border-top:1px solid var(--lecture-shell-line);
+  background:color-mix(in srgb,var(--ui-panel) 94%,var(--ui-soft));
+}
+.lecture-viewer-shell-revamp .lecture-material-popover-footer button {
+  width:100%;
+  height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  color:var(--ui-blue);
+  font-size:7.3px;
+  font-weight:800;
+  cursor:pointer;
+}
+.lecture-viewer-shell-revamp .lecture-material-popover-footer button:hover { background:var(--ui-blue-soft); }
+.lecture-viewer-shell-revamp .lecture-material-popover-footer button:disabled { opacity:.45; cursor:not-allowed; }
+
+
 /* Notes: one tab row, one quiet mode row, then writing space. */
 .lecture-viewer-shell-revamp .lecture-notes-panel { min-width:0; }
 .lecture-viewer-shell-revamp .lecture-notes-tabs { height:39px; padding:4px 7px; gap:4px; border-bottom:1px solid var(--lecture-shell-line); }
@@ -40047,7 +40137,53 @@ async function openExamSetPdfEditor() {
               <button type="button" className="lecture-focus-exit" onClick={() => setLectureViewerFocus(false)} title={copy.viewerExitFocus} aria-label={copy.viewerExitFocus}><Icon name="collapse" size={12} /><span>{copy.viewerExitFocus}</span></button>
               <button type="button" className="lecture-favorite-toggle lecture-favorite-toggle--header" data-active={selectedLectureFavorite ? "true" : "false"} title={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} aria-label={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} onClick={() => toggleLectureFavorite(selectedLecture.id)}><Icon name="star" size={13} /></button>
               <div className="lecture-material-compact-control">
-                <button type="button" className="lecture-material-menu-trigger" data-active={lectureMaterialsOpen ? "true" : "false"} onClick={() => setLectureMaterialsOpen((value) => !value)} title={copy.viewerMaterials}><Icon name="folder" size={12} /><span>{copy.viewerMaterials}</span>{selectedLectureMaterials.length > 0 && <strong>{selectedLectureMaterials.length}</strong>}<Icon name={lectureMaterialsOpen ? "up" : "down"} size={10} /></button>
+                <button
+                  type="button"
+                  className="lecture-material-menu-trigger"
+                  data-active={lectureMaterialsOpen ? "true" : "false"}
+                  aria-expanded={lectureMaterialsOpen ? "true" : "false"}
+                  onClick={() => setLectureMaterialsOpen((value) => !value)}
+                  title={copy.viewerMaterials}
+                >
+                  <Icon name="folder" size={12} />
+                  <span>{copy.viewerMaterials}</span>
+                  {selectedLectureMaterials.length > 0 && <strong>{selectedLectureMaterials.length}</strong>}
+                  <Icon name={lectureMaterialsOpen ? "up" : "down"} size={10} />
+                </button>
+                <div className="lecture-material-strip lecture-materials-popover" data-open={lectureMaterialsOpen ? "true" : "false"}>
+                  <div className="lecture-material-strip-heading">
+                    <span><strong>{copy.materialLibrary}</strong><small>{selectedLectureMaterials.length}</small></span>
+                  </div>
+                  <div className="lecture-material-strip-body">
+                    {materialStatus.state === "loading" ? (
+                      <span className="lecture-material-inline-state">{copy.materialLoading}</span>
+                    ) : selectedLectureMaterials.length ? (
+                      <div className="lecture-material-list">
+                        {selectedLectureMaterials.map((material) => (
+                          <button
+                            key={material.id}
+                            type="button"
+                            className="lecture-material-chip"
+                            data-active={material.id === activeLectureMaterial?.id ? "true" : "false"}
+                            data-primary={material.is_primary ? "true" : "false"}
+                            aria-current={material.id === activeLectureMaterial?.id ? "true" : undefined}
+                            onClick={() => { selectLectureMaterial(material.id); setLectureMaterialsOpen(false); }}
+                            title={`${material.file_name} · ${lectureMaterialFormatBytes(material.size_bytes)}`}
+                          >
+                            <span><Icon name={material.is_primary ? "star" : "file"} size={11} /></span>
+                            <span><strong>{material.file_name}</strong><small>{materialTypeLabel(material.material_type)} · {lectureMaterialFormatBytes(material.size_bytes)}</small></span>
+                            {material.id === activeLectureMaterial?.id && <Icon name="check" size={11} />}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="lecture-material-inline-state">{materialStatus.state === "error" ? materialStatus.message : copy.materialLibraryEmpty}</span>
+                    )}
+                  </div>
+                  <div className="lecture-material-popover-footer">
+                    <button type="button" onClick={() => { setLectureMaterialsOpen(false); uploadRef.current?.click(); }} disabled={!selectedLecture || materialSaving}><Icon name="plus" size={12} />{copy.addMaterial}</button>
+                  </div>
+                </div>
               </div>
 
               <details className="lecture-detail-more-menu">
@@ -40130,38 +40266,6 @@ async function openExamSetPdfEditor() {
         )}
 
         <main className="document-viewer-panel">
-          {isLectureLibrary && (
-            <div className="lecture-material-strip lecture-materials-popover" data-open={lectureMaterialsOpen ? "true" : "false"}>
-              <div className="lecture-material-strip-heading">
-                <span><Icon name="folder" size={13} /><strong>{copy.materialLibrary}</strong><small>{selectedLectureMaterials.length}</small></span>
-                <div className="lecture-material-popover-actions"><button type="button" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="plus" size={12} />{copy.addMaterial}</button><button type="button" className="lecture-material-popover-close" onClick={() => setLectureMaterialsOpen(false)} aria-label={copy.close} title={copy.close}><Icon name="close" size={12} /></button></div>
-              </div>
-              <div className="lecture-material-strip-body">
-                {materialStatus.state === "loading" ? (
-                  <span className="lecture-material-inline-state">{copy.materialLoading}</span>
-                ) : selectedLectureMaterials.length ? (
-                  <div className="lecture-material-list">
-                    {selectedLectureMaterials.map((material) => (
-                      <button
-                        key={material.id}
-                        type="button"
-                        className="lecture-material-chip"
-                        data-active={material.id === activeLectureMaterial?.id ? "true" : "false"}
-                        data-primary={material.is_primary ? "true" : "false"}
-                        onClick={() => selectLectureMaterial(material.id)}
-                        title={`${material.file_name} · ${lectureMaterialFormatBytes(material.size_bytes)}`}
-                      >
-                        <span><Icon name={material.is_primary ? "star" : "file"} size={11} /></span>
-                        <span><strong>{material.file_name}</strong><small>{materialTypeLabel(material.material_type)} · {lectureMaterialFormatBytes(material.size_bytes)}</small></span>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="lecture-material-inline-state">{materialStatus.state === "error" ? materialStatus.message : copy.materialLibraryEmpty}</span>
-                )}
-              </div>
-            </div>
-          )}
           <div className="document-viewer-toolbar">
             <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong>{activeLectureMaterial?.is_primary && <em className="lecture-primary-badge"><Icon name="star" size={9} />{copy.materialPrimaryLabel}</em>}{!isLectureLibrary && activeDocument && <em className="lecture-primary-badge"><Icon name="share" size={9} />{copy.examSetShared}</em>}</span>
             {isLectureLibrary && activeLectureMaterial ? (
