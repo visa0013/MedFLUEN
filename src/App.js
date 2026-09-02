@@ -36,6 +36,7 @@ const STORAGE = {
   deckSettings: "medlearn-deck-settings",
   importedQuestions: "medlearn-imported-questions",
   adminUnlocked: "medlearn-admin-unlocked",
+  adminMode: "medlearn-admin-mode",
   buriedCards: "medlearn-buried-cards",
   calendarEvents: "medlearn-calendar-events",
   streak: "medlearn-streak",
@@ -1601,6 +1602,7 @@ function calendarBuildPrivateImportGroups(events, moduleName = "") {
 
 function useGlobalCalendarData(moduleName, userId, refreshToken = 0) {
   const [state, setState] = useState({ imports: [], events: [], status: "idle", error: "" });
+  const globalContentRefreshKey = useGlobalContentRefreshKey();
   useEffect(() => {
     if (!moduleName || !userId) {
       setState({ imports: [], events: [], status: "idle", error: "" });
@@ -1634,7 +1636,7 @@ function useGlobalCalendarData(moduleName, userId, refreshToken = 0) {
       setState({ imports: [], events: [], status: "error", error: error?.message || String(error) });
     });
     return () => { cancelled = true; };
-  }, [moduleName, userId, refreshToken]);
+  }, [moduleName, userId, refreshToken, globalContentRefreshKey]);
   return state;
 }
 
@@ -23861,8 +23863,38 @@ onClick={() => {
   );
 }
 
-function AdminPortal({ c, t, language, user, isAdmin, onClose }) {
+function AdminPortal({ c, t, language, user, isAdmin, onClose, globalContentState = null, onGlobalPublished = null }) {
   const unlocked = isAdmin;
+  const [globalPublishState, setGlobalPublishState] = useState({ status: "idle", message: "" });
+
+  const globalPublishCopy = ({
+    da: { title: "Udgiv globale ændringer", description: "Adminændringer gemmes allerede globalt, når du laver dem. Udgiv hæver den fælles indholdsversion og får alle aktive brugere til at hente nye kort, forelæsningsfiler, kalenderdata, pensummapping og øvrigt fælles indhold.", button: "Udgiv globale ændringer", publishing: "Udgiver…", version: "Global version", last: "Senest udgivet", never: "Ikke udgivet endnu", confirm: "Udgiv alle seneste globale adminændringer til brugerne nu? Private studiedata påvirkes ikke.", success: "Globale ændringer er udgivet. Aktive klienter opdateres automatisk.", error: "Kunne ikke udgive globale ændringer.", setup: "Global refresh er ikke klargjort endnu. Kør admin_mode_global_publish.sql i Supabase." },
+    en: { title: "Publish global changes", description: "Admin changes are already saved globally as you make them. Publish increments the shared content version and makes active clients reload cards, lecture files, calendar data, curriculum mappings, and other shared content.", button: "Publish global changes", publishing: "Publishing…", version: "Global version", last: "Last published", never: "Not published yet", confirm: "Publish all latest global admin changes to users now? Private study data will not be affected.", success: "Global changes published. Active clients will refresh automatically.", error: "Could not publish global changes.", setup: "Global refresh is not set up yet. Run admin_mode_global_publish.sql in Supabase." },
+    ar: { title: "نشر التغييرات العامة", description: "تُحفظ تغييرات المسؤول عالميًا أثناء العمل. يؤدي النشر إلى رفع إصدار المحتوى المشترك ويجعل المستخدمين النشطين يعيدون تحميل البطاقات وملفات المحاضرات والتقويم وربط المنهج وبقية المحتوى المشترك.", button: "نشر التغييرات العامة", publishing: "جارٍ النشر…", version: "الإصدار العام", last: "آخر نشر", never: "لم يتم النشر بعد", confirm: "نشر جميع تغييرات المسؤول العامة الأخيرة الآن؟ لن تتأثر بيانات الدراسة الخاصة.", success: "تم نشر التغييرات العامة وسيتم تحديث العملاء النشطين تلقائيًا.", error: "تعذر نشر التغييرات العامة.", setup: "ميزة التحديث العام غير مهيأة بعد. شغّل admin_mode_global_publish.sql في Supabase." },
+  })[language] || null;
+
+  async function publishGlobalChanges() {
+    if (!isAdmin || globalPublishState.status === "publishing") return;
+    if (!window.confirm(globalPublishCopy.confirm)) return;
+    setGlobalPublishState({ status: "publishing", message: "" });
+    try {
+      const { data, error } = await supabase.rpc("publish_global_content", {
+        p_summary: {
+          source: "admin_portal",
+          areas: ["question_bank", "lecture_materials", "global_calendar", "curriculum_mapping", "lecture_calendar_matches", "exam_sets"],
+          published_at: new Date().toISOString(),
+        },
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (onGlobalPublished) await onGlobalPublished(row || null);
+      setGlobalPublishState({ status: "success", message: globalPublishCopy.success });
+    } catch (publishError) {
+      const message = String(publishError?.message || "");
+      const missing = publishError?.code === "PGRST202" || publishError?.code === "42883" || message.includes("publish_global_content");
+      setGlobalPublishState({ status: "error", message: missing ? globalPublishCopy.setup : `${globalPublishCopy.error}${message ? ` ${message}` : ""}` });
+    }
+  }
 
 // Midlertidig kompatibilitet med den gamle adminportal.
 // Fjernes, når admin-UI'et genopbygges.
@@ -30185,8 +30217,38 @@ color:
             </div>
           )}
         </div>
-      ) : adminTab === "overview" ? (
+       ) : adminTab === "overview" ? (
         <>
+<section
+  style={{
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 15,
+    background: c.blueSoft,
+    border: `1px solid ${c.blueBorder}`,
+  }}
+>
+  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+    <div style={{ flex: "1 1 420px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, color: c.text, fontSize: 13, fontWeight: 850 }}>
+        <span style={{ width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 9, background: c.panel, color: c.blue, border: `1px solid ${c.blueBorder}` }}><Icon name="globe" size={14} /></span>
+        {globalPublishCopy.title}
+      </div>
+      <p style={{ margin: "8px 0 0", maxWidth: 760, color: c.secondary, fontSize: 11.5, lineHeight: 1.55 }}>{globalPublishCopy.description}</p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+        <span style={{ padding: "4px 8px", borderRadius: 99, background: c.panel, border: `1px solid ${c.border}`, color: c.secondary, fontSize: 10, fontWeight: 750 }}>{globalPublishCopy.version}: {globalContentState?.version ?? "—"}</span>
+        <span style={{ padding: "4px 8px", borderRadius: 99, background: c.panel, border: `1px solid ${c.border}`, color: c.secondary, fontSize: 10, fontWeight: 750 }}>{globalPublishCopy.last}: {globalContentState?.updatedAt ? new Date(globalContentState.updatedAt).toLocaleString(adminFilterLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : globalPublishCopy.never}</span>
+      </div>
+    </div>
+    <button type="button" className="ui-button ui-button--primary" disabled={globalPublishState.status === "publishing" || globalContentState?.status === "setup-missing"} onClick={publishGlobalChanges}>
+      <Icon name="globe" size={14} />
+      {globalPublishState.status === "publishing" ? globalPublishCopy.publishing : globalPublishCopy.button}
+    </button>
+  </div>
+  {globalContentState?.status === "setup-missing" && <div style={{ marginTop: 10, color: c.red, fontSize: 11, fontWeight: 700 }}>{globalPublishCopy.setup}</div>}
+  {globalPublishState.message && <div role="status" style={{ marginTop: 10, color: globalPublishState.status === "success" ? c.green : c.red, fontSize: 11, fontWeight: 700 }}>{globalPublishState.message}</div>}
+</section>
+
 <div
   style={{
     display: "flex",
@@ -36392,6 +36454,7 @@ function examCurriculumMissingTable(error) {
 
 function useExamCurriculumData({ moduleName, examSetIds = [], enabled = true }) {
   const [topics, setTopics] = useState([]);
+  const globalContentRefreshKey = useGlobalContentRefreshKey();
   const [links, setLinks] = useState([]);
   const [loadState, setLoadState] = useState("idle");
   const [error, setError] = useState(null);
@@ -36426,7 +36489,7 @@ function useExamCurriculumData({ moduleName, examSetIds = [], enabled = true }) 
     }
     load();
     return () => { cancelled = true; };
-  }, [enabled, moduleName, idsKey, refreshKey]);
+  }, [enabled, moduleName, idsKey, refreshKey, globalContentRefreshKey]);
 
   return { topics, links, loadState, error, refresh: () => setRefreshKey((value) => value + 1) };
 }
@@ -36944,6 +37007,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [sduMatchQuery, setSduMatchQuery] = useState("");
   const [canonicalSduMatches, setCanonicalSduMatches] = useState({});
   const [canonicalSduMatchStatus, setCanonicalSduMatchStatus] = useState("idle");
+  const globalContentRefreshKey = useGlobalContentRefreshKey();
   const globalLectureCalendarData = useGlobalCalendarData(isLectureLibrary ? moduleName : null, userId, 0);
   const [lectureMaterials, setLectureMaterials] = useState([]);
   const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
@@ -38554,7 +38618,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         setMaterialStatus({ state: "ready", message: "" });
       });
     return () => { cancelled = true; };
-  }, [isLectureLibrary, userId, moduleName]);
+  }, [isLectureLibrary, userId, moduleName, globalContentRefreshKey]);
 
   useEffect(() => {
     if (!isLectureLibrary || !moduleName) {
@@ -38650,7 +38714,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         setExamSetStatus({ state: "ready", message: "" });
       });
     return () => { cancelled = true; };
-  }, [isLectureLibrary, userId, moduleName]);
+  }, [isLectureLibrary, userId, moduleName, globalContentRefreshKey]);
 
   useEffect(() => {
     if (isLectureLibrary || !selectedExamDocument?.questionStoragePath) {
@@ -39043,7 +39107,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         setCanonicalSduMatchStatus("ready");
       });
     return () => { cancelled = true; };
-  }, [isLectureLibrary, userId, moduleName]);
+  }, [isLectureLibrary, userId, moduleName, globalContentRefreshKey]);
 
   useEffect(() => {
     if (!isLectureLibrary || !selectedLecture || !userId || !moduleName) {
@@ -42223,13 +42287,13 @@ examSetMode === "history" ? (
   );
 }
 
-function MobileBottomNav({ c, t, language, route, activeWorkspace, onNavigate, onWorkspace, drByteOpen, setDrByteOpen, onProfileAction, dueCount = 0 }) {
+function MobileBottomNav({ c, t, language, route, activeWorkspace, onNavigate, onWorkspace, drByteOpen, setDrByteOpen, onProfileAction, dueCount = 0, accountIsAdmin = false, adminMode = false }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
   const copy = ({
-    da: { more: "Mere", lectures: "Forelæsninger", examSets: "Eksamenssæt", review: "Repetition", studyPlan: "Studieplan" },
-    en: { more: "More", lectures: "Lectures", examSets: "Exam sets", review: "Review", studyPlan: "Study plan" },
-    ar: { more: "المزيد", lectures: "المحاضرات", examSets: "مجموعات الامتحان", review: "المراجعة", studyPlan: "خطة الدراسة" },
+    da: { more: "Mere", lectures: "Forelæsninger", examSets: "Eksamenssæt", review: "Repetition", studyPlan: "Studieplan", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode" },
+    en: { more: "More", lectures: "Lectures", examSets: "Exam sets", review: "Review", studyPlan: "Study plan", enterAdmin: "Switch to Admin mode", exitAdmin: "Switch to Study mode" },
+    ar: { more: "المزيد", lectures: "المحاضرات", examSets: "مجموعات الامتحان", review: "المراجعة", studyPlan: "خطة الدراسة", enterAdmin: "التبديل إلى وضع المسؤول", exitAdmin: "التبديل إلى وضع الدراسة" },
   })[language] || {};
 
   useEffect(() => {
@@ -42268,6 +42332,8 @@ function MobileBottomNav({ c, t, language, route, activeWorkspace, onNavigate, o
               ["target", copy.studyPlan, () => onNavigate("study-plan")],
               ["cards", copy.examSets, () => onWorkspace("examSets")],
               ["chat", t.drByte, () => setDrByteOpen(!drByteOpen)],
+              ...(accountIsAdmin ? [[adminMode ? "user" : "settings", adminMode ? copy.exitAdmin : copy.enterAdmin, () => onProfileAction("adminMode")]] : []),
+              ...(adminMode ? [["book", t.adminPortal, () => onProfileAction("admin")]] : []),
               ["settings", t.settings, () => onProfileAction("settings")],
               ["globe", t.language, () => onProfileAction("language")],
             ].map(([icon, label, callback]) => (
@@ -42288,6 +42354,8 @@ function Sidebar({
   route,
   onNavigate,
   isAdmin,
+  accountIsAdmin = false,
+  adminMode = false,
   activeWorkspace,
   onWorkspace,
   drByteOpen,
@@ -42308,9 +42376,9 @@ function Sidebar({
   const [quickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, ["mcq", "repeat", "insights"]);
 
   const copy = ({
-    da: { repetition: "Repetition", lectures: "Forelæsninger", examSets: "Eksamenssæt", studyPlan: "Studieplan" },
-    en: { repetition: "Review", lectures: "Lectures", examSets: "Exam sets", studyPlan: "Study plan" },
-    ar: { repetition: "المراجعة", lectures: "المحاضرات", examSets: "مجموعات الامتحان", studyPlan: "خطة الدراسة" },
+    da: { repetition: "Repetition", lectures: "Forelæsninger", examSets: "Eksamenssæt", studyPlan: "Studieplan", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode", adminActive: "Admin mode aktiv" },
+    en: { repetition: "Review", lectures: "Lectures", examSets: "Exam sets", studyPlan: "Study plan", enterAdmin: "Switch to Admin mode", exitAdmin: "Switch to Study mode", adminActive: "Admin mode active" },
+    ar: { repetition: "المراجعة", lectures: "المحاضرات", examSets: "مجموعات الامتحان", studyPlan: "خطة الدراسة", enterAdmin: "التبديل إلى وضع المسؤول", exitAdmin: "التبديل إلى وضع الدراسة", adminActive: "وضع المسؤول نشط" },
   })[language] || {};
 
   useEffect(() => {
@@ -42379,10 +42447,11 @@ function Sidebar({
   };
   const safeQuickOrder = [...quickAccessOrder.filter((id) => quickDefinitions[id]), ...["mcq", "repeat", "insights"].filter((id) => !quickAccessOrder.includes(id))];
   const profileActions = [
+    ...(accountIsAdmin ? [["adminMode", adminMode ? "user" : "settings", adminMode ? copy.exitAdmin : copy.enterAdmin]] : []),
+    ...(isAdmin ? [["admin", "book", t.adminPortal]] : []),
     ["settings", "settings", t.settings],
     ["language", "globe", t.language],
     ["tutorial", "target", t.replayTutorial],
-    ...(isAdmin ? [["admin", "book", t.adminPortal]] : []),
     ["logout", "reset", t.resetProfile],
     ["signout", "logout", t.signOutAction],
   ];
@@ -42416,7 +42485,7 @@ function Sidebar({
         <button ref={profileButtonRef} type="button" title={t.profile} aria-label={t.profile} aria-expanded={profileOpen} aria-haspopup="menu" onClick={() => setProfileOpen((value) => !value)} className="sidebar-profile-btn" style={{ width: 40, height: 40, display: "grid", placeItems: "center", padding: 0, borderRadius: 11, border: `1px solid ${profileOpen ? c.blueBorder : c.border}`, background: profileOpen ? c.blueSoft : c.soft, color: profileOpen ? c.blue : c.text, fontSize: 12, fontWeight: 900 }}>{userInitial}</button>
         {profileOpen && (
           <div ref={profileMenuRef} role="menu" className="sidebar-profile-menu" style={{ position: "fixed", zIndex: 1200, insetInlineStart: 86, bottom: 12, width: 258, padding: 8, borderRadius: 14, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg, direction: menuDirection }}>
-            <div className="sidebar-profile-summary"><span>{userInitial}</span><div><strong>{displayName}</strong><small>{moduleLabel}</small></div></div>
+            <div className="sidebar-profile-summary"><span>{userInitial}</span><div><strong>{displayName}</strong><small>{moduleLabel}{adminMode ? ` · ${copy.adminActive}` : ""}</small></div></div>
             {profileActions.map(([action, icon, label]) => <button key={action} type="button" role="menuitem" className="sidebar-menu-item" onClick={() => onProfileAction(action)} style={{ color: action === "signout" ? c.red : c.text }}><Icon name={icon} size={14} /><span>{label}</span></button>)}
           </div>
         )}
@@ -43419,6 +43488,121 @@ function TutorialOverlay({ c, t, language, route, setRoute, onFinish }) {
   );
 }
 
+const GLOBAL_CONTENT_REFRESH_EVENT = "medfluen-global-content-refresh";
+
+function globalAdminModeSessionKey(userId) {
+  return `${STORAGE.adminMode}:${userId || "anonymous"}`;
+}
+
+function loadAdminModeEnabled(userId) {
+  if (!userId || typeof sessionStorage === "undefined") return false;
+  try { return sessionStorage.getItem(globalAdminModeSessionKey(userId)) === "true"; }
+  catch { return false; }
+}
+
+function persistAdminModeEnabled(userId, enabled) {
+  if (!userId || typeof sessionStorage === "undefined") return;
+  try { sessionStorage.setItem(globalAdminModeSessionKey(userId), enabled ? "true" : "false"); }
+  catch { /* Session storage is an enhancement, not an authorization boundary. */ }
+}
+
+function useGlobalContentRefreshKey() {
+  const [refreshKey, setRefreshKey] = useState(0);
+  useEffect(() => {
+    function handleRefresh() { setRefreshKey((value) => value + 1); }
+    window.addEventListener(GLOBAL_CONTENT_REFRESH_EVENT, handleRefresh);
+    return () => window.removeEventListener(GLOBAL_CONTENT_REFRESH_EVENT, handleRefresh);
+  }, []);
+  return refreshKey;
+}
+
+async function refreshGlobalSharedContent(version, reason = "version-change") {
+  try {
+    await pullQuestionBankIntoLocalStorage();
+  } catch (error) {
+    console.warn("Kunne ikke opdatere den globale spørgsmålsbank:", error);
+  } finally {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(GLOBAL_CONTENT_REFRESH_EVENT, { detail: { version, reason, at: Date.now() } }));
+    }
+  }
+}
+
+function useGlobalContentVersion(userId) {
+  const [state, setState] = useState({ version: null, updatedAt: null, updatedBy: null, summary: null, status: "idle", error: "" });
+  const seenVersionRef = useRef(null);
+  const loadingRef = useRef(false);
+
+  async function readVersion({ forceSharedRefresh = false } = {}) {
+    if (!userId || loadingRef.current) return null;
+    loadingRef.current = true;
+    try {
+      const { data, error } = await supabase
+        .from("global_content_state")
+        .select("id,version,updated_at,updated_by,summary")
+        .eq("id", 1)
+        .maybeSingle();
+      if (error) throw error;
+      const nextVersion = Number(data?.version) || 1;
+      const previousVersion = seenVersionRef.current;
+      seenVersionRef.current = nextVersion;
+      const nextState = { version: nextVersion, updatedAt: data?.updated_at || null, updatedBy: data?.updated_by || null, summary: data?.summary || null, status: "ready", error: "" };
+      setState(nextState);
+      if (forceSharedRefresh || (previousVersion != null && nextVersion > previousVersion)) {
+        await refreshGlobalSharedContent(nextVersion, forceSharedRefresh ? "publish" : "version-change");
+      }
+      return nextState;
+    } catch (error) {
+      const message = String(error?.message || "");
+      const missing = error?.code === "42P01" || error?.code === "PGRST205" || message.includes("global_content_state");
+      setState((current) => ({ ...current, status: missing ? "setup-missing" : "error", error: message }));
+      return null;
+    } finally {
+      loadingRef.current = false;
+    }
+  }
+
+  async function adoptPublishedState(row) {
+    const nextVersion = Number(row?.version) || (Number(seenVersionRef.current) || 0) + 1;
+    seenVersionRef.current = nextVersion;
+    setState({ version: nextVersion, updatedAt: row?.updated_at || new Date().toISOString(), updatedBy: row?.updated_by || userId, summary: row?.summary || null, status: "ready", error: "" });
+    await refreshGlobalSharedContent(nextVersion, "publish");
+    return nextVersion;
+  }
+
+  useEffect(() => {
+    if (!userId) {
+      seenVersionRef.current = null;
+      setState({ version: null, updatedAt: null, updatedBy: null, summary: null, status: "idle", error: "" });
+      return undefined;
+    }
+    let cancelled = false;
+    async function poll() { if (!cancelled) await readVersion(); }
+    poll();
+    const timer = window.setInterval(poll, 20000);
+    const onFocus = () => poll();
+    window.addEventListener("focus", onFocus);
+    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", onFocus); };
+  }, [userId]);
+
+  return { ...state, refresh: readVersion, adoptPublishedState };
+}
+
+function AdminModeIndicator({ c, language, onExit }) {
+  const copy = ({
+    da: { label: "Admin mode", exit: "Til studiemode" },
+    en: { label: "Admin mode", exit: "Study mode" },
+    ar: { label: "وضع المسؤول", exit: "وضع الدراسة" },
+  })[language] || null;
+  return (
+    <div style={{ position: "fixed", top: 12, insetInlineEnd: 14, zIndex: 1400, display: "flex", alignItems: "center", gap: 7, padding: "6px 8px 6px 10px", borderRadius: 99, background: c.panel, border: `1px solid ${c.redBorder}`, boxShadow: c.shadowSm }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.red }} />
+      <strong style={{ color: c.text, fontSize: 10.5 }}>{copy.label}</strong>
+      <button type="button" onClick={onExit} style={{ minHeight: 25, padding: "0 8px", borderRadius: 99, border: `1px solid ${c.border}`, background: c.soft, color: c.secondary, fontSize: 9.5, fontWeight: 800, cursor: "pointer" }}>{copy.exit}</button>
+    </div>
+  );
+}
+
 function useAdminAccess(session) {
   const [adminState, setAdminState] = useState({
     isAdmin: false,
@@ -43798,10 +43982,28 @@ function App() {
  const session = useSupabaseSession();
 
 const {
-  isAdmin,
+  isAdmin: accountIsAdmin,
   loading: adminLoading,
   error: adminError,
 } = useAdminAccess(session);
+const [adminModeEnabled, setAdminModeEnabled] = useState(false);
+
+useEffect(() => {
+  const userId = session?.user?.id;
+  if (!userId || !accountIsAdmin) { setAdminModeEnabled(false); return; }
+  setAdminModeEnabled(loadAdminModeEnabled(userId));
+}, [session?.user?.id, accountIsAdmin]);
+
+const effectiveAdmin = Boolean(accountIsAdmin && adminModeEnabled);
+const isAdmin = effectiveAdmin;
+const globalContentState = useGlobalContentVersion(session?.user?.id);
+
+function setAdminMode(nextValue) {
+  const enabled = Boolean(accountIsAdmin && nextValue);
+  setAdminModeEnabled(enabled);
+  persistAdminModeEnabled(session?.user?.id, enabled);
+  if (!enabled) setModal((current) => current === "admin" ? null : current);
+}
 
 useCloudSync(session?.user?.id);
   const [preferences, setPreferences] = useStoredState(STORAGE.preferences, {
@@ -44085,7 +44287,8 @@ useEffect(() => {
 
   function handleProfileAction(action) {
     setProfileOpen(false);
-    if (action === "admin" && !isAdmin) { setModal(null); return; }
+    if (action === "adminMode") { setAdminMode(!adminModeEnabled); return; }
+    if (action === "admin" && !effectiveAdmin) { setModal(null); return; }
     if (action === "tutorial") { setActiveWorkspace(null); setRoute("home"); setTutorialActive(true); }
     else if (action === "signout") supabase.auth.signOut();
     else setModal(action);
@@ -44108,6 +44311,7 @@ useEffect(() => {
       <CalendarReminderManager events={shellMergedEvents} />
       {theme === "light" && <div className="app-blue-hue" aria-hidden="true" />}
       {theme === "dark" && <div className="app-blue-hue-dark" aria-hidden="true" />}
+      {effectiveAdmin && <AdminModeIndicator c={c} language={language} onExit={() => setAdminMode(false)} />}
 
       {isFullscreen && (
         <div
@@ -44224,7 +44428,9 @@ useEffect(() => {
         dueCount={sidebarDueCount}
         planAttentionCount={sidebarPlanAttentionCount}
         calendarAttentionCount={sidebarCalendarAttentionCount}
-        isAdmin={isAdmin}
+        isAdmin={effectiveAdmin}
+        accountIsAdmin={accountIsAdmin}
+        adminMode={adminModeEnabled}
         onNavigate={navigateFromShell}
         onProfileAction={handleProfileAction}
       />
@@ -44237,16 +44443,16 @@ useEffect(() => {
           closing={calendarClosing}
         >
           {activeWorkspace === "calendar" && (
-            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={isAdmin} onClose={closeWorkspace} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
+            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={effectiveAdmin} onClose={closeWorkspace} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
           )}
           {activeWorkspace === "notes" && (
             <Notebook c={c} t={t} onClose={closeWorkspace} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} isAdmin={isAdmin} spacedData={spacedData} importedQuestions={importedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={isAdmin} importedQuestions={importedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={effectiveAdmin} importedQuestions={importedQuestions} />
           )}
         </WorkspaceShell>
       )}
@@ -44435,6 +44641,8 @@ onNavigate={navigateFromShell}
         setDrByteOpen={setDrByteOpen}
         onProfileAction={handleProfileAction}
         dueCount={sidebarDueCount}
+        accountIsAdmin={accountIsAdmin}
+        adminMode={adminModeEnabled}
       />
 
       {modal === "settings" && (
@@ -44459,13 +44667,15 @@ onNavigate={navigateFromShell}
         />
       )}
 
-{modal === "admin" && isAdmin && !adminLoading && (
+{modal === "admin" && effectiveAdmin && !adminLoading && (
   <AdminPortal
     c={c}
     t={t}
     language={language}
     user={user}
-    isAdmin={isAdmin}
+    isAdmin={effectiveAdmin}
+    globalContentState={globalContentState}
+    onGlobalPublished={globalContentState.adoptPublishedState}
     onClose={() => setModal(null)}
   />
 )}
@@ -44475,7 +44685,7 @@ onNavigate={navigateFromShell}
           c={c}
           t={t}
           language={language}
-          isAdmin={isAdmin}
+          isAdmin={effectiveAdmin}
           lecture={lectureMenu.lecture}
           moduleId={lectureMenu.moduleId}
           spacedData={spacedData}
