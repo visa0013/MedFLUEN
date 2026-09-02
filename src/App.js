@@ -10969,14 +10969,16 @@ select.ui-control {
 .lecture-overview-row { min-height: 61px; margin: 2px 0; border-radius: 8px; }
 .lecture-overview-row[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-blue-border) 35%, transparent); }
 .lecture-overview-row .document-library-code { width: 31px; height: 31px; border-radius: 8px; }
-.lecture-overview-row[data-schedule="held"] .document-library-code { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-overview-row[data-schedule="reviewed"] .document-library-code { border-color: var(--ui-green-border); background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-overview-row[data-schedule="needs-review"] .document-library-code { border-color: color-mix(in srgb, #d14f4f 32%, var(--ui-border)); background: color-mix(in srgb, #d14f4f 8%, var(--ui-panel)); color: #c84a4a; }
+.lecture-overview-row[data-schedule="upcoming"] .document-library-code { border-color: var(--ui-blue-border); color: var(--ui-blue); }
 .lecture-row-meta { display: flex !important; align-items: center; gap: 5px; overflow: hidden; }
 .lecture-schedule-state { min-width: 0; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; color: var(--ui-muted); }
 .lecture-schedule-state i { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: var(--ui-border-strong); }
-.lecture-schedule-state[data-state="held"] { color: var(--ui-green); }
-.lecture-schedule-state[data-state="held"] i { background: var(--ui-green); }
-.lecture-schedule-state[data-state="partial"] { color: #c9822f; }
-.lecture-schedule-state[data-state="partial"] i { background: #c9822f; }
+.lecture-schedule-state[data-state="reviewed"] { color: var(--ui-green); }
+.lecture-schedule-state[data-state="reviewed"] i { background: var(--ui-green); }
+.lecture-schedule-state[data-state="needs-review"] { color: #d14f4f; }
+.lecture-schedule-state[data-state="needs-review"] i { background: #d14f4f; }
 .lecture-schedule-state[data-state="upcoming"] { color: var(--ui-blue); }
 .lecture-schedule-state[data-state="upcoming"] i { background: var(--ui-blue); }
 .lecture-schedule-date { min-width: 0; overflow: hidden; color: var(--ui-muted); text-overflow: ellipsis; white-space: nowrap; }
@@ -12709,8 +12711,8 @@ select.ui-control {
   background: var(--ui-soft);
 }
 .lecture-detail-schedule-state > i { width: 5px; height: 5px; border-radius: 99px; background: currentColor; }
-.lecture-detail-schedule-state[data-state="held"] { background: var(--ui-green-soft); color: var(--ui-green); }
-.lecture-detail-schedule-state[data-state="partial"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-detail-schedule-state[data-state="reviewed"] { background: var(--ui-green-soft); color: var(--ui-green); }
+.lecture-detail-schedule-state[data-state="needs-review"] { background: color-mix(in srgb, #d14f4f 10%, var(--ui-panel)); color: #c84a4a; }
 .lecture-detail-schedule-state[data-state="upcoming"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
 
 .lecture-detail-tools {
@@ -13714,6 +13716,9 @@ select.ui-control {
 }
 .lecture-viewer-shell-revamp .lecture-filter-strip button[data-active="true"] { color:var(--ui-blue); box-shadow:inset 0 -1.5px 0 var(--ui-blue); }
 .lecture-viewer-shell-revamp .lecture-filter-strip button strong { min-width:0; height:auto; margin-inline-start:3px; padding:0; background:transparent !important; color:inherit; font-size:6.8px; }
+.lecture-viewer-shell-revamp .lecture-sort-control { height:25px; display:inline-flex; align-items:center; gap:4px; margin-top:3px; color:var(--ui-muted); font-size:7px; font-weight:760; }
+.lecture-viewer-shell-revamp .lecture-sort-control select { min-width:58px; height:24px; padding:0 18px 0 5px; border:0; border-radius:6px; outline:0; background:var(--ui-soft); color:var(--ui-secondary); font:inherit; cursor:pointer; }
+.lecture-viewer-shell-revamp .lecture-sort-control select:focus-visible { box-shadow:0 0 0 2px color-mix(in srgb, var(--ui-blue) 18%, transparent); }
 .lecture-viewer-shell-revamp .lecture-overview-result-count { display:none; }
 .lecture-viewer-shell-revamp .lecture-overview-list { padding:4px 4px 12px; }
 .lecture-viewer-shell-revamp .lecture-group-section { margin-bottom:7px; }
@@ -14091,6 +14096,8 @@ select.ui-control {
   .lecture-viewer-shell-revamp[data-notes="true"] .lecture-notes-panel { transform:translateX(0); visibility:visible; pointer-events:auto; }
   .lecture-viewer-shell-revamp .document-search-box { min-height:44px; height:44px; margin:8px; }
   .lecture-viewer-shell-revamp .lecture-filter-strip button { min-height:40px; touch-action:manipulation; }
+  .lecture-viewer-shell-revamp .lecture-sort-control { min-height:40px; }
+  .lecture-viewer-shell-revamp .lecture-sort-control select { min-height:36px; font-size:12px; touch-action:manipulation; }
   .lecture-viewer-shell-revamp .lecture-overview-row { min-height:52px; }
   .lecture-viewer-shell-revamp .lecture-overview-row .document-library-main { min-height:52px; touch-action:manipulation; }
   .lecture-viewer-shell-revamp .lecture-favorite-toggle { min-width:40px; min-height:40px; opacity:1 !important; touch-action:manipulation; }
@@ -16566,19 +16573,78 @@ function calendarIsSduScheduleEvent(event, moduleName = null) {
 
 function calendarLectureScheduleStatus(moduleName, lectureId, events, nowMs = Date.now()) {
   const scheduleEvents = (events || [])
-    .filter((event) =>
-      calendarIsSduScheduleEvent(event, moduleName) &&
-      calendarLectureIds(event).includes(lectureId)
-    )
-    .sort((a, b) => `${a.date || ""} ${a.time || ""}`.localeCompare(`${b.date || ""} ${b.time || ""}`));
-  const heldEvents = scheduleEvents.filter((event) => event.deliveryStatus === "held" || Number(calendarEventEndTimestamp(event)) <= nowMs);
+    .filter((event) => {
+      if (!calendarIsSduScheduleEvent(event)) return false;
+      if (event.cancelled || String(event.status || "").toLowerCase() === "cancelled") return false;
+      if (moduleName && event.planModuleId && event.planModuleId !== moduleName) return false;
+      return calendarLectureIds(event).includes(lectureId);
+    })
+    .sort((a, b) => `${a.date || ""} ${a.time || ""} ${a.id || ""}`.localeCompare(`${b.date || ""} ${b.time || ""} ${b.id || ""}`));
+  const heldEvents = scheduleEvents.filter((event) => {
+    if (event.deliveryStatus === "held") return true;
+    const endedAt = calendarEventEndTimestamp(event);
+    return Number.isFinite(Number(endedAt)) && Number(endedAt) <= nowMs;
+  });
+  const heldIds = new Set(heldEvents.map((event) => event.id));
+  const upcomingEvents = scheduleEvents.filter((event) => !heldIds.has(event.id));
+  const firstEvent = scheduleEvents[0] || null;
+  const lastEvent = scheduleEvents[scheduleEvents.length - 1] || null;
+  const nextEvent = upcomingEvents[0] || null;
   return {
     events: scheduleEvents,
-    firstEvent: scheduleEvents[0] || null,
-    lastEvent: scheduleEvents[scheduleEvents.length - 1] || null,
+    firstEvent,
+    lastEvent,
+    nextEvent,
+    displayEvent: nextEvent || lastEvent || firstEvent,
     held: scheduleEvents.length > 0 && heldEvents.length === scheduleEvents.length,
     started: heldEvents.length > 0,
   };
+}
+
+function lectureTimelineTone(schedule, selfStudyStatus) {
+  if (selfStudyStatus === "reviewed") return "reviewed";
+  if (schedule?.started) return "needs-review";
+  if (Array.isArray(schedule?.events) && schedule.events.length > 0) return "upcoming";
+  return "unscheduled";
+}
+
+function calendarLectureScheduleIndex(moduleName, events) {
+  const index = new Map();
+  (events || []).forEach((event) => {
+    if (!calendarIsSduScheduleEvent(event)) return;
+    if (event.cancelled || String(event.status || "").toLowerCase() === "cancelled") return;
+    if (moduleName && event.planModuleId && event.planModuleId !== moduleName) return;
+    calendarLectureIds(event).forEach((lectureId) => {
+      if (!lectureId) return;
+      if (!index.has(lectureId)) index.set(lectureId, []);
+      index.get(lectureId).push(event);
+    });
+  });
+  return index;
+}
+
+function lectureMaterialCountIndex(materials) {
+  const index = new Map();
+  (materials || []).forEach((material) => {
+    const lectureId = material?.lecture_id;
+    if (!lectureId) return;
+    index.set(lectureId, (index.get(lectureId) || 0) + 1);
+  });
+  return index;
+}
+
+
+function lectureNaturalOrderValue(lectureId) {
+  const match = String(lectureId || "").match(/(\d+(?:\.\d+)?)/);
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
+}
+
+function lectureRowSortTimestamp(row) {
+  const event = row?.schedule?.displayEvent || row?.schedule?.firstEvent || null;
+  if (!event?.date) return Number.POSITIVE_INFINITY;
+  const time = event.time || "00:00";
+  const timestamp = new Date(`${event.date}T${time}:00`).getTime();
+  return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
 }
 
 
@@ -34930,7 +34996,10 @@ function LecturePdfViewer({
         if (token === searchTokenRef.current) { setPdfSearchResults(results); setPdfSearchState("ready"); }
       } catch { if (token === searchTokenRef.current) setPdfSearchState("error"); }
     }, 260);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      searchTokenRef.current += 1;
+    };
   }, [workspace, pdfSearchQuery, numPages, loadState, pdfRevision]);
 
   useEffect(() => {
@@ -36342,6 +36411,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       filterSelfStudy: "Selvstudie",
       filterMissingMaterial: "Mangler materiale",
       filterFollowUp: "Følg op",
+      sortLecturesLabel: "Sorter",
+      sortLecturesNumber: "Nr.",
+      sortLecturesDate: "Dato",
       followUp: "Følg op",
       followUpShort: "Opfølgning",
       followUpTitle: "Forelæsningsopfølgning",
@@ -36748,6 +36820,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       filterSelfStudy: "Self-study",
       filterMissingMaterial: "Missing material",
       filterFollowUp: "Follow up",
+      sortLecturesLabel: "Sort",
+      sortLecturesNumber: "No.",
+      sortLecturesDate: "Date",
       followUp: "Follow up",
       followUpShort: "Follow-up",
       followUpTitle: "Lecture follow-up",
@@ -37154,6 +37229,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       filterSelfStudy: "دراسة ذاتية",
       filterMissingMaterial: "بدون مواد",
       filterFollowUp: "متابعة",
+      sortLecturesLabel: "ترتيب",
+      sortLecturesNumber: "الرقم",
+      sortLecturesDate: "التاريخ",
       followUp: "متابعة",
       followUpShort: "متابعة",
       followUpTitle: "متابعة المحاضرة",
@@ -37963,20 +38041,25 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const lectureLibraryVisible = lectureViewerFocus ? false : (lectureCompactViewport ? lectureCompactPanel === "library" : lectureLibraryOpen);
   const lectureNotesVisible = lectureViewerFocus ? false : (lectureCompactViewport ? lectureCompactPanel === "notes" : lectureNotesOpen);
   const lectureFilter = lectureOverviewPreferences.filter || "all";
+  const lectureSort = lectureOverviewPreferences.sort === "date" ? "date" : "number";
   const collapsedLectureGroups = new Set(lectureOverviewPreferences.collapsedGroups || []);
   const mergedLectureCalendarEvents = isLectureLibrary
     ? mergeCalendarEventMeta(calendarEvents, calendarEventMeta)
     : [];
+  const lectureScheduleEventIndex = calendarLectureScheduleIndex(moduleName, mergedLectureCalendarEvents);
+  const lectureMaterialCounts = lectureMaterialCountIndex(lectureMaterials);
+  const lectureFavoriteSet = new Set(lectureFavorites);
   const lectureRows = lectures.map((lecture) => {
     const progressState = getLectureProgress(lecture.id);
     const selfStudyStatus = lectureSelfStudyStatus(progressState);
     const attendanceStatus = lectureAttendanceStatus(progressState);
     const deckStudy = lectureDeckStudyStatus(moduleName, lecture.id, importedQuestions, spacedData);
-    const schedule = calendarLectureScheduleStatus(moduleName, lecture.id, mergedLectureCalendarEvents);
+    const schedule = calendarLectureScheduleStatus(moduleName, lecture.id, lectureScheduleEventIndex.get(lecture.id) || []);
     const scheduleView = lectureScheduleDefinition(schedule);
-    const materialCount = lectureMaterials.filter((material) => material.lecture_id === lecture.id).length;
+    const timelineTone = lectureTimelineTone(schedule, selfStudyStatus);
+    const materialCount = lectureMaterialCounts.get(lecture.id) || 0;
     const hasPdf = materialCount > 0;
-    const favorite = lectureFavorites.includes(lecture.id);
+    const favorite = lectureFavoriteSet.has(lecture.id);
     const localFollowUp = lectureFollowUpState(progressState);
     const plannedFollowUp = studyPlans[moduleName]?.followUps?.[lecture.id] || null;
     const followUp = localFollowUp.active || !plannedFollowUp
@@ -37988,7 +38071,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           updatedAt: Number(plannedFollowUp.updatedAt) || 0,
           sentToStudyPlanAt: Number(plannedFollowUp.sentAt) || Number(plannedFollowUp.updatedAt) || 0,
         };
-    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, hasPdf, materialCount, favorite, followUp };
+    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, timelineTone, hasPdf, materialCount, favorite, followUp };
   });
   const lectureFilterCounts = {
     all: lectureRows.length,
@@ -38029,8 +38112,24 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     if (lectureFilter === "missingMaterial") return !row.hasPdf;
     if (lectureFilter === "followUp") return row.followUp.active;
     return true;
+  }).sort((a, b) => {
+    if (lectureSort === "date") {
+      const dateDelta = lectureRowSortTimestamp(a) - lectureRowSortTimestamp(b);
+      if (Number.isFinite(dateDelta) && dateDelta !== 0) return dateDelta;
+      if (!Number.isFinite(lectureRowSortTimestamp(a)) && Number.isFinite(lectureRowSortTimestamp(b))) return 1;
+      if (Number.isFinite(lectureRowSortTimestamp(a)) && !Number.isFinite(lectureRowSortTimestamp(b))) return -1;
+    }
+    const numberDelta = lectureNaturalOrderValue(a.lecture.id) - lectureNaturalOrderValue(b.lecture.id);
+    if (Number.isFinite(numberDelta) && numberDelta !== 0) return numberDelta;
+    return String(a.lecture.id || "").localeCompare(String(b.lecture.id || ""), undefined, { numeric: true });
   });
-  const lectureGroupOrder = [...new Set(lectures.map((lecture) => lecture.group))];
+  const lectureGroupOrder = [...new Set(lectures.map((lecture) => lecture.group))]
+    .sort((a, b) => {
+      if (lectureSort !== "date") return 0;
+      const firstA = filteredLectureRows.find((row) => row.lecture.group === a);
+      const firstB = filteredLectureRows.find((row) => row.lecture.group === b);
+      return lectureRowSortTimestamp(firstA) - lectureRowSortTimestamp(firstB);
+    });
   const groupedLectureRows = lectureGroupOrder
     .map((group) => ({
       group,
@@ -38099,11 +38198,11 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }, [isLectureLibrary, lectureViewerFocus, lectureCompactViewport, lectureCompactPanel, query, previousLecture?.id, nextLecture?.id, previousFavoriteLecture?.id, nextFavoriteLecture?.id]);
   const moduleSduEvents = isLectureLibrary
     ? mergedLectureCalendarEvents
-        .filter((event) => calendarIsSduScheduleEvent(event, moduleName))
+        .filter((event) => calendarIsSduScheduleEvent(event) && (!event.planModuleId || event.planModuleId === moduleName) && !event.cancelled)
         .sort((a, b) => `${a.date || ""} ${a.time || ""} ${a.title || ""}`.localeCompare(`${b.date || ""} ${b.time || ""} ${b.title || ""}`))
     : [];
   const selectedScheduleEvents = selectedLectureRow?.schedule?.events || [];
-  const selectedScheduleEvent = selectedScheduleEvents[0] || null;
+  const selectedScheduleEvent = selectedLectureRow?.schedule?.displayEvent || selectedScheduleEvents[0] || null;
   const lectureHeaderLocale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
   const selectedScheduleDate = selectedScheduleEvent?.date
     ? new Date(`${selectedScheduleEvent.date}T12:00:00`).toLocaleDateString(lectureHeaderLocale, { weekday: "short", day: "numeric", month: "short" })
@@ -38197,7 +38296,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }
 
   function lectureScheduleDefinition(schedule) {
-    const first = schedule?.firstEvent || null;
+    const first = schedule?.displayEvent || schedule?.firstEvent || null;
     const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
     const dateLabel = first?.date
       ? new Date(`${first.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })
@@ -38946,7 +39045,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       const { error } = await supabase.from("lecture_pdf_user_state").upsert(payload, { onConflict: "user_id,material_id" });
       if (lecturePdfScopeRef.current?.materialId !== materialId) return;
       setLecturePdfWorkspaceStatus(error ? "local" : "ready");
-    }, 520);
+    }, 720);
   }
 
   function setLecturePdfAnnotationsForCurrentMaterial(nextAnnotations) {
@@ -39064,7 +39163,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       const { error } = await supabase.from("lecture_pptx_user_state").upsert(payload, { onConflict: "user_id,material_id" });
       if (lecturePptxScopeRef.current?.materialId !== materialId) return;
       setLecturePptxWorkspaceStatus(error ? "local" : "ready");
-    }, 520);
+    }, 720);
   }
 
   function updateLecturePptxViewerState(materialId, patch) {
@@ -40210,6 +40309,13 @@ async function openExamSetPdfEditor() {
                   </button>
                 ))}
               </div>
+              <label className="lecture-sort-control" title={copy.sortLecturesLabel}>
+                <Icon name="list" size={10} />
+                <select aria-label={copy.sortLecturesLabel} value={lectureSort} onChange={(event) => updateLectureOverviewPreferences({ sort: event.target.value })}>
+                  <option value="number">{copy.sortLecturesNumber}</option>
+                  <option value="date">{copy.sortLecturesDate}</option>
+                </select>
+              </label>
               <div className="lecture-overview-result-count">{copy.showingLectures(filteredLectureRows.length, lectureRows.length)}</div>
             </div>
           )}
@@ -40232,7 +40338,7 @@ async function openExamSetPdfEditor() {
                     </button>
                     {!collapsed && (
                       <div className="lecture-group-rows">
-                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, hasPdf, materialCount, favorite, followUp }) => {
+                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, timelineTone, hasPdf, materialCount, favorite, followUp }) => {
                           const selected = lecture.id === selectedLecture?.id;
                           const mastery = masteryDefinition(progressState.mastery);
                           const attendance = attendanceDefinition(attendanceStatus);
@@ -40243,7 +40349,7 @@ async function openExamSetPdfEditor() {
                               key={lecture.id}
                               className="document-library-row lecture-progress-row lecture-overview-row"
                               data-active={selected ? "true" : "false"}
-                              data-schedule={scheduleView.key}
+                              data-schedule={timelineTone}
                               style={{ "--lecture-tone": mastery.color }}
                             >
                               <button type="button" className="document-library-main" onClick={() => selectLecture(lecture)}>
@@ -40251,7 +40357,7 @@ async function openExamSetPdfEditor() {
                                 <span className="document-library-copy">
                                   <strong>{lecture.title}</strong>
                                   <small className="lecture-row-meta">
-                                    <span className="lecture-schedule-state" data-state={scheduleView.key} title={scheduleView.detail || scheduleView.label}>
+                                    <span className="lecture-schedule-state" data-state={timelineTone} title={scheduleView.detail || scheduleView.label}>
                                       <i />{scheduleView.label}
                                     </span>
                                     {scheduleView.detail && <span className="lecture-schedule-date">{scheduleView.detail}</span>}
@@ -40302,7 +40408,7 @@ async function openExamSetPdfEditor() {
                 <small>{selectedLecture.group}</small>
                 <strong title={selectedLecture.title}>{selectedLecture.title}</strong>
                 <div className="lecture-detail-meta">
-                  <span className="lecture-detail-schedule-state" data-state={selectedLectureRow.scheduleView.key}>
+                  <span className="lecture-detail-schedule-state" data-state={selectedLectureRow.timelineTone}>
                     <i />{selectedLectureRow.scheduleView.label}
                   </span>
                   {(selectedScheduleDate || selectedScheduleTime) && (
@@ -43298,3 +43404,5 @@ onNavigate={navigateFromShell}
 }
 
 export default App;
+
+/* FORELÆSNINGSVISER FV7 — PERFORMANCE, CALENDAR & FINISH */
