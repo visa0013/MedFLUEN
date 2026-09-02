@@ -1537,6 +1537,107 @@ function calendarImportDiff(incoming, existing) {
   return { rows, removed };
 }
 
+function calendarImportedEventIdentity(event) {
+  return String(event?.sourceId || event?.id || "");
+}
+
+function calendarIsImportedEvent(event) {
+  return Boolean(event && (
+    calendarEventLayer(event) === "sdu"
+    || event.source === "ical"
+    || event.importedSchedule === true
+  ));
+}
+
+function calendarEventIsCanonical(event) {
+  return event?.globalCalendar === true || event?.calendarScope === "global";
+}
+
+function calendarGlobalEventFromRow(row) {
+  if (!row?.event_id) return null;
+  const payload = row.event_data && typeof row.event_data === "object" && !Array.isArray(row.event_data) ? row.event_data : {};
+  return {
+    ...payload,
+    id: row.event_id,
+    sourceId: row.source_id || payload.sourceId || row.event_id,
+    globalCalendar: true,
+    calendarScope: "global",
+    globalImportId: row.import_id,
+  };
+}
+
+function calendarMergePrivateAndGlobal(privateEvents, globalEvents) {
+  const globals = (Array.isArray(globalEvents) ? globalEvents : []).filter(Boolean);
+  const globalKeys = new Set(globals.map(calendarImportedEventIdentity).filter(Boolean));
+  const privateVisible = (Array.isArray(privateEvents) ? privateEvents : []).filter((event) => {
+    if (!calendarIsImportedEvent(event)) return true;
+    const key = calendarImportedEventIdentity(event);
+    return !key || !globalKeys.has(key);
+  });
+  return [...privateVisible, ...globals];
+}
+
+function calendarBuildPrivateImportGroups(events, moduleName = "") {
+  const groups = new Map();
+  (events || []).forEach((event) => {
+    if (!calendarIsImportedEvent(event) || calendarEventIsCanonical(event)) return;
+    if (moduleName && event.planModuleId && event.planModuleId !== moduleName) return;
+    const key = calendarImportGroup(event);
+    if (!groups.has(key)) {
+      const sourceType = calendarEventLayer(event) === "sdu" ? "sdu" : "ical";
+      groups.set(key, {
+        key,
+        sourceType,
+        sourceLabel: event.importSourceLabel || (sourceType === "sdu" ? `${event.planModuleId || moduleName} · ${event.term || "SDU"}` : event.importFeedId || "iCal"),
+        term: event.term || null,
+        uvaCode: event.uvaCode || null,
+        events: [],
+      });
+    }
+    groups.get(key).events.push(event);
+  });
+  return [...groups.values()].sort((a, b) => String(a.sourceLabel).localeCompare(String(b.sourceLabel), undefined, { numeric: true }));
+}
+
+function useGlobalCalendarData(moduleName, userId, refreshToken = 0) {
+  const [state, setState] = useState({ imports: [], events: [], status: "idle", error: "" });
+  useEffect(() => {
+    if (!moduleName || !userId) {
+      setState({ imports: [], events: [], status: "idle", error: "" });
+      return undefined;
+    }
+    let cancelled = false;
+    setState((current) => ({ ...current, status: "loading", error: "" }));
+    (async () => {
+      const { data: imports, error: importError } = await supabase
+        .from("global_calendar_imports")
+        .select("id,module_name,source_type,source_label,feed_key,term,uva_code,created_by,created_at,updated_at")
+        .eq("module_name", moduleName)
+        .order("updated_at", { ascending: false });
+      if (importError) throw importError;
+      const safeImports = Array.isArray(imports) ? imports : [];
+      const importIds = safeImports.map((item) => item.id).filter(Boolean);
+      let rows = [];
+      if (importIds.length) {
+        const { data, error } = await supabase
+          .from("global_calendar_events")
+          .select("id,import_id,event_id,source_id,event_data,created_at,updated_at")
+          .in("import_id", importIds);
+        if (error) throw error;
+        rows = Array.isArray(data) ? data : [];
+      }
+      if (cancelled) return;
+      setState({ imports: safeImports, events: rows.map(calendarGlobalEventFromRow).filter(Boolean), status: "ready", error: "" });
+    })().catch((error) => {
+      if (cancelled) return;
+      console.warn("Kunne ikke hente globale kalenderimports:", error);
+      setState({ imports: [], events: [], status: "error", error: error?.message || String(error) });
+    });
+    return () => { cancelled = true; };
+  }, [moduleName, userId, refreshToken]);
+  return state;
+}
+
 function calendarScrollTargetMinutes(events, dateStrings, now = new Date()) {
   const todayString = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
   if (dateStrings.includes(todayString)) return Math.max(0, now.getHours() * 60 + now.getMinutes() - 90);
@@ -2114,6 +2215,7 @@ function WeekCalendar({
 
               {positioned.map(({ event, start, end, lane, laneCount }) => {
                 const tone = calendarActivityTone(c, event);
+                const readOnly = calendarEventIsCanonical(event);
                 const visibleStart = Math.max(0, start);
                 const visibleEnd = Math.min(24 * 60, end);
                 const top = (visibleStart / 60) * hourHeight;
@@ -2123,15 +2225,15 @@ function WeekCalendar({
                   <button
                     key={`${event.id}-${key}`}
                     type="button"
-                    draggable
+                    draggable={!readOnly}
                     className="calendar-week-event"
                     data-complete={event.completedAt ? "true" : "false"}
                     data-source={calendarEventLayer(event)}
                     data-conflict={hasConflict ? "true" : "false"}
                     data-selected={selectedEventId === event.id ? "true" : "false"}
-                    onDragStart={(domEvent) => beginDrag(domEvent, event.id)}
+                    onDragStart={(domEvent) => { if (!readOnly) beginDrag(domEvent, event.id); }}
                     onDragEnd={() => setDragId(null)}
-                    onPointerDown={(domEvent) => startTouchDrag(domEvent, event)}
+                    onPointerDown={(domEvent) => { if (!readOnly) startTouchDrag(domEvent, event); }}
                     onClick={(domEvent) => { domEvent.stopPropagation(); if (touchMovedRef.current === event.id) { touchMovedRef.current = null; domEvent.preventDefault(); return; } activateEvent(event); }}
                     onContextMenu={(domEvent) => {
                       domEvent.preventDefault();
@@ -2152,7 +2254,8 @@ function WeekCalendar({
                     <span className="calendar-week-event-title">{event.title}</span>
                     <span className="calendar-week-event-meta">{event.location || tone.label}</span>
                     {event.deliveryStatus === "held" && <span className="calendar-week-event-state">Afholdt</span>}
-                    <span className="calendar-week-resize-handle" onPointerDown={(domEvent) => startResize(domEvent, event)} aria-hidden="true" />
+                    {readOnly && <span className="calendar-week-event-state">Global</span>}
+                    {!readOnly && <span className="calendar-week-resize-handle" onPointerDown={(domEvent) => startResize(domEvent, event)} aria-hidden="true" />}
                   </button>
                 );
               })}
@@ -12176,6 +12279,31 @@ select.ui-control {
 .calendar-import-summary-grid > div { display: grid; gap: 2px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-soft); }
 .calendar-import-summary-grid strong { color: var(--ui-text); font-size: 16px; }
 .calendar-import-summary-grid span { color: var(--ui-muted); font-size: 8.5px; font-weight: 700; }
+.calendar-import-scope { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px 12px; }
+.calendar-import-scope > button { display: grid; grid-template-columns: 28px minmax(0,1fr); align-items: center; gap: 8px; padding: 9px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); color: var(--ui-secondary); text-align: start; }
+.calendar-import-scope > button[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.calendar-import-scope > button > span { display: grid; gap: 2px; }
+.calendar-import-scope strong { color: var(--ui-text); font-size: 9px; }
+.calendar-import-scope small { color: var(--ui-muted); font-size: 7.5px; line-height: 1.35; }
+.calendar-global-readonly { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 8px; background: var(--ui-blue-soft); color: var(--ui-blue); font-size: 8px; font-weight: 800; }
+.calendar-import-manager { width: min(720px,100%); max-height: min(720px,calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ui-border); border-radius: 18px; background: var(--ui-panel); box-shadow: var(--ui-shadow-lg); }
+.calendar-import-manager > header { display: flex; justify-content: space-between; gap: 12px; padding: 16px 17px; border-bottom: 1px solid var(--ui-border); }
+.calendar-import-manager header span { color: var(--ui-blue); font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .07em; }
+.calendar-import-manager h2 { margin: 4px 0; color: var(--ui-text); font-size: 17px; }
+.calendar-import-manager p { margin: 0; color: var(--ui-muted); font-size: 9px; }
+.calendar-import-manager-list { min-height: 0; flex: 1; overflow-y: auto; display: grid; align-content: start; gap: 7px; padding: 14px 16px; }
+.calendar-import-manager-row { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 11px; background: var(--ui-panel); }
+.calendar-import-manager-row > span:nth-child(2) { min-width: 0; display: grid; gap: 3px; }
+.calendar-import-manager-row strong { color: var(--ui-text); font-size: 10px; }
+.calendar-import-manager-row small,.calendar-import-manager-row em { color: var(--ui-muted); font-size: 8px; font-style: normal; }
+.calendar-import-manager-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; background: var(--ui-blue-soft); color: var(--ui-blue); }
+.calendar-import-manager-row > div { display: flex; gap: 5px; }
+.calendar-import-manager-row button { min-height: 30px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-soft); color: var(--ui-secondary); font-size: 8px; font-weight: 780; }
+.calendar-import-manager-row button[data-danger="true"] { color: var(--ui-red); }
+.calendar-import-manager-empty { display: grid; place-items: center; gap: 5px; padding: 30px; color: var(--ui-muted); text-align: center; }
+.calendar-import-manager-empty strong { color: var(--ui-text); font-size: 11px; }
+.calendar-import-manager-empty small { font-size: 8.5px; }
+.calendar-import-manager > footer { display: flex; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--ui-border); }
 .calendar-import-actions { display: flex; align-items: center; gap: 8px; padding: 0 16px 10px; }
 .calendar-import-actions button { border: 0; background: transparent; color: var(--ui-blue); font-size: 9px; font-weight: 760; }
 .calendar-import-actions span { margin-inline-start: auto; color: var(--ui-muted); font-size: 9px; }
@@ -13332,6 +13460,13 @@ select.ui-control {
 .lecture-material-field select { width: 100%; height: 40px; padding: 0 10px; border: 1px solid var(--ui-border); border-radius: 9px; outline: 0; background: var(--ui-soft); color: var(--ui-text); font-size: 10px; }
 .lecture-material-field input:focus,
 .lecture-material-field select:focus { border-color: var(--ui-blue-border); box-shadow: 0 0 0 3px var(--ui-ring); background: var(--ui-panel); }
+.lecture-material-visibility { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.lecture-material-visibility > span { grid-column: 1 / -1; color: var(--ui-muted); font-size: 8px; font-weight: 820; letter-spacing: .04em; text-transform: uppercase; }
+.lecture-material-visibility > button { display: grid; grid-template-columns: 26px minmax(0,1fr); align-items: start; gap: 7px; padding: 9px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); color: var(--ui-secondary); text-align: start; }
+.lecture-material-visibility > button[data-active="true"] { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-blue); }
+.lecture-material-visibility > button > span { display: grid; gap: 2px; }
+.lecture-material-visibility strong { color: var(--ui-text); font-size: 8.5px; }
+.lecture-material-visibility small { color: var(--ui-muted); font-size: 7px; line-height: 1.35; }
 .lecture-material-primary-choice { display: flex; align-items: flex-start; gap: 8px; padding: 10px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-soft); }
 .lecture-material-primary-choice input { margin-top: 2px; accent-color: var(--ui-blue); }
 .lecture-material-primary-choice > span { display: grid; gap: 2px; }
@@ -16531,7 +16666,7 @@ function calendarEventMetaFields(event) {
     "sourceId", "activityType", "term", "uvaCode", "importBatchId", "importFeedId", "importedAt", "lastSyncedAt",
     "originalTitle", "timeZone", "cancelled", "cancelledAt", "teacher", "exdates", "importSourceLabel", "testEvent", "phase", "phaseLabel",
     "questionIds", "earliestDue", "fsrsVersion", "loadMinutes", "examSetIndex",
-    "manualLectureIds", "manualLectureMatchUpdatedAt",
+    "manualLectureIds", "manualLectureMatchUpdatedAt", "globalCalendar", "calendarScope", "globalImportId",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -17462,6 +17597,7 @@ function CalendarEventPopover({ c, event, locale = "da-DK", onEdit, onClose, onC
   }, [onClose]);
   if (!event) return null;
   const tone = calendarActivityTone(c, event);
+  const readOnly = calendarEventIsCanonical(event);
   return (
     <div className="calendar-popover-backdrop" onMouseDown={(domEvent) => domEvent.target === domEvent.currentTarget && onClose()}>
       <div className="calendar-event-popover" role="dialog" aria-modal="true" aria-label={event.title}>
@@ -17474,17 +17610,18 @@ function CalendarEventPopover({ c, event, locale = "da-DK", onEdit, onClose, onC
           {(event.recurrence && event.recurrence !== "none") || event.recurrenceParentId ? <p><Icon name="reset" size={14} />{event.recurrenceParentId ? "Gentaget forekomst" : event.recurrence === "daily" ? "Gentages hver dag" : event.recurrence === "weekdays" ? "Gentages på hverdage" : event.recurrence === "weekly" ? "Gentages hver uge" : "Gentages hver måned"}{event.recurrenceUntil ? ` · til ${event.recurrenceUntil}` : ""}</p> : null}
         </div>
         <footer>
-          <button type="button" className="ui-button ui-button--ghost" onClick={onComplete}><Icon name="check" size={14} />{event.completedAt ? "Markér ikke færdig" : "Markér færdig"}</button>
+          {!readOnly && <button type="button" className="ui-button ui-button--ghost" onClick={onComplete}><Icon name="check" size={14} />{event.completedAt ? "Markér ikke færdig" : "Markér færdig"}</button>}
           {event.lectureId && <button type="button" className="ui-button ui-button--secondary" onClick={onOpenLecture}><Icon name="book" size={14} />Åbn forelæsning</button>}
-          <button type="button" className="ui-button ui-button--primary" onClick={onEdit}><Icon name="edit" size={14} />Redigér</button>
+          {readOnly ? <span className="calendar-global-readonly"><Icon name="globe" size={12} />Global admin-kalender</span> : <button type="button" className="ui-button ui-button--primary" onClick={onEdit}><Icon name="edit" size={14} />Redigér</button>}
         </footer>
       </div>
     </div>
   );
 }
 
-function CalendarImportPreview({ c, title, subtitle, diff, onConfirm, onClose, busy = false }) {
+function CalendarImportPreview({ c, title, subtitle, diff, onConfirm, onClose, busy = false, isAdmin = false }) {
   const [selected, setSelected] = useState(() => new Set((diff?.rows || []).map(({ event }) => event.sourceId || event.id)));
+  const [scope, setScope] = useState(isAdmin ? "global" : "private");
   useEffect(() => setSelected(new Set((diff?.rows || []).map(({ event }) => event.sourceId || event.id))), [diff]);
   const rows = diff?.rows || [];
   const counts = rows.reduce((result, row) => ({ ...result, [row.status]: (result[row.status] || 0) + 1 }), {});
@@ -17496,6 +17633,7 @@ function CalendarImportPreview({ c, title, subtitle, diff, onConfirm, onClose, b
         <div className="calendar-import-summary-grid">
           <div><strong>{rows.length}</strong><span>fundet</span></div><div><strong>{counts.new || 0}</strong><span>nye</span></div><div><strong>{counts.changed || 0}</strong><span>ændrede</span></div><div><strong>{diff?.removed?.length || 0}</strong><span>fjernet hos kilden</span></div>
         </div>
+        {isAdmin && <div className="calendar-import-scope" role="group" aria-label="Importområde"><button type="button" data-active={scope === "global" ? "true" : "false"} onClick={() => setScope("global")}><Icon name="globe" size={13} /><span><strong>Importér globalt for alle</strong><small>Canonical admin-kalender for modulet</small></span></button><button type="button" data-active={scope === "private" ? "true" : "false"} onClick={() => setScope("private")}><Icon name="user" size={13} /><span><strong>Kun for mig</strong><small>Gemmes i din private kalender</small></span></button></div>}
         <div className="calendar-import-actions"><button type="button" onClick={() => setSelected(new Set(rows.map(({ event }) => event.sourceId || event.id)))}>Vælg alle</button><button type="button" onClick={() => setSelected(new Set())}>Fravælg alle</button><span>{selected.size} valgt</span></div>
         <div className="calendar-import-list">
           {rows.map(({ event, status }) => {
@@ -17504,13 +17642,35 @@ function CalendarImportPreview({ c, title, subtitle, diff, onConfirm, onClose, b
           })}
         </div>
         {diff?.removed?.length > 0 && <details className="calendar-import-removed"><summary>{diff.removed.length} aktiviteter findes ikke længere hos kilden</summary>{diff.removed.map((event) => <div key={event.id}>{event.date} · {event.title}</div>)}</details>}
-        <footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={!selected.size || busy} onClick={() => onConfirm(rows.filter(({ event }) => selected.has(event.sourceId || event.id)).map(({ event }) => event), diff.removed || [])}>{busy ? "Importerer…" : `Importer ${selected.size} aktiviteter`}</PrimaryButton></footer>
+        <footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={!selected.size || busy} onClick={() => onConfirm(rows.filter(({ event }) => selected.has(event.sourceId || event.id)).map(({ event }) => event), diff.removed || [], scope)}>{busy ? "Importerer…" : `${scope === "global" ? "Importér globalt" : "Importér"} · ${selected.size}`}</PrimaryButton></footer>
       </div>
     </div>
   );
 }
 
-function SduImportDialog({ c, moduleName, existingEvents, onImport, onClose }) {
+function CalendarImportManager({ c, privateGroups, globalImports, globalEvents, isAdmin, busy, onDeletePrivate, onDeleteGlobal, onPromotePrivate, onClose }) {
+  const globalCounts = (globalEvents || []).reduce((map, event) => {
+    if (!event.globalImportId) return map;
+    map[event.globalImportId] = (map[event.globalImportId] || 0) + 1;
+    return map;
+  }, {});
+  const hasAny = (privateGroups || []).length || (globalImports || []).length;
+  return (
+    <div className="calendar-import-overlay">
+      <div className="calendar-import-manager" role="dialog" aria-modal="true" aria-label="Importerede kalendere">
+        <header><div><span>Kalenderkilder</span><h2>Administrér importerede kalendere</h2><p>Slet en hel import samlet. Admin kan gøre private imports globale for alle brugere.</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header>
+        <div className="calendar-import-manager-list">
+          {!hasAny && <div className="calendar-import-manager-empty"><Icon name="calendar" size={20} /><strong>Ingen importerede kalendere</strong><small>SDU- og iCal-imports vises her, når de er tilføjet.</small></div>}
+          {(globalImports || []).map((item) => <div key={`global-${item.id}`} className="calendar-import-manager-row"><span className="calendar-import-manager-icon"><Icon name="globe" size={14} /></span><span><strong>{item.source_label}</strong><small>Global · {item.source_type === "sdu" ? "SDU" : "iCal"}{item.term ? ` · ${item.term}` : ""} · {globalCounts[item.id] || 0} aktiviteter</small></span>{isAdmin ? <button type="button" data-danger="true" disabled={busy} onClick={() => onDeleteGlobal(item)}><Icon name="trash" size={12} />Slet globalt</button> : <em>Administreres af admin</em>}</div>)}
+          {(privateGroups || []).map((group) => <div key={`private-${group.key}`} className="calendar-import-manager-row"><span className="calendar-import-manager-icon"><Icon name="user" size={14} /></span><span><strong>{group.sourceLabel}</strong><small>Privat · {group.sourceType === "sdu" ? "SDU" : "iCal"} · {group.events.length} aktiviteter</small></span><div>{isAdmin && <button type="button" disabled={busy} onClick={() => onPromotePrivate(group)}><Icon name="globe" size={12} />Gør global</button>}<button type="button" data-danger="true" disabled={busy} onClick={() => onDeletePrivate(group)}><Icon name="trash" size={12} />Slet</button></div></div>)}
+        </div>
+        <footer><PrimaryButton onClick={onClose}>Færdig</PrimaryButton></footer>
+      </div>
+    </div>
+  );
+}
+
+function SduImportDialog({ c, moduleName, existingEvents, onImport, onClose, isAdmin = false }) {
   const terms = calendarUpcomingTerms();
   const [term, setTerm] = useState(terms[0]);
   const [state, setState] = useState({ loading: false, error: "", payload: null });
@@ -17567,7 +17727,7 @@ function SduImportDialog({ c, moduleName, existingEvents, onImport, onClose }) {
     }
   }
   if (state.payload) {
-    return <CalendarImportPreview c={c} title={`${moduleName} · ${term}`} subtitle={`UVA ${state.payload.uvaCode || "—"} · ${state.payload.normalized.length} aktiviteter${state.payload.cancelledCount ? ` · ${state.payload.cancelledCount} aflyst` : ""} · ingen ældre termin anvendes`} diff={state.payload.diff} onClose={onClose} onConfirm={(selected, removed) => onImport(selected, removed, { term, uvaCode: state.payload.uvaCode })} />;
+    return <CalendarImportPreview c={c} title={`${moduleName} · ${term}`} subtitle={`UVA ${state.payload.uvaCode || "—"} · ${state.payload.normalized.length} aktiviteter${state.payload.cancelledCount ? ` · ${state.payload.cancelledCount} aflyst` : ""} · ingen ældre termin anvendes`} diff={state.payload.diff} onClose={onClose} isAdmin={isAdmin} onConfirm={(selected, removed, scope) => onImport(selected, removed, { term, uvaCode: state.payload.uvaCode, sourceTitle: `${moduleName} · ${term}` }, scope)} />;
   }
   return (
     <div className="calendar-import-overlay"><div className="calendar-sdu-dialog"><header><div><span>SDU Skemaplan</span><h2>Importer kommende skema</h2><p>{moduleName}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header><label>Termin<select value={term} onChange={(event) => setTerm(event.target.value)}>{terms.map((value) => <option key={value} value={value}>{value}</option>)}</select></label><div className="ui-feedback" data-tone="info"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content">MedFLUEN accepterer kun en officiel fagversion og et skema, der matcher præcis den valgte termin. Et ældre semester bruges aldrig som reserve.</div></div>{state.error && <div className="ui-feedback" data-tone="error"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{state.error}</div></div>}<footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={state.loading} onClick={loadPreview}>{state.loading ? "Finder UVA og skema…" : "Hent preview"}</PrimaryButton></footer></div></div>
@@ -17618,7 +17778,7 @@ function CalendarReminderManager({ events }) {
   return <div className="calendar-reminder-toast" role="alert"><span><Icon name="clock" size={15} /></span><div><strong>{activeReminder.title}</strong><small>{activeReminder.time}{activeReminder.location ? ` · ${activeReminder.location}` : ""}</small></div><button type="button" onClick={() => setActiveReminder(null)} aria-label="Luk påmindelse">×</button></div>;
 }
 
-function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }) {
+function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, userId = null, isAdmin = false }) {
   const [events, setEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [eventMeta, setEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
@@ -17630,9 +17790,15 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
   const [undoState, setUndoState] = useState(null);
   const [showSduImport, setShowSduImport] = useState(false);
   const [icalPreview, setIcalPreview] = useState(null);
+  const [showImportManager, setShowImportManager] = useState(false);
+  const [calendarImportBusy, setCalendarImportBusy] = useState(false);
+  const [globalCalendarRefreshToken, setGlobalCalendarRefreshToken] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
   const [syncState, setSyncState] = useState({ status: typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "idle", detail: "" });
-  const mergedEvents = mergeCalendarEventMeta(events, eventMeta);
+  const privateMergedEvents = mergeCalendarEventMeta(events, eventMeta);
+  const globalCalendarData = useGlobalCalendarData(module, userId, globalCalendarRefreshToken);
+  const mergedEvents = calendarMergePrivateAndGlobal(privateMergedEvents, globalCalendarData.events);
+  const privateImportGroups = calendarBuildPrivateImportGroups(privateMergedEvents, module);
   const visibleEvents = calendarFilterEvents(mergedEvents, calendarPreferences, module, search);
   const today = new Date();
   const preferredDate = calendarPreferences.lastDate ? new Date(`${calendarPreferences.lastDate}T12:00:00`) : today;
@@ -17701,7 +17867,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
   }, [module]);
 
   useEffect(() => {
-    const held = mergedEvents.filter((event) => event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
+    const held = mergedEvents.filter((event) => !calendarEventIsCanonical(event) && event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
     if (!held.length) return;
     setEventMeta((previous) => {
       const next = { ...previous };
@@ -17747,6 +17913,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
   }
 
   function saveEvent(nextEvent) {
+    if (calendarEventIsCanonical(nextEvent)) return;
     snapshot("Ændring gemt");
     const clean = { ...nextEvent, allDay: false, type: nextEvent.type || "study", needsScheduling: !nextEvent.time };
     const isSingleOccurrence = Boolean(clean.recurrenceParentId);
@@ -17771,6 +17938,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
 
   function deleteEvent(id) {
     const currentEvent = mergedEvents.find((item) => item.id === id);
+    if (calendarEventIsCanonical(currentEvent)) return;
     if (calendarIsUnfinishedStudyPlanLecture(currentEvent)) {
       const queuedEvent = calendarReturnLectureToQueue(currentEvent, todayKey);
       snapshot("Forelæsning returneret til køen");
@@ -17813,6 +17981,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
   }
 
   function moveEvent(updatedEvent) {
+    if (calendarEventIsCanonical(updatedEvent)) return;
     snapshot("Event flyttet");
     const { base, metadata } = splitRecord({ ...updatedEvent, needsScheduling: !updatedEvent.time, status: updatedEvent.time ? "planned" : "unscheduled" });
     setEvents((previous) => previous.map((item) => item.id === base.id ? base : item));
@@ -17820,6 +17989,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
   }
 
   function toggleEventComplete(event) {
+    if (calendarEventIsCanonical(event)) return;
     snapshot(event.completedAt ? "Markering fjernet" : "Event markeret færdig");
     const completing = !event.completedAt;
     const lectureIds = calendarLectureIds(event);
@@ -17886,6 +18056,9 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
     }
     const event = contextMenu.event;
     if (!event) return [];
+    if (calendarEventIsCanonical(event)) return [
+      event.lectureId && { id: "lecture", label: contextCopy.openLecture, icon: "book", action: () => openLecture(event) },
+    ].filter(Boolean);
     const tomorrow = addDays(today, 1); const tomorrowKey = dateKey(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
     if (contextMenu.kind === "unscheduled") {
       const next = calendarFindNextFreeStart({ ...event, time: "09:00" }, visibleEvents, 0, 24 * 60);
@@ -17935,16 +18108,103 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
         const diff = calendarImportDiff(active, mergedEvents);
         const cancelledExisting = mergedEvents.filter((event) => cancelledIds.has(event.sourceId || event.id));
         diff.removed = [...new Map([...(diff.removed || []), ...cancelledExisting].map((event) => [event.sourceId || event.id, event])).values()];
-        setIcalPreview({ diff, title: file.name, parsed: active, cancelledCount: cancelledIds.size });
+        setIcalPreview({ diff, title: file.name, parsed: active, cancelledCount: cancelledIds.size, sourceTitle: file.name });
       } catch (error) { setIcalPreview({ error: error.message || (t.calendarICalError || "Kunne ikke læse iCal-filen.") }); }
     };
     reader.readAsText(file); fileEvent.target.value = "";
   }
 
-  function importCalendarEvents(selected, removed = [], sourceLabel = "import") {
+  function removePrivateImportGroup(group) {
+    if (!group?.events?.length) return;
+    const ids = new Set(group.events.map((event) => event.id));
+    snapshot(`Import slettet · ${group.sourceLabel}`);
+    setEvents((previous) => previous.filter((event) => !ids.has(event.id)));
+    setEventMeta((previous) => { const next = { ...previous }; ids.forEach((id) => delete next[id]); return next; });
+  }
+
+  async function saveGlobalCalendarImport(selected, removed = [], sourceLabel = "import", importMeta = {}) {
+    if (!isAdmin || !userId || !module || !selected.length) throw new Error("Kun administratorer kan oprette globale kalenderimports.");
+    const sourceType = sourceLabel === "sdu" ? "sdu" : "ical";
+    const first = selected[0] || removed[0] || {};
+    const feedKey = sourceType === "sdu"
+      ? `sdu:${module}:${first.term || importMeta.term || "current"}`
+      : (first.importFeedId || `file:${calendarNormalizeMatchText(importMeta.sourceTitle || first.importSourceLabel || "calendar") || "calendar"}`);
+    const sourceTitle = importMeta.sourceTitle || first.importSourceLabel || (sourceType === "sdu" ? `${module} · ${first.term || importMeta.term || "SDU"}` : feedKey.replace(/^file:/, ""));
+    const { data: importRow, error: importError } = await supabase
+      .from("global_calendar_imports")
+      .upsert({ module_name: module, source_type: sourceType, source_label: sourceTitle, feed_key: feedKey, term: first.term || importMeta.term || null, uva_code: first.uvaCode || importMeta.uvaCode || null, created_by: userId, updated_at: new Date().toISOString() }, { onConflict: "module_name,source_type,feed_key" })
+      .select("id,module_name,source_type,source_label,feed_key,term,uva_code")
+      .single();
+    if (importError) throw importError;
+
+    if (removed.length) {
+      const removedKeys = new Set(removed.map(calendarImportedEventIdentity).filter(Boolean));
+      const { data: currentRows, error: currentError } = await supabase.from("global_calendar_events").select("id,event_id,source_id").eq("import_id", importRow.id);
+      if (currentError) throw currentError;
+      const idsToDelete = (currentRows || []).filter((row) => removedKeys.has(String(row.source_id || row.event_id || ""))).map((row) => row.id);
+      if (idsToDelete.length) {
+        const { error: deleteError } = await supabase.from("global_calendar_events").delete().in("id", idsToDelete);
+        if (deleteError) throw deleteError;
+      }
+    }
+
+    const rows = selected.map((event) => {
+      const data = { ...event };
+      delete data.globalCalendar;
+      delete data.calendarScope;
+      delete data.globalImportId;
+      return { import_id: importRow.id, event_id: event.id, source_id: event.sourceId || event.id, event_data: data, updated_at: new Date().toISOString() };
+    });
+    const { error: eventError } = await supabase.from("global_calendar_events").upsert(rows, { onConflict: "import_id,event_id" });
+    if (eventError) throw eventError;
+
+    // Remove the admin's equivalent private copies after promotion/import so the canonical row wins cleanly.
+    const promotedKeys = new Set(selected.map(calendarImportedEventIdentity).filter(Boolean));
+    const localIds = new Set(privateMergedEvents.filter((event) => calendarIsImportedEvent(event) && promotedKeys.has(calendarImportedEventIdentity(event))).map((event) => event.id));
+    if (localIds.size) {
+      setEvents((previous) => previous.filter((event) => !localIds.has(event.id)));
+      setEventMeta((previous) => { const next = { ...previous }; localIds.forEach((id) => delete next[id]); return next; });
+    }
+    setGlobalCalendarRefreshToken((value) => value + 1);
+  }
+
+  async function deleteGlobalCalendarImport(importRow) {
+    if (!isAdmin || !importRow?.id || !window.confirm(`Slet den globale kalenderimport “${importRow.source_label}” for alle brugere?`)) return;
+    setCalendarImportBusy(true);
+    try {
+      const { error } = await supabase.from("global_calendar_imports").delete().eq("id", importRow.id);
+      if (error) throw error;
+      setGlobalCalendarRefreshToken((value) => value + 1);
+    } catch (error) {
+      window.alert(error?.message || "Den globale kalenderimport kunne ikke slettes.");
+    } finally { setCalendarImportBusy(false); }
+  }
+
+  async function promotePrivateCalendarImport(group) {
+    if (!isAdmin || !group?.events?.length) return;
+    setCalendarImportBusy(true);
+    try {
+      await saveGlobalCalendarImport(group.events, [], group.sourceType, { term: group.term, uvaCode: group.uvaCode, sourceTitle: group.sourceLabel });
+    } catch (error) {
+      window.alert(error?.message || "Kalenderimporten kunne ikke gøres global.");
+    } finally { setCalendarImportBusy(false); }
+  }
+
+  async function importCalendarEvents(selected, removed = [], sourceLabel = "import", options = {}) {
+    const scope = options.scope || "private";
+    if (scope === "global") {
+      setCalendarImportBusy(true);
+      try {
+        await saveGlobalCalendarImport(selected, removed, sourceLabel, options);
+        setIcalPreview(null); setShowSduImport(false);
+      } catch (error) {
+        window.alert(error?.message || "Den globale kalenderimport kunne ikke gemmes.");
+      } finally { setCalendarImportBusy(false); }
+      return;
+    }
     snapshot(`${selected.length} aktiviteter importeret`);
     const removeSourceIds = new Set(removed.map((event) => event.sourceId || event.id));
-    const existingBySource = new Map(mergedEvents.map((event) => [event.sourceId || event.id, event]));
+    const existingBySource = new Map(privateMergedEvents.map((event) => [event.sourceId || event.id, event]));
     const prepared = selected.map((event) => {
       const previous = existingBySource.get(event.sourceId || event.id);
       return previous ? { ...event, id: previous.id, completedAt: previous.completedAt || null } : event;
@@ -17957,7 +18217,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
     setEventMeta((previous) => {
       const next = { ...previous };
       Object.entries(next).forEach(([id, meta]) => { if (removeSourceIds.has(meta.sourceId || id)) delete next[id]; });
-      prepared.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), ...splitRecord(event).metadata, importSourceLabel: sourceLabel }; });
+      prepared.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), ...splitRecord(event).metadata, importSourceLabel: options.sourceTitle || sourceLabel }; });
       return next;
     });
     setIcalPreview(null); setShowSduImport(false);
@@ -18005,7 +18265,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
           <div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div>
           <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><input className="calendar-date-jump" type="date" value={selectedDate} onChange={(event) => { const next = new Date(`${event.target.value}T12:00:00`); if (Number.isNaN(next.getTime())) return; setSelectedDate(event.target.value); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} aria-label="Gå til dato" /><SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
           <input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} />
-          <details className="calendar-more-menu"><summary><Icon name="more" size={16} /></summary><div><button type="button" onClick={() => setShowSduImport(true)}><Icon name="upload" size={14} />Importer SDU-skema</button><button type="button" onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />Importer iCal</button><button type="button" onClick={() => calendarDownloadICal(visibleEvents)}><Icon name="share" size={14} />Eksporter synlige</button><button type="button" onClick={enableNotifications}><Icon name="volume" size={14} />Aktivér påmindelser</button><button type="button" onClick={() => setShowTutorial(true)}><Icon name="sparkle" size={14} />Vis kalendertutorial</button><button type="button" onClick={createCalendarTestData}><Icon name="plus" size={14} />Opret testdata</button>{mergedEvents.some((event) => event.testEvent || event.source === "calendar-test") && <button type="button" onClick={removeCalendarTestData}><Icon name="trash" size={14} />Fjern testdata</button>}</div></details>
+          <details className="calendar-more-menu"><summary><Icon name="more" size={16} /></summary><div><button type="button" onClick={() => setShowSduImport(true)}><Icon name="upload" size={14} />Importer SDU-skema</button><button type="button" onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />Importer iCal</button><button type="button" onClick={() => setShowImportManager(true)}><Icon name="settings" size={14} />Administrér importerede kalendere</button><button type="button" onClick={() => calendarDownloadICal(visibleEvents)}><Icon name="share" size={14} />Eksporter synlige</button><button type="button" onClick={enableNotifications}><Icon name="volume" size={14} />Aktivér påmindelser</button><button type="button" onClick={() => setShowTutorial(true)}><Icon name="sparkle" size={14} />Vis kalendertutorial</button><button type="button" onClick={createCalendarTestData}><Icon name="plus" size={14} />Opret testdata</button>{mergedEvents.some((event) => event.testEvent || event.source === "calendar-test") && <button type="button" onClick={removeCalendarTestData}><Icon name="trash" size={14} />Fjern testdata</button>}</div></details>
           <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
         </div>
       </header>
@@ -18016,16 +18276,17 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture }
         </main>
         <aside className="calendar-workspace-sidebar">
           <CalendarMiniMonth selectedDate={selectedDate} events={visibleEvents} locale={locale} onSelect={(key) => { const next = new Date(`${key}T12:00:00`); setSelectedDate(key); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} />
-          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setQuickEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name={event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || (event.allDay ? "Hele dagen" : "Ikke placeret")}{event.location ? ` · ${event.location}` : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
+          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setQuickEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); if (!calendarEventIsCanonical(event)) toggleEventComplete(event); }}><Icon name={calendarEventIsCanonical(event) ? "globe" : event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || (event.allDay ? "Hele dagen" : "Ikke placeret")}{event.location ? ` · ${event.location}` : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
           <section className="calendar-side-section"><button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>{showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: `${lecture.id} · ${lecture.title}`, date: selectedDate, endDate: selectedDate, time: "", endTime: "", type: "study", estimatedHours: null, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], source: "user", createdByUser: true, needsScheduling: true, recurrence: "none" })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}</section>
-          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setQuickEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); toggleEventComplete(event); }}><Icon name="check" size={12} /></span><span><strong>{event.title}</strong><small>{calendarFormatDateTime(event, locale)}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section>
+          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setQuickEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); if (!calendarEventIsCanonical(event)) toggleEventComplete(event); }}><Icon name={calendarEventIsCanonical(event) ? "globe" : "check"} size={12} /></span><span><strong>{event.title}</strong><small>{calendarFormatDateTime(event, locale)}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section>
         </aside>
       </div>
       <CalendarContextMenu c={c} menu={contextMenu} items={contextItems()} onClose={() => setContextMenu(null)} />
       {quickEvent && <CalendarEventPopover c={c} event={quickEvent} locale={locale} onClose={() => setQuickEvent(null)} onEdit={() => { setEditingEvent(quickEvent); setQuickEvent(null); }} onComplete={() => { toggleEventComplete(quickEvent); setQuickEvent(null); }} onOpenLecture={() => { openLecture(quickEvent); setQuickEvent(null); }} />}
       {editingEvent && <CalendarEventEditor c={c} t={t} language={language} event={editingEvent} moduleName={module} lectures={moduleLectures} allEvents={mergedEvents} exists={events.some((event) => event.id === editingEvent.id)} onChange={setEditingEvent} onSave={() => saveEvent(editingEvent)} onDelete={() => deleteEvent(editingEvent.id)} onClose={() => setEditingEvent(null)} />}
-      {showSduImport && <SduImportDialog c={c} moduleName={module} existingEvents={mergedEvents} onClose={() => setShowSduImport(false)} onImport={(selected, removed) => importCalendarEvents(selected, removed, "sdu")} />}
-      {icalPreview?.diff && <CalendarImportPreview c={c} title={`iCal · ${icalPreview.title}`} subtitle={`Kontrollér datoer, tider og titler før import${icalPreview.cancelledCount ? ` · ${icalPreview.cancelledCount} aflyst` : ""}`} diff={icalPreview.diff} onClose={() => setIcalPreview(null)} onConfirm={(selected, removed) => importCalendarEvents(selected, removed, "ical")} />}
+      {showSduImport && <SduImportDialog c={c} moduleName={module} existingEvents={mergedEvents} isAdmin={isAdmin} onClose={() => setShowSduImport(false)} onImport={(selected, removed, meta, scope) => importCalendarEvents(selected, removed, "sdu", { ...(meta || {}), scope })} />}
+      {icalPreview?.diff && <CalendarImportPreview c={c} title={`iCal · ${icalPreview.title}`} subtitle={`Kontrollér datoer, tider og titler før import${icalPreview.cancelledCount ? ` · ${icalPreview.cancelledCount} aflyst` : ""}`} diff={icalPreview.diff} busy={calendarImportBusy} isAdmin={isAdmin} onClose={() => setIcalPreview(null)} onConfirm={(selected, removed, scope) => importCalendarEvents(selected, removed, "ical", { scope, sourceTitle: icalPreview.sourceTitle || icalPreview.title })} />}
+      {showImportManager && <CalendarImportManager c={c} privateGroups={privateImportGroups} globalImports={globalCalendarData.imports} globalEvents={globalCalendarData.events} isAdmin={isAdmin} busy={calendarImportBusy} onClose={() => setShowImportManager(false)} onDeletePrivate={(group) => { if (window.confirm(`Slet kalenderimporten “${group.sourceLabel}” fra din private kalender?`)) removePrivateImportGroup(group); }} onDeleteGlobal={deleteGlobalCalendarImport} onPromotePrivate={promotePrivateCalendarImport} />}
       {icalPreview?.error && <div className="calendar-import-overlay"><div className="calendar-sdu-dialog"><div className="ui-feedback" data-tone="error"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{icalPreview.error}</div></div><footer><PrimaryButton onClick={() => setIcalPreview(null)}>Luk</PrimaryButton></footer></div></div>}
       {showTutorial && <CalendarTutorialOverlay c={c} onClose={() => setShowTutorial(false)} onCreateTestData={createCalendarTestData} />}
       {undoState && <div className="calendar-undo-toast"><span>{undoState.label}</span><button type="button" onClick={undo}>Fortryd</button><button type="button" onClick={() => setUndoState(null)}>×</button></div>}
@@ -36683,6 +36944,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [sduMatchQuery, setSduMatchQuery] = useState("");
   const [canonicalSduMatches, setCanonicalSduMatches] = useState({});
   const [canonicalSduMatchStatus, setCanonicalSduMatchStatus] = useState("idle");
+  const globalLectureCalendarData = useGlobalCalendarData(isLectureLibrary ? moduleName : null, userId, 0);
   const [lectureMaterials, setLectureMaterials] = useState([]);
   const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
   const [materialPreviewUrl, setMaterialPreviewUrl] = useState("");
@@ -37142,7 +37404,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       addMaterial: "Tilføj materiale",
       materialLibrary: "Materialer",
       materialLibraryEmpty: "Der er endnu ikke tilføjet materiale til denne forelæsning.",
-      materialPermanent: "Materialer gemmes privat og permanent i Supabase Storage.",
+      materialPermanent: "Globale adminmaterialer deles med alle brugere. Private uploads forbliver kun dine.",
+      materialVisibility: "Synlighed",
+      materialVisibilityGlobal: "Global for alle",
+      materialVisibilityPrivate: "Kun for mig",
+      materialGlobalLabel: "Global",
+      materialPrivateLabel: "Privat",
+      materialMakeGlobal: "Gør global",
+      materialMakePrivate: "Gør privat",
+      materialVisibilityGlobalHint: "Canonical materiale for forelæsningen. Alle brugere på modulet kan åbne det.",
+      materialVisibilityPrivateHint: "Personligt materiale, som kun du kan se.",
       materialLoading: "Henter materialer…",
       materialSetupMissing: "Materialelageret er ikke klargjort. Kør Segment 5.4 SQL-filen i Supabase.",
       materialUploadTitle: "Tilføj materiale",
@@ -37572,7 +37843,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       addMaterial: "Add material",
       materialLibrary: "Materials",
       materialLibraryEmpty: "No material has been added to this lecture yet.",
-      materialPermanent: "Materials are stored privately and permanently in Supabase Storage.",
+      materialPermanent: "Global admin materials are shared with every user. Private uploads remain visible only to you.",
+      materialVisibility: "Visibility",
+      materialVisibilityGlobal: "Global for everyone",
+      materialVisibilityPrivate: "Only me",
+      materialGlobalLabel: "Global",
+      materialPrivateLabel: "Private",
+      materialMakeGlobal: "Make global",
+      materialMakePrivate: "Make private",
+      materialVisibilityGlobalHint: "Canonical lecture material. Every user in the module can open it.",
+      materialVisibilityPrivateHint: "Personal material visible only to you.",
       materialLoading: "Loading materials…",
       materialSetupMissing: "The material store is not configured. Run the Segment 5.4 SQL file in Supabase.",
       materialUploadTitle: "Add material",
@@ -38002,7 +38282,16 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       addMaterial: "إضافة مادة",
       materialLibrary: "المواد",
       materialLibraryEmpty: "لم تتم إضافة مواد لهذه المحاضرة بعد.",
-      materialPermanent: "يتم حفظ المواد بشكل خاص ودائم في Supabase Storage.",
+      materialPermanent: "تتم مشاركة مواد المسؤول العامة مع جميع المستخدمين، بينما تبقى الرفوعات الخاصة لك فقط.",
+      materialVisibility: "الرؤية",
+      materialVisibilityGlobal: "عام للجميع",
+      materialVisibilityPrivate: "لي فقط",
+      materialGlobalLabel: "عام",
+      materialPrivateLabel: "خاص",
+      materialMakeGlobal: "اجعلها عامة",
+      materialMakePrivate: "اجعلها خاصة",
+      materialVisibilityGlobalHint: "مادة أساسية للمحاضرة يمكن لجميع مستخدمي الوحدة فتحها.",
+      materialVisibilityPrivateHint: "مادة شخصية لا يراها سواك.",
       materialLoading: "جارٍ تحميل المواد…",
       materialSetupMissing: "لم يتم إعداد مخزن المواد. شغّل ملف SQL الخاص بالقسم 5.4 في Supabase.",
       materialUploadTitle: "إضافة مادة",
@@ -38079,9 +38368,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const resumeMaterialId = lectureResumeState?.lectureId === selectedLecture?.id ? lectureResumeState?.materialId : null;
   const selectedMaterialId = materialScopeKey ? (workspaceState.lectureMaterialSelection?.[materialScopeKey] || resumeMaterialId) : null;
   const activeLectureMaterial = selectedLectureMaterials.find((material) => material.id === selectedMaterialId)
-    || selectedLectureMaterials.find((material) => material.is_primary)
+    || selectedLectureMaterials.find((material) => material.visibility === "global" && material.is_primary)
+    || selectedLectureMaterials.find((material) => material.visibility !== "global" && material.is_primary)
+    || selectedLectureMaterials.find((material) => material.visibility === "global")
     || selectedLectureMaterials[0]
     || null;
+  const canManageActiveLectureMaterial = Boolean(activeLectureMaterial && (activeLectureMaterial.visibility === "global" ? isAdmin : activeLectureMaterial.user_id === userId));
   const selectedExamDocument = !isLectureLibrary
     ? documents.find((document) => document.id === selectedId) || documents[0] || null
     : null;
@@ -38247,8 +38539,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setMaterialStatus({ state: "loading", message: "" });
     supabase
       .from("lecture_materials")
-      .select("id,user_id,module_name,lecture_id,file_name,storage_path,mime_type,size_bytes,material_type,is_primary,created_at,updated_at")
-      .eq("user_id", userId)
+      .select("id,user_id,module_name,lecture_id,file_name,storage_path,mime_type,size_bytes,material_type,is_primary,visibility,created_at,updated_at")
       .eq("module_name", moduleName)
       .order("is_primary", { ascending: false })
       .order("created_at", { ascending: true })
@@ -38282,7 +38573,6 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     supabase
       .from("lecture_favorites")
       .select("lecture_id")
-      .eq("user_id", userId)
       .eq("module_name", moduleName)
       .then(({ data, error }) => {
         if (cancelled) return;
@@ -38796,7 +39086,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const lectureSort = lectureOverviewPreferences.sort === "date" ? "date" : "number";
   const collapsedLectureGroups = new Set(lectureOverviewPreferences.collapsedGroups || []);
   const mergedLectureCalendarEvents = isLectureLibrary
-    ? applyCanonicalSduMatches(mergeCalendarEventMeta(calendarEvents, calendarEventMeta), canonicalSduMatches, moduleName)
+    ? applyCanonicalSduMatches(calendarMergePrivateAndGlobal(mergeCalendarEventMeta(calendarEvents, calendarEventMeta), globalLectureCalendarData.events), canonicalSduMatches, moduleName)
     : [];
   const lectureScheduleEventIndex = calendarLectureScheduleIndex(moduleName, mergedLectureCalendarEvents);
   const lectureMaterialCounts = lectureMaterialCountIndex(lectureMaterials);
@@ -39996,8 +40286,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     if (!isLectureLibrary || !userId || !moduleName) return [];
     const { data, error } = await supabase
       .from("lecture_materials")
-      .select("id,user_id,module_name,lecture_id,file_name,storage_path,mime_type,size_bytes,material_type,is_primary,created_at,updated_at")
-      .eq("user_id", userId)
+      .select("id,user_id,module_name,lecture_id,file_name,storage_path,mime_type,size_bytes,material_type,is_primary,visibility,created_at,updated_at")
       .eq("module_name", moduleName)
       .order("is_primary", { ascending: false })
       .order("created_at", { ascending: true });
@@ -40018,6 +40307,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
 
   async function setPrimaryLectureMaterial(materialId, lectureId = selectedLecture?.id) {
     if (!materialId || !lectureId || !userId || !moduleName) return;
+    const targetMaterial = lectureMaterials.find((material) => material.id === materialId);
+    if (targetMaterial?.visibility === "global" && !isAdmin) return;
     setMaterialSaving(true);
     try {
       const { error: setError } = await supabase.rpc("set_lecture_material_primary", { p_material_id: materialId });
@@ -40061,6 +40352,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           mime_type: lectureMaterialMime(file),
           size_bytes: file.size,
           material_type: draft.materialType || "other",
+          visibility: isAdmin && draft.visibility === "global" ? "global" : "private",
           is_primary: false,
         });
       }
@@ -40069,7 +40361,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         .insert(rows)
         .select("id,lecture_id");
       if (insertError) throw insertError;
-      const existingForLecture = lectureMaterials.filter((material) => material.lecture_id === selectedLecture.id);
+      const targetVisibility = isAdmin && draft.visibility === "global" ? "global" : "private";
+      const existingForLecture = lectureMaterials.filter((material) => material.lecture_id === selectedLecture.id && (material.visibility || "private") === targetVisibility);
       const shouldSetPrimary = draft.makePrimary || !existingForLecture.some((material) => material.is_primary);
       const firstInserted = inserted?.[0];
       await refreshLectureMaterials();
@@ -40085,6 +40378,38 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     }
   }
 
+  async function setLectureMaterialVisibility(material, visibility) {
+    if (!material || !userId || !["private", "global"].includes(visibility)) return;
+    const currentVisibility = material.visibility || "private";
+    if (visibility === currentVisibility) return;
+    if (visibility === "global" && !isAdmin) return;
+    if (currentVisibility === "global" && !isAdmin) return;
+    // A global row keeps the original uploader as owner. Only that uploader may
+    // demote it back to a private row; otherwise another admin could create a
+    // private record that immediately becomes invisible to both parties.
+    if (currentVisibility === "global" && visibility === "private" && material.user_id !== userId) return;
+    setMaterialSaving(true);
+    try {
+      const targetPrimary = lectureMaterials.find((item) => item.id !== material.id && item.lecture_id === material.lecture_id && (item.visibility || "private") === visibility && item.is_primary);
+      const sourceReplacement = material.is_primary
+        ? lectureMaterials.find((item) => item.id !== material.id && item.lecture_id === material.lecture_id && (item.visibility || "private") === currentVisibility)
+        : null;
+      const { error } = await supabase
+        .from("lecture_materials")
+        .update({ visibility, is_primary: !targetPrimary, updated_at: new Date().toISOString() })
+        .eq("id", material.id);
+      if (error) throw error;
+      if (sourceReplacement) {
+        const { error: primaryError } = await supabase.rpc("set_lecture_material_primary", { p_material_id: sourceReplacement.id });
+        if (primaryError) throw primaryError;
+      }
+      await refreshLectureMaterials();
+      setMaterialStatus({ state: "success", message: copy.materialUpdated });
+    } catch (error) {
+      setMaterialStatus({ state: "error", message: error?.message || copy.materialUploadError });
+    } finally { setMaterialSaving(false); }
+  }
+
   async function updateLectureMaterial() {
     const draft = materialDialog;
     if (draft?.mode !== "edit" || !draft.material || !userId) return;
@@ -40094,9 +40419,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     try {
       const { error } = await supabase
         .from("lecture_materials")
-        .update({ file_name: name, material_type: draft.materialType || "other", updated_at: new Date().toISOString() })
-        .eq("id", draft.material.id)
-        .eq("user_id", userId);
+        .update({ file_name: name, material_type: draft.materialType || "other", visibility: draft.material.visibility || "private", updated_at: new Date().toISOString() })
+        .eq("id", draft.material.id);
       if (error) throw error;
       await refreshLectureMaterials();
       setMaterialDialog(null);
@@ -40111,7 +40435,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   async function replaceLectureMaterialFile(event) {
     const file = Array.from(event.target.files || [])[0];
     event.target.value = "";
-    if (!file || !activeLectureMaterial || !userId || !moduleName || !selectedLecture) return;
+    if (!file || !activeLectureMaterial || !userId || !moduleName || !selectedLecture || !canManageActiveLectureMaterial) return;
     const validationError = validateLectureMaterialFile(file);
     if (validationError) {
       setMaterialStatus({ state: "error", message: validationError });
@@ -40133,8 +40457,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
           size_bytes: file.size,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", activeLectureMaterial.id)
-        .eq("user_id", userId);
+        .eq("id", activeLectureMaterial.id);
       if (updateError) {
         await supabase.storage.from(LECTURE_MATERIALS_BUCKET).remove([newPath]);
         throw updateError;
@@ -40150,14 +40473,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }
 
   async function deleteLectureMaterial(material) {
-    if (!material || !userId || !window.confirm(copy.materialDeleteConfirm)) return;
+    if (!material || !userId || (material.visibility === "global" && !isAdmin) || !window.confirm(copy.materialDeleteConfirm)) return;
     setMaterialSaving(true);
     try {
-      const { error: deleteError } = await supabase.from("lecture_materials").delete().eq("id", material.id).eq("user_id", userId);
+      const { error: deleteError } = await supabase.from("lecture_materials").delete().eq("id", material.id);
       if (deleteError) throw deleteError;
       const { error: storageError } = await supabase.storage.from(LECTURE_MATERIALS_BUCKET).remove([material.storage_path]);
       if (storageError) console.warn("Materialets metadata blev slettet, men storage-filen kunne ikke fjernes:", storageError);
-      const remaining = (await refreshLectureMaterials()).filter((item) => item.lecture_id === material.lecture_id && item.id !== material.id);
+      const remaining = (await refreshLectureMaterials()).filter((item) => item.lecture_id === material.lecture_id && item.id !== material.id && (item.visibility || "private") === (material.visibility || "private"));
       if (material.is_primary && remaining.length) await setPrimaryLectureMaterial(remaining[0].id, material.lecture_id);
       setMaterialStatus({ state: "success", message: copy.materialDeleted });
     } catch (error) {
@@ -40996,7 +41319,8 @@ async function openExamSetPdfEditor() {
         files,
         name: files.length === 1 ? files[0].name : "",
         materialType: "slides",
-        makePrimary: !selectedLectureMaterials.some((material) => material.is_primary),
+        visibility: isAdmin ? "global" : "private",
+        makePrimary: !selectedLectureMaterials.some((material) => material.is_primary && material.visibility === (isAdmin ? "global" : "private")),
       });
       return;
     }
@@ -41289,7 +41613,7 @@ async function openExamSetPdfEditor() {
                             title={`${material.file_name} · ${lectureMaterialFormatBytes(material.size_bytes)}`}
                           >
                             <span><Icon name={material.is_primary ? "star" : "file"} size={11} /></span>
-                            <span><strong>{material.file_name}</strong><small>{materialTypeLabel(material.material_type)} · {lectureMaterialFormatBytes(material.size_bytes)}</small></span>
+                            <span><strong>{material.file_name}</strong><small>{material.visibility === "global" ? copy.materialGlobalLabel : copy.materialPrivateLabel} · {materialTypeLabel(material.material_type)} · {lectureMaterialFormatBytes(material.size_bytes)}</small></span>
                             {material.id === activeLectureMaterial?.id && <Icon name="check" size={11} />}
                           </button>
                         ))}
@@ -41311,12 +41635,14 @@ async function openExamSetPdfEditor() {
                     <div className="lecture-detail-more-section lecture-detail-more-section--material">
                       <span className="lecture-detail-more-label">{copy.viewerMaterials}</span>
                       <div className="lecture-detail-menu-list">
-                        {!activeLectureMaterial.is_primary && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><span><Icon name="star" size={11} /></span><span>{copy.materialSetPrimary}</span></button>}
-                        <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other" })}><span><Icon name="edit" size={11} /></span><span>{copy.materialRename}</span></button>
-                        <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><span><Icon name="upload" size={11} /></span><span>{copy.materialReplace}</span></button>
+                        {canManageActiveLectureMaterial && !activeLectureMaterial.is_primary && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><span><Icon name="star" size={11} /></span><span>{copy.materialSetPrimary}</span></button>}
+                        {canManageActiveLectureMaterial && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other", visibility: activeLectureMaterial.visibility || "private" })}><span><Icon name="edit" size={11} /></span><span>{copy.materialRename}</span></button>}
+                        {canManageActiveLectureMaterial && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><span><Icon name="upload" size={11} /></span><span>{copy.materialReplace}</span></button>}
+                        {isAdmin && activeLectureMaterial.visibility !== "global" && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setLectureMaterialVisibility(activeLectureMaterial, "global")}><span><Icon name="globe" size={11} /></span><span>{copy.materialMakeGlobal}</span></button>}
+                        {isAdmin && activeLectureMaterial.visibility === "global" && activeLectureMaterial.user_id === userId && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setLectureMaterialVisibility(activeLectureMaterial, "private")}><span><Icon name="user" size={11} /></span><span>{copy.materialMakePrivate}</span></button>}
                         <button type="button" className="lecture-detail-menu-row" onClick={() => downloadLectureMaterial()}><span><Icon name="down" size={11} /></span><span>{copy.materialDownload}</span></button>
                         <button type="button" className="lecture-detail-menu-row" onClick={() => openLectureMaterial()}><span><Icon name="expand" size={11} /></span><span>{copy.materialOpen}</span></button>
-                        <button type="button" className="lecture-detail-menu-row lecture-detail-menu-row--danger" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><span><Icon name="trash" size={11} /></span><span>{copy.materialDelete}</span></button>
+                        {canManageActiveLectureMaterial && <button type="button" className="lecture-detail-menu-row lecture-detail-menu-row--danger" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><span><Icon name="trash" size={11} /></span><span>{copy.materialDelete}</span></button>}
                       </div>
                     </div>
                   )}
@@ -41385,17 +41711,19 @@ async function openExamSetPdfEditor() {
 
         <main className="document-viewer-panel">
           <div className="document-viewer-toolbar">
-            <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong>{activeLectureMaterial?.is_primary && <em className="lecture-primary-badge"><Icon name="star" size={9} />{copy.materialPrimaryLabel}</em>}{!isLectureLibrary && activeDocument && <em className="lecture-primary-badge"><Icon name="share" size={9} />{copy.examSetShared}</em>}</span>
+            <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong>{activeLectureMaterial && <em className="lecture-primary-badge"><Icon name={activeLectureMaterial.visibility === "global" ? "globe" : "user"} size={9} />{activeLectureMaterial.visibility === "global" ? copy.materialGlobalLabel : copy.materialPrivateLabel}</em>}{activeLectureMaterial?.is_primary && <em className="lecture-primary-badge"><Icon name="star" size={9} />{copy.materialPrimaryLabel}</em>}{!isLectureLibrary && activeDocument && <em className="lecture-primary-badge"><Icon name="share" size={9} />{copy.examSetShared}</em>}</span>
             {isLectureLibrary && activeLectureMaterial ? (
               <details className="lecture-material-actions-menu">
                 <summary title={copy.materialLibrary}><Icon name="more" size={14} /><span>{copy.materialLibrary}</span></summary>
                 <div className="lecture-material-actions">
-                  {!activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="star" size={12} />{copy.materialSetPrimary}</button>}
-                  <button type="button" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other" })}><Icon name="edit" size={12} />{copy.materialRename}</button>
-                  <button type="button" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><Icon name="upload" size={12} />{copy.materialReplace}</button>
+                  {canManageActiveLectureMaterial && !activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="star" size={12} />{copy.materialSetPrimary}</button>}
+                  {canManageActiveLectureMaterial && <button type="button" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other", visibility: activeLectureMaterial.visibility || "private" })}><Icon name="edit" size={12} />{copy.materialRename}</button>}
+                  {canManageActiveLectureMaterial && <button type="button" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><Icon name="upload" size={12} />{copy.materialReplace}</button>}
+                  {isAdmin && activeLectureMaterial.visibility !== "global" && <button type="button" disabled={materialSaving} onClick={() => setLectureMaterialVisibility(activeLectureMaterial, "global")}><Icon name="globe" size={12} />{copy.materialMakeGlobal}</button>}
+                  {isAdmin && activeLectureMaterial.visibility === "global" && activeLectureMaterial.user_id === userId && <button type="button" disabled={materialSaving} onClick={() => setLectureMaterialVisibility(activeLectureMaterial, "private")}><Icon name="user" size={12} />{copy.materialMakePrivate}</button>}
                   <button type="button" onClick={() => downloadLectureMaterial()}><Icon name="down" size={12} />{copy.materialDownload}</button>
                   <button type="button" onClick={() => openLectureMaterial()}><Icon name="expand" size={12} />{copy.materialOpen}</button>
-                  <button type="button" className="lecture-material-delete" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><Icon name="trash" size={12} />{copy.materialDelete}</button>
+                  {canManageActiveLectureMaterial && <button type="button" className="lecture-material-delete" disabled={materialSaving} onClick={() => deleteLectureMaterial(activeLectureMaterial)}><Icon name="trash" size={12} />{copy.materialDelete}</button>}
                 </div>
               </details>
             ) : activeDocument && !isLectureLibrary ? (
@@ -41883,6 +42211,7 @@ examSetMode === "history" ? (
               <label className="lecture-material-field"><span>{copy.materialName}</span><input value={materialDialog.name || ""} onChange={(event) => setMaterialDialog((current) => ({ ...current, name: event.target.value }))} /></label>
             )}
             <label className="lecture-material-field"><span>{copy.materialType}</span><select value={materialDialog.materialType || "other"} onChange={(event) => setMaterialDialog((current) => ({ ...current, materialType: event.target.value }))}>{LECTURE_MATERIAL_TYPES.map((type) => <option key={type} value={type}>{materialTypeLabel(type)}</option>)}</select></label>
+            {isAdmin && materialDialog.mode === "upload" && <div className="lecture-material-visibility"><span>{copy.materialVisibility}</span><button type="button" data-active={(materialDialog.visibility || "private") === "global" ? "true" : "false"} onClick={() => setMaterialDialog((current) => ({ ...current, visibility: "global" }))}><Icon name="globe" size={13} /><span><strong>{copy.materialVisibilityGlobal}</strong><small>{copy.materialVisibilityGlobalHint}</small></span></button><button type="button" data-active={(materialDialog.visibility || "private") === "private" ? "true" : "false"} onClick={() => setMaterialDialog((current) => ({ ...current, visibility: "private" }))}><Icon name="user" size={13} /><span><strong>{copy.materialVisibilityPrivate}</strong><small>{copy.materialVisibilityPrivateHint}</small></span></button></div>}
             {materialDialog.mode === "upload" && (
               <label className="lecture-material-primary-choice"><input type="checkbox" checked={Boolean(materialDialog.makePrimary)} onChange={(event) => setMaterialDialog((current) => ({ ...current, makePrimary: event.target.checked }))} /><span><strong>{copy.materialPrimary}</strong><small>{copy.materialPrimaryHint}</small></span></label>
             )}
@@ -43908,7 +44237,7 @@ useEffect(() => {
           closing={calendarClosing}
         >
           {activeWorkspace === "calendar" && (
-            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} onClose={closeWorkspace} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
+            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={isAdmin} onClose={closeWorkspace} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
           )}
           {activeWorkspace === "notes" && (
             <Notebook c={c} t={t} onClose={closeWorkspace} />
