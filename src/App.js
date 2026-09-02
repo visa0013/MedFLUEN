@@ -23866,32 +23866,89 @@ onClick={() => {
 function AdminPortal({ c, t, language, user, isAdmin, onClose, globalContentState = null, onGlobalPublished = null }) {
   const unlocked = isAdmin;
   const [globalPublishState, setGlobalPublishState] = useState({ status: "idle", message: "" });
+  const [globalPublishPreview, setGlobalPublishPreview] = useState(null);
 
   const globalPublishCopy = ({
-    da: { title: "Udgiv globale ændringer", description: "Adminændringer gemmes allerede globalt, når du laver dem. Udgiv hæver den fælles indholdsversion og får alle aktive brugere til at hente nye kort, forelæsningsfiler, kalenderdata, pensummapping og øvrigt fælles indhold.", button: "Udgiv globale ændringer", publishing: "Udgiver…", version: "Global version", last: "Senest udgivet", never: "Ikke udgivet endnu", confirm: "Udgiv alle seneste globale adminændringer til brugerne nu? Private studiedata påvirkes ikke.", success: "Globale ændringer er udgivet. Aktive klienter opdateres automatisk.", error: "Kunne ikke udgive globale ændringer.", setup: "Global refresh er ikke klargjort endnu. Kør admin_mode_global_publish.sql i Supabase." },
-    en: { title: "Publish global changes", description: "Admin changes are already saved globally as you make them. Publish increments the shared content version and makes active clients reload cards, lecture files, calendar data, curriculum mappings, and other shared content.", button: "Publish global changes", publishing: "Publishing…", version: "Global version", last: "Last published", never: "Not published yet", confirm: "Publish all latest global admin changes to users now? Private study data will not be affected.", success: "Global changes published. Active clients will refresh automatically.", error: "Could not publish global changes.", setup: "Global refresh is not set up yet. Run admin_mode_global_publish.sql in Supabase." },
-    ar: { title: "نشر التغييرات العامة", description: "تُحفظ تغييرات المسؤول عالميًا أثناء العمل. يؤدي النشر إلى رفع إصدار المحتوى المشترك ويجعل المستخدمين النشطين يعيدون تحميل البطاقات وملفات المحاضرات والتقويم وربط المنهج وبقية المحتوى المشترك.", button: "نشر التغييرات العامة", publishing: "جارٍ النشر…", version: "الإصدار العام", last: "آخر نشر", never: "لم يتم النشر بعد", confirm: "نشر جميع تغييرات المسؤول العامة الأخيرة الآن؟ لن تتأثر بيانات الدراسة الخاصة.", success: "تم نشر التغييرات العامة وسيتم تحديث العملاء النشطين تلقائيًا.", error: "تعذر نشر التغييرات العامة.", setup: "ميزة التحديث العام غير مهيأة بعد. شغّل admin_mode_global_publish.sql في Supabase." },
+    da: {
+      title: "Udgiv globale ændringer",
+      description: "Før publicering viser MedFLUEN præcis hvilke af dine private forelæsningsfiler der bliver gjort globale. Når du bekræfter, konverteres de viste filer, den fælles indholdsversion hæves, og aktive brugere henter de seneste globale kort, forelæsningsfiler, kalenderdata, pensummapping og øvrigt fælles indhold.",
+      button: "Gennemgå og udgiv", previewing: "Finder ændringer…", publishing: "Udgiver…", version: "Global version", last: "Senest udgivet", never: "Ikke udgivet endnu",
+      previewTitle: "Private → globalt", previewHint: "Kun dine private materialer, som allerede er knyttet til både modul og forelæsning, konverteres. Private studiedata og private kalenderimports forbliver private.",
+      lectureMaterials: "Forelæsningsfiler", lectures: "forelæsninger", noPrivate: "Ingen private forelæsningsfiler skal gøres globale ved denne udgivelse.", more: "flere filer",
+      cancel: "Annuller", confirmPublish: "Udgiv globale ændringer", confirmPromote: "Gør global og udgiv", success: "Globale ændringer er udgivet. Aktive klienter opdateres automatisk.", madeGlobal: "forelæsningsfiler blev gjort globale.",
+      error: "Kunne ikke udgive globale ændringer.", previewError: "Kunne ikke lave forhåndsvisningen.", setup: "Global publish-summary er ikke klargjort endnu. Kør global_publish_private_to_global.sql i Supabase."
+    },
+    en: {
+      title: "Publish global changes",
+      description: "Before publishing, MedFLUEN shows exactly which of your private lecture files will become global. After confirmation, those files are converted, the shared content version is incremented, and active clients reload the latest shared content.",
+      button: "Review and publish", previewing: "Finding changes…", publishing: "Publishing…", version: "Global version", last: "Last published", never: "Not published yet",
+      previewTitle: "Private → global", previewHint: "Only your private materials already linked to both a module and lecture are converted. Private study data and private calendar imports stay private.",
+      lectureMaterials: "Lecture files", lectures: "lectures", noPrivate: "No private lecture files will be made global in this publish.", more: "more files",
+      cancel: "Cancel", confirmPublish: "Publish global changes", confirmPromote: "Make global and publish", success: "Global changes published. Active clients will refresh automatically.", madeGlobal: "lecture files were made global.",
+      error: "Could not publish global changes.", previewError: "Could not create the publish preview.", setup: "Global publish summary is not set up yet. Run global_publish_private_to_global.sql in Supabase."
+    },
+    ar: {
+      title: "نشر التغييرات العامة",
+      description: "قبل النشر يعرض MedFLUEN بالتحديد ملفات المحاضرات الخاصة التي ستصبح عامة. بعد التأكيد يتم تحويل الملفات المعروضة ورفع إصدار المحتوى المشترك وتحديث المحتوى العام لدى المستخدمين النشطين.",
+      button: "مراجعة ونشر", previewing: "جارٍ فحص التغييرات…", publishing: "جارٍ النشر…", version: "الإصدار العام", last: "آخر نشر", never: "لم يتم النشر بعد",
+      previewTitle: "خاص ← عام", previewHint: "يتم تحويل موادك الخاصة المرتبطة بوحدة ومحاضرة فقط. تبقى بيانات الدراسة والتقويمات الخاصة كما هي.",
+      lectureMaterials: "ملفات المحاضرات", lectures: "محاضرات", noPrivate: "لا توجد ملفات محاضرات خاصة ستصبح عامة في هذا النشر.", more: "ملفات إضافية",
+      cancel: "إلغاء", confirmPublish: "نشر التغييرات العامة", confirmPromote: "تحويل إلى عام والنشر", success: "تم نشر التغييرات العامة وسيتم تحديث العملاء النشطين تلقائيًا.", madeGlobal: "ملفات محاضرات أصبحت عامة.",
+      error: "تعذر نشر التغييرات العامة.", previewError: "تعذر إنشاء معاينة النشر.", setup: "ملخص النشر العام غير مهيأ بعد. شغّل global_publish_private_to_global.sql في Supabase."
+    },
   })[language] || null;
 
+  function normalizeGlobalPublishPreview(value) {
+    const payload = Array.isArray(value) ? value[0] : value;
+    const materials = payload?.lectureMaterials && typeof payload.lectureMaterials === "object" ? payload.lectureMaterials : {};
+    return {
+      lectureMaterials: {
+        count: Number(materials.count) || 0,
+        totalBytes: Number(materials.totalBytes) || 0,
+        lectureCount: Number(materials.lectureCount) || 0,
+        files: Array.isArray(materials.files) ? materials.files : [],
+      },
+    };
+  }
+
   async function publishGlobalChanges() {
-    if (!isAdmin || globalPublishState.status === "publishing") return;
-    if (!window.confirm(globalPublishCopy.confirm)) return;
+    if (!isAdmin || ["previewing", "publishing"].includes(globalPublishState.status)) return;
+    setGlobalPublishState({ status: "previewing", message: "" });
+    setGlobalPublishPreview(null);
+    try {
+      const { data, error } = await supabase.rpc("preview_global_content_publish");
+      if (error) throw error;
+      setGlobalPublishPreview(normalizeGlobalPublishPreview(data));
+      setGlobalPublishState({ status: "idle", message: "" });
+    } catch (previewError) {
+      const message = String(previewError?.message || "");
+      const missing = previewError?.code === "PGRST202" || previewError?.code === "42883" || message.includes("preview_global_content_publish");
+      setGlobalPublishState({ status: "error", message: missing ? globalPublishCopy.setup : `${globalPublishCopy.previewError}${message ? ` ${message}` : ""}` });
+    }
+  }
+
+  async function confirmGlobalPublish() {
+    if (!isAdmin || !globalPublishPreview || globalPublishState.status === "publishing") return;
     setGlobalPublishState({ status: "publishing", message: "" });
     try {
-      const { data, error } = await supabase.rpc("publish_global_content", {
+      const { data, error } = await supabase.rpc("publish_global_content_v2", {
         p_summary: {
           source: "admin_portal",
           areas: ["question_bank", "lecture_materials", "global_calendar", "curriculum_mapping", "lecture_calendar_matches", "exam_sets"],
+          previewed_private_to_global: globalPublishPreview,
           published_at: new Date().toISOString(),
         },
       });
       if (error) throw error;
-      const row = Array.isArray(data) ? data[0] : data;
-      if (onGlobalPublished) await onGlobalPublished(row || null);
-      setGlobalPublishState({ status: "success", message: globalPublishCopy.success });
+      const result = Array.isArray(data) ? data[0] : data;
+      const migration = normalizeGlobalPublishPreview(result?.migration_summary || globalPublishPreview);
+      const migratedCount = migration.lectureMaterials.count;
+      if (onGlobalPublished) await onGlobalPublished(result?.state || null);
+      setGlobalPublishPreview(null);
+      setGlobalPublishState({ status: "success", message: `${globalPublishCopy.success}${migratedCount ? ` ${migratedCount} ${globalPublishCopy.madeGlobal}` : ""}` });
     } catch (publishError) {
       const message = String(publishError?.message || "");
-      const missing = publishError?.code === "PGRST202" || publishError?.code === "42883" || message.includes("publish_global_content");
+      const missing = publishError?.code === "PGRST202" || publishError?.code === "42883" || message.includes("publish_global_content_v2");
       setGlobalPublishState({ status: "error", message: missing ? globalPublishCopy.setup : `${globalPublishCopy.error}${message ? ` ${message}` : ""}` });
     }
   }
@@ -30240,11 +30297,46 @@ color:
         <span style={{ padding: "4px 8px", borderRadius: 99, background: c.panel, border: `1px solid ${c.border}`, color: c.secondary, fontSize: 10, fontWeight: 750 }}>{globalPublishCopy.last}: {globalContentState?.updatedAt ? new Date(globalContentState.updatedAt).toLocaleString(adminFilterLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : globalPublishCopy.never}</span>
       </div>
     </div>
-    <button type="button" className="ui-button ui-button--primary" disabled={globalPublishState.status === "publishing" || globalContentState?.status === "setup-missing"} onClick={publishGlobalChanges}>
+    <button type="button" className="ui-button ui-button--primary" disabled={["previewing", "publishing"].includes(globalPublishState.status) || globalContentState?.status === "setup-missing"} onClick={publishGlobalChanges}>
       <Icon name="globe" size={14} />
-      {globalPublishState.status === "publishing" ? globalPublishCopy.publishing : globalPublishCopy.button}
+      {globalPublishState.status === "previewing" ? globalPublishCopy.previewing : globalPublishState.status === "publishing" ? globalPublishCopy.publishing : globalPublishCopy.button}
     </button>
   </div>
+  {globalPublishPreview && (() => {
+    const materials = globalPublishPreview.lectureMaterials;
+    const visibleFiles = materials.files.slice(0, 12);
+    const hiddenCount = Math.max(0, materials.files.length - visibleFiles.length);
+    return (
+      <div style={{ marginTop: 14, padding: 14, borderRadius: 13, background: c.panel, border: `1px solid ${c.blueBorder}` }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ color: c.text, fontSize: 12, fontWeight: 850 }}>{globalPublishCopy.previewTitle}</div>
+            <div style={{ marginTop: 4, color: c.secondary, fontSize: 10.5, lineHeight: 1.5 }}>{globalPublishCopy.previewHint}</div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ padding: "4px 8px", borderRadius: 99, background: c.blueSoft, color: c.blue, fontSize: 9.5, fontWeight: 800 }}>{materials.count} {globalPublishCopy.lectureMaterials}</span>
+            <span style={{ padding: "4px 8px", borderRadius: 99, background: c.soft, color: c.secondary, fontSize: 9.5, fontWeight: 800 }}>{materials.lectureCount} {globalPublishCopy.lectures}</span>
+            <span style={{ padding: "4px 8px", borderRadius: 99, background: c.soft, color: c.secondary, fontSize: 9.5, fontWeight: 800 }}>{lectureMaterialFormatBytes(materials.totalBytes)}</span>
+          </div>
+        </div>
+        {materials.count > 0 ? (
+          <div style={{ display: "grid", gap: 6, marginTop: 12, maxHeight: 260, overflowY: "auto" }}>
+            {visibleFiles.map((file) => (
+              <div key={file.id || `${file.moduleName}-${file.lectureId}-${file.fileName}`} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 10, alignItems: "center", padding: "8px 9px", borderRadius: 9, background: c.soft, border: `1px solid ${c.border}` }}>
+                <span style={{ minWidth: 0 }}><strong style={{ display: "block", color: c.text, fontSize: 10.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.fileName}</strong><small style={{ color: c.muted, fontSize: 9 }}>{file.moduleName} · {file.lectureId}</small></span>
+                <small style={{ color: c.secondary, fontSize: 9, fontWeight: 750 }}>{lectureMaterialFormatBytes(file.sizeBytes)}</small>
+              </div>
+            ))}
+            {hiddenCount > 0 && <div style={{ color: c.muted, fontSize: 9.5, fontWeight: 750, padding: "2px 4px" }}>+{hiddenCount} {globalPublishCopy.more}</div>}
+          </div>
+        ) : <div style={{ marginTop: 12, padding: "9px 10px", borderRadius: 9, background: c.soft, color: c.secondary, fontSize: 10.5 }}>{globalPublishCopy.noPrivate}</div>}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          <button type="button" className="ui-button" disabled={globalPublishState.status === "publishing"} onClick={() => { setGlobalPublishPreview(null); setGlobalPublishState({ status: "idle", message: "" }); }}>{globalPublishCopy.cancel}</button>
+          <button type="button" className="ui-button ui-button--primary" disabled={globalPublishState.status === "publishing"} onClick={confirmGlobalPublish}><Icon name="globe" size={14} />{globalPublishState.status === "publishing" ? globalPublishCopy.publishing : materials.count > 0 ? `${globalPublishCopy.confirmPromote} · ${materials.count}` : globalPublishCopy.confirmPublish}</button>
+        </div>
+      </div>
+    );
+  })()}
   {globalContentState?.status === "setup-missing" && <div style={{ marginTop: 10, color: c.red, fontSize: 11, fontWeight: 700 }}>{globalPublishCopy.setup}</div>}
   {globalPublishState.message && <div role="status" style={{ marginTop: 10, color: globalPublishState.status === "success" ? c.green : c.red, fontSize: 11, fontWeight: 700 }}>{globalPublishState.message}</div>}
 </section>
