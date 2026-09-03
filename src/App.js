@@ -14336,6 +14336,239 @@ select.ui-control {
   .lecture-viewer-shell-revamp .document-library-panel,
   .lecture-viewer-shell-revamp .lecture-notes-panel { transition:none !important; }
 }
+
+/* Segment 6.8 — Studieplan workspace */
+.study-plan-workspace { max-width: 1360px; margin: 0 auto; padding: 0 0 44px; color: var(--ui-text); }
+.study-plan-workspace-header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:16px; }
+.study-plan-workspace-header > div:first-child { min-width:0; }
+.study-plan-workspace-header > div:first-child > span, .study-plan-workspace-kicker, .study-plan-workspace-section-head > div > span { color:var(--ui-blue); font-size:8px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+.study-plan-workspace-header h1 { margin:5px 0 0; font-size:clamp(26px,3vw,36px); font-weight:920; letter-spacing:-.045em; }
+.study-plan-workspace-header p { max-width:720px; margin:7px 0 0; color:var(--ui-secondary); font-size:11px; font-weight:620; line-height:1.55; }
+.study-plan-workspace-plan-state { flex:0 0 auto; display:grid; grid-template-columns:8px auto; align-items:center; gap:7px; padding:9px 11px; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-panel); color:var(--ui-secondary); font-size:9px; font-weight:850; box-shadow:var(--ui-shadow-sm); }
+.study-plan-workspace-plan-state i { width:8px; height:8px; border-radius:50%; background:var(--ui-muted); }
+.study-plan-workspace-plan-state small { grid-column:2; color:var(--ui-muted); font-size:7px; font-weight:700; }
+.study-plan-workspace-plan-state[data-active="true"] { border-color:var(--ui-green-border); background:var(--ui-green-soft); color:var(--ui-green); }
+.study-plan-workspace-plan-state[data-active="true"] i { background:var(--ui-green); box-shadow:0 0 0 4px color-mix(in srgb,var(--ui-green) 12%,transparent); }
+.study-plan-workspace-tabs { display:flex; align-items:center; gap:4px; margin-bottom:14px; padding:5px; border:1px solid var(--ui-border); border-radius:14px; background:color-mix(in srgb,var(--ui-soft) 78%,var(--ui-panel)); box-shadow:var(--ui-shadow-sm); }
+.study-plan-workspace-tabs button { position:relative; min-height:38px; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:0 14px; border:0; border-radius:10px; background:transparent; color:var(--ui-muted); font-size:9px; font-weight:820; transition:background 150ms ease,color 150ms ease,box-shadow 150ms ease,transform 150ms ease; }
+.study-plan-workspace-tabs button:hover { color:var(--ui-text); background:var(--ui-panel); }
+.study-plan-workspace-tabs button[data-active="true"] { background:var(--ui-panel); color:var(--ui-blue); box-shadow:var(--ui-shadow-sm); }
+.study-plan-workspace-tabs button b { min-width:18px; height:18px; display:grid; place-items:center; padding:0 5px; border-radius:999px; background:var(--ui-blue-soft); color:var(--ui-blue); font-size:7px; font-weight:900; }
+.study-plan-workspace-body { min-width:0; }
+.study-plan-workspace-section-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.study-plan-workspace-section-head > div { min-width:0; }
+.study-plan-workspace-section-head h2 { margin:4px 0 0; font-size:14px; font-weight:900; letter-spacing:-.025em; }
+.study-plan-workspace-section-head p { max-width:650px; margin:5px 0 0; color:var(--ui-muted); font-size:8.5px; font-weight:640; line-height:1.55; }
+.study-plan-workspace-section-head > button { display:inline-flex; align-items:center; gap:5px; border:0; background:transparent; color:var(--ui-blue); font-size:8px; font-weight:850; }
+.study-plan-workspace-empty { min-height:230px; display:grid; place-items:center; align-content:center; gap:7px; padding:32px; border:1px dashed var(--ui-border-strong); border-radius:16px; background:var(--ui-panel); text-align:center; }
+.study-plan-workspace-empty > span:not(.lecture-pdf-spinner) { width:42px; height:42px; display:grid; place-items:center; border-radius:13px; background:var(--ui-blue-soft); color:var(--ui-blue); }
+.study-plan-workspace-empty strong { font-size:10px; font-weight:900; }
+.study-plan-workspace-empty p { max-width:470px; margin:0; color:var(--ui-muted); font-size:8px; font-weight:650; line-height:1.5; }
+.study-plan-workspace-empty--compact { min-height:150px; padding:22px; }
+.study-plan-workspace-feedback, .study-plan-workspace-inline-error { display:flex; align-items:center; gap:7px; padding:9px 11px; border:1px solid var(--ui-green-border); border-radius:10px; background:var(--ui-green-soft); color:var(--ui-green); font-size:8px; font-weight:800; }
+.study-plan-workspace-inline-error { border-color:var(--ui-red-border); background:var(--ui-red-soft); color:var(--ui-red); }
+.study-plan-workspace-toast { position:fixed; z-index:120; right:22px; bottom:22px; max-width:min(420px,calc(100vw - 30px)); display:flex; align-items:center; gap:7px; padding:10px 12px; border:1px solid var(--ui-green-border); border-radius:12px; background:var(--ui-panel); color:var(--ui-green); box-shadow:var(--ui-shadow-lg); font-size:8px; font-weight:850; }
+
+.study-plan-workspace-overview { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(270px,.55fr); gap:14px; }
+.study-plan-overview-next, .study-plan-overview-attention, .study-plan-overview-week, .study-plan-overview-plan { min-width:0; padding:16px; border:1px solid var(--ui-border); border-radius:16px; background:var(--ui-panel); box-shadow:var(--ui-shadow-sm); }
+.study-plan-next-focus-card { margin-top:13px; display:grid; grid-template-columns:46px minmax(0,1fr) auto; align-items:center; gap:12px; padding:14px; border:1px solid var(--ui-blue-border); border-radius:13px; background:linear-gradient(135deg,var(--ui-blue-soft),var(--ui-panel)); }
+.study-plan-next-focus-icon { width:46px; height:46px; display:grid; place-items:center; border-radius:13px; background:var(--ui-panel); color:var(--ui-blue); box-shadow:var(--ui-shadow-sm); }
+.study-plan-next-focus-card > div { min-width:0; display:grid; gap:3px; }
+.study-plan-next-focus-card strong { overflow:hidden; font-size:12px; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-next-focus-card small { color:var(--ui-secondary); font-size:8px; font-weight:720; }
+.study-plan-next-focus-card > div > div { width:max-content; margin-top:3px; padding:3px 6px; border-radius:999px; background:var(--ui-panel); color:var(--ui-blue); font-size:6.8px; font-weight:850; }
+.study-plan-overview-attention { display:grid; align-content:start; gap:7px; }
+.study-plan-overview-attention .study-plan-workspace-section-head { margin-bottom:4px; }
+.study-plan-overview-attention > button { width:100%; min-height:52px; display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:9px; padding:8px 9px; border:1px solid var(--ui-border); border-radius:11px; background:var(--ui-soft); color:var(--ui-text); text-align:start; }
+.study-plan-overview-attention > button:hover { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
+.study-plan-overview-attention > button > span { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; background:var(--ui-panel); color:var(--ui-blue); }
+.study-plan-overview-attention > button > div { display:grid; gap:2px; }
+.study-plan-overview-attention > button strong { font-size:11px; font-weight:900; }
+.study-plan-overview-attention > button small { color:var(--ui-muted); font-size:7px; font-weight:700; }
+.study-plan-overview-week { grid-column:1 / -1; }
+.study-plan-week-strip { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:7px; margin-top:13px; }
+.study-plan-week-strip > div { min-width:0; display:grid; grid-template-rows:auto auto 5px auto; gap:5px; padding:9px; border:1px solid var(--ui-border); border-radius:11px; background:var(--ui-soft); }
+.study-plan-week-strip > div[data-today="true"] { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
+.study-plan-week-strip span { color:var(--ui-muted); font-size:7px; font-weight:850; text-transform:uppercase; }
+.study-plan-week-strip strong { font-size:12px; font-weight:900; }
+.study-plan-week-strip i { position:relative; overflow:hidden; border-radius:99px; background:var(--ui-border); }
+.study-plan-week-strip i::after { content:""; position:absolute; inset:0 auto 0 0; width:var(--load); border-radius:inherit; background:var(--ui-blue); }
+.study-plan-week-strip small { color:var(--ui-secondary); font-size:7px; font-weight:750; }
+.study-plan-overview-plan { grid-column:1 / -1; }
+.study-plan-overview-plan-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; align-items:stretch; gap:8px; margin-top:13px; }
+.study-plan-overview-plan-grid > div { display:grid; place-items:start; align-content:center; gap:2px; min-height:58px; padding:9px 11px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); }
+.study-plan-overview-plan-grid span { font-size:15px; font-weight:920; }
+.study-plan-overview-plan-grid small { color:var(--ui-muted); font-size:7px; font-weight:720; }
+
+.study-plan-workspace-review { display:grid; gap:14px; padding:16px; border:1px solid var(--ui-border); border-radius:18px; background:var(--ui-panel); box-shadow:var(--ui-shadow-sm); }
+.study-plan-review-head { align-items:center; }
+.study-plan-review-groups { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.study-plan-review-groups article { min-width:0; display:grid; gap:10px; padding:12px; border:1px solid var(--ui-border); border-radius:13px; background:var(--ui-soft); transition:transform 150ms ease,border-color 150ms ease,background 150ms ease; }
+.study-plan-review-groups article:hover { transform:translateY(-1px); border-color:var(--ui-border-strong); }
+.study-plan-review-groups article[data-covered="true"] { background:color-mix(in srgb,var(--ui-green-soft) 48%,var(--ui-soft)); }
+.study-plan-review-groups header { display:grid; grid-template-columns:32px minmax(0,1fr) auto; align-items:center; gap:8px; }
+.study-plan-review-groups header > span { width:32px; height:32px; display:grid; place-items:center; border-radius:9px; background:var(--ui-panel); color:var(--ui-blue); }
+.study-plan-review-groups header > div { min-width:0; display:grid; gap:2px; }
+.study-plan-review-groups header small { color:var(--ui-muted); font-size:6.5px; font-weight:850; text-transform:uppercase; letter-spacing:.045em; }
+.study-plan-review-groups header strong { overflow:hidden; font-size:9px; font-weight:880; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-review-groups header b { min-width:28px; height:28px; display:grid; place-items:center; border-radius:9px; background:var(--ui-panel); font-size:10px; font-weight:920; }
+.study-plan-review-group-meta { display:flex; gap:5px; flex-wrap:wrap; }
+.study-plan-review-group-meta span { padding:4px 6px; border:1px solid var(--ui-border); border-radius:999px; background:var(--ui-panel); color:var(--ui-secondary); font-size:6.7px; font-weight:780; }
+.study-plan-review-groups footer { min-height:28px; display:flex; align-items:center; justify-content:space-between; gap:8px; border-top:1px solid var(--ui-border); padding-top:9px; color:var(--ui-muted); font-size:7px; font-weight:740; }
+.study-plan-review-groups footer button { display:inline-flex; align-items:center; gap:5px; border:0; background:transparent; color:var(--ui-blue); font-size:7px; font-weight:880; }
+.study-plan-covered-label { display:inline-flex; align-items:center; gap:5px; color:var(--ui-green); }
+.study-plan-review-task-head { display:flex; align-items:end; justify-content:space-between; gap:12px; padding-top:5px; border-top:1px solid var(--ui-border); }
+.study-plan-review-task-head h3 { margin:4px 0 0; font-size:12px; font-weight:900; }
+.study-plan-review-filter { display:flex; gap:3px; padding:3px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); }
+.study-plan-review-filter button { min-height:27px; padding:0 8px; border:0; border-radius:6px; background:transparent; color:var(--ui-muted); font-size:6.8px; font-weight:820; }
+.study-plan-review-filter button[data-active="true"] { background:var(--ui-panel); color:var(--ui-blue); box-shadow:var(--ui-shadow-sm); }
+.study-plan-task-list { display:grid; gap:7px; }
+.study-plan-task-list article { display:grid; grid-template-columns:36px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px; border:1px solid var(--ui-border); border-radius:11px; background:var(--ui-soft); }
+.study-plan-task-list article[data-status="completed"] { opacity:.72; }
+.study-plan-task-status { width:36px; height:36px; display:grid; place-items:center; border-radius:10px; background:var(--ui-panel); color:var(--ui-blue); }
+.study-plan-task-list article[data-status="completed"] .study-plan-task-status { color:var(--ui-green); }
+.study-plan-task-main { min-width:0; display:grid; gap:2px; }
+.study-plan-task-main > small:first-child { color:var(--ui-blue); font-size:6.5px; font-weight:850; }
+.study-plan-task-main strong { overflow:hidden; font-size:9px; font-weight:890; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-task-main > span { color:var(--ui-muted); font-size:7px; font-weight:700; }
+.study-plan-task-actions { display:flex; align-items:center; justify-content:flex-end; gap:5px; flex-wrap:wrap; }
+.study-plan-task-actions button { min-height:30px; display:inline-flex; align-items:center; gap:5px; padding:0 8px; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-panel); color:var(--ui-secondary); font-size:6.6px; font-weight:850; }
+.study-plan-task-actions button:hover:not(:disabled) { border-color:var(--ui-blue-border); color:var(--ui-blue); background:var(--ui-blue-soft); }
+.study-plan-task-actions button:disabled { opacity:.42; }
+.study-plan-review-question-list { display:grid; gap:5px; padding-top:4px; }
+.study-plan-review-question-list > div { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:9px; padding:7px 8px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); }
+.study-plan-review-question-list > div > span { min-width:0; display:grid; gap:2px; }
+.study-plan-review-question-list strong { overflow:hidden; font-size:7.8px; font-weight:850; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-review-question-list small { color:var(--ui-muted); font-size:6.6px; font-weight:700; }
+.study-plan-review-question-list button, .study-plan-review-question-list em { display:inline-flex; align-items:center; gap:4px; border:0; background:transparent; color:var(--ui-blue); font-size:6.7px; font-style:normal; font-weight:850; }
+.study-plan-review-question-list em { color:var(--ui-green); }
+
+.study-plan-builder-workspace { display:grid; gap:10px; }
+.study-plan-builder-context { display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--ui-blue-border); border-radius:12px; background:var(--ui-blue-soft); }
+.study-plan-builder-context > span { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; background:var(--ui-panel); color:var(--ui-blue); }
+.study-plan-builder-context > div { min-width:0; display:grid; gap:2px; }
+.study-plan-builder-context strong { font-size:8.5px; font-weight:880; }
+.study-plan-builder-context small { color:var(--ui-secondary); font-size:7px; font-weight:700; }
+.study-plan-builder-context button { display:inline-flex; align-items:center; gap:5px; padding:7px 8px; border:1px solid var(--ui-blue-border); border-radius:8px; background:var(--ui-panel); color:var(--ui-blue); font-size:6.8px; font-weight:850; }
+.study-plan-builder-workspace .study-plan-v4 { max-width:none; padding-bottom:0; }
+.study-plan-builder-workspace .study-plan-v4-header { display:none; }
+
+.study-plan-workspace-calendar { position:relative; min-height:680px; display:grid; align-content:start; gap:10px; padding:16px; border:1px solid var(--ui-border); border-radius:18px; background:var(--ui-panel); box-shadow:var(--ui-shadow-sm); overflow:hidden; }
+.study-plan-calendar-view-switch { display:flex; gap:3px; padding:3px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); }
+.study-plan-calendar-view-switch button { min-height:28px; padding:0 9px; border:0; border-radius:6px; background:transparent; color:var(--ui-muted); font-size:7px; font-weight:830; }
+.study-plan-calendar-view-switch button[data-active="true"] { background:var(--ui-panel); color:var(--ui-blue); box-shadow:var(--ui-shadow-sm); }
+.study-plan-calendar-notice { width:100%; display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:9px; padding:8px 10px; border:1px solid var(--ui-blue-border); border-radius:10px; background:var(--ui-blue-soft); color:var(--ui-text); text-align:start; }
+.study-plan-calendar-notice > span { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; background:var(--ui-panel); color:var(--ui-blue); }
+.study-plan-calendar-notice > div { display:grid; gap:2px; }
+.study-plan-calendar-notice strong { font-size:8px; font-weight:870; }
+.study-plan-calendar-notice small { color:var(--ui-secondary); font-size:6.8px; font-weight:700; }
+.study-plan-calendar-toolbar { display:grid; grid-template-columns:auto 1fr auto; align-items:center; min-height:38px; padding:5px 7px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); }
+.study-plan-calendar-toolbar > div { display:flex; align-items:center; gap:4px; }
+.study-plan-calendar-toolbar button { min-height:28px; display:grid; place-items:center; padding:0 8px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-panel); color:var(--ui-secondary); font-size:7px; font-weight:830; }
+.study-plan-calendar-toolbar strong { justify-self:center; font-size:8px; font-weight:870; text-transform:capitalize; }
+.study-plan-calendar-week { min-height:560px; overflow:auto; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-soft); }
+.study-plan-agenda-list { display:grid; gap:5px; }
+.study-plan-agenda-list > button { display:grid; grid-template-columns:130px minmax(0,1fr) auto; align-items:center; gap:10px; padding:9px 10px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); color:var(--ui-text); text-align:start; }
+.study-plan-agenda-list > button:hover { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
+.study-plan-agenda-list > button[data-complete="true"] { opacity:.65; }
+.study-plan-agenda-list time { display:grid; gap:2px; color:var(--ui-secondary); font-size:7px; font-weight:850; text-transform:capitalize; }
+.study-plan-agenda-list time small { color:var(--ui-muted); font-size:6.6px; font-weight:700; }
+.study-plan-agenda-list > button > span { min-width:0; display:grid; gap:2px; }
+.study-plan-agenda-list strong { overflow:hidden; font-size:8.5px; font-weight:880; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-agenda-list > button > span small { color:var(--ui-muted); font-size:6.6px; font-weight:720; }
+.study-plan-calendar-detail { position:absolute; z-index:5; inset:76px 14px 14px auto; width:min(340px,calc(100% - 28px)); display:grid; align-content:start; gap:10px; padding:15px; border:1px solid var(--ui-border-strong); border-radius:14px; background:var(--ui-panel); box-shadow:var(--ui-shadow-lg); }
+.study-plan-calendar-detail-close { position:absolute; top:9px; right:9px; width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-soft); color:var(--ui-muted); }
+.study-plan-calendar-detail h3 { margin:0; padding-right:28px; font-size:12px; font-weight:900; line-height:1.35; }
+.study-plan-calendar-detail dl { display:grid; gap:6px; margin:0; }
+.study-plan-calendar-detail dl > div { display:grid; grid-template-columns:90px minmax(0,1fr); gap:8px; padding:7px 0; border-bottom:1px solid var(--ui-border); }
+.study-plan-calendar-detail dt { color:var(--ui-muted); font-size:6.8px; font-weight:800; }
+.study-plan-calendar-detail dd { margin:0; color:var(--ui-secondary); font-size:7.2px; font-weight:760; }
+.study-plan-calendar-detail-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.study-plan-workspace-modal .ui-modal-surface { width:min(430px,calc(100vw - 24px)); display:grid; gap:12px; }
+.study-plan-workspace-modal-head { display:grid; grid-template-columns:38px minmax(0,1fr); align-items:center; gap:9px; }
+.study-plan-workspace-modal-head > span { width:38px; height:38px; display:grid; place-items:center; border-radius:10px; background:var(--ui-blue-soft); color:var(--ui-blue); }
+.study-plan-workspace-modal-head > div { min-width:0; display:grid; gap:2px; }
+.study-plan-workspace-modal-head strong { font-size:11px; font-weight:900; }
+.study-plan-workspace-modal-head small { overflow:hidden; color:var(--ui-muted); font-size:7px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-workspace-modal label { display:grid; gap:5px; }
+.study-plan-workspace-modal label > span { color:var(--ui-secondary); font-size:7.5px; font-weight:820; }
+.study-plan-workspace-modal label > small { color:var(--ui-muted); font-size:6.7px; font-weight:650; }
+.study-plan-workspace-modal input { min-height:38px; padding:0 10px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); color:var(--ui-text); font:inherit; font-size:8px; outline:none; }
+.study-plan-workspace-modal input:focus { border-color:var(--ui-blue-border); background:var(--ui-panel); }
+.study-plan-workspace-modal-actions { display:flex; justify-content:flex-end; gap:7px; padding-top:4px; }
+.exam-review-plan-action { min-height:31px; display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:0 7px; border:1px solid var(--ui-blue-border); border-radius:8px; background:var(--ui-blue-soft); color:var(--ui-blue); font-size:7px; font-weight:850; }
+.exam-review-plan-action[data-state="saved"] { border-color:var(--ui-green-border); background:var(--ui-green-soft); color:var(--ui-green); }
+.exam-review-plan-action[data-state="error"] { border-color:var(--ui-red-border); background:var(--ui-red-soft); color:var(--ui-red); }
+.exam-review-plan-action:disabled { opacity:.55; }
+
+@media (max-width: 1080px) {
+  .study-plan-workspace-overview { grid-template-columns:1fr; }
+  .study-plan-overview-week, .study-plan-overview-plan { grid-column:auto; }
+  .study-plan-review-groups { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .study-plan-task-list article { grid-template-columns:36px minmax(0,1fr); }
+  .study-plan-task-actions { grid-column:2; justify-content:flex-start; }
+  .study-plan-overview-plan-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .study-plan-overview-plan-grid > button { grid-column:1 / -1; }
+}
+
+@media (max-width: 760px) {
+  .study-plan-workspace { padding-bottom:90px; }
+  .study-plan-workspace-header { align-items:flex-start; gap:10px; margin-bottom:12px; }
+  .study-plan-workspace-header h1 { font-size:25px; }
+  .study-plan-workspace-header p { font-size:9px; }
+  .study-plan-workspace-plan-state { padding:7px 8px; font-size:7px; }
+  .study-plan-workspace-plan-state small { display:none; }
+  .study-plan-workspace-tabs { position:sticky; z-index:12; top:0; overflow-x:auto; justify-content:flex-start; scrollbar-width:none; border-radius:12px; }
+  .study-plan-workspace-tabs::-webkit-scrollbar { display:none; }
+  .study-plan-workspace-tabs button { flex:0 0 auto; min-height:40px; padding:0 11px; }
+  .study-plan-workspace-overview { gap:10px; }
+  .study-plan-overview-next, .study-plan-overview-attention, .study-plan-overview-week, .study-plan-overview-plan, .study-plan-workspace-review, .study-plan-workspace-calendar { padding:11px; border-radius:14px; }
+  .study-plan-next-focus-card { grid-template-columns:40px minmax(0,1fr); }
+  .study-plan-next-focus-icon { width:40px; height:40px; }
+  .study-plan-next-focus-card > button { grid-column:1 / -1; }
+  .study-plan-week-strip { grid-template-columns:repeat(7,74px); overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+  .study-plan-week-strip::-webkit-scrollbar { display:none; }
+  .study-plan-review-head { align-items:flex-start; flex-direction:column; }
+  .study-plan-review-head > button { width:100%; justify-content:center; }
+  .study-plan-review-groups { grid-template-columns:1fr; }
+  .study-plan-review-task-head { align-items:flex-start; flex-direction:column; }
+  .study-plan-review-filter { width:100%; overflow-x:auto; }
+  .study-plan-review-filter button { flex:1 0 auto; min-height:31px; }
+  .study-plan-task-list article { grid-template-columns:34px minmax(0,1fr); }
+  .study-plan-task-actions { grid-column:1 / -1; }
+  .study-plan-task-actions button { flex:1 1 auto; justify-content:center; min-height:36px; }
+  .study-plan-review-question-list > div { grid-template-columns:1fr; }
+  .study-plan-review-question-list button, .study-plan-review-question-list em { justify-self:start; min-height:30px; }
+  .study-plan-builder-context { grid-template-columns:34px minmax(0,1fr); }
+  .study-plan-builder-context > button { grid-column:1 / -1; justify-content:center; min-height:34px; }
+  .study-plan-builder-workspace .study-plan-v4-shell { border-radius:14px; }
+  .study-plan-workspace-calendar { min-height:600px; }
+  .study-plan-workspace-calendar .study-plan-workspace-section-head { display:grid; gap:9px; }
+  .study-plan-calendar-view-switch { width:100%; }
+  .study-plan-calendar-view-switch button { flex:1; min-height:34px; }
+  .study-plan-calendar-toolbar { grid-template-columns:1fr; gap:6px; }
+  .study-plan-calendar-toolbar > div { justify-content:center; }
+  .study-plan-calendar-toolbar strong { grid-row:1; }
+  .study-plan-calendar-week { min-height:500px; overflow-x:auto; }
+  .study-plan-calendar-week .calendar-week-root { min-width:880px; }
+  .study-plan-agenda-list > button { grid-template-columns:90px minmax(0,1fr) auto; }
+  .study-plan-calendar-detail { inset:auto 8px 8px 8px; width:auto; max-height:70dvh; overflow:auto; }
+  .study-plan-overview-plan-grid { grid-template-columns:1fr 1fr; }
+  .study-plan-overview-plan-grid > div:nth-child(3) { grid-column:1 / -1; }
+  .exam-review-plan-action { min-height:36px; }
+}
+.study-plan-simulation-strip { display:grid; gap:8px; padding:11px; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-soft); }
+.study-plan-simulation-strip h3 { margin:4px 0 0; font-size:11px; font-weight:900; }
+.study-plan-simulation-strip > div:last-child { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+.study-plan-simulation-strip button { min-width:0; min-height:48px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; padding:8px 9px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-panel); color:var(--ui-text); text-align:start; }
+.study-plan-simulation-strip button:hover:not(:disabled) { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
+.study-plan-simulation-strip button[data-added="true"] { border-color:var(--ui-green-border); background:var(--ui-green-soft); }
+.study-plan-simulation-strip button > span { min-width:0; display:grid; gap:2px; }
+.study-plan-simulation-strip strong { overflow:hidden; font-size:7.8px; font-weight:860; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-simulation-strip small { color:var(--ui-muted); font-size:6.5px; font-weight:700; }
+.study-plan-simulation-strip em { display:inline-flex; align-items:center; gap:4px; color:var(--ui-blue); font-size:6.6px; font-style:normal; font-weight:850; white-space:nowrap; }
+.study-plan-simulation-strip button[data-added="true"] em { color:var(--ui-green); }
+@media (max-width: 760px) { .study-plan-simulation-strip > div:last-child { grid-template-columns:1fr; } .study-plan-simulation-strip button { min-height:54px; } }
     `}
 </style>
   );
@@ -20985,7 +21218,7 @@ function WorkloadVisualizer({ c, copy, hoursPerDay, estimatedMinutes, capacityMi
   );
 }
 
-function StudyPlan({ c, language, user, setUser }) {
+function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null }) {
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const [, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
@@ -21045,6 +21278,8 @@ function StudyPlan({ c, language, user, setUser }) {
   const days = language === "en" ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
   const copy = language === "en" ? {
     title: "Study plan", subtitle: "Build a complete strategy before the exam", steps: ["Goal", "Content", "Capacity", "Strategy", "Preview", "Activate"], next: "Continue", back: "Back", activate: "Save and activate", edit: "Edit plan", active: "Active plan", clearCalendar: "Clear study-plan calendar", resetPlan: "Reset study plan",
+  } : language === "ar" ? {
+    title: "خطة الدراسة", subtitle: "ابنِ استراتيجية كاملة حتى موعد الامتحان", steps: ["الهدف", "المحتوى", "السعة", "الاستراتيجية", "المراجعة", "التفعيل"], next: "متابعة", back: "رجوع", activate: "حفظ وتفعيل", edit: "تعديل الخطة", active: "خطة نشطة", clearCalendar: "مسح تقويم خطة الدراسة", resetPlan: "إعادة ضبط خطة الدراسة",
   } : {
     title: "Studieplan", subtitle: "Byg en samlet strategi frem mod eksamen", steps: ["Mål", "Indhold", "Kapacitet", "Strategi", "Forhåndsvisning", "Aktivér"], next: "Fortsæt", back: "Tilbage", activate: "Gem og aktivér", edit: "Redigér plan", active: "Aktiv studieplan", clearCalendar: "Ryd studieplanskalender", resetPlan: "Nulstil studieplan",
   };
@@ -21431,10 +21666,11 @@ function StudyPlan({ c, language, user, setUser }) {
     const bundle = buildStudyPlanCalendarBundle({ moduleName, plan: planRecord, lectures, questionTotal: questionCount, fromDate: new Date() });
     const storedEvents = loadStorage(STORAGE.calendarEvents, []);
     const storedMeta = loadStorage(STORAGE.calendarEventMeta, {});
-    const withoutPlan = storedEvents.filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-"));
+    const isReviewTaskCalendarEvent = (event) => Boolean(event?.reviewTaskId || storedMeta?.[event?.id]?.reviewTaskId || event?.phase === "exam-review" || storedMeta?.[event?.id]?.phase === "exam-review");
+    const withoutPlan = storedEvents.filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-") || isReviewTaskCalendarEvent(event));
     const reconciled = reconcileStudyPlanCalendarEvents({ moduleName, generatedEvents: bundle.events, generatedMetadata: bundle.metadata, previousEvents: storedEvents, previousMetadata: storedMeta });
     localStorage.setItem(STORAGE.calendarEvents, JSON.stringify([...withoutPlan, ...reconciled]));
-    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id]) => !String(id).startsWith(`studyplan-${moduleName}`)));
+    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id, value]) => !String(id).startsWith(`studyplan-${moduleName}`) || value?.reviewTaskId || value?.phase === "exam-review"));
     Object.entries(bundle.metadata).forEach(([id, generated]) => {
       const previous = storedMeta[id] || {};
       const event = reconciled.find((item) => item.id === id);
@@ -21481,6 +21717,7 @@ function StudyPlan({ c, language, user, setUser }) {
       return { ...previous, [moduleName]: { ...plan, calendarEnabled: false, calendarClearedAt: Date.now(), updatedAt: Date.now() } };
     });
     setConfirmClearCalendar(false);
+    onCalendarCleared?.();
     setSavedNotice("Studieplanskalenderen er ryddet. Planen og din forelæsningsprogression er bevaret.");
     window.setTimeout(() => setSavedNotice(""), 4200);
   }
@@ -21488,6 +21725,7 @@ function StudyPlan({ c, language, user, setUser }) {
   function resetStudyPlan() {
     localStorage.removeItem(STORAGE.studyPlanDraft);
     removeStudyPlanCalendarObjects();
+    onCalendarCleared?.();
     setPlans((previous) => { const next = { ...previous }; delete next[moduleName]; return next; });
     setLectureProgress((previous) => Object.fromEntries(Object.entries(previous || {}).filter(([key]) => !key.startsWith(`${moduleName}:`))));
     setCalendarDailyPlanner({});
@@ -21642,6 +21880,566 @@ function StudyPlan({ c, language, user, setUser }) {
     </div>
   );
 }
+
+/* SEGMENT_6_8_STUDYPLAN_WORKSPACE_START
+   Exam-review is private user data. Segment 6.8 only stores references to
+   existing review items and existing curriculum metadata. It never rewrites
+   exam questions, options, answer keys or historical attempts.
+*/
+const STUDY_PLAN_REVIEW_TASK_TABLE = "study_plan_review_tasks";
+const STUDY_PLAN_REVIEW_TASK_ITEM_TABLE = "study_plan_review_task_items";
+const STUDY_PLAN_REVIEW_STATUSES = ["inbox", "planned", "completed", "revisit"];
+
+function studyPlanWorkspaceCopy(language) {
+  const copy = {
+    da: {
+      title: "Studieplan", eyebrow: "Personligt studie-workspace", activePlan: "Plan aktiv", noPlan: "Ingen aktiv plan",
+      overview: "Overblik", review: "Review & fokus", builder: "Planbygger", calendar: "Kalender",
+      overviewIntro: "Saml plan, eksamensreview og kalender uden at blande deres ansvar sammen.",
+      nextFocus: "Næste fokus", noNextFocus: "Ingen planlagt aktivitet endnu", noNextFocusHint: "Planlæg et review eller aktivér din plan for at få næste fokus her.",
+      openCalendar: "Åbn kalender", openReview: "Åbn Review & fokus", openBuilder: "Åbn Planbygger",
+      attention: "Kræver din opmærksomhed", thisWeek: "Denne uge", reviewNeeds: "Review-behov", planTasks: "Planopgaver",
+      unplanned: "Skal planlægges", planned: "Planlagt", completed: "Gennemført", revisit: "Skal ses igen", all: "Alle",
+      activeBacklog: "Aktiv review-backlog", addBacklog: "Send aktiv backlog til studieplan", backlogAdded: "Backlog er tilføjet til studieplanen.", simulations: "Eksamenssimulationer", planSimulation: "Tilføj simulation", simulationPlanned: "Simulation i studieplanen",
+      noReviewNeeds: "Ingen review-behov venter", noReviewNeedsHint: "Aktive fejl og markerede spørgsmål vises her, når de findes i Fejl & review.",
+      noTasks: "Ingen planopgaver i denne visning", noTasksHint: "Send et spørgsmål, en forelæsningsgruppe eller hele backloggen til studieplanen.",
+      mappedLecture: "Relateret forelæsning", mappedTopic: "Relateret emne", unmapped: "Ikke mappet til pensum endnu",
+      questions: "spørgsmål", questionSingular: "Spørgsmål", singleQuestions: "Enkeltspørgsmål", examSetLabel: "Eksamenssæt", errors: "fejl", minutes: "min", examReviewLabel: "Eksamensreview", lectureLabel: "Forelæsning", studyActivityLabel: "Studieaktivitet", hoursPerWeek: "timer / uge", lecturesLabel: "forelæsninger", sendGroup: "Tilføj review", sendQuestion: "Send til studieplan",
+      covered: "Dækket af eksisterende aktivitet", partialCovered: "Nogle spørgsmål er allerede dækket", openQuestions: "Åbn spørgsmål",
+      planTask: "Planlæg", placeWithPlan: "Placér med aktiv plan", openTask: "Detaljer", markComplete: "Markér gennemført", reopen: "Genåbn",
+      scheduleTitle: "Planlæg review", scheduleDate: "Dato", scheduleTime: "Tidspunkt", scheduleTimeHint: "Lad tidspunktet være tomt, hvis du kun vil vælge studiedag.",
+      cancel: "Annuller", saveSchedule: "Gem placering", scheduling: "Gemmer…", loadError: "Kunne ikke hente studieplansintegration", setupMissing: "Segment 6.8-databasen mangler",
+      setupMissingHint: "Kør segment_6_8_studyplan_integration.sql i Supabase. Planbygger og eksisterende kalenderdata er stadig bevaret.",
+      refreshing: "Henter review og planopgaver…", taskAdded: "Tilføjet til studieplanen", taskAlreadyCovered: "Spørgsmålet er allerede dækket af en planopgave.",
+      taskError: "Kunne ikke opdatere studieplanen", week: "Uge", month: "Måned", agenda: "Agenda", today: "I dag",
+      previous: "Forrige", next: "Næste", notPlaced: "Ikke placeret", emptyCalendar: "Studieplanskalenderen er tom", emptyCalendarHint: "Aktivér en plan eller planlæg et review for at få aktiviteter her.",
+      calendarIntro: "Kun studieplansaktiviteter vises her. Din almindelige kalender og globale kalenderlag ændres ikke.",
+      reviewCalendarNotice: "Review-opgaver uden tidspunkt", reviewCalendarNoticeHint: "De har en studiedag, men mangler et præcist klokkeslæt.",
+      builderContext: "Planbyggeren er stadig den autoritative planmotor", builderContextHint: "Review & fokus føder planen med behov. Kalenderen bestemmer hvornår arbejdet udføres.",
+      planInactiveHint: "Aktivér en plan for at kunne placere review-opgaver efter din ugekapacitet.",
+      taskDetail: "Planopgave", source: "Kilde", linkedItems: "Tilknyttede reviewspørgsmål", scheduledFor: "Planlagt til", status: "Status",
+      close: "Luk", overdue: "forfalden", reviewsWaiting: "reviews mangler placering", activitiesThisWeek: "aktiviteter denne uge",
+      daysToExam: "dage til eksamen", noExamDate: "Eksamensdato ikke sat", planLoad: "Planbelastning", generatedPlan: "Aktiv studieplan",
+      inboxCount: "review-opgaver venter", weekLoadEmpty: "Ingen studieplansaktiviteter denne uge.", saveFailed: "Placeringen kunne ikke gemmes.",
+      completionFailed: "Status kunne ikke synkroniseres med Fejl & review.", autoPlaced: "Reviewet er placeret på en studiedag. Vælg klokkeslæt i kalenderen, når det passer.",
+    },
+    en: {
+      title: "Study plan", eyebrow: "Personal study workspace", activePlan: "Plan active", noPlan: "No active plan",
+      overview: "Overview", review: "Review & focus", builder: "Plan builder", calendar: "Calendar",
+      overviewIntro: "Bring the plan, exam review and calendar together without mixing their responsibilities.",
+      nextFocus: "Next focus", noNextFocus: "Nothing scheduled yet", noNextFocusHint: "Schedule a review or activate your plan to get a next focus here.",
+      openCalendar: "Open calendar", openReview: "Open Review & focus", openBuilder: "Open Plan builder", attention: "Needs your attention", thisWeek: "This week",
+      reviewNeeds: "Review needs", planTasks: "Plan tasks", unplanned: "Needs planning", planned: "Planned", completed: "Completed", revisit: "Revisit", all: "All",
+      activeBacklog: "Active review backlog", addBacklog: "Send active backlog to study plan", backlogAdded: "Backlog added to the study plan.", simulations: "Exam simulations", planSimulation: "Add simulation", simulationPlanned: "Simulation in study plan",
+      noReviewNeeds: "No review needs waiting", noReviewNeedsHint: "Active errors and marked questions appear here when they exist in Errors & review.",
+      noTasks: "No plan tasks in this view", noTasksHint: "Send a question, lecture group or the full backlog to the study plan.",
+      mappedLecture: "Related lecture", mappedTopic: "Related topic", unmapped: "Not mapped to curriculum yet", questions: "questions", questionSingular: "Question", singleQuestions: "Individual questions", examSetLabel: "Exam set", errors: "errors", minutes: "min", examReviewLabel: "Exam review", lectureLabel: "Lecture", studyActivityLabel: "Study activity", hoursPerWeek: "hours / week", lecturesLabel: "lectures",
+      sendGroup: "Add review", sendQuestion: "Send to study plan", covered: "Covered by existing activity", partialCovered: "Some questions are already covered", openQuestions: "Open questions",
+      planTask: "Schedule", placeWithPlan: "Place with active plan", openTask: "Details", markComplete: "Mark completed", reopen: "Reopen",
+      scheduleTitle: "Schedule review", scheduleDate: "Date", scheduleTime: "Time", scheduleTimeHint: "Leave time empty if you only want to choose the study day.",
+      cancel: "Cancel", saveSchedule: "Save placement", scheduling: "Saving…", loadError: "Could not load study-plan integration", setupMissing: "Segment 6.8 database is missing",
+      setupMissingHint: "Run segment_6_8_studyplan_integration.sql in Supabase. The plan builder and existing calendar data are still preserved.", refreshing: "Loading review and plan tasks…",
+      taskAdded: "Added to study plan", taskAlreadyCovered: "This question is already covered by a plan task.", taskError: "Could not update the study plan",
+      week: "Week", month: "Month", agenda: "Agenda", today: "Today", previous: "Previous", next: "Next", notPlaced: "Not placed",
+      emptyCalendar: "Study-plan calendar is empty", emptyCalendarHint: "Activate a plan or schedule a review to add activities here.",
+      calendarIntro: "Only study-plan activities are shown here. Your regular calendar and global calendar layers are unchanged.",
+      reviewCalendarNotice: "Review tasks without a time", reviewCalendarNoticeHint: "They have a study day but still need an exact time.",
+      builderContext: "The plan builder remains the authoritative planning engine", builderContextHint: "Review & focus supplies needs. The calendar determines when the work happens.",
+      planInactiveHint: "Activate a plan to place review tasks according to your weekly capacity.", taskDetail: "Plan task", source: "Source", linkedItems: "Linked review questions",
+      scheduledFor: "Scheduled for", status: "Status", close: "Close", overdue: "overdue", reviewsWaiting: "reviews need placement", activitiesThisWeek: "activities this week",
+      daysToExam: "days until exam", noExamDate: "Exam date not set", planLoad: "Plan load", generatedPlan: "Active study plan", inboxCount: "review tasks waiting",
+      weekLoadEmpty: "No study-plan activities this week.", saveFailed: "The placement could not be saved.", completionFailed: "Status could not sync with Errors & review.",
+      autoPlaced: "The review was placed on a study day. Choose an exact time in the calendar when convenient.",
+    },
+    ar: {
+      title: "خطة الدراسة", eyebrow: "مساحة الدراسة الشخصية", activePlan: "الخطة نشطة", noPlan: "لا توجد خطة نشطة",
+      overview: "نظرة عامة", review: "المراجعة والتركيز", builder: "منشئ الخطة", calendar: "التقويم", overviewIntro: "اجمع الخطة ومراجعة الامتحان والتقويم مع إبقاء وظيفة كل جزء واضحة.",
+      nextFocus: "التركيز التالي", noNextFocus: "لا يوجد نشاط مخطط بعد", noNextFocusHint: "خطط لمراجعة أو فعّل خطتك لإظهار التركيز التالي هنا.",
+      openCalendar: "فتح التقويم", openReview: "فتح المراجعة والتركيز", openBuilder: "فتح منشئ الخطة", attention: "يتطلب انتباهك", thisWeek: "هذا الأسبوع",
+      reviewNeeds: "احتياجات المراجعة", planTasks: "مهام الخطة", unplanned: "تحتاج تخطيطا", planned: "مخطط", completed: "مكتمل", revisit: "راجع مجددا", all: "الكل",
+      activeBacklog: "قائمة المراجعة النشطة", addBacklog: "إرسال القائمة النشطة إلى خطة الدراسة", backlogAdded: "تمت إضافة القائمة إلى خطة الدراسة.", simulations: "محاكاة الامتحان", planSimulation: "إضافة محاكاة", simulationPlanned: "المحاكاة في خطة الدراسة",
+      noReviewNeeds: "لا توجد مراجعات معلقة", noReviewNeedsHint: "تظهر الأخطاء والأسئلة المعلّمة هنا عندما تكون موجودة في الأخطاء والمراجعة.",
+      noTasks: "لا توجد مهام في هذه العرض", noTasksHint: "أرسل سؤالا أو مجموعة محاضرة أو القائمة كاملة إلى خطة الدراسة.", mappedLecture: "المحاضرة المرتبطة", mappedTopic: "الموضوع المرتبط",
+      unmapped: "لم يتم ربطه بالمنهج بعد", questions: "أسئلة", questionSingular: "سؤال", singleQuestions: "أسئلة فردية", examSetLabel: "مجموعة امتحان", errors: "أخطاء", minutes: "د", examReviewLabel: "مراجعة الامتحان", lectureLabel: "محاضرة", studyActivityLabel: "نشاط دراسي", hoursPerWeek: "ساعات / أسبوع", lecturesLabel: "محاضرات", sendGroup: "إضافة مراجعة", sendQuestion: "إرسال إلى خطة الدراسة",
+      covered: "مغطى بنشاط موجود", partialCovered: "بعض الأسئلة مغطاة بالفعل", openQuestions: "فتح الأسئلة", planTask: "جدولة", placeWithPlan: "وضع باستخدام الخطة النشطة",
+      openTask: "التفاصيل", markComplete: "تحديد كمكتمل", reopen: "إعادة فتح", scheduleTitle: "جدولة المراجعة", scheduleDate: "التاريخ", scheduleTime: "الوقت",
+      scheduleTimeHint: "اترك الوقت فارغا إذا أردت اختيار يوم الدراسة فقط.", cancel: "إلغاء", saveSchedule: "حفظ الموضع", scheduling: "جار الحفظ…", loadError: "تعذر تحميل تكامل خطة الدراسة",
+      setupMissing: "قاعدة بيانات Segment 6.8 غير موجودة", setupMissingHint: "شغّل segment_6_8_studyplan_integration.sql في Supabase. يظل منشئ الخطة والتقويم الحالي محفوظين.",
+      refreshing: "جار تحميل المراجعات ومهام الخطة…", taskAdded: "تمت الإضافة إلى خطة الدراسة", taskAlreadyCovered: "السؤال مغطى بالفعل بمهمة في الخطة.", taskError: "تعذر تحديث خطة الدراسة",
+      week: "أسبوع", month: "شهر", agenda: "جدول", today: "اليوم", previous: "السابق", next: "التالي", notPlaced: "غير موضوع", emptyCalendar: "تقويم خطة الدراسة فارغ",
+      emptyCalendarHint: "فعّل خطة أو جدول مراجعة لإضافة أنشطة هنا.", calendarIntro: "تظهر هنا أنشطة خطة الدراسة فقط. لا يتم تغيير تقويمك العادي أو الطبقات العامة.",
+      reviewCalendarNotice: "مهام مراجعة بلا وقت", reviewCalendarNoticeHint: "لديها يوم دراسة ولكنها تحتاج وقتا دقيقا.", builderContext: "يبقى منشئ الخطة محرك التخطيط الأساسي",
+      builderContextHint: "تحدد المراجعة والتركيز الاحتياجات، ويحدد التقويم متى يتم العمل.", planInactiveHint: "فعّل خطة لوضع مهام المراجعة وفق السعة الأسبوعية.", taskDetail: "مهمة الخطة",
+      source: "المصدر", linkedItems: "أسئلة المراجعة المرتبطة", scheduledFor: "مخطط في", status: "الحالة", close: "إغلاق", overdue: "متأخر", reviewsWaiting: "مراجعات تحتاج تخطيطا",
+      activitiesThisWeek: "أنشطة هذا الأسبوع", daysToExam: "أيام حتى الامتحان", noExamDate: "لم يحدد موعد الامتحان", planLoad: "عبء الخطة", generatedPlan: "خطة الدراسة النشطة",
+      inboxCount: "مهام مراجعة تنتظر", weekLoadEmpty: "لا توجد أنشطة لخطة الدراسة هذا الأسبوع.", saveFailed: "تعذر حفظ الموضع.", completionFailed: "تعذرت مزامنة الحالة مع الأخطاء والمراجعة.",
+      autoPlaced: "تم وضع المراجعة في يوم دراسة. اختر وقتا دقيقا في التقويم عندما يناسبك.",
+    },
+  };
+  return copy[language] || copy.da;
+}
+
+function studyPlanReviewTaskFromRow(row) {
+  const source = row && typeof row === "object" ? row : {};
+  return {
+    id: source.id || null,
+    userId: source.user_id || null,
+    moduleName: source.module_name || "",
+    sourceType: source.source_type || "question",
+    sourceKey: source.source_key || "",
+    title: source.title || "",
+    lectureId: source.lecture_id || null,
+    topicId: source.topic_id || null,
+    estimatedMinutes: Math.max(5, Number(source.estimated_minutes) || 30),
+    status: STUDY_PLAN_REVIEW_STATUSES.includes(source.status) ? source.status : "inbox",
+    scheduledDate: source.scheduled_date || null,
+    scheduledTime: source.scheduled_time ? String(source.scheduled_time).slice(0, 5) : "",
+    calendarEventId: source.calendar_event_id || null,
+    metadata: source.metadata && typeof source.metadata === "object" ? source.metadata : {},
+    completedAt: source.completed_at || null,
+    createdAt: source.created_at || null,
+    updatedAt: source.updated_at || null,
+  };
+}
+
+function studyPlanReviewTaskItemFromRow(row) {
+  return {
+    id: row?.id || null,
+    taskId: row?.task_id || null,
+    reviewItemId: row?.review_item_id || null,
+    examSetId: row?.exam_set_id || null,
+    questionId: row?.question_id != null ? String(row.question_id) : "",
+  };
+}
+
+function studyPlanReviewSourceKey(type, value, questionId = null) {
+  if (type === "question") return `question:${value}:${questionId}`;
+  if (type === "lecture") return `lecture:${value}`;
+  if (type === "topic") return `topic:${value}`;
+  if (type === "simulation") return `simulation:${value}`;
+  return "backlog:active";
+}
+
+function studyPlanReviewEstimateMinutes(items, minimum = 20) {
+  const count = Math.max(1, Array.isArray(items) ? items.length : 0);
+  const weight = (Array.isArray(items) ? items : []).reduce((sum, item) => sum + Math.min(3, (Number(item?.wrongCount) || 0) + (Number(item?.unansweredCount) || 0) + (Number(item?.markedCount) || 0)), 0);
+  return Math.max(minimum, Math.min(180, Math.ceil((count * 7 + weight * 3) / 5) * 5));
+}
+
+function studyPlanReviewBuildGroups(items, curriculumLinks, curriculumTopics, moduleName) {
+  const topicMap = new Map((curriculumTopics || []).map((topic) => [topic.id, topic]));
+  const groups = new Map();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const related = examCurriculumQuestionLinks(curriculumLinks, item.examSetId, item.questionId);
+    const lectureLink = related.find((link) => link.lectureId);
+    const topicLink = related.find((link) => link.topicId);
+    const lecture = lectureLink?.lectureId ? examCurriculumLecture(moduleName, lectureLink.lectureId) : null;
+    const topic = topicLink?.topicId ? topicMap.get(topicLink.topicId) : null;
+    const key = lecture ? `lecture:${lecture.id}` : topic ? `topic:${topic.id}` : "unmapped";
+    if (!groups.has(key)) groups.set(key, {
+      key,
+      type: lecture ? "lecture" : topic ? "topic" : "unmapped",
+      lectureId: lecture?.id || null,
+      topicId: topic?.id || null,
+      title: lecture ? `${lecture.id} · ${lecture.title}` : topic?.label || "",
+      items: [],
+    });
+    groups.get(key).items.push(item);
+  });
+  return [...groups.values()].sort((a, b) => {
+    if (a.type === "unmapped" && b.type !== "unmapped") return 1;
+    if (b.type === "unmapped" && a.type !== "unmapped") return -1;
+    return (a.title || a.key).localeCompare(b.title || b.key, undefined, { numeric: true });
+  });
+}
+
+function studyPlanReviewTaskCalendarEventId(moduleName, taskId) {
+  return `studyplan-${moduleName}-review-${taskId}`;
+}
+
+function studyPlanNextReviewDate(plan, calendarEvents, moduleName, estimatedMinutes = 30, fromDate = new Date()) {
+  if (!plan) return null;
+  const excluded = new Set(Array.isArray(plan.excludedDates) ? plan.excludedDates : []);
+  for (let offset = 0; offset < 120; offset += 1) {
+    const date = addDays(fromDate, offset);
+    const key = studyPlanDateKey(date);
+    if (!key || excluded.has(key)) continue;
+    const capacity = Math.max(0, Number(plan.weekdayHours?.[date.getDay()]) || 0) * 60;
+    if (capacity <= 0) continue;
+    const currentLoad = (Array.isArray(calendarEvents) ? calendarEvents : [])
+      .filter((event) => event.planModuleId === moduleName && event.date === key && event.source === "study-plan" && !event.completedAt)
+      .reduce((sum, event) => sum + Math.max(15, Math.round((Number(event.estimatedHours) || .5) * 60)), 0);
+    if (currentLoad + estimatedMinutes <= Math.max(estimatedMinutes, capacity)) return key;
+  }
+  return null;
+}
+
+function StudyPlanScheduleDialog({ language, task, onClose, onSave, busy }) {
+  const copy = studyPlanWorkspaceCopy(language);
+  const [date, setDate] = useState(task?.scheduledDate || studyPlanDateKey(new Date()));
+  const [time, setTime] = useState(task?.scheduledTime || "");
+  if (!task) return null;
+  return (
+    <div className="ui-modal-backdrop study-plan-workspace-modal" role="presentation" onPointerDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+      <div className="ui-modal-surface" role="dialog" aria-modal="true" aria-label={copy.scheduleTitle}>
+        <div className="study-plan-workspace-modal-head"><span><Icon name="calendar" size={17} /></span><div><strong>{copy.scheduleTitle}</strong><small>{task.title}</small></div></div>
+        <label><span>{copy.scheduleDate}</span><input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
+        <label><span>{copy.scheduleTime}</span><input type="time" value={time} onChange={(event) => setTime(event.target.value)} /><small>{copy.scheduleTimeHint}</small></label>
+        <div className="study-plan-workspace-modal-actions"><button type="button" className="ui-button ui-button--ghost" disabled={busy} onClick={onClose}>{copy.cancel}</button><button type="button" className="ui-button ui-button--primary" disabled={busy || !date} onClick={() => onSave(date, time)}>{busy ? copy.scheduling : copy.saveSchedule}</button></div>
+      </div>
+    </div>
+  );
+}
+
+function StudyPlanCalendarWorkspace({ c, language, moduleName, tasks, onTasksRefresh, onOpenReview }) {
+  const copy = studyPlanWorkspaceCopy(language);
+  const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
+  const [calendarMeta, setCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [view, setView] = useState("week");
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const [monthDate, setMonthDate] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [statusMessage, setStatusMessage] = useState("");
+  const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches) setView("agenda");
+  }, []);
+  const weekdayLabels = language === "en" ? ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] : language === "ar" ? ["الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت","الأحد"] : ["Man","Tir","Ons","Tor","Fre","Lør","Søn"];
+  const merged = mergeCalendarEventMeta(Array.isArray(calendarEvents) ? calendarEvents : [], calendarMeta || {});
+  const events = merged.filter((event) => event.planModuleId === moduleName && (event.source === "study-plan" || String(event.id || "").startsWith(`studyplan-${moduleName}`)));
+  const unplacedReviewTasks = (tasks || []).filter((task) => task.status !== "completed" && task.scheduledDate && !task.scheduledTime);
+
+  useEffect(() => {
+    const taskByEvent = new Map((tasks || []).filter((task) => task.calendarEventId).map((task) => [task.calendarEventId, task]));
+    let changed = false;
+    const next = { ...(calendarMeta || {}) };
+    taskByEvent.forEach((task, eventId) => {
+      const current = next[eventId] || {};
+      const shouldComplete = task.status === "completed";
+      const currentlyComplete = Boolean(current.completedAt);
+      if (shouldComplete !== currentlyComplete) {
+        next[eventId] = { ...current, source: "study-plan", reviewTaskId: task.id, status: shouldComplete ? "completed" : "planned", completedAt: shouldComplete ? (task.completedAt || new Date().toISOString()) : null };
+        changed = true;
+      }
+    });
+    if (changed) setCalendarMeta(next);
+  }, [tasks]);
+
+  async function persistMovedEvent(updated) {
+    const currentMeta = calendarMeta?.[updated.id] || {};
+    const nextMeta = { ...currentMeta, ...updated, source: "study-plan", needsScheduling: !updated.time };
+    const taskId = nextMeta.reviewTaskId;
+    if (taskId) {
+      const { error } = await supabase.rpc("set_study_plan_review_task_schedule", {
+        p_task_id: taskId,
+        p_scheduled_date: updated.date,
+        p_scheduled_time: updated.time || null,
+        p_calendar_event_id: updated.id,
+      });
+      if (error) {
+        setStatusMessage(copy.saveFailed);
+        return;
+      }
+    }
+    setCalendarEvents((current) => (Array.isArray(current) ? current : []).map((event) => event.id === updated.id ? { ...event, ...updated } : event));
+    setCalendarMeta((current) => ({ ...(current || {}), [updated.id]: nextMeta }));
+    setStatusMessage("");
+    if (taskId) onTasksRefresh?.();
+  }
+
+  async function toggleComplete(event) {
+    const taskId = event.reviewTaskId || calendarMeta?.[event.id]?.reviewTaskId;
+    const completing = !event.completedAt;
+    const completedAt = completing ? new Date().toISOString() : null;
+    if (taskId) {
+      const { error } = await supabase.rpc("complete_study_plan_review_task", { p_task_id: taskId, p_completed: completing });
+      if (error) {
+        setStatusMessage(copy.completionFailed);
+        return;
+      }
+    }
+    setCalendarMeta((current) => ({ ...(current || {}), [event.id]: { ...(current?.[event.id] || {}), source: "study-plan", status: completing ? "completed" : "planned", completedAt } }));
+    setStatusMessage("");
+    if (taskId) onTasksRefresh?.();
+    setSelectedEvent((current) => current?.id === event.id ? { ...current, completedAt } : current);
+  }
+
+  function navigate(amount) {
+    if (view === "month") setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
+    else setWeekStart((current) => addDays(current, amount * 7));
+  }
+
+  function goToday() {
+    setWeekStart(startOfWeek(new Date()));
+    setMonthDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  }
+
+  const agendaEvents = [...events].sort((a, b) => `${a.date || "9999"} ${a.time || "99:99"}`.localeCompare(`${b.date || "9999"} ${b.time || "99:99"}`));
+  const visibleWeekLabel = `${weekStart.toLocaleDateString(locale, { day: "numeric", month: "short" })} – ${addDays(weekStart, 6).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" })}`;
+  const visibleMonthLabel = monthDate.toLocaleDateString(locale, { month: "long", year: "numeric" });
+
+  return (
+    <section className="study-plan-workspace-calendar">
+      <div className="study-plan-workspace-section-head"><div><span>{copy.calendar}</span><h2>{copy.calendar}</h2><p>{copy.calendarIntro}</p></div><div className="study-plan-calendar-view-switch">{[["week",copy.week],["month",copy.month],["agenda",copy.agenda]].map(([key,label]) => <button type="button" key={key} data-active={view === key ? "true" : "false"} onClick={() => setView(key)}>{label}</button>)}</div></div>
+      {unplacedReviewTasks.length > 0 && <button type="button" className="study-plan-calendar-notice" onClick={onOpenReview}><span><Icon name="clock" size={16} /></span><div><strong>{unplacedReviewTasks.length} · {copy.reviewCalendarNotice}</strong><small>{copy.reviewCalendarNoticeHint}</small></div><Icon name="right" size={14} /></button>}
+      <div className="study-plan-calendar-toolbar"><div><button type="button" aria-label={copy.previous} onClick={() => navigate(-1)}><Icon name="left" size={15} /></button><button type="button" onClick={goToday}>{copy.today}</button><button type="button" aria-label={copy.next} onClick={() => navigate(1)}><Icon name="right" size={15} /></button></div><strong>{view === "month" ? visibleMonthLabel : view === "agenda" ? copy.agenda : visibleWeekLabel}</strong></div>
+      {statusMessage && <div className="study-plan-workspace-inline-error"><Icon name="flag" size={13} />{statusMessage}</div>}
+      {events.length === 0 ? <div className="study-plan-workspace-empty"><span><Icon name="calendar" size={22} /></span><strong>{copy.emptyCalendar}</strong><p>{copy.emptyCalendarHint}</p></div> : view === "month" ? (
+        <MonthCalendar c={c} events={events} monthDate={monthDate} onDayClick={(key) => { setWeekStart(startOfWeek(new Date(`${key}T12:00:00`))); setView("week"); }} onEventClick={setSelectedEvent} onContextRequest={() => {}} weekdayLabels={weekdayLabels} />
+      ) : view === "agenda" ? (
+        <div className="study-plan-agenda-list">{agendaEvents.map((event) => <button type="button" key={event.id} data-complete={event.completedAt ? "true" : "false"} onClick={() => setSelectedEvent(event)}><time>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}<small>{event.time || copy.notPlaced}</small></time><span><strong>{event.title}</strong><small>{event.phase === "exam-review" ? copy.examReviewLabel : event.phase === "exam-simulation" ? copy.simulations : event.phase === "lecture" ? copy.lectureLabel : event.phase === "exam" ? copy.examSetLabel : copy.studyActivityLabel}</small></span><Icon name="right" size={13} /></button>)}</div>
+      ) : (
+        <div className="study-plan-calendar-week"><WeekCalendar c={c} events={events} weekStart={weekStart} daysCount={7} weekdayLabels={weekdayLabels} onMoveEvent={persistMovedEvent} onResizeEvent={persistMovedEvent} onSlotClick={() => {}} onRangeCreate={() => {}} selectedEventId={selectedEvent?.id || null} onEventClick={setSelectedEvent} onContextRequest={() => {}} onStartReview={() => {}} density="comfortable" initialScrollMinutes={8 * 60} /></div>
+      )}
+      {selectedEvent && <aside className="study-plan-calendar-detail"><button type="button" className="study-plan-calendar-detail-close" onClick={() => setSelectedEvent(null)} aria-label={copy.close}><Icon name="close" size={14} /></button><span className="study-plan-workspace-kicker">{copy.taskDetail}</span><h3>{selectedEvent.title}</h3><dl><div><dt>{copy.scheduledFor}</dt><dd>{new Date(`${selectedEvent.date}T12:00:00`).toLocaleDateString(locale, { dateStyle: "medium" })}{selectedEvent.time ? ` · ${selectedEvent.time}` : ` · ${copy.notPlaced}`}</dd></div><div><dt>{copy.status}</dt><dd>{selectedEvent.completedAt ? copy.completed : selectedEvent.needsScheduling ? copy.unplanned : copy.planned}</dd></div></dl><div className="study-plan-calendar-detail-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => toggleComplete(selectedEvent)}><Icon name={selectedEvent.completedAt ? "reset" : "check"} size={13} />{selectedEvent.completedAt ? copy.reopen : copy.markComplete}</button>{selectedEvent.reviewTaskId && <button type="button" className="ui-button ui-button--primary" onClick={onOpenReview}><Icon name="target" size={13} />{copy.openReview}</button>}</div></aside>}
+    </section>
+  );
+}
+
+function StudyPlan({ c, language, user, setUser, userId = null }) {
+  const copy = studyPlanWorkspaceCopy(language);
+  const moduleName = user?.module || "";
+  const [plans] = useStoredState(STORAGE.studyPlans, {});
+  const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
+  const [calendarMeta, setCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [tab, setTab] = useState("overview");
+  const [reviewState, setReviewState] = useState({ documents: [], items: [], links: [], topics: [], tasks: [], taskItems: [] });
+  const [reviewLoadState, setReviewLoadState] = useState("idle");
+  const [reviewError, setReviewError] = useState("");
+  const [reviewTaskFilter, setReviewTaskFilter] = useState("all");
+  const [feedback, setFeedback] = useState("");
+  const [scheduleTask, setScheduleTask] = useState(null);
+  const [scheduleBusy, setScheduleBusy] = useState(false);
+  const activePlan = plans?.[moduleName] || null;
+  const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+
+  async function loadReviewWorkspace() {
+    if (!userId || !moduleName) {
+      setReviewState({ documents: [], items: [], links: [], topics: [], tasks: [], taskItems: [] });
+      setReviewLoadState("ready");
+      return;
+    }
+    setReviewLoadState("loading");
+    setReviewError("");
+    try {
+      const { data: documentRows, error: documentsError } = await supabase.from("exam_set_documents").select("id,module_name,display_name,file_name,exam_year,exam_session,parsed_questions").eq("module_name", moduleName).order("exam_year", { ascending: false, nullsFirst: false });
+      if (documentsError) throw documentsError;
+      const documents = (documentRows || []).map((row) => ({ id: row.id, name: row.display_name || row.file_name || copy.examSetLabel, year: row.exam_year || null, examSession: row.exam_session || null, parsedQuestions: Array.isArray(row.parsed_questions) ? row.parsed_questions : [] }));
+      const examSetIds = documents.map((document) => document.id).filter(Boolean);
+      const emptyResult = { data: [], error: null };
+      const [reviewResult, linksResult, topicsResult, tasksResult, taskItemsResult] = await Promise.all([
+        examSetIds.length ? supabase.from("exam_review_items").select("id,exam_set_id,question_id,source_number,status,note,excluded,wrong_count,unanswered_count,marked_count,last_user_answer,official_answer,first_seen_at,last_seen_at,updated_at").eq("user_id", userId).in("exam_set_id", examSetIds).order("last_seen_at", { ascending: false }) : Promise.resolve(emptyResult),
+        examSetIds.length ? supabase.from(EXAM_CURRICULUM_TABLE).select("id,exam_set_id,question_id,module_name,lecture_id,topic_id,source,created_by,created_at,updated_at").eq("module_name", moduleName).in("exam_set_id", examSetIds) : Promise.resolve(emptyResult),
+        supabase.from(EXAM_CURRICULUM_TOPIC_TABLE).select("id,module_name,slug,label,created_by,created_at,updated_at").eq("module_name", moduleName).order("label", { ascending: true }),
+        supabase.from(STUDY_PLAN_REVIEW_TASK_TABLE).select("id,user_id,module_name,source_type,source_key,title,lecture_id,topic_id,estimated_minutes,status,scheduled_date,scheduled_time,calendar_event_id,metadata,completed_at,created_at,updated_at").eq("user_id", userId).eq("module_name", moduleName).order("updated_at", { ascending: false }),
+        supabase.from(STUDY_PLAN_REVIEW_TASK_ITEM_TABLE).select("id,task_id,user_id,review_item_id,exam_set_id,question_id,created_at").eq("user_id", userId),
+      ]);
+      const firstError = [reviewResult.error, linksResult.error, topicsResult.error, tasksResult.error, taskItemsResult.error].find(Boolean);
+      if (firstError) throw firstError;
+      setReviewState({
+        documents,
+        items: (reviewResult.data || []).map(examReviewItemFromRow),
+        links: (linksResult.data || []).map(examCurriculumNormalizeLink),
+        topics: (topicsResult.data || []).map(examCurriculumNormalizeTopic),
+        tasks: (tasksResult.data || []).map(studyPlanReviewTaskFromRow),
+        taskItems: (taskItemsResult.data || []).map(studyPlanReviewTaskItemFromRow),
+      });
+      setReviewLoadState("ready");
+    } catch (error) {
+      const message = String(error?.message || "");
+      const setupMissing = error?.code === "42P01" || error?.code === "PGRST205" || message.includes(STUDY_PLAN_REVIEW_TASK_TABLE);
+      setReviewError(setupMissing ? "setup" : message || "error");
+      setReviewLoadState("error");
+    }
+  }
+
+  useEffect(() => { loadReviewWorkspace(); }, [userId, moduleName]);
+
+  const activeReviewItems = reviewState.items.filter((item) => !item.excluded && item.status !== "reviewed");
+  const reviewGroups = studyPlanReviewBuildGroups(activeReviewItems, reviewState.links, reviewState.topics, moduleName);
+  const taskMap = new Map(reviewState.tasks.map((task) => [task.id, task]));
+  const taskByReviewItem = new Map(reviewState.taskItems.map((item) => [item.reviewItemId, taskMap.get(item.taskId)]).filter(([, task]) => Boolean(task)));
+  const tasksForFilter = reviewState.tasks.filter((task) => reviewTaskFilter === "all" ? true : reviewTaskFilter === "unplanned" ? ["inbox", "revisit"].includes(task.status) : task.status === reviewTaskFilter);
+  const inboxTasks = reviewState.tasks.filter((task) => ["inbox", "revisit"].includes(task.status));
+  const mergedCalendar = mergeCalendarEventMeta(Array.isArray(calendarEvents) ? calendarEvents : [], calendarMeta || {});
+  const planEvents = mergedCalendar.filter((event) => event.planModuleId === moduleName && (event.source === "study-plan" || String(event.id || "").startsWith(`studyplan-${moduleName}`)));
+  const todayKey = studyPlanDateKey(new Date());
+  const nextFocus = planEvents.filter((event) => !event.completedAt && event.date >= todayKey).sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`))[0] || null;
+  const overdue = planEvents.filter((event) => !event.completedAt && event.date < todayKey).length;
+  const weekStart = startOfWeek(new Date());
+  const weekEndKey = studyPlanDateKey(addDays(weekStart, 6));
+  const currentWeekEvents = planEvents.filter((event) => event.date >= studyPlanDateKey(weekStart) && event.date <= weekEndKey);
+  const daysToExam = activePlan?.examDate ? Math.max(0, studyPlanDaysBetween(todayKey, activePlan.examDate)) : null;
+
+  function flashFeedback(message) {
+    setFeedback(message);
+    window.setTimeout(() => setFeedback(""), 3600);
+  }
+
+  async function createReviewTask({ sourceType, sourceKey, title, reviewItems, lectureId = null, topicId = null, estimatedMinutes = null }) {
+    const uncovered = (reviewItems || []).filter((item) => !taskByReviewItem.has(item.id));
+    if (!uncovered.length && (reviewItems || []).length) {
+      flashFeedback(copy.taskAlreadyCovered);
+      return taskByReviewItem.get(reviewItems[0].id) || null;
+    }
+    const { data, error } = await supabase.rpc("upsert_study_plan_review_task", {
+      p_module_name: moduleName,
+      p_source_type: sourceType,
+      p_source_key: sourceKey,
+      p_title: title,
+      p_lecture_id: lectureId,
+      p_topic_id: topicId,
+      p_estimated_minutes: estimatedMinutes || studyPlanReviewEstimateMinutes(uncovered),
+      p_review_item_ids: uncovered.map((item) => item.id),
+      p_metadata: { created_from: "studyplan-workspace", review_count: uncovered.length },
+    });
+    if (error) {
+      flashFeedback(copy.taskError);
+      return null;
+    }
+    await loadReviewWorkspace();
+    flashFeedback(copy.taskAdded);
+    return reviewState.tasks.find((task) => task.id === data) || { id: data };
+  }
+
+  async function sendGroup(group) {
+    const sourceType = group.type === "lecture" ? "lecture" : group.type === "topic" ? "topic" : "backlog";
+    const sourceKey = group.type === "lecture" ? studyPlanReviewSourceKey("lecture", group.lectureId) : group.type === "topic" ? studyPlanReviewSourceKey("topic", group.topicId) : "backlog:unmapped";
+    await createReviewTask({ sourceType, sourceKey, title: group.title || copy.unmapped, reviewItems: group.items, lectureId: group.lectureId, topicId: group.topicId, estimatedMinutes: studyPlanReviewEstimateMinutes(group.items, 25) });
+  }
+
+  async function sendQuestion(item) {
+    const document = reviewState.documents.find((candidate) => candidate.id === item.examSetId);
+    const related = examCurriculumQuestionLinks(reviewState.links, item.examSetId, item.questionId);
+    const lectureId = related.find((link) => link.lectureId)?.lectureId || null;
+    const topicId = related.find((link) => link.topicId)?.topicId || null;
+    const lecture = lectureId ? examCurriculumLecture(moduleName, lectureId) : null;
+    const questionLabel = copy.questionSingular.toLocaleLowerCase(locale);
+    const title = lecture ? `${lecture.id} · ${lecture.title} · ${questionLabel} ${item.sourceNumber || item.questionId}` : `${document?.name || copy.examReviewLabel} · ${questionLabel} ${item.sourceNumber || item.questionId}`;
+    await createReviewTask({ sourceType: "question", sourceKey: studyPlanReviewSourceKey("question", item.examSetId, item.questionId), title, reviewItems: [item], lectureId, topicId, estimatedMinutes: 15 });
+  }
+
+  async function sendBacklog() {
+    await createReviewTask({ sourceType: "backlog", sourceKey: studyPlanReviewSourceKey("backlog"), title: copy.activeBacklog, reviewItems: activeReviewItems, estimatedMinutes: studyPlanReviewEstimateMinutes(activeReviewItems, 30) });
+  }
+
+  async function sendSimulation(document) {
+    if (!document?.id) return;
+    await createReviewTask({
+      sourceType: "simulation",
+      sourceKey: studyPlanReviewSourceKey("simulation", document.id),
+      title: `${copy.simulations} · ${document.name}`,
+      reviewItems: [],
+      estimatedMinutes: 180,
+    });
+  }
+
+  async function saveTaskSchedule(task, date, time = "") {
+    if (!task?.id || !date) return;
+    setScheduleBusy(true);
+    const eventId = `studyplan-${moduleName}-review-${task.id}`;
+    const duration = Math.max(15, Number(task.estimatedMinutes) || 30);
+    const endFields = time ? calendarEndFields(date, timeToMinutes(time) || 0, duration) : { endDate: date, endTime: "" };
+    const isSimulation = task.sourceType === "simulation";
+    const taskPhase = isSimulation ? "exam-simulation" : "exam-review";
+    const baseEvent = { id: eventId, title: task.title, date, time: time || "", type: isSimulation ? "exam" : "review", planModuleId: moduleName, lectureId: task.lectureId || null, lectureIds: task.lectureId ? [task.lectureId] : [], estimatedHours: duration / 60, source: "study-plan", needsScheduling: !time, phase: taskPhase, reviewTaskId: task.id, ...endFields };
+    const metadata = { ...(calendarMeta?.[eventId] || {}), source: "study-plan", phase: taskPhase, reviewTaskId: task.id, planModuleId: moduleName, lectureId: task.lectureId || null, lectureIds: task.lectureId ? [task.lectureId] : [], estimatedHours: duration / 60, needsScheduling: !time, endDate: endFields.endDate, endTime: endFields.endTime, status: "planned", createdByUser: true };
+    const { error } = await supabase.rpc("set_study_plan_review_task_schedule", { p_task_id: task.id, p_scheduled_date: date, p_scheduled_time: time || null, p_calendar_event_id: eventId });
+    setScheduleBusy(false);
+    if (error) {
+      flashFeedback(copy.saveFailed);
+      return;
+    }
+    setCalendarEvents((current) => {
+      const safe = Array.isArray(current) ? current : [];
+      const exists = safe.some((event) => event.id === eventId);
+      return exists ? safe.map((event) => event.id === eventId ? { ...event, ...baseEvent } : event) : [...safe, baseEvent];
+    });
+    setCalendarMeta((current) => ({ ...(current || {}), [eventId]: metadata }));
+    setScheduleTask(null);
+    await loadReviewWorkspace();
+  }
+
+  async function placeTaskWithActivePlan(task) {
+    if (!activePlan) {
+      flashFeedback(copy.planInactiveHint);
+      return;
+    }
+    const date = studyPlanNextReviewDate(activePlan, planEvents, moduleName, task.estimatedMinutes, new Date());
+    if (!date) {
+      flashFeedback(copy.saveFailed);
+      return;
+    }
+    await saveTaskSchedule(task, date, "");
+    flashFeedback(copy.autoPlaced);
+  }
+
+  async function toggleTaskComplete(task) {
+    const completing = task.status !== "completed";
+    const { error } = await supabase.rpc("complete_study_plan_review_task", { p_task_id: task.id, p_completed: completing });
+    if (error) {
+      flashFeedback(copy.completionFailed);
+      return;
+    }
+    if (task.calendarEventId) setCalendarMeta((current) => ({ ...(current || {}), [task.calendarEventId]: { ...(current?.[task.calendarEventId] || {}), source: "study-plan", reviewTaskId: task.id, status: completing ? "completed" : "planned", completedAt: completing ? new Date().toISOString() : null } }));
+    await loadReviewWorkspace();
+  }
+
+  async function handleStudyPlanCalendarCleared() {
+    if (!userId || !moduleName) return;
+    const { error } = await supabase
+      .from(STUDY_PLAN_REVIEW_TASK_TABLE)
+      .update({ status: "inbox", scheduled_date: null, scheduled_time: null, calendar_event_id: null })
+      .eq("user_id", userId)
+      .eq("module_name", moduleName)
+      .in("status", ["planned", "revisit"]);
+    if (error) {
+      flashFeedback(copy.taskError);
+      return;
+    }
+    await supabase
+      .from(STUDY_PLAN_REVIEW_TASK_TABLE)
+      .update({ scheduled_date: null, scheduled_time: null, calendar_event_id: null })
+      .eq("user_id", userId)
+      .eq("module_name", moduleName)
+      .eq("status", "completed");
+    await loadReviewWorkspace();
+  }
+
+  function renderOverview() {
+    const weekDays = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+    return <div className="study-plan-workspace-overview">
+      <section className="study-plan-overview-next"><div className="study-plan-workspace-section-head"><div><span>{copy.overview}</span><h2>{copy.nextFocus}</h2></div></div>{nextFocus ? <div className="study-plan-next-focus-card"><span className="study-plan-next-focus-icon"><Icon name={nextFocus.phase === "exam-review" ? "target" : "book"} size={19} /></span><div><strong>{nextFocus.title}</strong><small>{new Date(`${nextFocus.date}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}{nextFocus.time ? ` · ${nextFocus.time}` : ` · ${copy.notPlaced}`}</small><div>{nextFocus.phase === "exam-review" ? copy.examReviewLabel : nextFocus.phase === "lecture" ? copy.lectureLabel : copy.studyActivityLabel}</div></div><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("calendar")}>{copy.openCalendar}</button></div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="target" size={20} /></span><strong>{copy.noNextFocus}</strong><p>{copy.noNextFocusHint}</p></div>}</section>
+      <aside className="study-plan-overview-attention"><div className="study-plan-workspace-section-head"><div><span>{copy.attention}</span><h2>{copy.attention}</h2></div></div><button type="button" onClick={() => setTab("review")}><span><Icon name="flag" size={15} /></span><div><strong>{inboxTasks.length}</strong><small>{copy.reviewsWaiting}</small></div><Icon name="right" size={13} /></button><button type="button" onClick={() => setTab("calendar")}><span><Icon name="clock" size={15} /></span><div><strong>{overdue}</strong><small>{copy.overdue}</small></div><Icon name="right" size={13} /></button><button type="button" onClick={() => setTab("calendar")}><span><Icon name="calendar" size={15} /></span><div><strong>{currentWeekEvents.length}</strong><small>{copy.activitiesThisWeek}</small></div><Icon name="right" size={13} /></button></aside>
+      <section className="study-plan-overview-week"><div className="study-plan-workspace-section-head"><div><span>{copy.thisWeek}</span><h2>{copy.thisWeek}</h2></div><button type="button" onClick={() => setTab("calendar")}>{copy.openCalendar}<Icon name="right" size={12} /></button></div><div className="study-plan-week-strip">{weekDays.map((date) => { const key = studyPlanDateKey(date); const dayEvents = currentWeekEvents.filter((event) => event.date === key); const minutes = dayEvents.reduce((sum, event) => sum + Math.max(15, Math.round((Number(event.estimatedHours) || .5) * 60)), 0); return <div key={key} data-today={key === todayKey ? "true" : "false"}><span>{date.toLocaleDateString(locale, { weekday: "short" })}</span><strong>{date.getDate()}</strong><i style={{ "--load": `${Math.min(100, minutes / 180 * 100)}%` }} /><small>{dayEvents.length ? `${Math.round(minutes / 60 * 10) / 10} t` : "—"}</small></div>; })}</div></section>
+      <section className="study-plan-overview-plan"><div className="study-plan-workspace-section-head"><div><span>{copy.generatedPlan}</span><h2>{activePlan ? copy.activePlan : copy.noPlan}</h2></div></div>{activePlan ? <div className="study-plan-overview-plan-grid"><div><span>{daysToExam ?? "—"}</span><small>{copy.daysToExam}</small></div><div><span>{Object.values(activePlan.weekdayHours || {}).reduce((sum, value) => sum + (Number(value) || 0), 0)}</span><small>{copy.hoursPerWeek}</small></div><div><span>{activePlan.includedLectureIds?.length || 0}</span><small>{copy.lecturesLabel}</small></div><button type="button" className="ui-button ui-button--secondary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noPlan}</strong><p>{copy.planInactiveHint}</p><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div>}</section>
+    </div>;
+  }
+
+  function renderReview() {
+    if (reviewLoadState === "loading") return <div className="study-plan-workspace-empty"><span className="lecture-pdf-spinner" /><strong>{copy.refreshing}</strong></div>;
+    if (reviewLoadState === "error") return <div className="study-plan-workspace-empty"><span><Icon name="flag" size={22} /></span><strong>{reviewError === "setup" ? copy.setupMissing : copy.loadError}</strong><p>{reviewError === "setup" ? copy.setupMissingHint : copy.taskError}</p></div>;
+    return <section className="study-plan-workspace-review"><div className="study-plan-workspace-section-head study-plan-review-head"><div><span>{copy.review}</span><h2>{copy.reviewNeeds}</h2><p>{copy.overviewIntro}</p></div><button type="button" className="ui-button ui-button--primary" disabled={!activeReviewItems.length} onClick={sendBacklog}><Icon name="plus" size={13} />{copy.addBacklog}</button></div>
+      {feedback && <div className="study-plan-workspace-feedback" role="status"><Icon name="check" size={13} />{feedback}</div>}
+      {reviewGroups.length === 0 ? <div className="study-plan-workspace-empty"><span><Icon name="check" size={22} /></span><strong>{copy.noReviewNeeds}</strong><p>{copy.noReviewNeedsHint}</p></div> : <div className="study-plan-review-groups">{reviewGroups.map((group) => { const uncovered = group.items.filter((item) => !taskByReviewItem.has(item.id)); const wrong = group.items.reduce((sum, item) => sum + item.wrongCount, 0); return <article key={group.key} data-covered={uncovered.length === 0 ? "true" : "false"}><header><span><Icon name={group.type === "lecture" ? "book" : group.type === "topic" ? "target" : "flag"} size={15} /></span><div><small>{group.type === "lecture" ? copy.mappedLecture : group.type === "topic" ? copy.mappedTopic : copy.unmapped}</small><strong>{group.title || copy.unmapped}</strong></div><b>{group.items.length}</b></header><div className="study-plan-review-group-meta"><span>{group.items.length} {copy.questions}</span><span>{wrong} {copy.errors}</span><span>{studyPlanReviewEstimateMinutes(uncovered.length ? uncovered : group.items)} {copy.minutes}</span></div><footer>{uncovered.length === 0 ? <span className="study-plan-covered-label"><Icon name="check" size={12} />{copy.covered}</span> : <><span>{uncovered.length < group.items.length ? copy.partialCovered : `${uncovered.length} ${copy.questions}`}</span><button type="button" onClick={() => sendGroup(group)}>{copy.sendGroup}<Icon name="right" size={12} /></button></>}</footer></article>; })}</div>}
+      {reviewState.documents.length > 0 && <section className="study-plan-simulation-strip"><div><span className="study-plan-workspace-kicker">{copy.simulations}</span><h3>{copy.simulations}</h3></div><div>{reviewState.documents.slice(0, 6).map((document) => { const key = studyPlanReviewSourceKey("simulation", document.id); const existingSimulation = reviewState.tasks.find((task) => task.sourceKey === key); return <button type="button" key={document.id} data-added={existingSimulation ? "true" : "false"} disabled={Boolean(existingSimulation)} onClick={() => sendSimulation(document)}><span><strong>{document.name}</strong><small>{document.year || "—"} · {document.examSession || "—"}</small></span><em><Icon name={existingSimulation ? "check" : "plus"} size={11} />{existingSimulation ? copy.simulationPlanned : copy.planSimulation}</em></button>; })}</div></section>}
+      <div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">{copy.planTasks}</span><h3>{copy.planTasks}</h3></div><div className="study-plan-review-filter">{[["all",copy.all],["unplanned",copy.unplanned],["planned",copy.planned],["completed",copy.completed]].map(([key,label]) => <button type="button" key={key} data-active={reviewTaskFilter === key ? "true" : "false"} onClick={() => setReviewTaskFilter(key)}>{label}</button>)}</div></div>
+      {tasksForFilter.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noTasks}</strong><p>{copy.noTasksHint}</p></div> : <div className="study-plan-task-list">{tasksForFilter.map((task) => { const linked = reviewState.taskItems.filter((item) => item.taskId === task.id); return <article key={task.id} data-status={task.status}><span className="study-plan-task-status"><Icon name={task.status === "completed" ? "check" : task.status === "planned" ? "calendar" : "target"} size={15} /></span><div className="study-plan-task-main"><small>{task.lectureId ? `${copy.mappedLecture} · ${task.lectureId}` : task.sourceType === "backlog" ? copy.activeBacklog : copy.examReviewLabel}</small><strong>{task.title}</strong><span>{linked.length} {copy.questions} · {task.estimatedMinutes} {copy.minutes}{task.scheduledDate ? ` · ${new Date(`${task.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}${task.scheduledTime ? ` ${task.scheduledTime}` : ` · ${copy.notPlaced}`}` : ""}</span></div><div className="study-plan-task-actions">{task.status !== "completed" && <><button type="button" onClick={() => setScheduleTask(task)}><Icon name="calendar" size={12} />{copy.planTask}</button><button type="button" disabled={!activePlan} onClick={() => placeTaskWithActivePlan(task)}><Icon name="sparkle" size={12} />{copy.placeWithPlan}</button></>}<button type="button" onClick={() => toggleTaskComplete(task)}><Icon name={task.status === "completed" ? "reset" : "check"} size={12} />{task.status === "completed" ? copy.reopen : copy.markComplete}</button></div></article>; })}</div>}
+      <div className="study-plan-review-question-list"><span className="study-plan-workspace-kicker">{copy.singleQuestions}</span>{activeReviewItems.slice(0, 20).map((item) => { const task = taskByReviewItem.get(item.id); const document = reviewState.documents.find((doc) => doc.id === item.examSetId); return <div key={item.id}><span><strong>{document?.name || copy.examSetLabel}</strong><small>{copy.questionSingular} {item.sourceNumber || item.questionId} · {item.wrongCount} {copy.errors}</small></span>{task ? <em><Icon name="check" size={11} />{copy.covered}</em> : <button type="button" onClick={() => sendQuestion(item)}>{copy.sendQuestion}<Icon name="right" size={11} /></button>}</div>; })}</div>
+    </section>;
+  }
+
+  return (
+    <div className="study-plan-workspace">
+      <header className="study-plan-workspace-header"><div><span>{copy.eyebrow}</span><h1>{copy.title}</h1><p>{copy.overviewIntro}</p></div><div className="study-plan-workspace-plan-state" data-active={activePlan ? "true" : "false"}><i />{activePlan ? copy.activePlan : copy.noPlan}{activePlan?.examDate && <small>{daysToExam} {copy.daysToExam}</small>}</div></header>
+      <nav className="study-plan-workspace-tabs" aria-label={copy.title}>{[["overview","home",copy.overview],["review","target",copy.review],["builder","clipboard",copy.builder],["calendar","calendar",copy.calendar]].map(([key,icon,label]) => <button type="button" key={key} data-active={tab === key ? "true" : "false"} onClick={() => setTab(key)}><Icon name={icon} size={15} /><span>{label}</span>{key === "review" && inboxTasks.length > 0 && <b>{inboxTasks.length}</b>}</button>)}</nav>
+      <main className="study-plan-workspace-body">{tab === "overview" ? renderOverview() : tab === "review" ? renderReview() : tab === "builder" ? <div className="study-plan-builder-workspace"><div className="study-plan-builder-context"><span><Icon name="clipboard" size={16} /></span><div><strong>{copy.builderContext}</strong><small>{copy.builderContextHint}</small></div>{inboxTasks.length > 0 && <button type="button" onClick={() => setTab("review")}>{inboxTasks.length} · {copy.inboxCount}<Icon name="right" size={12} /></button>}</div><StudyPlanBuilder c={c} language={language} user={user} setUser={setUser} onCalendarCleared={handleStudyPlanCalendarCleared} /></div> : <StudyPlanCalendarWorkspace c={c} language={language} moduleName={moduleName} tasks={reviewState.tasks} onTasksRefresh={loadReviewWorkspace} onOpenReview={() => setTab("review")} />}</main>
+      {feedback && tab !== "review" && <div className="study-plan-workspace-toast" role="status"><Icon name="check" size={13} />{feedback}</div>}
+      <StudyPlanScheduleDialog language={language} task={scheduleTask} busy={scheduleBusy} onClose={() => !scheduleBusy && setScheduleTask(null)} onSave={(date, time) => saveTaskSchedule(scheduleTask, date, time)} />
+    </div>
+  );
+}
+/* SEGMENT_6_8_STUDYPLAN_WORKSPACE_END */
 
 
 function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onRangeCreate, onMoveEvent, onContextRequest, onStartReview, selectedEventId, density = "compact" }) {
@@ -36889,7 +37687,7 @@ function ExamAttemptSnapshotModal({ c, copy, language, attempt, onClose, onOpenS
   </Modal>;
 }
 
-function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, filters, setFilters, saveState, syncState, onPatch, onOpen, sessionLabel }) {
+function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, filters, setFilters, saveState, syncState, onPatch, onOpen, sessionLabel, planState = {}, onSendToStudyPlan = null }) {
   const safeItems = Array.isArray(items) ? items : [];
   const safeDocuments = Array.isArray(documents) ? documents : [];
   const examReviewActiveCount = safeItems.filter((item) => !item.excluded && item.status !== "reviewed").length;
@@ -36899,6 +37697,8 @@ function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, f
   const sessions = [...new Set(safeDocuments.map((document) => document?.examSession).filter(Boolean))];
   const documentMap = new Map(safeDocuments.map((document) => [document.id, document]));
   const statusLabel = (status) => status === "reviewed" ? copy.examReviewStatusReviewed : status === "revisit" ? copy.examReviewStatusRevisit : copy.examReviewStatusUnreviewed;
+  const sendToPlanLabel = language === "en" ? "Send to study plan" : language === "ar" ? "إرسال إلى خطة الدراسة" : "Send til studieplan";
+  const sentToPlanLabel = language === "en" ? "In study plan" : language === "ar" ? "في خطة الدراسة" : "I studieplanen";
   const filtered = safeItems.filter((item) => {
     const document = documentMap.get(item.examSetId);
     if (!document) return false;
@@ -36989,6 +37789,7 @@ function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, f
                   <label><span>{copy.examReviewStatus}</span><select value={item.status} onChange={(event) => onPatch(item.id, { status: event.target.value }, { immediate: true })}>{EXAM_REVIEW_STATUSES.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>
                   <label className="exam-review-exclude"><input type="checkbox" checked={item.excluded} onChange={(event) => onPatch(item.id, { excluded: event.target.checked }, { immediate: true })} /><span>{copy.examReviewNotRelevant}</span></label>
                   <div className="exam-review-source-actions"><button type="button" onClick={() => onOpen(item, "mcq")} disabled={!question}><Icon name="cards" size={11} />{copy.examReviewOpenMcq}</button><button type="button" onClick={() => onOpen(item, "pdf")} disabled={!question}><Icon name="file" size={11} />{copy.examReviewOpenPdf}</button></div>
+                  {onSendToStudyPlan && <button type="button" className="exam-review-plan-action" data-state={planState[item.id] || "idle"} disabled={item.excluded || item.status === "reviewed" || planState[item.id] === "saving" || planState[item.id] === "saved"} onClick={() => onSendToStudyPlan(item)}><Icon name={planState[item.id] === "saved" ? "check" : "calendar"} size={11} />{planState[item.id] === "saved" ? sentToPlanLabel : sendToPlanLabel}</button>}
                   <span className="exam-review-save-state" data-state={itemSave}>{itemSave === "saving" ? copy.examReviewSaving : itemSave === "saved" ? copy.examReviewSaved : itemSave === "error" ? copy.examReviewSaveError : ""}</span>
                 </aside>
               </article>
@@ -37155,6 +37956,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [examReviewRefreshKey, setExamReviewRefreshKey] = useState(0);
   const [examReviewFilters, setExamReviewFilters] = useState({ year: "all", session: "all", examSetId: "all", status: "active", includeExcluded: false });
   const [examReviewSaveState, setExamReviewSaveState] = useState({});
+  const [examReviewPlanState, setExamReviewPlanState] = useState({});
   const examReviewSaveTimersRef = useRef(new Map());
   const examReviewPendingOpenRef = useRef(null);
   const examReviewReconciledRef = useRef(new Set());
@@ -39031,6 +39833,29 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       });
     return () => { cancelled = true; };
   }, [isLectureLibrary, userId, documents, examReviewRefreshKey]);
+
+  useEffect(() => {
+    if (isLectureLibrary || !userId || !examReviewItems.length) return undefined;
+    let cancelled = false;
+    const reviewItemIds = examReviewItems.map((item) => item.id).filter(Boolean);
+    if (!reviewItemIds.length) return undefined;
+    supabase
+      .from(STUDY_PLAN_REVIEW_TASK_ITEM_TABLE)
+      .select("review_item_id")
+      .eq("user_id", userId)
+      .in("review_item_id", reviewItemIds)
+      .then(({ data, error }) => {
+        if (cancelled || error) return;
+        const covered = new Set((data || []).map((row) => row.review_item_id).filter(Boolean));
+        if (!covered.size) return;
+        setExamReviewPlanState((current) => {
+          const next = { ...current };
+          covered.forEach((id) => { next[id] = "saved"; });
+          return next;
+        });
+      });
+    return () => { cancelled = true; };
+  }, [isLectureLibrary, userId, examReviewItems.length, examReviewRefreshKey]);
 
   useEffect(() => {
     if (isLectureLibrary || !selectedExamDocument?.id) return;
@@ -41001,6 +41826,52 @@ async function downloadExamSetDocument(examDocument = selectedExamDocument) {
     examReviewSaveTimersRef.current.set(itemId, timer);
   }
 
+
+  async function sendExamReviewItemToStudyPlan(item) {
+    if (!userId || !moduleName || !item?.id) return false;
+    setExamReviewPlanState((current) => ({ ...current, [item.id]: "saving" }));
+    try {
+      const { data: existingLink, error: existingError } = await supabase
+        .from(STUDY_PLAN_REVIEW_TASK_ITEM_TABLE)
+        .select("task_id")
+        .eq("user_id", userId)
+        .eq("review_item_id", item.id)
+        .maybeSingle();
+      if (existingError && !["PGRST116"].includes(existingError.code)) throw existingError;
+      if (existingLink?.task_id) {
+        setExamReviewPlanState((current) => ({ ...current, [item.id]: "saved" }));
+        return true;
+      }
+      const document = documents.find((candidate) => candidate.id === item.examSetId) || null;
+      const related = examCurriculumQuestionLinks(examCurriculumData.links, item.examSetId, item.questionId);
+      const lectureId = related.find((link) => link.lectureId)?.lectureId || null;
+      const topicId = related.find((link) => link.topicId)?.topicId || null;
+      const lecture = lectureId ? examCurriculumLecture(moduleName, lectureId) : null;
+      const sourceNumber = item.sourceNumber || item.questionId;
+      const questionLabel = language === "en" ? "question" : language === "ar" ? "سؤال" : "spørgsmål";
+      const title = lecture
+        ? `${lecture.id} · ${lecture.title} · ${questionLabel} ${sourceNumber}`
+        : `${document?.name || "Eksamensreview"} · ${questionLabel} ${sourceNumber}`;
+      const { error } = await supabase.rpc("upsert_study_plan_review_task", {
+        p_module_name: moduleName,
+        p_source_type: "question",
+        p_source_key: studyPlanReviewSourceKey("question", item.examSetId, item.questionId),
+        p_title: title,
+        p_lecture_id: lectureId,
+        p_topic_id: topicId,
+        p_estimated_minutes: 15,
+        p_review_item_ids: [item.id],
+        p_metadata: { created_from: "exam-review", exam_set_id: item.examSetId, question_id: item.questionId },
+      });
+      if (error) throw error;
+      setExamReviewPlanState((current) => ({ ...current, [item.id]: "saved" }));
+      return true;
+    } catch (error) {
+      setExamReviewPlanState((current) => ({ ...current, [item.id]: "error" }));
+      return false;
+    }
+  }
+
   async function persistExamSetPractice(scope, snapshot, { background = false } = {}) {
     if (!scope?.userId || !scope?.examSetId) return false;
     try {
@@ -41969,6 +42840,8 @@ examSetMode === "history" ? (
     onPatch={updateExamReviewItem}
     onOpen={openExamReviewItem}
     sessionLabel={examSetSessionLabel}
+    planState={examReviewPlanState}
+    onSendToStudyPlan={sendExamReviewItemToStudyPlan}
   
         moduleName={moduleName} curriculumLinks={examCurriculumData.links} curriculumTopics={examCurriculumData.topics} />
 ) : examSetMode === "exam" ? (
@@ -44625,7 +45498,7 @@ onNavigate={navigateFromShell}
                 {route === "insights" ? (
                   <Insights c={c} t={t} language={language} user={user} />
                 ) : route === "study-plan" ? (
-                  <StudyPlan c={c} language={language} user={user} setUser={setUser} />
+                  <StudyPlan c={c} language={language} user={user} setUser={setUser} userId={session?.user?.id} />
                 ) : sessionScope ? (
                   <MCQ
                     c={c}
