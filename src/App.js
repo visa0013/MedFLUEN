@@ -2313,6 +2313,14 @@ function loadStorage(key, fallback) {
   }
 }
 
+function persistStudyPlanRecordToStorage(moduleName, planRecord) {
+  const currentPlans = loadStorage(STORAGE.studyPlans, {});
+  const nextPlans = { ...currentPlans, [moduleName]: planRecord };
+  localStorage.setItem(STORAGE.studyPlans, JSON.stringify(nextPlans));
+  window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.studyPlans } }));
+  return nextPlans;
+}
+
 function useStoredState(key, fallback) {
   const [value, setValue] = useState(() => loadStorage(key, fallback));
   const isFirstWrite = useRef(true);
@@ -21752,15 +21760,22 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
 
   function activatePlan() {
     if (!strategy.valid) { setStep(5); return; }
-    localStorage.removeItem(STORAGE.studyPlanDraft);
     const planRecord = { ...draft, status: "active", calendarEnabled: true, calendarClearedAt: null, createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now(), activatedAt: existing?.activatedAt || Date.now(), strategySnapshot: { phases: strategy.phases, realism: strategy.realism, issues: strategy.issues } };
-    setPlans((previous) => ({ ...previous, [moduleName]: planRecord }));
-    setUser((previous) => ({ ...previous, module: moduleName }));
-    syncPlanToCalendar(planRecord);
-    setSavedNotice(strategy.planningQueueCount ? `Studieplan aktiveret. ${strategy.planningQueueCount} aktivitet${strategy.planningQueueCount === 1 ? "" : "er"} ligger i planlægningskøen.` : "Studieplan aktiveret. Spaced repetition planlægges af dig efter gennemførte forelæsninger.");
-    setStep(6);
-    onActivated?.(planRecord);
-    window.setTimeout(() => setSavedNotice(""), 3500);
+    try {
+      const persistedPlans = persistStudyPlanRecordToStorage(moduleName, planRecord);
+      setPlans(persistedPlans);
+      setUser((previous) => ({ ...previous, module: moduleName }));
+      syncPlanToCalendar(planRecord);
+      localStorage.removeItem(STORAGE.studyPlanDraft);
+      setSavedNotice(strategy.planningQueueCount ? `Studieplan aktiveret. ${strategy.planningQueueCount} aktivitet${strategy.planningQueueCount === 1 ? "" : "er"} ligger i planlægningskøen.` : "Studieplan aktiveret. Spaced repetition planlægges af dig efter gennemførte forelæsninger.");
+      setStep(6);
+      onActivated?.(planRecord);
+      window.setTimeout(() => setSavedNotice(""), 3500);
+    } catch (error) {
+      console.error("Kunne ikke gemme og aktivere studieplanen:", error);
+      setValidationMessage("Studieplanen kunne ikke gemmes. Dine ændringer er bevaret — prøv igen.");
+      setStep(5);
+    }
   }
 
   function removeStudyPlanCalendarObjects() {
