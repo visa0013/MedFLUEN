@@ -11789,204 +11789,6 @@ select.ui-control {
   line-height: 1.4;
   text-align: end;
 }
-.study-plan-v4-transition {
-  position: fixed;
-  inset: 0;
-  z-index: 2600;
-  display: grid;
-  place-items: center;
-  padding: 22px;
-  background: color-mix(in srgb,var(--ui-overlay) 88%,transparent);
-  backdrop-filter: blur(11px);
-  animation: studyPlanTransitionBackdropIn 220ms ease-out both;
-}
-.study-plan-v4-transition-card {
-  position: relative;
-  width: min(610px,100%);
-  overflow: hidden;
-  padding: 22px;
-  border: 1px solid var(--ui-border-strong);
-  border-radius: 20px;
-  background: var(--ui-panel);
-  box-shadow: var(--ui-shadow-lg);
-  animation: studyPlanTransitionCardIn 420ms cubic-bezier(.16,1,.3,1) both;
-}
-.study-plan-v4-transition-rail {
-  display: grid;
-  grid-template-columns: repeat(6,minmax(0,1fr));
-  gap: 5px;
-  margin-bottom: 24px;
-}
-.study-plan-v4-transition-rail i {
-  height: 4px;
-  border-radius: 99px;
-  background: var(--ui-border);
-}
-.study-plan-v4-transition-rail i[data-complete="true"] {
-  background: var(--ui-green);
-}
-.study-plan-v4-transition-rail i[data-active="true"] {
-  background: var(--ui-blue);
-  box-shadow: 0 0 0 4px var(--ui-blue-soft);
-}
-.study-plan-v4-transition-kicker {
-  display: block;
-  color: var(--ui-blue);
-  font-size: 8.5px;
-  font-weight: 900;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-.study-plan-v4-transition-value {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 9px;
-}
-.study-plan-v4-transition-value strong {
-  color: var(--ui-text);
-  font-size: clamp(38px,8vw,64px);
-  font-weight: 920;
-  letter-spacing: -.065em;
-  line-height: .95;
-  animation: studyPlanInsightValueIn 520ms 80ms cubic-bezier(.16,1,.3,1) both;
-}
-.study-plan-v4-transition-value span {
-  color: var(--ui-secondary);
-  font-size: 11px;
-  font-weight: 780;
-}
-.study-plan-v4-transition-card h2 {
-  margin: 18px 0 6px;
-  color: var(--ui-text);
-  font-size: 20px;
-  font-weight: 890;
-  letter-spacing: -.035em;
-}
-.study-plan-v4-transition-card > p {
-  max-width: 510px;
-  margin: 0;
-  color: var(--ui-secondary);
-  font-size: 11px;
-  font-weight: 620;
-  line-height: 1.6;
-}
-.study-plan-v4-transition-metrics {
-  display: grid;
-  grid-template-columns: repeat(3,minmax(0,1fr));
-  gap: 8px;
-  margin-top: 20px;
-}
-.study-plan-v4-transition-metrics > div {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-  padding: 10px 11px;
-  border: 1px solid var(--ui-border);
-  border-radius: 11px;
-  background: var(--ui-soft);
-}
-.study-plan-v4-transition-metrics b {
-  overflow: hidden;
-  color: var(--ui-text);
-  font-size: 12px;
-  font-weight: 850;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.study-plan-v4-transition-metrics span {
-  color: var(--ui-muted);
-  font-size: 8px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-.study-plan-v4-transition-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-top: 22px;
-  padding-top: 14px;
-  border-top: 1px solid var(--ui-border);
-}
-.study-plan-v4-transition-footer small {
-  color: var(--ui-muted);
-  font-size: 8.5px;
-  font-weight: 650;
-}
-.study-plan-v4-transition-footer button {
-  min-height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--ui-border);
-  border-radius: 9px;
-  background: var(--ui-soft);
-  color: var(--ui-text);
-  font-size: 9px;
-  font-weight: 820;
-}
-.study-plan-v4-transition-progress {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 3px;
-  transform-origin: left;
-  background: linear-gradient(90deg,var(--ui-blue),#7667d8);
-  animation: studyPlanTransitionProgress 2600ms linear both;
-}
-@keyframes studyPlanTransitionBackdropIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes studyPlanTransitionCardIn {
-  from { opacity: 0; transform: translateY(14px) scale(.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes studyPlanInsightValueIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes studyPlanTransitionProgress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-@media (max-width: 760px) {
-  .study-plan-v4-step-context {
-    grid-template-columns: 1fr;
-    gap: 9px;
-  }
-  .study-plan-v4-step-context-status {
-    min-width: 0;
-    justify-items: start;
-  }
-  .study-plan-v4-step-context strong {
-    white-space: normal;
-  }
-  .study-plan-v4-transition {
-    padding: 12px;
-  }
-  .study-plan-v4-transition-card {
-    padding: 18px;
-    border-radius: 17px;
-  }
-  .study-plan-v4-transition-metrics {
-    grid-template-columns: 1fr;
-  }
-  .study-plan-v4-transition-footer {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .study-plan-v4-transition-footer button {
-    width: 100%;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .study-plan-v4-transition,
-  .study-plan-v4-transition-card,
-  .study-plan-v4-transition-value strong,
-  .study-plan-v4-transition-progress {
-    animation-duration: 1ms !important;
-  }
-}
 .study-plan-v4-grid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(300px,.75fr); gap: 16px; align-items: start; }
 .study-plan-v4-card { min-width: 0; padding: 14px 18px 18px; border: 1px solid var(--ui-border); border-radius: 15px; background: var(--ui-panel); box-shadow: var(--ui-shadow-sm); }
 .study-plan-v4-card h2 { margin: 0; font-size: 14px; font-weight: 860; letter-spacing: -.02em; }
@@ -12063,6 +11865,16 @@ select.ui-control {
 .study-plan-v4-choice-list strong { font-size: 10px; font-weight: 800; }
 .study-plan-v4-choice-list small { color: var(--ui-muted); font-size: 8.5px; }
 .study-plan-v4-choice-list input[type="checkbox"] { width: 18px; height: 18px; justify-self: end; accent-color: var(--ui-blue); }
+.study-plan-v4-advanced-settings { margin-top:10px; overflow:hidden; border:1px solid var(--ui-border); border-radius:11px; background:var(--ui-soft); }
+.study-plan-v4-advanced-settings > summary { min-height:48px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; cursor:pointer; list-style:none; }
+.study-plan-v4-advanced-settings > summary::-webkit-details-marker { display:none; }
+.study-plan-v4-advanced-settings > summary > span { display:grid; gap:2px; }
+.study-plan-v4-advanced-settings > summary strong { font-size:9px; font-weight:850; }
+.study-plan-v4-advanced-settings > summary small { color:var(--ui-muted); font-size:7px; font-weight:680; }
+.study-plan-v4-advanced-settings > summary svg { color:var(--ui-muted); transition:transform 150ms ease; }
+.study-plan-v4-advanced-settings[open] > summary { border-bottom:1px solid var(--ui-border); background:var(--ui-panel); }
+.study-plan-v4-advanced-settings[open] > summary svg { transform:rotate(180deg); }
+.study-plan-v4-advanced-settings > .study-plan-v4-choice-list { padding:8px; }
 .study-plan-v4-fsrs-card { border-color: color-mix(in srgb,#7667d8 28%,var(--ui-border)); background: linear-gradient(180deg,color-mix(in srgb,#7667d8 5%,var(--ui-panel)),var(--ui-panel)); }
 .study-plan-v4-retention { display: grid; gap: 8px; margin-top: 10px; }
 .study-plan-v4-retention > span { display: flex; justify-content: space-between; color: var(--ui-secondary); font-size: 10px; font-weight: 750; }
@@ -14413,6 +14225,57 @@ select.ui-control {
 .study-plan-overview-plan-grid span { font-size:15px; font-weight:920; }
 .study-plan-overview-plan-grid small { color:var(--ui-muted); font-size:7px; font-weight:720; }
 
+
+.study-plan-workspace-overview--refined { grid-template-columns:1fr; }
+.study-plan-workspace-overview--refined > * { grid-column:auto; }
+.study-plan-overview-plan--hero { padding:18px; }
+.study-plan-overview-plan-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) minmax(230px,1.2fr); gap:8px; margin-top:14px; }
+.study-plan-overview-plan-summary > div { min-width:0; min-height:62px; display:grid; align-content:center; gap:2px; padding:10px 12px; border:1px solid var(--ui-border); border-radius:11px; background:var(--ui-soft); }
+.study-plan-overview-plan-summary > div > strong { font-size:17px; font-weight:920; letter-spacing:-.03em; }
+.study-plan-overview-plan-summary > div > span { color:var(--ui-muted); font-size:7px; font-weight:750; }
+.study-plan-overview-plan-summary .study-plan-overview-plan-date { grid-template-columns:30px minmax(0,1fr); align-items:center; color:var(--ui-blue); }
+.study-plan-overview-plan-date > span { display:grid; gap:2px; }
+.study-plan-overview-plan-date small { color:var(--ui-muted); font-size:6.5px; font-weight:780; text-transform:uppercase; letter-spacing:.05em; }
+.study-plan-overview-plan-date strong { overflow:hidden; color:var(--ui-text); font-size:9px; font-weight:880; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-mini-agenda { min-width:0; display:grid; gap:12px; padding:16px; border:1px solid var(--ui-border); border-radius:16px; background:var(--ui-panel); box-shadow:var(--ui-shadow-sm); }
+.study-plan-mini-agenda-list { display:grid; gap:12px; }
+.study-plan-mini-agenda-day { display:grid; grid-template-columns:112px minmax(0,1fr); gap:12px; align-items:start; }
+.study-plan-mini-agenda-date { display:grid; gap:2px; padding-top:8px; }
+.study-plan-mini-agenda-date strong { font-size:8.5px; font-weight:900; text-transform:capitalize; }
+.study-plan-mini-agenda-date small { color:var(--ui-muted); font-size:6.6px; font-weight:700; text-transform:capitalize; }
+.study-plan-mini-agenda-day > div:last-child { display:grid; gap:5px; }
+.study-plan-mini-agenda-day button { width:100%; min-height:48px; display:grid; grid-template-columns:64px minmax(0,1fr) auto; align-items:center; gap:9px; padding:8px 10px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); color:var(--ui-text); text-align:start; }
+.study-plan-mini-agenda-day button:hover { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
+.study-plan-mini-agenda-day time { color:var(--ui-blue); font-size:7.5px; font-weight:900; font-variant-numeric:tabular-nums; }
+.study-plan-mini-agenda-day button > span { min-width:0; display:grid; gap:2px; }
+.study-plan-mini-agenda-day button strong { overflow:hidden; font-size:8.5px; font-weight:880; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-mini-agenda-day button small { color:var(--ui-muted); font-size:6.6px; font-weight:700; }
+.study-plan-mini-agenda-empty { min-height:72px; display:grid; grid-template-columns:38px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px; border:1px dashed var(--ui-border-strong); border-radius:11px; background:var(--ui-soft); }
+.study-plan-mini-agenda-empty > span { width:38px; height:38px; display:grid; place-items:center; border-radius:10px; background:var(--ui-blue-soft); color:var(--ui-blue); }
+.study-plan-mini-agenda-empty > div { display:grid; gap:2px; }
+.study-plan-mini-agenda-empty strong { font-size:8.5px; font-weight:880; }
+.study-plan-mini-agenda-empty small { color:var(--ui-muted); font-size:6.7px; font-weight:690; }
+.study-plan-mini-agenda-empty button { border:0; background:transparent; color:var(--ui-blue); font-size:7px; font-weight:850; }
+.study-plan-overview-attention--compact { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.study-plan-overview-attention--compact .study-plan-workspace-section-head { grid-column:1 / -1; }
+.study-plan-overview-week--compact { grid-column:auto; }
+.study-plan-secondary-details { overflow:hidden; border:1px solid var(--ui-border); border-radius:14px; background:var(--ui-panel); box-shadow:var(--ui-shadow-sm); }
+.study-plan-secondary-details > summary { min-height:54px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 14px; cursor:pointer; list-style:none; }
+.study-plan-secondary-details > summary::-webkit-details-marker { display:none; }
+.study-plan-secondary-details > summary > span { min-width:0; display:grid; gap:2px; }
+.study-plan-secondary-details > summary strong { font-size:9px; font-weight:900; }
+.study-plan-secondary-details > summary small { color:var(--ui-muted); font-size:6.7px; font-weight:700; }
+.study-plan-secondary-details > summary svg { color:var(--ui-muted); transition:transform 150ms ease; }
+.study-plan-secondary-details[open] > summary svg { transform:rotate(180deg); }
+.study-plan-secondary-details[open] > summary { border-bottom:1px solid var(--ui-border); }
+.study-plan-secondary-details.study-plan-sr-history > .study-plan-sr-memory-list { padding:11px; }
+.study-plan-secondary-details.study-plan-exam-focus-section { display:block; padding:0; }
+.study-plan-secondary-details.study-plan-exam-focus-section > .study-plan-workspace-section-head,
+.study-plan-secondary-details.study-plan-exam-focus-section > .study-plan-review-groups,
+.study-plan-secondary-details.study-plan-exam-focus-section > .study-plan-simulation-strip,
+.study-plan-secondary-details.study-plan-exam-focus-section > .study-plan-review-task-head,
+.study-plan-secondary-details.study-plan-exam-focus-section > .study-plan-task-list,
+.study-plan-secondary-details.study-plan-exam-focus-section > .study-plan-workspace-empty { margin:11px 14px; }
 .study-plan-workspace-review { display:grid; gap:14px; padding:16px; border:1px solid var(--ui-border); border-radius:18px; background:var(--ui-panel); box-shadow:var(--ui-shadow-sm); }
 .study-plan-review-head { align-items:center; }
 .study-plan-review-groups { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
@@ -14466,56 +14329,6 @@ select.ui-control {
 .study-plan-builder-workspace .study-plan-v4 { max-width:none; padding-bottom:0; }
 .study-plan-builder-workspace .study-plan-v4-header { display:none; }
 
-.study-plan-workspace-calendar { position:relative; min-height:680px; display:grid; align-content:start; gap:10px; padding:16px; border:1px solid var(--ui-border); border-radius:18px; background:var(--ui-panel); box-shadow:var(--ui-shadow-sm); overflow:hidden; }
-.study-plan-calendar-view-switch { display:flex; gap:3px; padding:3px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); }
-.study-plan-calendar-view-switch button { min-height:28px; padding:0 9px; border:0; border-radius:6px; background:transparent; color:var(--ui-muted); font-size:7px; font-weight:830; }
-.study-plan-calendar-view-switch button[data-active="true"] { background:var(--ui-panel); color:var(--ui-blue); box-shadow:var(--ui-shadow-sm); }
-.study-plan-calendar-notice { width:100%; display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:9px; padding:8px 10px; border:1px solid var(--ui-blue-border); border-radius:10px; background:var(--ui-blue-soft); color:var(--ui-text); text-align:start; }
-.study-plan-calendar-notice > span { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; background:var(--ui-panel); color:var(--ui-blue); }
-.study-plan-calendar-notice > div { display:grid; gap:2px; }
-.study-plan-calendar-notice strong { font-size:8px; font-weight:870; }
-.study-plan-calendar-notice small { color:var(--ui-secondary); font-size:6.8px; font-weight:700; }
-.study-plan-calendar-toolbar { display:grid; grid-template-columns:auto 1fr auto; align-items:center; min-height:38px; padding:5px 7px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); }
-.study-plan-calendar-toolbar > div { display:flex; align-items:center; gap:4px; }
-.study-plan-calendar-toolbar button { min-height:28px; display:grid; place-items:center; padding:0 8px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-panel); color:var(--ui-secondary); font-size:7px; font-weight:830; }
-.study-plan-calendar-toolbar strong { justify-self:center; font-size:8px; font-weight:870; text-transform:capitalize; }
-.study-plan-calendar-week { min-height:560px; overflow:auto; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-soft); }
-.study-plan-agenda-list { display:grid; gap:5px; }
-.study-plan-agenda-list > button { display:grid; grid-template-columns:130px minmax(0,1fr) auto; align-items:center; gap:10px; padding:9px 10px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); color:var(--ui-text); text-align:start; }
-.study-plan-agenda-list > button:hover { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
-.study-plan-agenda-list > button[data-complete="true"] { opacity:.65; }
-.study-plan-agenda-list time { display:grid; gap:2px; color:var(--ui-secondary); font-size:7px; font-weight:850; text-transform:capitalize; }
-.study-plan-agenda-list time small { color:var(--ui-muted); font-size:6.6px; font-weight:700; }
-.study-plan-agenda-list > button > span { min-width:0; display:grid; gap:2px; }
-.study-plan-agenda-list strong { overflow:hidden; font-size:8.5px; font-weight:880; text-overflow:ellipsis; white-space:nowrap; }
-.study-plan-agenda-list > button > span small { color:var(--ui-muted); font-size:6.6px; font-weight:720; }
-.study-plan-calendar-detail { position:absolute; z-index:5; inset:76px 14px 14px auto; width:min(340px,calc(100% - 28px)); display:grid; align-content:start; gap:10px; padding:15px; border:1px solid var(--ui-border-strong); border-radius:14px; background:var(--ui-panel); box-shadow:var(--ui-shadow-lg); }
-.study-plan-calendar-detail-close { position:absolute; top:9px; right:9px; width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-soft); color:var(--ui-muted); }
-.study-plan-calendar-detail h3 { margin:0; padding-right:28px; font-size:12px; font-weight:900; line-height:1.35; }
-.study-plan-calendar-detail dl { display:grid; gap:6px; margin:0; }
-.study-plan-calendar-detail dl > div { display:grid; grid-template-columns:90px minmax(0,1fr); gap:8px; padding:7px 0; border-bottom:1px solid var(--ui-border); }
-.study-plan-calendar-detail dt { color:var(--ui-muted); font-size:6.8px; font-weight:800; }
-.study-plan-calendar-detail dd { margin:0; color:var(--ui-secondary); font-size:7.2px; font-weight:760; }
-.study-plan-calendar-detail-actions { display:flex; gap:6px; flex-wrap:wrap; }
-.study-plan-workspace-modal .ui-modal-surface { width:min(430px,calc(100vw - 24px)); display:grid; gap:12px; }
-.study-plan-workspace-modal-head { display:grid; grid-template-columns:38px minmax(0,1fr); align-items:center; gap:9px; }
-.study-plan-workspace-modal-head > span { width:38px; height:38px; display:grid; place-items:center; border-radius:10px; background:var(--ui-blue-soft); color:var(--ui-blue); }
-.study-plan-workspace-modal-head > div { min-width:0; display:grid; gap:2px; }
-.study-plan-workspace-modal-head strong { font-size:11px; font-weight:900; }
-.study-plan-workspace-modal-head small { overflow:hidden; color:var(--ui-muted); font-size:7px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
-.study-plan-workspace-modal label { display:grid; gap:5px; }
-.study-plan-workspace-modal label > span { color:var(--ui-secondary); font-size:7.5px; font-weight:820; }
-.study-plan-workspace-modal label > small { color:var(--ui-muted); font-size:6.7px; font-weight:650; }
-.study-plan-workspace-modal input { min-height:38px; padding:0 10px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); color:var(--ui-text); font:inherit; font-size:8px; outline:none; }
-.study-plan-workspace-modal input:focus { border-color:var(--ui-blue-border); background:var(--ui-panel); }
-.study-plan-workspace-modal-actions { display:flex; justify-content:flex-end; gap:7px; padding-top:4px; }
-.exam-review-plan-action { min-height:31px; display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:0 7px; border:1px solid var(--ui-blue-border); border-radius:8px; background:var(--ui-blue-soft); color:var(--ui-blue); font-size:7px; font-weight:850; }
-.exam-review-plan-action[data-state="saved"] { border-color:var(--ui-green-border); background:var(--ui-green-soft); color:var(--ui-green); }
-.exam-review-plan-action[data-state="error"] { border-color:var(--ui-red-border); background:var(--ui-red-soft); color:var(--ui-red); }
-.exam-review-plan-action:disabled { opacity:.55; }
-
-/* Segment 6.8.1 — Adaptive lecture spaced repetition */
-.study-plan-spaced-workspace { display:grid; gap:14px; }
 .study-plan-sr-section, .study-plan-exam-focus-section { overflow:hidden; }
 .study-plan-sr-exam-chip { flex:0 0 auto; display:grid; grid-template-columns:18px auto; align-items:center; gap:2px 6px; min-width:104px; padding:8px 10px; border:1px solid var(--ui-blue-border); border-radius:11px; background:var(--ui-blue-soft); color:var(--ui-blue); }
 .study-plan-sr-exam-chip svg { grid-row:1 / 3; }
@@ -14577,13 +14390,6 @@ select.ui-control {
 .study-plan-sr-exam-warning label { display:flex; grid-template-columns:none; flex-direction:row; align-items:center; gap:5px; color:var(--ui-secondary); font-size:6.6px; font-weight:760; }
 .study-plan-sr-exam-warning input[type="checkbox"] { min-height:0; width:14px; height:14px; padding:0; }
 .study-plan-sr-actions { display:grid; grid-template-columns:auto 1fr auto auto; }
-.study-plan-slot-picker { width:min(520px,calc(100vw - 24px)) !important; }
-.study-plan-slot-picker-list { display:grid; gap:5px; max-height:48vh; overflow:auto; }
-.study-plan-slot-picker-list button { width:100%; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; padding:9px 10px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); color:var(--ui-text); text-align:start; }
-.study-plan-slot-picker-list button:hover { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
-.study-plan-slot-picker-list button > span { min-width:0; display:grid; gap:2px; }
-.study-plan-slot-picker-list strong { overflow:hidden; font-size:8px; font-weight:860; text-overflow:ellipsis; white-space:nowrap; }
-.study-plan-slot-picker-list small { color:var(--ui-muted); font-size:6.5px; font-weight:700; }
 .study-plan-week-strip > div[data-over="true"] { border-color:var(--ui-amber-border); background:var(--ui-amber-soft); }
 .study-plan-week-strip > div[data-over="true"] i::after { background:var(--ui-amber); }
 
@@ -14608,7 +14414,7 @@ select.ui-control {
   .study-plan-workspace-tabs::-webkit-scrollbar { display:none; }
   .study-plan-workspace-tabs button { flex:0 0 auto; min-height:40px; padding:0 11px; }
   .study-plan-workspace-overview { gap:10px; }
-  .study-plan-overview-next, .study-plan-overview-attention, .study-plan-overview-week, .study-plan-overview-plan, .study-plan-workspace-review, .study-plan-workspace-calendar { padding:11px; border-radius:14px; }
+  .study-plan-overview-attention, .study-plan-overview-week, .study-plan-overview-plan, .study-plan-workspace-review, .study-plan-mini-agenda { padding:11px; border-radius:14px; }
   .study-plan-next-focus-card { grid-template-columns:40px minmax(0,1fr); }
   .study-plan-next-focus-icon { width:40px; height:40px; }
   .study-plan-next-focus-card > button { grid-column:1 / -1; }
@@ -14628,17 +14434,15 @@ select.ui-control {
   .study-plan-builder-context { grid-template-columns:34px minmax(0,1fr); }
   .study-plan-builder-context > button { grid-column:1 / -1; justify-content:center; min-height:34px; }
   .study-plan-builder-workspace .study-plan-v4-shell { border-radius:14px; }
-  .study-plan-workspace-calendar { min-height:600px; }
-  .study-plan-workspace-calendar .study-plan-workspace-section-head { display:grid; gap:9px; }
-  .study-plan-calendar-view-switch { width:100%; }
-  .study-plan-calendar-view-switch button { flex:1; min-height:34px; }
-  .study-plan-calendar-toolbar { grid-template-columns:1fr; gap:6px; }
-  .study-plan-calendar-toolbar > div { justify-content:center; }
-  .study-plan-calendar-toolbar strong { grid-row:1; }
-  .study-plan-calendar-week { min-height:500px; overflow-x:auto; }
-  .study-plan-calendar-week .calendar-week-root { min-width:880px; }
-  .study-plan-agenda-list > button { grid-template-columns:90px minmax(0,1fr) auto; }
-  .study-plan-calendar-detail { inset:auto 8px 8px 8px; width:auto; max-height:70dvh; overflow:auto; }
+  .study-plan-overview-plan-summary { grid-template-columns:1fr 1fr; }
+  .study-plan-overview-plan-summary .study-plan-overview-plan-date { grid-column:1 / -1; }
+  .study-plan-mini-agenda-day { grid-template-columns:1fr; gap:5px; }
+  .study-plan-mini-agenda-date { padding-top:2px; }
+  .study-plan-mini-agenda-day button { grid-template-columns:54px minmax(0,1fr) auto; min-height:52px; }
+  .study-plan-mini-agenda-empty { grid-template-columns:34px minmax(0,1fr); }
+  .study-plan-mini-agenda-empty button { grid-column:1 / -1; min-height:32px; border:1px solid var(--ui-border); border-radius:8px; background:var(--ui-panel); }
+  .study-plan-overview-attention--compact { grid-template-columns:1fr; }
+  .study-plan-overview-attention--compact .study-plan-workspace-section-head { grid-column:auto; }
   .study-plan-overview-plan-grid { grid-template-columns:1fr 1fr; }
   .study-plan-overview-plan-grid > div:nth-child(3) { grid-column:1 / -1; }
   .study-plan-sr-upcoming-grid { grid-template-columns:1fr; }
@@ -21576,13 +21380,12 @@ function WorkloadVisualizer({ c, copy, hoursPerDay, estimatedMinutes, capacityMi
   );
 }
 
-function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null }) {
+function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null, onActivated = null }) {
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const [, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
   const [, setCalendarDailyPlanner] = useStoredState(STORAGE.calendarDailyPlanner, {});
-  const [fsrsSettings, setFsrsSettings] = useStoredState(STORAGE.fsrsSettings, FSRS_DEFAULT_SETTINGS);
   const moduleName = user?.module || "";
   const existing = plans[moduleName];
   const lectures = MODULE_LECTURES[moduleName] || [];
@@ -21619,17 +21422,11 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     missedPolicy: existing?.missedPolicy || "ask",
     freezeDays: existing?.freezeDays ?? 2,
     preserveManualTimes: existing?.preserveManualTimes !== false,
-    desiredRetention: existing?.desiredRetention || fsrsSettings.requestRetention || .9,
-    mcqReservePercent: existing?.mcqReservePercent ?? 20,
-    learningSteps: existing?.learningSteps || fsrsSettings.learningSteps || ["1m", "10m"],
-    relearningSteps: existing?.relearningSteps || fsrsSettings.relearningSteps || ["10m"],
     distributionMode: existing?.distributionMode || "balanced",
     ...(canResumeStudyPlanDraft ? persistedStudyPlanDraft.draft : {}),
   }));
   const [exceptionDate, setExceptionDate] = useState("");
-  const [transition, setTransition] = useState(null);
   const [validationMessage, setValidationMessage] = useState("");
-  const transitionTimerRef = useRef(null);
   const builderStoredEvents = loadStorage(STORAGE.calendarEvents, []);
   const builderStoredMeta = loadStorage(STORAGE.calendarEventMeta, {});
   const builderReservedEvents = mergeCalendarEventMeta(Array.isArray(builderStoredEvents) ? builderStoredEvents : [], builderStoredMeta || {});
@@ -21638,11 +21435,11 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
   const days = language === "en" ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
   const copy = language === "en" ? {
-    title: "Study plan", subtitle: "Build a complete strategy before the exam", steps: ["Goal", "Content", "Capacity", "Strategy", "Preview", "Activate"], next: "Continue", back: "Back", activate: "Save and activate", edit: "Edit plan", active: "Active plan", clearCalendar: "Clear study-plan calendar", resetPlan: "Reset study plan",
+    title: "Study plan", subtitle: "Build a complete strategy before the exam", steps: ["Goal", "Content", "Capacity", "Strategy", "Preview", "Activate"], next: "Continue", back: "Back", activate: "Save and activate", edit: "Edit plan", active: "Active plan", clearCalendar: "Remove plan activities from calendar", resetPlan: "Reset study plan",
   } : language === "ar" ? {
-    title: "خطة الدراسة", subtitle: "ابنِ استراتيجية كاملة حتى موعد الامتحان", steps: ["الهدف", "المحتوى", "السعة", "الاستراتيجية", "المراجعة", "التفعيل"], next: "متابعة", back: "رجوع", activate: "حفظ وتفعيل", edit: "تعديل الخطة", active: "خطة نشطة", clearCalendar: "مسح تقويم خطة الدراسة", resetPlan: "إعادة ضبط خطة الدراسة",
+    title: "خطة الدراسة", subtitle: "ابنِ استراتيجية كاملة حتى موعد الامتحان", steps: ["الهدف", "المحتوى", "السعة", "الاستراتيجية", "المراجعة", "التفعيل"], next: "متابعة", back: "رجوع", activate: "حفظ وتفعيل", edit: "تعديل الخطة", active: "خطة نشطة", clearCalendar: "إزالة أنشطة الخطة من التقويم", resetPlan: "إعادة ضبط خطة الدراسة",
   } : {
-    title: "Studieplan", subtitle: "Byg en samlet strategi frem mod eksamen", steps: ["Mål", "Indhold", "Kapacitet", "Strategi", "Forhåndsvisning", "Aktivér"], next: "Fortsæt", back: "Tilbage", activate: "Gem og aktivér", edit: "Redigér plan", active: "Aktiv studieplan", clearCalendar: "Ryd studieplanskalender", resetPlan: "Nulstil studieplan",
+    title: "Studieplan", subtitle: "Byg en samlet strategi frem mod eksamen", steps: ["Mål", "Indhold", "Kapacitet", "Strategi", "Forhåndsvisning", "Aktivér"], next: "Fortsæt", back: "Tilbage", activate: "Gem og aktivér", edit: "Redigér plan", active: "Aktiv studieplan", clearCalendar: "Fjern planaktiviteter fra kalender", resetPlan: "Nulstil studieplan",
   };
 
   const MS_PER_STUDY_DAY = 24 * 60 * 60 * 1000;
@@ -21667,7 +21464,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     phase: "Phase",
     of: "of",
     ready: "Ready to continue",
-    autoSave: "Draft saved automatically",
+    autoSave: "Changes apply when you activate",
     continueNow: "Continue now",
     autoContinue: "Continuing automatically",
     days: "days",
@@ -21706,7 +21503,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     phase: "المرحلة",
     of: "من",
     ready: "جاهز للمتابعة",
-    autoSave: "تم حفظ المسودة تلقائيا",
+    autoSave: "تُطبّق التغييرات عند التفعيل",
     continueNow: "متابعة الآن",
     autoContinue: "سيتم الانتقال تلقائيا",
     days: "يوما",
@@ -21745,7 +21542,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     phase: "Fase",
     of: "af",
     ready: "Klar til at fortsætte",
-    autoSave: "Udkast gemmes automatisk",
+    autoSave: "Ændringer anvendes ved aktivering",
     continueNow: "Fortsæt nu",
     autoContinue: "Fortsætter automatisk",
     days: "dage",
@@ -21855,97 +21652,14 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   ];
   const phaseContext = phaseContexts[step - 1] || phaseContexts[0];
 
-  function buildTransitionInsight(completedStep) {
-    const insights = [
-      {
-        kicker: copy.steps[0],
-        value: daysUntilExam,
-        unit: polishCopy.days,
-        title: polishCopy.timeframeSet,
-        description: polishCopy.timeframeDescription,
-        metrics: [
-          { value: weeksUntilExam, label: polishCopy.weeks },
-          { value: draft.bufferDays, label: polishCopy.bufferDays },
-          { value: strategy.phases.length, label: polishCopy.phases },
-        ],
-      },
-      {
-        kicker: copy.steps[1],
-        value: pendingLectureCount,
-        unit: polishCopy.lectures,
-        title: polishCopy.contentMapped,
-        description: polishCopy.contentDescription,
-        metrics: [
-          { value: selectedLectureCount, label: polishCopy.selected },
-          { value: `${Math.round(selectedLectureMinutes / 60 * 10) / 10} t`, label: polishCopy.studyHours },
-          { value: draft.examSetCount, label: polishCopy.examSets },
-        ],
-      },
-      {
-        kicker: copy.steps[2],
-        value: weeklyCapacityHours,
-        unit: polishCopy.hoursWeek,
-        title: polishCopy.capacityMapped,
-        description: polishCopy.capacityDescription,
-        metrics: [
-          { value: availableStudyDays, label: polishCopy.activeDays },
-          { value: draft.excludedDates.length, label: polishCopy.exceptions },
-          { value: `${Math.round(strategy.capacityTotal / 60)} t`, label: polishCopy.calendarCapacity },
-        ],
-      },
-      {
-        kicker: copy.steps[3],
-        value: "SR",
-        unit: language === "en" ? "adaptive" : language === "ar" ? "تكيفي" : "adaptiv",
-        title: polishCopy.rulesSet,
-        description: polishCopy.rulesDescription,
-        metrics: [
-          { value: draft.freezeDays, label: polishCopy.freezeDays },
-          { value: draft.preserveManualTimes ? polishCopy.preserved : polishCopy.flexible, label: polishCopy.manualTimes },
-          { value: `${Math.round(Number(draft.desiredRetention || .9) * 100)}%`, label: polishCopy.retention },
-        ],
-      },
-      {
-        kicker: copy.steps[4],
-        value: strategyRealismLabel,
-        unit: "",
-        title: polishCopy.previewReady,
-        description: polishCopy.previewDescription,
-        metrics: [
-          { value: strategy.assignments.length, label: polishCopy.activities },
-          { value: `${Math.round(strategy.requiredTotal / 60)} t`, label: polishCopy.required },
-          { value: `${Math.round(strategy.capacityTotal / 60)} t`, label: polishCopy.capacity },
-        ],
-      },
-    ];
-    return insights[Math.max(0, Math.min(insights.length - 1, completedStep - 1))];
-  }
-
-  function completeTransition() {
-    if (!transition) return;
-    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
-    const target = transition.to;
-    setTransition(null);
-    nextStep(target);
-  }
-
-  function cancelTransition() {
-    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
-    setTransition(null);
-  }
-
-  function showPhaseTransition(targetStep) {
+  function requestNextStep() {
     const validation = validateStudyPlanStep(step);
     if (!validation.ok) {
       setValidationMessage(validation.message);
       return;
     }
     setValidationMessage("");
-    setTransition({ from: step, to: targetStep, insight: buildTransitionInsight(step) });
-  }
-
-  function requestNextStep() {
-    showPhaseTransition(Math.min(6, step + 1));
+    nextStep(Math.min(6, step + 1));
   }
 
   function navigateToStep(targetStep) {
@@ -21954,7 +21668,13 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       nextStep(targetStep);
       return;
     }
-    showPhaseTransition(targetStep);
+    const validation = validateStudyPlanStep(step);
+    if (!validation.ok) {
+      setValidationMessage(validation.message);
+      return;
+    }
+    setValidationMessage("");
+    nextStep(targetStep);
   }
   function update(field, value) { setValidationMessage(""); setDraft((previous) => ({ ...previous, [field]: value })); }
   function nextStep(next) { setValidationMessage(""); setDirection(next > step ? 1 : -1); setStep(next); }
@@ -22005,24 +21725,6 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     }));
   }, [draft, step, moduleName, existing]);
 
-  useEffect(() => {
-    if (!transition) return undefined;
-    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    transitionTimerRef.current = window.setTimeout(completeTransition, reducedMotion ? 700 : 2600);
-    const handleTransitionKey = (event) => {
-      if (event.key === "Escape") cancelTransition();
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        completeTransition();
-      }
-    };
-    window.addEventListener("keydown", handleTransitionKey);
-    return () => {
-      if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
-      window.removeEventListener("keydown", handleTransitionKey);
-    };
-  }, [transition]);
-
   function syncPlanToCalendar(planRecord) {
     const storedEvents = loadStorage(STORAGE.calendarEvents, []);
     const storedMeta = loadStorage(STORAGE.calendarEventMeta, {});
@@ -22054,10 +21756,10 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     const planRecord = { ...draft, status: "active", calendarEnabled: true, calendarClearedAt: null, createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now(), activatedAt: existing?.activatedAt || Date.now(), strategySnapshot: { phases: strategy.phases, realism: strategy.realism, issues: strategy.issues } };
     setPlans((previous) => ({ ...previous, [moduleName]: planRecord }));
     setUser((previous) => ({ ...previous, module: moduleName }));
-    setFsrsSettings((previous) => ({ ...previous, requestRetention: draft.desiredRetention, learningSteps: draft.learningSteps, relearningSteps: draft.relearningSteps, maximumInterval: 36500, enableFuzz: true, enableShortTerm: true }));
     syncPlanToCalendar(planRecord);
     setSavedNotice(strategy.planningQueueCount ? `Studieplan aktiveret. ${strategy.planningQueueCount} aktivitet${strategy.planningQueueCount === 1 ? "" : "er"} ligger i planlægningskøen.` : "Studieplan aktiveret. Spaced repetition planlægges af dig efter gennemførte forelæsninger.");
     setStep(6);
+    onActivated?.(planRecord);
     window.setTimeout(() => setSavedNotice(""), 3500);
   }
 
@@ -22088,7 +21790,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     });
     setConfirmClearCalendar(false);
     onCalendarCleared?.();
-    setSavedNotice("Studieplanskalenderen er ryddet. Planen og din forelæsningsprogression er bevaret.");
+    setSavedNotice("Planens genererede aktiviteter er fjernet fra kalenderen. Planen og din forelæsningsprogression er bevaret.");
     window.setTimeout(() => setSavedNotice(""), 4200);
   }
 
@@ -22108,8 +21810,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       bufferDays: 4, includedLectureIds: lectures.map((lecture) => lecture.id), doneLectureIds: [],
       weekdayHours: { 0: 0, 1: 2, 2: 2, 3: 2, 4: 2, 5: 1, 6: 3 }, excludedDates: [], maxLecturesPerDay: 3,
       difficulty: {}, lecturePriority: {}, examSetCount: 4, examSetMinutes: 120, errorReviewMinutes: 60,
-      missedPolicy: "ask", freezeDays: 2, preserveManualTimes: true, desiredRetention: fsrsSettings.requestRetention || .9,
-      mcqReservePercent: 20, learningSteps: fsrsSettings.learningSteps || ["1m", "10m"], relearningSteps: fsrsSettings.relearningSteps || ["10m"], distributionMode: "balanced",
+      missedPolicy: "ask", freezeDays: 2, preserveManualTimes: true, distributionMode: "balanced",
     });
     setConfirmResetPlan(false);
     setStep(1);
@@ -22151,14 +21852,15 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
 
   function StepStrategy() {
     return <div className="study-plan-v4-grid">
-      <section className="study-plan-v4-card"><h2>Planadfærd</h2><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard næste dag?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer og spaced-repetition-datoer, du selv har valgt, overskrives ikke af regenerering.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></section>
+      <section className="study-plan-v4-card"><h2>Planadfærd</h2><p>Vælg kun den adfærd, du normalt vil mærke i hverdagen. Tekniske regler ligger under avanceret.</p><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard, hvis noget ikke bliver gjort?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label></div><details className="study-plan-v4-advanced-settings"><summary><span><strong>Avancerede indstillinger</strong><small>Frysegrænse og beskyttelse af manuelle valg</small></span><Icon name="down" size={12} /></summary><div className="study-plan-v4-choice-list"><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer og spaced-repetition-datoer, du selv har valgt, overskrives ikke af regenerering.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></details></section>
       <section className="study-plan-v4-card study-plan-v4-flashcard-card">
-        <div className="study-plan-v4-card-heading"><div><h2>Spaced repetition</h2><p>Forelæsninger får først en repetitionsplan, når du har gennemført dem og selv vurderet belastningen. MedFLUEN anbefaler interval og varighed; du bestemmer datoen.</p></div><span>Brugerstyret</span></div>
-        <div className="study-plan-v4-review-modes"><strong>Forelæsninger</strong><div><span>Faktisk tidsforbrug</span><span>Let</span><span>Moderat</span><span>Krævende</span></div><small>Anbefalingen komprimeres automatisk, når eksamen nærmer sig. En manuel dato flyttes aldrig i stilhed.</small></div>
-        <div className="study-plan-v4-note">MCQ/flashcards fortsætter med FSRS som hidtil og bruger ikke en skjult procentdel af din studieplanskapacitet.</div>
+        <div className="study-plan-v4-card-heading"><div><h2>Spaced repetition</h2><p>Forelæsninger får først en repetitionsplan, når du har gennemført dem og selv vurderet belastningen.</p></div><span>Brugerstyret</span></div>
+        <div className="study-plan-v4-review-modes"><strong>Sådan fungerer det</strong><div><span>Faktisk tidsforbrug</span><span>Let</span><span>Moderat</span><span>Krævende</span></div><small>MedFLUEN anbefaler interval og varighed ud fra din vurdering og eksamensdatoen. Du bestemmer altid den endelige dato.</small></div>
+        <div className="study-plan-v4-note">MCQ/flashcards fortsætter separat med FSRS og ændres ikke af Studieplan.</div>
       </section>
     </div>;
   }
+
 
   function StepPreview() {
     const maxWeekly = Math.max(1, ...strategy.weeklyLoads.map((week) => week.minutes));
@@ -22202,7 +21904,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.1</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
         <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
@@ -22222,24 +21924,9 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
           </div>
           <footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(true)}>{copy.clearCalendar}</button>}{existing && <button type="button" className="ui-button ui-button--danger" onClick={() => setConfirmResetPlan(true)}>{copy.resetPlan}</button>}</div><div>{validationMessage && <span className="study-plan-v4-validation" role="alert">{validationMessage}</span>}{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={step === 5 && !strategy.valid} data-valid={canContinue ? "true" : "false"} onClick={requestNextStep}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
       </div>
-      {transition && <div className="study-plan-v4-transition" role="status" aria-live="polite" onPointerDown={(event) => { if (event.target === event.currentTarget) completeTransition(); }}>
-        <div className="study-plan-v4-transition-card">
-          <div className="study-plan-v4-transition-rail" aria-hidden="true">{copy.steps.map((_, index) => {
-            const number = index + 1;
-            return <i key={number} data-complete={number <= transition.from ? "true" : "false"} data-active={number === transition.to ? "true" : "false"} />;
-          })}</div>
-          <span className="study-plan-v4-transition-kicker">{transition.insight.kicker}</span>
-          <div className="study-plan-v4-transition-value"><strong>{transition.insight.value}</strong>{transition.insight.unit && <span>{transition.insight.unit}</span>}</div>
-          <h2>{transition.insight.title}</h2>
-          <p>{transition.insight.description}</p>
-          <div className="study-plan-v4-transition-metrics">{transition.insight.metrics.map((metric) => <div key={metric.label}><b>{metric.value}</b><span>{metric.label}</span></div>)}</div>
-          <div className="study-plan-v4-transition-footer"><small>{polishCopy.autoContinue} · Enter</small><button type="button" onClick={completeTransition}>{polishCopy.continueNow}</button></div>
-          <i className="study-plan-v4-transition-progress" aria-hidden="true" />
-        </div>
-      </div>}
       {lectureContext && <div className="study-plan-v4-context" style={{ left: lectureContext.x, top: lectureContext.y }} onPointerDown={(event) => event.stopPropagation()}><strong>{lectureContext.lecture.id} · {lectureContext.lecture.title}</strong><button type="button" onClick={() => runLectureContext("priority")}>Prioritér tidligere</button><button type="button" onClick={() => runLectureContext("done")}>{draft.doneLectureIds.includes(lectureContext.lecture.id) ? "Fortryd gennemgået" : "Markér gennemgået"}</button><button type="button" onClick={() => runLectureContext("include")}>{draft.includedLectureIds.includes(lectureContext.lecture.id) ? "Ekskludér fra planen" : "Medtag i planen"}</button></div>}
-      {confirmClearCalendar && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Ryd studieplanskalender?</h2><p>Alle aktiviteter, som studieplanen har oprettet for {moduleName}, fjernes. Planens indstillinger, counter og forelæsningsstatus bevares. Kalenderen oprettes igen, næste gang planen aktiveres.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={clearStudyPlanCalendar}>Ryd kalender</button></div></div></div>}
-      {confirmResetPlan && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Nulstil studieplan?</h2><p>Studieplan, studieplanskalender, forelæsningscounter og din læst-status nulstilles for {moduleName}. Flashkort-progress og repetitionshistorik slettes ikke.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmResetPlan(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={resetStudyPlan}>Nulstil studieplan</button></div></div></div>}
+      {confirmClearCalendar && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Fjern planaktiviteter fra kalenderen?</h2><p>Kun de genererede aktiviteter fra studieplanen for {moduleName} fjernes fra den fælles kalender. Planens indstillinger, counter og forelæsningsstatus bevares.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={clearStudyPlanCalendar}>Fjern aktiviteter</button></div></div></div>}
+      {confirmResetPlan && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Nulstil studieplan?</h2><p>Studieplan, genererede kalenderaktiviteter, forelæsningscounter og din læst-status nulstilles for {moduleName}. Flashkort-progress og repetitionshistorik slettes ikke.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmResetPlan(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={resetStudyPlan}>Nulstil studieplan</button></div></div></div>}
     </div>
   );
 }
@@ -22302,10 +21989,10 @@ function studyPlanWorkspaceCopy(language) {
   const copy = {
     da: {
       title: "Studieplan", eyebrow: "Personligt studie-workspace", activePlan: "Plan aktiv", noPlan: "Ingen aktiv plan",
-      overview: "Overblik", review: "Spaced repetition", builder: "Planbygger", calendar: "Kalender",
-      overviewIntro: "Saml plan, eksamensreview og kalender uden at blande deres ansvar sammen.",
+      overview: "Overblik", review: "Spaced repetition", builder: "Planbygger",
+      overviewIntro: "Planlæg dit arbejde, styr spaced repetition og se det vigtigste uden at duplikere kalenderen.",
       nextFocus: "Næste fokus", noNextFocus: "Ingen planlagt aktivitet endnu", noNextFocusHint: "Planlæg et review eller aktivér din plan for at få næste fokus her.",
-      openCalendar: "Åbn kalender", openReview: "Åbn Spaced repetition", openBuilder: "Åbn Planbygger",
+      openCalendar: "Åbn fuld kalender", openReview: "Åbn Spaced repetition", openBuilder: "Åbn Planbygger",
       attention: "Kræver din opmærksomhed", thisWeek: "Denne uge", reviewNeeds: "Review-behov", planTasks: "Planopgaver",
       unplanned: "Skal planlægges", planned: "Planlagt", completed: "Gennemført", revisit: "Skal ses igen", all: "Alle",
       activeBacklog: "Aktiv review-backlog", addBacklog: "Send aktiv backlog til studieplan", backlogAdded: "Backlog er tilføjet til studieplanen.", simulations: "Eksamenssimulationer", planSimulation: "Tilføj simulation", simulationPlanned: "Simulation i studieplanen",
@@ -22320,10 +22007,7 @@ function studyPlanWorkspaceCopy(language) {
       setupMissingHint: "Kør segment_6_8_studyplan_integration.sql i Supabase. Planbygger og eksisterende kalenderdata er stadig bevaret.",
       refreshing: "Henter review og planopgaver…", taskAdded: "Tilføjet til studieplanen", taskAlreadyCovered: "Spørgsmålet er allerede dækket af en planopgave.",
       taskError: "Kunne ikke opdatere studieplanen", week: "Uge", month: "Måned", agenda: "Agenda", today: "I dag",
-      previous: "Forrige", next: "Næste", notPlaced: "Ikke placeret", emptyCalendar: "Studieplanskalenderen er tom", emptyCalendarHint: "Aktivér en plan eller planlæg et review for at få aktiviteter her.",
-      calendarIntro: "Kun studieplansaktiviteter vises her. Din almindelige kalender og globale kalenderlag ændres ikke.",
-      reviewCalendarNotice: "Review-opgaver uden tidspunkt", reviewCalendarNoticeHint: "De har en studiedag, men mangler et præcist klokkeslæt.",
-      builderContext: "Planbyggeren bruger din faktiske kapacitet", builderContextHint: "Manuelt valgte spaced-repetition-datoer reserverer rigtige minutter. Planen fylder resten uden skjulte review-reserver.",
+      previous: "Forrige", next: "Næste", notPlaced: "Ikke placeret",       builderContext: "Planbyggeren bruger din faktiske kapacitet", builderContextHint: "Manuelt valgte spaced-repetition-datoer reserverer rigtige minutter. Planen fylder resten uden skjulte review-reserver.",
       planInactiveHint: "Aktivér en plan for at kunne placere review-opgaver efter din ugekapacitet.",
       taskDetail: "Planopgave", source: "Kilde", linkedItems: "Tilknyttede reviewspørgsmål", scheduledFor: "Planlagt til", status: "Status",
       close: "Luk", overdue: "forfalden", reviewsWaiting: "reviews mangler placering", activitiesThisWeek: "aktiviteter denne uge",
@@ -22333,10 +22017,10 @@ function studyPlanWorkspaceCopy(language) {
     },
     en: {
       title: "Study plan", eyebrow: "Personal study workspace", activePlan: "Plan active", noPlan: "No active plan",
-      overview: "Overview", review: "Spaced repetition", builder: "Plan builder", calendar: "Calendar",
-      overviewIntro: "Bring the plan, exam review and calendar together without mixing their responsibilities.",
+      overview: "Overview", review: "Spaced repetition", builder: "Plan builder",
+      overviewIntro: "Plan your work, manage spaced repetition and see what matters without duplicating the calendar.",
       nextFocus: "Next focus", noNextFocus: "Nothing scheduled yet", noNextFocusHint: "Schedule a review or activate your plan to get a next focus here.",
-      openCalendar: "Open calendar", openReview: "Open spaced repetition", openBuilder: "Open Plan builder", attention: "Needs your attention", thisWeek: "This week",
+      openCalendar: "Open full calendar", openReview: "Open spaced repetition", openBuilder: "Open Plan builder", attention: "Needs your attention", thisWeek: "This week",
       reviewNeeds: "Review needs", planTasks: "Plan tasks", unplanned: "Needs planning", planned: "Planned", completed: "Completed", revisit: "Revisit", all: "All",
       activeBacklog: "Active review backlog", addBacklog: "Send active backlog to study plan", backlogAdded: "Backlog added to the study plan.", simulations: "Exam simulations", planSimulation: "Add simulation", simulationPlanned: "Simulation in study plan",
       noReviewNeeds: "No review needs waiting", noReviewNeedsHint: "Active errors and marked questions appear here when they exist in Errors & review.",
@@ -22349,10 +22033,7 @@ function studyPlanWorkspaceCopy(language) {
       setupMissingHint: "Run segment_6_8_studyplan_integration.sql in Supabase. The plan builder and existing calendar data are still preserved.", refreshing: "Loading review and plan tasks…",
       taskAdded: "Added to study plan", taskAlreadyCovered: "This question is already covered by a plan task.", taskError: "Could not update the study plan",
       week: "Week", month: "Month", agenda: "Agenda", today: "Today", previous: "Previous", next: "Next", notPlaced: "Not placed",
-      emptyCalendar: "Study-plan calendar is empty", emptyCalendarHint: "Activate a plan or schedule a review to add activities here.",
-      calendarIntro: "Only study-plan activities are shown here. Your regular calendar and global calendar layers are unchanged.",
-      reviewCalendarNotice: "Review tasks without a time", reviewCalendarNoticeHint: "They have a study day but still need an exact time.",
-      builderContext: "The plan builder uses your real capacity", builderContextHint: "Manually chosen spaced-repetition dates reserve real minutes. The engine fills the remaining capacity without hidden review reserves.",
+            builderContext: "The plan builder uses your real capacity", builderContextHint: "Manually chosen spaced-repetition dates reserve real minutes. The engine fills the remaining capacity without hidden review reserves.",
       planInactiveHint: "Activate a plan to place review tasks according to your weekly capacity.", taskDetail: "Plan task", source: "Source", linkedItems: "Linked review questions",
       scheduledFor: "Scheduled for", status: "Status", close: "Close", overdue: "overdue", reviewsWaiting: "reviews need placement", activitiesThisWeek: "activities this week",
       daysToExam: "days until exam", noExamDate: "Exam date not set", planLoad: "Plan load", generatedPlan: "Active study plan", inboxCount: "review tasks waiting",
@@ -22361,9 +22042,9 @@ function studyPlanWorkspaceCopy(language) {
     },
     ar: {
       title: "خطة الدراسة", eyebrow: "مساحة الدراسة الشخصية", activePlan: "الخطة نشطة", noPlan: "لا توجد خطة نشطة",
-      overview: "نظرة عامة", review: "المراجعة والتركيز", builder: "منشئ الخطة", calendar: "التقويم", overviewIntro: "اجمع الخطة ومراجعة الامتحان والتقويم مع إبقاء وظيفة كل جزء واضحة.",
+      overview: "نظرة عامة", review: "التكرار المتباعد", builder: "منشئ الخطة", overviewIntro: "خطط لعملك ونظّم التكرار المتباعد وشاهد الأهم دون تكرار التقويم.",
       nextFocus: "التركيز التالي", noNextFocus: "لا يوجد نشاط مخطط بعد", noNextFocusHint: "خطط لمراجعة أو فعّل خطتك لإظهار التركيز التالي هنا.",
-      openCalendar: "فتح التقويم", openReview: "فتح المراجعة والتركيز", openBuilder: "فتح منشئ الخطة", attention: "يتطلب انتباهك", thisWeek: "هذا الأسبوع",
+      openCalendar: "فتح التقويم الكامل", openReview: "فتح المراجعة والتركيز", openBuilder: "فتح منشئ الخطة", attention: "يتطلب انتباهك", thisWeek: "هذا الأسبوع",
       reviewNeeds: "احتياجات المراجعة", planTasks: "مهام الخطة", unplanned: "تحتاج تخطيطا", planned: "مخطط", completed: "مكتمل", revisit: "راجع مجددا", all: "الكل",
       activeBacklog: "قائمة المراجعة النشطة", addBacklog: "إرسال القائمة النشطة إلى خطة الدراسة", backlogAdded: "تمت إضافة القائمة إلى خطة الدراسة.", simulations: "محاكاة الامتحان", planSimulation: "إضافة محاكاة", simulationPlanned: "المحاكاة في خطة الدراسة",
       noReviewNeeds: "لا توجد مراجعات معلقة", noReviewNeedsHint: "تظهر الأخطاء والأسئلة المعلّمة هنا عندما تكون موجودة في الأخطاء والمراجعة.",
@@ -22374,10 +22055,9 @@ function studyPlanWorkspaceCopy(language) {
       scheduleTimeHint: "اترك الوقت فارغا إذا أردت اختيار يوم الدراسة فقط.", cancel: "إلغاء", saveSchedule: "حفظ الموضع", scheduling: "جار الحفظ…", loadError: "تعذر تحميل تكامل خطة الدراسة",
       setupMissing: "قاعدة بيانات Segment 6.8 غير موجودة", setupMissingHint: "شغّل segment_6_8_studyplan_integration.sql في Supabase. يظل منشئ الخطة والتقويم الحالي محفوظين.",
       refreshing: "جار تحميل المراجعات ومهام الخطة…", taskAdded: "تمت الإضافة إلى خطة الدراسة", taskAlreadyCovered: "السؤال مغطى بالفعل بمهمة في الخطة.", taskError: "تعذر تحديث خطة الدراسة",
-      week: "أسبوع", month: "شهر", agenda: "جدول", today: "اليوم", previous: "السابق", next: "التالي", notPlaced: "غير موضوع", emptyCalendar: "تقويم خطة الدراسة فارغ",
-      emptyCalendarHint: "فعّل خطة أو جدول مراجعة لإضافة أنشطة هنا.", calendarIntro: "تظهر هنا أنشطة خطة الدراسة فقط. لا يتم تغيير تقويمك العادي أو الطبقات العامة.",
-      reviewCalendarNotice: "مهام مراجعة بلا وقت", reviewCalendarNoticeHint: "لديها يوم دراسة ولكنها تحتاج وقتا دقيقا.", builderContext: "يبقى منشئ الخطة محرك التخطيط الأساسي",
-      builderContextHint: "تحدد المراجعة والتركيز الاحتياجات، ويحدد التقويم متى يتم العمل.", planInactiveHint: "فعّل خطة لوضع مهام المراجعة وفق السعة الأسبوعية.", taskDetail: "مهمة الخطة",
+      week: "أسبوع", month: "شهر", agenda: "جدول", today: "اليوم", previous: "السابق", next: "التالي", notPlaced: "غير موضوع",
+      builderContext: "يستخدم منشئ الخطة سعتك الفعلية",
+      builderContextHint: "تحجز تواريخ التكرار المتباعد التي تختارها دقائق فعلية، ويملأ المحرك السعة المتبقية.", planInactiveHint: "فعّل خطة لوضع مهام المراجعة وفق السعة الأسبوعية.", taskDetail: "مهمة الخطة",
       source: "المصدر", linkedItems: "أسئلة المراجعة المرتبطة", scheduledFor: "مخطط في", status: "الحالة", close: "إغلاق", overdue: "متأخر", reviewsWaiting: "مراجعات تحتاج تخطيطا",
       activitiesThisWeek: "أنشطة هذا الأسبوع", daysToExam: "أيام حتى الامتحان", noExamDate: "لم يحدد موعد الامتحان", planLoad: "عبء الخطة", generatedPlan: "خطة الدراسة النشطة",
       inboxCount: "مهام مراجعة تنتظر", weekLoadEmpty: "لا توجد أنشطة لخطة الدراسة هذا الأسبوع.", saveFailed: "تعذر حفظ الموضع.", completionFailed: "تعذرت مزامنة الحالة مع الأخطاء والمراجعة.",
@@ -22565,128 +22245,7 @@ function StudyPlanRepetitionDialog({ language, mode, lecture, memory, repetition
   </div>;
 }
 
-function StudyPlanCalendarWorkspace({ c, language, moduleName, tasks, repetitions = [], onTasksRefresh, onRepetitionsRefresh, onOpenReview, onLectureCompleted, onRepetitionCompleted }) {
-  const copy = studyPlanWorkspaceCopy(language);
-  const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
-  const [calendarMeta, setCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
-  const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
-  const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
-  const [view, setView] = useState("week");
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
-  const [monthDate, setMonthDate] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [slotPicker, setSlotPicker] = useState(null);
-  const [statusMessage, setStatusMessage] = useState("");
-  const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
-  useEffect(() => { if (typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches) setView("agenda"); }, []);
-  const weekdayLabels = language === "en" ? ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] : language === "ar" ? ["الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت","الأحد"] : ["Man","Tir","Ons","Tor","Fre","Lør","Søn"];
-  const merged = mergeCalendarEventMeta(Array.isArray(calendarEvents) ? calendarEvents : [], calendarMeta || {});
-  const events = merged.filter((event) => event.planModuleId === moduleName && (event.source === "study-plan" || String(event.id || "").startsWith(`studyplan-${moduleName}`)));
-  const queueEvents = events.filter((event) => !event.completedAt && !event.time && studyPlanActivityKind(event) !== STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY);
-
-  useEffect(() => {
-    const taskByEvent = new Map((tasks || []).filter((task) => task.calendarEventId).map((task) => [task.calendarEventId, task]));
-    const repetitionByEvent = new Map((repetitions || []).filter((item) => item.calendarEventId).map((item) => [item.calendarEventId, item]));
-    let changed = false;
-    const next = { ...(calendarMeta || {}) };
-    taskByEvent.forEach((task, eventId) => {
-      const current = next[eventId] || {};
-      const shouldComplete = task.status === "completed";
-      if (shouldComplete !== Boolean(current.completedAt) || current.reviewTaskId !== task.id) {
-        next[eventId] = { ...current, source: "study-plan", activityKind: task.sourceType === "simulation" ? STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION : STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, reviewTaskId: task.id, status: shouldComplete ? "completed" : task.scheduledDate ? "planned" : "unscheduled", completedAt: shouldComplete ? (task.completedAt || new Date().toISOString()) : null, needsScheduling: !task.scheduledTime };
-        changed = true;
-      }
-    });
-    repetitionByEvent.forEach((item, eventId) => {
-      const current = next[eventId] || {};
-      const shouldComplete = item.status === "completed";
-      if (shouldComplete !== Boolean(current.completedAt) || current.repetitionId !== item.id) {
-        next[eventId] = { ...current, source: "study-plan", activityKind: STUDY_PLAN_ACTIVITY_KINDS.REPETITION, repetitionId: item.id, repetitionSequence: item.sequenceNumber, status: shouldComplete ? "completed" : "planned", completedAt: shouldComplete ? (item.completedAt || new Date().toISOString()) : null, needsScheduling: !item.scheduledTime };
-        changed = true;
-      }
-    });
-    if (changed) setCalendarMeta(next);
-  }, [tasks, repetitions]);
-
-  async function persistMovedEvent(updated) {
-    const linkedResult = await studyPlanPersistLinkedSchedule(updated);
-    if (!linkedResult.ok) { setStatusMessage(copy.saveFailed); return false; }
-    const currentMeta = calendarMeta?.[updated.id] || {};
-    const nextMeta = { ...currentMeta, ...calendarEventMetaFields(updated), source: "study-plan", needsScheduling: !updated.time, status: updated.time ? "planned" : "unscheduled", planningQueue: false };
-    setCalendarEvents((current) => (Array.isArray(current) ? current : []).map((event) => event.id === updated.id ? { ...event, date: updated.date, time: updated.time || "", endDate: updated.endDate || updated.date, endTime: updated.endTime || "", estimatedHours: updated.estimatedHours } : event));
-    setCalendarMeta((current) => ({ ...(current || {}), [updated.id]: nextMeta }));
-    setSelectedEvent((current) => current?.id === updated.id ? { ...current, ...updated, ...nextMeta } : current);
-    setStatusMessage("");
-    if (updated.reviewTaskId) onTasksRefresh?.();
-    if (updated.repetitionId) onRepetitionsRefresh?.();
-    return true;
-  }
-
-  async function toggleComplete(event) {
-    const completing = !event.completedAt;
-    const linkedResult = await studyPlanPersistLinkedCompletion(event, completing);
-    if (!linkedResult.ok) { setStatusMessage(copy.completionFailed); return; }
-    const kind = studyPlanActivityKind(event);
-    const completedAt = completing ? new Date().toISOString() : null;
-    if (kind === STUDY_PLAN_ACTIVITY_KINDS.LECTURE && event.lectureId) {
-      setPlans((current) => {
-        const plan = current?.[moduleName]; if (!plan) return current;
-        const ids = new Set(plan.doneLectureIds || []); if (completing) ids.add(event.lectureId); else ids.delete(event.lectureId);
-        return { ...current, [moduleName]: { ...plan, doneLectureIds: [...ids], updatedAt: Date.now() } };
-      });
-      const progressKey = `${moduleName}:${event.lectureId}`;
-      setLectureProgress((current) => ({ ...(current || {}), [progressKey]: { ...(current?.[progressKey] || {}), viewed: completing, selfStudyStatus: completing ? "reviewed" : "not-started", lastViewedAt: completing ? Date.now() : null } }));
-    }
-    setCalendarMeta((current) => ({ ...(current || {}), [event.id]: { ...(current?.[event.id] || {}), source: "study-plan", status: completing ? "completed" : "planned", completedAt, manualIncompleteAt: completing ? null : Date.now() } }));
-    setSelectedEvent((current) => current?.id === event.id ? { ...current, completedAt } : current);
-    setStatusMessage("");
-    if (event.reviewTaskId) onTasksRefresh?.();
-    if (event.repetitionId) onRepetitionsRefresh?.();
-    if (completing && kind === STUDY_PLAN_ACTIVITY_KINDS.LECTURE) onLectureCompleted?.(event);
-    if (completing && kind === STUDY_PLAN_ACTIVITY_KINDS.REPETITION) onRepetitionCompleted?.(event);
-  }
-
-  function openSlotPicker(date, time) { setSlotPicker({ date, time }); }
-  async function placeQueuedEvent(event) {
-    if (!slotPicker) return;
-    const duration = Math.max(10, Number(event.plannedMinutes) || Number(event.loadMinutes) || Math.round((Number(event.estimatedHours) || .5) * 60));
-    const start = timeToMinutes(slotPicker.time) || 9 * 60;
-    const updated = { ...event, date: slotPicker.date, time: slotPicker.time || "09:00", ...calendarEndFields(slotPicker.date, start, duration), estimatedHours: duration / 60, needsScheduling: false, planningQueue: false };
-    const ok = await persistMovedEvent(updated);
-    if (ok) setSlotPicker(null);
-  }
-
-  function navigate(amount) {
-    if (view === "month") setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
-    else if (view === "week") setWeekStart((current) => addDays(current, amount * 7));
-  }
-  function goToday() { setWeekStart(startOfWeek(new Date())); setMonthDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)); }
-  const todayKey = studyPlanDateKey(new Date());
-  const agendaEvents = [...events].filter((event) => event.date >= studyPlanDateKey(addDays(new Date(), -7))).sort((a, b) => `${a.completedAt ? 1 : 0}:${a.date || "9999"} ${a.time || "99:99"}`.localeCompare(`${b.completedAt ? 1 : 0}:${b.date || "9999"} ${b.time || "99:99"}`));
-  const visibleWeekLabel = `${weekStart.toLocaleDateString(locale, { day: "numeric", month: "short" })} – ${addDays(weekStart, 6).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" })}`;
-  const visibleMonthLabel = monthDate.toLocaleDateString(locale, { month: "long", year: "numeric" });
-  const kindLabel = (event) => ({
-    [STUDY_PLAN_ACTIVITY_KINDS.LECTURE]: copy.lectureLabel,
-    [STUDY_PLAN_ACTIVITY_KINDS.REPETITION]: "Spaced repetition",
-    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW]: copy.examReviewLabel,
-    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION]: copy.simulations,
-    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE]: copy.examSetLabel,
-    [STUDY_PLAN_ACTIVITY_KINDS.FOLLOW_UP]: copy.studyActivityLabel,
-    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY]: copy.examSetLabel,
-  })[studyPlanActivityKind(event)] || copy.studyActivityLabel;
-
-  return <section className="study-plan-workspace-calendar">
-    <div className="study-plan-workspace-section-head"><div><span>{copy.calendar}</span><h2>{copy.calendar}</h2><p>{copy.calendarIntro}</p></div><div className="study-plan-calendar-view-switch">{[["week",copy.week],["month",copy.month],["agenda",copy.agenda]].map(([key,label]) => <button type="button" key={key} data-active={view === key ? "true" : "false"} onClick={() => setView(key)}>{label}</button>)}</div></div>
-    {queueEvents.length > 0 && <button type="button" className="study-plan-calendar-notice" onClick={() => setSlotPicker({ date: todayKey, time: "09:00" })}><span><Icon name="clock" size={16} /></span><div><strong>{queueEvents.length} · Planlægningskø</strong><small>Aktiviteter uden klokkeslæt kan placeres direkte i kalenderen.</small></div><Icon name="right" size={14} /></button>}
-    <div className="study-plan-calendar-toolbar">{view !== "agenda" ? <div><button type="button" aria-label={copy.previous} onClick={() => navigate(-1)}><Icon name="left" size={15} /></button><button type="button" onClick={goToday}>{copy.today}</button><button type="button" aria-label={copy.next} onClick={() => navigate(1)}><Icon name="right" size={15} /></button></div> : <div><button type="button" onClick={goToday}>{copy.today}</button></div>}<strong>{view === "month" ? visibleMonthLabel : view === "agenda" ? `${copy.agenda} · kommende` : visibleWeekLabel}</strong></div>
-    {statusMessage && <div className="study-plan-workspace-inline-error"><Icon name="flag" size={13} />{statusMessage}</div>}
-    {events.length === 0 ? <div className="study-plan-workspace-empty"><span><Icon name="calendar" size={22} /></span><strong>{copy.emptyCalendar}</strong><p>{copy.emptyCalendarHint}</p></div> : view === "month" ? <MonthCalendar c={c} events={events} monthDate={monthDate} onDayClick={(key) => { setWeekStart(startOfWeek(new Date(`${key}T12:00:00`))); setView("week"); }} onEventClick={setSelectedEvent} weekdayLabels={weekdayLabels} /> : view === "agenda" ? <div className="study-plan-agenda-list">{agendaEvents.map((event) => <button type="button" key={event.id} data-complete={event.completedAt ? "true" : "false"} onClick={() => setSelectedEvent(event)}><time>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}<small>{event.time || copy.notPlaced}</small></time><span><strong>{event.title}</strong><small>{kindLabel(event)}{event.planningQueue ? " · Planlægningskø" : ""}</small></span><Icon name="right" size={13} /></button>)}</div> : <div className="study-plan-calendar-week"><WeekCalendar c={c} events={events} weekStart={weekStart} daysCount={7} weekdayLabels={weekdayLabels} onMoveEvent={persistMovedEvent} onResizeEvent={persistMovedEvent} onSlotClick={openSlotPicker} onRangeCreate={(date,startTime) => openSlotPicker(date,startTime)} selectedEventId={selectedEvent?.id || null} onEventClick={setSelectedEvent} onContextRequest={(payload) => payload?.event && setSelectedEvent(payload.event)} onStartReview={(event) => setSelectedEvent(event)} density="comfortable" initialScrollMinutes={8 * 60} /></div>}
-    {selectedEvent && <aside className="study-plan-calendar-detail"><button type="button" className="study-plan-calendar-detail-close" onClick={() => setSelectedEvent(null)} aria-label={copy.close}><Icon name="close" size={14} /></button><span className="study-plan-workspace-kicker">{kindLabel(selectedEvent)}</span><h3>{selectedEvent.title}</h3><dl><div><dt>{copy.scheduledFor}</dt><dd>{new Date(`${selectedEvent.date}T12:00:00`).toLocaleDateString(locale, { dateStyle: "medium" })}{selectedEvent.time ? ` · ${selectedEvent.time}` : ` · ${copy.notPlaced}`}</dd></div><div><dt>{copy.status}</dt><dd>{selectedEvent.completedAt ? copy.completed : selectedEvent.time ? copy.planned : copy.unplanned}</dd></div>{selectedEvent.plannedMinutes && <div><dt>Varighed</dt><dd>{selectedEvent.plannedMinutes} min</dd></div>}</dl><div className="study-plan-calendar-detail-actions"><button type="button" className="ui-button ui-button--secondary" disabled={studyPlanActivityKind(selectedEvent) === STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY} onClick={() => toggleComplete(selectedEvent)}><Icon name={selectedEvent.completedAt ? "reset" : "check"} size={13} />{selectedEvent.completedAt ? copy.reopen : copy.markComplete}</button>{selectedEvent.reviewTaskId && <button type="button" className="ui-button ui-button--primary" onClick={onOpenReview}><Icon name="target" size={13} />{copy.openReview}</button>}</div></aside>}
-    {slotPicker && <div className="ui-modal-backdrop study-plan-workspace-modal" role="presentation" onPointerDown={(event) => { if (event.target === event.currentTarget) setSlotPicker(null); }}><div className="ui-modal-surface study-plan-slot-picker" role="dialog" aria-modal="true"><div className="study-plan-workspace-modal-head"><span><Icon name="clock" size={17} /></span><div><strong>Planlæg her</strong><small>{new Date(`${slotPicker.date}T12:00:00`).toLocaleDateString(locale, { dateStyle: "medium" })} · {slotPicker.time}</small></div></div>{queueEvents.length ? <div className="study-plan-slot-picker-list">{queueEvents.map((event) => <button type="button" key={event.id} onClick={() => placeQueuedEvent(event)}><span><strong>{event.title}</strong><small>{kindLabel(event)} · {Math.max(10, Number(event.plannedMinutes) || Number(event.loadMinutes) || Math.round((Number(event.estimatedHours) || .5) * 60))} min</small></span><Icon name="right" size={13} /></button>)}</div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="check" size={18} /></span><strong>Planlægningskøen er tom</strong><p>Der er ingen aktiviteter, som mangler et klokkeslæt.</p></div>}<div className="study-plan-workspace-modal-actions"><button type="button" className="ui-button ui-button--ghost" onClick={() => setSlotPicker(null)}>{copy.cancel}</button></div></div></div>}
-  </section>;
-}
-
-function StudyPlan({ c, language, user, setUser, userId = null }) {
+function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar = null }) {
   const copy = studyPlanWorkspaceCopy(language);
   const moduleName = user?.module || "";
   const [plans] = useStoredState(STORAGE.studyPlans, {});
@@ -22767,15 +22326,40 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
   const mergedCalendar = mergeCalendarEventMeta(Array.isArray(calendarEvents) ? calendarEvents : [], calendarMeta || {});
   const planEvents = mergedCalendar.filter((event) => event.planModuleId === moduleName && (event.source === "study-plan" || String(event.id || "").startsWith(`studyplan-${moduleName}`)));
   const todayKey = studyPlanDateKey(new Date());
-  const nextFocus = planEvents.filter((event) => !event.completedAt && event.date).sort((a, b) => {
-    const rank = (event) => event.date === todayKey && event.time ? 0 : event.date === todayKey ? 1 : event.date < todayKey ? 2 : 3;
-    return rank(a) - rank(b) || `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`);
-  })[0] || null;
-  const overdue = planEvents.filter((event) => !event.completedAt && event.date < todayKey).length;
+  const tomorrowKey = studyPlanDateKey(addDays(new Date(), 1));
   const weekStart = startOfWeek(new Date());
   const weekEndKey = studyPlanDateKey(addDays(weekStart, 6));
   const currentWeekEvents = planEvents.filter((event) => event.date >= studyPlanDateKey(weekStart) && event.date <= weekEndKey);
   const daysToExam = activePlan?.examDate ? Math.max(0, studyPlanDaysBetween(todayKey, activePlan.examDate)) : null;
+  const planningQueueEvents = planEvents.filter((event) => !event.completedAt && !event.date && studyPlanActivityKind(event) !== STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY);
+  const datedUnplacedEvents = planEvents.filter((event) => !event.completedAt && event.date && !event.time && studyPlanActivityKind(event) !== STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY);
+  const overdueEvents = planEvents.filter((event) => !event.completedAt && event.date && event.date < todayKey);
+  const miniAgendaEvents = planEvents
+    .filter((event) => !event.completedAt && event.date && event.date >= todayKey)
+    .sort((a, b) => `${a.date} ${a.time || "99:99"} ${a.title || ""}`.localeCompare(`${b.date} ${b.time || "99:99"} ${b.title || ""}`))
+    .slice(0, 7);
+  const attentionTotal = pendingCalibrations.length + pendingRatings.length + planningQueueEvents.length + overdueEvents.length;
+
+  function openCanonicalCalendar(date = null) {
+    if (typeof onOpenCalendar === "function") onOpenCalendar(date || null);
+  }
+
+  function agendaDateLabel(dateKeyValue) {
+    if (dateKeyValue === todayKey) return language === "en" ? "Today" : language === "ar" ? "اليوم" : "I dag";
+    if (dateKeyValue === tomorrowKey) return language === "en" ? "Tomorrow" : language === "ar" ? "غدًا" : "I morgen";
+    return new Date(`${dateKeyValue}T12:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
+  }
+
+  function agendaKindLabel(event) {
+    const kind = studyPlanActivityKind(event);
+    if (kind === STUDY_PLAN_ACTIVITY_KINDS.REPETITION) return "Spaced repetition";
+    if (kind === STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW) return copy.examReviewLabel;
+    if (kind === STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION) return copy.simulations;
+    if (kind === STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE) return copy.examSetLabel;
+    if (kind === STUDY_PLAN_ACTIVITY_KINDS.LECTURE) return copy.lectureLabel;
+    return copy.studyActivityLabel;
+  }
+
 
   function flashFeedback(message) {
     setFeedback(message);
@@ -22992,20 +22576,48 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
   }
 
   async function handleStudyPlanCalendarCleared() {
-    // "Ryd studieplanskalender" clears generated plan placements only. Explicit
-    // exam-review and spaced-repetition choices are user-owned and remain intact.
+    // Removing generated plan activities only affects canonical calendar placements.
+    // Explicit exam-review and spaced-repetition choices are user-owned and remain intact.
     await loadReviewWorkspace();
   }
 
   function renderOverview() {
     const weekDays = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
-    return <div className="study-plan-workspace-overview">
-      <section className="study-plan-overview-next"><div className="study-plan-workspace-section-head"><div><span>{copy.overview}</span><h2>{copy.nextFocus}</h2></div></div>{nextFocus ? <div className="study-plan-next-focus-card"><span className="study-plan-next-focus-icon"><Icon name={nextFocus.phase === "exam-review" ? "target" : "book"} size={19} /></span><div><strong>{nextFocus.title}</strong><small>{new Date(`${nextFocus.date}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}{nextFocus.time ? ` · ${nextFocus.time}` : ` · ${copy.notPlaced}`}</small><div>{nextFocus.phase === "exam-review" ? copy.examReviewLabel : nextFocus.phase === "lecture" ? copy.lectureLabel : copy.studyActivityLabel}</div></div><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("calendar")}>{copy.openCalendar}</button></div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="target" size={20} /></span><strong>{copy.noNextFocus}</strong><p>{copy.noNextFocusHint}</p></div>}</section>
-      <aside className="study-plan-overview-attention"><div className="study-plan-workspace-section-head"><div><span>{copy.attention}</span><h2>{copy.attention}</h2></div></div><button type="button" onClick={() => setTab("review")}><span><Icon name="reset" size={15} /></span><div><strong>{pendingCalibrations.length + pendingRatings.length}</strong><small>spaced-repetition valg venter</small></div><Icon name="right" size={13} /></button><button type="button" onClick={() => setTab("calendar")}><span><Icon name="clock" size={15} /></span><div><strong>{planEvents.filter((event) => !event.completedAt && !event.time && studyPlanActivityKind(event) !== STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY).length}</strong><small>aktiviteter i planlægningskøen</small></div><Icon name="right" size={13} /></button><button type="button" onClick={() => setTab("calendar")}><span><Icon name="calendar" size={15} /></span><div><strong>{currentWeekEvents.length}</strong><small>{copy.activitiesThisWeek}</small></div><Icon name="right" size={13} /></button></aside>
-      <section className="study-plan-overview-week"><div className="study-plan-workspace-section-head"><div><span>{copy.thisWeek}</span><h2>{copy.thisWeek}</h2></div><button type="button" onClick={() => setTab("calendar")}>{copy.openCalendar}<Icon name="right" size={12} /></button></div><div className="study-plan-week-strip">{weekDays.map((date) => { const key = studyPlanDateKey(date); const dayEvents = currentWeekEvents.filter((event) => event.date === key); const minutes = dayEvents.reduce((sum, event) => sum + Math.max(10, Number(event.plannedMinutes) || Number(event.loadMinutes) || Math.round((Number(event.estimatedHours) || .5) * 60)), 0); const capacity = Math.max(0, Number(activePlan?.weekdayHours?.[date.getDay()]) || 0) * 60; const loadPercent = capacity > 0 ? Math.min(140, minutes / capacity * 100) : minutes ? 140 : 0; return <div key={key} data-today={key === todayKey ? "true" : "false"} data-over={capacity > 0 && minutes > capacity ? "true" : "false"}><span>{date.toLocaleDateString(locale, { weekday: "short" })}</span><strong>{date.getDate()}</strong><i style={{ "--load": `${Math.min(100, loadPercent)}%` }} /><small>{capacity ? `${minutes} / ${capacity} min${minutes > capacity ? " · over" : ""}` : minutes ? `${minutes} min · ingen kapacitet` : "Fri"}</small></div>; })}</div></section>
-      <section className="study-plan-overview-plan"><div className="study-plan-workspace-section-head"><div><span>{copy.generatedPlan}</span><h2>{activePlan ? copy.activePlan : copy.noPlan}</h2></div></div>{activePlan ? <div className="study-plan-overview-plan-grid"><div><span>{daysToExam ?? "—"}</span><small>{copy.daysToExam}</small></div><div><span>{Object.values(activePlan.weekdayHours || {}).reduce((sum, value) => sum + (Number(value) || 0), 0)}</span><small>{copy.hoursPerWeek}</small></div><div><span>{activePlan.includedLectureIds?.length || 0}</span><small>{copy.lecturesLabel}</small></div><button type="button" className="ui-button ui-button--secondary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noPlan}</strong><p>{copy.planInactiveHint}</p><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div>}</section>
+    const weeklyHours = Object.values(activePlan?.weekdayHours || {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
+    const remainingLectures = activePlan ? Math.max(0, (activePlan.includedLectureIds?.length || 0) - (activePlan.doneLectureIds?.length || 0)) : 0;
+    const placementNeeds = planningQueueEvents.length + datedUnplacedEvents.length;
+    const agendaGroups = miniAgendaEvents.reduce((groups, event) => {
+      if (!groups[event.date]) groups[event.date] = [];
+      groups[event.date].push(event);
+      return groups;
+    }, {});
+    return <div className="study-plan-workspace-overview study-plan-workspace-overview--refined">
+      <section className="study-plan-overview-plan study-plan-overview-plan--hero">
+        <div className="study-plan-workspace-section-head"><div><span>{copy.generatedPlan}</span><h2>{activePlan ? copy.activePlan : copy.noPlan}</h2>{activePlan && <p>Din plan samler kapacitet, forelæsninger og spaced repetition. Kalenderplaceringer vises i den fælles kalender.</p>}</div>{activePlan && <button type="button" onClick={() => setTab("builder")}>{copy.openBuilder}<Icon name="right" size={12} /></button>}</div>
+        {activePlan ? <div className="study-plan-overview-plan-summary">
+          <div><strong>{daysToExam ?? "—"}</strong><span>{copy.daysToExam}</span></div>
+          <div><strong>{weeklyHours}</strong><span>{copy.hoursPerWeek}</span></div>
+          <div><strong>{remainingLectures}</strong><span>forelæsninger tilbage</span></div>
+          {activePlan.examDate && <div className="study-plan-overview-plan-date"><Icon name="calendar" size={14} /><span><small>Eksamen</small><strong>{new Date(`${activePlan.examDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"long", year:"numeric" })}</strong></span></div>}
+        </div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noPlan}</strong><p>Opret en plan ud fra din faktiske ugekapacitet. Kalenderen forbliver ét samlet sted i toolbaren.</p><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div>}
+      </section>
+
+      {activePlan && <section className="study-plan-mini-agenda">
+        <div className="study-plan-workspace-section-head"><div><span>Kommende</span><h2>Mini-agenda</h2><p>Synkroniseret direkte med studieplansaktiviteterne i den fælles kalender.</p></div><button type="button" onClick={() => openCanonicalCalendar()}>{copy.openCalendar}<Icon name="right" size={12} /></button></div>
+        {miniAgendaEvents.length ? <div className="study-plan-mini-agenda-list">{Object.entries(agendaGroups).map(([date, events]) => <div className="study-plan-mini-agenda-day" key={date}><div className="study-plan-mini-agenda-date"><strong>{agendaDateLabel(date)}</strong><small>{new Date(`${date}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"long" })}</small></div><div>{events.map((event) => <button type="button" key={event.id} onClick={() => openCanonicalCalendar(event.date)}><time>{event.time || copy.notPlaced}</time><span><strong>{event.title}</strong><small>{agendaKindLabel(event)}{event.estimatedHours ? ` · ${Math.max(15, Math.round(Number(event.estimatedHours) * 60))} min` : ""}</small></span><Icon name="right" size={12} /></button>)}</div></div>)}</div> : <div className="study-plan-mini-agenda-empty"><span><Icon name="calendar" size={17} /></span><div><strong>Ingen kommende planaktiviteter</strong><small>Aktivér eller opdatér planen, når du vil lægge nye aktiviteter i kalenderen.</small></div><button type="button" onClick={() => openCanonicalCalendar()}>{copy.openCalendar}</button></div>}
+      </section>}
+
+      {attentionTotal + inboxTasks.length > 0 && <aside className="study-plan-overview-attention study-plan-overview-attention--compact"><div className="study-plan-workspace-section-head"><div><span>{copy.attention}</span><h2>Kun det, der kræver et valg</h2></div></div>
+        {(pendingCalibrations.length + pendingRatings.length) > 0 && <button type="button" onClick={() => setTab("review")}><span><Icon name="reset" size={15} /></span><div><strong>{pendingCalibrations.length + pendingRatings.length}</strong><small>spaced-repetition valg venter</small></div><Icon name="right" size={13} /></button>}
+        {inboxTasks.length > 0 && <button type="button" onClick={() => setTab("review")}><span><Icon name="target" size={15} /></span><div><strong>{inboxTasks.length}</strong><small>eksamensfokus-opgaver mangler plan</small></div><Icon name="right" size={13} /></button>}
+        {placementNeeds > 0 && <button type="button" onClick={() => openCanonicalCalendar()}><span><Icon name="clock" size={15} /></span><div><strong>{placementNeeds}</strong><small>planaktiviteter mangler et tidspunkt eller en dato</small></div><Icon name="right" size={13} /></button>}
+        {overdueEvents.length > 0 && <button type="button" onClick={() => openCanonicalCalendar(overdueEvents[0]?.date || null)}><span><Icon name="flag" size={15} /></span><div><strong>{overdueEvents.length}</strong><small>aktiviteter er forfaldne</small></div><Icon name="right" size={13} /></button>}
+      </aside>}
+
+      {activePlan && <section className="study-plan-overview-week study-plan-overview-week--compact"><div className="study-plan-workspace-section-head"><div><span>{copy.thisWeek}</span><h2>Kapacitet</h2><p>Planlagt belastning mod den tid, du selv har angivet.</p></div></div><div className="study-plan-week-strip">{weekDays.map((date) => { const key = studyPlanDateKey(date); const dayEvents = currentWeekEvents.filter((event) => event.date === key && !event.completedAt); const minutes = dayEvents.reduce((sum, event) => sum + Math.max(10, Number(event.plannedMinutes) || Number(event.loadMinutes) || Math.round((Number(event.estimatedHours) || .5) * 60)), 0); const capacity = Math.max(0, Number(activePlan?.weekdayHours?.[date.getDay()]) || 0) * 60; const loadPercent = capacity > 0 ? Math.min(140, minutes / capacity * 100) : minutes ? 140 : 0; return <div key={key} data-today={key === todayKey ? "true" : "false"} data-over={capacity > 0 && minutes > capacity ? "true" : "false"}><span>{date.toLocaleDateString(locale, { weekday: "short" })}</span><strong>{date.getDate()}</strong><i style={{ "--load": `${Math.min(100, loadPercent)}%` }} /><small>{capacity ? `${minutes}/${capacity} min` : minutes ? `${minutes} min` : "Fri"}</small></div>; })}</div></section>}
     </div>;
   }
+
 
   function renderReview() {
     if (reviewLoadState === "loading") return <div className="study-plan-workspace-empty"><span className="lecture-pdf-spinner" /><strong>Henter spaced repetition og eksamensfokus…</strong></div>;
@@ -23021,26 +22633,26 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
           {pendingRatings.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); return <article key={`rate-${item.id}`}><span className="study-plan-task-status"><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber} gennemført</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong><span>{item.plannedMinutes} min planlagt · vurder belastningen for næste interval</span></div><button type="button" className="ui-button ui-button--primary" onClick={() => openRepetitionRating(item)}>Vurdér & fortsæt</button></article>; })}
         </div></section>}
 
-        <section className="study-plan-sr-upcoming"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kommende</span><h3>Planlagte spaced repetitions</h3></div><span>{upcomingRepetitions.length}</span></div>{upcomingRepetitions.length ? <div className="study-plan-sr-upcoming-grid">{upcomingRepetitions.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); const memory = memoryByLecture.get(item.lectureId); const daysAway = item.scheduledDate ? studyPlan81DaysBetween(todayKey, item.scheduledDate) : null; return <article key={item.id}><header><span><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber}</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong></div><em>{daysAway === 0 ? "I dag" : daysAway === 1 ? "I morgen" : daysAway > 1 ? `Om ${daysAway} dage` : "Forfalden"}</em></header><div className="study-plan-sr-upcoming-meta"><span><Icon name="calendar" size={11} />{new Date(`${item.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}{item.scheduledTime ? ` · ${item.scheduledTime}` : ""}</span><span><Icon name="clock" size={11} />{item.plannedMinutes} min</span><span>{studyPlanLoadLabel(memory?.latestLoadRating || "moderate", language)}</span></div><footer><small>Anbefalet interval {item.recommendedIntervalDays} d · valgt {item.chosenIntervalDays} d</small><button type="button" onClick={() => setTab("calendar")}>Åbn kalender<Icon name="right" size={11} /></button></footer></article>; })}</div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="reset" size={20} /></span><strong>Ingen kommende repetition</strong><p>Når du afslutter en forelæsning, kan du vælge om og hvornår du vil se den igen.</p></div>}</section>
+        <section className="study-plan-sr-upcoming"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kommende</span><h3>Planlagte spaced repetitions</h3></div><span>{upcomingRepetitions.length}</span></div>{upcomingRepetitions.length ? <div className="study-plan-sr-upcoming-grid">{upcomingRepetitions.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); const memory = memoryByLecture.get(item.lectureId); const daysAway = item.scheduledDate ? studyPlan81DaysBetween(todayKey, item.scheduledDate) : null; return <article key={item.id}><header><span><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber}</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong></div><em>{daysAway === 0 ? "I dag" : daysAway === 1 ? "I morgen" : daysAway > 1 ? `Om ${daysAway} dage` : "Forfalden"}</em></header><div className="study-plan-sr-upcoming-meta"><span><Icon name="calendar" size={11} />{new Date(`${item.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}{item.scheduledTime ? ` · ${item.scheduledTime}` : ""}</span><span><Icon name="clock" size={11} />{item.plannedMinutes} min</span><span>{studyPlanLoadLabel(memory?.latestLoadRating || "moderate", language)}</span></div><footer><small>Anbefalet interval {item.recommendedIntervalDays} d · valgt {item.chosenIntervalDays} d</small><button type="button" onClick={() => openCanonicalCalendar(item.scheduledDate)}>Åbn fuld kalender<Icon name="right" size={11} /></button></footer></article>; })}</div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="reset" size={20} /></span><strong>Ingen kommende repetition</strong><p>Når du afslutter en forelæsning, kan du vælge om og hvornår du vil se den igen.</p></div>}</section>
 
-        {(repetitionHistory.length > 0 || reviewState.memoryProfiles.length > 0) && <section className="study-plan-sr-history"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Historik</span><h3>Dine egne repetitionsforløb</h3></div></div><div className="study-plan-sr-memory-list">{reviewState.memoryProfiles.map((memory) => { const lecture = moduleLectures.find((candidate) => candidate.id === memory.lectureId); const history = repetitionHistory.filter((item) => item.lectureId === memory.lectureId); const next = upcomingRepetitions.find((item) => item.lectureId === memory.lectureId); return <article key={memory.id} data-stopped={memory.stoppedAt ? "true" : "false"}><span><strong>{lecture ? `${lecture.id} · ${lecture.title}` : memory.lectureId}</strong><small>{studyPlanLoadLabel(memory.latestLoadRating, language)} · {memory.completedRepetitions} gennemførte repetitioner · første gennemgang {memory.baselineMinutes} min</small></span><div>{next ? <small>Næste: {new Date(`${next.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })} · {next.plannedMinutes} min</small> : memory.stoppedAt ? <small>Forløb afsluttet</small> : <small>Afventer næste valg</small>}{memory.stoppedAt && lecture && <button type="button" onClick={() => openLectureCalibration(lecture)}>Start igen</button>}</div>{history.length > 0 && <em>{history.slice(0,3).map((item) => `#${item.sequenceNumber} ${studyPlanLoadLabel(item.loadRating, language)}`).join(" · ")}</em>}</article>; })}</div></section>}
+        {(repetitionHistory.length > 0 || reviewState.memoryProfiles.length > 0) && <details className="study-plan-secondary-details study-plan-sr-history"><summary><span><strong>Historik</strong><small>{reviewState.memoryProfiles.length} forelæsningsforløb</small></span><Icon name="down" size={12} /></summary><div className="study-plan-sr-memory-list">{reviewState.memoryProfiles.map((memory) => { const lecture = moduleLectures.find((candidate) => candidate.id === memory.lectureId); const history = repetitionHistory.filter((item) => item.lectureId === memory.lectureId); const next = upcomingRepetitions.find((item) => item.lectureId === memory.lectureId); return <article key={memory.id} data-stopped={memory.stoppedAt ? "true" : "false"}><span><strong>{lecture ? `${lecture.id} · ${lecture.title}` : memory.lectureId}</strong><small>{studyPlanLoadLabel(memory.latestLoadRating, language)} · {memory.completedRepetitions} gennemførte repetitioner · første gennemgang {memory.baselineMinutes} min</small></span><div>{next ? <small>Næste: {new Date(`${next.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })} · {next.plannedMinutes} min</small> : memory.stoppedAt ? <small>Forløb afsluttet</small> : <small>Afventer næste valg</small>}{memory.stoppedAt && lecture && <button type="button" onClick={() => openLectureCalibration(lecture)}>Start igen</button>}</div>{history.length > 0 && <em>{history.slice(0,3).map((item) => `#${item.sequenceNumber} ${studyPlanLoadLabel(item.loadRating, language)}`).join(" · ")}</em>}</article>; })}</div></details>}
       </section>
 
-      <section className="study-plan-workspace-review study-plan-exam-focus-section">
-        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Eksamensfokus</span><h2>Fejl, emner og simulationer</h2><p>Eksamensfejl er et separat input til studieplanen. De ændrer ikke dit forelæsningsinterval automatisk, men du kan planlægge dem som konkrete aktiviteter.</p></div><button type="button" className="ui-button ui-button--secondary" disabled={!activeReviewItems.length} onClick={sendBacklog}><Icon name="plus" size={13} />{copy.addBacklog}</button></div>
+      <details className="study-plan-secondary-details study-plan-exam-focus-section"><summary><span><strong>Eksamensfokus</strong><small>{activeReviewItems.length} aktive review-items · {reviewState.tasks.filter((task) => task.status !== "completed").length} planopgaver</small></span><Icon name="down" size={12} /></summary>
+        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Eksamensfokus</span><h2>Fejl, emner og simulationer</h2><p>Åbn kun dette område, når du vil arbejde konkret med eksamensfejl eller simulationer.</p></div><button type="button" className="ui-button ui-button--secondary" disabled={!activeReviewItems.length} onClick={sendBacklog}><Icon name="plus" size={13} />{copy.addBacklog}</button></div>
         {reviewGroups.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="check" size={20} /></span><strong>{copy.noReviewNeeds}</strong><p>{copy.noReviewNeedsHint}</p></div> : <div className="study-plan-review-groups">{reviewGroups.map((group) => { const uncovered = group.items.filter((item) => !taskByReviewItem.has(item.id)); const wrong = group.items.reduce((sum, item) => sum + item.wrongCount, 0); return <article key={group.key} data-covered={uncovered.length === 0 ? "true" : "false"}><header><span><Icon name={group.type === "lecture" ? "book" : group.type === "topic" ? "target" : "flag"} size={15} /></span><div><small>{group.type === "lecture" ? copy.mappedLecture : group.type === "topic" ? copy.mappedTopic : copy.unmapped}</small><strong>{group.title || copy.unmapped}</strong></div><b>{group.items.length}</b></header><div className="study-plan-review-group-meta"><span>{group.items.length} {copy.questions}</span><span>{wrong} {copy.errors}</span><span>{studyPlanReviewEstimateMinutes(uncovered.length ? uncovered : group.items)} {copy.minutes}</span></div><footer>{uncovered.length === 0 ? <span className="study-plan-covered-label"><Icon name="check" size={12} />{copy.covered}</span> : <><span>{uncovered.length < group.items.length ? copy.partialCovered : `${uncovered.length} ${copy.questions}`}</span><button type="button" onClick={() => sendGroup(group)}>{copy.sendGroup}<Icon name="right" size={12} /></button></>}</footer></article>; })}</div>}
         {reviewState.documents.length > 0 && <section className="study-plan-simulation-strip"><div><span className="study-plan-workspace-kicker">{copy.simulations}</span><h3>{copy.simulations}</h3></div><div>{reviewState.documents.slice(0,6).map((document) => { const key = studyPlanReviewSourceKey("simulation", document.id); const existingSimulation = reviewState.tasks.find((task) => task.sourceKey === key); const canPlanAgain = !existingSimulation || existingSimulation.status === "completed"; return <button type="button" key={document.id} data-added={existingSimulation && !canPlanAgain ? "true" : "false"} disabled={!canPlanAgain} onClick={() => sendSimulation(document)}><span><strong>{document.name}</strong><small>{document.year || "—"} · {document.examSession || "—"}</small></span><em><Icon name={canPlanAgain ? "plus" : "check"} size={11} />{existingSimulation?.status === "completed" ? "Planlæg igen" : existingSimulation ? copy.simulationPlanned : copy.planSimulation}</em></button>; })}</div></section>}
         <div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">{copy.planTasks}</span><h3>{copy.planTasks}</h3></div><div className="study-plan-review-filter">{[["all",copy.all],["unplanned",copy.unplanned],["planned",copy.planned],["completed",copy.completed]].map(([key,label]) => <button type="button" key={key} data-active={reviewTaskFilter === key ? "true" : "false"} onClick={() => setReviewTaskFilter(key)}>{label}</button>)}</div></div>
         {tasksForFilter.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noTasks}</strong><p>{copy.noTasksHint}</p></div> : <div className="study-plan-task-list">{tasksForFilter.map((task) => { const linked = reviewState.taskItems.filter((item) => item.taskId === task.id); const scheduled = Boolean(task.scheduledDate); return <article key={task.id} data-status={task.status}><span className="study-plan-task-status"><Icon name={task.status === "completed" ? "check" : scheduled ? "calendar" : "target"} size={15} /></span><div className="study-plan-task-main"><small>{task.lectureId ? `${copy.mappedLecture} · ${task.lectureId}` : task.sourceType === "backlog" ? copy.activeBacklog : task.sourceType === "simulation" ? copy.simulations : copy.examReviewLabel}</small><strong>{task.title}</strong><span>{linked.length} {copy.questions} · {task.estimatedMinutes} {copy.minutes}{task.scheduledDate ? ` · ${new Date(`${task.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}${task.scheduledTime ? ` ${task.scheduledTime}` : ` · ${copy.notPlaced}`}` : " · Planlægningskø"}</span></div><div className="study-plan-task-actions">{task.status !== "completed" && <><button type="button" onClick={() => setScheduleTask(task)}><Icon name="calendar" size={12} />{copy.planTask}</button><button type="button" disabled={!activePlan} onClick={() => placeTaskWithActivePlan(task)} title={!activePlan ? copy.planInactiveHint : ""}><Icon name="sparkle" size={12} />{copy.placeWithPlan}</button></>}<button type="button" onClick={() => toggleTaskComplete(task)}><Icon name={task.status === "completed" ? "reset" : "check"} size={12} />{task.status === "completed" ? copy.reopen : copy.markComplete}</button></div></article>; })}</div>}
-      </section>
+      </details>
     </div>;
   }
 
   return (
     <div className="study-plan-workspace">
       <header className="study-plan-workspace-header"><div><span>{copy.eyebrow}</span><h1>{copy.title}</h1><p>{copy.overviewIntro}</p></div><div className="study-plan-workspace-plan-state" data-active={activePlan ? "true" : "false"}><i />{activePlan ? copy.activePlan : copy.noPlan}{activePlan?.examDate && <small>{daysToExam} {copy.daysToExam}</small>}</div></header>
-      <nav className="study-plan-workspace-tabs" aria-label={copy.title}>{[["overview","home",copy.overview],["review","reset",copy.review],["builder","clipboard",copy.builder],["calendar","calendar",copy.calendar]].map(([key,icon,label]) => <button type="button" key={key} data-active={tab === key ? "true" : "false"} onClick={() => setTab(key)}><Icon name={icon} size={15} /><span>{label}</span>{key === "review" && (pendingCalibrations.length + pendingRatings.length) > 0 && <b>{pendingCalibrations.length + pendingRatings.length}</b>}</button>)}</nav>
-      <main className="study-plan-workspace-body">{tab === "overview" ? renderOverview() : tab === "review" ? renderReview() : tab === "builder" ? <div className="study-plan-builder-workspace"><div className="study-plan-builder-context"><span><Icon name="clipboard" size={16} /></span><div><strong>{copy.builderContext}</strong><small>{copy.builderContextHint}</small></div>{(pendingCalibrations.length + pendingRatings.length) > 0 && <button type="button" onClick={() => setTab("review")}>{pendingCalibrations.length + pendingRatings.length} · kræver dit valg<Icon name="right" size={12} /></button>}</div><StudyPlanBuilder c={c} language={language} user={user} setUser={setUser} onCalendarCleared={handleStudyPlanCalendarCleared} /></div> : <StudyPlanCalendarWorkspace c={c} language={language} moduleName={moduleName} tasks={reviewState.tasks} repetitions={reviewState.repetitions} onTasksRefresh={loadReviewWorkspace} onRepetitionsRefresh={loadReviewWorkspace} onOpenReview={() => setTab("review")} onLectureCompleted={(event) => { const lecture = moduleLectures.find((item) => item.id === event.lectureId); if (lecture && !memoryByLecture.has(lecture.id)) openLectureCalibration(lecture, event); }} onRepetitionCompleted={(event) => { const repetition = reviewState.repetitions.find((item) => item.id === event.repetitionId); if (repetition) openRepetitionRating(repetition); }} />}</main>
+      <nav className="study-plan-workspace-tabs" aria-label={copy.title}>{[["overview","home",copy.overview],["review","reset",copy.review],["builder","clipboard",copy.builder]].map(([key,icon,label]) => <button type="button" key={key} data-active={tab === key ? "true" : "false"} onClick={() => setTab(key)}><Icon name={icon} size={15} /><span>{label}</span>{key === "review" && (pendingCalibrations.length + pendingRatings.length) > 0 && <b>{pendingCalibrations.length + pendingRatings.length}</b>}</button>)}</nav>
+      <main className="study-plan-workspace-body">{tab === "overview" ? renderOverview() : tab === "review" ? renderReview() : <div className="study-plan-builder-workspace"><div className="study-plan-builder-context"><span><Icon name="clipboard" size={16} /></span><div><strong>{copy.builderContext}</strong><small>{copy.builderContextHint}</small></div>{(pendingCalibrations.length + pendingRatings.length) > 0 && <button type="button" onClick={() => setTab("review")}>{pendingCalibrations.length + pendingRatings.length} · kræver dit valg<Icon name="right" size={12} /></button>}</div><StudyPlanBuilder c={c} language={language} user={user} setUser={setUser} onCalendarCleared={handleStudyPlanCalendarCleared} onActivated={() => setTab("overview")} /></div>}</main>
       {feedback && tab !== "review" && <div className="study-plan-workspace-toast" role="status"><Icon name="check" size={13} />{feedback}</div>}
       <StudyPlanScheduleDialog language={language} task={scheduleTask} busy={scheduleBusy} onClose={() => !scheduleBusy && setScheduleTask(null)} onSave={(date, time) => saveTaskSchedule(scheduleTask, date, time)} />
       <StudyPlanRepetitionDialog language={language} mode={repetitionDialog?.mode} lecture={repetitionDialog?.lecture || null} memory={repetitionDialog?.memory || null} repetition={repetitionDialog?.repetition || null} examDate={activePlan?.examDate || null} initialMinutes={repetitionDialog?.initialMinutes || 60} busy={repetitionBusy} onClose={() => !repetitionBusy && setRepetitionDialog(null)} onConfirm={saveRepetitionRecommendation} onStop={repetitionDialog?.mode === "rating" ? stopRepetitionFlow : null} />
@@ -46127,7 +45739,14 @@ onNavigate={navigateFromShell}
                 {route === "insights" ? (
                   <Insights c={c} t={t} language={language} user={user} />
                 ) : route === "study-plan" ? (
-                  <StudyPlan c={c} language={language} user={user} setUser={setUser} userId={session?.user?.id} />
+                  <StudyPlan c={c} language={language} user={user} setUser={setUser} userId={session?.user?.id} onOpenCalendar={(date = null) => {
+                    const currentPreferences = loadStorage(STORAGE.calendarPreferences, CALENDAR_DEFAULT_PREFERENCES) || {};
+                    const requestedDate = date || currentPreferences.lastDate || studyPlanDateKey(new Date());
+                    const nextPreferences = { ...CALENDAR_DEFAULT_PREFERENCES, ...currentPreferences, lastDate: requestedDate, ...(date ? { lastView: "day" } : {}) };
+                    localStorage.setItem(STORAGE.calendarPreferences, JSON.stringify(nextPreferences));
+                    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.calendarPreferences } }));
+                    openWorkspace("calendar");
+                  }} />
                 ) : sessionScope ? (
                   <MCQ
                     c={c}
