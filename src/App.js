@@ -2088,19 +2088,18 @@ function WeekCalendar({
     else onEventClick(event);
   }
 
-  function isUnscheduledStudyPlanLecture(event) {
+  function isUnscheduledStudyPlanActivity(event) {
     return Boolean(
       !event.time &&
       !event.allDay &&
       !event.completedAt &&
-      event.type !== "exam" &&
       event.source === "study-plan" &&
-      (event.lectureId || event.lectureIds?.length)
+      studyPlanActivityKind(event) !== STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY
     );
   }
 
   const hasUnscheduledLectures = dateStrings.some((key) =>
-    calendarEventsForDate(events, key).some(isUnscheduledStudyPlanLecture)
+    calendarEventsForDate(events, key).some(isUnscheduledStudyPlanActivity)
   );
 
   return (
@@ -2133,7 +2132,7 @@ function WeekCalendar({
           <div className="calendar-week-gutter calendar-week-unscheduled-label">Ikke placeret</div>
           {days.map((day, index) => {
             const key = dateStrings[index];
-            const unscheduled = calendarEventsForDate(events, key).filter(isUnscheduledStudyPlanLecture);
+            const unscheduled = calendarEventsForDate(events, key).filter(isUnscheduledStudyPlanActivity);
             return (
               <div key={key} className="calendar-week-unscheduled-cell" data-empty={!unscheduled.length ? "true" : "false"}>
                 {unscheduled.length ? unscheduled.map((event) => (
@@ -2152,7 +2151,7 @@ function WeekCalendar({
                     }}
                     title={event.title}
                   >
-                    <span>{event.lectureId || "•"}</span><strong>{event.title}</strong>
+                    <span>{event.lectureId || (studyPlanActivityKind(event) === STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE ? "EX" : "•")}</span><strong>{event.title}</strong>
                   </button>
                 )) : <span className="calendar-week-unscheduled-empty">—</span>}
               </div>
@@ -2387,8 +2386,12 @@ async function pullCloudDataIntoLocalStorage(userId) {
   try {
     calendarEmitSync("syncing", "Henter kalender");
     await pullQuestionBankIntoLocalStorage();
-    const { data: events, error: eventsError } = await supabase.from("calendar_events").select("*").eq("user_id", userId);
+    const [{ data: events, error: eventsError }, { data: planRows, error: plansError }] = await Promise.all([
+      supabase.from("calendar_events").select("*").eq("user_id", userId),
+      supabase.from("study_plans").select("module_name,data,updated_at").eq("user_id", userId),
+    ]);
     if (eventsError) throw eventsError;
+    if (plansError) throw plansError;
     const eventsArray = (events || []).map((row) => ({
       id: row.id,
       title: row.title,
@@ -2400,9 +2403,11 @@ async function pullCloudDataIntoLocalStorage(userId) {
       estimatedHours: row.estimated_hours || null,
     }));
     const metadata = Object.fromEntries((events || []).map((row) => [row.id, row.metadata && typeof row.metadata === "object" ? row.metadata : {}]));
+    const plansObject = Object.fromEntries((planRows || []).filter((row) => row?.module_name && row?.data && typeof row.data === "object").map((row) => [row.module_name, row.data]));
     localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(eventsArray));
     localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(metadata));
-    [STORAGE.calendarEvents, STORAGE.calendarEventMeta].forEach((key) => window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key } })));
+    localStorage.setItem(STORAGE.studyPlans, JSON.stringify(plansObject));
+    [STORAGE.calendarEvents, STORAGE.calendarEventMeta, STORAGE.studyPlans].forEach((key) => window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key } })));
     calendarEmitSync("synced", "Kalender hentet");
   } catch (error) {
     calendarEmitSync("error", error?.message || "Synkronisering fejlede");
@@ -2456,6 +2461,14 @@ async function pushLocalStorageKeyToCloud(key, userId) {
       if (rows.length) {
         const { error } = await supabase.from("study_plans").upsert(rows, { onConflict: "user_id,module_name" });
         if (error) throw error;
+      }
+      const { data: remotePlans, error: remotePlansError } = await supabase.from("study_plans").select("module_name").eq("user_id", userId);
+      if (remotePlansError) throw remotePlansError;
+      const localModules = new Set(rows.map((row) => row.module_name));
+      const staleModules = (remotePlans || []).map((row) => row.module_name).filter((moduleName) => !localModules.has(moduleName));
+      if (staleModules.length) {
+        const { error: deletePlansError } = await supabase.from("study_plans").delete().eq("user_id", userId).in("module_name", staleModules);
+        if (deletePlansError) throw deletePlansError;
       }
     }
   } catch (error) {
@@ -14501,6 +14514,79 @@ select.ui-control {
 .exam-review-plan-action[data-state="error"] { border-color:var(--ui-red-border); background:var(--ui-red-soft); color:var(--ui-red); }
 .exam-review-plan-action:disabled { opacity:.55; }
 
+/* Segment 6.8.1 — Adaptive lecture spaced repetition */
+.study-plan-spaced-workspace { display:grid; gap:14px; }
+.study-plan-sr-section, .study-plan-exam-focus-section { overflow:hidden; }
+.study-plan-sr-exam-chip { flex:0 0 auto; display:grid; grid-template-columns:18px auto; align-items:center; gap:2px 6px; min-width:104px; padding:8px 10px; border:1px solid var(--ui-blue-border); border-radius:11px; background:var(--ui-blue-soft); color:var(--ui-blue); }
+.study-plan-sr-exam-chip svg { grid-row:1 / 3; }
+.study-plan-sr-exam-chip span { font-size:10px; font-weight:900; }
+.study-plan-sr-exam-chip small { color:var(--ui-secondary); font-size:6.6px; font-weight:740; }
+.study-plan-sr-decisions, .study-plan-sr-upcoming, .study-plan-sr-history { display:grid; gap:9px; padding-top:2px; }
+.study-plan-sr-decisions .study-plan-review-task-head > b { min-width:26px; height:26px; display:grid; place-items:center; border-radius:999px; background:var(--ui-blue-soft); color:var(--ui-blue); font-size:8px; font-weight:900; }
+.study-plan-sr-decision-list { display:grid; gap:7px; }
+.study-plan-sr-decision-list article { display:grid; grid-template-columns:36px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px; border:1px solid var(--ui-blue-border); border-radius:12px; background:linear-gradient(135deg,var(--ui-blue-soft),var(--ui-panel)); }
+.study-plan-sr-decision-list article > div { min-width:0; display:grid; gap:2px; }
+.study-plan-sr-decision-list article small { color:var(--ui-blue); font-size:6.7px; font-weight:850; }
+.study-plan-sr-decision-list article strong { overflow:hidden; font-size:9px; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-sr-decision-list article span:not(.study-plan-task-status) { color:var(--ui-muted); font-size:7px; font-weight:680; }
+.study-plan-sr-upcoming-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.study-plan-sr-upcoming-grid article { min-width:0; display:grid; gap:9px; padding:11px; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-soft); }
+.study-plan-sr-upcoming-grid header { display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:8px; }
+.study-plan-sr-upcoming-grid header > span { width:34px; height:34px; display:grid; place-items:center; border-radius:9px; background:var(--ui-panel); color:var(--ui-blue); }
+.study-plan-sr-upcoming-grid header > div { min-width:0; display:grid; gap:2px; }
+.study-plan-sr-upcoming-grid header small { color:var(--ui-muted); font-size:6.5px; font-weight:750; }
+.study-plan-sr-upcoming-grid header strong { overflow:hidden; font-size:8.8px; font-weight:890; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-sr-upcoming-grid header em { padding:4px 6px; border-radius:999px; background:var(--ui-blue-soft); color:var(--ui-blue); font-size:6.5px; font-style:normal; font-weight:850; white-space:nowrap; }
+.study-plan-sr-upcoming-meta { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.study-plan-sr-upcoming-meta span { display:inline-flex; align-items:center; gap:4px; padding:4px 6px; border:1px solid var(--ui-border); border-radius:7px; background:var(--ui-panel); color:var(--ui-secondary); font-size:6.6px; font-weight:750; }
+.study-plan-sr-upcoming-grid footer { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-top:7px; border-top:1px solid var(--ui-border); }
+.study-plan-sr-upcoming-grid footer small { color:var(--ui-muted); font-size:6.5px; font-weight:680; }
+.study-plan-sr-upcoming-grid footer button { display:inline-flex; align-items:center; gap:4px; border:0; background:transparent; color:var(--ui-blue); font-size:6.8px; font-weight:850; }
+.study-plan-sr-memory-list { display:grid; gap:6px; }
+.study-plan-sr-memory-list article { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(180px,.6fr); align-items:center; gap:7px 12px; padding:9px 10px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); }
+.study-plan-sr-memory-list article[data-stopped="true"] { opacity:.72; }
+.study-plan-sr-memory-list article > span { min-width:0; display:grid; gap:2px; }
+.study-plan-sr-memory-list strong { font-size:8.3px; font-weight:880; }
+.study-plan-sr-memory-list small { color:var(--ui-muted); font-size:6.6px; font-weight:700; }
+.study-plan-sr-memory-list article > div { display:flex; align-items:center; justify-content:flex-end; gap:7px; }
+.study-plan-sr-memory-list button { border:0; background:transparent; color:var(--ui-blue); font-size:6.7px; font-weight:850; }
+.study-plan-sr-memory-list em { grid-column:1 / -1; color:var(--ui-secondary); font-size:6.3px; font-style:normal; font-weight:700; }
+.study-plan-sr-intro { margin:0; color:var(--ui-secondary); font-size:7.7px; font-weight:650; line-height:1.55; }
+.study-plan-sr-minute-row, .study-plan-sr-day-input { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:7px; }
+.study-plan-sr-minute-row small, .study-plan-sr-day-input small { color:var(--ui-muted); font-size:7px; font-weight:750; }
+.study-plan-sr-load { display:grid; gap:6px; }
+.study-plan-sr-load > span { color:var(--ui-secondary); font-size:7.5px; font-weight:820; }
+.study-plan-sr-load > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+.study-plan-sr-load button { min-height:56px; display:grid; align-content:center; gap:3px; padding:8px; border:1px solid var(--ui-border); border-radius:10px; background:var(--ui-soft); color:var(--ui-text); text-align:start; }
+.study-plan-sr-load button:hover { border-color:var(--ui-blue-border); }
+.study-plan-sr-load button[data-active="true"] { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); box-shadow:0 0 0 1px color-mix(in srgb,var(--ui-blue) 14%,transparent); }
+.study-plan-sr-load button strong { font-size:8px; font-weight:900; }
+.study-plan-sr-load button small { color:var(--ui-muted); font-size:6.3px; font-weight:650; line-height:1.35; }
+.study-plan-sr-recommendation { display:grid; grid-template-columns:36px minmax(0,1fr); align-items:center; gap:9px; padding:10px; border:1px solid var(--ui-green-border); border-radius:11px; background:var(--ui-green-soft); }
+.study-plan-sr-recommendation > span { width:36px; height:36px; display:grid; place-items:center; border-radius:10px; background:var(--ui-panel); color:var(--ui-green); }
+.study-plan-sr-recommendation > div { display:grid; gap:2px; }
+.study-plan-sr-recommendation small { color:var(--ui-green); font-size:6.5px; font-weight:850; text-transform:uppercase; letter-spacing:.05em; }
+.study-plan-sr-recommendation strong { font-size:8.5px; font-weight:900; }
+.study-plan-sr-recommendation em { color:var(--ui-secondary); font-size:6.5px; font-style:normal; font-weight:700; }
+.study-plan-sr-choice-grid { display:grid; grid-template-columns:1fr 1.2fr 1fr; gap:7px; }
+.study-plan-sr-choice-grid select { min-height:38px; padding:0 9px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); color:var(--ui-text); font:inherit; font-size:8px; outline:none; }
+.study-plan-sr-exam-warning { display:grid; grid-template-columns:28px minmax(0,1fr); gap:8px; padding:9px; border:1px solid var(--ui-amber-border); border-radius:10px; background:var(--ui-amber-soft); color:var(--ui-amber); }
+.study-plan-sr-exam-warning > div { display:grid; gap:3px; }
+.study-plan-sr-exam-warning strong { font-size:7.5px; font-weight:880; }
+.study-plan-sr-exam-warning small { color:var(--ui-secondary); font-size:6.5px; font-weight:650; line-height:1.4; }
+.study-plan-sr-exam-warning label { display:flex; grid-template-columns:none; flex-direction:row; align-items:center; gap:5px; color:var(--ui-secondary); font-size:6.6px; font-weight:760; }
+.study-plan-sr-exam-warning input[type="checkbox"] { min-height:0; width:14px; height:14px; padding:0; }
+.study-plan-sr-actions { display:grid; grid-template-columns:auto 1fr auto auto; }
+.study-plan-slot-picker { width:min(520px,calc(100vw - 24px)) !important; }
+.study-plan-slot-picker-list { display:grid; gap:5px; max-height:48vh; overflow:auto; }
+.study-plan-slot-picker-list button { width:100%; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; padding:9px 10px; border:1px solid var(--ui-border); border-radius:9px; background:var(--ui-soft); color:var(--ui-text); text-align:start; }
+.study-plan-slot-picker-list button:hover { border-color:var(--ui-blue-border); background:var(--ui-blue-soft); }
+.study-plan-slot-picker-list button > span { min-width:0; display:grid; gap:2px; }
+.study-plan-slot-picker-list strong { overflow:hidden; font-size:8px; font-weight:860; text-overflow:ellipsis; white-space:nowrap; }
+.study-plan-slot-picker-list small { color:var(--ui-muted); font-size:6.5px; font-weight:700; }
+.study-plan-week-strip > div[data-over="true"] { border-color:var(--ui-amber-border); background:var(--ui-amber-soft); }
+.study-plan-week-strip > div[data-over="true"] i::after { background:var(--ui-amber); }
+
 @media (max-width: 1080px) {
   .study-plan-workspace-overview { grid-template-columns:1fr; }
   .study-plan-overview-week, .study-plan-overview-plan { grid-column:auto; }
@@ -14555,6 +14641,14 @@ select.ui-control {
   .study-plan-calendar-detail { inset:auto 8px 8px 8px; width:auto; max-height:70dvh; overflow:auto; }
   .study-plan-overview-plan-grid { grid-template-columns:1fr 1fr; }
   .study-plan-overview-plan-grid > div:nth-child(3) { grid-column:1 / -1; }
+  .study-plan-sr-upcoming-grid { grid-template-columns:1fr; }
+  .study-plan-sr-decision-list article { grid-template-columns:34px minmax(0,1fr); }
+  .study-plan-sr-decision-list article > button { grid-column:1 / -1; width:100%; justify-content:center; }
+  .study-plan-sr-load > div, .study-plan-sr-choice-grid { grid-template-columns:1fr; }
+  .study-plan-sr-memory-list article { grid-template-columns:1fr; }
+  .study-plan-sr-memory-list article > div { justify-content:flex-start; }
+  .study-plan-sr-actions { grid-template-columns:1fr 1fr; }
+  .study-plan-sr-actions > span { display:none; }
   .exam-review-plan-action { min-height:36px; }
 }
 .study-plan-simulation-strip { display:grid; gap:8px; padding:11px; border:1px solid var(--ui-border); border-radius:12px; background:var(--ui-soft); }
@@ -16902,6 +16996,7 @@ function calendarEventMetaFields(event) {
     "originalTitle", "timeZone", "cancelled", "cancelledAt", "teacher", "exdates", "importSourceLabel", "testEvent", "phase", "phaseLabel",
     "questionIds", "earliestDue", "fsrsVersion", "loadMinutes", "examSetIndex",
     "manualLectureIds", "manualLectureMatchUpdatedAt", "globalCalendar", "calendarScope", "globalImportId",
+    "activityKind", "reviewTaskId", "repetitionId", "repetitionSequence", "recommendedIntervalDays", "chosenIntervalDays", "loadRating", "actualMinutes", "plannedMinutes", "planningQueue",
   ];
   return fields.reduce((result, key) => {
     if (event && event[key] !== undefined) result[key] = event[key];
@@ -16925,13 +17020,13 @@ function calendarIsUnfinishedStudyPlanLecture(event) {
     : event?.lectureId
       ? [event.lectureId]
       : [];
-
   return Boolean(
     event &&
     !event.completedAt &&
     event.planModuleId &&
     lectureIds.length &&
-    event.source === "study-plan"
+    event.source === "study-plan" &&
+    studyPlanIsLectureActivity(event)
   );
 }
 
@@ -17153,6 +17248,8 @@ function calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existi
     lectureId: lecture.id,
     lectureIds: [lecture.id],
     source: "study-plan",
+    activityKind: STUDY_PLAN_ACTIVITY_KINDS.LECTURE,
+    phase: "lecture",
     status: "unscheduled",
     needsScheduling: true,
     lectureCount: 1,
@@ -17424,8 +17521,219 @@ function studyPlanDaysBetween(startValue, endValue) {
   return Math.max(0, Math.round((end - start) / 86400000));
 }
 
+/* SEGMENT_6_8_1_ALGORITHM_START */
+const STUDY_PLAN_ACTIVITY_KINDS = Object.freeze({
+  LECTURE: "lecture-study",
+  REPETITION: "lecture-repetition",
+  FOLLOW_UP: "lecture-follow-up",
+  EXAM_PRACTICE: "exam-practice",
+  EXAM_REVIEW: "exam-review-task",
+  EXAM_SIMULATION: "exam-simulation-task",
+  EXAM_DAY: "exam-day",
+  OTHER: "study-plan-activity",
+});
+
+function studyPlanNormalizeLoadLevel(value) {
+  const raw = String(value || "").toLowerCase();
+  if (["easy", "let", "light"].includes(raw)) return "easy";
+  if (["hard", "demanding", "krævende", "kraevende", "tung"].includes(raw)) return "demanding";
+  return "moderate";
+}
+
+function studyPlanLoadLabel(value, language = "da") {
+  const level = studyPlanNormalizeLoadLevel(value);
+  const labels = {
+    da: { easy: "Let", moderate: "Moderat", demanding: "Krævende" },
+    en: { easy: "Easy", moderate: "Moderate", demanding: "Demanding" },
+    ar: { easy: "خفيف", moderate: "متوسط", demanding: "مجهد" },
+  };
+  return (labels[language] || labels.da)[level];
+}
+
+function studyPlanActivityKind(event) {
+  const explicit = event?.activityKind || event?.activity_kind;
+  if (explicit) return explicit;
+  if (event?.repetitionId || event?.repetition_id || event?.phase === "lecture-repetition") return STUDY_PLAN_ACTIVITY_KINDS.REPETITION;
+  if (event?.reviewTaskId || event?.review_task_id || event?.phase === "exam-review") return STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW;
+  if (event?.phase === "exam-simulation") return STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION;
+  if (event?.phase === "follow-up") return STUDY_PLAN_ACTIVITY_KINDS.FOLLOW_UP;
+  if (event?.phase === "exam-day" || event?.type === "exam" && String(event?.id || "").startsWith("studyplan-exam-")) return STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY;
+  if (event?.phase === "exam") return STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE;
+  if (event?.phase === "lecture" || (event?.source === "study-plan" && String(event?.id || "").includes("-lecture-") && !String(event?.id || "").includes("-review-"))) return STUDY_PLAN_ACTIVITY_KINDS.LECTURE;
+  return STUDY_PLAN_ACTIVITY_KINDS.OTHER;
+}
+
+function studyPlanIsLectureActivity(event) {
+  return studyPlanActivityKind(event) === STUDY_PLAN_ACTIVITY_KINDS.LECTURE;
+}
+
+function studyPlanCanFitMinutes(capacityMinutes, usedMinutes, activityMinutes) {
+  const capacity = Math.max(0, Number(capacityMinutes) || 0);
+  const used = Math.max(0, Number(usedMinutes) || 0);
+  const needed = Math.max(0, Number(activityMinutes) || 0);
+  return needed > 0 && used + needed <= capacity;
+}
+
+function studyPlan81Date(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? new Date(value) : new Date(`${String(value).slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(12, 0, 0, 0);
+  return date;
+}
+
+function studyPlan81DateKey(value) {
+  const date = studyPlan81Date(value);
+  if (!date) return null;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function studyPlan81AddDays(value, days) {
+  const date = studyPlan81Date(value);
+  if (!date) return null;
+  date.setDate(date.getDate() + Number(days || 0));
+  return date;
+}
+
+function studyPlan81DaysBetween(startValue, endValue) {
+  const start = studyPlan81Date(startValue);
+  const end = studyPlan81Date(endValue);
+  if (!start || !end) return null;
+  return Math.round((end.getTime() - start.getTime()) / 86400000);
+}
+
+function studyPlanRoundReviewMinutes(value) {
+  const minutes = Math.max(10, Math.min(120, Number(value) || 30));
+  const options = [15, 20, 30, 45, 60, 75, 90, 120];
+  return options.reduce((best, option) => Math.abs(option - minutes) < Math.abs(best - minutes) ? option : best, options[0]);
+}
+
+function studyPlanExamAwareMaxInterval(daysToExam, loadLevel) {
+  const days = Math.max(0, Number(daysToExam) || 0);
+  const level = studyPlanNormalizeLoadLevel(loadLevel);
+  if (days <= 1) return 0;
+  const latestSafeDay = Math.max(1, days - (days <= 7 ? 1 : days <= 21 ? 2 : 3));
+  let cap;
+  if (days <= 7) cap = level === "demanding" ? 2 : level === "moderate" ? 3 : 4;
+  else if (days <= 14) cap = level === "demanding" ? 3 : level === "moderate" ? 5 : 7;
+  else if (days <= 28) cap = level === "demanding" ? 5 : level === "moderate" ? 8 : 12;
+  else if (days <= 56) cap = level === "demanding" ? 9 : level === "moderate" ? 14 : 21;
+  else cap = level === "demanding" ? 14 : level === "moderate" ? 24 : 35;
+  return Math.max(1, Math.min(cap, latestSafeDay));
+}
+
+function studyPlanRecommendLectureRepetition({
+  loadLevel = "moderate",
+  baselineMinutes = 60,
+  actualMinutes = null,
+  sequenceNumber = 0,
+  previousIntervalDays = null,
+  completionDate = new Date(),
+  examDate = null,
+}) {
+  const level = studyPlanNormalizeLoadLevel(loadLevel);
+  const sequence = Math.max(0, Number(sequenceNumber) || 0);
+  const baseline = Math.max(15, Number(baselineMinutes) || Number(actualMinutes) || 60);
+  const actual = Math.max(10, Number(actualMinutes) || baseline);
+  const initialInterval = level === "demanding" ? 2 : level === "moderate" ? 4 : 7;
+  const growth = level === "demanding" ? 1.55 : level === "moderate" ? 1.8 : 2.2;
+  const previous = Math.max(1, Number(previousIntervalDays) || initialInterval);
+  let memoryInterval = sequence === 0 ? initialInterval : Math.max(previous + 1, Math.round(previous * growth));
+  // If a later repetition still felt demanding, avoid runaway growth.
+  if (sequence > 0 && level === "demanding") memoryInterval = Math.min(memoryInterval, previous + Math.max(2, Math.round(previous * .6)));
+
+  const completion = studyPlan81Date(completionDate) || studyPlan81Date(new Date());
+  const daysToExam = examDate ? studyPlan81DaysBetween(completion, examDate) : null;
+  let examCap = null;
+  if (Number.isFinite(daysToExam)) examCap = studyPlanExamAwareMaxInterval(daysToExam, level);
+  const recommendedIntervalDays = examCap == null ? memoryInterval : Math.max(0, Math.min(memoryInterval, examCap));
+
+  const sequenceDecay = Math.max(.58, 1 - sequence * .09);
+  const fraction = level === "demanding" ? .5 : level === "moderate" ? .35 : .24;
+  const baseForDuration = Math.max(baseline * fraction * sequenceDecay, actual * (level === "demanding" ? .55 : level === "moderate" ? .45 : .35));
+  const recommendedMinutes = studyPlanRoundReviewMinutes(baseForDuration);
+  const recommendedDate = recommendedIntervalDays > 0 ? studyPlan81DateKey(studyPlan81AddDays(completion, recommendedIntervalDays)) : null;
+  const examPhase = Number.isFinite(daysToExam) && daysToExam <= 7 ? "exam-week" : Number.isFinite(daysToExam) && daysToExam <= 28 ? "exam-build-up" : "spacing";
+
+  return {
+    loadLevel: level,
+    memoryIntervalDays: memoryInterval,
+    examCapDays: examCap,
+    recommendedIntervalDays,
+    recommendedMinutes,
+    recommendedDate,
+    daysToExam,
+    examPhase,
+  };
+}
+/* SEGMENT_6_8_1_ALGORITHM_END */
+
+async function studyPlanPersistLinkedSchedule(event) {
+  const kind = studyPlanActivityKind(event);
+  if (event?.reviewTaskId && [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION].includes(kind)) {
+    const { error } = await supabase.rpc("set_study_plan_review_task_schedule", {
+      p_task_id: event.reviewTaskId,
+      p_scheduled_date: event.date,
+      p_scheduled_time: event.time || null,
+      p_calendar_event_id: event.id,
+    });
+    return { ok: !error, error };
+  }
+  if (event?.repetitionId && kind === STUDY_PLAN_ACTIVITY_KINDS.REPETITION) {
+    const { error } = await supabase.rpc("set_study_plan_lecture_repetition_schedule", {
+      p_repetition_id: event.repetitionId,
+      p_scheduled_date: event.date,
+      p_scheduled_time: event.time || null,
+      p_calendar_event_id: event.id,
+    });
+    return { ok: !error, error };
+  }
+  return { ok: true, error: null };
+}
+
+async function studyPlanReturnLinkedToPlanningQueue(event) {
+  const kind = studyPlanActivityKind(event);
+  if (event?.reviewTaskId && [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION].includes(kind)) {
+    const { error } = await supabase.rpc("set_study_plan_review_task_schedule", { p_task_id: event.reviewTaskId, p_scheduled_date: null, p_scheduled_time: null, p_calendar_event_id: null });
+    return { ok: !error, error };
+  }
+  if (event?.repetitionId && kind === STUDY_PLAN_ACTIVITY_KINDS.REPETITION) {
+    // Lecture repetition dates are explicitly chosen by the user. Removing a clock time
+    // preserves that date and only returns it to the untimed row for that day.
+    const { error } = await supabase.rpc("set_study_plan_lecture_repetition_schedule", { p_repetition_id: event.repetitionId, p_scheduled_date: event.date, p_scheduled_time: null, p_calendar_event_id: event.id });
+    return { ok: !error, error };
+  }
+  return { ok: true, error: null };
+}
+
+function studyPlanIsLinkedManualEvent(event, metadata = {}) {
+  const merged = { ...(event || {}), ...(metadata || {}) };
+  const kind = studyPlanActivityKind(merged);
+  return Boolean(
+    merged.reviewTaskId || merged.repetitionId ||
+    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(kind)
+  );
+}
+
+async function studyPlanPersistLinkedCompletion(event, completed) {
+  const kind = studyPlanActivityKind(event);
+  if (event?.reviewTaskId && [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION].includes(kind)) {
+    const { error } = await supabase.rpc("complete_study_plan_review_task", { p_task_id: event.reviewTaskId, p_completed: completed });
+    return { ok: !error, error };
+  }
+  if (event?.repetitionId && kind === STUDY_PLAN_ACTIVITY_KINDS.REPETITION) {
+    const { error } = await supabase.rpc("complete_study_plan_lecture_repetition", { p_repetition_id: event.repetitionId, p_completed: completed });
+    return { ok: !error, error };
+  }
+  return { ok: true, error: null };
+}
+
 function studyPlanLectureMinutes(lecture, difficulty) {
-  const base = difficulty === "hard" ? 90 : difficulty === "easy" ? 45 : 60;
+  const normalized = studyPlanNormalizeLoadLevel(difficulty);
+  const base = normalized === "demanding" ? 90 : normalized === "easy" ? 45 : 60;
   const parts = Math.max(1, Number(lecture?.parts) || 1);
   return base + Math.max(0, parts - 1) * 25;
 }
@@ -17444,39 +17752,43 @@ function studyPlanIsoWeekNumber(value) {
   return Math.ceil((((utc - yearStart) / 86400000) + 1) / 7);
 }
 
-function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Date() }) {
+function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Date(), reservedEvents = [] }) {
   const today = studyPlanDate(fromDate);
   const exam = studyPlanDate(plan?.examDate);
-  if (!today || !exam || exam <= today) return { valid: false, realism: "unrealistic", issues: ["Eksamensdatoen skal ligge i fremtiden."], phases: [], assignments: [], weeklyLoads: [], unassigned: [], lectureRequired: 0, lectureCapacity: 0, consolidationRequired: 0, consolidationCapacity: 0, examRequired: 0, examCapacity: 0, targetedRequired: 0, targetedCapacity: 0, fsrsReserveMinutes: 0, requiredTotal: 0, capacityTotal: 0, pendingCount: 0, examSetCount: 0, bufferDays: 0 };
+  const structuralIssues = [];
+  if (!today || !exam || exam <= today) structuralIssues.push("Eksamensdatoen skal ligge i fremtiden.");
+  const weekdayHours = plan?.weekdayHours || { 0: 0, 1: 2, 2: 2, 3: 2, 4: 2, 5: 1, 6: 3 };
+  const totalWeekCapacity = Object.values(weekdayHours).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
+  if (totalWeekCapacity <= 0) structuralIssues.push("Tilføj studietid på mindst én ugedag.");
+  if (structuralIssues.length) return { valid: false, realism: "unrealistic", issues: structuralIssues, warnings: [], phases: [], assignments: [], weeklyLoads: [], unassigned: [], lectureRequired: 0, lectureCapacity: 0, consolidationRequired: 0, consolidationCapacity: 0, examRequired: 0, examCapacity: 0, targetedRequired: 0, targetedCapacity: 0, fsrsReserveMinutes: 0, requiredTotal: 0, capacityTotal: 0, pendingCount: 0, examSetCount: 0, bufferDays: 0, planningQueueCount: 0 };
 
   const bufferDays = Math.max(1, Math.min(14, Number(plan.bufferDays) || 4));
   const bufferStart = addDays(exam, -bufferDays);
   const lectureDeadline = studyPlanDate(plan.lectureDeadline) || addDays(bufferStart, -21);
   const examSetStart = studyPlanDate(plan.examSetStartDate) || addDays(bufferStart, -14);
   const lectureEnd = lectureDeadline;
-  const consolidationStart = addDays(lectureEnd, 1);
-  const consolidationEnd = addDays(examSetStart, -1);
   const examWindowStart = examSetStart;
   const examWindowEnd = addDays(bufferStart, -1);
-  const examWindowSpan = examWindowEnd >= examWindowStart ? Math.floor((examWindowEnd - examWindowStart) / 86400000) + 1 : 0;
-  const targetedSpan = Math.max(1, Math.floor(examWindowSpan * .35));
-  const targetedStart = examWindowSpan > 1 ? addDays(examWindowEnd, -(targetedSpan - 1)) : examWindowStart;
-  const examRunEnd = addDays(targetedStart, -1);
+  if (lectureDeadline < today) structuralIssues.push("Forelæsningsfristen kan ikke ligge før planens start.");
+  if (lectureDeadline >= examSetStart) structuralIssues.push("Forelæsningsfristen skal ligge før eksamenssætfasen.");
+  if (examSetStart >= bufferStart) structuralIssues.push("Eksamenssæt skal starte før bufferperioden.");
+
   const excluded = new Set(plan.excludedDates || []);
   const done = new Set(plan.doneLectureIds || []);
   const included = new Set(Array.isArray(plan.includedLectureIds) && plan.includedLectureIds.length ? plan.includedLectureIds : (lectures || []).map((lecture) => lecture.id));
   const pending = (lectures || []).filter((lecture) => included.has(lecture.id) && !done.has(lecture.id));
-  const allIncluded = (lectures || []).filter((lecture) => included.has(lecture.id));
-  const weekdayHours = plan.weekdayHours || { 0: 0, 1: 2, 2: 2, 3: 2, 4: 2, 5: 1, 6: 3 };
   const maxLectures = Math.max(1, Math.min(8, Number(plan.maxLecturesPerDay) || 3));
-  const mcqReserve = Math.max(.1, Math.min(.4, (Number(plan.mcqReservePercent) || 20) / 100));
 
   function rawCapacityFor(date) {
     const key = studyPlanDateKey(date);
     if (excluded.has(key)) return 0;
     return Math.max(0, Number(weekdayHours[date.getDay()]) || 0) * 60;
   }
-  function planCapacityFor(date) { return Math.floor(rawCapacityFor(date) * (1 - mcqReserve)); }
+  function reservedMinutesFor(key) {
+    return (Array.isArray(reservedEvents) ? reservedEvents : [])
+      .filter((event) => event?.date === key && event?.planModuleId === moduleName && !event?.completedAt && [STUDY_PLAN_ACTIVITY_KINDS.REPETITION, STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION].includes(studyPlanActivityKind(event)))
+      .reduce((sum, event) => sum + Math.max(15, Number(event?.loadMinutes) || Math.round((Number(event?.estimatedHours) || .5) * 60)), 0);
+  }
   function daysInRange(startDate, endDate) {
     if (!startDate || !endDate || endDate < startDate) return [];
     const result = [];
@@ -17484,7 +17796,12 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
     return result;
   }
   function makeRows(startDate, endDate) {
-    return daysInRange(startDate, endDate).map((date) => ({ date, key: studyPlanDateKey(date), rawCapacity: rawCapacityFor(date), capacity: planCapacityFor(date), used: 0, count: 0, items: [] }));
+    return daysInRange(startDate, endDate).map((date) => {
+      const key = studyPlanDateKey(date);
+      const rawCapacity = rawCapacityFor(date);
+      const reserved = Math.min(rawCapacity, reservedMinutesFor(key));
+      return { date, key, rawCapacity, reserved, capacity: Math.max(0, rawCapacity - reserved), used: 0, count: 0, items: [] };
+    });
   }
   function allocate(items, rows, options = {}) {
     const unassignedItems = [];
@@ -17492,7 +17809,7 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
       const minutes = Math.max(15, Number(item.minutes) || 30);
       const eligible = rows.filter((row) => row.capacity > 0 && (!options.maxItems || row.count < options.maxItems));
       const distributionMode = plan.distributionMode || "balanced";
-      const fitting = eligible.filter((row) => row.used + minutes <= row.capacity).sort((a, b) => {
+      const fitting = eligible.filter((row) => studyPlanCanFitMinutes(row.capacity, row.used, minutes)).sort((a, b) => {
         if (distributionMode === "early") return a.date - b.date;
         if (distributionMode === "even") return a.used - b.used || a.count - b.count || a.date - b.date;
         return (a.used / Math.max(1, a.capacity)) - (b.used / Math.max(1, b.capacity)) || a.date - b.date;
@@ -17506,67 +17823,40 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   const priority = plan.lecturePriority || {};
   const sortedLectures = [...pending].sort((a, b) => (Number(priority[b.id]) || 0) - (Number(priority[a.id]) || 0) || String(a.id).localeCompare(String(b.id), undefined, { numeric: true }));
   const lectureRows = makeRows(today, lectureEnd);
-  const lectureItems = sortedLectures.map((lecture) => ({ kind: "lecture", lecture, minutes: studyPlanLectureMinutes(lecture, plan.difficulty?.[lecture.id]) }));
+  const lectureItems = sortedLectures.map((lecture) => ({ kind: "lecture", lecture, minutes: studyPlanLectureMinutes(lecture, "moderate") }));
   const unassignedLectures = allocate(lectureItems, lectureRows, { maxItems: maxLectures });
 
-  // Lecture repetition is tracked in the lecture counter instead of creating a second, noisy calendar event.
-  const consolidationRows = [];
-  const consolidationItems = [];
-  const unassignedConsolidation = [];
-
-  const examRows = makeRows(examWindowStart, examRunEnd);
-  const targetedRows = makeRows(targetedStart, examWindowEnd);
+  const examRows = makeRows(examWindowStart, examWindowEnd);
   const examSetCount = Math.max(0, Math.min(30, Number(plan.examSetCount) || 0));
   const examItems = Array.from({ length: examSetCount }, (_, index) => ({ kind: "exam", index: index + 1, minutes: Math.max(30, Number(plan.examSetMinutes) || 120) }));
   const unassignedExam = allocate(examItems, examRows);
-  const targetedItems = [
-    ...Array.from({ length: examSetCount }, (_, index) => ({ kind: "exam-review", index: index + 1, minutes: Math.max(20, Number(plan.errorReviewMinutes) || 60) })),
-  ];
-  const unassignedTargeted = allocate(targetedItems, targetedRows);
 
   const assignments = [];
-  lectureRows.forEach((row) => row.items.forEach(({ lecture, minutes }) => assignments.push({ id: `studyplan-${moduleName}-lecture-${lecture.id}`, phase: "lecture", date: row.key, lectureId: lecture.id, lectureIds: [lecture.id], title: `${lecture.id} · ${lecture.title}`, loadMinutes: minutes, needsScheduling: true, type: "study" })));
-  examRows.forEach((row) => row.items.forEach(({ index, minutes }) => assignments.push({ id: `studyplan-${moduleName}-examset-${index}`, phase: "exam", date: row.key, title: `Eksamenssæt ${index}`, loadMinutes: minutes, needsScheduling: true, type: "review", examSetIndex: index })));
-  targetedRows.forEach((row) => row.items.forEach((item) => {
-    if (item.kind === "exam-review") assignments.push({ id: `studyplan-${moduleName}-examset-review-${item.index}`, phase: "targeted", date: row.key, title: `Fejlgennemgang · Eksamenssæt ${item.index}`, loadMinutes: item.minutes, needsScheduling: true, type: "review", examSetIndex: item.index });
-    if (item.kind === "targeted-lecture") assignments.push({ id: `studyplan-${moduleName}-targeted-${item.lecture.id}`, phase: "targeted", date: row.key, lectureId: item.lecture.id, lectureIds: [item.lecture.id], title: `Målrettet repetition · ${item.lecture.id} · ${item.lecture.title}`, loadMinutes: item.minutes, needsScheduling: true, type: "review" });
-  }));
+  lectureRows.forEach((row) => row.items.forEach(({ lecture, minutes }) => assignments.push({ id: `studyplan-${moduleName}-lecture-${lecture.id}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.LECTURE, phase: "lecture", date: row.key, lectureId: lecture.id, lectureIds: [lecture.id], title: `${lecture.id} · ${lecture.title}`, loadMinutes: minutes, needsScheduling: true, type: "study" })));
+  examRows.forEach((row) => row.items.forEach(({ index, minutes }) => assignments.push({ id: `studyplan-${moduleName}-examset-${index}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE, phase: "exam", date: row.key, title: `Eksamenssæt ${index}`, loadMinutes: minutes, needsScheduling: true, type: "review", examSetIndex: index })));
 
   const phases = [
     { id: "lecture", label: "Forelæsninger", start: studyPlanDateKey(today), end: studyPlanDateKey(lectureEnd), tone: studyPlanPhaseTone("lecture") },
-    { id: "consolidation", label: "Opfølgning i forelæsningscounter", start: studyPlanDateKey(consolidationStart), end: studyPlanDateKey(consolidationEnd), tone: studyPlanPhaseTone("consolidation") },
-    { id: "exam", label: "Eksamenssæt", start: studyPlanDateKey(examWindowStart), end: studyPlanDateKey(examRunEnd), tone: studyPlanPhaseTone("exam") },
-    { id: "targeted", label: "Fejl og svage emner", start: studyPlanDateKey(targetedStart), end: studyPlanDateKey(examWindowEnd), tone: studyPlanPhaseTone("targeted") },
-    { id: "buffer", label: "Buffer og let repetition", start: studyPlanDateKey(bufferStart), end: studyPlanDateKey(addDays(exam, -1)), tone: studyPlanPhaseTone("buffer") },
+    { id: "exam", label: "Eksamenssæt", start: studyPlanDateKey(examWindowStart), end: studyPlanDateKey(examWindowEnd), tone: studyPlanPhaseTone("exam") },
+    { id: "buffer", label: "Eksamensbuffer", start: studyPlanDateKey(bufferStart), end: studyPlanDateKey(addDays(exam, -1)), tone: studyPlanPhaseTone("buffer") },
   ].filter((phase) => phase.start && phase.end && phase.end >= phase.start);
 
   const lectureRequired = lectureItems.reduce((sum, item) => sum + item.minutes, 0);
   const lectureCapacity = lectureRows.reduce((sum, row) => sum + row.capacity, 0);
-  const consolidationRequired = consolidationItems.reduce((sum, item) => sum + item.minutes, 0);
-  const consolidationCapacity = consolidationRows.reduce((sum, row) => sum + row.capacity, 0);
   const examRequired = examItems.reduce((sum, item) => sum + item.minutes, 0);
   const examCapacity = examRows.reduce((sum, row) => sum + row.capacity, 0);
-  const targetedRequired = targetedItems.reduce((sum, item) => sum + item.minutes, 0);
-  const targetedCapacity = targetedRows.reduce((sum, row) => sum + row.capacity, 0);
   const allPlanDays = makeRows(today, addDays(exam, -1));
-  const fsrsReserveMinutes = allPlanDays.reduce((sum, row) => sum + Math.max(0, row.rawCapacity - row.capacity), 0);
+  const capacityTotal = allPlanDays.reduce((sum, row) => sum + row.capacity, 0);
+  const requiredTotal = lectureRequired + examRequired;
+  const fsrsReserveMinutes = 0;
 
-  const issues = [];
-  if (lectureDeadline < today) issues.push("Forelæsningsfristen kan ikke ligge før planens start.");
-  if (lectureDeadline >= examSetStart) issues.push("Forelæsningsfristen skal ligge før eksamenssætfasen.");
-  if (examSetStart >= bufferStart) issues.push("Eksamenssæt skal starte før bufferperioden.");
-  if (examWindowSpan < 3 && examSetCount > 0) issues.push("Eksamenssætfasen er for kort til både sæt og fejlgennemgang.");
-  if (unassignedLectures.length) issues.push(`${unassignedLectures.length} forelæsning${unassignedLectures.length === 1 ? "" : "er"} kan ikke placeres inden fristen.`);
-  if (unassignedConsolidation.length) issues.push(`${unassignedConsolidation.length} første repetition${unassignedConsolidation.length === 1 ? "" : "er"} mangler kapacitet.`);
-  if (unassignedExam.length) issues.push(`${unassignedExam.length} eksamenssæt kan ikke placeres i eksamenssætfasen.`);
-  if (unassignedTargeted.length) issues.push(`${unassignedTargeted.length} målrettet${unassignedTargeted.length === 1 ? " aktivitet" : "e aktiviteter"} mangler plads før bufferperioden.`);
-  if (bufferDays < 3) issues.push("Bufferperioden er kortere end tre dage.");
-
-  const requiredTotal = lectureRequired + consolidationRequired + examRequired + targetedRequired;
-  const capacityTotal = lectureCapacity + consolidationCapacity + examCapacity + targetedCapacity;
+  const warnings = [];
+  if (unassignedLectures.length) warnings.push(`${unassignedLectures.length} forelæsning${unassignedLectures.length === 1 ? "" : "er"} går til planlægningskøen, fordi de ikke kan placeres automatisk inden fristen.`);
+  if (unassignedExam.length) warnings.push(`${unassignedExam.length} eksamenssæt går til planlægningskøen, fordi ingen egnet studiedag har nok sammenhængende kapacitet.`);
+  if (bufferDays < 3) warnings.push("Bufferperioden er kortere end tre dage.");
+  const unassigned = [...unassignedLectures, ...unassignedExam];
   const loadRatio = capacityTotal ? requiredTotal / capacityTotal : 99;
-  const blocking = issues.some((issue) => /kan ikke|skal ligge|mangler kapacitet|mangler plads|for kort/.test(issue));
-  const realism = blocking ? "unrealistic" : loadRatio > .82 ? "demanding" : "realistic";
+  const realism = structuralIssues.length ? "unrealistic" : unassigned.length || loadRatio > .88 ? "demanding" : "realistic";
 
   const weeklyMap = new Map();
   assignments.forEach((assignment) => {
@@ -17579,11 +17869,29 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   const weeklyLoads = [...weeklyMap.values()].sort((a, b) => a.weekStart.localeCompare(b.weekStart)).map((row) => ({ ...row, phases: [...row.phases] }));
 
   return {
-    valid: !issues.some((issue) => /skal ligge|kan ikke ligge/.test(issue)), realism, issues, phases, assignments, weeklyLoads,
-    unassigned: [...unassignedLectures, ...unassignedConsolidation, ...unassignedExam, ...unassignedTargeted],
-    lectureRequired, lectureCapacity, consolidationRequired, consolidationCapacity, examRequired, examCapacity,
-    targetedRequired, targetedCapacity, fsrsReserveMinutes, requiredTotal, capacityTotal,
-    pendingCount: pending.length, examSetCount, bufferDays,
+    valid: structuralIssues.length === 0,
+    realism,
+    issues: structuralIssues,
+    warnings,
+    phases,
+    assignments,
+    weeklyLoads,
+    unassigned,
+    lectureRequired,
+    lectureCapacity,
+    consolidationRequired: 0,
+    consolidationCapacity: 0,
+    examRequired,
+    examCapacity,
+    targetedRequired: 0,
+    targetedCapacity: 0,
+    fsrsReserveMinutes,
+    requiredTotal,
+    capacityTotal,
+    pendingCount: pending.length,
+    examSetCount,
+    bufferDays,
+    planningQueueCount: unassigned.length,
   };
 }
 
@@ -17619,9 +17927,9 @@ function buildFsrsCalendarReviewBundle({ spacedData, questions, moduleName, from
   return { events, metadata };
 }
 
-function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTotal = 0, fromDate = new Date() }) {
+function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTotal = 0, fromDate = new Date(), reservedEvents = [] }) {
   if (!plan?.examDate || !moduleName) return { events: [], metadata: {}, strategy: null };
-  const strategy = buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate });
+  const strategy = buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate, reservedEvents });
   const events = [];
   const metadata = {};
   strategy.assignments.forEach((assignment) => {
@@ -17634,9 +17942,11 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
       planModuleId: moduleName,
       lectureCount: assignment.lectureId ? 1 : null,
       estimatedHours: assignment.loadMinutes ? assignment.loadMinutes / 60 : null,
+      activityKind: assignment.activityKind || null,
     });
     metadata[assignment.id] = {
       source: "study-plan",
+      activityKind: assignment.activityKind || null,
       status: "planned",
       needsScheduling: assignment.needsScheduling !== false,
       phase: assignment.phase,
@@ -17648,6 +17958,32 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
       loadMinutes: assignment.loadMinutes || null,
       examSetIndex: assignment.examSetIndex || null,
       createdByUser: true,
+    };
+  });
+
+  // Items the scheduler cannot fit are still first-class plan activities.
+  // They enter a visible planning queue instead of blocking activation or disappearing.
+  const queueDate = studyPlanDateKey(fromDate) || studyPlanDateKey(new Date());
+  (strategy.unassigned || []).forEach((item) => {
+    const isLecture = item?.kind === "lecture" && item?.lecture;
+    const id = isLecture
+      ? `studyplan-${moduleName}-lecture-${item.lecture.id}`
+      : `studyplan-${moduleName}-examset-${item?.index || 1}`;
+    if (metadata[id]) return;
+    const activityKind = isLecture ? STUDY_PLAN_ACTIVITY_KINDS.LECTURE : STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE;
+    const title = isLecture ? `${item.lecture.id} · ${item.lecture.title}` : `Eksamenssæt ${item?.index || 1}`;
+    const loadMinutes = Math.max(15, Number(item?.minutes) || 30);
+    events.push({
+      id, title, date: queueDate, time: "", endTime: "", type: isLecture ? "study" : "review",
+      planModuleId: moduleName, lectureId: isLecture ? item.lecture.id : null,
+      lectureIds: isLecture ? [item.lecture.id] : [], estimatedHours: loadMinutes / 60, activityKind, planningQueue: true,
+    });
+    metadata[id] = {
+      source: "study-plan", activityKind, status: "unscheduled", needsScheduling: true, planningQueue: true,
+      phase: isLecture ? "lecture" : "exam", phaseLabel: isLecture ? "Forelæsninger" : "Eksamenssæt",
+      lectureId: isLecture ? item.lecture.id : null, lectureIds: isLecture ? [item.lecture.id] : [],
+      lectureUnits: isLecture ? [{ id: item.lecture.id, title: item.lecture.title }] : [],
+      loadMinutes, examSetIndex: isLecture ? null : item?.index || null, createdByUser: true,
     };
   });
 
@@ -17683,9 +18019,11 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
       planModuleId: moduleName,
       lectureCount: 1,
       estimatedHours: Math.max(.25, Number(followUp.estimatedHours) || .75),
+      activityKind: STUDY_PLAN_ACTIVITY_KINDS.FOLLOW_UP,
     });
     metadata[followUpId] = {
       source: "study-plan",
+      activityKind: STUDY_PLAN_ACTIVITY_KINDS.FOLLOW_UP,
       status: "unscheduled",
       needsScheduling: true,
       phase: "follow-up",
@@ -17700,8 +18038,8 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
   });
 
   const examId = `studyplan-exam-${moduleName}`;
-  events.push({ id: examId, title: `${moduleName} · Eksamen`, date: plan.examDate, time: "", type: "exam", planModuleId: moduleName, estimatedHours: 1 });
-  metadata[examId] = { source: "study-plan", status: "planned", needsScheduling: false, phase: "exam-day", createdByUser: true, lectureIds: [] };
+  events.push({ id: examId, title: `${moduleName} · Eksamen`, date: plan.examDate, time: "", type: "exam", planModuleId: moduleName, estimatedHours: 1, activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY });
+  metadata[examId] = { source: "study-plan", activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY, status: "planned", needsScheduling: false, phase: "exam-day", createdByUser: true, lectureIds: [] };
   return { events, metadata, strategy };
 }
 
@@ -17713,18 +18051,18 @@ function reconcileStudyPlanCalendarEvents({
   previousMetadata,
 }) {
   const moduleEvents = (previousEvents || []).filter(
-    (event) =>
-      event.planModuleId === moduleName &&
-      String(event.id).startsWith("studyplan-")
+    (event) => event.planModuleId === moduleName && String(event.id).startsWith("studyplan-")
   );
-  const exactById = Object.fromEntries(
-    moduleEvents.map((event) => [event.id, event])
-  );
-  const legacyUseCount = {};
+  const exactById = Object.fromEntries(moduleEvents.map((event) => [event.id, event]));
 
   return generatedEvents.map((event) => {
     const exact = exactById[event.id];
     if (exact) {
+      const oldMeta = previousMetadata?.[exact.id] || {};
+      const newMeta = generatedMetadata?.[event.id] || {};
+      const wasQueueOnly = Boolean(oldMeta.planningQueue) && !exact.time;
+      const isNowPlacedByEngine = !newMeta.planningQueue;
+      if (wasQueueOnly && isNowPlacedByEngine) return event;
       return {
         ...event,
         date: exact.date || event.date,
@@ -17734,24 +18072,20 @@ function reconcileStudyPlanCalendarEvents({
       };
     }
 
-    const lectureId = generatedMetadata[event.id]?.lectureIds?.[0];
+    // Legacy fallback is intentionally restricted to true lecture-study events.
+    // A review/repetition may reference the same lectureId, but it is never a placement for the lecture itself.
+    const generatedKind = studyPlanActivityKind({ ...event, ...(generatedMetadata?.[event.id] || {}) });
+    if (generatedKind !== STUDY_PLAN_ACTIVITY_KINDS.LECTURE) return event;
+    const lectureId = generatedMetadata?.[event.id]?.lectureIds?.[0] || event.lectureId;
     if (!lectureId) return event;
-
     const legacy = moduleEvents.find((candidate) => {
-      const ids = previousMetadata[candidate.id]?.lectureIds || [];
+      const merged = { ...candidate, ...(previousMetadata?.[candidate.id] || {}) };
+      if (studyPlanActivityKind(merged) !== STUDY_PLAN_ACTIVITY_KINDS.LECTURE) return false;
+      const ids = merged.lectureIds?.length ? merged.lectureIds : merged.lectureId ? [merged.lectureId] : [];
       return ids.includes(lectureId);
     });
     if (!legacy) return event;
-
-    const useIndex = legacyUseCount[legacy.id] || 0;
-    legacyUseCount[legacy.id] = useIndex + 1;
-
-    return {
-      ...event,
-      date: legacy.date || event.date,
-      time: useIndex === 0 ? legacy.time || "" : "",
-      endTime: useIndex === 0 ? legacy.endTime || "" : "",
-    };
+    return { ...event, date: legacy.date || event.date, time: legacy.time || "", endTime: legacy.endTime || "" };
   });
 }
 
@@ -18082,11 +18416,11 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     const plan = plans[module];
     if (!plan || plan.calendarEnabled === false) return;
     const questionTotal = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === module).length;
-    const bundle = buildStudyPlanCalendarBundle({ moduleName: module, plan, lectures: moduleLectures, questionTotal });
+    const bundle = buildStudyPlanCalendarBundle({ moduleName: module, plan, lectures: moduleLectures, questionTotal, reservedEvents: mergeCalendarEventMeta(events, eventMeta) });
     if (!bundle.events.length) return;
     setEvents((previous) => {
       const generated = reconcileStudyPlanCalendarEvents({ moduleName: module, generatedEvents: bundle.events, generatedMetadata: bundle.metadata, previousEvents: previous, previousMetadata: eventMeta });
-      return [...previous.filter((event) => event.planModuleId !== module || !String(event.id).startsWith("studyplan-")), ...generated];
+      return [...previous.filter((event) => event.planModuleId !== module || !String(event.id).startsWith("studyplan-") || studyPlanIsLinkedManualEvent(event, eventMeta?.[event.id])), ...generated];
     });
     setEventMeta((previous) => {
       const generated = reconcileStudyPlanCalendarEvents({ moduleName: module, generatedEvents: bundle.events, generatedMetadata: bundle.metadata, previousEvents: events, previousMetadata: previous });
@@ -18147,10 +18481,15 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     return { base, metadata };
   }
 
-  function saveEvent(nextEvent) {
+  async function saveEvent(nextEvent) {
     if (calendarEventIsCanonical(nextEvent)) return;
-    snapshot("Ændring gemt");
     const clean = { ...nextEvent, allDay: false, type: nextEvent.type || "study", needsScheduling: !nextEvent.time };
+    const linkedResult = await studyPlanPersistLinkedSchedule(clean);
+    if (!linkedResult.ok) {
+      calendarEmitSync("error", linkedResult.error?.message || "Studieplansaktiviteten kunne ikke gemmes");
+      return;
+    }
+    snapshot("Ændring gemt");
     const isSingleOccurrence = Boolean(clean.recurrenceParentId);
     const materialized = isSingleOccurrence ? [clean] : calendarMaterializeRecurrence(clean);
     const parentId = clean.id;
@@ -18171,9 +18510,21 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     setQuickEvent(null);
   }
 
-  function deleteEvent(id) {
+  async function deleteEvent(id) {
     const currentEvent = mergedEvents.find((item) => item.id === id);
     if (calendarEventIsCanonical(currentEvent)) return;
+    const kind = studyPlanActivityKind(currentEvent);
+    if ([STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(kind)) {
+      const queuedDate = currentEvent?.date && currentEvent.date >= todayKey ? currentEvent.date : todayKey;
+      const queuedEvent = { ...currentEvent, date: queuedDate, time: "", endTime: "", needsScheduling: true, planningQueue: true, status: "unscheduled" };
+      const linkedResult = await studyPlanReturnLinkedToPlanningQueue(queuedEvent);
+      if (!linkedResult.ok) { calendarEmitSync("error", linkedResult.error?.message || "Placeringen kunne ikke fjernes"); return; }
+      snapshot("Aktivitet returneret til planlægningskøen");
+      setEvents((previous) => previous.map((item) => item.id === id ? splitRecord(queuedEvent).base : item));
+      setEventMeta((previous) => ({ ...previous, [id]: { ...(previous[id] || {}), ...splitRecord(queuedEvent).metadata } }));
+      setEditingEvent(null); setQuickEvent(null);
+      return;
+    }
     if (calendarIsUnfinishedStudyPlanLecture(currentEvent)) {
       const queuedEvent = calendarReturnLectureToQueue(currentEvent, todayKey);
       snapshot("Forelæsning returneret til køen");
@@ -18215,27 +18566,34 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     setQuickEvent(null); setEditingEvent(null);
   }
 
-  function moveEvent(updatedEvent) {
+  async function moveEvent(updatedEvent) {
     if (calendarEventIsCanonical(updatedEvent)) return;
+    const normalized = { ...updatedEvent, needsScheduling: !updatedEvent.time, status: updatedEvent.time ? "planned" : "unscheduled" };
+    const linkedResult = await studyPlanPersistLinkedSchedule(normalized);
+    if (!linkedResult.ok) { calendarEmitSync("error", linkedResult.error?.message || "Studieplansaktiviteten kunne ikke flyttes"); return; }
     snapshot("Event flyttet");
-    const { base, metadata } = splitRecord({ ...updatedEvent, needsScheduling: !updatedEvent.time, status: updatedEvent.time ? "planned" : "unscheduled" });
+    const { base, metadata } = splitRecord(normalized);
     setEvents((previous) => previous.map((item) => item.id === base.id ? base : item));
     setEventMeta((previous) => ({ ...previous, [base.id]: { ...(previous[base.id] || {}), ...metadata } }));
   }
 
-  function toggleEventComplete(event) {
+  async function toggleEventComplete(event) {
     if (calendarEventIsCanonical(event)) return;
-    snapshot(event.completedAt ? "Markering fjernet" : "Event markeret færdig");
     const completing = !event.completedAt;
-    const lectureIds = calendarLectureIds(event);
+    const kind = studyPlanActivityKind(event);
+    const linkedResult = await studyPlanPersistLinkedCompletion(event, completing);
+    if (!linkedResult.ok) { calendarEmitSync("error", linkedResult.error?.message || "Studieplansstatus kunne ikke gemmes"); return; }
+    snapshot(event.completedAt ? "Markering fjernet" : "Event markeret færdig");
     const completedAt = completing ? new Date().toISOString() : null;
-    if (!completing && event.source === "study-plan" && lectureIds.length) {
+    if (kind === STUDY_PLAN_ACTIVITY_KINDS.LECTURE && !completing) {
       const queued = calendarReturnLectureToQueue(event, todayKey);
       setEvents((previous) => previous.map((item) => item.id === event.id ? splitRecord(queued).base : item));
       setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...splitRecord(queued).metadata } }));
     } else {
       setEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), completedAt, status: completedAt ? "completed" : "planned", manualIncompleteAt: completedAt ? null : Date.now() } }));
     }
+    if (kind !== STUDY_PLAN_ACTIVITY_KINDS.LECTURE) return;
+    const lectureIds = calendarLectureIds(event);
     if (!event.planModuleId || !lectureIds.length || !plans[event.planModuleId]) return;
     setPlans((previous) => {
       const plan = previous[event.planModuleId];
@@ -21272,7 +21630,10 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   const [transition, setTransition] = useState(null);
   const [validationMessage, setValidationMessage] = useState("");
   const transitionTimerRef = useRef(null);
-  const strategy = buildStudyPlanStrategy({ moduleName, plan: draft, lectures, fromDate: new Date() });
+  const builderStoredEvents = loadStorage(STORAGE.calendarEvents, []);
+  const builderStoredMeta = loadStorage(STORAGE.calendarEventMeta, {});
+  const builderReservedEvents = mergeCalendarEventMeta(Array.isArray(builderStoredEvents) ? builderStoredEvents : [], builderStoredMeta || {});
+  const strategy = buildStudyPlanStrategy({ moduleName, plan: draft, lectures, fromDate: new Date(), reservedEvents: builderReservedEvents });
   const questionCount = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === moduleName).length;
   const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
   const days = language === "en" ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
@@ -21459,12 +21820,12 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       }
     }
     if (stepNumber === 4) {
-      if (![15, 20, 30].includes(Number(draft.mcqReservePercent))) {
-        return { ok: false, message: language === "en" ? "Choose a review reserve." : language === "ar" ? "اختر مساحة للمراجعة." : "Vælg, hvor meget der skal reserveres til repetition." };
+      if (!Number.isFinite(Number(draft.freezeDays)) || Number(draft.freezeDays) < 0) {
+        return { ok: false, message: language === "en" ? "Choose a valid freeze window." : language === "ar" ? "اختر نافذة تثبيت صالحة." : "Vælg en gyldig frysegrænse." };
       }
     }
-    if (stepNumber === 5 && (!strategy.valid || strategy.realism === "unrealistic")) {
-      return { ok: false, message: language === "en" ? "Adjust the plan until the critical check is resolved." : language === "ar" ? "عدّل الخطة حتى يتم حل المشكلات الحرجة." : "Justér planen, indtil den kritiske kontrol er løst." };
+    if (stepNumber === 5 && !strategy.valid) {
+      return { ok: false, message: language === "en" ? "Resolve the structural date or capacity issue before activation." : language === "ar" ? "حل مشكلة التاريخ أو السعة الأساسية قبل التفعيل." : "Ret den strukturelle dato- eller kapacitetsfejl før aktivering." };
     }
     return { ok: true, message: polishCopy.ready };
   }
@@ -21474,21 +21835,21 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     { title: `${daysUntilExam} days until the exam`, detail: `${weeksUntilExam} weeks available · ${draft.bufferDays} buffer days` },
     { title: `${pendingLectureCount} lectures remaining`, detail: `${selectedLectureCount} selected · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} estimated hours` },
     { title: `${weeklyCapacityHours} hours per normal week`, detail: `${availableStudyDays} active days · ${draft.excludedDates.length} exceptions` },
-    { title: `${draft.mcqReservePercent}% reserved for review`, detail: `${draft.freezeDays} frozen days · manual times ${draft.preserveManualTimes ? "preserved" : "may move"}` },
+    { title: `Adaptive spaced repetition`, detail: `${draft.freezeDays} frozen days · manual repetition dates are preserved` },
     { title: `${strategyRealismLabel} workload`, detail: `${Math.round(strategy.requiredTotal / 60)} required hours · ${Math.round(strategy.capacityTotal / 60)} available hours` },
     { title: `${strategy.assignments.length} calendar activities`, detail: "Review the exact week-by-week plan before activation" },
   ] : language === "ar" ? [
     { title: `${daysUntilExam} يوما حتى الامتحان`, detail: `${weeksUntilExam} أسابيع متاحة · ${draft.bufferDays} أيام احتياطية` },
     { title: `${pendingLectureCount} محاضرات متبقية`, detail: `${selectedLectureCount} مختارة · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} ساعات مقدرة` },
     { title: `${weeklyCapacityHours} ساعة في الأسبوع المعتاد`, detail: `${availableStudyDays} أيام دراسة · ${draft.excludedDates.length} أيام مستثناة` },
-    { title: `${draft.mcqReservePercent}% مخصص للمراجعة`, detail: `${draft.freezeDays} أيام ثابتة · الأوقات اليدوية ${draft.preserveManualTimes ? "محفوظة" : "قابلة للنقل"}` },
+    { title: `تكرار متباعد تكيفي`, detail: `${draft.freezeDays} أيام ثابتة · مواعيد التكرار اليدوية محفوظة` },
     { title: `الخطة ${strategyRealismLabel}`, detail: `${Math.round(strategy.requiredTotal / 60)} ساعة مطلوبة · ${Math.round(strategy.capacityTotal / 60)} ساعة متاحة` },
     { title: `${strategy.assignments.length} نشاطا في التقويم`, detail: "راجع الخطة الأسبوعية الدقيقة قبل التفعيل" },
   ] : [
     { title: `${daysUntilExam} dage til eksamen`, detail: `${weeksUntilExam} uger til rådighed · ${draft.bufferDays} bufferdage` },
     { title: `${pendingLectureCount} forelæsninger tilbage`, detail: `${selectedLectureCount} valgt · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} anslåede timer` },
     { title: `${weeklyCapacityHours} timer i en normal uge`, detail: `${availableStudyDays} aktive studiedage · ${draft.excludedDates.length} undtagelser` },
-    { title: `${draft.mcqReservePercent}% reserveret til repetition`, detail: `${draft.freezeDays} frosne dage · manuelle tider ${draft.preserveManualTimes ? "bevares" : "må flyttes"}` },
+    { title: `Adaptiv spaced repetition`, detail: `${draft.freezeDays} frosne dage · manuelt valgte repetitionsdatoer bevares` },
     { title: `${strategyRealismLabel} belastning`, detail: `${Math.round(strategy.requiredTotal / 60)} t krævet · ${Math.round(strategy.capacityTotal / 60)} t til rådighed` },
     { title: `${strategy.assignments.length} kalenderaktiviteter`, detail: "Kontrollér den præcise ugeplan før aktivering" },
   ];
@@ -21534,8 +21895,8 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       },
       {
         kicker: copy.steps[3],
-        value: `${draft.mcqReservePercent}%`,
-        unit: polishCopy.reviewReserve,
+        value: "SR",
+        unit: language === "en" ? "adaptive" : language === "ar" ? "تكيفي" : "adaptiv",
         title: polishCopy.rulesSet,
         description: polishCopy.rulesDescription,
         metrics: [
@@ -21621,7 +21982,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     const lecture = lectureContext?.lecture;
     if (!lecture) return;
     if (action === "priority") prioritizeLecture(lecture.id);
-    if (["easy", "normal", "hard"].includes(action)) setLectureDifficulty(lecture.id, action);
+    if (["easy", "moderate", "demanding"].includes(action)) setLectureDifficulty(lecture.id, action);
     if (action === "done") toggleDone(lecture.id);
     if (action === "include") toggleIncluded(lecture.id);
     setLectureContext(null);
@@ -21635,7 +21996,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     return () => { window.removeEventListener("pointerdown", close); window.removeEventListener("keydown", escape); };
   }, [lectureContext]);
   useEffect(() => {
-    if (existing || !moduleName) return;
+    if (!moduleName) return;
     localStorage.setItem(STORAGE.studyPlanDraft, JSON.stringify({
       moduleName,
       step: Math.min(step, 5),
@@ -21663,14 +22024,19 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   }, [transition]);
 
   function syncPlanToCalendar(planRecord) {
-    const bundle = buildStudyPlanCalendarBundle({ moduleName, plan: planRecord, lectures, questionTotal: questionCount, fromDate: new Date() });
     const storedEvents = loadStorage(STORAGE.calendarEvents, []);
     const storedMeta = loadStorage(STORAGE.calendarEventMeta, {});
-    const isReviewTaskCalendarEvent = (event) => Boolean(event?.reviewTaskId || storedMeta?.[event?.id]?.reviewTaskId || event?.phase === "exam-review" || storedMeta?.[event?.id]?.phase === "exam-review");
-    const withoutPlan = storedEvents.filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-") || isReviewTaskCalendarEvent(event));
+    const reservedEvents = mergeCalendarEventMeta(storedEvents, storedMeta);
+    const bundle = buildStudyPlanCalendarBundle({ moduleName, plan: planRecord, lectures, questionTotal: questionCount, fromDate: new Date(), reservedEvents });
+    const isLinkedManualStudyPlanEvent = (event) => {
+      const meta = storedMeta?.[event?.id] || {};
+      const kind = studyPlanActivityKind({ ...event, ...meta });
+      return Boolean(event?.reviewTaskId || meta.reviewTaskId || event?.repetitionId || meta.repetitionId || [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(kind));
+    };
+    const withoutPlan = storedEvents.filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-") || isLinkedManualStudyPlanEvent(event));
     const reconciled = reconcileStudyPlanCalendarEvents({ moduleName, generatedEvents: bundle.events, generatedMetadata: bundle.metadata, previousEvents: storedEvents, previousMetadata: storedMeta });
     localStorage.setItem(STORAGE.calendarEvents, JSON.stringify([...withoutPlan, ...reconciled]));
-    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id, value]) => !String(id).startsWith(`studyplan-${moduleName}`) || value?.reviewTaskId || value?.phase === "exam-review"));
+    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id, value]) => !String(id).startsWith(`studyplan-${moduleName}`) || value?.reviewTaskId || value?.repetitionId || [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(studyPlanActivityKind(value))));
     Object.entries(bundle.metadata).forEach(([id, generated]) => {
       const previous = storedMeta[id] || {};
       const event = reconciled.find((item) => item.id === id);
@@ -21683,14 +22049,14 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   }
 
   function activatePlan() {
-    if (!strategy.valid || strategy.realism === "unrealistic") { setStep(5); return; }
+    if (!strategy.valid) { setStep(5); return; }
     localStorage.removeItem(STORAGE.studyPlanDraft);
     const planRecord = { ...draft, status: "active", calendarEnabled: true, calendarClearedAt: null, createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now(), activatedAt: existing?.activatedAt || Date.now(), strategySnapshot: { phases: strategy.phases, realism: strategy.realism, issues: strategy.issues } };
     setPlans((previous) => ({ ...previous, [moduleName]: planRecord }));
     setUser((previous) => ({ ...previous, module: moduleName }));
     setFsrsSettings((previous) => ({ ...previous, requestRetention: draft.desiredRetention, learningSteps: draft.learningSteps, relearningSteps: draft.relearningSteps, maximumInterval: 36500, enableFuzz: true, enableShortTerm: true }));
     syncPlanToCalendar(planRecord);
-    setSavedNotice("Studieplan og automatisk repetition er aktiveret.");
+    setSavedNotice(strategy.planningQueueCount ? `Studieplan aktiveret. ${strategy.planningQueueCount} aktivitet${strategy.planningQueueCount === 1 ? "" : "er"} ligger i planlægningskøen.` : "Studieplan aktiveret. Spaced repetition planlægges af dig efter gennemførte forelæsninger.");
     setStep(6);
     window.setTimeout(() => setSavedNotice(""), 3500);
   }
@@ -21698,10 +22064,14 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   function removeStudyPlanCalendarObjects() {
     const storedEvents = loadStorage(STORAGE.calendarEvents, []);
     const storedMeta = loadStorage(STORAGE.calendarEventMeta, {});
-    const isCurrentPlanEvent = (event) => event.planModuleId === moduleName && (event.source === "study-plan" || String(event.id || "").startsWith(`studyplan-${moduleName}`));
-    const removedIds = new Set(storedEvents.filter(isCurrentPlanEvent).map((event) => event.id));
-    const events = storedEvents.filter((event) => !isCurrentPlanEvent(event));
-    const meta = Object.fromEntries(Object.entries(storedMeta).filter(([id, value]) => !removedIds.has(id) && !(value?.planModuleId === moduleName && value?.source === "study-plan") && !String(id).startsWith(`studyplan-${moduleName}`)));
+    const isGeneratedCurrentPlanEvent = (event) => {
+      const merged = { ...event, ...(storedMeta?.[event?.id] || {}) };
+      if (merged.planModuleId !== moduleName) return false;
+      return [STUDY_PLAN_ACTIVITY_KINDS.LECTURE, STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE, STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY, STUDY_PLAN_ACTIVITY_KINDS.FOLLOW_UP].includes(studyPlanActivityKind(merged));
+    };
+    const removedIds = new Set(storedEvents.filter(isGeneratedCurrentPlanEvent).map((event) => event.id));
+    const events = storedEvents.filter((event) => !isGeneratedCurrentPlanEvent(event));
+    const meta = Object.fromEntries(Object.entries(storedMeta).filter(([id]) => !removedIds.has(id)));
     localStorage.setItem(STORAGE.calendarEvents, JSON.stringify(events));
     localStorage.setItem(STORAGE.calendarEventMeta, JSON.stringify(meta));
     setCalendarEventMeta(meta);
@@ -21756,23 +22126,22 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
 
   function StepContent() {
     const groups = [...new Set(lectures.map((lecture) => lecture.group || "Andet"))];
-    const difficultyCopy = { easy: "Let", normal: "Normal", hard: "Tung" };
+    const difficultyCopy = { easy: "Let", moderate: "Moderat", demanding: "Krævende" };
     return <div className="study-plan-v4-grid">
       <section className="study-plan-v4-card">
-        <div className="study-plan-v4-card-heading"><div><h2>Vælg pensum og belastning</h2><p>Medtag det relevante pensum, markér allerede gennemgåede forelæsninger og vurder belastningen. Belastningen bruges til fordelingen — ikke som en låst varighed.</p></div><span>{draft.includedLectureIds.length}/{lectures.length}</span></div>
+        <div className="study-plan-v4-card-heading"><div><h2>Vælg pensum</h2><p>Medtag det relevante pensum og markér det, du allerede har gennemgået. Første placering bruger et neutralt startestimat; efter gennemgangen kalibrerer du faktisk tid og Let / Moderat / Krævende til spaced repetition.</p></div><span>{draft.includedLectureIds.length}/{lectures.length}</span></div>
         <div className="study-plan-v4-lecture-list">{groups.map((group) => <div key={group} className="study-plan-v4-lecture-group"><h3>{group}</h3>{lectures.filter((lecture) => (lecture.group || "Andet") === group).map((lecture) => {
           const included = draft.includedLectureIds.includes(lecture.id);
-          const difficulty = draft.difficulty?.[lecture.id] || "normal";
+          const difficulty = studyPlanNormalizeLoadLevel(draft.difficulty?.[lecture.id]);
           return <div key={lecture.id} className="study-plan-v4-lecture-row" data-included={included ? "true" : "false"} onContextMenu={(event) => openLectureContext(event, lecture)}>
             <button type="button" className="study-plan-v4-check" onClick={() => toggleIncluded(lecture.id)} aria-label={included ? "Ekskludér forelæsning" : "Medtag forelæsning"}>{included ? "✓" : ""}</button>
-            <div><strong>{lecture.id} · {lecture.title}</strong><small>{lecture.parts ? `${lecture.parts} dele` : "1 forelæsning"} · anslået {studyPlanLectureMinutes(lecture, difficulty)} min belastning</small></div>
-            <select className="study-plan-v4-difficulty" value={difficulty} disabled={!included} onChange={(event) => setLectureDifficulty(lecture.id, event.target.value)} aria-label={`Belastning for ${lecture.id}`}>{Object.entries(difficultyCopy).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>
+            <div><strong>{lecture.id} · {lecture.title}</strong><small>{lecture.parts ? `${lecture.parts} dele` : "1 forelæsning"} · startestimat {studyPlanLectureMinutes(lecture, "moderate")} min · kalibreres efter gennemgang</small></div>
             <label><input type="checkbox" checked={draft.doneLectureIds.includes(lecture.id)} onChange={() => toggleDone(lecture.id)} />Gennemgået</label>
             <button type="button" className="study-plan-v4-more" aria-label={`Flere valg for ${lecture.id}`} onClick={(event) => openLectureContext({ preventDefault: () => {}, clientX: event.clientX, clientY: event.clientY }, lecture)}><Icon name="more" size={14} /></button>
           </div>;
         })}</div>)}</div>
       </section>
-      <section className="study-plan-v4-card"><h2>Eksamenssæt</h2><p>Et sæt er først færdigt, når både besvarelsen og fejlgennemgangen er gennemført.</p><div className="study-plan-v4-fields"><label><span>Antal sæt</span><input className="ui-control" type="number" min="0" max="30" value={draft.examSetCount} onChange={(event) => update("examSetCount", Number(event.target.value))} /></label><label><span>Tid til hvert sæt</span><select className="ui-control" value={draft.examSetMinutes} onChange={(event) => update("examSetMinutes", Number(event.target.value))}>{[60,90,120,180].map((value) => <option key={value} value={value}>{value} min</option>)}</select></label><label><span>Fejlgennemgang</span><select className="ui-control" value={draft.errorReviewMinutes} onChange={(event) => update("errorReviewMinutes", Number(event.target.value))}>{[30,45,60,90].map((value) => <option key={value} value={value}>{value} min</option>)}</select></label></div><div className="study-plan-v4-note">Hvert sæt oprettes som to separate planobjekter: selve eksamenssættet og målrettet fejlgennemgang.</div></section>
+      <section className="study-plan-v4-card"><h2>Eksamenssæt</h2><p>Planlæg selve eksamenssættene som konkrete, udelelige blokke. Fejl og markerede spørgsmål håndteres separat i eksamensreview og bliver ikke automatisk til en fast review-session.</p><div className="study-plan-v4-fields"><label><span>Antal sæt</span><input className="ui-control" type="number" min="0" max="30" value={draft.examSetCount} onChange={(event) => update("examSetCount", Number(event.target.value))} /></label><label><span>Tid til hvert sæt</span><select className="ui-control" value={draft.examSetMinutes} onChange={(event) => update("examSetMinutes", Number(event.target.value))}>{[60,90,120,180].map((value) => <option key={value} value={value}>{value} min</option>)}</select></label></div><div className="study-plan-v4-note">En 120-minutters simulation kræver en studiedag med mindst 120 minutters reel kapacitet. Den skjulte review-reserve reducerer ikke længere din dag.</div></section>
     </div>;
   }
 
@@ -21781,18 +22150,12 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   }
 
   function StepStrategy() {
-    const reserveOptions = [
-      { value: 15, label: "Let", detail: "Lidt plads til repetition på travle dage" },
-      { value: 20, label: "Anbefalet", detail: "En balanceret mængde daglig repetition" },
-      { value: 30, label: "Ekstra", detail: "Mere plads til svære emner og mange kort" },
-    ];
     return <div className="study-plan-v4-grid">
-      <section className="study-plan-v4-card"><h2>Planadfærd</h2><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard næste dag?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer valgt i kalenderen overskrives ikke.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></section>
+      <section className="study-plan-v4-card"><h2>Planadfærd</h2><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard næste dag?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer og spaced-repetition-datoer, du selv har valgt, overskrives ikke af regenerering.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></section>
       <section className="study-plan-v4-card study-plan-v4-flashcard-card">
-        <div className="study-plan-v4-card-heading"><div><h2>Repetition af flashcards</h2><p>MedFLUEN finder automatisk ud af, hvornår et spørgsmål bør ses igen. Du behøver ikke indstille en teknisk algoritme.</p></div><span>Automatisk</span></div>
-        <div className="study-plan-v4-review-modes"><strong>Det tæller med, når du arbejder i:</strong><div><span>Almindelig MCQ</span><span>Flashcard mode</span><span>Active recall</span><span>Eksamensmode</span></div><small>Rigtige, forkerte og ubesvarede spørgsmål påvirker, hvornår kortene kommer tilbage.</small></div>
-        <div className="study-plan-v4-reserve-friendly"><strong>Hvor meget plads skal dagsplanen holde fri til flashcards?</strong><div>{reserveOptions.map((option) => <button key={option.value} type="button" data-active={draft.mcqReservePercent === option.value ? "true" : "false"} onClick={() => update("mcqReservePercent", option.value)}><b>{option.label}</b><small>{option.detail}</small></button>)}</div></div>
-        <div className="study-plan-v4-note">Når kort skal repeteres, vises de automatisk i kalenderens separate flashcard-boks. Du kan starte dem med det samme eller placere dem på et klokkeslæt.</div>
+        <div className="study-plan-v4-card-heading"><div><h2>Spaced repetition</h2><p>Forelæsninger får først en repetitionsplan, når du har gennemført dem og selv vurderet belastningen. MedFLUEN anbefaler interval og varighed; du bestemmer datoen.</p></div><span>Brugerstyret</span></div>
+        <div className="study-plan-v4-review-modes"><strong>Forelæsninger</strong><div><span>Faktisk tidsforbrug</span><span>Let</span><span>Moderat</span><span>Krævende</span></div><small>Anbefalingen komprimeres automatisk, når eksamen nærmer sig. En manuel dato flyttes aldrig i stilhed.</small></div>
+        <div className="study-plan-v4-note">MCQ/flashcards fortsætter med FSRS som hidtil og bruger ikke en skjult procentdel af din studieplanskapacitet.</div>
       </section>
     </div>;
   }
@@ -21808,7 +22171,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       <div className="study-plan-v4-preview-top"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Din eksamensstrategi</h2><p>{strategy.pendingCount} resterende forelæsninger, {draft.examSetCount} eksamenssæt og {draft.bufferDays} bufferdage.</p></div><div className="study-plan-v4-capacity"><strong>{Math.round(strategy.requiredTotal / 60)} t</strong><span>samlet planbelastning</span><small>{Math.round(strategy.capacityTotal / 60)} t tilgængelig plan-kapacitet</small></div></div>
       <PhaseTimeline phases={strategy.phases} />
       <section className="study-plan-v4-card study-plan-v4-load-card"><div className="study-plan-v4-card-heading"><div><h2>Ugebelastning</h2><p>Vælg hvordan arbejdsbyrden skal fordeles. Planen opdateres med det samme.</p></div></div><div className="study-plan-v4-distribution-control">{distributionOptions.map((option) => <button key={option.value} type="button" data-active={draft.distributionMode === option.value ? "true" : "false"} onClick={() => update("distributionMode", option.value)}><strong>{option.label}</strong><small>{option.detail}</small></button>)}</div><div className="study-plan-v4-week-bars">{strategy.weeklyLoads.map((week) => { const weekNumber = studyPlanIsoWeekNumber(week.weekStart); return <div key={week.weekStart}><span>Uge {weekNumber ?? "—"}</span><div><i style={{ width: `${Math.max(3, (week.minutes / maxWeekly) * 100)}%` }} /></div><strong>{Math.round(week.minutes / 60 * 10) / 10} t</strong></div>; })}</div></section>
-      <section className="study-plan-v4-card"><h2>Kritisk kontrol</h2>{strategy.issues.length ? <div className="study-plan-v4-issues">{strategy.issues.map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div> : <div className="study-plan-v4-success"><Icon name="check" size={15} />Planen har plads til alle faser.</div>}<div className="study-plan-v4-suggestions"><strong>Mulige justeringer</strong><span>Skift belastningsfordeling ovenfor, flyt forelæsningsfristen, øg timer på enkelte ugedage eller reducer antal eksamenssæt.</span></div></section>
+      <section className="study-plan-v4-card"><h2>Kritisk kontrol</h2>{strategy.issues.length || strategy.warnings?.length ? <div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div> : <div className="study-plan-v4-success"><Icon name="check" size={15} />Planen har plads til alle aktiviteter.</div>}<div className="study-plan-v4-suggestions"><strong>Mulige justeringer</strong><span>Skift belastningsfordeling ovenfor, flyt forelæsningsfristen, øg timer på enkelte ugedage eller reducer antal eksamenssæt.</span></div></section>
       {existing && <section className="study-plan-v4-card"><h2>Ved opdatering</h2><div className="study-plan-v4-change-grid"><span><b>{strategy.assignments.length}</b> fremtidige planobjekter</span><span><b>{draft.doneLectureIds.length}</b> gennemførte bevares</span><span><b>{draft.preserveManualTimes ? "Ja" : "Nej"}</b> bevar manuelle tider</span><span><b>{draft.freezeDays}</b> frosne dage</span></div></section>}
     </div>;
   }
@@ -21826,20 +22189,20 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     const weekRows = Object.entries(assignmentsByWeek).sort(([a], [b]) => a.localeCompare(b));
     const missedCopy = draft.missedPolicy === "ask" ? "Spørg altid" : draft.missedPolicy === "buffer" ? "Flyt til buffer" : draft.missedPolicy === "next-capacity" ? "Næste dag med kapacitet" : "Behold forsinket";
     return <div className="study-plan-v4-activate study-plan-v4-activate-detailed">
-      <section className="study-plan-v4-card study-plan-v4-final-summary"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Kontrollér din samlede plan</h2><p>Kalenderen viser hver forelæsning én gang. Opfølgning og eventuelle oversprungne forelæsninger samles i forelæsningscounteren i stedet for at skabe dubletter.</p></div><div className="study-plan-v4-final-numbers"><span><b>{counts.lecture || 0}</b> forelæsninger</span><span><b>{selectedLectureCount}</b> følges i counteren</span><span><b>{counts.exam || 0}</b> eksamenssæt</span><span><b>{counts.targeted || 0}</b> fejl-/fokusblokke</span></div></section>
+      <section className="study-plan-v4-card study-plan-v4-final-summary"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Kontrollér din samlede plan</h2><p>Kalenderen viser hver forelæsning én gang. Opfølgning og eventuelle oversprungne forelæsninger samles i forelæsningscounteren i stedet for at skabe dubletter.</p></div><div className="study-plan-v4-final-numbers"><span><b>{counts.lecture || 0}</b> forelæsninger</span><span><b>{selectedLectureCount}</b> følges i counteren</span><span><b>{counts.exam || 0}</b> eksamenssæt</span><span><b>{strategy.planningQueueCount || 0}</b> i planlægningskø</span></div></section>
       <div className="study-plan-v4-final-grid">
         <section className="study-plan-v4-card"><h2>Nøgledatoer og regler</h2><div className="study-plan-v4-final-detail-list"><span><b>Planstart</b><small>{new Date().toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Færdig med forelæsninger</b><small>{new Date(`${draft.lectureDeadline}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamenssæt starter</b><small>{new Date(`${draft.examSetStartDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamen</b><small>{new Date(`${draft.examDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Missede aktiviteter</b><small>{missedCopy}</small></span><span><b>Flashkort</b><small>Planlægges separat og ændres ikke, når studieplanen nulstilles</small></span><span><b>Manuelle tider</b><small>{draft.preserveManualTimes ? "Bevares ved senere opdateringer" : "Må omfordeles"}</small></span></div></section>
         <section className="study-plan-v4-card"><h2>Faseoverblik</h2><div className="study-plan-v4-final-phase-list">{strategy.phases.map((phase) => <div key={phase.id}><i style={{ background: phase.tone }} /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })} – {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })}</small></span></div>)}</div></section>
       </div>
       <section className="study-plan-v4-card study-plan-v4-week-overview"><div className="study-plan-v4-card-heading"><div><h2>Plan uge for uge</h2><p>En konkret oversigt over de aktiviteter, der bliver oprettet.</p></div><span>{strategy.assignments.length} aktiviteter</span></div><div>{weekRows.map(([weekStart, assignments]) => { const weekNumber = studyPlanIsoWeekNumber(weekStart); const sorted = [...assignments].sort((a,b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title)); return <article key={weekStart}><header><strong>Uge {weekNumber ?? "—"}</strong><small>{sorted.length} aktiviteter · {Math.round(sorted.reduce((sum,item)=>sum+(item.loadMinutes||0),0)/60*10)/10} t</small></header><div>{sorted.map((item) => <span key={item.id}><time>{new Date(`${item.date}T00:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}</time><b>{item.title}</b><small>{Math.round((item.loadMinutes || 0) / 15) * 15} min · {item.phase === "lecture" ? "Forelæsning" : item.phase === "consolidation" ? "Repetition" : item.phase === "exam" ? "Eksamenssæt" : "Fokusblok"}</small></span>)}</div></article>; })}</div></section>
-      {strategy.issues.length > 0 && <section className="study-plan-v4-card"><h2>Kontrollér før aktivering</h2><div className="study-plan-v4-issues">{strategy.issues.map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div></section>}
+      {(strategy.issues.length > 0 || strategy.warnings?.length > 0) && <section className="study-plan-v4-card"><h2>Kontrollér før aktivering</h2><div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div>{strategy.planningQueueCount > 0 && <div className="study-plan-v4-note">Du kan stadig aktivere planen. Uplacerede aktiviteter bliver liggende i planlægningskøen, så du kan placere dem manuelt.</div>}</section>}
     </div>;
   }
 
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Segment 4.4.8 · studieplan</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.1</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
         <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
@@ -21857,7 +22220,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
             </div>
             {stepContent}
           </div>
-          <footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(true)}>{copy.clearCalendar}</button>}{existing && <button type="button" className="ui-button ui-button--danger" onClick={() => setConfirmResetPlan(true)}>{copy.resetPlan}</button>}</div><div>{validationMessage && <span className="study-plan-v4-validation" role="alert">{validationMessage}</span>}{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={step === 5 && (!strategy.valid || strategy.realism === "unrealistic")} data-valid={canContinue ? "true" : "false"} onClick={requestNextStep}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid || strategy.realism === "unrealistic"} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
+          <footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(true)}>{copy.clearCalendar}</button>}{existing && <button type="button" className="ui-button ui-button--danger" onClick={() => setConfirmResetPlan(true)}>{copy.resetPlan}</button>}</div><div>{validationMessage && <span className="study-plan-v4-validation" role="alert">{validationMessage}</span>}{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={step === 5 && !strategy.valid} data-valid={canContinue ? "true" : "false"} onClick={requestNextStep}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
       </div>
       {transition && <div className="study-plan-v4-transition" role="status" aria-live="polite" onPointerDown={(event) => { if (event.target === event.currentTarget) completeTransition(); }}>
         <div className="study-plan-v4-transition-card">
@@ -21874,7 +22237,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
           <i className="study-plan-v4-transition-progress" aria-hidden="true" />
         </div>
       </div>}
-      {lectureContext && <div className="study-plan-v4-context" style={{ left: lectureContext.x, top: lectureContext.y }} onPointerDown={(event) => event.stopPropagation()}><strong>{lectureContext.lecture.id} · {lectureContext.lecture.title}</strong><button type="button" onClick={() => runLectureContext("priority")}>Prioritér tidligere</button><span>Belastning</span><div><button type="button" data-active={(draft.difficulty?.[lectureContext.lecture.id] || "normal") === "easy" ? "true" : "false"} onClick={() => runLectureContext("easy")}>Let</button><button type="button" data-active={(draft.difficulty?.[lectureContext.lecture.id] || "normal") === "normal" ? "true" : "false"} onClick={() => runLectureContext("normal")}>Normal</button><button type="button" data-active={draft.difficulty?.[lectureContext.lecture.id] === "hard" ? "true" : "false"} onClick={() => runLectureContext("hard")}>Tung</button></div><button type="button" onClick={() => runLectureContext("done")}>{draft.doneLectureIds.includes(lectureContext.lecture.id) ? "Fortryd gennemgået" : "Markér gennemgået"}</button><button type="button" onClick={() => runLectureContext("include")}>{draft.includedLectureIds.includes(lectureContext.lecture.id) ? "Ekskludér fra planen" : "Medtag i planen"}</button></div>}
+      {lectureContext && <div className="study-plan-v4-context" style={{ left: lectureContext.x, top: lectureContext.y }} onPointerDown={(event) => event.stopPropagation()}><strong>{lectureContext.lecture.id} · {lectureContext.lecture.title}</strong><button type="button" onClick={() => runLectureContext("priority")}>Prioritér tidligere</button><button type="button" onClick={() => runLectureContext("done")}>{draft.doneLectureIds.includes(lectureContext.lecture.id) ? "Fortryd gennemgået" : "Markér gennemgået"}</button><button type="button" onClick={() => runLectureContext("include")}>{draft.includedLectureIds.includes(lectureContext.lecture.id) ? "Ekskludér fra planen" : "Medtag i planen"}</button></div>}
       {confirmClearCalendar && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Ryd studieplanskalender?</h2><p>Alle aktiviteter, som studieplanen har oprettet for {moduleName}, fjernes. Planens indstillinger, counter og forelæsningsstatus bevares. Kalenderen oprettes igen, næste gang planen aktiveres.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={clearStudyPlanCalendar}>Ryd kalender</button></div></div></div>}
       {confirmResetPlan && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Nulstil studieplan?</h2><p>Studieplan, studieplanskalender, forelæsningscounter og din læst-status nulstilles for {moduleName}. Flashkort-progress og repetitionshistorik slettes ikke.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmResetPlan(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={resetStudyPlan}>Nulstil studieplan</button></div></div></div>}
     </div>
@@ -21889,15 +22252,60 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
 const STUDY_PLAN_REVIEW_TASK_TABLE = "study_plan_review_tasks";
 const STUDY_PLAN_REVIEW_TASK_ITEM_TABLE = "study_plan_review_task_items";
 const STUDY_PLAN_REVIEW_STATUSES = ["inbox", "planned", "completed", "revisit"];
+const STUDY_PLAN_LECTURE_MEMORY_TABLE = "study_plan_lecture_memory";
+const STUDY_PLAN_LECTURE_REPETITION_TABLE = "study_plan_lecture_repetitions";
+
+function studyPlanLectureMemoryFromRow(row) {
+  const source = row && typeof row === "object" ? row : {};
+  return {
+    id: source.id || null, userId: source.user_id || null, moduleName: source.module_name || "", lectureId: source.lecture_id || "",
+    baselineMinutes: Math.max(10, Number(source.baseline_minutes) || 60), latestLoadRating: studyPlanNormalizeLoadLevel(source.latest_load_rating),
+    firstCompletedAt: source.first_completed_at || null, lastCompletedAt: source.last_completed_at || null, completedRepetitions: Math.max(0, Number(source.completed_repetitions) || 0),
+    previousIntervalDays: source.previous_interval_days == null ? null : Math.max(1, Number(source.previous_interval_days) || 1), examDate: source.exam_date || null, stoppedAt: source.stopped_at || null,
+    metadata: source.metadata && typeof source.metadata === "object" ? source.metadata : {}, updatedAt: source.updated_at || null,
+  };
+}
+
+function studyPlanLectureRepetitionFromRow(row) {
+  const source = row && typeof row === "object" ? row : {};
+  return {
+    id: source.id || null, memoryId: source.memory_id || null, userId: source.user_id || null, moduleName: source.module_name || "", lectureId: source.lecture_id || "",
+    sequenceNumber: Math.max(1, Number(source.sequence_number) || 1), recommendedIntervalDays: Math.max(1, Number(source.recommended_interval_days) || 1), chosenIntervalDays: Math.max(1, Number(source.chosen_interval_days) || 1),
+    recommendedMinutes: Math.max(10, Number(source.recommended_minutes) || 30), plannedMinutes: Math.max(10, Number(source.planned_minutes) || 30),
+    scheduledDate: source.scheduled_date || null, scheduledTime: source.scheduled_time ? String(source.scheduled_time).slice(0, 5) : "", calendarEventId: source.calendar_event_id || null,
+    loadRating: source.load_rating ? studyPlanNormalizeLoadLevel(source.load_rating) : null, actualMinutes: source.actual_minutes == null ? null : Math.max(1, Number(source.actual_minutes) || 1),
+    status: ["scheduled","completed","cancelled"].includes(source.status) ? source.status : "scheduled", completedAt: source.completed_at || null, cancelledAt: source.cancelled_at || null,
+    metadata: source.metadata && typeof source.metadata === "object" ? source.metadata : {}, updatedAt: source.updated_at || null,
+  };
+}
+
+function studyPlanLectureRepetitionCalendarEventId(moduleName, repetitionId) {
+  return `studyplan-${moduleName}-repetition-${repetitionId}`;
+}
+
+function studyPlanLectureRepetitionCalendarEvent(repetition, lecture) {
+  const date = repetition?.scheduledDate || studyPlanDateKey(new Date());
+  const time = repetition?.scheduledTime || "";
+  const duration = Math.max(10, Number(repetition?.plannedMinutes) || 30);
+  const endFields = time ? calendarEndFields(date, timeToMinutes(time) || 0, duration) : { endDate: date, endTime: "" };
+  const eventId = repetition?.calendarEventId || studyPlanLectureRepetitionCalendarEventId(repetition?.moduleName || "module", repetition?.id || "pending");
+  return {
+    id: eventId, title: `Spaced repetition · ${lecture ? `${lecture.id} · ${lecture.title}` : repetition?.lectureId || "Forelæsning"}`, date, time, ...endFields,
+    type: "review", source: "study-plan", planModuleId: repetition?.moduleName || null, lectureId: repetition?.lectureId || null, lectureIds: repetition?.lectureId ? [repetition.lectureId] : [],
+    activityKind: STUDY_PLAN_ACTIVITY_KINDS.REPETITION, phase: "lecture-repetition", repetitionId: repetition?.id || null, repetitionSequence: repetition?.sequenceNumber || 1,
+    recommendedIntervalDays: repetition?.recommendedIntervalDays || null, chosenIntervalDays: repetition?.chosenIntervalDays || null, plannedMinutes: duration, loadRating: repetition?.loadRating || null, actualMinutes: repetition?.actualMinutes || null,
+    estimatedHours: duration / 60, needsScheduling: !time, status: repetition?.status === "completed" ? "completed" : "planned", completedAt: repetition?.completedAt || null,
+  };
+}
 
 function studyPlanWorkspaceCopy(language) {
   const copy = {
     da: {
       title: "Studieplan", eyebrow: "Personligt studie-workspace", activePlan: "Plan aktiv", noPlan: "Ingen aktiv plan",
-      overview: "Overblik", review: "Review & fokus", builder: "Planbygger", calendar: "Kalender",
+      overview: "Overblik", review: "Spaced repetition", builder: "Planbygger", calendar: "Kalender",
       overviewIntro: "Saml plan, eksamensreview og kalender uden at blande deres ansvar sammen.",
       nextFocus: "Næste fokus", noNextFocus: "Ingen planlagt aktivitet endnu", noNextFocusHint: "Planlæg et review eller aktivér din plan for at få næste fokus her.",
-      openCalendar: "Åbn kalender", openReview: "Åbn Review & fokus", openBuilder: "Åbn Planbygger",
+      openCalendar: "Åbn kalender", openReview: "Åbn Spaced repetition", openBuilder: "Åbn Planbygger",
       attention: "Kræver din opmærksomhed", thisWeek: "Denne uge", reviewNeeds: "Review-behov", planTasks: "Planopgaver",
       unplanned: "Skal planlægges", planned: "Planlagt", completed: "Gennemført", revisit: "Skal ses igen", all: "Alle",
       activeBacklog: "Aktiv review-backlog", addBacklog: "Send aktiv backlog til studieplan", backlogAdded: "Backlog er tilføjet til studieplanen.", simulations: "Eksamenssimulationer", planSimulation: "Tilføj simulation", simulationPlanned: "Simulation i studieplanen",
@@ -21915,7 +22323,7 @@ function studyPlanWorkspaceCopy(language) {
       previous: "Forrige", next: "Næste", notPlaced: "Ikke placeret", emptyCalendar: "Studieplanskalenderen er tom", emptyCalendarHint: "Aktivér en plan eller planlæg et review for at få aktiviteter her.",
       calendarIntro: "Kun studieplansaktiviteter vises her. Din almindelige kalender og globale kalenderlag ændres ikke.",
       reviewCalendarNotice: "Review-opgaver uden tidspunkt", reviewCalendarNoticeHint: "De har en studiedag, men mangler et præcist klokkeslæt.",
-      builderContext: "Planbyggeren er stadig den autoritative planmotor", builderContextHint: "Review & fokus føder planen med behov. Kalenderen bestemmer hvornår arbejdet udføres.",
+      builderContext: "Planbyggeren bruger din faktiske kapacitet", builderContextHint: "Manuelt valgte spaced-repetition-datoer reserverer rigtige minutter. Planen fylder resten uden skjulte review-reserver.",
       planInactiveHint: "Aktivér en plan for at kunne placere review-opgaver efter din ugekapacitet.",
       taskDetail: "Planopgave", source: "Kilde", linkedItems: "Tilknyttede reviewspørgsmål", scheduledFor: "Planlagt til", status: "Status",
       close: "Luk", overdue: "forfalden", reviewsWaiting: "reviews mangler placering", activitiesThisWeek: "aktiviteter denne uge",
@@ -21925,10 +22333,10 @@ function studyPlanWorkspaceCopy(language) {
     },
     en: {
       title: "Study plan", eyebrow: "Personal study workspace", activePlan: "Plan active", noPlan: "No active plan",
-      overview: "Overview", review: "Review & focus", builder: "Plan builder", calendar: "Calendar",
+      overview: "Overview", review: "Spaced repetition", builder: "Plan builder", calendar: "Calendar",
       overviewIntro: "Bring the plan, exam review and calendar together without mixing their responsibilities.",
       nextFocus: "Next focus", noNextFocus: "Nothing scheduled yet", noNextFocusHint: "Schedule a review or activate your plan to get a next focus here.",
-      openCalendar: "Open calendar", openReview: "Open Review & focus", openBuilder: "Open Plan builder", attention: "Needs your attention", thisWeek: "This week",
+      openCalendar: "Open calendar", openReview: "Open spaced repetition", openBuilder: "Open Plan builder", attention: "Needs your attention", thisWeek: "This week",
       reviewNeeds: "Review needs", planTasks: "Plan tasks", unplanned: "Needs planning", planned: "Planned", completed: "Completed", revisit: "Revisit", all: "All",
       activeBacklog: "Active review backlog", addBacklog: "Send active backlog to study plan", backlogAdded: "Backlog added to the study plan.", simulations: "Exam simulations", planSimulation: "Add simulation", simulationPlanned: "Simulation in study plan",
       noReviewNeeds: "No review needs waiting", noReviewNeedsHint: "Active errors and marked questions appear here when they exist in Errors & review.",
@@ -21944,7 +22352,7 @@ function studyPlanWorkspaceCopy(language) {
       emptyCalendar: "Study-plan calendar is empty", emptyCalendarHint: "Activate a plan or schedule a review to add activities here.",
       calendarIntro: "Only study-plan activities are shown here. Your regular calendar and global calendar layers are unchanged.",
       reviewCalendarNotice: "Review tasks without a time", reviewCalendarNoticeHint: "They have a study day but still need an exact time.",
-      builderContext: "The plan builder remains the authoritative planning engine", builderContextHint: "Review & focus supplies needs. The calendar determines when the work happens.",
+      builderContext: "The plan builder uses your real capacity", builderContextHint: "Manually chosen spaced-repetition dates reserve real minutes. The engine fills the remaining capacity without hidden review reserves.",
       planInactiveHint: "Activate a plan to place review tasks according to your weekly capacity.", taskDetail: "Plan task", source: "Source", linkedItems: "Linked review questions",
       scheduledFor: "Scheduled for", status: "Status", close: "Close", overdue: "overdue", reviewsWaiting: "reviews need placement", activitiesThisWeek: "activities this week",
       daysToExam: "days until exam", noExamDate: "Exam date not set", planLoad: "Plan load", generatedPlan: "Active study plan", inboxCount: "review tasks waiting",
@@ -22069,7 +22477,7 @@ function studyPlanNextReviewDate(plan, calendarEvents, moduleName, estimatedMinu
     const currentLoad = (Array.isArray(calendarEvents) ? calendarEvents : [])
       .filter((event) => event.planModuleId === moduleName && event.date === key && event.source === "study-plan" && !event.completedAt)
       .reduce((sum, event) => sum + Math.max(15, Math.round((Number(event.estimatedHours) || .5) * 60)), 0);
-    if (currentLoad + estimatedMinutes <= Math.max(estimatedMinutes, capacity)) return key;
+    if (studyPlanCanFitMinutes(capacity, currentLoad, estimatedMinutes)) return key;
   }
   return null;
 }
@@ -22091,109 +22499,191 @@ function StudyPlanScheduleDialog({ language, task, onClose, onSave, busy }) {
   );
 }
 
-function StudyPlanCalendarWorkspace({ c, language, moduleName, tasks, onTasksRefresh, onOpenReview }) {
+function StudyPlanRepetitionDialog({ language, mode, lecture, memory, repetition, examDate, initialMinutes = 60, busy = false, onClose, onConfirm, onStop }) {
+  const copy = ({
+    da: { first: "Kalibrér spaced repetition", later: "Vurder repetition", introFirst: "Fortæl hvor belastende forelæsningen var. MedFLUEN bruger din tid og belastning til at anbefale næste repetition før eksamen.", introLater: "Vurdér hvordan denne gennemgang føltes. Intervallet tilpasses, men du vælger altid selv datoen.", actual: "Hvor lang tid brugte du?", load: "Belastning", easy: "Let", moderate: "Moderat", demanding: "Krævende", easyHint: "Stoffet sad forholdsvis hurtigt", moderateHint: "Krævede normal koncentration", demandingHint: "Tungt eller krævede meget arbejde", recommendation: "MedFLUEN anbefaler", inDays: "om", days: "dage", duration: "Varighed", chooseDays: "Jeg vil se den igen om", exactDate: "Næste dato", afterExam: "Datoen ligger efter eksamen", afterExamHint: "Det anbefales at holde repetitionsforløbet inden eksamen. Markér kun hvis du bevidst vil planlægge efter eksamen.", allowAfter: "Tillad efter eksamen", stop: "Afslut repetitionsforløb", cancel: "Annuller", plan: "Planlæg næste repetition", save: "Gem og planlæg", examWeek: "Eksamensnær anbefaling", spacing: "Spaced repetition", minutes: "min" },
+    en: { first: "Calibrate spaced repetition", later: "Rate repetition", introFirst: "Tell MedFLUEN how demanding the lecture felt. Time and load are used to recommend the next repetition before the exam.", introLater: "Rate how this pass felt. The interval adapts, but you always choose the date.", actual: "How much time did you use?", load: "Load", easy: "Easy", moderate: "Moderate", demanding: "Demanding", easyHint: "The material settled quickly", moderateHint: "Required normal concentration", demandingHint: "Heavy or required substantial work", recommendation: "MedFLUEN recommends", inDays: "in", days: "days", duration: "Duration", chooseDays: "I want to revisit in", exactDate: "Next date", afterExam: "The date is after the exam", afterExamHint: "The repetition path is designed to finish before the exam. Only allow this if intentional.", allowAfter: "Allow after exam", stop: "End repetition path", cancel: "Cancel", plan: "Plan next repetition", save: "Save and plan", examWeek: "Exam-aware recommendation", spacing: "Spaced repetition", minutes: "min" },
+    ar: { first: "معايرة التكرار المتباعد", later: "تقييم التكرار", introFirst: "حدد مدى صعوبة المحاضرة. يستخدم MedFLUEN الوقت والعبء لاقتراح التكرار التالي قبل الامتحان.", introLater: "قيّم هذه المراجعة. تتكيف الفترة، لكنك تختار التاريخ دائمًا.", actual: "كم استغرق الأمر؟", load: "العبء", easy: "سهل", moderate: "متوسط", demanding: "متطلب", easyHint: "استقر المحتوى بسرعة", moderateHint: "احتاج تركيزًا عاديًا", demandingHint: "ثقيل أو احتاج جهدًا كبيرًا", recommendation: "توصية MedFLUEN", inDays: "بعد", days: "أيام", duration: "المدة", chooseDays: "أريد العودة بعد", exactDate: "التاريخ التالي", afterExam: "التاريخ بعد الامتحان", afterExamHint: "صُمم المسار للوصول إلى الامتحان. اسمح بذلك فقط إذا كان مقصودًا.", allowAfter: "السماح بعد الامتحان", stop: "إنهاء مسار التكرار", cancel: "إلغاء", plan: "جدولة التكرار التالي", save: "حفظ وجدولة", examWeek: "توصية مرتبطة بالامتحان", spacing: "تكرار متباعد", minutes: "دقيقة" },
+  })[language] || null;
+  const first = mode === "calibration";
+  const [actualMinutes, setActualMinutes] = useState(Math.max(10, Number(repetition?.plannedMinutes) || Number(initialMinutes) || 60));
+  const [loadLevel, setLoadLevel] = useState(studyPlanNormalizeLoadLevel(memory?.latestLoadRating || "moderate"));
+  const [chosenDays, setChosenDays] = useState(3);
+  const [plannedMinutes, setPlannedMinutes] = useState(30);
+  const [chosenDate, setChosenDate] = useState("");
+  const [manualChoice, setManualChoice] = useState(false);
+  const [allowAfterExam, setAllowAfterExam] = useState(false);
+  const completionDate = repetition?.completedAt || new Date().toISOString();
+  const recommendation = studyPlanRecommendLectureRepetition({
+    loadLevel,
+    baselineMinutes: first ? actualMinutes : memory?.baselineMinutes || initialMinutes,
+    actualMinutes,
+    sequenceNumber: first ? 0 : repetition?.sequenceNumber || 1,
+    previousIntervalDays: first ? null : repetition?.chosenIntervalDays || memory?.previousIntervalDays || null,
+    completionDate,
+    examDate,
+  });
+  const recommendationKey = `${mode}:${lecture?.id}:${repetition?.id || "first"}:${loadLevel}:${actualMinutes}:${recommendation.recommendedIntervalDays}:${recommendation.recommendedMinutes}`;
+  useEffect(() => {
+    if (manualChoice) return;
+    const days = Math.max(1, recommendation.recommendedIntervalDays || 1);
+    setChosenDays(days);
+    setPlannedMinutes(recommendation.recommendedMinutes || 30);
+    setChosenDate(recommendation.recommendedDate || studyPlan81DateKey(studyPlan81AddDays(completionDate, days)) || "");
+  }, [recommendationKey, manualChoice]);
+  useEffect(() => {
+    setActualMinutes(Math.max(10, Number(repetition?.plannedMinutes) || Number(initialMinutes) || 60));
+    setLoadLevel(studyPlanNormalizeLoadLevel(memory?.latestLoadRating || "moderate"));
+    setManualChoice(false);
+    setAllowAfterExam(false);
+  }, [mode, lecture?.id, repetition?.id]);
+  if (!lecture) return null;
+  const selectedDays = Math.max(1, Number(chosenDays) || 1);
+  const selectedDate = chosenDate || studyPlan81DateKey(studyPlan81AddDays(completionDate, selectedDays));
+  const afterExam = Boolean(examDate && selectedDate && selectedDate >= examDate);
+  function changeDays(value) {
+    const days = Math.max(1, Math.min(3650, Number(value) || 1));
+    setManualChoice(true); setChosenDays(days); setChosenDate(studyPlan81DateKey(studyPlan81AddDays(completionDate, days)) || "");
+  }
+  function changeDate(value) {
+    setManualChoice(true); setChosenDate(value);
+    const distance = studyPlan81DaysBetween(completionDate, value);
+    if (Number.isFinite(distance) && distance > 0) setChosenDays(distance);
+  }
+  const payload = { actualMinutes: Math.max(1, Number(actualMinutes) || 1), loadLevel, recommendedIntervalDays: Math.max(1, recommendation.recommendedIntervalDays || 1), chosenIntervalDays: selectedDays, recommendedMinutes: recommendation.recommendedMinutes || 30, plannedMinutes: Math.max(10, Number(plannedMinutes) || 30), scheduledDate: selectedDate, scheduledTime: "", examDate: examDate || null };
+  return <div className="ui-modal-backdrop study-plan-workspace-modal study-plan-sr-modal" role="presentation" onPointerDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+    <div className="ui-modal-surface" role="dialog" aria-modal="true" aria-label={first ? copy.first : copy.later}>
+      <div className="study-plan-workspace-modal-head"><span><Icon name="reset" size={17} /></span><div><strong>{first ? copy.first : copy.later}</strong><small>{lecture.id} · {lecture.title}</small></div></div>
+      <p className="study-plan-sr-intro">{first ? copy.introFirst : copy.introLater}</p>
+      <label><span>{copy.actual}</span><div className="study-plan-sr-minute-row"><input type="number" min="1" max="720" value={actualMinutes} onChange={(event) => { setActualMinutes(Math.max(1, Number(event.target.value) || 1)); setManualChoice(false); }} /><small>{copy.minutes}</small></div></label>
+      <div className="study-plan-sr-load"><span>{copy.load}</span><div>{[["easy",copy.easy,copy.easyHint],["moderate",copy.moderate,copy.moderateHint],["demanding",copy.demanding,copy.demandingHint]].map(([key,label,hint]) => <button type="button" key={key} data-active={loadLevel === key ? "true" : "false"} onClick={() => { setLoadLevel(key); setManualChoice(false); }}><strong>{label}</strong><small>{hint}</small></button>)}</div></div>
+      <div className="study-plan-sr-recommendation"><span><Icon name="sparkle" size={14} /></span><div><small>{recommendation.examPhase === "exam-week" || recommendation.examPhase === "exam-build-up" ? copy.examWeek : copy.spacing}</small><strong>{copy.recommendation}: {copy.inDays} {Math.max(1, recommendation.recommendedIntervalDays || 1)} {copy.days} · {recommendation.recommendedMinutes} {copy.minutes}</strong>{recommendation.daysToExam != null && <em>{recommendation.daysToExam} {copy.days} → eksamen</em>}</div></div>
+      <div className="study-plan-sr-choice-grid"><label><span>{copy.chooseDays}</span><div className="study-plan-sr-day-input"><input type="number" min="1" max="3650" value={chosenDays} onChange={(event) => changeDays(event.target.value)} /><small>{copy.days}</small></div></label><label><span>{copy.exactDate}</span><input type="date" value={selectedDate || ""} onChange={(event) => changeDate(event.target.value)} /></label><label><span>{copy.duration}</span><select value={plannedMinutes} onChange={(event) => { setManualChoice(true); setPlannedMinutes(Number(event.target.value)); }}>{[15,20,30,45,60,75,90,120].map((minutes) => <option key={minutes} value={minutes}>{minutes} {copy.minutes}</option>)}</select></label></div>
+      {afterExam && <div className="study-plan-sr-exam-warning"><Icon name="flag" size={14} /><div><strong>{copy.afterExam}</strong><small>{copy.afterExamHint}</small><label><input type="checkbox" checked={allowAfterExam} onChange={(event) => setAllowAfterExam(event.target.checked)} />{copy.allowAfter}</label></div></div>}
+      <div className="study-plan-workspace-modal-actions study-plan-sr-actions">{!first && onStop && <button type="button" className="ui-button ui-button--ghost" disabled={busy} onClick={onStop}>{copy.stop}</button>}<span /><button type="button" className="ui-button ui-button--ghost" disabled={busy} onClick={onClose}>{copy.cancel}</button><button type="button" className="ui-button ui-button--primary" disabled={busy || !selectedDate || (afterExam && !allowAfterExam)} onClick={() => onConfirm(payload)}>{busy ? "Gemmer…" : first ? copy.plan : copy.save}</button></div>
+    </div>
+  </div>;
+}
+
+function StudyPlanCalendarWorkspace({ c, language, moduleName, tasks, repetitions = [], onTasksRefresh, onRepetitionsRefresh, onOpenReview, onLectureCompleted, onRepetitionCompleted }) {
   const copy = studyPlanWorkspaceCopy(language);
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [calendarMeta, setCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
+  const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
+  const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
   const [view, setView] = useState("week");
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [monthDate, setMonthDate] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [slotPicker, setSlotPicker] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
   const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches) setView("agenda");
-  }, []);
+  useEffect(() => { if (typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)")?.matches) setView("agenda"); }, []);
   const weekdayLabels = language === "en" ? ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] : language === "ar" ? ["الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت","الأحد"] : ["Man","Tir","Ons","Tor","Fre","Lør","Søn"];
   const merged = mergeCalendarEventMeta(Array.isArray(calendarEvents) ? calendarEvents : [], calendarMeta || {});
   const events = merged.filter((event) => event.planModuleId === moduleName && (event.source === "study-plan" || String(event.id || "").startsWith(`studyplan-${moduleName}`)));
-  const unplacedReviewTasks = (tasks || []).filter((task) => task.status !== "completed" && task.scheduledDate && !task.scheduledTime);
+  const queueEvents = events.filter((event) => !event.completedAt && !event.time && studyPlanActivityKind(event) !== STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY);
 
   useEffect(() => {
     const taskByEvent = new Map((tasks || []).filter((task) => task.calendarEventId).map((task) => [task.calendarEventId, task]));
+    const repetitionByEvent = new Map((repetitions || []).filter((item) => item.calendarEventId).map((item) => [item.calendarEventId, item]));
     let changed = false;
     const next = { ...(calendarMeta || {}) };
     taskByEvent.forEach((task, eventId) => {
       const current = next[eventId] || {};
       const shouldComplete = task.status === "completed";
-      const currentlyComplete = Boolean(current.completedAt);
-      if (shouldComplete !== currentlyComplete) {
-        next[eventId] = { ...current, source: "study-plan", reviewTaskId: task.id, status: shouldComplete ? "completed" : "planned", completedAt: shouldComplete ? (task.completedAt || new Date().toISOString()) : null };
+      if (shouldComplete !== Boolean(current.completedAt) || current.reviewTaskId !== task.id) {
+        next[eventId] = { ...current, source: "study-plan", activityKind: task.sourceType === "simulation" ? STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION : STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, reviewTaskId: task.id, status: shouldComplete ? "completed" : task.scheduledDate ? "planned" : "unscheduled", completedAt: shouldComplete ? (task.completedAt || new Date().toISOString()) : null, needsScheduling: !task.scheduledTime };
+        changed = true;
+      }
+    });
+    repetitionByEvent.forEach((item, eventId) => {
+      const current = next[eventId] || {};
+      const shouldComplete = item.status === "completed";
+      if (shouldComplete !== Boolean(current.completedAt) || current.repetitionId !== item.id) {
+        next[eventId] = { ...current, source: "study-plan", activityKind: STUDY_PLAN_ACTIVITY_KINDS.REPETITION, repetitionId: item.id, repetitionSequence: item.sequenceNumber, status: shouldComplete ? "completed" : "planned", completedAt: shouldComplete ? (item.completedAt || new Date().toISOString()) : null, needsScheduling: !item.scheduledTime };
         changed = true;
       }
     });
     if (changed) setCalendarMeta(next);
-  }, [tasks]);
+  }, [tasks, repetitions]);
 
   async function persistMovedEvent(updated) {
+    const linkedResult = await studyPlanPersistLinkedSchedule(updated);
+    if (!linkedResult.ok) { setStatusMessage(copy.saveFailed); return false; }
     const currentMeta = calendarMeta?.[updated.id] || {};
-    const nextMeta = { ...currentMeta, ...updated, source: "study-plan", needsScheduling: !updated.time };
-    const taskId = nextMeta.reviewTaskId;
-    if (taskId) {
-      const { error } = await supabase.rpc("set_study_plan_review_task_schedule", {
-        p_task_id: taskId,
-        p_scheduled_date: updated.date,
-        p_scheduled_time: updated.time || null,
-        p_calendar_event_id: updated.id,
-      });
-      if (error) {
-        setStatusMessage(copy.saveFailed);
-        return;
-      }
-    }
-    setCalendarEvents((current) => (Array.isArray(current) ? current : []).map((event) => event.id === updated.id ? { ...event, ...updated } : event));
+    const nextMeta = { ...currentMeta, ...calendarEventMetaFields(updated), source: "study-plan", needsScheduling: !updated.time, status: updated.time ? "planned" : "unscheduled", planningQueue: false };
+    setCalendarEvents((current) => (Array.isArray(current) ? current : []).map((event) => event.id === updated.id ? { ...event, date: updated.date, time: updated.time || "", endDate: updated.endDate || updated.date, endTime: updated.endTime || "", estimatedHours: updated.estimatedHours } : event));
     setCalendarMeta((current) => ({ ...(current || {}), [updated.id]: nextMeta }));
+    setSelectedEvent((current) => current?.id === updated.id ? { ...current, ...updated, ...nextMeta } : current);
     setStatusMessage("");
-    if (taskId) onTasksRefresh?.();
+    if (updated.reviewTaskId) onTasksRefresh?.();
+    if (updated.repetitionId) onRepetitionsRefresh?.();
+    return true;
   }
 
   async function toggleComplete(event) {
-    const taskId = event.reviewTaskId || calendarMeta?.[event.id]?.reviewTaskId;
     const completing = !event.completedAt;
+    const linkedResult = await studyPlanPersistLinkedCompletion(event, completing);
+    if (!linkedResult.ok) { setStatusMessage(copy.completionFailed); return; }
+    const kind = studyPlanActivityKind(event);
     const completedAt = completing ? new Date().toISOString() : null;
-    if (taskId) {
-      const { error } = await supabase.rpc("complete_study_plan_review_task", { p_task_id: taskId, p_completed: completing });
-      if (error) {
-        setStatusMessage(copy.completionFailed);
-        return;
-      }
+    if (kind === STUDY_PLAN_ACTIVITY_KINDS.LECTURE && event.lectureId) {
+      setPlans((current) => {
+        const plan = current?.[moduleName]; if (!plan) return current;
+        const ids = new Set(plan.doneLectureIds || []); if (completing) ids.add(event.lectureId); else ids.delete(event.lectureId);
+        return { ...current, [moduleName]: { ...plan, doneLectureIds: [...ids], updatedAt: Date.now() } };
+      });
+      const progressKey = `${moduleName}:${event.lectureId}`;
+      setLectureProgress((current) => ({ ...(current || {}), [progressKey]: { ...(current?.[progressKey] || {}), viewed: completing, selfStudyStatus: completing ? "reviewed" : "not-started", lastViewedAt: completing ? Date.now() : null } }));
     }
-    setCalendarMeta((current) => ({ ...(current || {}), [event.id]: { ...(current?.[event.id] || {}), source: "study-plan", status: completing ? "completed" : "planned", completedAt } }));
-    setStatusMessage("");
-    if (taskId) onTasksRefresh?.();
+    setCalendarMeta((current) => ({ ...(current || {}), [event.id]: { ...(current?.[event.id] || {}), source: "study-plan", status: completing ? "completed" : "planned", completedAt, manualIncompleteAt: completing ? null : Date.now() } }));
     setSelectedEvent((current) => current?.id === event.id ? { ...current, completedAt } : current);
+    setStatusMessage("");
+    if (event.reviewTaskId) onTasksRefresh?.();
+    if (event.repetitionId) onRepetitionsRefresh?.();
+    if (completing && kind === STUDY_PLAN_ACTIVITY_KINDS.LECTURE) onLectureCompleted?.(event);
+    if (completing && kind === STUDY_PLAN_ACTIVITY_KINDS.REPETITION) onRepetitionCompleted?.(event);
+  }
+
+  function openSlotPicker(date, time) { setSlotPicker({ date, time }); }
+  async function placeQueuedEvent(event) {
+    if (!slotPicker) return;
+    const duration = Math.max(10, Number(event.plannedMinutes) || Number(event.loadMinutes) || Math.round((Number(event.estimatedHours) || .5) * 60));
+    const start = timeToMinutes(slotPicker.time) || 9 * 60;
+    const updated = { ...event, date: slotPicker.date, time: slotPicker.time || "09:00", ...calendarEndFields(slotPicker.date, start, duration), estimatedHours: duration / 60, needsScheduling: false, planningQueue: false };
+    const ok = await persistMovedEvent(updated);
+    if (ok) setSlotPicker(null);
   }
 
   function navigate(amount) {
     if (view === "month") setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
-    else setWeekStart((current) => addDays(current, amount * 7));
+    else if (view === "week") setWeekStart((current) => addDays(current, amount * 7));
   }
-
-  function goToday() {
-    setWeekStart(startOfWeek(new Date()));
-    setMonthDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  }
-
-  const agendaEvents = [...events].sort((a, b) => `${a.date || "9999"} ${a.time || "99:99"}`.localeCompare(`${b.date || "9999"} ${b.time || "99:99"}`));
+  function goToday() { setWeekStart(startOfWeek(new Date())); setMonthDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)); }
+  const todayKey = studyPlanDateKey(new Date());
+  const agendaEvents = [...events].filter((event) => event.date >= studyPlanDateKey(addDays(new Date(), -7))).sort((a, b) => `${a.completedAt ? 1 : 0}:${a.date || "9999"} ${a.time || "99:99"}`.localeCompare(`${b.completedAt ? 1 : 0}:${b.date || "9999"} ${b.time || "99:99"}`));
   const visibleWeekLabel = `${weekStart.toLocaleDateString(locale, { day: "numeric", month: "short" })} – ${addDays(weekStart, 6).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" })}`;
   const visibleMonthLabel = monthDate.toLocaleDateString(locale, { month: "long", year: "numeric" });
+  const kindLabel = (event) => ({
+    [STUDY_PLAN_ACTIVITY_KINDS.LECTURE]: copy.lectureLabel,
+    [STUDY_PLAN_ACTIVITY_KINDS.REPETITION]: "Spaced repetition",
+    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW]: copy.examReviewLabel,
+    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION]: copy.simulations,
+    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE]: copy.examSetLabel,
+    [STUDY_PLAN_ACTIVITY_KINDS.FOLLOW_UP]: copy.studyActivityLabel,
+    [STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY]: copy.examSetLabel,
+  })[studyPlanActivityKind(event)] || copy.studyActivityLabel;
 
-  return (
-    <section className="study-plan-workspace-calendar">
-      <div className="study-plan-workspace-section-head"><div><span>{copy.calendar}</span><h2>{copy.calendar}</h2><p>{copy.calendarIntro}</p></div><div className="study-plan-calendar-view-switch">{[["week",copy.week],["month",copy.month],["agenda",copy.agenda]].map(([key,label]) => <button type="button" key={key} data-active={view === key ? "true" : "false"} onClick={() => setView(key)}>{label}</button>)}</div></div>
-      {unplacedReviewTasks.length > 0 && <button type="button" className="study-plan-calendar-notice" onClick={onOpenReview}><span><Icon name="clock" size={16} /></span><div><strong>{unplacedReviewTasks.length} · {copy.reviewCalendarNotice}</strong><small>{copy.reviewCalendarNoticeHint}</small></div><Icon name="right" size={14} /></button>}
-      <div className="study-plan-calendar-toolbar"><div><button type="button" aria-label={copy.previous} onClick={() => navigate(-1)}><Icon name="left" size={15} /></button><button type="button" onClick={goToday}>{copy.today}</button><button type="button" aria-label={copy.next} onClick={() => navigate(1)}><Icon name="right" size={15} /></button></div><strong>{view === "month" ? visibleMonthLabel : view === "agenda" ? copy.agenda : visibleWeekLabel}</strong></div>
-      {statusMessage && <div className="study-plan-workspace-inline-error"><Icon name="flag" size={13} />{statusMessage}</div>}
-      {events.length === 0 ? <div className="study-plan-workspace-empty"><span><Icon name="calendar" size={22} /></span><strong>{copy.emptyCalendar}</strong><p>{copy.emptyCalendarHint}</p></div> : view === "month" ? (
-        <MonthCalendar c={c} events={events} monthDate={monthDate} onDayClick={(key) => { setWeekStart(startOfWeek(new Date(`${key}T12:00:00`))); setView("week"); }} onEventClick={setSelectedEvent} onContextRequest={() => {}} weekdayLabels={weekdayLabels} />
-      ) : view === "agenda" ? (
-        <div className="study-plan-agenda-list">{agendaEvents.map((event) => <button type="button" key={event.id} data-complete={event.completedAt ? "true" : "false"} onClick={() => setSelectedEvent(event)}><time>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}<small>{event.time || copy.notPlaced}</small></time><span><strong>{event.title}</strong><small>{event.phase === "exam-review" ? copy.examReviewLabel : event.phase === "exam-simulation" ? copy.simulations : event.phase === "lecture" ? copy.lectureLabel : event.phase === "exam" ? copy.examSetLabel : copy.studyActivityLabel}</small></span><Icon name="right" size={13} /></button>)}</div>
-      ) : (
-        <div className="study-plan-calendar-week"><WeekCalendar c={c} events={events} weekStart={weekStart} daysCount={7} weekdayLabels={weekdayLabels} onMoveEvent={persistMovedEvent} onResizeEvent={persistMovedEvent} onSlotClick={() => {}} onRangeCreate={() => {}} selectedEventId={selectedEvent?.id || null} onEventClick={setSelectedEvent} onContextRequest={() => {}} onStartReview={() => {}} density="comfortable" initialScrollMinutes={8 * 60} /></div>
-      )}
-      {selectedEvent && <aside className="study-plan-calendar-detail"><button type="button" className="study-plan-calendar-detail-close" onClick={() => setSelectedEvent(null)} aria-label={copy.close}><Icon name="close" size={14} /></button><span className="study-plan-workspace-kicker">{copy.taskDetail}</span><h3>{selectedEvent.title}</h3><dl><div><dt>{copy.scheduledFor}</dt><dd>{new Date(`${selectedEvent.date}T12:00:00`).toLocaleDateString(locale, { dateStyle: "medium" })}{selectedEvent.time ? ` · ${selectedEvent.time}` : ` · ${copy.notPlaced}`}</dd></div><div><dt>{copy.status}</dt><dd>{selectedEvent.completedAt ? copy.completed : selectedEvent.needsScheduling ? copy.unplanned : copy.planned}</dd></div></dl><div className="study-plan-calendar-detail-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => toggleComplete(selectedEvent)}><Icon name={selectedEvent.completedAt ? "reset" : "check"} size={13} />{selectedEvent.completedAt ? copy.reopen : copy.markComplete}</button>{selectedEvent.reviewTaskId && <button type="button" className="ui-button ui-button--primary" onClick={onOpenReview}><Icon name="target" size={13} />{copy.openReview}</button>}</div></aside>}
-    </section>
-  );
+  return <section className="study-plan-workspace-calendar">
+    <div className="study-plan-workspace-section-head"><div><span>{copy.calendar}</span><h2>{copy.calendar}</h2><p>{copy.calendarIntro}</p></div><div className="study-plan-calendar-view-switch">{[["week",copy.week],["month",copy.month],["agenda",copy.agenda]].map(([key,label]) => <button type="button" key={key} data-active={view === key ? "true" : "false"} onClick={() => setView(key)}>{label}</button>)}</div></div>
+    {queueEvents.length > 0 && <button type="button" className="study-plan-calendar-notice" onClick={() => setSlotPicker({ date: todayKey, time: "09:00" })}><span><Icon name="clock" size={16} /></span><div><strong>{queueEvents.length} · Planlægningskø</strong><small>Aktiviteter uden klokkeslæt kan placeres direkte i kalenderen.</small></div><Icon name="right" size={14} /></button>}
+    <div className="study-plan-calendar-toolbar">{view !== "agenda" ? <div><button type="button" aria-label={copy.previous} onClick={() => navigate(-1)}><Icon name="left" size={15} /></button><button type="button" onClick={goToday}>{copy.today}</button><button type="button" aria-label={copy.next} onClick={() => navigate(1)}><Icon name="right" size={15} /></button></div> : <div><button type="button" onClick={goToday}>{copy.today}</button></div>}<strong>{view === "month" ? visibleMonthLabel : view === "agenda" ? `${copy.agenda} · kommende` : visibleWeekLabel}</strong></div>
+    {statusMessage && <div className="study-plan-workspace-inline-error"><Icon name="flag" size={13} />{statusMessage}</div>}
+    {events.length === 0 ? <div className="study-plan-workspace-empty"><span><Icon name="calendar" size={22} /></span><strong>{copy.emptyCalendar}</strong><p>{copy.emptyCalendarHint}</p></div> : view === "month" ? <MonthCalendar c={c} events={events} monthDate={monthDate} onDayClick={(key) => { setWeekStart(startOfWeek(new Date(`${key}T12:00:00`))); setView("week"); }} onEventClick={setSelectedEvent} weekdayLabels={weekdayLabels} /> : view === "agenda" ? <div className="study-plan-agenda-list">{agendaEvents.map((event) => <button type="button" key={event.id} data-complete={event.completedAt ? "true" : "false"} onClick={() => setSelectedEvent(event)}><time>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}<small>{event.time || copy.notPlaced}</small></time><span><strong>{event.title}</strong><small>{kindLabel(event)}{event.planningQueue ? " · Planlægningskø" : ""}</small></span><Icon name="right" size={13} /></button>)}</div> : <div className="study-plan-calendar-week"><WeekCalendar c={c} events={events} weekStart={weekStart} daysCount={7} weekdayLabels={weekdayLabels} onMoveEvent={persistMovedEvent} onResizeEvent={persistMovedEvent} onSlotClick={openSlotPicker} onRangeCreate={(date,startTime) => openSlotPicker(date,startTime)} selectedEventId={selectedEvent?.id || null} onEventClick={setSelectedEvent} onContextRequest={(payload) => payload?.event && setSelectedEvent(payload.event)} onStartReview={(event) => setSelectedEvent(event)} density="comfortable" initialScrollMinutes={8 * 60} /></div>}
+    {selectedEvent && <aside className="study-plan-calendar-detail"><button type="button" className="study-plan-calendar-detail-close" onClick={() => setSelectedEvent(null)} aria-label={copy.close}><Icon name="close" size={14} /></button><span className="study-plan-workspace-kicker">{kindLabel(selectedEvent)}</span><h3>{selectedEvent.title}</h3><dl><div><dt>{copy.scheduledFor}</dt><dd>{new Date(`${selectedEvent.date}T12:00:00`).toLocaleDateString(locale, { dateStyle: "medium" })}{selectedEvent.time ? ` · ${selectedEvent.time}` : ` · ${copy.notPlaced}`}</dd></div><div><dt>{copy.status}</dt><dd>{selectedEvent.completedAt ? copy.completed : selectedEvent.time ? copy.planned : copy.unplanned}</dd></div>{selectedEvent.plannedMinutes && <div><dt>Varighed</dt><dd>{selectedEvent.plannedMinutes} min</dd></div>}</dl><div className="study-plan-calendar-detail-actions"><button type="button" className="ui-button ui-button--secondary" disabled={studyPlanActivityKind(selectedEvent) === STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY} onClick={() => toggleComplete(selectedEvent)}><Icon name={selectedEvent.completedAt ? "reset" : "check"} size={13} />{selectedEvent.completedAt ? copy.reopen : copy.markComplete}</button>{selectedEvent.reviewTaskId && <button type="button" className="ui-button ui-button--primary" onClick={onOpenReview}><Icon name="target" size={13} />{copy.openReview}</button>}</div></aside>}
+    {slotPicker && <div className="ui-modal-backdrop study-plan-workspace-modal" role="presentation" onPointerDown={(event) => { if (event.target === event.currentTarget) setSlotPicker(null); }}><div className="ui-modal-surface study-plan-slot-picker" role="dialog" aria-modal="true"><div className="study-plan-workspace-modal-head"><span><Icon name="clock" size={17} /></span><div><strong>Planlæg her</strong><small>{new Date(`${slotPicker.date}T12:00:00`).toLocaleDateString(locale, { dateStyle: "medium" })} · {slotPicker.time}</small></div></div>{queueEvents.length ? <div className="study-plan-slot-picker-list">{queueEvents.map((event) => <button type="button" key={event.id} onClick={() => placeQueuedEvent(event)}><span><strong>{event.title}</strong><small>{kindLabel(event)} · {Math.max(10, Number(event.plannedMinutes) || Number(event.loadMinutes) || Math.round((Number(event.estimatedHours) || .5) * 60))} min</small></span><Icon name="right" size={13} /></button>)}</div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="check" size={18} /></span><strong>Planlægningskøen er tom</strong><p>Der er ingen aktiviteter, som mangler et klokkeslæt.</p></div>}<div className="study-plan-workspace-modal-actions"><button type="button" className="ui-button ui-button--ghost" onClick={() => setSlotPicker(null)}>{copy.cancel}</button></div></div></div>}
+  </section>;
 }
 
 function StudyPlan({ c, language, user, setUser, userId = null }) {
@@ -22203,19 +22693,22 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [calendarMeta, setCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [tab, setTab] = useState("overview");
-  const [reviewState, setReviewState] = useState({ documents: [], items: [], links: [], topics: [], tasks: [], taskItems: [] });
+  const [reviewState, setReviewState] = useState({ documents: [], items: [], links: [], topics: [], tasks: [], taskItems: [], memoryProfiles: [], repetitions: [] });
   const [reviewLoadState, setReviewLoadState] = useState("idle");
   const [reviewError, setReviewError] = useState("");
   const [reviewTaskFilter, setReviewTaskFilter] = useState("all");
   const [feedback, setFeedback] = useState("");
   const [scheduleTask, setScheduleTask] = useState(null);
   const [scheduleBusy, setScheduleBusy] = useState(false);
+  const [repetitionDialog, setRepetitionDialog] = useState(null);
+  const [repetitionBusy, setRepetitionBusy] = useState(false);
   const activePlan = plans?.[moduleName] || null;
+  const moduleLectures = MODULE_LECTURES[moduleName] || [];
   const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
 
   async function loadReviewWorkspace() {
     if (!userId || !moduleName) {
-      setReviewState({ documents: [], items: [], links: [], topics: [], tasks: [], taskItems: [] });
+      setReviewState({ documents: [], items: [], links: [], topics: [], tasks: [], taskItems: [], memoryProfiles: [], repetitions: [] });
       setReviewLoadState("ready");
       return;
     }
@@ -22227,14 +22720,16 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
       const documents = (documentRows || []).map((row) => ({ id: row.id, name: row.display_name || row.file_name || copy.examSetLabel, year: row.exam_year || null, examSession: row.exam_session || null, parsedQuestions: Array.isArray(row.parsed_questions) ? row.parsed_questions : [] }));
       const examSetIds = documents.map((document) => document.id).filter(Boolean);
       const emptyResult = { data: [], error: null };
-      const [reviewResult, linksResult, topicsResult, tasksResult, taskItemsResult] = await Promise.all([
+      const [reviewResult, linksResult, topicsResult, tasksResult, taskItemsResult, memoryResult, repetitionsResult] = await Promise.all([
         examSetIds.length ? supabase.from("exam_review_items").select("id,exam_set_id,question_id,source_number,status,note,excluded,wrong_count,unanswered_count,marked_count,last_user_answer,official_answer,first_seen_at,last_seen_at,updated_at").eq("user_id", userId).in("exam_set_id", examSetIds).order("last_seen_at", { ascending: false }) : Promise.resolve(emptyResult),
         examSetIds.length ? supabase.from(EXAM_CURRICULUM_TABLE).select("id,exam_set_id,question_id,module_name,lecture_id,topic_id,source,created_by,created_at,updated_at").eq("module_name", moduleName).in("exam_set_id", examSetIds) : Promise.resolve(emptyResult),
         supabase.from(EXAM_CURRICULUM_TOPIC_TABLE).select("id,module_name,slug,label,created_by,created_at,updated_at").eq("module_name", moduleName).order("label", { ascending: true }),
         supabase.from(STUDY_PLAN_REVIEW_TASK_TABLE).select("id,user_id,module_name,source_type,source_key,title,lecture_id,topic_id,estimated_minutes,status,scheduled_date,scheduled_time,calendar_event_id,metadata,completed_at,created_at,updated_at").eq("user_id", userId).eq("module_name", moduleName).order("updated_at", { ascending: false }),
         supabase.from(STUDY_PLAN_REVIEW_TASK_ITEM_TABLE).select("id,task_id,user_id,review_item_id,exam_set_id,question_id,created_at").eq("user_id", userId),
+        supabase.from(STUDY_PLAN_LECTURE_MEMORY_TABLE).select("id,user_id,module_name,lecture_id,baseline_minutes,latest_load_rating,first_completed_at,last_completed_at,completed_repetitions,previous_interval_days,exam_date,stopped_at,metadata,created_at,updated_at").eq("user_id", userId).eq("module_name", moduleName).order("updated_at", { ascending: false }),
+        supabase.from(STUDY_PLAN_LECTURE_REPETITION_TABLE).select("id,memory_id,user_id,module_name,lecture_id,sequence_number,recommended_interval_days,chosen_interval_days,recommended_minutes,planned_minutes,scheduled_date,scheduled_time,calendar_event_id,load_rating,actual_minutes,status,completed_at,cancelled_at,metadata,created_at,updated_at").eq("user_id", userId).eq("module_name", moduleName).order("sequence_number", { ascending: false }),
       ]);
-      const firstError = [reviewResult.error, linksResult.error, topicsResult.error, tasksResult.error, taskItemsResult.error].find(Boolean);
+      const firstError = [reviewResult.error, linksResult.error, topicsResult.error, tasksResult.error, taskItemsResult.error, memoryResult.error, repetitionsResult.error].find(Boolean);
       if (firstError) throw firstError;
       setReviewState({
         documents,
@@ -22243,11 +22738,13 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
         topics: (topicsResult.data || []).map(examCurriculumNormalizeTopic),
         tasks: (tasksResult.data || []).map(studyPlanReviewTaskFromRow),
         taskItems: (taskItemsResult.data || []).map(studyPlanReviewTaskItemFromRow),
+        memoryProfiles: (memoryResult.data || []).map(studyPlanLectureMemoryFromRow),
+        repetitions: (repetitionsResult.data || []).map(studyPlanLectureRepetitionFromRow),
       });
       setReviewLoadState("ready");
     } catch (error) {
       const message = String(error?.message || "");
-      const setupMissing = error?.code === "42P01" || error?.code === "PGRST205" || message.includes(STUDY_PLAN_REVIEW_TASK_TABLE);
+      const setupMissing = error?.code === "42P01" || error?.code === "PGRST205" || message.includes(STUDY_PLAN_REVIEW_TASK_TABLE) || message.includes(STUDY_PLAN_LECTURE_MEMORY_TABLE) || message.includes(STUDY_PLAN_LECTURE_REPETITION_TABLE);
       setReviewError(setupMissing ? "setup" : message || "error");
       setReviewLoadState("error");
     }
@@ -22259,12 +22756,21 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
   const reviewGroups = studyPlanReviewBuildGroups(activeReviewItems, reviewState.links, reviewState.topics, moduleName);
   const taskMap = new Map(reviewState.tasks.map((task) => [task.id, task]));
   const taskByReviewItem = new Map(reviewState.taskItems.map((item) => [item.reviewItemId, taskMap.get(item.taskId)]).filter(([, task]) => Boolean(task)));
-  const tasksForFilter = reviewState.tasks.filter((task) => reviewTaskFilter === "all" ? true : reviewTaskFilter === "unplanned" ? ["inbox", "revisit"].includes(task.status) : task.status === reviewTaskFilter);
-  const inboxTasks = reviewState.tasks.filter((task) => ["inbox", "revisit"].includes(task.status));
+  const tasksForFilter = reviewState.tasks.filter((task) => reviewTaskFilter === "all" ? true : reviewTaskFilter === "unplanned" ? (task.status !== "completed" && !task.scheduledDate) : reviewTaskFilter === "planned" ? (task.status !== "completed" && Boolean(task.scheduledDate)) : task.status === reviewTaskFilter);
+  const inboxTasks = reviewState.tasks.filter((task) => task.status !== "completed" && !task.scheduledDate);
+  const memoryByLecture = new Map(reviewState.memoryProfiles.map((item) => [item.lectureId, item]));
+  const doneLectureIds = new Set(activePlan?.doneLectureIds || []);
+  const pendingCalibrations = moduleLectures.filter((lecture) => doneLectureIds.has(lecture.id) && !memoryByLecture.has(lecture.id));
+  const upcomingRepetitions = reviewState.repetitions.filter((item) => item.status === "scheduled").sort((a,b) => `${a.scheduledDate || "9999"} ${a.scheduledTime || "99:99"}`.localeCompare(`${b.scheduledDate || "9999"} ${b.scheduledTime || "99:99"}`));
+  const pendingRatings = reviewState.repetitions.filter((item) => item.status === "completed" && !item.loadRating);
+  const repetitionHistory = reviewState.repetitions.filter((item) => item.status === "completed" && item.loadRating).sort((a,b) => String(b.completedAt || "").localeCompare(String(a.completedAt || "")));
   const mergedCalendar = mergeCalendarEventMeta(Array.isArray(calendarEvents) ? calendarEvents : [], calendarMeta || {});
   const planEvents = mergedCalendar.filter((event) => event.planModuleId === moduleName && (event.source === "study-plan" || String(event.id || "").startsWith(`studyplan-${moduleName}`)));
   const todayKey = studyPlanDateKey(new Date());
-  const nextFocus = planEvents.filter((event) => !event.completedAt && event.date >= todayKey).sort((a, b) => `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`))[0] || null;
+  const nextFocus = planEvents.filter((event) => !event.completedAt && event.date).sort((a, b) => {
+    const rank = (event) => event.date === todayKey && event.time ? 0 : event.date === todayKey ? 1 : event.date < todayKey ? 2 : 3;
+    return rank(a) - rank(b) || `${a.date} ${a.time || "99:99"}`.localeCompare(`${b.date} ${b.time || "99:99"}`);
+  })[0] || null;
   const overdue = planEvents.filter((event) => !event.completedAt && event.date < todayKey).length;
   const weekStart = startOfWeek(new Date());
   const weekEndKey = studyPlanDateKey(addDays(weekStart, 6));
@@ -22274,6 +22780,106 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
   function flashFeedback(message) {
     setFeedback(message);
     window.setTimeout(() => setFeedback(""), 3600);
+  }
+
+  useEffect(() => {
+    if (!moduleName) return;
+    const live = (reviewState.repetitions || []).filter((item) => item.status !== "cancelled" && item.scheduledDate);
+    const cancelledIds = new Set((reviewState.repetitions || []).filter((item) => item.status === "cancelled").map((item) => item.calendarEventId || studyPlanLectureRepetitionCalendarEventId(moduleName, item.id)));
+    setCalendarEvents((current) => {
+      let next = (Array.isArray(current) ? current : []).filter((event) => !cancelledIds.has(event.id));
+      live.forEach((item) => {
+        const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId);
+        const materialized = studyPlanLectureRepetitionCalendarEvent(item, lecture);
+        const index = next.findIndex((event) => event.id === materialized.id);
+        const base = { ...materialized }; const metadata = calendarEventMetaFields(materialized); Object.keys(metadata).forEach((key) => delete base[key]);
+        if (index >= 0) next[index] = { ...next[index], ...base };
+        else next.push(base);
+      });
+      return next;
+    });
+    setCalendarMeta((current) => {
+      const next = { ...(current || {}) };
+      cancelledIds.forEach((id) => { delete next[id]; });
+      live.forEach((item) => {
+        const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId);
+        const materialized = studyPlanLectureRepetitionCalendarEvent(item, lecture);
+        next[materialized.id] = { ...(next[materialized.id] || {}), ...calendarEventMetaFields(materialized) };
+      });
+      return next;
+    });
+  }, [moduleName, reviewState.repetitions.map((item) => `${item.id}:${item.status}:${item.scheduledDate}:${item.scheduledTime}:${item.completedAt}:${item.loadRating}`).join("|")]);
+
+  function openLectureCalibration(lecture, sourceEvent = null) {
+    if (!lecture) return;
+    const existing = memoryByLecture.get(lecture.id);
+    if (existing && !existing.stoppedAt) { setTab("review"); return; }
+    const event = sourceEvent || planEvents.find((candidate) => candidate.lectureId === lecture.id && studyPlanIsLectureActivity(candidate));
+    const initialMinutes = Math.max(15, Number(event?.loadMinutes) || Math.round((Number(event?.estimatedHours) || 1) * 60) || studyPlanLectureMinutes(lecture, activePlan?.difficulty?.[lecture.id]));
+    setRepetitionDialog({ mode: "calibration", lecture, memory: existing || null, repetition: null, initialMinutes });
+  }
+
+  function openRepetitionRating(repetition) {
+    if (!repetition) return;
+    const lecture = moduleLectures.find((candidate) => candidate.id === repetition.lectureId);
+    if (!lecture) return;
+    setRepetitionDialog({ mode: "rating", lecture, memory: memoryByLecture.get(repetition.lectureId) || null, repetition, initialMinutes: repetition.plannedMinutes });
+  }
+
+  async function materializeSavedRepetition(row) {
+    const repetition = studyPlanLectureRepetitionFromRow(row);
+    const lecture = moduleLectures.find((candidate) => candidate.id === repetition.lectureId);
+    const event = studyPlanLectureRepetitionCalendarEvent(repetition, lecture);
+    const eventId = event.id;
+    if (!repetition.calendarEventId) {
+      const { error } = await supabase.rpc("set_study_plan_lecture_repetition_schedule", { p_repetition_id: repetition.id, p_scheduled_date: repetition.scheduledDate, p_scheduled_time: repetition.scheduledTime || null, p_calendar_event_id: eventId });
+      if (error) throw error;
+    }
+    const metadata = calendarEventMetaFields(event); const base = { ...event }; Object.keys(metadata).forEach((key) => delete base[key]);
+    setCalendarEvents((current) => { const safe = Array.isArray(current) ? current : []; const exists = safe.some((item) => item.id === eventId); return exists ? safe.map((item) => item.id === eventId ? { ...item, ...base } : item) : [...safe, base]; });
+    setCalendarMeta((current) => ({ ...(current || {}), [eventId]: { ...(current?.[eventId] || {}), ...metadata } }));
+  }
+
+  async function saveRepetitionRecommendation(payload) {
+    if (!repetitionDialog?.lecture || !payload?.scheduledDate) return;
+    setRepetitionBusy(true);
+    try {
+      let result;
+      if (repetitionDialog.mode === "calibration") {
+        result = await supabase.rpc("calibrate_study_plan_lecture_memory", {
+          p_module_name: moduleName, p_lecture_id: repetitionDialog.lecture.id, p_actual_minutes: payload.actualMinutes, p_load_rating: payload.loadLevel,
+          p_exam_date: payload.examDate, p_recommended_interval_days: payload.recommendedIntervalDays, p_chosen_interval_days: payload.chosenIntervalDays,
+          p_recommended_minutes: payload.recommendedMinutes, p_planned_minutes: payload.plannedMinutes, p_scheduled_date: payload.scheduledDate, p_scheduled_time: payload.scheduledTime || null,
+        });
+      } else {
+        result = await supabase.rpc("rate_study_plan_lecture_repetition", {
+          p_repetition_id: repetitionDialog.repetition.id, p_actual_minutes: payload.actualMinutes, p_load_rating: payload.loadLevel, p_exam_date: payload.examDate,
+          p_recommended_interval_days: payload.recommendedIntervalDays, p_chosen_interval_days: payload.chosenIntervalDays, p_recommended_minutes: payload.recommendedMinutes,
+          p_planned_minutes: payload.plannedMinutes, p_scheduled_date: payload.scheduledDate, p_scheduled_time: payload.scheduledTime || null,
+        });
+      }
+      if (result.error) throw result.error;
+      await materializeSavedRepetition(result.data);
+      setRepetitionDialog(null);
+      await loadReviewWorkspace();
+      flashFeedback(`Spaced repetition planlagt · ${repetitionDialog.lecture.id} · ${payload.scheduledDate}`);
+    } catch (error) {
+      console.error("Spaced repetition save failed", error);
+      flashFeedback(copy.taskError);
+    } finally { setRepetitionBusy(false); }
+  }
+
+  async function stopRepetitionFlow() {
+    if (!repetitionDialog?.lecture) return;
+    setRepetitionBusy(true);
+    const { error } = await supabase.rpc("stop_study_plan_lecture_repetitions", { p_module_name: moduleName, p_lecture_id: repetitionDialog.lecture.id });
+    if (!error) {
+      const ids = new Set(reviewState.repetitions.filter((item) => item.lectureId === repetitionDialog.lecture.id && item.status !== "completed").map((item) => item.calendarEventId || studyPlanLectureRepetitionCalendarEventId(moduleName, item.id)));
+      setCalendarEvents((current) => (Array.isArray(current) ? current : []).filter((event) => !ids.has(event.id)));
+      setCalendarMeta((current) => { const next = { ...(current || {}) }; ids.forEach((id) => delete next[id]); return next; });
+      setRepetitionDialog(null); await loadReviewWorkspace(); flashFeedback("Repetitionsforløbet er afsluttet.");
+    } else flashFeedback(copy.taskError);
+    setRepetitionBusy(false);
   }
 
   async function createReviewTask({ sourceType, sourceKey, title, reviewItems, lectureId = null, topicId = null, estimatedMinutes = null }) {
@@ -22342,8 +22948,8 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
     const endFields = time ? calendarEndFields(date, timeToMinutes(time) || 0, duration) : { endDate: date, endTime: "" };
     const isSimulation = task.sourceType === "simulation";
     const taskPhase = isSimulation ? "exam-simulation" : "exam-review";
-    const baseEvent = { id: eventId, title: task.title, date, time: time || "", type: isSimulation ? "exam" : "review", planModuleId: moduleName, lectureId: task.lectureId || null, lectureIds: task.lectureId ? [task.lectureId] : [], estimatedHours: duration / 60, source: "study-plan", needsScheduling: !time, phase: taskPhase, reviewTaskId: task.id, ...endFields };
-    const metadata = { ...(calendarMeta?.[eventId] || {}), source: "study-plan", phase: taskPhase, reviewTaskId: task.id, planModuleId: moduleName, lectureId: task.lectureId || null, lectureIds: task.lectureId ? [task.lectureId] : [], estimatedHours: duration / 60, needsScheduling: !time, endDate: endFields.endDate, endTime: endFields.endTime, status: "planned", createdByUser: true };
+    const baseEvent = { id: eventId, title: task.title, date, time: time || "", type: isSimulation ? "exam" : "review", planModuleId: moduleName, lectureId: task.lectureId || null, lectureIds: task.lectureId ? [task.lectureId] : [], estimatedHours: duration / 60, source: "study-plan", activityKind: isSimulation ? STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION : STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, needsScheduling: !time, planningQueue: false, phase: taskPhase, reviewTaskId: task.id, ...endFields };
+    const metadata = { ...(calendarMeta?.[eventId] || {}), source: "study-plan", activityKind: isSimulation ? STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION : STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, phase: taskPhase, reviewTaskId: task.id, planningQueue: false, planModuleId: moduleName, lectureId: task.lectureId || null, lectureIds: task.lectureId ? [task.lectureId] : [], estimatedHours: duration / 60, needsScheduling: !time, endDate: endFields.endDate, endTime: endFields.endTime, status: "planned", createdByUser: true };
     const { error } = await supabase.rpc("set_study_plan_review_task_schedule", { p_task_id: task.id, p_scheduled_date: date, p_scheduled_time: time || null, p_calendar_event_id: eventId });
     setScheduleBusy(false);
     if (error) {
@@ -22386,23 +22992,8 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
   }
 
   async function handleStudyPlanCalendarCleared() {
-    if (!userId || !moduleName) return;
-    const { error } = await supabase
-      .from(STUDY_PLAN_REVIEW_TASK_TABLE)
-      .update({ status: "inbox", scheduled_date: null, scheduled_time: null, calendar_event_id: null })
-      .eq("user_id", userId)
-      .eq("module_name", moduleName)
-      .in("status", ["planned", "revisit"]);
-    if (error) {
-      flashFeedback(copy.taskError);
-      return;
-    }
-    await supabase
-      .from(STUDY_PLAN_REVIEW_TASK_TABLE)
-      .update({ scheduled_date: null, scheduled_time: null, calendar_event_id: null })
-      .eq("user_id", userId)
-      .eq("module_name", moduleName)
-      .eq("status", "completed");
+    // "Ryd studieplanskalender" clears generated plan placements only. Explicit
+    // exam-review and spaced-repetition choices are user-owned and remain intact.
     await loadReviewWorkspace();
   }
 
@@ -22410,32 +23001,49 @@ function StudyPlan({ c, language, user, setUser, userId = null }) {
     const weekDays = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
     return <div className="study-plan-workspace-overview">
       <section className="study-plan-overview-next"><div className="study-plan-workspace-section-head"><div><span>{copy.overview}</span><h2>{copy.nextFocus}</h2></div></div>{nextFocus ? <div className="study-plan-next-focus-card"><span className="study-plan-next-focus-icon"><Icon name={nextFocus.phase === "exam-review" ? "target" : "book"} size={19} /></span><div><strong>{nextFocus.title}</strong><small>{new Date(`${nextFocus.date}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}{nextFocus.time ? ` · ${nextFocus.time}` : ` · ${copy.notPlaced}`}</small><div>{nextFocus.phase === "exam-review" ? copy.examReviewLabel : nextFocus.phase === "lecture" ? copy.lectureLabel : copy.studyActivityLabel}</div></div><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("calendar")}>{copy.openCalendar}</button></div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="target" size={20} /></span><strong>{copy.noNextFocus}</strong><p>{copy.noNextFocusHint}</p></div>}</section>
-      <aside className="study-plan-overview-attention"><div className="study-plan-workspace-section-head"><div><span>{copy.attention}</span><h2>{copy.attention}</h2></div></div><button type="button" onClick={() => setTab("review")}><span><Icon name="flag" size={15} /></span><div><strong>{inboxTasks.length}</strong><small>{copy.reviewsWaiting}</small></div><Icon name="right" size={13} /></button><button type="button" onClick={() => setTab("calendar")}><span><Icon name="clock" size={15} /></span><div><strong>{overdue}</strong><small>{copy.overdue}</small></div><Icon name="right" size={13} /></button><button type="button" onClick={() => setTab("calendar")}><span><Icon name="calendar" size={15} /></span><div><strong>{currentWeekEvents.length}</strong><small>{copy.activitiesThisWeek}</small></div><Icon name="right" size={13} /></button></aside>
-      <section className="study-plan-overview-week"><div className="study-plan-workspace-section-head"><div><span>{copy.thisWeek}</span><h2>{copy.thisWeek}</h2></div><button type="button" onClick={() => setTab("calendar")}>{copy.openCalendar}<Icon name="right" size={12} /></button></div><div className="study-plan-week-strip">{weekDays.map((date) => { const key = studyPlanDateKey(date); const dayEvents = currentWeekEvents.filter((event) => event.date === key); const minutes = dayEvents.reduce((sum, event) => sum + Math.max(15, Math.round((Number(event.estimatedHours) || .5) * 60)), 0); return <div key={key} data-today={key === todayKey ? "true" : "false"}><span>{date.toLocaleDateString(locale, { weekday: "short" })}</span><strong>{date.getDate()}</strong><i style={{ "--load": `${Math.min(100, minutes / 180 * 100)}%` }} /><small>{dayEvents.length ? `${Math.round(minutes / 60 * 10) / 10} t` : "—"}</small></div>; })}</div></section>
+      <aside className="study-plan-overview-attention"><div className="study-plan-workspace-section-head"><div><span>{copy.attention}</span><h2>{copy.attention}</h2></div></div><button type="button" onClick={() => setTab("review")}><span><Icon name="reset" size={15} /></span><div><strong>{pendingCalibrations.length + pendingRatings.length}</strong><small>spaced-repetition valg venter</small></div><Icon name="right" size={13} /></button><button type="button" onClick={() => setTab("calendar")}><span><Icon name="clock" size={15} /></span><div><strong>{planEvents.filter((event) => !event.completedAt && !event.time && studyPlanActivityKind(event) !== STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY).length}</strong><small>aktiviteter i planlægningskøen</small></div><Icon name="right" size={13} /></button><button type="button" onClick={() => setTab("calendar")}><span><Icon name="calendar" size={15} /></span><div><strong>{currentWeekEvents.length}</strong><small>{copy.activitiesThisWeek}</small></div><Icon name="right" size={13} /></button></aside>
+      <section className="study-plan-overview-week"><div className="study-plan-workspace-section-head"><div><span>{copy.thisWeek}</span><h2>{copy.thisWeek}</h2></div><button type="button" onClick={() => setTab("calendar")}>{copy.openCalendar}<Icon name="right" size={12} /></button></div><div className="study-plan-week-strip">{weekDays.map((date) => { const key = studyPlanDateKey(date); const dayEvents = currentWeekEvents.filter((event) => event.date === key); const minutes = dayEvents.reduce((sum, event) => sum + Math.max(10, Number(event.plannedMinutes) || Number(event.loadMinutes) || Math.round((Number(event.estimatedHours) || .5) * 60)), 0); const capacity = Math.max(0, Number(activePlan?.weekdayHours?.[date.getDay()]) || 0) * 60; const loadPercent = capacity > 0 ? Math.min(140, minutes / capacity * 100) : minutes ? 140 : 0; return <div key={key} data-today={key === todayKey ? "true" : "false"} data-over={capacity > 0 && minutes > capacity ? "true" : "false"}><span>{date.toLocaleDateString(locale, { weekday: "short" })}</span><strong>{date.getDate()}</strong><i style={{ "--load": `${Math.min(100, loadPercent)}%` }} /><small>{capacity ? `${minutes} / ${capacity} min${minutes > capacity ? " · over" : ""}` : minutes ? `${minutes} min · ingen kapacitet` : "Fri"}</small></div>; })}</div></section>
       <section className="study-plan-overview-plan"><div className="study-plan-workspace-section-head"><div><span>{copy.generatedPlan}</span><h2>{activePlan ? copy.activePlan : copy.noPlan}</h2></div></div>{activePlan ? <div className="study-plan-overview-plan-grid"><div><span>{daysToExam ?? "—"}</span><small>{copy.daysToExam}</small></div><div><span>{Object.values(activePlan.weekdayHours || {}).reduce((sum, value) => sum + (Number(value) || 0), 0)}</span><small>{copy.hoursPerWeek}</small></div><div><span>{activePlan.includedLectureIds?.length || 0}</span><small>{copy.lecturesLabel}</small></div><button type="button" className="ui-button ui-button--secondary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noPlan}</strong><p>{copy.planInactiveHint}</p><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div>}</section>
     </div>;
   }
 
   function renderReview() {
-    if (reviewLoadState === "loading") return <div className="study-plan-workspace-empty"><span className="lecture-pdf-spinner" /><strong>{copy.refreshing}</strong></div>;
-    if (reviewLoadState === "error") return <div className="study-plan-workspace-empty"><span><Icon name="flag" size={22} /></span><strong>{reviewError === "setup" ? copy.setupMissing : copy.loadError}</strong><p>{reviewError === "setup" ? copy.setupMissingHint : copy.taskError}</p></div>;
-    return <section className="study-plan-workspace-review"><div className="study-plan-workspace-section-head study-plan-review-head"><div><span>{copy.review}</span><h2>{copy.reviewNeeds}</h2><p>{copy.overviewIntro}</p></div><button type="button" className="ui-button ui-button--primary" disabled={!activeReviewItems.length} onClick={sendBacklog}><Icon name="plus" size={13} />{copy.addBacklog}</button></div>
-      {feedback && <div className="study-plan-workspace-feedback" role="status"><Icon name="check" size={13} />{feedback}</div>}
-      {reviewGroups.length === 0 ? <div className="study-plan-workspace-empty"><span><Icon name="check" size={22} /></span><strong>{copy.noReviewNeeds}</strong><p>{copy.noReviewNeedsHint}</p></div> : <div className="study-plan-review-groups">{reviewGroups.map((group) => { const uncovered = group.items.filter((item) => !taskByReviewItem.has(item.id)); const wrong = group.items.reduce((sum, item) => sum + item.wrongCount, 0); return <article key={group.key} data-covered={uncovered.length === 0 ? "true" : "false"}><header><span><Icon name={group.type === "lecture" ? "book" : group.type === "topic" ? "target" : "flag"} size={15} /></span><div><small>{group.type === "lecture" ? copy.mappedLecture : group.type === "topic" ? copy.mappedTopic : copy.unmapped}</small><strong>{group.title || copy.unmapped}</strong></div><b>{group.items.length}</b></header><div className="study-plan-review-group-meta"><span>{group.items.length} {copy.questions}</span><span>{wrong} {copy.errors}</span><span>{studyPlanReviewEstimateMinutes(uncovered.length ? uncovered : group.items)} {copy.minutes}</span></div><footer>{uncovered.length === 0 ? <span className="study-plan-covered-label"><Icon name="check" size={12} />{copy.covered}</span> : <><span>{uncovered.length < group.items.length ? copy.partialCovered : `${uncovered.length} ${copy.questions}`}</span><button type="button" onClick={() => sendGroup(group)}>{copy.sendGroup}<Icon name="right" size={12} /></button></>}</footer></article>; })}</div>}
-      {reviewState.documents.length > 0 && <section className="study-plan-simulation-strip"><div><span className="study-plan-workspace-kicker">{copy.simulations}</span><h3>{copy.simulations}</h3></div><div>{reviewState.documents.slice(0, 6).map((document) => { const key = studyPlanReviewSourceKey("simulation", document.id); const existingSimulation = reviewState.tasks.find((task) => task.sourceKey === key); return <button type="button" key={document.id} data-added={existingSimulation ? "true" : "false"} disabled={Boolean(existingSimulation)} onClick={() => sendSimulation(document)}><span><strong>{document.name}</strong><small>{document.year || "—"} · {document.examSession || "—"}</small></span><em><Icon name={existingSimulation ? "check" : "plus"} size={11} />{existingSimulation ? copy.simulationPlanned : copy.planSimulation}</em></button>; })}</div></section>}
-      <div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">{copy.planTasks}</span><h3>{copy.planTasks}</h3></div><div className="study-plan-review-filter">{[["all",copy.all],["unplanned",copy.unplanned],["planned",copy.planned],["completed",copy.completed]].map(([key,label]) => <button type="button" key={key} data-active={reviewTaskFilter === key ? "true" : "false"} onClick={() => setReviewTaskFilter(key)}>{label}</button>)}</div></div>
-      {tasksForFilter.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noTasks}</strong><p>{copy.noTasksHint}</p></div> : <div className="study-plan-task-list">{tasksForFilter.map((task) => { const linked = reviewState.taskItems.filter((item) => item.taskId === task.id); return <article key={task.id} data-status={task.status}><span className="study-plan-task-status"><Icon name={task.status === "completed" ? "check" : task.status === "planned" ? "calendar" : "target"} size={15} /></span><div className="study-plan-task-main"><small>{task.lectureId ? `${copy.mappedLecture} · ${task.lectureId}` : task.sourceType === "backlog" ? copy.activeBacklog : copy.examReviewLabel}</small><strong>{task.title}</strong><span>{linked.length} {copy.questions} · {task.estimatedMinutes} {copy.minutes}{task.scheduledDate ? ` · ${new Date(`${task.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}${task.scheduledTime ? ` ${task.scheduledTime}` : ` · ${copy.notPlaced}`}` : ""}</span></div><div className="study-plan-task-actions">{task.status !== "completed" && <><button type="button" onClick={() => setScheduleTask(task)}><Icon name="calendar" size={12} />{copy.planTask}</button><button type="button" disabled={!activePlan} onClick={() => placeTaskWithActivePlan(task)}><Icon name="sparkle" size={12} />{copy.placeWithPlan}</button></>}<button type="button" onClick={() => toggleTaskComplete(task)}><Icon name={task.status === "completed" ? "reset" : "check"} size={12} />{task.status === "completed" ? copy.reopen : copy.markComplete}</button></div></article>; })}</div>}
-      <div className="study-plan-review-question-list"><span className="study-plan-workspace-kicker">{copy.singleQuestions}</span>{activeReviewItems.slice(0, 20).map((item) => { const task = taskByReviewItem.get(item.id); const document = reviewState.documents.find((doc) => doc.id === item.examSetId); return <div key={item.id}><span><strong>{document?.name || copy.examSetLabel}</strong><small>{copy.questionSingular} {item.sourceNumber || item.questionId} · {item.wrongCount} {copy.errors}</small></span>{task ? <em><Icon name="check" size={11} />{copy.covered}</em> : <button type="button" onClick={() => sendQuestion(item)}>{copy.sendQuestion}<Icon name="right" size={11} /></button>}</div>; })}</div>
-    </section>;
+    if (reviewLoadState === "loading") return <div className="study-plan-workspace-empty"><span className="lecture-pdf-spinner" /><strong>Henter spaced repetition og eksamensfokus…</strong></div>;
+    if (reviewLoadState === "error") return <div className="study-plan-workspace-empty"><span><Icon name="flag" size={22} /></span><strong>{reviewError === "setup" ? "Segment 6.8.1-databasen mangler" : copy.loadError}</strong><p>{reviewError === "setup" ? "Kør segment_6_8_1_adaptive_studyplan.sql efter Segment 6.8-migrationen. Den eksisterende plan og kalender bevares." : copy.taskError}</p></div>;
+    const stoppedProfiles = reviewState.memoryProfiles.filter((item) => item.stoppedAt);
+    return <div className="study-plan-spaced-workspace">
+      <section className="study-plan-workspace-review study-plan-sr-section">
+        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Spaced repetition</span><h2>Forelæsningshukommelse</h2><p>Du vurderer kun belastningen: <strong>Let · Moderat · Krævende</strong>. MedFLUEN kombinerer vurderingen med faktisk tidsforbrug og eksamensdatoen for at anbefale næste interval og varighed. Du kan altid overskrive begge.</p></div>{activePlan?.examDate && <div className="study-plan-sr-exam-chip"><Icon name="calendar" size={13} /><span>{daysToExam} dage</span><small>til eksamen</small></div>}</div>
+        {feedback && <div className="study-plan-workspace-feedback" role="status"><Icon name="check" size={13} />{feedback}</div>}
+
+        {(pendingCalibrations.length > 0 || pendingRatings.length > 0) && <section className="study-plan-sr-decisions"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kræver dit valg</span><h3>Næste repetition bestemmes først, når du har vurderet belastningen</h3></div><b>{pendingCalibrations.length + pendingRatings.length}</b></div><div className="study-plan-sr-decision-list">
+          {pendingCalibrations.map((lecture) => { const sourceEvent = planEvents.find((event) => event.lectureId === lecture.id && studyPlanIsLectureActivity(event)); const suggestedMinutes = Math.max(15, Number(sourceEvent?.loadMinutes) || Math.round((Number(sourceEvent?.estimatedHours) || 1) * 60)); return <article key={`cal-${lecture.id}`}><span className="study-plan-task-status"><Icon name="book" size={15} /></span><div><small>Første gennemgang er færdig</small><strong>{lecture.id} · {lecture.title}</strong><span>Planlagt belastning ca. {suggestedMinutes} min · mangler din vurdering</span></div><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureCalibration(lecture, sourceEvent)}>Vurdér & planlæg</button></article>; })}
+          {pendingRatings.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); return <article key={`rate-${item.id}`}><span className="study-plan-task-status"><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber} gennemført</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong><span>{item.plannedMinutes} min planlagt · vurder belastningen for næste interval</span></div><button type="button" className="ui-button ui-button--primary" onClick={() => openRepetitionRating(item)}>Vurdér & fortsæt</button></article>; })}
+        </div></section>}
+
+        <section className="study-plan-sr-upcoming"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kommende</span><h3>Planlagte spaced repetitions</h3></div><span>{upcomingRepetitions.length}</span></div>{upcomingRepetitions.length ? <div className="study-plan-sr-upcoming-grid">{upcomingRepetitions.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); const memory = memoryByLecture.get(item.lectureId); const daysAway = item.scheduledDate ? studyPlan81DaysBetween(todayKey, item.scheduledDate) : null; return <article key={item.id}><header><span><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber}</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong></div><em>{daysAway === 0 ? "I dag" : daysAway === 1 ? "I morgen" : daysAway > 1 ? `Om ${daysAway} dage` : "Forfalden"}</em></header><div className="study-plan-sr-upcoming-meta"><span><Icon name="calendar" size={11} />{new Date(`${item.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}{item.scheduledTime ? ` · ${item.scheduledTime}` : ""}</span><span><Icon name="clock" size={11} />{item.plannedMinutes} min</span><span>{studyPlanLoadLabel(memory?.latestLoadRating || "moderate", language)}</span></div><footer><small>Anbefalet interval {item.recommendedIntervalDays} d · valgt {item.chosenIntervalDays} d</small><button type="button" onClick={() => setTab("calendar")}>Åbn kalender<Icon name="right" size={11} /></button></footer></article>; })}</div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="reset" size={20} /></span><strong>Ingen kommende repetition</strong><p>Når du afslutter en forelæsning, kan du vælge om og hvornår du vil se den igen.</p></div>}</section>
+
+        {(repetitionHistory.length > 0 || reviewState.memoryProfiles.length > 0) && <section className="study-plan-sr-history"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Historik</span><h3>Dine egne repetitionsforløb</h3></div></div><div className="study-plan-sr-memory-list">{reviewState.memoryProfiles.map((memory) => { const lecture = moduleLectures.find((candidate) => candidate.id === memory.lectureId); const history = repetitionHistory.filter((item) => item.lectureId === memory.lectureId); const next = upcomingRepetitions.find((item) => item.lectureId === memory.lectureId); return <article key={memory.id} data-stopped={memory.stoppedAt ? "true" : "false"}><span><strong>{lecture ? `${lecture.id} · ${lecture.title}` : memory.lectureId}</strong><small>{studyPlanLoadLabel(memory.latestLoadRating, language)} · {memory.completedRepetitions} gennemførte repetitioner · første gennemgang {memory.baselineMinutes} min</small></span><div>{next ? <small>Næste: {new Date(`${next.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })} · {next.plannedMinutes} min</small> : memory.stoppedAt ? <small>Forløb afsluttet</small> : <small>Afventer næste valg</small>}{memory.stoppedAt && lecture && <button type="button" onClick={() => openLectureCalibration(lecture)}>Start igen</button>}</div>{history.length > 0 && <em>{history.slice(0,3).map((item) => `#${item.sequenceNumber} ${studyPlanLoadLabel(item.loadRating, language)}`).join(" · ")}</em>}</article>; })}</div></section>}
+      </section>
+
+      <section className="study-plan-workspace-review study-plan-exam-focus-section">
+        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Eksamensfokus</span><h2>Fejl, emner og simulationer</h2><p>Eksamensfejl er et separat input til studieplanen. De ændrer ikke dit forelæsningsinterval automatisk, men du kan planlægge dem som konkrete aktiviteter.</p></div><button type="button" className="ui-button ui-button--secondary" disabled={!activeReviewItems.length} onClick={sendBacklog}><Icon name="plus" size={13} />{copy.addBacklog}</button></div>
+        {reviewGroups.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="check" size={20} /></span><strong>{copy.noReviewNeeds}</strong><p>{copy.noReviewNeedsHint}</p></div> : <div className="study-plan-review-groups">{reviewGroups.map((group) => { const uncovered = group.items.filter((item) => !taskByReviewItem.has(item.id)); const wrong = group.items.reduce((sum, item) => sum + item.wrongCount, 0); return <article key={group.key} data-covered={uncovered.length === 0 ? "true" : "false"}><header><span><Icon name={group.type === "lecture" ? "book" : group.type === "topic" ? "target" : "flag"} size={15} /></span><div><small>{group.type === "lecture" ? copy.mappedLecture : group.type === "topic" ? copy.mappedTopic : copy.unmapped}</small><strong>{group.title || copy.unmapped}</strong></div><b>{group.items.length}</b></header><div className="study-plan-review-group-meta"><span>{group.items.length} {copy.questions}</span><span>{wrong} {copy.errors}</span><span>{studyPlanReviewEstimateMinutes(uncovered.length ? uncovered : group.items)} {copy.minutes}</span></div><footer>{uncovered.length === 0 ? <span className="study-plan-covered-label"><Icon name="check" size={12} />{copy.covered}</span> : <><span>{uncovered.length < group.items.length ? copy.partialCovered : `${uncovered.length} ${copy.questions}`}</span><button type="button" onClick={() => sendGroup(group)}>{copy.sendGroup}<Icon name="right" size={12} /></button></>}</footer></article>; })}</div>}
+        {reviewState.documents.length > 0 && <section className="study-plan-simulation-strip"><div><span className="study-plan-workspace-kicker">{copy.simulations}</span><h3>{copy.simulations}</h3></div><div>{reviewState.documents.slice(0,6).map((document) => { const key = studyPlanReviewSourceKey("simulation", document.id); const existingSimulation = reviewState.tasks.find((task) => task.sourceKey === key); const canPlanAgain = !existingSimulation || existingSimulation.status === "completed"; return <button type="button" key={document.id} data-added={existingSimulation && !canPlanAgain ? "true" : "false"} disabled={!canPlanAgain} onClick={() => sendSimulation(document)}><span><strong>{document.name}</strong><small>{document.year || "—"} · {document.examSession || "—"}</small></span><em><Icon name={canPlanAgain ? "plus" : "check"} size={11} />{existingSimulation?.status === "completed" ? "Planlæg igen" : existingSimulation ? copy.simulationPlanned : copy.planSimulation}</em></button>; })}</div></section>}
+        <div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">{copy.planTasks}</span><h3>{copy.planTasks}</h3></div><div className="study-plan-review-filter">{[["all",copy.all],["unplanned",copy.unplanned],["planned",copy.planned],["completed",copy.completed]].map(([key,label]) => <button type="button" key={key} data-active={reviewTaskFilter === key ? "true" : "false"} onClick={() => setReviewTaskFilter(key)}>{label}</button>)}</div></div>
+        {tasksForFilter.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noTasks}</strong><p>{copy.noTasksHint}</p></div> : <div className="study-plan-task-list">{tasksForFilter.map((task) => { const linked = reviewState.taskItems.filter((item) => item.taskId === task.id); const scheduled = Boolean(task.scheduledDate); return <article key={task.id} data-status={task.status}><span className="study-plan-task-status"><Icon name={task.status === "completed" ? "check" : scheduled ? "calendar" : "target"} size={15} /></span><div className="study-plan-task-main"><small>{task.lectureId ? `${copy.mappedLecture} · ${task.lectureId}` : task.sourceType === "backlog" ? copy.activeBacklog : task.sourceType === "simulation" ? copy.simulations : copy.examReviewLabel}</small><strong>{task.title}</strong><span>{linked.length} {copy.questions} · {task.estimatedMinutes} {copy.minutes}{task.scheduledDate ? ` · ${new Date(`${task.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}${task.scheduledTime ? ` ${task.scheduledTime}` : ` · ${copy.notPlaced}`}` : " · Planlægningskø"}</span></div><div className="study-plan-task-actions">{task.status !== "completed" && <><button type="button" onClick={() => setScheduleTask(task)}><Icon name="calendar" size={12} />{copy.planTask}</button><button type="button" disabled={!activePlan} onClick={() => placeTaskWithActivePlan(task)} title={!activePlan ? copy.planInactiveHint : ""}><Icon name="sparkle" size={12} />{copy.placeWithPlan}</button></>}<button type="button" onClick={() => toggleTaskComplete(task)}><Icon name={task.status === "completed" ? "reset" : "check"} size={12} />{task.status === "completed" ? copy.reopen : copy.markComplete}</button></div></article>; })}</div>}
+      </section>
+    </div>;
   }
 
   return (
     <div className="study-plan-workspace">
       <header className="study-plan-workspace-header"><div><span>{copy.eyebrow}</span><h1>{copy.title}</h1><p>{copy.overviewIntro}</p></div><div className="study-plan-workspace-plan-state" data-active={activePlan ? "true" : "false"}><i />{activePlan ? copy.activePlan : copy.noPlan}{activePlan?.examDate && <small>{daysToExam} {copy.daysToExam}</small>}</div></header>
-      <nav className="study-plan-workspace-tabs" aria-label={copy.title}>{[["overview","home",copy.overview],["review","target",copy.review],["builder","clipboard",copy.builder],["calendar","calendar",copy.calendar]].map(([key,icon,label]) => <button type="button" key={key} data-active={tab === key ? "true" : "false"} onClick={() => setTab(key)}><Icon name={icon} size={15} /><span>{label}</span>{key === "review" && inboxTasks.length > 0 && <b>{inboxTasks.length}</b>}</button>)}</nav>
-      <main className="study-plan-workspace-body">{tab === "overview" ? renderOverview() : tab === "review" ? renderReview() : tab === "builder" ? <div className="study-plan-builder-workspace"><div className="study-plan-builder-context"><span><Icon name="clipboard" size={16} /></span><div><strong>{copy.builderContext}</strong><small>{copy.builderContextHint}</small></div>{inboxTasks.length > 0 && <button type="button" onClick={() => setTab("review")}>{inboxTasks.length} · {copy.inboxCount}<Icon name="right" size={12} /></button>}</div><StudyPlanBuilder c={c} language={language} user={user} setUser={setUser} onCalendarCleared={handleStudyPlanCalendarCleared} /></div> : <StudyPlanCalendarWorkspace c={c} language={language} moduleName={moduleName} tasks={reviewState.tasks} onTasksRefresh={loadReviewWorkspace} onOpenReview={() => setTab("review")} />}</main>
+      <nav className="study-plan-workspace-tabs" aria-label={copy.title}>{[["overview","home",copy.overview],["review","reset",copy.review],["builder","clipboard",copy.builder],["calendar","calendar",copy.calendar]].map(([key,icon,label]) => <button type="button" key={key} data-active={tab === key ? "true" : "false"} onClick={() => setTab(key)}><Icon name={icon} size={15} /><span>{label}</span>{key === "review" && (pendingCalibrations.length + pendingRatings.length) > 0 && <b>{pendingCalibrations.length + pendingRatings.length}</b>}</button>)}</nav>
+      <main className="study-plan-workspace-body">{tab === "overview" ? renderOverview() : tab === "review" ? renderReview() : tab === "builder" ? <div className="study-plan-builder-workspace"><div className="study-plan-builder-context"><span><Icon name="clipboard" size={16} /></span><div><strong>{copy.builderContext}</strong><small>{copy.builderContextHint}</small></div>{(pendingCalibrations.length + pendingRatings.length) > 0 && <button type="button" onClick={() => setTab("review")}>{pendingCalibrations.length + pendingRatings.length} · kræver dit valg<Icon name="right" size={12} /></button>}</div><StudyPlanBuilder c={c} language={language} user={user} setUser={setUser} onCalendarCleared={handleStudyPlanCalendarCleared} /></div> : <StudyPlanCalendarWorkspace c={c} language={language} moduleName={moduleName} tasks={reviewState.tasks} repetitions={reviewState.repetitions} onTasksRefresh={loadReviewWorkspace} onRepetitionsRefresh={loadReviewWorkspace} onOpenReview={() => setTab("review")} onLectureCompleted={(event) => { const lecture = moduleLectures.find((item) => item.id === event.lectureId); if (lecture && !memoryByLecture.has(lecture.id)) openLectureCalibration(lecture, event); }} onRepetitionCompleted={(event) => { const repetition = reviewState.repetitions.find((item) => item.id === event.repetitionId); if (repetition) openRepetitionRating(repetition); }} />}</main>
       {feedback && tab !== "review" && <div className="study-plan-workspace-toast" role="status"><Icon name="check" size={13} />{feedback}</div>}
       <StudyPlanScheduleDialog language={language} task={scheduleTask} busy={scheduleBusy} onClose={() => !scheduleBusy && setScheduleTask(null)} onSave={(date, time) => saveTaskSchedule(scheduleTask, date, time)} />
+      <StudyPlanRepetitionDialog language={language} mode={repetitionDialog?.mode} lecture={repetitionDialog?.lecture || null} memory={repetitionDialog?.memory || null} repetition={repetitionDialog?.repetition || null} examDate={activePlan?.examDate || null} initialMinutes={repetitionDialog?.initialMinutes || 60} busy={repetitionBusy} onClose={() => !repetitionBusy && setRepetitionDialog(null)} onConfirm={saveRepetitionRecommendation} onStop={repetitionDialog?.mode === "rating" ? stopRepetitionFlow : null} />
     </div>
   );
 }
@@ -22508,7 +23116,7 @@ function PlanProgressPage({ c, language, moduleName, plan, lectures, events, lec
   const now = Date.now();
   const studyEventByLecture = {};
   events.forEach((event) => {
-    if (event.source !== "study-plan") return;
+    if (event.source !== "study-plan" || !studyPlanIsLectureActivity(event)) return;
     calendarLectureIds(event).forEach((id) => {
       const current = studyEventByLecture[id];
       if (!current || `${event.date}${event.time || ""}` < `${current.date}${current.time || ""}`) studyEventByLecture[id] = event;
@@ -22937,7 +23545,7 @@ function Dashboard({
 
   useEffect(() => {
     if (!activePlan || !currentModule || activePlan.calendarEnabled === false) return;
-    const bundle = buildStudyPlanCalendarBundle({ moduleName: currentModule, plan: activePlan, lectures: planLectures, questionTotal: questionCount, fromDate: today });
+    const bundle = buildStudyPlanCalendarBundle({ moduleName: currentModule, plan: activePlan, lectures: planLectures, questionTotal: questionCount, fromDate: today, reservedEvents: mergedCalendarEvents });
     if (!bundle.events.length) return;
     setCalendarEvents((previous) => {
       const generated = reconcileStudyPlanCalendarEvents({
@@ -22951,7 +23559,8 @@ function Dashboard({
         ...previous.filter(
           (event) =>
             event.planModuleId !== currentModule ||
-            !String(event.id).startsWith("studyplan-")
+            !String(event.id).startsWith("studyplan-") ||
+            studyPlanIsLinkedManualEvent(event, calendarEventMeta?.[event.id])
         ),
         ...generated,
       ];
@@ -23267,10 +23876,12 @@ function Dashboard({
     setEditingPlanEvent({ id: `event-${Date.now()}`, title: "", date, ...endFields, time: startTime, type: "study", estimatedHours: duration / 60, source: "user", recurrence: "none", __new: true });
   }
 
-  function saveEditingEvent() {
+  async function saveEditingEvent() {
     if (!editingPlanEvent?.title?.trim() || !editingPlanEvent.date) return;
     const cleanEvent = { ...editingPlanEvent, allDay: false, source: editingPlanEvent.source || "user", endDate: editingPlanEvent.endDate || editingPlanEvent.date };
     delete cleanEvent.__new;
+    const linkedResult = await studyPlanPersistLinkedSchedule(cleanEvent);
+    if (!linkedResult.ok) { console.error("Study-plan editor sync failed", linkedResult.error); return; }
     const isSingleOccurrence = Boolean(cleanEvent.recurrenceParentId);
     const materialized = isSingleOccurrence ? [cleanEvent] : calendarMaterializeRecurrence(cleanEvent);
     const parentId = cleanEvent.id;
@@ -23290,8 +23901,19 @@ function Dashboard({
     setEditingPlanEvent(null);
   }
 
-  function deleteEditingEvent() {
+  async function deleteEditingEvent() {
     if (!editingPlanEvent) return;
+
+    const editingKind = studyPlanActivityKind(editingPlanEvent);
+    if (!editingPlanEvent.__new && [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(editingKind)) {
+      const queued = { ...editingPlanEvent, date: editingKind === STUDY_PLAN_ACTIVITY_KINDS.REPETITION ? editingPlanEvent.date : todayKey, time: "", endTime: "", endDate: editingKind === STUDY_PLAN_ACTIVITY_KINDS.REPETITION ? editingPlanEvent.date : todayKey, needsScheduling: true, planningQueue: true };
+      const linkedResult = await studyPlanReturnLinkedToPlanningQueue(queued);
+      if (!linkedResult.ok) { console.error("Study-plan unschedule sync failed", linkedResult.error); return; }
+      setCalendarEvents((previous) => previous.map((item) => item.id === editingPlanEvent.id ? { ...item, date: todayKey, time: "", endTime: "", endDate: todayKey } : item));
+      setCalendarEventMeta((previous) => ({ ...previous, [editingPlanEvent.id]: { ...(previous[editingPlanEvent.id] || {}), ...calendarEventMetaFields(queued), status: "unscheduled", needsScheduling: true, planningQueue: true } }));
+      setEditingPlanEvent(null);
+      return;
+    }
 
     if (!editingPlanEvent.__new && calendarIsUnfinishedStudyPlanLecture(editingPlanEvent)) {
       const queuedEvent = calendarReturnLectureToQueue(editingPlanEvent, todayKey);
@@ -23322,8 +23944,8 @@ function Dashboard({
   function applyLectureCompletion(lecture, event, completed) {
     if (!lecture || !activePlan) return;
     const lectureId = lecture.id;
-    const related = mergedCalendarEvents.filter((item) => item.planModuleId === currentModule && calendarLectureIds(item).includes(lectureId));
-    const studyEvent = related.find((item) => item.source === "study-plan") || (event?.source === "study-plan" ? event : null);
+    const related = mergedCalendarEvents.filter((item) => item.planModuleId === currentModule && calendarLectureIds(item).includes(lectureId) && (item.source !== "study-plan" || studyPlanIsLectureActivity(item)));
+    const studyEvent = related.find((item) => item.source === "study-plan" && studyPlanIsLectureActivity(item)) || (event?.source === "study-plan" && studyPlanIsLectureActivity(event) ? event : null);
     const stableExisting = mergedCalendarEvents.find((item) => item.id === calendarStudyPlanLectureId(currentModule, lectureId)) || studyEvent;
     const base = calendarQueuedLectureBase({ moduleName: currentModule, lecture, todayKeyString: todayKey, existingEvent: stableExisting });
 
@@ -23398,11 +24020,15 @@ function Dashboard({
     });
   }
 
-  function togglePlanEventComplete(event) {
+  async function togglePlanEventComplete(event) {
     const completed = !event.completedAt;
+    const kind = studyPlanActivityKind(event);
+    const linkedResult = await studyPlanPersistLinkedCompletion(event, completed);
+    if (!linkedResult.ok) { console.error("Study-plan completion sync failed", linkedResult.error); return; }
+
     const lectureId = calendarLectureIds(event)[0];
     const lecture = lectureId ? planLectures.find((item) => item.id === lectureId) : null;
-    if (lecture) {
+    if (kind === STUDY_PLAN_ACTIVITY_KINDS.LECTURE && lecture && studyPlanIsLectureActivity(event)) {
       applyLectureCompletion(lecture, event, completed);
       return;
     }
@@ -23418,7 +24044,7 @@ function Dashboard({
       },
     }));
 
-    if (!activePlan) return;
+    if (!activePlan || kind !== STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE) return;
     const questionDelta = Number(event.questionCount) || 0;
     setPlansGlobal((previous) => {
       const plan = previous[currentModule];
@@ -23428,30 +24054,28 @@ function Dashboard({
     });
   }
 
-  function saveTodaySchedule(draft) {
-    setCalendarEvents((previous) => previous.map((event) => {
-      const entry = draft[event.id];
-      if (!entry) return event;
+  async function saveTodaySchedule(draft) {
+    const mergedById = new Map(mergedCalendarEvents.map((event) => [event.id, event]));
+    const prepared = Object.entries(draft || {}).map(([id, entry]) => {
+      const original = mergedById.get(id); if (!original) return null;
       const start = timeToMinutes(entry.time);
       const durationMinutes = Math.max(15, Number(entry.durationMinutes) || 60);
-      return { ...event, date: todayKey, time: entry.time || "", endTime: start == null ? "" : minutesToTime(start + durationMinutes), estimatedHours: durationMinutes / 60 };
-    }));
+      const endFields = start == null ? { endDate: todayKey, endTime: "" } : calendarEndFields(todayKey, start, durationMinutes);
+      return { ...original, date: todayKey, time: entry.time || "", ...endFields, estimatedHours: durationMinutes / 60, plannedMinutes: original.plannedMinutes || durationMinutes, needsScheduling: !entry.time, planningQueue: false };
+    }).filter(Boolean);
+    const syncResults = await Promise.all(prepared.map(async (event) => ({ id: event.id, event, result: await studyPlanPersistLinkedSchedule(event) })));
+    const successful = new Map(syncResults.filter((item) => item.result.ok).map((item) => [item.id, item.event]));
+    syncResults.filter((item) => !item.result.ok).forEach((item) => console.error("Daily planner linked sync failed", item.result.error));
+    setCalendarEvents((previous) => previous.map((event) => successful.has(event.id) ? { ...event, ...successful.get(event.id) } : event));
     setCalendarEventMeta((previous) => {
       const next = { ...previous };
-      Object.entries(draft).forEach(([id, entry]) => { next[id] = { ...(next[id] || {}), needsScheduling: !entry.time, status: entry.time ? "planned" : "unscheduled" }; });
+      successful.forEach((event, id) => { next[id] = { ...(next[id] || {}), ...calendarEventMetaFields(event), needsScheduling: !event.time, status: event.time ? "planned" : "unscheduled", planningQueue: false }; });
       return next;
     });
-    setCalendarDailyPlanner((previous) => ({
-      ...previous,
-      [todayKey]: {
-        confirmed: true,
-        confirmedAt: Date.now(),
-        fingerprint: dailyPlannerFingerprint,
-      },
-    }));
+    setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { confirmed: true, confirmedAt: Date.now(), fingerprint: dailyPlannerFingerprint } }));
   }
 
-  function resolveMissedEvent(event, action) {
+  async function resolveMissedEvent(event, action) {
     if (action === "complete") {
       togglePlanEventComplete(event);
       setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), missedResolvedAt: Date.now() } }));
@@ -23462,14 +24086,19 @@ function Dashboard({
       return;
     }
     const target = action === "tomorrow" ? dateKey(addDays(today, 1).getFullYear(), addDays(today, 1).getMonth(), addDays(today, 1).getDate()) : todayKey;
-    setCalendarEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, date: target, time: action === "today" ? item.time || "17:00" : item.time || "09:00" } : item));
-    setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), missedResolvedAt: Date.now(), needsScheduling: action === "today" ? !event.time : false } }));
+    const nextTime = action === "today" ? event.time || "17:00" : event.time || "09:00";
+    const duration = calendarDurationMinutes(event);
+    const moved = await dashboardMoveEvent({ ...event, date: target, time: nextTime, ...calendarEndFields(target, timeToMinutes(nextTime) || 0, duration) });
+    if (moved) setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), missedResolvedAt: Date.now() } }));
   }
 
-  function dashboardMoveEvent(updated) {
-    const metadata = { ...calendarEventMetaFields(updated), needsScheduling: !updated.time && !updated.allDay, status: updated.time || updated.allDay ? "planned" : "unscheduled" };
-    setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? { ...item, date: updated.date, time: updated.time, estimatedHours: updated.estimatedHours } : item));
+  async function dashboardMoveEvent(updated) {
+    const linkedResult = await studyPlanPersistLinkedSchedule(updated);
+    if (!linkedResult.ok) { console.error("Study-plan move sync failed", linkedResult.error); return false; }
+    const metadata = { ...calendarEventMetaFields(updated), needsScheduling: !updated.time && !updated.allDay, status: updated.time || updated.allDay ? "planned" : "unscheduled", planningQueue: false };
+    setCalendarEvents((previous) => previous.map((item) => item.id === updated.id ? { ...item, date: updated.date, time: updated.time, endTime: updated.endTime, endDate: updated.endDate, estimatedHours: updated.estimatedHours } : item));
     setCalendarEventMeta((previous) => ({ ...previous, [updated.id]: { ...(previous[updated.id] || {}), ...metadata } }));
+    return true;
   }
 
   function dashboardOpenLecture(event) {
