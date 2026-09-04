@@ -1,6 +1,6 @@
 "use client";
  
-// Kræver: npm install @supabase/supabase-js @nutrient-sdk/viewer
+// Kræver: npm install @supabase/supabase-js ts-fsrs pdfjs-dist
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
@@ -8,9 +8,6 @@ import { createClient } from "@supabase/supabase-js";
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
   process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY;
-const NUTRIENT_LICENSE_KEY = String(
-  process.env.REACT_APP_NUTRIENT_LICENSE_KEY || ""
-).trim();
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error(
@@ -66,6 +63,9 @@ const STORAGE = {
   studyPlanDraft: "medlearn-study-plan-draft",
   calendarPreferences: "medlearn-calendar-preferences",
   insightWorkspace: "medlearn-insight-workspace",
+  flashcardPreferences: "medlearn-flashcard-preferences-v1",
+  flashcardSyncQueue: "medlearn-flashcard-sync-queue-v1",
+  flashcardReviewHistory: "medlearn-flashcard-review-history-v1",
 };
 
 /* SEGMENT_6_9_HELPERS_START */
@@ -142,6 +142,356 @@ function insightBuildModel(history, questions, moduleName, scope = "module") {
   };
 }
 /* SEGMENT_6_9_HELPERS_END */
+
+/* SEGMENT_7_0_FLASHCARD_HELPERS_START */
+const FLASHCARD70_DEFAULT_PREFERENCES = Object.freeze({
+  pool: "mixed",
+  limit: 20,
+  studyMode: "flashcard",
+  order: "scheduler",
+});
+
+function flashcardFiniteTime(value) {
+  if (value == null || value === "") return null;
+  const time = typeof value === "number" ? value : new Date(value).getTime();
+  return Number.isFinite(time) ? time : null;
+}
+
+function flashcardStoredState(card) {
+  const fsrsState = card?.fsrs?.card?.state;
+  if (fsrsState != null) {
+    return ({ 0: "new", 1: "learning", 2: "review", 3: "relearning" })[Number(fsrsState)] || "new";
+  }
+  return String(card?.sm2?.state || card?.state || "").toLowerCase();
+}
+
+function flashcardStoredDue(card) {
+  return flashcardFiniteTime(
+    card?.fsrs?.card?.due ?? card?.sm2?.due ?? card?.due_at ?? card?.dueAt ?? card?.dueDate ?? card?.due
+  );
+}
+
+function flashcardCardStatus(card, nowMs = Date.now()) {
+  if (!card) return "new";
+  const state = flashcardStoredState(card);
+  const suspended = state === "suspended" || Boolean(card?.suspendedAt || card?.suspended_at);
+  const buriedUntil = flashcardFiniteTime(card?.buriedUntil ?? card?.buried_until);
+  if (suspended || card?.buried === true || (buriedUntil != null && buriedUntil > nowMs)) return "hidden";
+  if (state === "new") return "new";
+
+  const dueAt = flashcardStoredDue(card);
+  if (dueAt != null && dueAt <= nowMs) return "due";
+  if ((state === "learning" || state === "relearning") && dueAt != null && dueAt > nowMs) return "learning";
+  return "future";
+}
+
+function flashcardDeckStats(questions, spacedData, nowMs = Date.now()) {
+  const stats = { newCount: 0, learningCount: 0, dueCount: 0, totalActive: 0 };
+  (Array.isArray(questions) ? questions : []).forEach((question) => {
+    const status = flashcardCardStatus(spacedData?.[question?.id], nowMs);
+    if (status === "hidden") return;
+    stats.totalActive += 1;
+    if (status === "new") stats.newCount += 1;
+    else if (status === "learning") stats.learningCount += 1;
+    else if (status === "due") stats.dueCount += 1;
+  });
+  return stats;
+}
+
+function flashcardBuildDeckTree(moduleName, lectures, questions, spacedData, nowMs = Date.now()) {
+  const moduleQuestions = (Array.isArray(questions) ? questions : []).filter((question) => question?.moduleId === moduleName);
+  const moduleLectures = Array.isArray(lectures) ? lectures : [];
+  const groups = [];
+  const groupIndex = new Map();
+
+  moduleLectures.forEach((lecture) => {
+    const label = String(lecture?.group || "Uden emne").trim() || "Uden emne";
+    if (!groupIndex.has(label)) {
+      const group = { id: `group:${moduleName}:${label}`, type: "group", label, groupFilter: label, lectureFilter: null, children: [] };
+      groupIndex.set(label, group);
+      groups.push(group);
+    }
+    const lectureQuestions = moduleQuestions.filter((question) => question?.lectureId === lecture?.id);
+    groupIndex.get(label).children.push({
+      id: `lecture:${moduleName}:${lecture?.id}`,
+      type: "lecture",
+      label: String(lecture?.title || lecture?.id || "Forelæsning"),
+      code: String(lecture?.id || ""),
+      groupFilter: label,
+      lectureFilter: lecture?.id || null,
+      questions: lectureQuestions,
+      stats: flashcardDeckStats(lectureQuestions, spacedData, nowMs),
+      children: [],
+    });
+  });
+
+  const knownLectureIds = new Set(moduleLectures.map((lecture) => lecture?.id).filter(Boolean));
+  const unassigned = moduleQuestions.filter((question) => !knownLectureIds.has(question?.lectureId));
+  if (unassigned.length) {
+    groups.push({
+      id: `group:${moduleName}:unassigned`,
+      type: "group",
+      label: "Andre kort",
+      groupFilter: "__unassigned__",
+      lectureFilter: null,
+      questions: unassigned,
+      stats: flashcardDeckStats(unassigned, spacedData, nowMs),
+      children: [],
+    });
+  }
+
+  groups.forEach((group) => {
+    if (!group.questions) group.questions = group.children.flatMap((child) => child.questions);
+    group.stats = flashcardDeckStats(group.questions, spacedData, nowMs);
+  });
+
+  return {
+    id: `module:${moduleName}`,
+    type: "module",
+    label: moduleName,
+    groupFilter: null,
+    lectureFilter: null,
+    questions: moduleQuestions,
+    stats: flashcardDeckStats(moduleQuestions, spacedData, nowMs),
+    children: groups,
+  };
+}
+
+function flashcardQuestionDueTime(question, spacedData) {
+  return flashcardStoredDue(spacedData?.[question?.id]) ?? Number.POSITIVE_INFINITY;
+}
+
+function flashcardStableQuestionHash(question) {
+  const text = String(question?.id || question?.question?.da || question?.question || "");
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function flashcardSelectSessionQuestions(questions, spacedData, preferences, nowMs = Date.now()) {
+  const settings = { ...FLASHCARD70_DEFAULT_PREFERENCES, ...(preferences || {}) };
+  const rows = (Array.isArray(questions) ? questions : [])
+    .map((question, deckIndex) => ({ question, deckIndex, status: flashcardCardStatus(spacedData?.[question?.id], nowMs) }))
+    .filter((row) => row.status !== "hidden");
+  const allowed = rows.filter((row) => {
+    if (settings.pool === "due") return row.status === "due";
+    if (settings.pool === "new") return row.status === "new";
+    if (settings.pool === "all") return true;
+    return row.status === "due" || row.status === "new";
+  });
+
+  if (settings.order === "mixed") {
+    allowed.sort((a, b) => flashcardStableQuestionHash(a.question) - flashcardStableQuestionHash(b.question));
+  } else if (settings.order === "deck") {
+    allowed.sort((a, b) => a.deckIndex - b.deckIndex);
+  } else {
+    const priority = { due: 0, learning: 1, future: 2, new: 3 };
+    allowed.sort((a, b) =>
+      (priority[a.status] ?? 9) - (priority[b.status] ?? 9) ||
+      flashcardQuestionDueTime(a.question, spacedData) - flashcardQuestionDueTime(b.question, spacedData) ||
+      a.deckIndex - b.deckIndex
+    );
+  }
+
+  const limit = settings.limit === "all" ? allowed.length : Math.max(0, Number(settings.limit) || 0);
+  return allowed.slice(0, limit).map((row) => row.question);
+}
+
+function flashcardReviewEvents(spacedData) {
+  const events = [];
+  Object.entries(spacedData || {}).forEach(([questionId, card]) => {
+    const fsrsReviews = Array.isArray(card?.fsrs?.reviews) ? card.fsrs.reviews : [];
+    fsrsReviews.forEach((review, index) => {
+      const at = flashcardFiniteTime(review?.review ?? review?.timestamp ?? review?.reviewedAt);
+      if (at == null) return;
+      events.push({
+        id: String(review?.id || `${questionId}:fsrs:${index}:${at}`),
+        questionId,
+        reviewedAt: at,
+        seconds: Math.max(0, Math.round(Number(review?.seconds) || (Number(review?.duration) || 0) / 1000)),
+        rating: Number(review?.rating) || null,
+        reversesReviewId: review?.reversesReviewId || review?.reverses_review_id || null,
+      });
+    });
+    if (!fsrsReviews.length) {
+      const sm2Reviews = Array.isArray(card?.sm2?.reviewLog) ? card.sm2.reviewLog : Array.isArray(card?.reviewLog) ? card.reviewLog : [];
+      sm2Reviews.forEach((review, index) => {
+        const at = flashcardFiniteTime(review?.timestamp ?? review?.reviewedAt);
+        if (at == null) return;
+        events.push({
+          id: String(review?.id || `${questionId}:sm2:${index}:${at}`),
+          questionId,
+          reviewedAt: at,
+          seconds: Math.max(0, Math.round(Number(review?.seconds) || (Number(review?.duration) || 0) / 1000)),
+          rating: Number(review?.rating) || null,
+          reversesReviewId: review?.reversesReviewId || review?.reverses_review_id || null,
+        });
+      });
+    }
+  });
+  return events.sort((a, b) => a.reviewedAt - b.reviewedAt || a.id.localeCompare(b.id));
+}
+
+function flashcardLocalDateKey(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function flashcardHeatmapCells(events, endDate = new Date(), weekCount = 16) {
+  const end = endDate instanceof Date ? new Date(endDate) : new Date(endDate);
+  end.setHours(12, 0, 0, 0);
+  end.setDate(end.getDate() + ((7 - end.getDay()) % 7));
+  const days = Math.max(1, Number(weekCount) || 16) * 7;
+  const start = new Date(end);
+  start.setDate(start.getDate() - days + 1);
+  const reversed = new Set((events || []).map((event) => event?.reversesReviewId).filter(Boolean));
+  const totals = new Map();
+  (events || []).forEach((event) => {
+    if (!event || event.reversesReviewId || reversed.has(event.id)) return;
+    const key = flashcardLocalDateKey(event.reviewedAt);
+    if (!key) return;
+    const current = totals.get(key) || { count: 0, seconds: 0 };
+    current.count += 1;
+    current.seconds += Math.max(0, Number(event.seconds) || 0);
+    totals.set(key, current);
+  });
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const key = flashcardLocalDateKey(date);
+    const total = totals.get(key) || { count: 0, seconds: 0 };
+    return { date: key, count: total.count, seconds: Math.round(total.seconds), weekday: date.getDay(), future: date.getTime() > Date.now() };
+  });
+}
+
+function flashcardSessionSummary(reviews, startedAt, endedAt = Date.now()) {
+  const safeReviews = Array.isArray(reviews) ? reviews : [];
+  const ratings = { 1: 0, 2: 0, 3: 0, 4: 0 };
+  let reviewSeconds = 0;
+  safeReviews.forEach((review) => {
+    const rating = Number(review?.rating);
+    if (Object.prototype.hasOwnProperty.call(ratings, rating)) ratings[rating] += 1;
+    reviewSeconds += Math.max(0, Number(review?.seconds) || 0);
+  });
+  const elapsedSeconds = Math.max(0, Math.round((Number(endedAt) - Number(startedAt)) / 1000));
+  return {
+    reviewed: safeReviews.length,
+    elapsedSeconds,
+    averageSeconds: safeReviews.length ? Math.round(reviewSeconds / safeReviews.length) : 0,
+    ratings,
+  };
+}
+
+function flashcardCloneValue(value) {
+  if (value == null) return value;
+  return JSON.parse(JSON.stringify(value));
+}
+
+function flashcardCreateUndoSnapshot({ questionId, card, sessionState }) {
+  return {
+    questionId: String(questionId || ""),
+    hadCard: card != null,
+    card: flashcardCloneValue(card),
+    sessionState: flashcardCloneValue(sessionState || {}),
+    createdAt: Date.now(),
+  };
+}
+
+function flashcardRestoreUndoSnapshot(snapshot, spacedData) {
+  const next = { ...(spacedData || {}) };
+  if (snapshot?.hadCard) next[snapshot.questionId] = flashcardCloneValue(snapshot.card);
+  else if (snapshot?.questionId) delete next[snapshot.questionId];
+  return { spacedData: next, sessionState: flashcardCloneValue(snapshot?.sessionState || {}) };
+}
+
+function flashcardReviewEventId(questionId, reviewedAt, existingId = null, randomFn = null) {
+  if (existingId) return String(existingId);
+  const nonce = randomFn ? randomFn() : Math.random().toString(36).slice(2, 10);
+  return `${String(questionId || "card")}:${Number(reviewedAt) || Date.now()}:${String(nonce)}`;
+}
+
+function flashcardNormalizeMask(start, end = null) {
+  const source = end ? {
+    x: Math.min(Number(start?.x) || 0, Number(end?.x) || 0),
+    y: Math.min(Number(start?.y) || 0, Number(end?.y) || 0),
+    width: Math.abs((Number(end?.x) || 0) - (Number(start?.x) || 0)),
+    height: Math.abs((Number(end?.y) || 0) - (Number(start?.y) || 0)),
+  } : {
+    x: Number(start?.x) || 0,
+    y: Number(start?.y) || 0,
+    width: Number(start?.width) || Number(start?.w) || 0,
+    height: Number(start?.height) || Number(start?.h) || 0,
+  };
+  const x = Math.min(1, Math.max(0, source.x));
+  const y = Math.min(1, Math.max(0, source.y));
+  return {
+    x: Math.round(x * 10000) / 10000,
+    y: Math.round(y * 10000) / 10000,
+    width: Math.round(Math.min(1 - x, Math.max(0, source.width)) * 10000) / 10000,
+    height: Math.round(Math.min(1 - y, Math.max(0, source.height)) * 10000) / 10000,
+  };
+}
+
+function flashcardCreateOcclusionCards({ moduleId, lectureId, sourceName, page, imageDataUrl, masks, mode = "one", createdAt = new Date().toISOString() }) {
+  const normalizedMasks = (Array.isArray(masks) ? masks : [])
+    .map((mask, index) => ({ id: `mask-${index + 1}`, ...flashcardNormalizeMask(mask) }))
+    .filter((mask) => mask.width >= .01 && mask.height >= .01);
+  if (!imageDataUrl || !normalizedMasks.length) return [];
+  const groups = mode === "all" ? [normalizedMasks.map((mask) => mask.id)] : normalizedMasks.map((mask) => [mask.id]);
+  const stamp = new Date(createdAt).getTime() || Date.now();
+  return groups.map((hiddenMaskIds, index) => ({
+    id: `occlusion-${String(moduleId || "module")}-${String(lectureId || "lecture")}-${stamp}-${index + 1}`,
+    moduleId: moduleId || null,
+    lectureId: lectureId || null,
+    category: "Billedkort",
+    question: hiddenMaskIds.length === 1 ? "Hvad skjuler markeringen?" : "Hvad skjuler markeringerne?",
+    options: ["Vis svar", "Spring over"],
+    correct: 0,
+    explanation: `Billedkort fra ${sourceName || "dokument"}, side ${Math.max(1, Number(page) || 1)}.`,
+    private: true,
+    createdAt,
+    imageOcclusion: {
+      version: 1,
+      imageDataUrl,
+      masks: normalizedMasks,
+      hiddenMaskIds,
+      sourceName: sourceName || "",
+      page: Math.max(1, Number(page) || 1),
+      mode: mode === "all" ? "all" : "one",
+    },
+  }));
+}
+
+function flashcardQueueReviewEvent(queue, event) {
+  const current = Array.isArray(queue) ? queue : [];
+  if (!event?.eventId || current.some((item) => item?.eventId === event.eventId)) return current;
+  return [...current, event].slice(-2000);
+}
+
+function flashcardAcknowledgeReviewEvents(queue, eventIds) {
+  const acknowledged = new Set(Array.isArray(eventIds) ? eventIds : []);
+  return (Array.isArray(queue) ? queue : []).filter((event) => !acknowledged.has(event?.eventId));
+}
+
+function flashcardReviewSyncPayload(event) {
+  return {
+    event_id: String(event?.id || event?.eventId || ""),
+    question_id: String(event?.questionId || ""),
+    reviewed_at: new Date(event?.reviewedAt || Date.now()).toISOString(),
+    rating: Math.max(1, Math.min(4, Number(event?.rating) || 1)),
+    duration_seconds: Math.max(0, Math.round(Number(event?.seconds) || 0)),
+    reverses_review_id: event?.reversesReviewId || null,
+    metadata: event?.metadata && typeof event.metadata === "object" ? event.metadata : {},
+  };
+}
+/* SEGMENT_7_0_FLASHCARD_HELPERS_END */
 
 const LANGUAGES = [
   { code: "da", label: "Dansk", native: "Dansk", dir: "ltr" },
@@ -2051,25 +2401,12 @@ function calendarWeekEventStateLabels({ held = false } = {}) {
 
 /* SEGMENT_6_8_2_6_PPTX_PDF_HELPERS_START */
 const lecturePptxPdfBufferCache = new Map();
-let lecturePptxConverterPromise = null;
 const LECTURE_PPTX_PDF_CACHE_LIMIT = 5;
 const LECTURE_PPTX_PDF_CACHE_ENTRY_MAX_BYTES = 64 * 1024 * 1024;
-const LECTURE_PPTX_SOURCE_MAX_BYTES = 250 * 1024 * 1024;
+const LECTURE_PPTX_SOURCE_MAX_BYTES = 100 * 1024 * 1024;
 
 function lectureMaterialUsesPdfWorkspace(previewKind) {
   return previewKind === "pdf" || previewKind === "pptx";
-}
-
-async function loadLecturePptxConverter() {
-  if (!lecturePptxConverterPromise) {
-    lecturePptxConverterPromise = import("@nutrient-sdk/viewer")
-      .then((module) => module.default || module)
-      .catch((error) => {
-        lecturePptxConverterPromise = null;
-        throw error;
-      });
-  }
-  return lecturePptxConverterPromise;
 }
 
 function lecturePptxPdfCacheKey(material) {
@@ -2106,17 +2443,31 @@ function lecturePptxPdfBufferIsValid(buffer) {
   return bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2d;
 }
 
-async function lectureConvertPptxToPdf({ sourceUrl, converter, licenseKey = "", signal, fetchImpl = fetch }) {
+async function lectureConvertPptxToPdf({ sourceUrl, fileName = "presentation.pptx", mimeType = "", signal, fetchImpl = fetch }) {
   if (!sourceUrl) throw new Error("PowerPoint-filen mangler en gyldig adresse.");
-  if (!converter?.convertToPDF) throw new Error("PowerPoint-konverteringen er ikke installeret korrekt.");
   const response = await fetchImpl(sourceUrl, { signal, cache: "no-store" });
   if (!response?.ok) throw new Error(`PowerPoint-filen kunne ikke hentes (${Number(response?.status) || "ukendt status"}).`);
   const sourceBuffer = await response.arrayBuffer();
   if (!(sourceBuffer instanceof ArrayBuffer) || !sourceBuffer.byteLength) throw new Error("PowerPoint-filen er tom.");
-  if (sourceBuffer.byteLength > LECTURE_PPTX_SOURCE_MAX_BYTES) throw new Error("PowerPoint-filen er for stor til sikker konvertering i browseren.");
-  const configuration = { document: sourceBuffer, useCDN: true, signal };
-  if (String(licenseKey || "").trim()) configuration.licenseKey = String(licenseKey).trim();
-  const pdfBuffer = await converter.convertToPDF(configuration);
+  if (sourceBuffer.byteLength > LECTURE_PPTX_SOURCE_MAX_BYTES) throw new Error("PowerPoint-filen er større end 100 MB.");
+  const { data: { session } = {} } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("Log ind igen for at konvertere PowerPoint-filen.");
+  const sourceMime = mimeType || response.headers?.get?.("content-type") || "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+  const converted = await fetchImpl(`/api/convert-presentation?filename=${encodeURIComponent(fileName || "presentation.pptx")}`, {
+    method: "POST",
+    signal,
+    cache: "no-store",
+    headers: {
+      "Content-Type": sourceMime,
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: sourceBuffer,
+  });
+  if (!converted?.ok) {
+    const payload = await converted.json().catch(() => null);
+    throw new Error(payload?.error || `PowerPoint-filen kunne ikke konverteres (${Number(converted?.status) || "ukendt status"}).`);
+  }
+  const pdfBuffer = await converted.arrayBuffer();
   if (!lecturePptxPdfBufferIsValid(pdfBuffer)) throw new Error("PowerPoint-konverteringen returnerede ikke en gyldig PDF-fil.");
   return pdfBuffer;
 }
@@ -2969,6 +3320,54 @@ function useStoredState(key, fallback) {
   return [value, setValue];
 }
 
+function flashcardEnqueueReviewForSync(event) {
+  try {
+    const queue = flashcardQueueReviewEvent(loadStorage(STORAGE.flashcardSyncQueue, []), event);
+    localStorage.setItem(STORAGE.flashcardSyncQueue, JSON.stringify(queue));
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.flashcardSyncQueue } }));
+  } catch {
+    // Den lokale repetition må aldrig fejle, fordi cloud-køen er utilgængelig.
+  }
+}
+
+function FlashcardReviewSync70({ userId }) {
+  const [, setHistory] = useStoredState(STORAGE.flashcardReviewHistory, []);
+  const syncingRef = useRef(false);
+  useEffect(() => {
+    if (!userId) return undefined;
+    let disposed = false;
+    async function sync() {
+      if (disposed || syncingRef.current || (typeof navigator !== "undefined" && navigator.onLine === false)) return;
+      syncingRef.current = true;
+      try {
+        const queue = loadStorage(STORAGE.flashcardSyncQueue, []);
+        if (queue.length) {
+          const rows = queue.map((event) => ({ user_id: userId, ...flashcardReviewSyncPayload(event) }));
+          const { error } = await supabase.from("flashcard_review_events").upsert(rows, { onConflict: "user_id,event_id" });
+          if (error) throw error;
+          const remaining = flashcardAcknowledgeReviewEvents(queue, queue.map((event) => event.eventId));
+          localStorage.setItem(STORAGE.flashcardSyncQueue, JSON.stringify(remaining));
+          window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.flashcardSyncQueue } }));
+        }
+        const { data, error } = await supabase.from("flashcard_review_events").select("event_id,question_id,reviewed_at,rating,duration_seconds,reverses_review_id,metadata").eq("user_id", userId).order("reviewed_at", { ascending: true }).limit(5000);
+        if (error) throw error;
+        if (!disposed) setHistory((data || []).map((row) => ({ id: row.event_id, eventId: row.event_id, questionId: row.question_id, reviewedAt: row.reviewed_at, rating: row.rating, seconds: row.duration_seconds, reversesReviewId: row.reverses_review_id, metadata: row.metadata || {} })));
+      } catch {
+        // Offline eller endnu ikke migreret: behold køen og prøv igen senere.
+      } finally {
+        syncingRef.current = false;
+      }
+    }
+    const wake = () => sync();
+    sync();
+    window.addEventListener("online", wake);
+    window.addEventListener("medlearn-storage-update", wake);
+    const timer = window.setInterval(sync, 45000);
+    return () => { disposed = true; window.removeEventListener("online", wake); window.removeEventListener("medlearn-storage-update", wake); window.clearInterval(timer); };
+  }, [userId, setHistory]);
+  return null;
+}
+
 const CLOUD_SYNCED_KEYS = {
   [STORAGE.studyPlans]: { table: "study_plans", type: "keyed_object" },
   [STORAGE.calendarEvents]: { table: "calendar_events", type: "calendar" },
@@ -3155,6 +3554,9 @@ export function normalizeImportedQuestion(rawQuestion) {
     options: (rawQuestion.options || []).map(localized),
     correct: Number(rawQuestion.correct ?? 0),
     explanation: localized(rawQuestion.explanation || ""),
+    ...(rawQuestion.private === true ? { private: true } : {}),
+    ...(rawQuestion.createdAt ? { createdAt: rawQuestion.createdAt } : {}),
+    ...(rawQuestion.imageOcclusion ? { imageOcclusion: rawQuestion.imageOcclusion } : {}),
   };
 }
 
@@ -3217,15 +3619,13 @@ const SM2_MS_PER_DAY = 24 * 60 * SM2_MS_PER_MIN;
    ---------------------------------------------------------------------------
    Interval math and card-state transitions are delegated to the official
    open-spaced-repetition TypeScript implementation used to build Anki-style
-   FSRS review flows. It is version-pinned and loaded as an ESM module at
-   runtime because this project currently ships as a single App.js file.
+   FSRS review flows. It is version-pinned and bundled with the application.
 
    The older SM-2 implementation below remains only as a compatibility/offline
    fallback for existing cards and for the brief moment before the module has
    loaded. Once FSRS is available, all new ratings are committed by FSRS-6.
    ========================================================================== */
 const FSRS_RUNTIME_VERSION = "ts-fsrs@5.4.1 / FSRS-6";
-const FSRS_ESM_URL = "https://cdn.jsdelivr.net/npm/ts-fsrs@5.4.1/+esm";
 const FSRS_DEFAULT_SETTINGS = Object.freeze({
   requestRetention: 0.9,
   maximumInterval: 36500,
@@ -3234,22 +3634,12 @@ const FSRS_DEFAULT_SETTINGS = Object.freeze({
   learningSteps: ["1m", "10m"],
   relearningSteps: ["10m"],
 });
-let officialFsrsPromise = null;
 let officialFsrsModule = null;
+let officialFsrsPromise = null;
 
 function loadOfficialFsrs() {
   if (officialFsrsModule) return Promise.resolve(officialFsrsModule);
-  if (!officialFsrsPromise) {
-    officialFsrsPromise = import(/* webpackIgnore: true */ FSRS_ESM_URL)
-      .then((module) => {
-        officialFsrsModule = module;
-        return module;
-      })
-      .catch((error) => {
-        officialFsrsPromise = null;
-        throw new Error(`Flashkortmotoren kunne ikke indlæses: ${error?.message || error}`);
-      });
-  }
+  if (!officialFsrsPromise) officialFsrsPromise = import("ts-fsrs").then((module) => { officialFsrsModule = module; return module; });
   return officialFsrsPromise;
 }
 
@@ -3862,6 +4252,8 @@ function SM2AnswerFooter({
   useEffect(() => {
     function onKeyDown(event) {
       if (submitting || engineState === "loading") return;
+      const target = event.target;
+      if (target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName) || event.metaKey || event.ctrlKey || event.altKey) return;
       const map = { "1": SM2_RATING.AGAIN, "2": SM2_RATING.HARD, "3": SM2_RATING.GOOD, "4": SM2_RATING.EASY };
       if (map[event.key] != null) {
         event.preventDefault();
@@ -3881,6 +4273,8 @@ function SM2AnswerFooter({
     setSubmitting(true);
     setSelected(rating);
     setError(null);
+    const reviewedAt = nowMsRef.current;
+    const eventId = flashcardReviewEventId(questionId, reviewedAt);
     try {
       const updated = engineState === "ready"
         ? await fsrsApplyOfficial(storedCard, rating, questionId, nowMsRef.current)
@@ -3889,7 +4283,7 @@ function SM2AnswerFooter({
       localStorage.setItem(STORAGE.spacedRepetition, JSON.stringify(persisted));
       window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.spacedRepetition } }));
       setSpacedData(persisted);
-      onRated(updated, rating);
+      onRated(updated, rating, { previousCard: storedCard, reviewedAt, eventId });
     } catch (saveError) {
       setSubmitting(false);
       setSelected(null);
@@ -4043,13 +4437,15 @@ function sm2NextDueQuestionIndex(pool, spacedData, answered, currentIndex, nowMs
 function buildQuestionPool(scope, spacedData, extraQuestions, buried) {
   const allQuestions = getFullQuestionBank(extraQuestions).filter((question) => !(buried && buried[question.id]));
   if (!scope) return allQuestions;
-  const { moduleId, groupFilter, lectureFilter, mode, contentType, questionIds } = scope;
+  const { moduleId, groupFilter, lectureFilter, mode, contentType, questionIds, sessionQuestionIds } = scope;
   const exactIds = Array.isArray(questionIds) && questionIds.length ? new Set(questionIds) : null;
-  let pool = exactIds
-    ? allQuestions.filter((question) => exactIds.has(question.id))
+  const sessionIds = Array.isArray(sessionQuestionIds) && sessionQuestionIds.length ? new Set(sessionQuestionIds) : null;
+  const selectedIds = sessionIds || exactIds;
+  let pool = selectedIds
+    ? allQuestions.filter((question) => selectedIds.has(question.id))
     : allQuestions.filter((question) => question.moduleId === moduleId);
 
-  if (!exactIds) {
+  if (!selectedIds) {
     if (contentType === "examSet") pool = pool.filter((question) => !question.lectureId);
     else if (contentType === "lectures") pool = pool.filter((question) => Boolean(question.lectureId));
 
@@ -4061,8 +4457,8 @@ function buildQuestionPool(scope, spacedData, extraQuestions, buried) {
     if (!pool.length && !contentType) pool = allQuestions.filter((question) => question.moduleId === moduleId);
   }
 
-  pool = pool.filter((question) => sm2IsInTodayQueue(spacedData[question.id]));
-  if (mode === "due" || exactIds) {
+  if (!sessionIds) pool = pool.filter((question) => sm2IsInTodayQueue(spacedData[question.id]));
+  if (mode === "due" && !sessionIds) {
     pool = pool.filter((question) => {
       const card = spacedData[question.id];
       if (!card) return false;
@@ -19425,7 +19821,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
 }
 
 
-function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onStart, onCancel, onOpenLectureMenu, onResetAllProgress }) {
+function LegacySessionSetup({ c, t, language, user, spacedData, importedQuestions, onStart, onCancel, onOpenLectureMenu, onResetAllProgress }) {
   const [groupFilter, setGroupFilter] = useState(null);
   const [lectureFilter, setLectureFilter] = useState(null);
   const [mode, setMode] = useState("all");
@@ -19848,6 +20244,330 @@ function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onS
   );
 }
 
+function StudyDesk70({ c, language, user, spacedData, importedQuestions, onStart, onOpenLectureMenu, initialPool = "mixed" }) {
+  const copy = ({
+    da: {
+      title: "Flashkort",
+      subtitle: "Vælg en stak og start, når du er klar.",
+      deck: "Stak",
+      new: "Nye",
+      learning: "I gang",
+      due: "Klar",
+      browse: "Gennemse",
+      customize: "Tilpas",
+      searchDecks: "Søg i stakke",
+      searchCards: "Søg i kort",
+      openLecture: "Åbn forelæsning",
+      noCards: "Ingen kort i denne pulje",
+      start: (count) => `Start ${count} kort`,
+      activity: "Seneste 16 uger",
+      reviews: (count) => `${count} review${count === 1 ? "" : "s"}`,
+      minutes: (count) => `${count} min`,
+      cards: "Kort",
+      amount: "Antal",
+      view: "Visning",
+      order: "Rækkefølge",
+      mixed: "Klar og nye",
+      dueOnly: "Kun klar",
+      newOnly: "Kun nye",
+      all: "Alle aktive",
+      flashcard: "Flashkort",
+      recall: "Active recall",
+      exam: "Eksamen",
+      scheduler: "Scheduler",
+      shuffled: "Blandet",
+      deckOrder: "Stakrækkefølge",
+      allAmount: "Alle",
+      close: "Luk",
+      status: "Status",
+      allStatuses: "Alle statusser",
+      source: "Kilde",
+      noMatches: "Ingen kort matcher.",
+      selectDeck: "Vælg stak",
+    },
+    en: {
+      title: "Flashcards", subtitle: "Choose a deck and start when you are ready.", deck: "Deck", new: "New", learning: "Learning", due: "Ready",
+      browse: "Browse", customize: "Customise", searchDecks: "Search decks", searchCards: "Search cards", openLecture: "Open lecture",
+      noCards: "No cards in this pool", start: (count) => `Start ${count} cards`, activity: "Last 16 weeks", reviews: (count) => `${count} reviews`, minutes: (count) => `${count} min`,
+      cards: "Cards", amount: "Amount", view: "View", order: "Order", mixed: "Ready and new", dueOnly: "Ready only", newOnly: "New only", all: "All active",
+      flashcard: "Flashcards", recall: "Active recall", exam: "Exam", scheduler: "Scheduler", shuffled: "Mixed", deckOrder: "Deck order", allAmount: "All", close: "Close",
+      status: "Status", allStatuses: "All statuses", source: "Source", noMatches: "No cards match.", selectDeck: "Select deck",
+    },
+    ar: {
+      title: "البطاقات", subtitle: "اختر مجموعة وابدأ عندما تكون مستعدًا.", deck: "المجموعة", new: "جديدة", learning: "قيد التعلم", due: "جاهزة",
+      browse: "تصفح", customize: "تخصيص", searchDecks: "البحث في المجموعات", searchCards: "البحث في البطاقات", openLecture: "فتح المحاضرة",
+      noCards: "لا توجد بطاقات في هذه المجموعة", start: (count) => `ابدأ ${count} بطاقة`, activity: "آخر 16 أسبوعًا", reviews: (count) => `${count} مراجعة`, minutes: (count) => `${count} دقيقة`,
+      cards: "البطاقات", amount: "العدد", view: "العرض", order: "الترتيب", mixed: "الجاهزة والجديدة", dueOnly: "الجاهزة فقط", newOnly: "الجديدة فقط", all: "كل النشطة",
+      flashcard: "بطاقات", recall: "استدعاء نشط", exam: "اختبار", scheduler: "المجدول", shuffled: "مختلط", deckOrder: "ترتيب المجموعة", allAmount: "الكل", close: "إغلاق",
+      status: "الحالة", allStatuses: "كل الحالات", source: "المصدر", noMatches: "لا توجد بطاقات مطابقة.", selectDeck: "اختر مجموعة",
+    },
+  })[language] || null;
+  const labels = copy || ({ da: {} }).da;
+  const lectures = MODULE_LECTURES[user.module] || [];
+  const moduleQuestions = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === user.module);
+  const storedPreferences = loadStorage(STORAGE.flashcardPreferences, FLASHCARD70_DEFAULT_PREFERENCES) || FLASHCARD70_DEFAULT_PREFERENCES;
+  const [preferences, setPreferences] = useState(() => ({
+    ...FLASHCARD70_DEFAULT_PREFERENCES,
+    ...storedPreferences,
+    ...(initialPool === "due" ? { pool: "due" } : {}),
+  }));
+  const [selectedId, setSelectedId] = useState(`module:${user.module}`);
+  const [expanded, setExpanded] = useState(() => new Set([`module:${user.module}`]));
+  const [deckSearch, setDeckSearch] = useState("");
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [browserOpen, setBrowserOpen] = useState(false);
+  const [browserSearch, setBrowserSearch] = useState("");
+  const [browserStatus, setBrowserStatus] = useState("all");
+  const [browserDate, setBrowserDate] = useState("");
+  const [cloudReviewEvents] = useStoredState(STORAGE.flashcardReviewHistory, []);
+  const nowMs = Date.now();
+  const tree = flashcardBuildDeckTree(user.module, lectures, moduleQuestions, spacedData, nowMs);
+
+  useEffect(() => {
+    setSelectedId(`module:${user.module}`);
+    setExpanded(new Set([`module:${user.module}`]));
+  }, [user.module]);
+
+  useEffect(() => {
+    const stored = loadStorage(STORAGE.flashcardPreferences, FLASHCARD70_DEFAULT_PREFERENCES) || FLASHCARD70_DEFAULT_PREFERENCES;
+    setPreferences({ ...FLASHCARD70_DEFAULT_PREFERENCES, ...stored, ...(initialPool === "due" ? { pool: "due" } : {}) });
+  }, [initialPool, user.module]);
+
+  function findNode(node, id) {
+    if (node.id === id) return node;
+    for (const child of node.children || []) {
+      const found = findNode(child, id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  const selectedNode = findNode(tree, selectedId) || tree;
+  const selectedQuestions = selectedNode.questions || [];
+  const sessionQuestions = flashcardSelectSessionQuestions(selectedQuestions, spacedData, preferences, nowMs);
+  const localEvents = flashcardReviewEvents(spacedData);
+  const reviewIdentity = (event) => event?.reversesReviewId
+    ? `undo:${event.reversesReviewId}`
+    : `${String(event?.questionId || "")}:${flashcardFiniteTime(event?.reviewedAt) ?? ""}:${Number(event?.rating) || ""}`;
+  const eventIndex = new Map([...localEvents, ...(Array.isArray(cloudReviewEvents) ? cloudReviewEvents : [])].map((event) => [reviewIdentity(event), event]));
+  const allEvents = [...eventIndex.values()].filter((event) => event?.id || event?.eventId);
+  const selectedQuestionIds = new Set(selectedQuestions.map((question) => String(question.id)));
+  const selectedEvents = allEvents.filter((event) => selectedQuestionIds.has(String(event.questionId)));
+  const heatmap = flashcardHeatmapCells(selectedEvents, new Date(), 16);
+  const heatmapMax = Math.max(1, ...heatmap.map((cell) => cell.count));
+
+  function persistPreferences(patch) {
+    const next = { ...preferences, ...patch };
+    setPreferences(next);
+    try {
+      localStorage.setItem(STORAGE.flashcardPreferences, JSON.stringify(next));
+      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.flashcardPreferences } }));
+    } catch {
+      // Sessionen virker stadig uden vedvarende browserlager.
+    }
+  }
+
+  function toggleExpanded(id) {
+    setExpanded((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function poolLabel() {
+    return ({ mixed: labels.mixed, due: labels.dueOnly, new: labels.newOnly, all: labels.all })[preferences.pool] || labels.mixed;
+  }
+
+  function startSession() {
+    if (!sessionQuestions.length) return;
+    onStart({
+      moduleId: user.module,
+      groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter,
+      lectureFilter: selectedNode.lectureFilter,
+      mode: preferences.pool === "due" ? "due" : "all",
+      studyMode: preferences.studyMode,
+      pool: preferences.pool,
+      limit: preferences.limit,
+      order: preferences.order,
+      sessionQuestionIds: sessionQuestions.map((question) => question.id),
+    });
+  }
+
+  function rowMatches(node) {
+    const query = deckSearch.trim().toLocaleLowerCase();
+    if (!query) return true;
+    return [node.label, node.code, ...(node.children || []).map((child) => `${child.code || ""} ${child.label || ""}`)]
+      .join(" ")
+      .toLocaleLowerCase()
+      .includes(query);
+  }
+
+  function renderNode(node, depth = 0) {
+    if (node.type !== "module" && !rowMatches(node)) return null;
+    const hasChildren = Boolean(node.children?.length);
+    const isOpen = expanded.has(node.id) || Boolean(deckSearch.trim());
+    const isSelected = selectedNode.id === node.id;
+    return (
+      <React.Fragment key={node.id}>
+        <div className="study-desk70-row" data-selected={isSelected ? "true" : "false"} style={{ "--deck-depth": depth }}>
+          <button type="button" className="study-desk70-deck" onClick={() => setSelectedId(node.id)} aria-pressed={isSelected}>
+            <span className="study-desk70-indent" />
+            {hasChildren ? (
+              <span role="button" tabIndex={0} className="study-desk70-expand" aria-label={isOpen ? "Fold sammen" : "Fold ud"} aria-expanded={isOpen} onClick={(event) => { event.stopPropagation(); toggleExpanded(node.id); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); toggleExpanded(node.id); } }}>
+                <Icon name={isOpen ? "down" : "right"} size={13} />
+              </span>
+            ) : <span className="study-desk70-expand study-desk70-expand--empty" />}
+            {node.code ? <span className="study-desk70-code">{node.code}</span> : null}
+            <strong>{node.label}</strong>
+          </button>
+          <button type="button" className="study-desk70-count" onClick={() => { setSelectedId(node.id); persistPreferences({ pool: "new" }); }} aria-label={`${node.stats.newCount} ${labels.new}`}>{node.stats.newCount}</button>
+          <button type="button" className="study-desk70-count" onClick={() => { setSelectedId(node.id); persistPreferences({ pool: "all" }); }} aria-label={`${node.stats.learningCount} ${labels.learning}`}>{node.stats.learningCount}</button>
+          <button type="button" className="study-desk70-count study-desk70-count--due" onClick={() => { setSelectedId(node.id); persistPreferences({ pool: "due" }); }} aria-label={`${node.stats.dueCount} ${labels.due}`}>{node.stats.dueCount}</button>
+        </div>
+        {hasChildren && isOpen ? node.children.map((child) => renderNode(child, depth + 1)) : null}
+      </React.Fragment>
+    );
+  }
+
+  const browserQuestionIdsForDate = browserDate
+    ? new Set(selectedEvents.filter((event) => flashcardLocalDateKey(event.reviewedAt) === browserDate && !event.reversesReviewId).map((event) => String(event.questionId)))
+    : null;
+  const visibleBrowserQuestions = selectedQuestions.filter((question) => {
+    const status = flashcardCardStatus(spacedData?.[question.id], nowMs);
+    const text = [translate(question.question, language), translate(question.category, language), question.lectureId].filter(Boolean).join(" ").toLocaleLowerCase();
+    return (!browserSearch.trim() || text.includes(browserSearch.trim().toLocaleLowerCase())) &&
+      (browserStatus === "all" || status === browserStatus) &&
+      (!browserQuestionIdsForDate || browserQuestionIdsForDate.has(String(question.id)));
+  });
+
+  return (
+    <div className="study-desk70" data-study-desk="true">
+      <style>{`
+        .study-desk70{width:min(1120px,100%);margin:0 auto;color:var(--ui-text)}
+        .study-desk70-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}
+        .study-desk70-head h1{margin:0;font-size:clamp(24px,3vw,32px);letter-spacing:-.035em}.study-desk70-head p{margin:5px 0 0;color:var(--ui-secondary);font-size:12.5px}
+        .study-desk70-search{width:min(240px,42vw);height:38px;display:flex;align-items:center;gap:8px;padding:0 11px;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-panel)}
+        .study-desk70-search input{width:100%;border:0;outline:0;background:transparent;color:var(--ui-text);font:inherit;font-size:12px}
+        .study-desk70-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+        .study-desk70-table,.study-desk70-preview{border:1px solid var(--ui-border);border-radius:16px;background:var(--ui-panel);box-shadow:0 10px 35px rgba(30,52,82,.055);overflow:hidden}
+        .study-desk70-columns,.study-desk70-row{display:grid;grid-template-columns:minmax(220px,1fr) repeat(3,72px);align-items:center}
+        .study-desk70-columns{height:42px;padding:0 8px;border-bottom:1px solid var(--ui-border);color:var(--ui-muted);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+        .study-desk70-columns span:first-child{padding-inline-start:12px}.study-desk70-columns span:not(:first-child){text-align:center}
+        .study-desk70-row{min-height:45px;padding:0 8px;border-bottom:1px solid color-mix(in srgb,var(--ui-border) 72%,transparent)}.study-desk70-row:last-child{border-bottom:0}.study-desk70-row[data-selected="true"]{background:var(--ui-blue-soft);box-shadow:inset 3px 0 var(--ui-blue)}
+        .study-desk70-deck{min-width:0;height:44px;display:flex;align-items:center;gap:7px;padding:0 8px 0 calc(8px + var(--deck-depth)*18px);border:0;background:transparent;color:var(--ui-text);text-align:start;cursor:pointer}.study-desk70-deck strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}.study-desk70-code{color:var(--ui-blue);font-size:10.5px;font-weight:850}
+        .study-desk70-expand{width:20px;height:20px;display:grid;place-items:center;border-radius:6px;color:var(--ui-muted)}.study-desk70-expand:hover{background:var(--ui-soft);color:var(--ui-text)}.study-desk70-expand--empty{pointer-events:none}
+        .study-desk70-count{height:30px;border:0;border-radius:8px;background:transparent;color:var(--ui-secondary);font-size:12px;font-weight:760;font-variant-numeric:tabular-nums;cursor:pointer}.study-desk70-count:hover{background:var(--ui-soft);color:var(--ui-text)}.study-desk70-count--due{color:var(--ui-blue)}
+        .study-desk70-preview{position:sticky;top:12px;padding:20px}.study-desk70-preview h2{margin:0;font-size:17px;line-height:1.3}.study-desk70-selection{margin:5px 0 17px;color:var(--ui-secondary);font-size:11px}
+        .study-desk70-heatmap-head{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--ui-muted);font-size:9.5px;font-weight:700}.study-desk70-heatmap{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,8px);grid-auto-columns:8px;gap:3px;overflow:hidden}.study-desk70-cell{width:8px;height:8px;padding:0;border:0;border-radius:2px;background:var(--ui-soft);cursor:pointer}.study-desk70-cell[data-level="1"]{background:color-mix(in srgb,var(--ui-blue) 24%,var(--ui-soft))}.study-desk70-cell[data-level="2"]{background:color-mix(in srgb,var(--ui-blue) 48%,var(--ui-soft))}.study-desk70-cell[data-level="3"]{background:color-mix(in srgb,var(--ui-blue) 72%,var(--ui-soft))}.study-desk70-cell[data-level="4"]{background:var(--ui-blue)}
+        .study-desk70-start{width:100%;min-height:44px;margin-top:19px;border:0;border-radius:11px;background:var(--ui-blue);color:#fff;font:inherit;font-size:12.5px;font-weight:820;cursor:pointer}.study-desk70-start:disabled{background:var(--ui-soft);color:var(--ui-muted);cursor:default}.study-desk70-actions{display:flex;justify-content:center;gap:22px;margin-top:13px}.study-desk70-link{padding:3px;border:0;background:transparent;color:var(--ui-secondary);font:inherit;font-size:11px;font-weight:760;cursor:pointer}.study-desk70-link:hover{color:var(--ui-blue)}
+        .study-desk70-composer{margin-top:15px;padding-top:15px;border-top:1px solid var(--ui-border);display:grid;gap:12px}.study-desk70-field span{display:block;margin-bottom:6px;color:var(--ui-muted);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.study-desk70-options{display:flex;flex-wrap:wrap;gap:5px}.study-desk70-options button{min-height:30px;padding:0 9px;border:1px solid var(--ui-border);border-radius:8px;background:var(--ui-panel);color:var(--ui-secondary);font:inherit;font-size:10px;font-weight:720;cursor:pointer}.study-desk70-options button[data-active="true"]{border-color:var(--ui-blue-border);background:var(--ui-blue-soft);color:var(--ui-blue)}
+        .study-desk70-overlay{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;padding:20px;background:rgba(14,25,42,.38);backdrop-filter:blur(4px)}.study-desk70-browser{width:min(760px,100%);max-height:min(720px,88vh);display:flex;flex-direction:column;border:1px solid var(--ui-border);border-radius:18px;background:var(--ui-panel);box-shadow:0 30px 90px rgba(10,25,48,.2);overflow:hidden}.study-desk70-browser header{display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid var(--ui-border)}.study-desk70-browser header h2{margin:0 auto 0 0;font-size:16px}.study-desk70-browser input,.study-desk70-browser select{height:34px;border:1px solid var(--ui-border);border-radius:9px;background:var(--ui-soft);color:var(--ui-text);font:inherit;font-size:11px;padding:0 9px}.study-desk70-browser-list{overflow:auto;padding:8px}.study-desk70-card-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:12px;border-bottom:1px solid var(--ui-border)}.study-desk70-card-row strong{display:block;font-size:12px;line-height:1.45}.study-desk70-card-row small{display:block;margin-top:5px;color:var(--ui-muted);font-size:10px}.study-desk70-empty{padding:34px;color:var(--ui-muted);text-align:center;font-size:12px}
+        @media(max-width:820px){.study-desk70-layout{grid-template-columns:1fr}.study-desk70-preview{position:static}.study-desk70-columns,.study-desk70-row{grid-template-columns:minmax(150px,1fr) repeat(3,50px)}}
+        @media(max-width:560px){.study-desk70-head{align-items:stretch;flex-direction:column}.study-desk70-search{width:100%}.study-desk70-columns,.study-desk70-row{grid-template-columns:minmax(120px,1fr) repeat(3,43px)}.study-desk70-columns{font-size:8.5px}.study-desk70-deck strong{font-size:11px}.study-desk70-browser header{flex-wrap:wrap}.study-desk70-browser header h2{width:100%}}
+      `}</style>
+      <header className="study-desk70-head">
+        <div><h1>{labels.title}</h1><p>{labels.subtitle}</p></div>
+        <label className="study-desk70-search"><Icon name="search" size={14} /><input value={deckSearch} onChange={(event) => setDeckSearch(event.target.value)} placeholder={labels.searchDecks} aria-label={labels.searchDecks} /></label>
+      </header>
+      <div className="study-desk70-layout">
+        <section className="study-desk70-table" aria-label={labels.selectDeck}>
+          <div className="study-desk70-columns"><span>{labels.deck}</span><span>Nye</span><span>I gang</span><span>Klar</span></div>
+          {renderNode(tree)}
+        </section>
+        <aside className="study-desk70-preview">
+          <h2>{selectedNode.label}</h2>
+          <div className="study-desk70-selection">{poolLabel()} · {preferences.limit === "all" ? labels.allAmount.toLocaleLowerCase() : `${labels.amount.toLocaleLowerCase()} ${preferences.limit}`}</div>
+          <div className="study-desk70-heatmap-head"><span>{labels.activity}</span><span>{labels.reviews(selectedEvents.filter((event) => !event.reversesReviewId).length)}</span></div>
+          <div className="study-desk70-heatmap" data-study-heatmap aria-label={labels.activity}>
+            {heatmap.map((cell) => {
+              const ratio = cell.count / heatmapMax;
+              const level = cell.count === 0 ? 0 : ratio <= .25 ? 1 : ratio <= .5 ? 2 : ratio <= .75 ? 3 : 4;
+              return <button key={cell.date} type="button" className="study-desk70-cell" data-level={level} title={`${cell.date} · ${labels.reviews(cell.count)} · ${labels.minutes(Math.round(cell.seconds / 60))}`} onClick={() => { setBrowserDate(cell.date); setBrowserOpen(true); }} />;
+            })}
+          </div>
+          <button type="button" className="study-desk70-start" data-study-primary="true" disabled={!sessionQuestions.length} onClick={startSession}>{sessionQuestions.length ? labels.start(sessionQuestions.length) : labels.noCards}</button>
+          <div className="study-desk70-actions">
+            <button type="button" className="study-desk70-link" onClick={() => { setBrowserDate(""); setBrowserOpen(true); }}>Gennemse</button>
+            <button type="button" className="study-desk70-link" aria-expanded={composerOpen} onClick={() => setComposerOpen((open) => !open)}>Tilpas</button>
+          </div>
+          {composerOpen ? (
+            <div className="study-desk70-composer" data-session-composer>
+              <div className="study-desk70-field"><span>{labels.cards}</span><div className="study-desk70-options">{[["mixed", "Klar og nye"], ["due", "Kun klar"], ["new", "Kun nye"], ["all", "Alle aktive"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.pool === value ? "true" : "false"} onClick={() => persistPreferences({ pool: value })}>{label}</button>)}</div></div>
+              <div className="study-desk70-field"><span>{labels.amount}</span><div className="study-desk70-options">{[10, 20, 40, "all"].map((value) => <button key={value} type="button" data-active={preferences.limit === value ? "true" : "false"} onClick={() => persistPreferences({ limit: value })}>{value === "all" ? labels.allAmount : value}</button>)}</div></div>
+              <div className="study-desk70-field"><span>{labels.view}</span><div className="study-desk70-options">{[["flashcard", "Flashkort"], ["recall", "Active recall"], ["exam", "Eksamen"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.studyMode === value ? "true" : "false"} onClick={() => persistPreferences({ studyMode: value })}>{label}</button>)}</div></div>
+              <div className="study-desk70-field"><span>{labels.order}</span><div className="study-desk70-options">{[["scheduler", labels.scheduler], ["mixed", labels.shuffled], ["deck", labels.deckOrder]].map(([value, label]) => <button key={value} type="button" data-active={preferences.order === value ? "true" : "false"} onClick={() => persistPreferences({ order: value })}>{label}</button>)}</div></div>
+            </div>
+          ) : null}
+        </aside>
+      </div>
+      {browserOpen ? (
+        <div className="study-desk70-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setBrowserOpen(false); }}>
+          <section className="study-desk70-browser" data-card-browser role="dialog" aria-modal="true" aria-label={labels.browse}>
+            <header><h2>{labels.browse} · {selectedNode.label}</h2><input value={browserSearch} onChange={(event) => setBrowserSearch(event.target.value)} placeholder="Søg i kort" aria-label={labels.searchCards} /><select value={browserStatus} onChange={(event) => setBrowserStatus(event.target.value)} aria-label={labels.status}><option value="all">{labels.allStatuses}</option><option value="new">{labels.new}</option><option value="learning">{labels.learning}</option><option value="due">{labels.due}</option><option value="future">Planlagt</option></select><button type="button" className="study-desk70-link" onClick={() => setBrowserOpen(false)}>{labels.close}</button></header>
+            {browserDate ? <div style={{ padding: "8px 14px", borderBottom: `1px solid ${c.border}`, color: c.secondary, fontSize: 11 }}>{browserDate}<button type="button" className="study-desk70-link" onClick={() => setBrowserDate("")}>×</button></div> : null}
+            <div className="study-desk70-browser-list">
+              {visibleBrowserQuestions.length ? visibleBrowserQuestions.map((question) => {
+                const lecture = lectures.find((item) => item.id === question.lectureId);
+                return <article key={question.id} className="study-desk70-card-row"><div><strong>{translate(question.question, language)}</strong><small>{translate(question.category, language)} · {question.lectureId || labels.source}</small></div>{lecture && onOpenLectureMenu ? <button type="button" className="study-desk70-link" onClick={() => onOpenLectureMenu(lecture, user.module)}>Åbn forelæsning</button> : null}</article>;
+              }) : <div className="study-desk70-empty">{labels.noMatches}</div>}
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SessionSetup(props) {
+  return <StudyDesk70 {...props} />;
+}
+
+function FlashcardCompletion70({ c, language, reviews, startedAt, onDone, onContinue, onUndo }) {
+  const summary = flashcardSessionSummary(reviews, startedAt, Date.now());
+  const text = ({
+    da: { title: "Session afsluttet", reviewed: "Gennemgået", time: "Tid i alt", seconds: "sek", done: "Færdig", continue: "Fortsæt med resten", undo: "Fortryd sidste", again: "Igen", hard: "Svær", good: "God", easy: "Nem" },
+    en: { title: "Session complete", reviewed: "Reviewed", time: "Total time", seconds: "sec", done: "Done", continue: "Continue", undo: "Undo last", again: "Again", hard: "Hard", good: "Good", easy: "Easy" },
+    ar: { title: "اكتملت الجلسة", reviewed: "تمت مراجعتها", time: "الوقت الإجمالي", seconds: "ث", done: "تم", continue: "متابعة", undo: "تراجع عن الأخير", again: "مرة أخرى", hard: "صعب", good: "جيد", easy: "سهل" },
+  })[language] || null;
+  const labels = text || {};
+  const ratings = [
+    [1, labels.again],
+    [2, labels.hard],
+    [3, labels.good],
+    [4, labels.easy],
+  ];
+  return (
+    <section className="fade-up" data-flashcard-completion="true" style={{ width: "min(660px,100%)", margin: "48px auto", padding: "32px clamp(20px,5vw,42px)", border: `1px solid ${c.border}`, borderRadius: 22, background: c.panel, boxShadow: c.shadow }}>
+      <div style={{ width: 42, height: 42, display: "grid", placeItems: "center", marginBottom: 18, borderRadius: 13, background: c.blueSoft, color: c.blue }}><Icon name="check" size={20} /></div>
+      <h1 style={{ margin: 0, color: c.text, fontSize: 25, letterSpacing: "-.03em" }}>{labels.title}</h1>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 9, marginTop: 22 }}>
+        <div style={{ padding: 14, borderRadius: 13, background: c.soft }}><small style={{ color: c.muted, fontSize: 10, fontWeight: 800 }}>{labels.reviewed}</small><strong style={{ display: "block", marginTop: 5, color: c.text, fontSize: 21 }}>{summary.reviewed}</strong></div>
+        <div style={{ padding: 14, borderRadius: 13, background: c.soft }}><small style={{ color: c.muted, fontSize: 10, fontWeight: 800 }}>{labels.time}</small><strong style={{ display: "block", marginTop: 5, color: c.text, fontSize: 21 }}>{summary.elapsedSeconds} {labels.seconds}</strong></div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 7, marginTop: 9 }}>
+        {ratings.map(([rating, label]) => <div key={rating} style={{ padding: "11px 8px", border: `1px solid ${c.border}`, borderRadius: 11, textAlign: "center" }}><span style={{ display: "block", color: c.secondary, fontSize: 10 }}>{label}</span><strong style={{ display: "block", marginTop: 4, color: c.text, fontSize: 18 }}>{summary.ratings[rating]}</strong></div>)}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 9, marginTop: 24, flexWrap: "wrap" }}>
+        {onUndo ? <button type="button" data-review-undo="true" onClick={onUndo} style={{ minHeight: 39, padding: "0 12px", border: 0, background: "transparent", color: c.secondary, font: "inherit", fontSize: 11.5, fontWeight: 750, cursor: "pointer" }}>{labels.undo}</button> : <span />}
+        <div style={{ display: "flex", gap: 8 }}>{onContinue ? <button type="button" onClick={onContinue} style={{ minHeight: 40, padding: "0 14px", border: `1px solid ${c.border}`, borderRadius: 10, background: c.panel, color: c.text, font: "inherit", fontWeight: 750, cursor: "pointer" }}>{labels.continue}</button> : null}<PrimaryButton onClick={onDone}>{labels.done}</PrimaryButton></div>
+      </div>
+    </section>
+  );
+}
+
+function FlashcardOcclusion70({ data, reveal, c }) {
+  if (!data?.imageDataUrl) return null;
+  const hidden = new Set(Array.isArray(data.hiddenMaskIds) ? data.hiddenMaskIds : []);
+  return (
+    <div style={{ position: "relative", width: "min(780px,100%)", margin: "0 auto 22px", overflow: "hidden", border: `1px solid ${c.border}`, borderRadius: 16, background: c.soft, lineHeight: 0 }}>
+      <img src={data.imageDataUrl} alt="" style={{ display: "block", width: "100%", height: "auto" }} />
+      {(data.masks || []).map((mask) => <span key={mask.id} style={{ position: "absolute", left: `${mask.x * 100}%`, top: `${mask.y * 100}%`, width: `${mask.width * 100}%`, height: `${mask.height * 100}%`, boxSizing: "border-box", border: hidden.has(mask.id) ? `2px solid ${c.blue}` : "1px solid transparent", borderRadius: 4, background: hidden.has(mask.id) && !reveal ? c.blue : hidden.has(mask.id) ? `${c.blue}22` : "transparent", transition: "background .16s ease" }} />)}
+    </div>
+  );
+}
+
 function MCQ({
   c,
   t,
@@ -19917,6 +20637,7 @@ function MCQ({
   const [sessionCardTotal, setSessionCardTotal] = useState(() => pool.length);
   const [sessionCardPosition, setSessionCardPosition] = useState(() => Math.min((savedResume?.index || 0) + 1, pool.length || 1));
   const [sessionReviews, setSessionReviews] = useState([]);
+  const [undoSnapshot, setUndoSnapshot] = useState(null);
   const cardShownAtRef = useRef(Date.now());
   const examFsrsCommittedRef = useRef(false);
   const [, setDuePulse] = useState(0);
@@ -20095,13 +20816,31 @@ function MCQ({
     localStorage.removeItem(STORAGE.resumeSession);
   }
 
-  function advanceAfterRating(updatedCard, rating) {
-    setSessionReviews((previous) => [...previous, {
+  function advanceAfterRating(updatedCard, rating, meta = {}) {
+    const reviewEntry = {
+      id: meta.eventId || flashcardReviewEventId(question.id, meta.reviewedAt || Date.now()),
       questionId: question.id,
       questionText: translate(question.question, language),
       rating: rating ?? SM2_RATING.GOOD,
       seconds: Math.max(1, Math.round((Date.now() - cardShownAtRef.current) / 1000)),
-    }]);
+      reviewedAt: meta.reviewedAt || Date.now(),
+    };
+    setUndoSnapshot(flashcardCreateUndoSnapshot({
+      questionId: question.id,
+      card: meta.previousCard ?? spacedData?.[question.id] ?? null,
+      sessionState: {
+        index,
+        position: sessionCardPosition,
+        total: sessionCardTotal,
+        answers,
+        reviews: sessionReviews,
+        reviewEventId: reviewEntry.id,
+        historyLength: history.length,
+        savedSession,
+      },
+    }));
+    flashcardEnqueueReviewForSync({ ...reviewEntry, eventId: reviewEntry.id, metadata: { moduleId: user?.module || "", lectureId: question?.lectureId || null } });
+    setSessionReviews((previous) => [...previous, reviewEntry]);
     const nextSpacedData = { ...spacedData, [question.id]: updatedCard };
     const nextAnswers = { ...answers };
     delete nextAnswers[question.id];
@@ -20136,6 +20875,34 @@ function MCQ({
     }
     // The parent rebuilds the pool immediately. This just-scheduled card is excluded
     // until its saved day-based due timestamp, so it cannot reappear in this session.
+  }
+
+  function undoLatestReview() {
+    if (!undoSnapshot) return;
+    const restored = flashcardRestoreUndoSnapshot(undoSnapshot, spacedData);
+    const state = restored.sessionState || {};
+    try {
+      localStorage.setItem(STORAGE.spacedRepetition, JSON.stringify(restored.spacedData));
+      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.spacedRepetition } }));
+    } catch {
+      // React-tilstanden gendannes stadig, selv hvis browserlageret er utilgængeligt.
+    }
+    setSpacedData(restored.spacedData);
+    setIndex(Number(state.index) || 0);
+    setSessionCardPosition(Math.max(1, Number(state.position) || 1));
+    setSessionCardTotal(Math.max(1, Number(state.total) || pool.length || 1));
+    setAnswers(state.answers || {});
+    setSessionReviews(Array.isArray(state.reviews) ? state.reviews : []);
+    setHistory((previous) => previous.slice(0, Math.max(0, Number(state.historyLength) || 0)));
+    setSavedSession(Boolean(state.savedSession));
+    if (state.reviewEventId) {
+      const reversalId = flashcardReviewEventId(question?.id || undoSnapshot.questionId, Date.now());
+      flashcardEnqueueReviewForSync({ eventId: reversalId, id: reversalId, questionId: question?.id || undoSnapshot.questionId, reviewedAt: Date.now(), rating: SM2_RATING.GOOD, seconds: 0, reversesReviewId: state.reviewEventId, metadata: { undo: true } });
+    }
+    setFinished(false);
+    setWaitingForDue(false);
+    setUndoSnapshot(null);
+    cardShownAtRef.current = Date.now();
   }
 
   function chooseAnswer(optionIndex) {
@@ -20197,6 +20964,28 @@ function MCQ({
     setSessionCardTotal(pool.length || 1);
     setWaitingForDue(false);
   }
+
+  useEffect(() => {
+    function handleReviewerShortcut(event) {
+      const target = event.target;
+      if (target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName) || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key.toLowerCase() === "z" && undoSnapshot) {
+        event.preventDefault();
+        undoLatestReview();
+      } else if (event.key.toLowerCase() === "b" && question && !finished) {
+        event.preventDefault();
+        buryCurrentCard();
+      } else if (event.key.toLowerCase() === "f" && question && !finished) {
+        event.preventDefault();
+        setFlagModalOpen(true);
+      } else if (event.key === "Escape") {
+        if (flagModalOpen) setFlagModalOpen(false);
+        else if (cardMenuOpen) setCardMenuOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleReviewerShortcut);
+    return () => window.removeEventListener("keydown", handleReviewerShortcut);
+  }, [undoSnapshot, question?.id, finished, flagModalOpen, cardMenuOpen]);
 
   function restart() {
     if (onExitToOverview) {
@@ -20377,6 +21166,19 @@ if (!question && !finished) {
 }
 
   if (finished) {
+    if (!isExamMode) {
+      return (
+        <FlashcardCompletion70
+          c={c}
+          language={language}
+          reviews={sessionReviews}
+          startedAt={sessionStartedAt}
+          onDone={restart}
+          onContinue={null}
+          onUndo={undoSnapshot ? undoLatestReview : null}
+        />
+      );
+    }
     return isExamMode ? (
       <div className="fade-up" style={{ width: "min(880px, 100%)", margin: "0 auto", display: "grid", gap: 14 }}>
         <section style={{ padding: "28px clamp(20px,4vw,36px)", borderRadius: 22, background: c.panel, border: `1px solid ${c.border}` }}>
@@ -20764,22 +21566,6 @@ async function submitFlag() {
             </button>
           )}
 
-          {!reviewMode && (
-            <button
-              type="button"
-              title="Nulstil alle MCQ-kort"
-              onClick={resetAllProgress}
-              style={{
-                height: 36, padding: "0 10px", display: "inline-flex", alignItems: "center", gap: 6,
-                borderRadius: 10, border: `1px solid ${c.border}`, background: c.panel, color: c.secondary,
-                fontSize: 11, fontWeight: 750, cursor: "pointer", whiteSpace: "nowrap",
-              }}
-            >
-              <Icon name="reset" size={14} />
-              Nulstil
-            </button>
-          )}
-
           {onOpenLectureList && (
             <button
               type="button"
@@ -20945,6 +21731,13 @@ async function submitFlag() {
         </div>
       )}
 
+      {undoSnapshot && (
+        <div data-review-undo="true" role="status" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, padding: "9px 11px", borderRadius: 10, background: c.soft, color: c.secondary, fontSize: 11.5 }}>
+          <span>Kortet er gemt</span>
+          <button type="button" onClick={undoLatestReview} style={{ padding: 0, border: 0, background: "transparent", color: c.blue, font: "inherit", fontWeight: 800, cursor: "pointer" }}>Fortryd</button>
+        </div>
+      )}
+
       <div
         style={{
           height: 5,
@@ -20963,6 +21756,8 @@ async function submitFlag() {
           }}
         />
       </div>
+
+      {question.imageOcclusion && <FlashcardOcclusion70 data={question.imageOcclusion} reveal={reveal} c={c} />}
 
       <h1
         style={{
@@ -36888,26 +37683,19 @@ function sharedLectureNoteInitials(name) {
 /* =============================================================================
    SEGMENT 5.5 — PDF.JS DOCUMENT VIEWER
    -----------------------------------------------------------------------------
-   A pinned PDF.js runtime is loaded only when a PDF is actually opened. This
-   keeps the existing single-file App.js deployment model and avoids a new npm
-   dependency while replacing the browser iframe with a controlled page viewer.
+   A pinned PDF.js runtime is bundled with the application. The worker remains
+   lazy and is emitted as a build asset instead of being fetched from a CDN.
    ========================================================================== */
 const LECTURE_PDFJS_VERSION = "4.10.38";
-const LECTURE_PDFJS_MODULE_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${LECTURE_PDFJS_VERSION}/build/pdf.min.mjs`;
-const LECTURE_PDFJS_WORKER_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${LECTURE_PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+const LECTURE_PDFJS_WORKER_URL = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 let lecturePdfJsPromise = null;
 
 function loadLecturePdfJs() {
   if (lecturePdfJsPromise) return lecturePdfJsPromise;
-  lecturePdfJsPromise = import(/* webpackIgnore: true */ LECTURE_PDFJS_MODULE_URL)
-    .then((pdfjs) => {
-      pdfjs.GlobalWorkerOptions.workerSrc = LECTURE_PDFJS_WORKER_URL;
-      return pdfjs;
-    })
-    .catch((error) => {
-      lecturePdfJsPromise = null;
-      throw error;
-    });
+  lecturePdfJsPromise = import("pdfjs-dist").then((module) => {
+    module.GlobalWorkerOptions.workerSrc = LECTURE_PDFJS_WORKER_URL;
+    return module;
+  });
   return lecturePdfJsPromise;
 }
 
@@ -37317,6 +38105,34 @@ function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scal
   );
 }
 
+function ImageOcclusionEditor70({ imageDataUrl, page, sourceName, language = "da", onCancel, onSave }) {
+  const surfaceRef = useRef(null);
+  const dragRef = useRef(null);
+  const [masks, setMasks] = useState([]);
+  const [draft, setDraft] = useState(null);
+  const [mode, setMode] = useState("one");
+  const da = language !== "en";
+  function point(event) {
+    const rect = surfaceRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+    return { x: Math.min(1, Math.max(0, (event.clientX - rect.left) / Math.max(1, rect.width))), y: Math.min(1, Math.max(0, (event.clientY - rect.top) / Math.max(1, rect.height))) };
+  }
+  function begin(event) { if (event.button !== 0) return; const start = point(event); dragRef.current = start; setDraft(flashcardNormalizeMask(start, start)); event.currentTarget.setPointerCapture?.(event.pointerId); }
+  function move(event) { if (dragRef.current) setDraft(flashcardNormalizeMask(dragRef.current, point(event))); }
+  function end(event) { if (!dragRef.current) return; const next = flashcardNormalizeMask(dragRef.current, point(event)); dragRef.current = null; setDraft(null); if (next.width >= .01 && next.height >= .01) setMasks((current) => [...current, next]); }
+  const createdCount = mode === "all" ? (masks.length ? 1 : 0) : masks.length;
+  return (
+    <div className="image-occlusion70" role="dialog" aria-modal="true" aria-label={da ? "Opret billedkort" : "Create image cards"}>
+      <style>{`
+        .image-occlusion70{position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;background:#f6f8fc;color:#171b26}.image-occlusion70__head{min-height:58px;padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #dfe4ef;background:#fff}.image-occlusion70__head div{display:flex;flex-direction:column;min-width:0}.image-occlusion70__head strong{font-size:14px}.image-occlusion70__head small{color:#7a8499;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.image-occlusion70__head span{flex:1}.image-occlusion70 button{font:inherit;border:1px solid #d8deea;background:#fff;color:#202636;border-radius:9px;padding:8px 12px;font-weight:700;cursor:pointer}.image-occlusion70 button:disabled{opacity:.45;cursor:default}.image-occlusion70 button[data-primary=true]{background:#1769e0;border-color:#1769e0;color:#fff}.image-occlusion70__body{flex:1;min-height:0;overflow:auto;padding:18px;display:grid;place-items:center;background:#e9edf5}.image-occlusion70__surface{position:relative;display:inline-block;line-height:0;max-width:min(100%,1100px);touch-action:none;cursor:crosshair;box-shadow:0 12px 34px rgba(39,50,74,.16)}.image-occlusion70__surface img{display:block;max-width:100%;max-height:calc(100vh - 180px);user-select:none;-webkit-user-drag:none}.image-occlusion70__mask{position:absolute;background:rgba(35,105,225,.23);border:2px solid #1769e0;border-radius:4px;box-sizing:border-box}.image-occlusion70__mask button{position:absolute;right:-9px;top:-9px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:#1769e0;color:#fff;font-size:13px;line-height:20px}.image-occlusion70__foot{padding:10px 16px;display:flex;align-items:center;gap:10px;border-top:1px solid #dfe4ef;background:#fff}.image-occlusion70__foot small{color:#6d778b}.image-occlusion70__foot span{flex:1}.image-occlusion70__mode{display:flex;gap:3px;padding:3px;background:#eef1f7;border-radius:10px}.image-occlusion70__mode button{border:0;background:transparent;padding:6px 9px;font-size:12px}.image-occlusion70__mode button[data-active=true]{background:#fff;box-shadow:0 1px 3px rgba(30,40,60,.12)}
+      `}</style>
+      <header className="image-occlusion70__head"><div><strong>{da ? "Opret billedkort" : "Create image cards"}</strong><small>{sourceName} · {da ? "side" : "page"} {page}</small></div><span /><button type="button" onClick={onCancel}>{da ? "Annuller" : "Cancel"}</button><button type="button" data-primary="true" disabled={!masks.length} onClick={() => onSave({ masks, mode })}>{da ? `Opret ${createdCount} kort` : `Create ${createdCount} card${createdCount === 1 ? "" : "s"}`}</button></header>
+      <main className="image-occlusion70__body"><div ref={surfaceRef} className="image-occlusion70__surface" onPointerDown={begin} onPointerMove={move} onPointerUp={end} onPointerCancel={end}><img src={imageDataUrl} alt="" draggable="false" />{[...masks, ...(draft ? [draft] : [])].map((mask, index) => <div key={`${index}-${mask.x}-${mask.y}`} className="image-occlusion70__mask" style={{ left: `${mask.x * 100}%`, top: `${mask.y * 100}%`, width: `${mask.width * 100}%`, height: `${mask.height * 100}%` }}>{index < masks.length && <button type="button" aria-label={da ? "Fjern markering" : "Remove mask"} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); setMasks((current) => current.filter((_, maskIndex) => maskIndex !== index)); }}>×</button>}</div>)}</div></main>
+      <footer className="image-occlusion70__foot"><small>{da ? "Træk hen over det område, kortet skal skjule." : "Drag across the area the card should hide."}</small><span /><div className="image-occlusion70__mode"><button type="button" data-active={mode === "one" ? "true" : "false"} onClick={() => setMode("one")}>{da ? "Ét kort pr. felt" : "One card per mask"}</button><button type="button" data-active={mode === "all" ? "true" : "false"} onClick={() => setMode("all")}>{da ? "Alle felter på ét kort" : "All masks on one card"}</button></div></footer>
+    </div>
+  );
+}
+
 function LecturePdfViewer({
   url,
   materialId,
@@ -37332,6 +38148,8 @@ function LecturePdfViewer({
   onCreateAnnotation,
   onUpdateAnnotation,
   onDeleteAnnotation,
+  onCreateImageCards = null,
+  occlusionContext = null,
 }) {
   const canvasRef = useRef(null);
   const surfaceRef = useRef(null);
@@ -37373,6 +38191,7 @@ function LecturePdfViewer({
   const [historyRevision, setHistoryRevision] = useState(0);
   const [copyState, setCopyState] = useState("idle");
   const [fullscreen, setFullscreen] = useState(false);
+  const [occlusionEditor, setOcclusionEditor] = useState(null);
 
   useEffect(() => { stateChangeRef.current = onStateChange; }, [onStateChange]);
 
@@ -37564,6 +38383,17 @@ function LecturePdfViewer({
 
   function toggleFullscreen() { if (!rootRef.current) return; if (document.fullscreenElement === rootRef.current) document.exitFullscreen?.(); else rootRef.current.requestFullscreen?.(); }
 
+  async function openImageOcclusion() {
+    if (!onCreateImageCards || loadState !== "ready") return;
+    setOcclusionEditor({ state: "loading", page: pageNumber });
+    try {
+      const imageDataUrl = await examSetRenderPdfPageDataUrl(url, pageNumber, { maxWidth: 1400, quality: .78 });
+      setOcclusionEditor({ state: "ready", page: pageNumber, imageDataUrl });
+    } catch {
+      setOcclusionEditor({ state: "error", page: pageNumber });
+    }
+  }
+
   function handleKeys(event) {
     if (workspace && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") { event.preventDefault(); setSearchOpen(true); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); return; }
     if (event.target?.matches?.("input,textarea,select")) return;
@@ -37618,6 +38448,7 @@ function LecturePdfViewer({
             <button type="button" className="lecture-pdf-icon-control" data-active={searchOpen ? "true" : "false"} title={`${labels.search} · Ctrl/Cmd+F`} onClick={() => { setSearchOpen((value) => !value); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); }}><Icon name="search" size={14} /></button>
             <button type="button" className="lecture-pdf-icon-control" data-active={Boolean(currentBookmark) ? "true" : "false"} title={currentBookmark ? labels.bookmarked : labels.bookmark} onClick={toggleBookmark}><Icon name="bookmark" size={14} /></button>
             <button type="button" className="lecture-pdf-icon-control" title={copyState === "copied" ? labels.copied : copyState === "error" ? labels.pageTextUnavailable : labels.copyPage} onClick={copyCurrentPageText}><Icon name={copyState === "copied" ? "check" : "copy"} size={14} /></button>
+            {onCreateImageCards && <button type="button" className="lecture-pdf-icon-control" title={language === "en" ? "Create image cards from this page" : "Opret billedkort fra denne side"} disabled={loadState !== "ready"} onClick={openImageOcclusion}><Icon name="cards" size={14} /></button>}
             <button type="button" className="lecture-pdf-icon-control" title={fullscreen ? labels.exitFullscreen : labels.fullscreen} onClick={toggleFullscreen}><Icon name={fullscreen ? "collapse" : "expand"} size={14} /></button>
           </>}
         </div>
@@ -37652,6 +38483,9 @@ function LecturePdfViewer({
           })}</div> : <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}><canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />{renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}{renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}</div>}
         </div>
       </div>
+      {occlusionEditor?.state === "loading" && <div className="image-occlusion70" style={{ display: "grid", placeItems: "center" }}><span className="lecture-pdf-spinner" /><strong>{language === "en" ? "Preparing page…" : "Klargør side…"}</strong></div>}
+      {occlusionEditor?.state === "error" && <div className="image-occlusion70" style={{ display: "grid", placeItems: "center" }}><div><strong>{language === "en" ? "The page could not be prepared." : "Siden kunne ikke klargøres."}</strong><button type="button" onClick={() => setOcclusionEditor(null)}>{copy.close}</button></div></div>}
+      {occlusionEditor?.state === "ready" && <ImageOcclusionEditor70 imageDataUrl={occlusionEditor.imageDataUrl} page={occlusionEditor.page} sourceName={fileName} language={language} onCancel={() => setOcclusionEditor(null)} onSave={({ masks, mode }) => { const cards = flashcardCreateOcclusionCards({ moduleId: occlusionContext?.moduleId, lectureId: occlusionContext?.lectureId, sourceName: fileName, page: occlusionEditor.page, imageDataUrl: occlusionEditor.imageDataUrl, masks, mode }); onCreateImageCards(cards); setOcclusionEditor(null); }} />}
     </div>
   );
 }
@@ -38694,7 +39528,7 @@ function lectureViewportKind(width) {
   return "desktop";
 }
 
-function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [] }) {
+function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
@@ -40434,11 +41268,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       try {
         let pdfBuffer = lecturePptxPdfCacheGet(cacheKey);
         if (!pdfBuffer) {
-          const converter = await loadLecturePptxConverter();
           pdfBuffer = await lectureConvertPptxToPdf({
             sourceUrl: materialPreviewUrl,
-            converter,
-            licenseKey: NUTRIENT_LICENSE_KEY,
+            fileName: activeLectureMaterial.file_name || "presentation.pptx",
+            mimeType: activeLectureMaterial.mime_type || "",
             signal: controller.signal,
           });
           lecturePptxPdfCacheSet(cacheKey, pdfBuffer);
@@ -43627,6 +44460,8 @@ async function openExamSetPdfEditor() {
                     onCreateAnnotation={createLecturePdfAnnotation}
                     onUpdateAnnotation={updateLecturePdfAnnotation}
                     onDeleteAnnotation={deleteLecturePdfAnnotation}
+                    onCreateImageCards={setImportedQuestions ? (cards) => setImportedQuestions((current) => [...(Array.isArray(current) ? current : []), ...cards]) : null}
+                    occlusionContext={{ moduleId: moduleName, lectureId: selectedLecture?.id || null }}
                   />
                 ) : activeDocument?.previewKind === "pptx" ? (
                   lecturePptxPdfPreview.materialId !== activeLectureMaterial.id || lecturePptxPdfPreview.state === "idle" || lecturePptxPdfPreview.state === "loading" ? (
@@ -43649,6 +44484,8 @@ async function openExamSetPdfEditor() {
                       onCreateAnnotation={createLecturePdfAnnotation}
                       onUpdateAnnotation={updateLecturePdfAnnotation}
                       onDeleteAnnotation={deleteLecturePdfAnnotation}
+                      onCreateImageCards={setImportedQuestions ? (cards) => setImportedQuestions((current) => [...(Array.isArray(current) ? current : []), ...cards]) : null}
+                      occlusionContext={{ moduleId: moduleName, lectureId: selectedLecture?.id || null }}
                     />
                   ) : (
                     <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialPptxConversionError}</strong></div>
@@ -45874,6 +46711,7 @@ useEffect(() => {
   }, [spacedData, importedQuestions, user?.module]);
   const [buriedCards, setBuriedCards] = useStoredState(STORAGE.buriedCards, {});
   const [sessionScope, setSessionScope] = useState(null);
+  const [trainingStartPool, setTrainingStartPool] = useState("mixed");
   const [lectureMenu, setLectureMenu] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [tutorialActive, setTutorialActive] = useState(false);
@@ -46051,6 +46889,7 @@ useEffect(() => {
     setActiveWorkspace(null);
     setDrByteOpen(false);
     if (target === "mcq") {
+      setTrainingStartPool(options?.mode === "due" ? "due" : "mixed");
       setSessionScope(options ? { moduleId: user.module, groupFilter: null, lectureFilter: null, mode: options.mode || null, contentType: options.contentType || null } : null);
     }
     setRoute(target);
@@ -46060,8 +46899,8 @@ useEffect(() => {
   const activeAreaTab = medfluenAreaTab(route, activeWorkspace, sessionScope);
   function selectAreaTab(tabId) {
     setDrByteOpen(false);
-    if (tabId === "training-start") { setActiveWorkspace(null); setSessionScope(null); setRoute("mcq"); return; }
-    if (tabId === "training-review") { setActiveWorkspace(null); setSessionScope({ moduleId: user.module, groupFilter: null, lectureFilter: null, mode: "due", contentType: null }); setRoute("mcq"); return; }
+    if (tabId === "training-start") { setActiveWorkspace(null); setTrainingStartPool("mixed"); setSessionScope(null); setRoute("mcq"); return; }
+    if (tabId === "training-review") { setActiveWorkspace(null); setTrainingStartPool("due"); setSessionScope(null); setRoute("mcq"); return; }
     if (tabId === "training-exams") { setSessionScope(null); setActiveWorkspace("examSets"); return; }
     if (tabId === "training-history") { setActiveWorkspace(null); setSessionScope(null); setRoute("training-history"); return; }
     if (tabId === "curriculum-lectures") { setActiveWorkspace("lectures"); return; }
@@ -46094,6 +46933,7 @@ useEffect(() => {
     >
       <GlobalStyles c={c} />
       <CalendarReminderManager events={shellMergedEvents} />
+      <FlashcardReviewSync70 userId={session?.user?.id || null} />
       {theme === "light" && <div className="app-blue-hue" aria-hidden="true" />}
       {theme === "dark" && <div className="app-blue-hue-dark" aria-hidden="true" />}
 
@@ -46242,7 +47082,7 @@ useEffect(() => {
             <Notebook c={c} t={t} onClose={closeWorkspace} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={effectiveAdmin} importedQuestions={importedQuestions} />
@@ -46381,6 +47221,7 @@ onNavigate={navigateFromShell}
                     onResetAllProgress={setSpacedData}
                     importedQuestions={importedQuestions}
                     onStart={(scope) => setSessionScope(scope)}
+                    initialPool={trainingStartPool}
                     onCancel={() => setRoute("home")}
                     onOpenLectureMenu={(lecture, moduleId) => setLectureMenu({ lecture, moduleId })}
                   />
