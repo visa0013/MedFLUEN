@@ -1,6 +1,6 @@
 "use client";
  
-// Kræver: npm install @supabase/supabase-js
+// KrÃ¦ver: npm install @supabase/supabase-js
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
@@ -13,7 +13,7 @@ const SUPABASE_PUBLISHABLE_KEY =
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error(
-    "Supabase-konfiguration mangler. Kontrollér miljøvariablerne i Vercel."
+    "Supabase-konfiguration mangler. KontrollÃ©r miljÃ¸variablerne i Vercel."
   );
 }
 
@@ -69,64 +69,64 @@ const STORAGE = {
 const LANGUAGES = [
   { code: "da", label: "Dansk", native: "Dansk", dir: "ltr" },
   { code: "en", label: "English", native: "English", dir: "ltr" },
-  { code: "ar", label: "Arabic", native: "العربية", dir: "rtl" },
+  { code: "ar", label: "Arabic", native: "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©", dir: "rtl" },
 ];
 
 const TEXT = {
   da: {
-    preparing: "Klargør",
+    preparing: "KlargÃ¸r",
     name: "Dit navn",
     nameQuestion: "Hvad vil du gerne kaldes?",
     namePlaceholder: "Skriv dit navn",
     studyLevel: "Studieniveau",
-    chooseStudyLevel: "Vælg studieniveau",
-    chooseModule: "Vælg modul",
+    chooseStudyLevel: "VÃ¦lg studieniveau",
+    chooseModule: "VÃ¦lg modul",
     bachelor: "Bachelor",
     candidate: "Kandidat",
-    continue: "Fortsæt",
+    continue: "FortsÃ¦t",
     back: "Tilbage",
     start: "Start",
     home: "Hjem",
     clinicalMcq: "Kliniske MCQ'er",
     drByte: "Dr. Byte",
-    drByteChatTitle: "Spørg Dr. Byte",
-    drByteChatSubtitle: "Find relevante spørgsmål fra jeres spørgsmålsbank",
-    drByteInputPlaceholder: "Skriv dit spørgsmål her...",
+    drByteChatTitle: "SpÃ¸rg Dr. Byte",
+    drByteChatSubtitle: "Find relevante spÃ¸rgsmÃ¥l fra jeres spÃ¸rgsmÃ¥lsbank",
+    drByteInputPlaceholder: "Skriv dit spÃ¸rgsmÃ¥l her...",
     drByteSend: "Send",
-    drByteEmptyState: "Spørg mig om et emne, og jeg finder de mest relevante spørgsmål fra spørgsmålsbanken.",
-    drByteThinking: "Søger i spørgsmålsbanken...",
-    drByteNoResults: "Jeg kunne ikke finde nogen relevante spørgsmål. Prøv at omformulere eller nævne et specifikt emne.",
-    drByteFoundOne: "Jeg fandt dette spørgsmål, som matcher bedst:",
-    drByteFoundMany: "Jeg fandt disse spørgsmål, der matcher bedst:",
-    drByteOpenQuestion: "Åbn spørgsmål",
+    drByteEmptyState: "SpÃ¸rg mig om et emne, og jeg finder de mest relevante spÃ¸rgsmÃ¥l fra spÃ¸rgsmÃ¥lsbanken.",
+    drByteThinking: "SÃ¸ger i spÃ¸rgsmÃ¥lsbanken...",
+    drByteNoResults: "Jeg kunne ikke finde nogen relevante spÃ¸rgsmÃ¥l. PrÃ¸v at omformulere eller nÃ¦vne et specifikt emne.",
+    drByteFoundOne: "Jeg fandt dette spÃ¸rgsmÃ¥l, som matcher bedst:",
+    drByteFoundMany: "Jeg fandt disse spÃ¸rgsmÃ¥l, der matcher bedst:",
+    drByteOpenQuestion: "Ã…bn spÃ¸rgsmÃ¥l",
     drByteMatchScore: "match",
     drByteClearChat: "Ryd samtale",
     drByteScanningBank: "Analyserer",
     drByteScannedNote: "Gennemgik",
-    drByteQuestionsUnit: "spørgsmål i banken",
+    drByteQuestionsUnit: "spÃ¸rgsmÃ¥l i banken",
     drByteAiError: "AI-fejl:",
-    drByteSourcesLabel: "Kilder fra spørgsmålsbanken",
-    drByteBasedOnLabel: "Baseret på dette spørgsmål",
+    drByteSourcesLabel: "Kilder fra spÃ¸rgsmÃ¥lsbanken",
+    drByteBasedOnLabel: "Baseret pÃ¥ dette spÃ¸rgsmÃ¥l",
     drByteAiSectionTitle: "Dr. Byte AI",
-    drByteAiToggleLabel: "Aktivér AI-svar",
-    drByteAiToggleDescription: "Gratis AI-svar via MedFLUENs server — ingen API-nøgle kræves af studerende",
-    drByteAiKeyLabel: "OpenAI API-nøgle",
+    drByteAiToggleLabel: "AktivÃ©r AI-svar",
+    drByteAiToggleDescription: "Gratis AI-svar via MedFLUENs server â€” ingen API-nÃ¸gle krÃ¦ves af studerende",
+    drByteAiKeyLabel: "OpenAI API-nÃ¸gle",
     drByteAiKeyPlaceholder: "sk-...",
     drByteAiModelLabel: "Model",
-    drByteAiKeyHint: "Kører server-side via Gemini Free Tier. Studerende skal ikke indtaste eller kunne se en API-nøgle.",
-    drByteWebSearchLabel: "Tillad websøgning",
-    drByteWebSearchDescription: "Lad AI'en søge information op på nettet, når spørgsmålsbanken ikke er tilstrækkelig",
-    drByteUsedWebSearch: "Svaret inkluderer information fundet via websøgning",
+    drByteAiKeyHint: "KÃ¸rer server-side via Gemini Free Tier. Studerende skal ikke indtaste eller kunne se en API-nÃ¸gle.",
+    drByteWebSearchLabel: "Tillad websÃ¸gning",
+    drByteWebSearchDescription: "Lad AI'en sÃ¸ge information op pÃ¥ nettet, nÃ¥r spÃ¸rgsmÃ¥lsbanken ikke er tilstrÃ¦kkelig",
+    drByteUsedWebSearch: "Svaret inkluderer information fundet via websÃ¸gning",
     drByteAiProviderLabel: "AI-udbyder",
-    drByteNvidiaKeyLabel: "NVIDIA API-nøgle",
+    drByteNvidiaKeyLabel: "NVIDIA API-nÃ¸gle",
     drByteNvidiaKeyPlaceholder: "nvapi-...",
-    drByteNvidiaKeyHint: "NVIDIA-nøglen gemmes lokalt i din browser. Der er ikke længere en indbygget standardnøgle i app-koden.",
+    drByteNvidiaKeyHint: "NVIDIA-nÃ¸glen gemmes lokalt i din browser. Der er ikke lÃ¦ngere en indbygget standardnÃ¸gle i app-koden.",
     drByteNvidiaProxyLabel: "Proxy-URL (valgfrit)",
     drByteNvidiaProxyPlaceholder: "fx https://din-proxy.dk/api/nvidia",
-    drByteNvidiaProxyHint: "NVIDIA's API blokerer direkte kald fra browseren (CORS). Uden en proxy-server får du en 'Failed to fetch'-fejl. Peg her på en simpel mellemled-server, der videresender kaldet til NVIDIA.",
-    drByteGroqKeyLabel: "Groq API-nøgle",
+    drByteNvidiaProxyHint: "NVIDIA's API blokerer direkte kald fra browseren (CORS). Uden en proxy-server fÃ¥r du en 'Failed to fetch'-fejl. Peg her pÃ¥ en simpel mellemled-server, der videresender kaldet til NVIDIA.",
+    drByteGroqKeyLabel: "Groq API-nÃ¸gle",
     drByteGroqKeyPlaceholder: "gsk_...",
-    drByteGroqKeyHint: "Groq tillader direkte kald fra browseren (ingen proxy nødvendig) og har en gratis niveau. Få en nøgle på console.groq.com.",
+    drByteGroqKeyHint: "Groq tillader direkte kald fra browseren (ingen proxy nÃ¸dvendig) og har en gratis niveau. FÃ¥ en nÃ¸gle pÃ¥ console.groq.com.",
     notebook: "Notesbog",
     settings: "Indstillinger",
     language: "Sprog",
@@ -136,7 +136,7 @@ const TEXT = {
     close: "Luk",
     newNote: "Ny note",
     deleteNote: "Slet note",
-    renameHint: "Klik aktiv fane for at omdøbe",
+    renameHint: "Klik aktiv fane for at omdÃ¸be",
     untitledNote: "Unavngivet note",
     note: "Note",
     notesPlaceholder: "Skriv dine noter...",
@@ -145,16 +145,16 @@ const TEXT = {
     focus: "Fokus",
     break: "Pause",
     focusTimer: "Fokusur",
-    chooseSession: "Vælg en session.",
+    chooseSession: "VÃ¦lg en session.",
     minutes: "min",
     sessions: "sessioner",
     startFocus: "Start fokus",
     pause: "Pause",
-    resume: "Fortsæt",
+    resume: "FortsÃ¦t",
     resetTimer: "Nulstil",
-    question: "Spørgsmål",
+    question: "SpÃ¸rgsmÃ¥l",
     previous: "Forrige",
-    next: "Næste",
+    next: "NÃ¦ste",
     finish: "Afslut",
     feedbackOn: "Feedback til",
     feedbackOff: "Feedback fra",
@@ -162,169 +162,169 @@ const TEXT = {
     incorrect: "Ikke helt",
     sessionComplete: "Session afsluttet",
     perfectSession: "Perfekt session",
-    strongPerformance: "Stærk præstation",
+    strongPerformance: "StÃ¦rk prÃ¦station",
     goodProgress: "God fremgang",
     readyForReview: "Klar til repetition",
-    perfectDescription: "Alle spørgsmål er besvaret korrekt.",
+    perfectDescription: "Alle spÃ¸rgsmÃ¥l er besvaret korrekt.",
     strongDescription: "Du har et solidt overblik over emnerne i sessionen.",
     progressDescription:
-      "Gennemgå de forkerte svar for at styrke svagere områder.",
-    reviewDescription: "En målrettet gennemgang vil give mest læring nu.",
+      "GennemgÃ¥ de forkerte svar for at styrke svagere omrÃ¥der.",
+    reviewDescription: "En mÃ¥lrettet gennemgang vil give mest lÃ¦ring nu.",
     answered: "Besvaret",
     unanswered: "Ubesvaret",
     incorrectCount: "Forkert",
     resultsByTopic: "Resultater pr. emne",
-    resultsByTopicDescription: "Se hvilke områder der skal repeteres.",
+    resultsByTopicDescription: "Se hvilke omrÃ¥der der skal repeteres.",
     focusArea: "Fokus",
-    nextStep: "Næste skridt",
-    reviewAnswers: "Gennemgå svar",
+    nextStep: "NÃ¦ste skridt",
+    reviewAnswers: "GennemgÃ¥ svar",
     startNewSession: "Start ny session",
     reviewSession: "Gennemgang af session",
     toResults: "Til resultat",
     appearance: "Udseende",
     light: "Lys",
-    dark: "Mørk",
-    textSize: "Tekststørrelse",
-    questionText: "Spørgsmålstekst",
+    dark: "MÃ¸rk",
+    textSize: "TekststÃ¸rrelse",
+    questionText: "SpÃ¸rgsmÃ¥lstekst",
     small: "Lille",
     standard: "Standard",
     large: "Stor",
     timerSound: "Timelyd",
     timerSoundDescription: "Lyd ved afsluttet session",
     mascotToggle: "Vis Dr. Byte",
-    mascotToggleDescription: "Vis den flydende mus-assistent i hjørnet",
-editOrder: "Rediger rækkefølge",
-doneReorder: "Færdig",
-reorderHint: "Træk boksene for at ændre rækkefølgen",
-    done: "Færdig",
-    chooseLanguage: "Vælg sprog",
+    mascotToggleDescription: "Vis den flydende mus-assistent i hjÃ¸rnet",
+editOrder: "Rediger rÃ¦kkefÃ¸lge",
+doneReorder: "FÃ¦rdig",
+reorderHint: "TrÃ¦k boksene for at Ã¦ndre rÃ¦kkefÃ¸lgen",
+    done: "FÃ¦rdig",
+    chooseLanguage: "VÃ¦lg sprog",
     languageDescription:
-      "Hele brugerfladen og spørgsmålene vises på dette sprog.",
+      "Hele brugerfladen og spÃ¸rgsmÃ¥lene vises pÃ¥ dette sprog.",
     resetProfileTitle: "Nulstil profil?",
     resetProfileDescription:
       "Dit navn, niveau og modul fjernes. Dine noter beholdes.",
     cancel: "Annuller",
     reset: "Nulstil",
-    currentModule: "Nuværende modul",
+    currentModule: "NuvÃ¦rende modul",
     repetition: "Repetition",
     insights: "Indsigter",
     comingSoon: "Kommer snart",
-    questionOf: (current, total) => `Spørgsmål ${current} af ${total}`,
+    questionOf: (current, total) => `SpÃ¸rgsmÃ¥l ${current} af ${total}`,
     correctOutOf: (correct, total) => `${correct} af ${total} korrekt`,
     topicCorrect: (correct, total) => `${correct}/${total} korrekt`,
     focusInstruction: (topic) =>
-      `Gennemgå ${topic} og læs forklaringerne til de forkerte svar.`,
+      `GennemgÃ¥ ${topic} og lÃ¦s forklaringerne til de forkerte svar.`,
     noFocusInstruction:
-      "Fremragende — du kan fortsætte til et nyt emne eller tage sessionen igen.",
-    chooseSessionScope: "Vælg emne og forelæsning",
+      "Fremragende â€” du kan fortsÃ¦tte til et nyt emne eller tage sessionen igen.",
+    chooseSessionScope: "VÃ¦lg emne og forelÃ¦sning",
     allTopics: "Alle emner",
-    allLecturesInGroup: "Alle forelæsninger i dette emne",
-    dueMode: "Forfaldne spørgsmål",
-    allMode: "Alle spørgsmål",
-    lectureModeHint: "Spørgsmål prioriteres efter, hvad du skal repetere.",
-    noQuestionsInLecture: "Ingen spørgsmål tilknyttet endnu.",
+    allLecturesInGroup: "Alle forelÃ¦sninger i dette emne",
+    dueMode: "Forfaldne spÃ¸rgsmÃ¥l",
+    allMode: "Alle spÃ¸rgsmÃ¥l",
+    lectureModeHint: "SpÃ¸rgsmÃ¥l prioriteres efter, hvad du skal repetere.",
+    noQuestionsInLecture: "Ingen spÃ¸rgsmÃ¥l tilknyttet endnu.",
     newCard: "Nyt",
     reviewCard: "Repetition",
     dueCount: (count) => `${count} til repetition`,
     newCountLabel: (count) => `${count} nye`,
-    noNewOrDue: "Intet at øve lige nu",
-    importQuestions: "Importér spørgsmål",
-    importTitle: "Importér nye MCQ'er",
-    importDescription: "Indsæt en JSON-liste med spørgsmål i samme format som eksisterende data.",
+    noNewOrDue: "Intet at Ã¸ve lige nu",
+    importQuestions: "ImportÃ©r spÃ¸rgsmÃ¥l",
+    importTitle: "ImportÃ©r nye MCQ'er",
+    importDescription: "IndsÃ¦t en JSON-liste med spÃ¸rgsmÃ¥l i samme format som eksisterende data.",
     importPlaceholder: "[ { \"question\": \"...\", \"options\": [\"...\"], \"correct\": 0 } ]",
-    importSuccess: (count) => `${count} spørgsmål importeret`,
-    importError: "Kunne ikke læse JSON. Kontrollér formatet.",
+    importSuccess: (count) => `${count} spÃ¸rgsmÃ¥l importeret`,
+    importError: "Kunne ikke lÃ¦se JSON. KontrollÃ©r formatet.",
     importModuleLabel: "Tilknyt modul",
-    importLectureLabel: "Tilknyt forelæsning (valgfrit)",
-    importButton: "Importér",
+    importLectureLabel: "Tilknyt forelÃ¦sning (valgfrit)",
+    importButton: "ImportÃ©r",
     importCancel: "Annuller",
     importUploadFile: "Upload JSON-fil",
-    importEmpty: "Ingen gyldige spørgsmål fundet.",
+    importEmpty: "Ingen gyldige spÃ¸rgsmÃ¥l fundet.",
     importIssuesTitle: (count) => count === 1 ? "1 problem fundet" : `${count} problemer fundet`,
-    importPreviewTitle: (count) => count === 1 ? "1 spørgsmål klar til import" : `${count} spørgsmål klar til import`,
+    importPreviewTitle: (count) => count === 1 ? "1 spÃ¸rgsmÃ¥l klar til import" : `${count} spÃ¸rgsmÃ¥l klar til import`,
     importDuplicateWarning: "Findes muligvis allerede i banken",
-    importConfirmButton: (count) => count === 1 ? "Importér 1 spørgsmål" : `Importér ${count} spørgsmål`,
+    importConfirmButton: (count) => count === 1 ? "ImportÃ©r 1 spÃ¸rgsmÃ¥l" : `ImportÃ©r ${count} spÃ¸rgsmÃ¥l`,
     adminPortal: "Admin-portal",
   replayTutorial: "Vis rundvisning",
     adminGateTitle: "Administratoradgang",
-    adminGateDescription: "Indtast adgangskoden for at redigere spørgsmålsbanken.",
+    adminGateDescription: "Indtast adgangskoden for at redigere spÃ¸rgsmÃ¥lsbanken.",
     adminPasscodePlaceholder: "Adgangskode",
-    adminUnlock: "Lås op",
+    adminUnlock: "LÃ¥s op",
     adminWrongCode: "Forkert adgangskode.",
     adminPanelTitle: "Administrer indhold",
-    adminImportedList: "Importerede spørgsmål",
-    adminNoImported: "Ingen spørgsmål importeret endnu.",
+    adminImportedList: "Importerede spÃ¸rgsmÃ¥l",
+    adminNoImported: "Ingen spÃ¸rgsmÃ¥l importeret endnu.",
     adminDelete: "Slet",
     adminTabImport: "Importer",
-    adminTabFlagged: "Flaggede spørgsmål",
+    adminTabFlagged: "Flaggede spÃ¸rgsmÃ¥l",
     adminFlaggedCount: "flaggede",
-    adminNoFlagged: "Ingen flaggede spørgsmål endnu.",
+    adminNoFlagged: "Ingen flaggede spÃ¸rgsmÃ¥l endnu.",
     adminFlaggedBy: "Flagget af",
     adminFlaggedAt: "Tidspunkt",
     adminFlaggedReason: "Begrundelse",
-    adminFlaggedResolve: "Markér som løst",
+    adminFlaggedResolve: "MarkÃ©r som lÃ¸st",
     adminFlaggedDismiss: "Afvis",
-    adminFlaggedResolved: "Løst",
-    adminFlaggedOpen: "Åbne",
-    flagQuestion: "Flag spørgsmål",
-    flagQuestionTitle: "Flag dette spørgsmål",
-    flagQuestionDescription: "Fortæl kort, hvorfor du er uenig med spørgsmålet, svaret eller forklaringen.",
+    adminFlaggedResolved: "LÃ¸st",
+    adminFlaggedOpen: "Ã…bne",
+    flagQuestion: "Flag spÃ¸rgsmÃ¥l",
+    flagQuestionTitle: "Flag dette spÃ¸rgsmÃ¥l",
+    flagQuestionDescription: "FortÃ¦l kort, hvorfor du er uenig med spÃ¸rgsmÃ¥let, svaret eller forklaringen.",
     flagQuestionPlaceholder: "Beskriv problemet...",
     flagQuestionSubmit: "Send flag",
     flagQuestionCancel: "Annuller",
-    flagQuestionSuccess: "Tak! Spørgsmålet er sendt til gennemgang.",
-    flagQuestionAlreadyFlagged: "Du har allerede flagget dette spørgsmål.",
-    adminLock: "Lås admin-portal",
-    lectureMenu: "Forelæsningsmenu",
-    viewQuestions: "Se spørgsmål",
+    flagQuestionSuccess: "Tak! SpÃ¸rgsmÃ¥let er sendt til gennemgang.",
+    flagQuestionAlreadyFlagged: "Du har allerede flagget dette spÃ¸rgsmÃ¥l.",
+    adminLock: "LÃ¥s admin-portal",
+    lectureMenu: "ForelÃ¦sningsmenu",
+    viewQuestions: "Se spÃ¸rgsmÃ¥l",
     resetProgress: "Nulstil fremgang",
     resetProgressConfirmTitle: "Nulstil fremgang for denne bunke?",
-    resetProgressConfirmDescription: "Alle repetitionsdata for spørgsmålene i denne forelæsning nulstilles, så de igen tæller som nye.",
+    resetProgressConfirmDescription: "Alle repetitionsdata for spÃ¸rgsmÃ¥lene i denne forelÃ¦sning nulstilles, sÃ¥ de igen tÃ¦ller som nye.",
     resetConfirm: "Nulstil",
     resetDone: "Fremgang nulstillet",
-    questionListTitle: "Spørgsmål i forelæsning",
-    noCardsInLecture: "Ingen spørgsmål i denne forelæsning endnu.",
+    questionListTitle: "SpÃ¸rgsmÃ¥l i forelÃ¦sning",
+    noCardsInLecture: "Ingen spÃ¸rgsmÃ¥l i denne forelÃ¦sning endnu.",
     cardStatusNew: "Nyt",
     cardStatusDue: "Til repetition",
-    cardStatusLearned: "Lært",
-    addNewQuestion: "Opret nyt spørgsmål",
-    editQuestion: "Redigér spørgsmål",
-    newQuestionTitle: "Nyt spørgsmål",
-    questionFieldLabel: "Spørgsmål",
+    cardStatusLearned: "LÃ¦rt",
+    addNewQuestion: "Opret nyt spÃ¸rgsmÃ¥l",
+    editQuestion: "RedigÃ©r spÃ¸rgsmÃ¥l",
+    newQuestionTitle: "Nyt spÃ¸rgsmÃ¥l",
+    questionFieldLabel: "SpÃ¸rgsmÃ¥l",
     optionsFieldLabel: "Svarmuligheder",
     correctFieldLabel: "Korrekt svar",
     explanationFieldLabel: "Forklaring",
     categoryFieldLabel: "Kategori",
     saveQuestion: "Gem",
     cancelEdit: "Annuller",
-    deleteQuestion: "Slet spørgsmål",
-    confirmDeleteQuestion: "Er du sikker på, du vil slette dette spørgsmål?",
-    addOption: "Tilføj svarmulighed",
+    deleteQuestion: "Slet spÃ¸rgsmÃ¥l",
+    confirmDeleteQuestion: "Er du sikker pÃ¥, du vil slette dette spÃ¸rgsmÃ¥l?",
+    addOption: "TilfÃ¸j svarmulighed",
     removeOption: "Fjern",
     closeList: "Luk liste",
     cardMenu: "Kortmenu",
-    buryCard: "Gem kort væk",
+    buryCard: "Gem kort vÃ¦k",
     unburyCard: "Hent kort tilbage",
     resetThisCard: "Nulstil dette kort",
-    viewLectureList: "Se spørgsmål i denne bunke",
-    cardBuried: "Kort gemt væk til næste session",
+    viewLectureList: "Se spÃ¸rgsmÃ¥l i denne bunke",
+    cardBuried: "Kort gemt vÃ¦k til nÃ¦ste session",
     cardReset: "Kortets fremgang er nulstillet",
-    fullscreenEnter: "Fuld skærm",
-    fullscreenExit: "Afslut fuld skærm",
+    fullscreenEnter: "Fuld skÃ¦rm",
+    fullscreenExit: "Afslut fuld skÃ¦rm",
     noBuriedCards: "Ingen gemte kort",
     buriedCardsTitle: "Gemte kort",
-    examSetBlock: "Eksamenssætøvelse",
-    examSetBlockText: "Øv tidligere eksamensspørgsmål for modulet",
-    lecturesBlock: "Forelæsninger",
-    lecturesBlockText: "Gennemgå MCQ'er tilknyttet forelæsninger",
-    startExamSet: "Øv eksamenssæt",
-    startLectures: "Start forelæsninger",
+    examSetBlock: "EksamenssÃ¦tÃ¸velse",
+    examSetBlockText: "Ã˜v tidligere eksamensspÃ¸rgsmÃ¥l for modulet",
+    lecturesBlock: "ForelÃ¦sninger",
+    lecturesBlockText: "GennemgÃ¥ MCQ'er tilknyttet forelÃ¦sninger",
+    startExamSet: "Ã˜v eksamenssÃ¦t",
+    startLectures: "Start forelÃ¦sninger",
     todaysPlanTitle: "Dagens plan",
     calendar: "Kalender",
     calendarTitle: "Kalender",
     calendarToday: "I dag",
-    calendarAddEvent: "Ny hændelse",
-    calendarEditEvent: "Redigér hændelse",
+    calendarAddEvent: "Ny hÃ¦ndelse",
+    calendarEditEvent: "RedigÃ©r hÃ¦ndelse",
     calendarEventTitle: "Titel",
     calendarEventTitlePlaceholder: "Fx repetition af nyrefysiologi",
     calendarEventDate: "Dato",
@@ -337,24 +337,24 @@ reorderHint: "Træk boksene for at ændre rækkefølgen",
     calendarSave: "Gem",
     calendarDelete: "Slet",
     calendarCancel: "Annuller",
-    calendarNoEvents: "Ingen hændelser denne dag",
+    calendarNoEvents: "Ingen hÃ¦ndelser denne dag",
     calendarUpcoming: "Kommende",
-    calendarNoUpcoming: "Ingen kommende hændelser",
+    calendarNoUpcoming: "Ingen kommende hÃ¦ndelser",
     calendarMon: "Man",
     calendarTue: "Tir",
     calendarWed: "Ons",
     calendarThu: "Tor",
     calendarFri: "Fre",
-    calendarSat: "Lør",
-    calendarSun: "Søn",
+    calendarSat: "LÃ¸r",
+    calendarSun: "SÃ¸n",
     calendarViewDay: "Dag",
     calendarViewWeek: "Uge",
-    calendarViewMonth: "Måned",
-    calendarLecturesTitle: "Forelæsninger",
-    calendarNoLectures: "Ingen forelæsninger for dette modul.",
-    calendarImportICal: "Importér iCal",
-    calendarICalEmpty: "Ingen hændelser fundet i filen.",
-    calendarICalError: "Kunne ikke læse iCal-filen. Kontrollér formatet.",
+    calendarViewMonth: "MÃ¥ned",
+    calendarLecturesTitle: "ForelÃ¦sninger",
+    calendarNoLectures: "Ingen forelÃ¦sninger for dette modul.",
+    calendarImportICal: "ImportÃ©r iCal",
+    calendarICalEmpty: "Ingen hÃ¦ndelser fundet i filen.",
+    calendarICalError: "Kunne ikke lÃ¦se iCal-filen. KontrollÃ©r formatet.",
     todaysPlanExpandedTitle: "Dagens plan",
   },
 
@@ -394,7 +394,7 @@ reorderHint: "Træk boksene for at ændre rækkefølgen",
     drByteBasedOnLabel: "Based on this question",
     drByteAiSectionTitle: "Dr. Byte AI",
     drByteAiToggleLabel: "Enable AI answers",
-    drByteAiToggleDescription: "Free AI answers through MedFLUEN’s server — students do not need an API key",
+    drByteAiToggleDescription: "Free AI answers through MedFLUENâ€™s server â€” students do not need an API key",
     drByteAiKeyLabel: "OpenAI API key",
     drByteAiKeyPlaceholder: "sk-...",
     drByteAiModelLabel: "Model",
@@ -500,7 +500,7 @@ reorderHint: "Drag the boxes to change their order",
     focusInstruction: (topic) =>
       `Review ${topic} and read the explanations for incorrect answers.`,
     noFocusInstruction:
-      "Excellent — continue to a new topic or take the session again.",
+      "Excellent â€” continue to a new topic or take the session again.",
     chooseSessionScope: "Choose topic and lecture",
     allTopics: "All topics",
     allLecturesInGroup: "All lectures in this topic",
@@ -644,298 +644,298 @@ reorderHint: "Drag the boxes to change their order",
   },
 
   ar: {
-    preparing: "جارٍ التحضير",
-    name: "الاسم",
-    nameQuestion: "بماذا تود أن نناديك؟",
-    namePlaceholder: "اكتب اسمك",
-    studyLevel: "المستوى الدراسي",
-    chooseStudyLevel: "اختر المستوى الدراسي",
-    chooseModule: "اختر الوحدة",
-    bachelor: "بكالوريوس",
-    candidate: "دراسات عليا",
-    continue: "متابعة",
-    back: "رجوع",
-    start: "ابدأ",
-    home: "الرئيسية",
-    clinicalMcq: "أسئلة سريرية متعددة الخيارات",
-    drByte: "الدكتور بايت",
-    drByteChatTitle: "اسأل الدكتور بايت",
-    drByteChatSubtitle: "ابحث عن أسئلة ذات صلة من بنك الأسئلة",
-    drByteInputPlaceholder: "اكتب سؤالك هنا...",
-    drByteSend: "إرسال",
-    drByteEmptyState: "اسألني عن موضوع وسأجد لك الأسئلة الأكثر صلة من بنك الأسئلة.",
-    drByteThinking: "جارٍ البحث في بنك الأسئلة...",
-    drByteNoResults: "لم أتمكن من العثور على أسئلة ذات صلة. حاول إعادة الصياغة أو ذكر موضوع محدد.",
-    drByteFoundOne: "وجدت هذا السؤال الأكثر تطابقًا:",
-    drByteFoundMany: "وجدت هذه الأسئلة الأكثر تطابقًا:",
-    drByteOpenQuestion: "فتح السؤال",
-    drByteMatchScore: "تطابق",
-    drByteClearChat: "مسح المحادثة",
-    drByteScanningBank: "يتم التحليل",
-    drByteScannedNote: "تم فحص",
-    drByteQuestionsUnit: "سؤالًا في البنك",
-    drByteAiError: "خطأ في الذكاء الاصطناعي:",
-    drByteSourcesLabel: "مصادر من بنك الأسئلة",
-    drByteBasedOnLabel: "بناءً على هذا السؤال",
-    drByteAiSectionTitle: "الذكاء الاصطناعي للدكتور بايت",
-    drByteAiToggleLabel: "تفعيل إجابات الذكاء الاصطناعي",
-    drByteAiToggleDescription: "إجابات مجانية عبر خادم MedFLUEN — لا يحتاج الطلاب إلى مفتاح API",
-    drByteAiKeyLabel: "مفتاح OpenAI API",
+    preparing: "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ø¶ÙŠØ±",
+    name: "Ø§Ù„Ø§Ø³Ù…",
+    nameQuestion: "Ø¨Ù…Ø§Ø°Ø§ ØªÙˆØ¯ Ø£Ù† Ù†Ù†Ø§Ø¯ÙŠÙƒØŸ",
+    namePlaceholder: "Ø§ÙƒØªØ¨ Ø§Ø³Ù…Ùƒ",
+    studyLevel: "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠ",
+    chooseStudyLevel: "Ø§Ø®ØªØ± Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠ",
+    chooseModule: "Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø©",
+    bachelor: "Ø¨ÙƒØ§Ù„ÙˆØ±ÙŠÙˆØ³",
+    candidate: "Ø¯Ø±Ø§Ø³Ø§Øª Ø¹Ù„ÙŠØ§",
+    continue: "Ù…ØªØ§Ø¨Ø¹Ø©",
+    back: "Ø±Ø¬ÙˆØ¹",
+    start: "Ø§Ø¨Ø¯Ø£",
+    home: "Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©",
+    clinicalMcq: "Ø£Ø³Ø¦Ù„Ø© Ø³Ø±ÙŠØ±ÙŠØ© Ù…ØªØ¹Ø¯Ø¯Ø© Ø§Ù„Ø®ÙŠØ§Ø±Ø§Øª",
+    drByte: "Ø§Ù„Ø¯ÙƒØªÙˆØ± Ø¨Ø§ÙŠØª",
+    drByteChatTitle: "Ø§Ø³Ø£Ù„ Ø§Ù„Ø¯ÙƒØªÙˆØ± Ø¨Ø§ÙŠØª",
+    drByteChatSubtitle: "Ø§Ø¨Ø­Ø« Ø¹Ù† Ø£Ø³Ø¦Ù„Ø© Ø°Ø§Øª ØµÙ„Ø© Ù…Ù† Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+    drByteInputPlaceholder: "Ø§ÙƒØªØ¨ Ø³Ø¤Ø§Ù„Ùƒ Ù‡Ù†Ø§...",
+    drByteSend: "Ø¥Ø±Ø³Ø§Ù„",
+    drByteEmptyState: "Ø§Ø³Ø£Ù„Ù†ÙŠ Ø¹Ù† Ù…ÙˆØ¶ÙˆØ¹ ÙˆØ³Ø£Ø¬Ø¯ Ù„Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø£ÙƒØ«Ø± ØµÙ„Ø© Ù…Ù† Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©.",
+    drByteThinking: "Ø¬Ø§Ø±Ù Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©...",
+    drByteNoResults: "Ù„Ù… Ø£ØªÙ…ÙƒÙ† Ù…Ù† Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£Ø³Ø¦Ù„Ø© Ø°Ø§Øª ØµÙ„Ø©. Ø­Ø§ÙˆÙ„ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØµÙŠØ§ØºØ© Ø£Ùˆ Ø°ÙƒØ± Ù…ÙˆØ¶ÙˆØ¹ Ù…Ø­Ø¯Ø¯.",
+    drByteFoundOne: "ÙˆØ¬Ø¯Øª Ù‡Ø°Ø§ Ø§Ù„Ø³Ø¤Ø§Ù„ Ø§Ù„Ø£ÙƒØ«Ø± ØªØ·Ø§Ø¨Ù‚Ù‹Ø§:",
+    drByteFoundMany: "ÙˆØ¬Ø¯Øª Ù‡Ø°Ù‡ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø£ÙƒØ«Ø± ØªØ·Ø§Ø¨Ù‚Ù‹Ø§:",
+    drByteOpenQuestion: "ÙØªØ­ Ø§Ù„Ø³Ø¤Ø§Ù„",
+    drByteMatchScore: "ØªØ·Ø§Ø¨Ù‚",
+    drByteClearChat: "Ù…Ø³Ø­ Ø§Ù„Ù…Ø­Ø§Ø¯Ø«Ø©",
+    drByteScanningBank: "ÙŠØªÙ… Ø§Ù„ØªØ­Ù„ÙŠÙ„",
+    drByteScannedNote: "ØªÙ… ÙØ­Øµ",
+    drByteQuestionsUnit: "Ø³Ø¤Ø§Ù„Ù‹Ø§ ÙÙŠ Ø§Ù„Ø¨Ù†Ùƒ",
+    drByteAiError: "Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ:",
+    drByteSourcesLabel: "Ù…ØµØ§Ø¯Ø± Ù…Ù† Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+    drByteBasedOnLabel: "Ø¨Ù†Ø§Ø¡Ù‹ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø³Ø¤Ø§Ù„",
+    drByteAiSectionTitle: "Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ Ù„Ù„Ø¯ÙƒØªÙˆØ± Ø¨Ø§ÙŠØª",
+    drByteAiToggleLabel: "ØªÙØ¹ÙŠÙ„ Ø¥Ø¬Ø§Ø¨Ø§Øª Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ",
+    drByteAiToggleDescription: "Ø¥Ø¬Ø§Ø¨Ø§Øª Ù…Ø¬Ø§Ù†ÙŠØ© Ø¹Ø¨Ø± Ø®Ø§Ø¯Ù… MedFLUEN â€” Ù„Ø§ ÙŠØ­ØªØ§Ø¬ Ø§Ù„Ø·Ù„Ø§Ø¨ Ø¥Ù„Ù‰ Ù…ÙØªØ§Ø­ API",
+    drByteAiKeyLabel: "Ù…ÙØªØ§Ø­ OpenAI API",
     drByteAiKeyPlaceholder: "sk-...",
-    drByteAiModelLabel: "النموذج",
-    drByteAiKeyHint: "يعمل عبر الخادم باستخدام المستوى المجاني من Gemini. لا يحتاج الطلاب إلى إدخال مفتاح API أو رؤيته.",
-    drByteWebSearchLabel: "السماح بالبحث على الويب",
-    drByteWebSearchDescription: "دع الذكاء الاصطناعي يبحث عن معلومات على الإنترنت عندما لا يكون بنك الأسئلة كافيًا",
-    drByteUsedWebSearch: "تحتوي هذه الإجابة على معلومات تم العثور عليها عبر البحث على الويب",
-    drByteAiProviderLabel: "مزود الذكاء الاصطناعي",
-    drByteNvidiaKeyLabel: "مفتاح NVIDIA API",
+    drByteAiModelLabel: "Ø§Ù„Ù†Ù…ÙˆØ°Ø¬",
+    drByteAiKeyHint: "ÙŠØ¹Ù…Ù„ Ø¹Ø¨Ø± Ø§Ù„Ø®Ø§Ø¯Ù… Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ù…Ø¬Ø§Ù†ÙŠ Ù…Ù† Gemini. Ù„Ø§ ÙŠØ­ØªØ§Ø¬ Ø§Ù„Ø·Ù„Ø§Ø¨ Ø¥Ù„Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ù…ÙØªØ§Ø­ API Ø£Ùˆ Ø±Ø¤ÙŠØªÙ‡.",
+    drByteWebSearchLabel: "Ø§Ù„Ø³Ù…Ø§Ø­ Ø¨Ø§Ù„Ø¨Ø­Ø« Ø¹Ù„Ù‰ Ø§Ù„ÙˆÙŠØ¨",
+    drByteWebSearchDescription: "Ø¯Ø¹ Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ ÙŠØ¨Ø­Ø« Ø¹Ù† Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø¹Ù„Ù‰ Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª Ø¹Ù†Ø¯Ù…Ø§ Ù„Ø§ ÙŠÙƒÙˆÙ† Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© ÙƒØ§ÙÙŠÙ‹Ø§",
+    drByteUsedWebSearch: "ØªØ­ØªÙˆÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø¹Ù„Ù‰ Ù…Ø¹Ù„ÙˆÙ…Ø§Øª ØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„ÙŠÙ‡Ø§ Ø¹Ø¨Ø± Ø§Ù„Ø¨Ø­Ø« Ø¹Ù„Ù‰ Ø§Ù„ÙˆÙŠØ¨",
+    drByteAiProviderLabel: "Ù…Ø²ÙˆØ¯ Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ",
+    drByteNvidiaKeyLabel: "Ù…ÙØªØ§Ø­ NVIDIA API",
     drByteNvidiaKeyPlaceholder: "nvapi-...",
-    drByteNvidiaKeyHint: "يُحفظ مفتاح NVIDIA محليًا في المتصفح. لم يعد هناك مفتاح افتراضي مدمج في كود العميل.",
-    drByteNvidiaProxyLabel: "عنوان URL للوكيل (اختياري)",
-    drByteNvidiaProxyPlaceholder: "مثال: https://your-proxy.com/api/nvidia",
-    drByteNvidiaProxyHint: "تحظر واجهة برمجة تطبيقات NVIDIA الاتصال المباشر من المتصفح (CORS). بدون خادم وكيل ستحصل على خطأ 'Failed to fetch'. أشر هنا إلى خادم وسيط بسيط يعيد توجيه الطلب إلى NVIDIA.",
-    drByteGroqKeyLabel: "مفتاح Groq API",
+    drByteNvidiaKeyHint: "ÙŠÙØ­ÙØ¸ Ù…ÙØªØ§Ø­ NVIDIA Ù…Ø­Ù„ÙŠÙ‹Ø§ ÙÙŠ Ø§Ù„Ù…ØªØµÙØ­. Ù„Ù… ÙŠØ¹Ø¯ Ù‡Ù†Ø§Ùƒ Ù…ÙØªØ§Ø­ Ø§ÙØªØ±Ø§Ø¶ÙŠ Ù…Ø¯Ù…Ø¬ ÙÙŠ ÙƒÙˆØ¯ Ø§Ù„Ø¹Ù…ÙŠÙ„.",
+    drByteNvidiaProxyLabel: "Ø¹Ù†ÙˆØ§Ù† URL Ù„Ù„ÙˆÙƒÙŠÙ„ (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)",
+    drByteNvidiaProxyPlaceholder: "Ù…Ø«Ø§Ù„: https://your-proxy.com/api/nvidia",
+    drByteNvidiaProxyHint: "ØªØ­Ø¸Ø± ÙˆØ§Ø¬Ù‡Ø© Ø¨Ø±Ù…Ø¬Ø© ØªØ·Ø¨ÙŠÙ‚Ø§Øª NVIDIA Ø§Ù„Ø§ØªØµØ§Ù„ Ø§Ù„Ù…Ø¨Ø§Ø´Ø± Ù…Ù† Ø§Ù„Ù…ØªØµÙØ­ (CORS). Ø¨Ø¯ÙˆÙ† Ø®Ø§Ø¯Ù… ÙˆÙƒÙŠÙ„ Ø³ØªØ­ØµÙ„ Ø¹Ù„Ù‰ Ø®Ø·Ø£ 'Failed to fetch'. Ø£Ø´Ø± Ù‡Ù†Ø§ Ø¥Ù„Ù‰ Ø®Ø§Ø¯Ù… ÙˆØ³ÙŠØ· Ø¨Ø³ÙŠØ· ÙŠØ¹ÙŠØ¯ ØªÙˆØ¬ÙŠÙ‡ Ø§Ù„Ø·Ù„Ø¨ Ø¥Ù„Ù‰ NVIDIA.",
+    drByteGroqKeyLabel: "Ù…ÙØªØ§Ø­ Groq API",
     drByteGroqKeyPlaceholder: "gsk_...",
-    drByteGroqKeyHint: "يسمح Groq بالاتصال المباشر من المتصفح (لا حاجة لخادم وكيل) ولديه مستوى مجاني. احصل على مفتاح من console.groq.com.",
-    notebook: "دفتر الملاحظات",
-    settings: "الإعدادات",
-    language: "اللغة",
-    profile: "الملف الشخصي",
-    resetProfile: "إعادة تعيين الملف الشخصي",
-    signOutAction: "تسجيل الخروج",
-    close: "إغلاق",
-    newNote: "ملاحظة جديدة",
-    deleteNote: "حذف الملاحظة",
-    renameHint: "اضغط على علامة التبويب النشطة لإعادة تسميتها",
-    untitledNote: "ملاحظة بدون عنوان",
-    note: "ملاحظة",
-    notesPlaceholder: "اكتب ملاحظاتك...",
-    words: "كلمة",
-    font: "الخط",
-    focus: "تركيز",
-    break: "استراحة",
-    focusTimer: "مؤقت التركيز",
-    chooseSession: "اختر جلسة.",
-    minutes: "دقيقة",
-    sessions: "جلسات",
-    startFocus: "ابدأ التركيز",
-    pause: "إيقاف مؤقت",
-    resume: "متابعة",
-    resetTimer: "إعادة ضبط",
-    question: "السؤال",
-    previous: "السابق",
-    next: "التالي",
-    finish: "إنهاء",
-    feedbackOn: "التغذية الراجعة مفعّلة",
-    feedbackOff: "التغذية الراجعة معطّلة",
-    correct: "إجابة صحيحة",
-    incorrect: "ليست صحيحة تمامًا",
-    sessionComplete: "اكتملت الجلسة",
-    perfectSession: "جلسة مثالية",
-    strongPerformance: "أداء قوي",
-    goodProgress: "تقدّم جيد",
-    readyForReview: "جاهز للمراجعة",
-    perfectDescription: "تمت الإجابة عن جميع الأسئلة بشكل صحيح.",
-    strongDescription: "لديك فهم جيد لموضوعات هذه الجلسة.",
-    progressDescription: "راجع الإجابات غير الصحيحة لتقوية المجالات الأضعف.",
-    reviewDescription: "ستمنحك المراجعة المركزة أكبر فائدة تعليمية الآن.",
-    answered: "تمت الإجابة",
-    unanswered: "دون إجابة",
-    incorrectCount: "إجابة خاطئة",
-    resultsByTopic: "النتائج حسب الموضوع",
-    resultsByTopicDescription: "اطّلع على المجالات التي تحتاج إلى مراجعة.",
-    focusArea: "التركيز",
-    nextStep: "الخطوة التالية",
-    reviewAnswers: "مراجعة الإجابات",
-    startNewSession: "ابدأ جلسة جديدة",
-    reviewSession: "مراجعة الجلسة",
-    toResults: "إلى النتائج",
-    appearance: "المظهر",
-    light: "فاتح",
-    dark: "داكن",
-    textSize: "حجم النص",
-    questionText: "نص السؤال",
-    small: "صغير",
-    standard: "قياسي",
-    large: "كبير",
-    timerSound: "صوت المؤقت",
-    timerSoundDescription: "صوت عند انتهاء الجلسة",
-    mascotToggle: "إظهار د. بايت",
-    mascotToggleDescription: "إظهار مساعد الفأر العائم في الزاوية",
-editOrder: "تعديل الترتيب",
-doneReorder: "تم",
-reorderHint: "اسحب الصناديق لتغيير ترتيبها",
-    done: "تم",
-    chooseLanguage: "اختر اللغة",
-    languageDescription: "تظهر الواجهة والأسئلة كاملة بهذه اللغة.",
-    resetProfileTitle: "إعادة تعيين الملف الشخصي؟",
+    drByteGroqKeyHint: "ÙŠØ³Ù…Ø­ Groq Ø¨Ø§Ù„Ø§ØªØµØ§Ù„ Ø§Ù„Ù…Ø¨Ø§Ø´Ø± Ù…Ù† Ø§Ù„Ù…ØªØµÙØ­ (Ù„Ø§ Ø­Ø§Ø¬Ø© Ù„Ø®Ø§Ø¯Ù… ÙˆÙƒÙŠÙ„) ÙˆÙ„Ø¯ÙŠÙ‡ Ù…Ø³ØªÙˆÙ‰ Ù…Ø¬Ø§Ù†ÙŠ. Ø§Ø­ØµÙ„ Ø¹Ù„Ù‰ Ù…ÙØªØ§Ø­ Ù…Ù† console.groq.com.",
+    notebook: "Ø¯ÙØªØ± Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª",
+    settings: "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª",
+    language: "Ø§Ù„Ù„ØºØ©",
+    profile: "Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠ",
+    resetProfile: "Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠ",
+    signOutAction: "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬",
+    close: "Ø¥ØºÙ„Ø§Ù‚",
+    newNote: "Ù…Ù„Ø§Ø­Ø¸Ø© Ø¬Ø¯ÙŠØ¯Ø©",
+    deleteNote: "Ø­Ø°Ù Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø©",
+    renameHint: "Ø§Ø¶ØºØ· Ø¹Ù„Ù‰ Ø¹Ù„Ø§Ù…Ø© Ø§Ù„ØªØ¨ÙˆÙŠØ¨ Ø§Ù„Ù†Ø´Ø·Ø© Ù„Ø¥Ø¹Ø§Ø¯Ø© ØªØ³Ù…ÙŠØªÙ‡Ø§",
+    untitledNote: "Ù…Ù„Ø§Ø­Ø¸Ø© Ø¨Ø¯ÙˆÙ† Ø¹Ù†ÙˆØ§Ù†",
+    note: "Ù…Ù„Ø§Ø­Ø¸Ø©",
+    notesPlaceholder: "Ø§ÙƒØªØ¨ Ù…Ù„Ø§Ø­Ø¸Ø§ØªÙƒ...",
+    words: "ÙƒÙ„Ù…Ø©",
+    font: "Ø§Ù„Ø®Ø·",
+    focus: "ØªØ±ÙƒÙŠØ²",
+    break: "Ø§Ø³ØªØ±Ø§Ø­Ø©",
+    focusTimer: "Ù…Ø¤Ù‚Øª Ø§Ù„ØªØ±ÙƒÙŠØ²",
+    chooseSession: "Ø§Ø®ØªØ± Ø¬Ù„Ø³Ø©.",
+    minutes: "Ø¯Ù‚ÙŠÙ‚Ø©",
+    sessions: "Ø¬Ù„Ø³Ø§Øª",
+    startFocus: "Ø§Ø¨Ø¯Ø£ Ø§Ù„ØªØ±ÙƒÙŠØ²",
+    pause: "Ø¥ÙŠÙ‚Ø§Ù Ù…Ø¤Ù‚Øª",
+    resume: "Ù…ØªØ§Ø¨Ø¹Ø©",
+    resetTimer: "Ø¥Ø¹Ø§Ø¯Ø© Ø¶Ø¨Ø·",
+    question: "Ø§Ù„Ø³Ø¤Ø§Ù„",
+    previous: "Ø§Ù„Ø³Ø§Ø¨Ù‚",
+    next: "Ø§Ù„ØªØ§Ù„ÙŠ",
+    finish: "Ø¥Ù†Ù‡Ø§Ø¡",
+    feedbackOn: "Ø§Ù„ØªØºØ°ÙŠØ© Ø§Ù„Ø±Ø§Ø¬Ø¹Ø© Ù…ÙØ¹Ù‘Ù„Ø©",
+    feedbackOff: "Ø§Ù„ØªØºØ°ÙŠØ© Ø§Ù„Ø±Ø§Ø¬Ø¹Ø© Ù…Ø¹Ø·Ù‘Ù„Ø©",
+    correct: "Ø¥Ø¬Ø§Ø¨Ø© ØµØ­ÙŠØ­Ø©",
+    incorrect: "Ù„ÙŠØ³Øª ØµØ­ÙŠØ­Ø© ØªÙ…Ø§Ù…Ù‹Ø§",
+    sessionComplete: "Ø§ÙƒØªÙ…Ù„Øª Ø§Ù„Ø¬Ù„Ø³Ø©",
+    perfectSession: "Ø¬Ù„Ø³Ø© Ù…Ø«Ø§Ù„ÙŠØ©",
+    strongPerformance: "Ø£Ø¯Ø§Ø¡ Ù‚ÙˆÙŠ",
+    goodProgress: "ØªÙ‚Ø¯Ù‘Ù… Ø¬ÙŠØ¯",
+    readyForReview: "Ø¬Ø§Ù‡Ø² Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+    perfectDescription: "ØªÙ…Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø¹Ù† Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø¨Ø´ÙƒÙ„ ØµØ­ÙŠØ­.",
+    strongDescription: "Ù„Ø¯ÙŠÙƒ ÙÙ‡Ù… Ø¬ÙŠØ¯ Ù„Ù…ÙˆØ¶ÙˆØ¹Ø§Øª Ù‡Ø°Ù‡ Ø§Ù„Ø¬Ù„Ø³Ø©.",
+    progressDescription: "Ø±Ø§Ø¬Ø¹ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª ØºÙŠØ± Ø§Ù„ØµØ­ÙŠØ­Ø© Ù„ØªÙ‚ÙˆÙŠØ© Ø§Ù„Ù…Ø¬Ø§Ù„Ø§Øª Ø§Ù„Ø£Ø¶Ø¹Ù.",
+    reviewDescription: "Ø³ØªÙ…Ù†Ø­Ùƒ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…Ø±ÙƒØ²Ø© Ø£ÙƒØ¨Ø± ÙØ§Ø¦Ø¯Ø© ØªØ¹Ù„ÙŠÙ…ÙŠØ© Ø§Ù„Ø¢Ù†.",
+    answered: "ØªÙ…Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+    unanswered: "Ø¯ÙˆÙ† Ø¥Ø¬Ø§Ø¨Ø©",
+    incorrectCount: "Ø¥Ø¬Ø§Ø¨Ø© Ø®Ø§Ø·Ø¦Ø©",
+    resultsByTopic: "Ø§Ù„Ù†ØªØ§Ø¦Ø¬ Ø­Ø³Ø¨ Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹",
+    resultsByTopicDescription: "Ø§Ø·Ù‘Ù„Ø¹ Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø¬Ø§Ù„Ø§Øª Ø§Ù„ØªÙŠ ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø©.",
+    focusArea: "Ø§Ù„ØªØ±ÙƒÙŠØ²",
+    nextStep: "Ø§Ù„Ø®Ø·ÙˆØ© Ø§Ù„ØªØ§Ù„ÙŠØ©",
+    reviewAnswers: "Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª",
+    startNewSession: "Ø§Ø¨Ø¯Ø£ Ø¬Ù„Ø³Ø© Ø¬Ø¯ÙŠØ¯Ø©",
+    reviewSession: "Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¬Ù„Ø³Ø©",
+    toResults: "Ø¥Ù„Ù‰ Ø§Ù„Ù†ØªØ§Ø¦Ø¬",
+    appearance: "Ø§Ù„Ù…Ø¸Ù‡Ø±",
+    light: "ÙØ§ØªØ­",
+    dark: "Ø¯Ø§ÙƒÙ†",
+    textSize: "Ø­Ø¬Ù… Ø§Ù„Ù†Øµ",
+    questionText: "Ù†Øµ Ø§Ù„Ø³Ø¤Ø§Ù„",
+    small: "ØµØºÙŠØ±",
+    standard: "Ù‚ÙŠØ§Ø³ÙŠ",
+    large: "ÙƒØ¨ÙŠØ±",
+    timerSound: "ØµÙˆØª Ø§Ù„Ù…Ø¤Ù‚Øª",
+    timerSoundDescription: "ØµÙˆØª Ø¹Ù†Ø¯ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ø¬Ù„Ø³Ø©",
+    mascotToggle: "Ø¥Ø¸Ù‡Ø§Ø± Ø¯. Ø¨Ø§ÙŠØª",
+    mascotToggleDescription: "Ø¥Ø¸Ù‡Ø§Ø± Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„ÙØ£Ø± Ø§Ù„Ø¹Ø§Ø¦Ù… ÙÙŠ Ø§Ù„Ø²Ø§ÙˆÙŠØ©",
+editOrder: "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„ØªØ±ØªÙŠØ¨",
+doneReorder: "ØªÙ…",
+reorderHint: "Ø§Ø³Ø­Ø¨ Ø§Ù„ØµÙ†Ø§Ø¯ÙŠÙ‚ Ù„ØªØºÙŠÙŠØ± ØªØ±ØªÙŠØ¨Ù‡Ø§",
+    done: "ØªÙ…",
+    chooseLanguage: "Ø§Ø®ØªØ± Ø§Ù„Ù„ØºØ©",
+    languageDescription: "ØªØ¸Ù‡Ø± Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© ÙˆØ§Ù„Ø£Ø³Ø¦Ù„Ø© ÙƒØ§Ù…Ù„Ø© Ø¨Ù‡Ø°Ù‡ Ø§Ù„Ù„ØºØ©.",
+    resetProfileTitle: "Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠØŸ",
     resetProfileDescription:
-      "سيتم حذف الاسم والمستوى والوحدة. تبقى ملاحظاتك محفوظة.",
-    cancel: "إلغاء",
-    reset: "إعادة تعيين",
-    currentModule: "الوحدة الحالية",
-    repetition: "مراجعة",
-    insights: "إحصاءات",
-    comingSoon: "قريبًا",
-    questionOf: (current, total) => `السؤال ${current} من ${total}`,
-    correctOutOf: (correct, total) => `${correct} من ${total} صحيحة`,
-    topicCorrect: (correct, total) => `${correct}/${total} صحيحة`,
+      "Ø³ÙŠØªÙ… Ø­Ø°Ù Ø§Ù„Ø§Ø³Ù… ÙˆØ§Ù„Ù…Ø³ØªÙˆÙ‰ ÙˆØ§Ù„ÙˆØ­Ø¯Ø©. ØªØ¨Ù‚Ù‰ Ù…Ù„Ø§Ø­Ø¸Ø§ØªÙƒ Ù…Ø­ÙÙˆØ¸Ø©.",
+    cancel: "Ø¥Ù„ØºØ§Ø¡",
+    reset: "Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ†",
+    currentModule: "Ø§Ù„ÙˆØ­Ø¯Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©",
+    repetition: "Ù…Ø±Ø§Ø¬Ø¹Ø©",
+    insights: "Ø¥Ø­ØµØ§Ø¡Ø§Øª",
+    comingSoon: "Ù‚Ø±ÙŠØ¨Ù‹Ø§",
+    questionOf: (current, total) => `Ø§Ù„Ø³Ø¤Ø§Ù„ ${current} Ù…Ù† ${total}`,
+    correctOutOf: (correct, total) => `${correct} Ù…Ù† ${total} ØµØ­ÙŠØ­Ø©`,
+    topicCorrect: (correct, total) => `${correct}/${total} ØµØ­ÙŠØ­Ø©`,
     focusInstruction: (topic) =>
-      `راجع ${topic} واقرأ تفسيرات الإجابات غير الصحيحة.`,
+      `Ø±Ø§Ø¬Ø¹ ${topic} ÙˆØ§Ù‚Ø±Ø£ ØªÙØ³ÙŠØ±Ø§Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª ØºÙŠØ± Ø§Ù„ØµØ­ÙŠØ­Ø©.`,
     noFocusInstruction:
-      "ممتاز — يمكنك الانتقال إلى موضوع جديد أو إعادة الجلسة.",
-    chooseSessionScope: "اختر الموضوع والمحاضرة",
-    allTopics: "جميع الموضوعات",
-    allLecturesInGroup: "جميع المحاضرات في هذا الموضوع",
-    dueMode: "الأسئلة المستحقة",
-    allMode: "جميع الأسئلة",
-    lectureModeHint: "يتم ترتيب الأسئلة حسب أولوية المراجعة.",
-    noQuestionsInLecture: "لا توجد أسئلة مرتبطة بعد.",
-    newCard: "جديد",
-    reviewCard: "مراجعة",
-    dueCount: (count) => `${count} للمراجعة`,
-    newCountLabel: (count) => `${count} جديدة`,
-    noNewOrDue: "لا يوجد ما تتدرب عليه الآن",
-    importQuestions: "استيراد الأسئلة",
-    importTitle: "استيراد أسئلة جديدة",
-    importDescription: "أدخل قائمة JSON بالأسئلة بنفس تنسيق البيانات الحالية.",
+      "Ù…Ù…ØªØ§Ø² â€” ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ø¥Ù„Ù‰ Ù…ÙˆØ¶ÙˆØ¹ Ø¬Ø¯ÙŠØ¯ Ø£Ùˆ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø¬Ù„Ø³Ø©.",
+    chooseSessionScope: "Ø§Ø®ØªØ± Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹ ÙˆØ§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©",
+    allTopics: "Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹Ø§Øª",
+    allLecturesInGroup: "Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹",
+    dueMode: "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø³ØªØ­Ù‚Ø©",
+    allMode: "Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+    lectureModeHint: "ÙŠØªÙ… ØªØ±ØªÙŠØ¨ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø­Ø³Ø¨ Ø£ÙˆÙ„ÙˆÙŠØ© Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©.",
+    noQuestionsInLecture: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ø¹Ø¯.",
+    newCard: "Ø¬Ø¯ÙŠØ¯",
+    reviewCard: "Ù…Ø±Ø§Ø¬Ø¹Ø©",
+    dueCount: (count) => `${count} Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©`,
+    newCountLabel: (count) => `${count} Ø¬Ø¯ÙŠØ¯Ø©`,
+    noNewOrDue: "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù…Ø§ ØªØªØ¯Ø±Ø¨ Ø¹Ù„ÙŠÙ‡ Ø§Ù„Ø¢Ù†",
+    importQuestions: "Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+    importTitle: "Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø£Ø³Ø¦Ù„Ø© Ø¬Ø¯ÙŠØ¯Ø©",
+    importDescription: "Ø£Ø¯Ø®Ù„ Ù‚Ø§Ø¦Ù…Ø© JSON Ø¨Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø¨Ù†ÙØ³ ØªÙ†Ø³ÙŠÙ‚ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø­Ø§Ù„ÙŠØ©.",
     importPlaceholder: "[ { \"question\": \"...\", \"options\": [\"...\"], \"correct\": 0 } ]",
-    importSuccess: (count) => `${count} أسئلة تم استيرادها`,
-    importError: "تعذّرت قراءة JSON. تحقق من التنسيق.",
-    importModuleLabel: "ربط بالوحدة",
-    importLectureLabel: "ربط بالمحاضرة (اختياري)",
-    importButton: "استيراد",
-    importCancel: "إلغاء",
-    importUploadFile: "تحميل ملف JSON",
-    importEmpty: "لم يتم العثور على أسئلة صالحة.",
-    importIssuesTitle: (count) => count === 1 ? "تم العثور على مشكلة واحدة" : `تم العثور على ${count} مشاكل`,
-    importPreviewTitle: (count) => count === 1 ? "سؤال واحد جاهز للاستيراد" : `${count} أسئلة جاهزة للاستيراد`,
-    importDuplicateWarning: "قد يكون موجودًا بالفعل في البنك",
-    importConfirmButton: (count) => count === 1 ? "استيراد سؤال واحد" : `استيراد ${count} أسئلة`,
-    adminPortal: "بوابة الإدارة",
-  replayTutorial: "عرض الجولة التعريفية",
-    adminGateTitle: "صلاحية المسؤول",
-    adminGateDescription: "أدخل كلمة المرور لتعديل بنك الأسئلة.",
-    adminPasscodePlaceholder: "كلمة المرور",
-    adminUnlock: "فتح",
-    adminWrongCode: "كلمة مرور غير صحيحة.",
-    adminPanelTitle: "إدارة المحتوى",
-    adminImportedList: "الأسئلة المستوردة",
-    adminNoImported: "لا توجد أسئلة مستوردة بعد.",
-    adminDelete: "حذف",
-    adminTabImport: "استيراد",
-    adminTabFlagged: "الأسئلة المُعلَّمة",
-    adminFlaggedCount: "معلّم",
-    adminNoFlagged: "لا توجد أسئلة معلّمة بعد.",
-    adminFlaggedBy: "علّمه",
-    adminFlaggedAt: "الوقت",
-    adminFlaggedReason: "السبب",
-    adminFlaggedResolve: "وضع علامة كمحلول",
-    adminFlaggedDismiss: "رفض",
-    adminFlaggedResolved: "تم الحل",
-    adminFlaggedOpen: "مفتوح",
-    flagQuestion: "علّم السؤال",
-    flagQuestionTitle: "علّم هذا السؤال",
-    flagQuestionDescription: "اشرح بإيجاز سبب عدم موافقتك على السؤال أو الإجابة أو التفسير.",
-    flagQuestionPlaceholder: "صف المشكلة...",
-    flagQuestionSubmit: "إرسال العلامة",
-    flagQuestionCancel: "إلغاء",
-    flagQuestionSuccess: "شكرًا! تم إرسال السؤال للمراجعة.",
-    flagQuestionAlreadyFlagged: "لقد علّمت هذا السؤال من قبل.",
-    adminLock: "قفل بوابة الإدارة",
-    lectureMenu: "قائمة المحاضرة",
-    viewQuestions: "عرض الأسئلة",
-    resetProgress: "إعادة تعيين التقدم",
-    resetProgressConfirmTitle: "إعادة تعيين التقدم لهذه المجموعة؟",
-    resetProgressConfirmDescription: "سيتم إعادة تعيين جميع بيانات المراجعة المتباعدة لأسئلة هذه المحاضرة، بحيث تُحسب كجديدة مرة أخرى.",
-    resetConfirm: "إعادة تعيين",
-    resetDone: "تمت إعادة تعيين التقدم",
-    questionListTitle: "الأسئلة في المحاضرة",
-    noCardsInLecture: "لا توجد أسئلة في هذه المحاضرة بعد.",
-    cardStatusNew: "جديد",
-    cardStatusDue: "للمراجعة",
-    cardStatusLearned: "مكتسب",
-    addNewQuestion: "إنشاء سؤال جديد",
-    editQuestion: "تعديل السؤال",
-    newQuestionTitle: "سؤال جديد",
-    questionFieldLabel: "السؤال",
-    optionsFieldLabel: "خيارات الإجابة",
-    correctFieldLabel: "الإجابة الصحيحة",
-    explanationFieldLabel: "التفسير",
-    categoryFieldLabel: "الفئة",
-    saveQuestion: "حفظ",
-    cancelEdit: "إلغاء",
-    deleteQuestion: "حذف السؤال",
-    confirmDeleteQuestion: "هل أنت متأكد من حذف هذا السؤال؟",
-    addOption: "إضافة خيار",
-    removeOption: "إزالة",
-    closeList: "إغلاق القائمة",
-    cardMenu: "قائمة البطاقة",
-    buryCard: "إخفاء البطاقة",
-    unburyCard: "إظهار البطاقة",
-    resetThisCard: "إعادة تعيين هذه البطاقة",
-    viewLectureList: "عرض أسئلة هذه المجموعة",
-    cardBuried: "تم إخفاء البطاقة حتى الجلسة القادمة",
-    cardReset: "تمت إعادة تعيين تقدم البطاقة",
-    fullscreenEnter: "ملء الشاشة",
-    fullscreenExit: "الخروج من ملء الشاشة",
-    noBuriedCards: "لا توجد بطاقات مخفية",
-    buriedCardsTitle: "البطاقات المخفية",
-    examSetBlock: "تدريب على مجموعات الامتحان",
-    examSetBlockText: "تدرّب على أسئلة الامتحانات السابقة لهذه الوحدة",
-    lecturesBlock: "المحاضرات",
-    lecturesBlockText: "راجع الأسئلة المرتبطة بالمحاضرات",
-    startExamSet: "تدريب على مجموعة امتحان",
-    startLectures: "بدء المحاضرات",
-    todaysPlanTitle: "خطة اليوم",
-    calendar: "التقويم",
-    calendarTitle: "التقويم",
-    calendarToday: "اليوم",
-    calendarAddEvent: "حدث جديد",
-    calendarEditEvent: "تعديل الحدث",
-    calendarEventTitle: "العنوان",
-    calendarEventTitlePlaceholder: "مثال: مراجعة فسيولوجيا الكلى",
-    calendarEventDate: "التاريخ",
-    calendarEventTime: "الوقت",
-    calendarEventType: "النوع",
-    calendarTypeExam: "امتحان",
-    calendarTypeStudy: "جلسة دراسة",
-    calendarTypeReview: "مراجعة",
-    calendarTypeOther: "أخرى",
-    calendarSave: "حفظ",
-    calendarDelete: "حذف",
-    calendarCancel: "إلغاء",
-    calendarNoEvents: "لا توجد أحداث هذا اليوم",
-    calendarUpcoming: "القادمة",
-    calendarNoUpcoming: "لا توجد أحداث قادمة",
-    calendarMon: "إثنين",
-    calendarTue: "ثلاثاء",
-    calendarWed: "أربعاء",
-    calendarThu: "خميس",
-    calendarFri: "جمعة",
-    calendarSat: "سبت",
-    calendarSun: "أحد",
-    calendarViewDay: "يوم",
-    calendarViewWeek: "أسبوع",
-    calendarViewMonth: "شهر",
-    calendarLecturesTitle: "المحاضرات",
-    calendarNoLectures: "لا توجد محاضرات لهذه الوحدة.",
-    calendarImportICal: "استيراد iCal",
-    calendarICalEmpty: "لم يتم العثور على أحداث في الملف.",
-    calendarICalError: "تعذّرت قراءة ملف iCal. تحقق من التنسيق.",
-    todaysPlanExpandedTitle: "خطة اليوم",
+    importSuccess: (count) => `${count} Ø£Ø³Ø¦Ù„Ø© ØªÙ… Ø§Ø³ØªÙŠØ±Ø§Ø¯Ù‡Ø§`,
+    importError: "ØªØ¹Ø°Ù‘Ø±Øª Ù‚Ø±Ø§Ø¡Ø© JSON. ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„ØªÙ†Ø³ÙŠÙ‚.",
+    importModuleLabel: "Ø±Ø¨Ø· Ø¨Ø§Ù„ÙˆØ­Ø¯Ø©",
+    importLectureLabel: "Ø±Ø¨Ø· Ø¨Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)",
+    importButton: "Ø§Ø³ØªÙŠØ±Ø§Ø¯",
+    importCancel: "Ø¥Ù„ØºØ§Ø¡",
+    importUploadFile: "ØªØ­Ù…ÙŠÙ„ Ù…Ù„Ù JSON",
+    importEmpty: "Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£Ø³Ø¦Ù„Ø© ØµØ§Ù„Ø­Ø©.",
+    importIssuesTitle: (count) => count === 1 ? "ØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù…Ø´ÙƒÙ„Ø© ÙˆØ§Ø­Ø¯Ø©" : `ØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ ${count} Ù…Ø´Ø§ÙƒÙ„`,
+    importPreviewTitle: (count) => count === 1 ? "Ø³Ø¤Ø§Ù„ ÙˆØ§Ø­Ø¯ Ø¬Ø§Ù‡Ø² Ù„Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯" : `${count} Ø£Ø³Ø¦Ù„Ø© Ø¬Ø§Ù‡Ø²Ø© Ù„Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯`,
+    importDuplicateWarning: "Ù‚Ø¯ ÙŠÙƒÙˆÙ† Ù…ÙˆØ¬ÙˆØ¯Ù‹Ø§ Ø¨Ø§Ù„ÙØ¹Ù„ ÙÙŠ Ø§Ù„Ø¨Ù†Ùƒ",
+    importConfirmButton: (count) => count === 1 ? "Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø³Ø¤Ø§Ù„ ÙˆØ§Ø­Ø¯" : `Ø§Ø³ØªÙŠØ±Ø§Ø¯ ${count} Ø£Ø³Ø¦Ù„Ø©`,
+    adminPortal: "Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©",
+  replayTutorial: "Ø¹Ø±Ø¶ Ø§Ù„Ø¬ÙˆÙ„Ø© Ø§Ù„ØªØ¹Ø±ÙŠÙÙŠØ©",
+    adminGateTitle: "ØµÙ„Ø§Ø­ÙŠØ© Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„",
+    adminGateDescription: "Ø£Ø¯Ø®Ù„ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ù„ØªØ¹Ø¯ÙŠÙ„ Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©.",
+    adminPasscodePlaceholder: "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±",
+    adminUnlock: "ÙØªØ­",
+    adminWrongCode: "ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± ØºÙŠØ± ØµØ­ÙŠØ­Ø©.",
+    adminPanelTitle: "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø­ØªÙˆÙ‰",
+    adminImportedList: "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø³ØªÙˆØ±Ø¯Ø©",
+    adminNoImported: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© Ù…Ø³ØªÙˆØ±Ø¯Ø© Ø¨Ø¹Ø¯.",
+    adminDelete: "Ø­Ø°Ù",
+    adminTabImport: "Ø§Ø³ØªÙŠØ±Ø§Ø¯",
+    adminTabFlagged: "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…ÙØ¹Ù„ÙŽÙ‘Ù…Ø©",
+    adminFlaggedCount: "Ù…Ø¹Ù„Ù‘Ù…",
+    adminNoFlagged: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© Ù…Ø¹Ù„Ù‘Ù…Ø© Ø¨Ø¹Ø¯.",
+    adminFlaggedBy: "Ø¹Ù„Ù‘Ù…Ù‡",
+    adminFlaggedAt: "Ø§Ù„ÙˆÙ‚Øª",
+    adminFlaggedReason: "Ø§Ù„Ø³Ø¨Ø¨",
+    adminFlaggedResolve: "ÙˆØ¶Ø¹ Ø¹Ù„Ø§Ù…Ø© ÙƒÙ…Ø­Ù„ÙˆÙ„",
+    adminFlaggedDismiss: "Ø±ÙØ¶",
+    adminFlaggedResolved: "ØªÙ… Ø§Ù„Ø­Ù„",
+    adminFlaggedOpen: "Ù…ÙØªÙˆØ­",
+    flagQuestion: "Ø¹Ù„Ù‘Ù… Ø§Ù„Ø³Ø¤Ø§Ù„",
+    flagQuestionTitle: "Ø¹Ù„Ù‘Ù… Ù‡Ø°Ø§ Ø§Ù„Ø³Ø¤Ø§Ù„",
+    flagQuestionDescription: "Ø§Ø´Ø±Ø­ Ø¨Ø¥ÙŠØ¬Ø§Ø² Ø³Ø¨Ø¨ Ø¹Ø¯Ù… Ù…ÙˆØ§ÙÙ‚ØªÙƒ Ø¹Ù„Ù‰ Ø§Ù„Ø³Ø¤Ø§Ù„ Ø£Ùˆ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø£Ùˆ Ø§Ù„ØªÙØ³ÙŠØ±.",
+    flagQuestionPlaceholder: "ØµÙ Ø§Ù„Ù…Ø´ÙƒÙ„Ø©...",
+    flagQuestionSubmit: "Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø¹Ù„Ø§Ù…Ø©",
+    flagQuestionCancel: "Ø¥Ù„ØºØ§Ø¡",
+    flagQuestionSuccess: "Ø´ÙƒØ±Ù‹Ø§! ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø³Ø¤Ø§Ù„ Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©.",
+    flagQuestionAlreadyFlagged: "Ù„Ù‚Ø¯ Ø¹Ù„Ù‘Ù…Øª Ù‡Ø°Ø§ Ø§Ù„Ø³Ø¤Ø§Ù„ Ù…Ù† Ù‚Ø¨Ù„.",
+    adminLock: "Ù‚ÙÙ„ Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©",
+    lectureMenu: "Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©",
+    viewQuestions: "Ø¹Ø±Ø¶ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+    resetProgress: "Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„ØªÙ‚Ø¯Ù…",
+    resetProgressConfirmTitle: "Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„ØªÙ‚Ø¯Ù… Ù„Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø©ØŸ",
+    resetProgressConfirmDescription: "Ø³ÙŠØªÙ… Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø¬Ù…ÙŠØ¹ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…ØªØ¨Ø§Ø¹Ø¯Ø© Ù„Ø£Ø³Ø¦Ù„Ø© Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©ØŒ Ø¨Ø­ÙŠØ« ØªÙØ­Ø³Ø¨ ÙƒØ¬Ø¯ÙŠØ¯Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
+    resetConfirm: "Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ†",
+    resetDone: "ØªÙ…Øª Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„ØªÙ‚Ø¯Ù…",
+    questionListTitle: "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© ÙÙŠ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©",
+    noCardsInLecture: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø¨Ø¹Ø¯.",
+    cardStatusNew: "Ø¬Ø¯ÙŠØ¯",
+    cardStatusDue: "Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+    cardStatusLearned: "Ù…ÙƒØªØ³Ø¨",
+    addNewQuestion: "Ø¥Ù†Ø´Ø§Ø¡ Ø³Ø¤Ø§Ù„ Ø¬Ø¯ÙŠØ¯",
+    editQuestion: "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø³Ø¤Ø§Ù„",
+    newQuestionTitle: "Ø³Ø¤Ø§Ù„ Ø¬Ø¯ÙŠØ¯",
+    questionFieldLabel: "Ø§Ù„Ø³Ø¤Ø§Ù„",
+    optionsFieldLabel: "Ø®ÙŠØ§Ø±Ø§Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+    correctFieldLabel: "Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„ØµØ­ÙŠØ­Ø©",
+    explanationFieldLabel: "Ø§Ù„ØªÙØ³ÙŠØ±",
+    categoryFieldLabel: "Ø§Ù„ÙØ¦Ø©",
+    saveQuestion: "Ø­ÙØ¸",
+    cancelEdit: "Ø¥Ù„ØºØ§Ø¡",
+    deleteQuestion: "Ø­Ø°Ù Ø§Ù„Ø³Ø¤Ø§Ù„",
+    confirmDeleteQuestion: "Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ø³Ø¤Ø§Ù„ØŸ",
+    addOption: "Ø¥Ø¶Ø§ÙØ© Ø®ÙŠØ§Ø±",
+    removeOption: "Ø¥Ø²Ø§Ù„Ø©",
+    closeList: "Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©",
+    cardMenu: "Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©",
+    buryCard: "Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©",
+    unburyCard: "Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©",
+    resetThisCard: "Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ù‡Ø°Ù‡ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©",
+    viewLectureList: "Ø¹Ø±Ø¶ Ø£Ø³Ø¦Ù„Ø© Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø©",
+    cardBuried: "ØªÙ… Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© Ø­ØªÙ‰ Ø§Ù„Ø¬Ù„Ø³Ø© Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©",
+    cardReset: "ØªÙ…Øª Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† ØªÙ‚Ø¯Ù… Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©",
+    fullscreenEnter: "Ù…Ù„Ø¡ Ø§Ù„Ø´Ø§Ø´Ø©",
+    fullscreenExit: "Ø§Ù„Ø®Ø±ÙˆØ¬ Ù…Ù† Ù…Ù„Ø¡ Ø§Ù„Ø´Ø§Ø´Ø©",
+    noBuriedCards: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨Ø·Ø§Ù‚Ø§Øª Ù…Ø®ÙÙŠØ©",
+    buriedCardsTitle: "Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø§Ù„Ù…Ø®ÙÙŠØ©",
+    examSetBlock: "ØªØ¯Ø±ÙŠØ¨ Ø¹Ù„Ù‰ Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+    examSetBlockText: "ØªØ¯Ø±Ù‘Ø¨ Ø¹Ù„Ù‰ Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†Ø§Øª Ø§Ù„Ø³Ø§Ø¨Ù‚Ø© Ù„Ù‡Ø°Ù‡ Ø§Ù„ÙˆØ­Ø¯Ø©",
+    lecturesBlock: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+    lecturesBlockText: "Ø±Ø§Ø¬Ø¹ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+    startExamSet: "ØªØ¯Ø±ÙŠØ¨ Ø¹Ù„Ù‰ Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù…ØªØ­Ø§Ù†",
+    startLectures: "Ø¨Ø¯Ø¡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+    todaysPlanTitle: "Ø®Ø·Ø© Ø§Ù„ÙŠÙˆÙ…",
+    calendar: "Ø§Ù„ØªÙ‚ÙˆÙŠÙ…",
+    calendarTitle: "Ø§Ù„ØªÙ‚ÙˆÙŠÙ…",
+    calendarToday: "Ø§Ù„ÙŠÙˆÙ…",
+    calendarAddEvent: "Ø­Ø¯Ø« Ø¬Ø¯ÙŠØ¯",
+    calendarEditEvent: "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø­Ø¯Ø«",
+    calendarEventTitle: "Ø§Ù„Ø¹Ù†ÙˆØ§Ù†",
+    calendarEventTitlePlaceholder: "Ù…Ø«Ø§Ù„: Ù…Ø±Ø§Ø¬Ø¹Ø© ÙØ³ÙŠÙˆÙ„ÙˆØ¬ÙŠØ§ Ø§Ù„ÙƒÙ„Ù‰",
+    calendarEventDate: "Ø§Ù„ØªØ§Ø±ÙŠØ®",
+    calendarEventTime: "Ø§Ù„ÙˆÙ‚Øª",
+    calendarEventType: "Ø§Ù„Ù†ÙˆØ¹",
+    calendarTypeExam: "Ø§Ù…ØªØ­Ø§Ù†",
+    calendarTypeStudy: "Ø¬Ù„Ø³Ø© Ø¯Ø±Ø§Ø³Ø©",
+    calendarTypeReview: "Ù…Ø±Ø§Ø¬Ø¹Ø©",
+    calendarTypeOther: "Ø£Ø®Ø±Ù‰",
+    calendarSave: "Ø­ÙØ¸",
+    calendarDelete: "Ø­Ø°Ù",
+    calendarCancel: "Ø¥Ù„ØºØ§Ø¡",
+    calendarNoEvents: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø­Ø¯Ø§Ø« Ù‡Ø°Ø§ Ø§Ù„ÙŠÙˆÙ…",
+    calendarUpcoming: "Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©",
+    calendarNoUpcoming: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø­Ø¯Ø§Ø« Ù‚Ø§Ø¯Ù…Ø©",
+    calendarMon: "Ø¥Ø«Ù†ÙŠÙ†",
+    calendarTue: "Ø«Ù„Ø§Ø«Ø§Ø¡",
+    calendarWed: "Ø£Ø±Ø¨Ø¹Ø§Ø¡",
+    calendarThu: "Ø®Ù…ÙŠØ³",
+    calendarFri: "Ø¬Ù…Ø¹Ø©",
+    calendarSat: "Ø³Ø¨Øª",
+    calendarSun: "Ø£Ø­Ø¯",
+    calendarViewDay: "ÙŠÙˆÙ…",
+    calendarViewWeek: "Ø£Ø³Ø¨ÙˆØ¹",
+    calendarViewMonth: "Ø´Ù‡Ø±",
+    calendarLecturesTitle: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+    calendarNoLectures: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ù„Ù‡Ø°Ù‡ Ø§Ù„ÙˆØ­Ø¯Ø©.",
+    calendarImportICal: "Ø§Ø³ØªÙŠØ±Ø§Ø¯ iCal",
+    calendarICalEmpty: "Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£Ø­Ø¯Ø§Ø« ÙÙŠ Ø§Ù„Ù…Ù„Ù.",
+    calendarICalError: "ØªØ¹Ø°Ù‘Ø±Øª Ù‚Ø±Ø§Ø¡Ø© Ù…Ù„Ù iCal. ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„ØªÙ†Ø³ÙŠÙ‚.",
+    todaysPlanExpandedTitle: "Ø®Ø·Ø© Ø§Ù„ÙŠÙˆÙ…",
   },
 };
 
 const MODULES = {
   da: {
     Bachelor: [
-      "B1 Celler og væv",
-      "B2 Bevægeapparatet",
-      "B3 Molekylær medicin",
+      "B1 Celler og vÃ¦v",
+      "B2 BevÃ¦geapparatet",
+      "B3 MolekylÃ¦r medicin",
       "B4 Genetik",
-      "B5 Kredsløb og respiration",
-      "B6 Ernæring og vækst",
+      "B5 KredslÃ¸b og respiration",
+      "B6 ErnÃ¦ring og vÃ¦kst",
       "B7 Reproduktion og farmakodynamik",
       "B8 Homeostase",
       "B9 Hjerne og sanser",
@@ -945,12 +945,12 @@ const MODULES = {
     ],
     Kandidat: [
       "K1 Hjerte, lunger og nyrer",
-      "K2 Bevægeapparatet og bloddannende organer",
-      "K3 Fordøjelseskanalen, ernæring og metabolisme",
+      "K2 BevÃ¦geapparatet og bloddannende organer",
+      "K3 FordÃ¸jelseskanalen, ernÃ¦ring og metabolisme",
       "K5 Nervesystem og psykiatri",
-      "K6 Retsmedicin, nyrer, urinveje og kræft",
+      "K6 Retsmedicin, nyrer, urinveje og krÃ¦ft",
       "K8 Mor og barn",
-      "K9 Hud, øjne, farmakologi og ældre",
+      "K9 Hud, Ã¸jne, farmakologi og Ã¦ldre",
       "K10 Forberedelse til KBU",
     ],
   },
@@ -984,34 +984,34 @@ const MODULES = {
 
   ar: {
     Bachelor: [
-      "B1 الخلايا والأنسجة",
-      "B2 الجهاز العضلي الهيكلي",
-      "B3 الطب الجزيئي",
-      "B4 علم الوراثة",
-      "B5 الدورة الدموية والتنفس",
-      "B6 التغذية والنمو",
-      "B7 التكاثر والديناميكا الدوائية",
-      "B8 الاتزان الداخلي",
-      "B9 الدماغ والحواس",
-      "B10 العدوى والمناعة",
-      "B11 مشروع البكالوريوس",
-      "B12 من السليم إلى المريض",
+      "B1 Ø§Ù„Ø®Ù„Ø§ÙŠØ§ ÙˆØ§Ù„Ø£Ù†Ø³Ø¬Ø©",
+      "B2 Ø§Ù„Ø¬Ù‡Ø§Ø² Ø§Ù„Ø¹Ø¶Ù„ÙŠ Ø§Ù„Ù‡ÙŠÙƒÙ„ÙŠ",
+      "B3 Ø§Ù„Ø·Ø¨ Ø§Ù„Ø¬Ø²ÙŠØ¦ÙŠ",
+      "B4 Ø¹Ù„Ù… Ø§Ù„ÙˆØ±Ø§Ø«Ø©",
+      "B5 Ø§Ù„Ø¯ÙˆØ±Ø© Ø§Ù„Ø¯Ù…ÙˆÙŠØ© ÙˆØ§Ù„ØªÙ†ÙØ³",
+      "B6 Ø§Ù„ØªØºØ°ÙŠØ© ÙˆØ§Ù„Ù†Ù…Ùˆ",
+      "B7 Ø§Ù„ØªÙƒØ§Ø«Ø± ÙˆØ§Ù„Ø¯ÙŠÙ†Ø§Ù…ÙŠÙƒØ§ Ø§Ù„Ø¯ÙˆØ§Ø¦ÙŠØ©",
+      "B8 Ø§Ù„Ø§ØªØ²Ø§Ù† Ø§Ù„Ø¯Ø§Ø®Ù„ÙŠ",
+      "B9 Ø§Ù„Ø¯Ù…Ø§Øº ÙˆØ§Ù„Ø­ÙˆØ§Ø³",
+      "B10 Ø§Ù„Ø¹Ø¯ÙˆÙ‰ ÙˆØ§Ù„Ù…Ù†Ø§Ø¹Ø©",
+      "B11 Ù…Ø´Ø±ÙˆØ¹ Ø§Ù„Ø¨ÙƒØ§Ù„ÙˆØ±ÙŠÙˆØ³",
+      "B12 Ù…Ù† Ø§Ù„Ø³Ù„ÙŠÙ… Ø¥Ù„Ù‰ Ø§Ù„Ù…Ø±ÙŠØ¶",
     ],
     Kandidat: [
-      "K1 القلب والرئتان والكليتان",
-      "K2 الجهاز العضلي الهيكلي وأعضاء تكوين الدم",
-      "K3 الجهاز الهضمي والتغذية والاستقلاب",
-      "K5 الجهاز العصبي والطب النفسي",
-      "K6 الطب الشرعي والكلى والمسالك البولية والسرطان",
-      "K8 الأم والطفل",
-      "K9 الجلد والعيون وعلم الأدوية وطب الشيخوخة",
-      "K10 التحضير للتدريب السريري",
+      "K1 Ø§Ù„Ù‚Ù„Ø¨ ÙˆØ§Ù„Ø±Ø¦ØªØ§Ù† ÙˆØ§Ù„ÙƒÙ„ÙŠØªØ§Ù†",
+      "K2 Ø§Ù„Ø¬Ù‡Ø§Ø² Ø§Ù„Ø¹Ø¶Ù„ÙŠ Ø§Ù„Ù‡ÙŠÙƒÙ„ÙŠ ÙˆØ£Ø¹Ø¶Ø§Ø¡ ØªÙƒÙˆÙŠÙ† Ø§Ù„Ø¯Ù…",
+      "K3 Ø§Ù„Ø¬Ù‡Ø§Ø² Ø§Ù„Ù‡Ø¶Ù…ÙŠ ÙˆØ§Ù„ØªØºØ°ÙŠØ© ÙˆØ§Ù„Ø§Ø³ØªÙ‚Ù„Ø§Ø¨",
+      "K5 Ø§Ù„Ø¬Ù‡Ø§Ø² Ø§Ù„Ø¹ØµØ¨ÙŠ ÙˆØ§Ù„Ø·Ø¨ Ø§Ù„Ù†ÙØ³ÙŠ",
+      "K6 Ø§Ù„Ø·Ø¨ Ø§Ù„Ø´Ø±Ø¹ÙŠ ÙˆØ§Ù„ÙƒÙ„Ù‰ ÙˆØ§Ù„Ù…Ø³Ø§Ù„Ùƒ Ø§Ù„Ø¨ÙˆÙ„ÙŠØ© ÙˆØ§Ù„Ø³Ø±Ø·Ø§Ù†",
+      "K8 Ø§Ù„Ø£Ù… ÙˆØ§Ù„Ø·ÙÙ„",
+      "K9 Ø§Ù„Ø¬Ù„Ø¯ ÙˆØ§Ù„Ø¹ÙŠÙˆÙ† ÙˆØ¹Ù„Ù… Ø§Ù„Ø£Ø¯ÙˆÙŠØ© ÙˆØ·Ø¨ Ø§Ù„Ø´ÙŠØ®ÙˆØ®Ø©",
+      "K10 Ø§Ù„ØªØ­Ø¶ÙŠØ± Ù„Ù„ØªØ¯Ø±ÙŠØ¨ Ø§Ù„Ø³Ø±ÙŠØ±ÙŠ",
     ],
   },
 };
 
 /*
-  Fremtidige importerede spørgsmål skal bruge samme format.
+  Fremtidige importerede spÃ¸rgsmÃ¥l skal bruge samme format.
   Hvert tekstfelt kan have da, en og ar.
 */
 const MODULE_LECTURES = {
@@ -1020,17 +1020,17 @@ const MODULE_LECTURES = {
     { group: "Neurologi", id: "N2", title: "Myasteni" },
     { group: "Neurologi", id: "N3", title: "Hovedpine", parts: 2 },
     { group: "Neurologi", id: "N4", title: "Epilepsi", parts: 2 },
-    { group: "Neurologi", id: "N5", title: "Neurofysiologi – EEG – EP" },
+    { group: "Neurologi", id: "N5", title: "Neurofysiologi â€“ EEG â€“ EP" },
     { group: "Neurologi", id: "N6", title: "Perifer neuropati" },
     { group: "Neurologi", id: "N7", title: "Neurofysiologi ENG og EMG" },
     { group: "Neurologi", id: "N8", title: "Apopleksi", parts: 2 },
     { group: "Neurologi", id: "N9", title: "MND/ALS" },
     { group: "Neurologi", id: "N10", title: "Multipel sklerose", parts: 2 },
-    { group: "Neurologi", id: "N11", title: "Bevægeforstyrrelser" },
+    { group: "Neurologi", id: "N11", title: "BevÃ¦geforstyrrelser" },
     { group: "Neurologi", id: "N12", title: "Autoimmun encephalitis" },
     { group: "Neurologi", id: "N13", title: "Demens" },
     { group: "Neurokirurgi", id: "NK1", title: "Degenerative rygsygdomme" },
-    { group: "Neurokirurgi", id: "NK2", title: "Forhøjet ICP" },
+    { group: "Neurokirurgi", id: "NK2", title: "ForhÃ¸jet ICP" },
     { group: "Neurokirurgi", id: "NK3", title: "Kranietraume" },
     { group: "Neurokirurgi", id: "NK4", title: "Hydrocephalus" },
     { group: "Neurokirurgi", id: "NK5", title: "Apopleksi og ICP monitorering" },
@@ -1043,24 +1043,24 @@ const MODULE_LECTURES = {
     { group: "Voksenpsykiatri", id: "VP6", title: "Affektive lidelser" },
     { group: "Voksenpsykiatri", id: "VP7", title: "Behandling af affektive lidelser" },
     { group: "Voksenpsykiatri", id: "VP8", title: "Skizofreni", parts: 2 },
-    { group: "Voksenpsykiatri", id: "VP9", title: "Psykoser i øvrigt" },
+    { group: "Voksenpsykiatri", id: "VP9", title: "Psykoser i Ã¸vrigt" },
     { group: "Voksenpsykiatri", id: "VP10", title: "Behandling af skizofreni og psykoser" },
     { group: "Voksenpsykiatri", id: "VP11", title: "Personlighedsforstyrrelser", parts: 2 },
     { group: "Voksenpsykiatri", id: "VP12", title: "Oligofreni" },
     { group: "Voksenpsykiatri", id: "VP13", title: "Alkoholmisbrug" },
     { group: "Voksenpsykiatri", id: "VP14", title: "Autisme, ADHD o.a. (voksne)", parts: 2 },
     { group: "Voksenpsykiatri", id: "VP15", title: "Stofmisbrug", parts: 2 },
-    { group: "Ungepsykiatri", id: "UP1", title: "Intro børnepsykiatri" },
+    { group: "Ungepsykiatri", id: "UP1", title: "Intro bÃ¸rnepsykiatri" },
     { group: "Ungepsykiatri", id: "UP2", title: "Udviklingsforstyrrelser (generelle, specifikke)" },
-    { group: "Ungepsykiatri", id: "UP3", title: "Autisme (børn)" },
-    { group: "Ungepsykiatri", id: "UP4", title: "ADHD (børn)" },
+    { group: "Ungepsykiatri", id: "UP3", title: "Autisme (bÃ¸rn)" },
+    { group: "Ungepsykiatri", id: "UP4", title: "ADHD (bÃ¸rn)" },
     { group: "Ungepsykiatri", id: "UP5", title: "Spiseforstyrrelser" },
-    { group: "Ungepsykiatri", id: "UP6", title: "Adfærd og følelsesmæssige forstyrrelser i barndom", parts: 2 },
+    { group: "Ungepsykiatri", id: "UP6", title: "AdfÃ¦rd og fÃ¸lelsesmÃ¦ssige forstyrrelser i barndom", parts: 2 },
     { group: "Ungepsykiatri", id: "UP7", title: "Tidlig psykopatologi (tilknytningsforstyrrelser)", parts: 2 },
     { group: "Ungepsykiatri", id: "UP8", title: "Funktionelle lidelser" },
     { group: "Ungepsykiatri", id: "UP9", title: "Affektive lidelser" },
     { group: "Ungepsykiatri", id: "UP10", title: "Psykose" },
-    { group: "Ungepsykiatri", id: "UP11", title: "Selvskadende adfærd" },
+    { group: "Ungepsykiatri", id: "UP11", title: "Selvskadende adfÃ¦rd" },
   ],
 };
 
@@ -1157,7 +1157,7 @@ ring:
 
 /* ------------------------------------------------------------------------
    ECHARTS LOADER + WRAPPER
-   Loader Apache ECharts fra CDN (ingen npm/build-step nødvendig) og
+   Loader Apache ECharts fra CDN (ingen npm/build-step nÃ¸dvendig) og
    eksponerer en lille React-wrapper-komponent, der initialiserer et
    ECharts-instrument i en <div>, holder det i sync med `option`-prop'en,
    og rydder korrekt op igen ved unmount.
@@ -1207,11 +1207,11 @@ function EChart({ option, height = 300 }) {
     const onResize = () => chartRef.current && chartRef.current.resize();
     window.addEventListener("resize", onResize);
 
-    // Værktøjerne i sidebaren (notesbog, kalender, Dr. Byte) åbner paneler ved at ændre
+    // VÃ¦rktÃ¸jerne i sidebaren (notesbog, kalender, Dr. Byte) Ã¥bner paneler ved at Ã¦ndre
     // bredden af den flex-container, grafen sidder i, uden at selve vinduet skifter
-    // størrelse. ECharts fanger kun window "resize"-events som standard, så uden dette
-    // observerer grafen ikke ændringen og bliver stående i den forkerte bredde/klippet.
-    // En ResizeObserver på selve chart-elementet fanger også disse layout-skift.
+    // stÃ¸rrelse. ECharts fanger kun window "resize"-events som standard, sÃ¥ uden dette
+    // observerer grafen ikke Ã¦ndringen og bliver stÃ¥ende i den forkerte bredde/klippet.
+    // En ResizeObserver pÃ¥ selve chart-elementet fanger ogsÃ¥ disse layout-skift.
     let resizeObserver = null;
     if (typeof ResizeObserver !== "undefined") {
       resizeObserver = new ResizeObserver(() => {
@@ -1240,7 +1240,7 @@ function EChart({ option, height = 300 }) {
   if (!ready) {
     return (
       <div style={{ width: "100%", height, display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 12 }}>
-        Indlæser diagram...
+        IndlÃ¦ser diagram...
       </div>
     );
   }
@@ -1254,15 +1254,15 @@ function EChart({ option, height = 300 }) {
    CUSTOM UGEKALENDER MED DRAG & DROP OG KLIK-OG-OPRET
    Schedule-X's drag-and-drop-plugin er flyttet til en betalt premium-pakke
    (@sx-premium/drag-and-drop) og kan derfor ikke bruges gratis via CDN uden
-   licens. Denne komponent er en selvstændig, letvægts uge-/dagsvisning bygget
+   licens. Denne komponent er en selvstÃ¦ndig, letvÃ¦gts uge-/dagsvisning bygget
    direkte i React, der giver os fuld kontrol over:
-   - Træk-og-slip af events mellem tidspunkter/dage (native HTML5 DnD)
-   - Klik på en tom celle for at oprette et nyt event på det tidspunkt
-   - Klik på et eksisterende event for at redigere det
-   Den er visuelt stylet efter appens blå gradient-tema i stedet for at læne
-   sig på et eksternt bibliotek.
+   - TrÃ¦k-og-slip af events mellem tidspunkter/dage (native HTML5 DnD)
+   - Klik pÃ¥ en tom celle for at oprette et nyt event pÃ¥ det tidspunkt
+   - Klik pÃ¥ et eksisterende event for at redigere det
+   Den er visuelt stylet efter appens blÃ¥ gradient-tema i stedet for at lÃ¦ne
+   sig pÃ¥ et eksternt bibliotek.
    ------------------------------------------------------------------------ */
-const CAL_HOURS = Array.from({ length: 15 }, (_, i) => i + 7); // 07:00–21:00
+const CAL_HOURS = Array.from({ length: 15 }, (_, i) => i + 7); // 07:00â€“21:00
 
 function startOfWeek(date) {
   const d = new Date(date);
@@ -1421,7 +1421,7 @@ function calendarActivityTone(c, event) {
   if (event?.source === "fsrs-review") return { color: "#7667d8", background: surfaces.flashcards, label: "Flashkort" };
   if (calendarEventLayer(event) === "sdu") {
     const type = event.activityType || event.colorKey || "other";
-    if (type === "lecture") return { color: c.blue, background: surfaces.lecture, label: "Forelæsning" };
+    if (type === "lecture") return { color: c.blue, background: surfaces.lecture, label: "ForelÃ¦sning" };
     if (type === "class") return { color: c.green, background: surfaces.class, label: "Holdtime" };
     if (type === "tbl") return { color: c.purple, background: surfaces.tbl, label: "TBL" };
     return { color: "#c9822f", background: surfaces.sduOther, label: "Andet" };
@@ -1538,6 +1538,87 @@ function calendarImportDiff(incoming, existing) {
   return { rows, removed };
 }
 
+function calendarSduRefreshImpact(diff, studyPlanEvents, moduleName) {
+  const changedRows = (diff?.rows || []).filter((row) => row?.status === "new" || row?.status === "changed");
+  const removed = Array.isArray(diff?.removed) ? diff.removed : [];
+  const changedLectureIds = new Set();
+  const collect = (event) => calendarLectureIds(event).forEach((lectureId) => { if (lectureId) changedLectureIds.add(String(lectureId)); });
+  changedRows.forEach((row) => { collect(row.event); collect(row.previous); });
+  removed.forEach(collect);
+  const lectureIds = [...changedLectureIds].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const lectureIdSet = new Set(lectureIds);
+  const affectedStudyPlanEvents = (studyPlanEvents || []).filter((event) => {
+    if (!event || event.source !== "study-plan" || event.completedAt) return false;
+    if (moduleName && event.planModuleId && event.planModuleId !== moduleName) return false;
+    return calendarLectureIds(event).some((lectureId) => lectureIdSet.has(String(lectureId)));
+  });
+  return {
+    changedCount: changedRows.length,
+    removedCount: removed.length,
+    changedLectureIds: lectureIds,
+    studyPlanEventCount: affectedStudyPlanEvents.length,
+    studyPlanEventIds: affectedStudyPlanEvents.map((event) => event.id).filter(Boolean),
+    needsStudyPlanReview: affectedStudyPlanEvents.length > 0,
+  };
+}
+
+function calendarNormalizeSduPayload(payload, moduleName, term, existingEvents) {
+  const moduleLectures = MODULE_LECTURES[moduleName] || [];
+  const importedAt = new Date().toISOString();
+  const batchId = `sdu-${moduleName}-${term}-${Date.now()}`;
+  const normalizedAll = (payload?.events || []).map((event) => {
+    const lecture = event.lectureId
+      ? moduleLectures.find((item) => item.id === event.lectureId)
+      : matchCalendarLecture(`${event.title || ""} ${event.originalTitle || event.moduleTitle || ""} ${event.description || ""}`, moduleLectures);
+    const cancelled = String(event.status || "CONFIRMED").toUpperCase() === "CANCELLED";
+    return {
+      id: event.stableId || `sdu-${event.sourceId}`,
+      sourceId: event.sourceId,
+      title: event.title,
+      originalTitle: event.originalTitle || event.moduleTitle || "",
+      date: event.date,
+      endDate: event.endDate || event.date,
+      time: event.time || "",
+      endTime: event.endTime || "",
+      estimatedHours: event.estimatedHours || (event.durationMinutes ? event.durationMinutes / 60 : 1),
+      type: "study",
+      description: event.description || "",
+      location: event.location || "",
+      url: event.url || payload?.scheduleUrl || "",
+      lectureId: lecture?.id || null,
+      lectureIds: lecture?.id ? [lecture.id] : [],
+      planModuleId: moduleName,
+      importedSchedule: "sdu",
+      source: "sdu-schedule",
+      activityType: event.activityType || "other",
+      colorKey: event.activityType || "other",
+      term: payload?.term || term,
+      uvaCode: payload?.uvaCode || "",
+      importBatchId: batchId,
+      importedAt,
+      lastSyncedAt: importedAt,
+      allDay: Boolean(event.allDay),
+      status: cancelled ? "cancelled" : "planned",
+      cancelledAt: cancelled ? importedAt : null,
+      timeZone: CALENDAR_TIME_ZONE,
+    };
+  });
+  const cancelled = normalizedAll.filter((event) => event.status === "cancelled");
+  const normalized = normalizedAll.filter((event) => event.status !== "cancelled" && !event.allDay);
+  const diff = calendarImportDiff(normalized, existingEvents || []);
+  const cancelledIds = new Set(cancelled.map((event) => event.sourceId || event.id));
+  const cancelledExisting = (existingEvents || []).filter((event) => cancelledIds.has(event.sourceId || event.id));
+  diff.removed = [...new Map([...(diff.removed || []), ...cancelledExisting].map((event) => [event.sourceId || event.id, event])).values()];
+  return {
+    normalized,
+    diff,
+    cancelledCount: cancelled.length,
+    uvaCode: payload?.uvaCode || "",
+    term: payload?.term || term,
+    scheduleUrl: payload?.scheduleUrl || "",
+  };
+}
+
 function calendarImportedEventIdentity(event) {
   return String(event?.sourceId || event?.id || "");
 }
@@ -1589,7 +1670,7 @@ function calendarBuildPrivateImportGroups(events, moduleName = "") {
       groups.set(key, {
         key,
         sourceType,
-        sourceLabel: event.importSourceLabel || (sourceType === "sdu" ? `${event.planModuleId || moduleName} · ${event.term || "SDU"}` : event.importFeedId || "iCal"),
+        sourceLabel: event.importSourceLabel || (sourceType === "sdu" ? `${event.planModuleId || moduleName} Â· ${event.term || "SDU"}` : event.importFeedId || "iCal"),
         term: event.term || null,
         uvaCode: event.uvaCode || null,
         events: [],
@@ -1651,8 +1732,8 @@ function calendarFormatDateTime(event, locale = "da-DK") {
   if (!event?.date) return "";
   const date = new Date(`${event.date}T12:00:00`);
   const dateLabel = date.toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
-  if (event.allDay) return `${dateLabel} · Hele dagen`;
-  return `${dateLabel}${event.time ? ` · ${event.time}${event.endTime ? `–${event.endTime}` : ""}` : " · Ikke placeret"}`;
+  if (event.allDay) return `${dateLabel} Â· Hele dagen`;
+  return `${dateLabel}${event.time ? ` Â· ${event.time}${event.endTime ? `â€“${event.endTime}` : ""}` : " Â· Ikke placeret"}`;
 }
 
 function calendarDownloadICal(events, filename = "medfluen-kalender.ics") {
@@ -1679,11 +1760,11 @@ function calendarDownloadICal(events, filename = "medfluen-kalender.ics") {
 function calendarContextCopy(language) {
   return ({
     da: {
-      edit: "Redigér", complete: "Markér færdig", incomplete: "Markér ikke færdig",
-      today: "Flyt til i dag", tomorrow: "Flyt til i morgen", chooseDate: "Vælg anden dato",
-      duplicate: "Duplikér", split: "Del sessionen", openLecture: "Åbn forelæsning", remove: "Slet",
-      place: "Placér i kalenderen", autoPlace: "Placér i næste ledige tid", moveDay: "Flyt til anden dag",
-      create: "Nyt event her", placeLecture: "Placér ikke-planlagt forelæsning",
+      edit: "RedigÃ©r", complete: "MarkÃ©r fÃ¦rdig", incomplete: "MarkÃ©r ikke fÃ¦rdig",
+      today: "Flyt til i dag", tomorrow: "Flyt til i morgen", chooseDate: "VÃ¦lg anden dato",
+      duplicate: "DuplikÃ©r", split: "Del sessionen", openLecture: "Ã…bn forelÃ¦sning", remove: "Slet",
+      place: "PlacÃ©r i kalenderen", autoPlace: "PlacÃ©r i nÃ¦ste ledige tid", moveDay: "Flyt til anden dag",
+      create: "Nyt event her", placeLecture: "PlacÃ©r ikke-planlagt forelÃ¦sning",
       createStudy: "Opret studieblok", createReview: "Opret repetition", previousWeek: "Flyt 1 uge tilbage", nextWeek: "Flyt 1 uge frem", deleteOccurrence: "Slet denne forekomst", deleteFuture: "Slet denne og fremtidige", deleteSeries: "Slet hele serien",
     },
     en: {
@@ -1695,12 +1776,12 @@ function calendarContextCopy(language) {
       createStudy: "Create study block", createReview: "Create review", previousWeek: "Move 1 week back", nextWeek: "Move 1 week forward", deleteOccurrence: "Delete this occurrence", deleteFuture: "Delete this and future", deleteSeries: "Delete entire series",
     },
     ar: {
-      edit: "تعديل", complete: "وضع علامة مكتمل", incomplete: "وضع علامة غير مكتمل",
-      today: "نقل إلى اليوم", tomorrow: "نقل إلى الغد", chooseDate: "اختيار تاريخ آخر",
-      duplicate: "تكرار", split: "تقسيم الجلسة", openLecture: "فتح المحاضرة", remove: "حذف",
-      place: "وضع في التقويم", autoPlace: "وضع في الوقت المتاح التالي", moveDay: "نقل إلى يوم آخر",
-      create: "حدث جديد هنا", placeLecture: "وضع محاضرة غير مجدولة",
-      createStudy: "إنشاء جلسة دراسة", createReview: "إنشاء مراجعة", previousWeek: "نقل أسبوعًا للخلف", nextWeek: "نقل أسبوعًا للأمام", deleteOccurrence: "حذف هذا التكرار", deleteFuture: "حذف هذا وما بعده", deleteSeries: "حذف السلسلة كاملة",
+      edit: "ØªØ¹Ø¯ÙŠÙ„", complete: "ÙˆØ¶Ø¹ Ø¹Ù„Ø§Ù…Ø© Ù…ÙƒØªÙ…Ù„", incomplete: "ÙˆØ¶Ø¹ Ø¹Ù„Ø§Ù…Ø© ØºÙŠØ± Ù…ÙƒØªÙ…Ù„",
+      today: "Ù†Ù‚Ù„ Ø¥Ù„Ù‰ Ø§Ù„ÙŠÙˆÙ…", tomorrow: "Ù†Ù‚Ù„ Ø¥Ù„Ù‰ Ø§Ù„ØºØ¯", chooseDate: "Ø§Ø®ØªÙŠØ§Ø± ØªØ§Ø±ÙŠØ® Ø¢Ø®Ø±",
+      duplicate: "ØªÙƒØ±Ø§Ø±", split: "ØªÙ‚Ø³ÙŠÙ… Ø§Ù„Ø¬Ù„Ø³Ø©", openLecture: "ÙØªØ­ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©", remove: "Ø­Ø°Ù",
+      place: "ÙˆØ¶Ø¹ ÙÙŠ Ø§Ù„ØªÙ‚ÙˆÙŠÙ…", autoPlace: "ÙˆØ¶Ø¹ ÙÙŠ Ø§Ù„ÙˆÙ‚Øª Ø§Ù„Ù…ØªØ§Ø­ Ø§Ù„ØªØ§Ù„ÙŠ", moveDay: "Ù†Ù‚Ù„ Ø¥Ù„Ù‰ ÙŠÙˆÙ… Ø¢Ø®Ø±",
+      create: "Ø­Ø¯Ø« Ø¬Ø¯ÙŠØ¯ Ù‡Ù†Ø§", placeLecture: "ÙˆØ¶Ø¹ Ù…Ø­Ø§Ø¶Ø±Ø© ØºÙŠØ± Ù…Ø¬Ø¯ÙˆÙ„Ø©",
+      createStudy: "Ø¥Ù†Ø´Ø§Ø¡ Ø¬Ù„Ø³Ø© Ø¯Ø±Ø§Ø³Ø©", createReview: "Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø±Ø§Ø¬Ø¹Ø©", previousWeek: "Ù†Ù‚Ù„ Ø£Ø³Ø¨ÙˆØ¹Ù‹Ø§ Ù„Ù„Ø®Ù„Ù", nextWeek: "Ù†Ù‚Ù„ Ø£Ø³Ø¨ÙˆØ¹Ù‹Ø§ Ù„Ù„Ø£Ù…Ø§Ù…", deleteOccurrence: "Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„ØªÙƒØ±Ø§Ø±", deleteFuture: "Ø­Ø°Ù Ù‡Ø°Ø§ ÙˆÙ…Ø§ Ø¨Ø¹Ø¯Ù‡", deleteSeries: "Ø­Ø°Ù Ø§Ù„Ø³Ù„Ø³Ù„Ø© ÙƒØ§Ù…Ù„Ø©",
     },
   })[language] || {};
 }
@@ -2151,9 +2232,9 @@ function WeekCalendar({
                     }}
                     title={event.title}
                   >
-                    <span>{event.lectureId || (studyPlanActivityKind(event) === STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE ? "EX" : "•")}</span><strong>{event.title}</strong>
+                    <span>{event.lectureId || (studyPlanActivityKind(event) === STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE ? "EX" : "â€¢")}</span><strong>{event.title}</strong>
                   </button>
-                )) : <span className="calendar-week-unscheduled-empty">—</span>}
+                )) : <span className="calendar-week-unscheduled-empty">â€”</span>}
               </div>
             );
           })}
@@ -2212,7 +2293,7 @@ function WeekCalendar({
               {Array.from({ length: 25 }, (_, lineIndex) => <span key={lineIndex} className="calendar-week-hour-line" style={{ top: lineIndex * hourHeight }} />)}
               {Array.from({ length: 24 }, (_, lineIndex) => <span key={lineIndex} className="calendar-week-half-line" style={{ top: lineIndex * hourHeight + hourHeight / 2 }} />)}
               {isToday && <span className="calendar-week-now-line" style={{ top: nowTop }}><i /></span>}
-              {createPreview?.date === key && <div className="calendar-drag-create-preview" style={{ top: (createPreview.startMinutes / 60) * hourHeight + 1, height: Math.max(18, ((createPreview.endMinutes - createPreview.startMinutes) / 60) * hourHeight - 2) }}><span>{minutesToTime(createPreview.startMinutes)}–{createPreview.endMinutes >= 24 * 60 ? "24:00" : minutesToTime(createPreview.endMinutes)}</span></div>}
+              {createPreview?.date === key && <div className="calendar-drag-create-preview" style={{ top: (createPreview.startMinutes / 60) * hourHeight + 1, height: Math.max(18, ((createPreview.endMinutes - createPreview.startMinutes) / 60) * hourHeight - 2) }}><span>{minutesToTime(createPreview.startMinutes)}â€“{createPreview.endMinutes >= 24 * 60 ? "24:00" : minutesToTime(createPreview.endMinutes)}</span></div>}
 
               {positioned.map(({ event, start, end, lane, laneCount }) => {
                 const tone = calendarActivityTone(c, event);
@@ -2251,7 +2332,7 @@ function WeekCalendar({
                     }}
                     title={`${event.time || ""} ${event.title}`.trim()}
                   >
-                    <span className="calendar-week-event-time">{event._segmentContinuation ? "Fortsætter" : `${event.time}–${event.endTime || calendarEndFields(event.date, start, end - start).endTime}`}</span>
+                    <span className="calendar-week-event-time">{event._segmentContinuation ? "FortsÃ¦tter" : `${event.time}â€“${event.endTime || calendarEndFields(event.date, start, end - start).endTime}`}</span>
                     <span className="calendar-week-event-title">{event.title}</span>
                     <span className="calendar-week-event-meta">{event.location || tone.label}</span>
                     {event.deliveryStatus === "held" && <span className="calendar-week-event-state">Afholdt</span>}
@@ -2501,7 +2582,7 @@ function useCloudSync(userId) {
       cloudSyncTimers.set(timerKey, window.setTimeout(() => pushLocalStorageKeyToCloud(key, userId), 350));
     }
     async function handleReconnect() {
-      calendarEmitSync("syncing", "Forbinder og sender lokale ændringer");
+      calendarEmitSync("syncing", "Forbinder og sender lokale Ã¦ndringer");
       await pushLocalStorageKeyToCloud(STORAGE.calendarEvents, userId);
       await pushLocalStorageKeyToCloud(STORAGE.studyPlans, userId);
     }
@@ -2522,9 +2603,9 @@ function translate(value, language, fallback = "da") {
 }
 
 /*
-  Brug denne funktion på spørgsmål, der importeres senere.
-  Gamle spørgsmål med ren tekst får automatisk samme tekst som fallback
-  på alle tre sprog, indtil rigtige oversættelser tilføjes.
+  Brug denne funktion pÃ¥ spÃ¸rgsmÃ¥l, der importeres senere.
+  Gamle spÃ¸rgsmÃ¥l med ren tekst fÃ¥r automatisk samme tekst som fallback
+  pÃ¥ alle tre sprog, indtil rigtige oversÃ¦ttelser tilfÃ¸jes.
 */
 export function normalizeImportedQuestion(rawQuestion) {
   const id =
@@ -2606,7 +2687,7 @@ const SM2_MS_PER_DAY = 24 * 60 * SM2_MS_PER_MIN;
 
 
 /* =============================================================================
-   OFFICIAL FSRS-6 RUNTIME — ts-fsrs 5.4.1
+   OFFICIAL FSRS-6 RUNTIME â€” ts-fsrs 5.4.1
    ---------------------------------------------------------------------------
    Interval math and card-state transitions are delegated to the official
    open-spaced-repetition TypeScript implementation used to build Anki-style
@@ -2640,7 +2721,7 @@ function loadOfficialFsrs() {
       })
       .catch((error) => {
         officialFsrsPromise = null;
-        throw new Error(`Flashkortmotoren kunne ikke indlæses: ${error?.message || error}`);
+        throw new Error(`Flashkortmotoren kunne ikke indlÃ¦ses: ${error?.message || error}`);
       });
   }
   return officialFsrsPromise;
@@ -3158,7 +3239,7 @@ function cardStatus(card) {
 }
 
 /* =============================================================================
-   SM2AnswerFooter — the four-button Igen/Svær/God/Nem answer area (app-51)
+   SM2AnswerFooter â€” the four-button Igen/SvÃ¦r/God/Nem answer area (app-51)
    ---------------------------------------------------------------------------
    Renders once the correct answer + explanation are revealed, replacing the
    plain Previous/Next footer for that moment. Shows live, scheduler-computed
@@ -3170,7 +3251,7 @@ function cardStatus(card) {
 
 const SM2_RATING_ORDER = [
   { key: SM2_RATING.AGAIN, label: "Igen", hint: "Igen = forkert", shortcut: "1", icon: "\u21ba" },
-  { key: SM2_RATING.HARD, label: "Svær", hint: "Svær = korrekt med stor tøven", shortcut: "2", icon: "\u2248" },
+  { key: SM2_RATING.HARD, label: "SvÃ¦r", hint: "SvÃ¦r = korrekt med stor tÃ¸ven", shortcut: "2", icon: "\u2248" },
   { key: SM2_RATING.GOOD, label: "God", hint: "God = korrekt", shortcut: "3", icon: "\u2713" },
   { key: SM2_RATING.EASY, label: "Nem", hint: "Nem = umiddelbart korrekt", shortcut: "4", icon: "\u2713\u2713" },
 ];
@@ -3178,10 +3259,10 @@ const SM2_RATING_ORDER = [
 function sm2RatingVisual(c, key) {
   const accent = sm2AccentFor(c, key);
   const tones = {
-    [SM2_RATING.AGAIN]: { surface: c.redSoft, label: "Forkert", icon: "↻" },
-    [SM2_RATING.HARD]: { surface: c.soft, label: "Tøvende", icon: "≈" },
-    [SM2_RATING.GOOD]: { surface: c.greenSoft, label: "Korrekt", icon: "✓" },
-    [SM2_RATING.EASY]: { surface: c.blueSoft, label: "Let", icon: "✦" },
+    [SM2_RATING.AGAIN]: { surface: c.redSoft, label: "Forkert", icon: "â†»" },
+    [SM2_RATING.HARD]: { surface: c.soft, label: "TÃ¸vende", icon: "â‰ˆ" },
+    [SM2_RATING.GOOD]: { surface: c.greenSoft, label: "Korrekt", icon: "âœ“" },
+    [SM2_RATING.EASY]: { surface: c.blueSoft, label: "Let", icon: "âœ¦" },
   };
   return { ...accent, ...tones[key] };
 }
@@ -3287,18 +3368,18 @@ function SM2AnswerFooter({
       setSubmitting(false);
       setSelected(null);
       inFlightRef.current = false;
-      setError("Kunne ikke gemme repetitionen. Prøv igen.");
+      setError("Kunne ikke gemme repetitionen. PrÃ¸v igen.");
     }
   }
 
   return (
-    <div className="fsrs-answer-footer" role="group" aria-label="Vurdér dit svar">
+    <div className="fsrs-answer-footer" role="group" aria-label="VurdÃ©r dit svar">
       <div className="fsrs-answer-heading">
         <div>
           <strong>Repetition af flashcards</strong>
-          <span>{engineState === "ready" ? "Automatisk intervalplan" : engineState === "loading" ? "Indlæser intervalmotor…" : "Kompatibilitetstilstand"}</span>
+          <span>{engineState === "ready" ? "Automatisk intervalplan" : engineState === "loading" ? "IndlÃ¦ser intervalmotorâ€¦" : "Kompatibilitetstilstand"}</span>
         </div>
-        <span className="fsrs-engine-pill">{engineState === "ready" ? "Automatisk" : engineState === "loading" ? "…" : "Reserve"}</span>
+        <span className="fsrs-engine-pill">{engineState === "ready" ? "Automatisk" : engineState === "loading" ? "â€¦" : "Reserve"}</span>
       </div>
       {error && <div className="fsrs-inline-warning" role="status">{error}</div>}
       <div className="fsrs-rating-grid">
@@ -3318,7 +3399,7 @@ function SM2AnswerFooter({
               aria-keyshortcuts={entry.shortcut}
             >
               <span className="fsrs-rating-top"><b>{entry.label}</b><kbd>{entry.shortcut}</kbd></span>
-              <span className="fsrs-rating-interval">{preview ? sm2FormatIntervalDa(preview.delayMs || 0) : "…"}</span>
+              <span className="fsrs-rating-interval">{preview ? sm2FormatIntervalDa(preview.delayMs || 0) : "â€¦"}</span>
               <small>{entry.hint.replace(" = ", ": ")}</small>
             </button>
           );
@@ -3472,16 +3553,16 @@ function buildQuestionPool(scope, spacedData, extraQuestions, buried) {
 
 const DR_BYTE_STOPWORDS = {
   da: new Set([
-    "og","i","jeg","det","at","en","den","til","er","som","på","de","med","han","af","for","ikke","der","var",
+    "og","i","jeg","det","at","en","den","til","er","som","pÃ¥","de","med","han","af","for","ikke","der","var",
     "mig","sig","men","et","har","om","vi","min","havde","ham","hun","nu","over","da","fra","du","ud","sin","dem",
     "os","op","man","hans","hvor","eller","hvad","skal","selv","her","alle","vil","blev","kunne","ind","end",
-    "kan","denne","dette","disse","hvilken","hvilket","hvilke","kunne","gerne","være","hvordan","hvorfor","hvornår",
-    "spørgsmål","spørgsmåler","spørg","find","findes","viser","vis","vise","noget","nogen","meget","mere","mest",
+    "kan","denne","dette","disse","hvilken","hvilket","hvilke","kunne","gerne","vÃ¦re","hvordan","hvorfor","hvornÃ¥r",
+    "spÃ¸rgsmÃ¥l","spÃ¸rgsmÃ¥ler","spÃ¸rg","find","findes","viser","vis","vise","noget","nogen","meget","mere","mest",
     // Generic academic/filler words that appear across most medical questions and cause
     // false-positive matches when they are the ONLY overlapping word with the query.
-    "funktion","funktioner","betydning","årsag","årsager","effekt","effekter","virkning","virkninger",
-    "egenskab","egenskaber","kendetegn","karakteristisk","vigtig","vigtigt","primær","primært","hoved",
-    "generelt","overordnet","typisk","typiske","forklar","forklare","forklaring","betyder","angår","gøre","gør",
+    "funktion","funktioner","betydning","Ã¥rsag","Ã¥rsager","effekt","effekter","virkning","virkninger",
+    "egenskab","egenskaber","kendetegn","karakteristisk","vigtig","vigtigt","primÃ¦r","primÃ¦rt","hoved",
+    "generelt","overordnet","typisk","typiske","forklar","forklare","forklaring","betyder","angÃ¥r","gÃ¸re","gÃ¸r",
   ]),
   en: new Set([
     "the","is","at","which","on","a","an","and","or","of","to","in","for","with","that","this","these","those",
@@ -3491,7 +3572,7 @@ const DR_BYTE_STOPWORDS = {
     "characteristic","important","primary","main","general","overall","typical","explain","explains","explanation",
     "does","mean","regarding","concerning",
   ]),
-  ar: new Set(["في","من","على","عن","إلى","هل","ما","ماذا","كيف","لماذا","الذي","التي","هذا","هذه","و","أو"]),
+  ar: new Set(["ÙÙŠ","Ù…Ù†","Ø¹Ù„Ù‰","Ø¹Ù†","Ø¥Ù„Ù‰","Ù‡Ù„","Ù…Ø§","Ù…Ø§Ø°Ø§","ÙƒÙŠÙ","Ù„Ù…Ø§Ø°Ø§","Ø§Ù„Ø°ÙŠ","Ø§Ù„ØªÙŠ","Ù‡Ø°Ø§","Ù‡Ø°Ù‡","Ùˆ","Ø£Ùˆ"]),
 };
 
 function stemWord(word) {
@@ -3529,7 +3610,7 @@ function tokenizeForMatch(text, language) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, (mark) => mark)
     .normalize("NFC")
-    .replace(/[^a-z0-9æøåäöüéèáàíìóòúù\s-]/gi, " ")
+    .replace(/[^a-z0-9Ã¦Ã¸Ã¥Ã¤Ã¶Ã¼Ã©Ã¨Ã¡Ã Ã­Ã¬Ã³Ã²ÃºÃ¹\s-]/gi, " ")
     .split(/\s+/)
     .map((word) => word.trim())
     .filter((word) => word.length > 1 && !stopwords.has(word))
@@ -3621,9 +3702,9 @@ function findMatchingQuestions(query, questionBank, language, limit = 5) {
 const DR_BYTE_DIRECT_ANSWER_COPY = {
   da: {
     lowConfidence:
-      "Jeg er ikke helt sikker på, at jeg har fundet det rigtige spørgsmål til dette, men her er det mest relevante, jeg kunne finde:",
+      "Jeg er ikke helt sikker pÃ¥, at jeg har fundet det rigtige spÃ¸rgsmÃ¥l til dette, men her er det mest relevante, jeg kunne finde:",
     answerLabel: "Svar",
-    basedOn: "Baseret på spørgsmålet",
+    basedOn: "Baseret pÃ¥ spÃ¸rgsmÃ¥let",
   },
   en: {
     lowConfidence:
@@ -3632,9 +3713,9 @@ const DR_BYTE_DIRECT_ANSWER_COPY = {
     basedOn: "Based on the question",
   },
   ar: {
-    lowConfidence: "لست متأكدًا تمامًا من أن هذا هو السؤال الصحيح، لكن هذا هو الأقرب صلة الذي وجدته:",
-    answerLabel: "الإجابة",
-    basedOn: "بناءً على السؤال",
+    lowConfidence: "Ù„Ø³Øª Ù…ØªØ£ÙƒØ¯Ù‹Ø§ ØªÙ…Ø§Ù…Ù‹Ø§ Ù…Ù† Ø£Ù† Ù‡Ø°Ø§ Ù‡Ùˆ Ø§Ù„Ø³Ø¤Ø§Ù„ Ø§Ù„ØµØ­ÙŠØ­ØŒ Ù„ÙƒÙ† Ù‡Ø°Ø§ Ù‡Ùˆ Ø§Ù„Ø£Ù‚Ø±Ø¨ ØµÙ„Ø© Ø§Ù„Ø°ÙŠ ÙˆØ¬Ø¯ØªÙ‡:",
+    answerLabel: "Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+    basedOn: "Ø¨Ù†Ø§Ø¡Ù‹ Ø¹Ù„Ù‰ Ø§Ù„Ø³Ø¤Ø§Ù„",
   },
 };
 
@@ -3681,10 +3762,10 @@ function drByteServerQuestion(question, language) {
 }
 
 async function callDrByteAI({ userQuestion, matches, language, conversationHistory = [] }) {
-  if (typeof fetch !== "function") throw new Error("Dr. Byte AI er ikke tilgængelig i dette miljø.");
+  if (typeof fetch !== "function") throw new Error("Dr. Byte AI er ikke tilgÃ¦ngelig i dette miljÃ¸.");
   const { data: sessionData } = await supabase.auth.getSession();
   const accessToken = sessionData?.session?.access_token;
-  if (!accessToken) throw new Error("Du skal være logget ind for at bruge Dr. Byte AI.");
+  if (!accessToken) throw new Error("Du skal vÃ¦re logget ind for at bruge Dr. Byte AI.");
 
   const safeMatches = (Array.isArray(matches) ? matches : []).slice(0, 6).map((match) => ({
     matchPercent: Number(match?.matchPercent) || 0,
@@ -3715,7 +3796,7 @@ async function callDrByteAI({ userQuestion, matches, language, conversationHisto
     if (!text) throw new Error("Dr. Byte returnerede ikke et svar.");
     return { text, usedWebSearch: false, model: body?.meta?.model || "gemini-3.7-flash" };
   } catch (error) {
-    if (error?.name === "AbortError") throw new Error("Dr. Byte tog for lang tid om at svare. Prøv igen.");
+    if (error?.name === "AbortError") throw new Error("Dr. Byte tog for lang tid om at svare. PrÃ¸v igen.");
     throw error;
   } finally {
     if (timeout && typeof window !== "undefined") window.clearTimeout(timeout);
@@ -4045,7 +4126,7 @@ function DrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion
                       {translate(question.question, language)}
                     </span>
                     <span style={{ color: c.secondary, fontSize: 11, fontWeight: 700 }}>
-                      {t.drByteOpenQuestion} →
+                      {t.drByteOpenQuestion} â†’
                     </span>
                   </button>
                 ))}
@@ -4486,9 +4567,9 @@ function GlobalStyles({ c }) {
       /* --------------------------------------------------------------
          KALENDER-TEMA (WeekCalendar)
          Kalenderen er en selvbygget React-komponent (WeekCalendar) i stedet
-         for et eksternt bibliotek, så al styling styres af appens egne
+         for et eksternt bibliotek, sÃ¥ al styling styres af appens egne
          farve-tokens (c.blue/c.blueGradient osv.) og arver automatisk lys/
-         mørkt tema uden separate CSS-overrides.
+         mÃ¸rkt tema uden separate CSS-overrides.
          -------------------------------------------------------------- */
 :root {
   --ui-page:
@@ -4709,7 +4790,7 @@ textarea::placeholder {
 
 /* ============================================================
    MEDFLUEN UI FOUNDATION
-   Fælles kort, knapper, statusfelter og modaler.
+   FÃ¦lles kort, knapper, statusfelter og modaler.
    ============================================================ */
 
 .ui-card {
@@ -5460,7 +5541,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   DASHBOARD – HOME HIERARCHY & PREMIUM POLISH
+   DASHBOARD â€“ HOME HIERARCHY & PREMIUM POLISH
    ============================================================ */
 
 .dashboard-shell {
@@ -6303,7 +6384,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   DASHBOARD 1.3B-2 – INTELLIGENT STATUS & INTERACTION POLISH
+   DASHBOARD 1.3B-2 â€“ INTELLIGENT STATUS & INTERACTION POLISH
    ============================================================ */
 
 .dashboard-focus-heading-row {
@@ -6934,7 +7015,7 @@ select.ui-control {
 
 
 /* ============================================================
-   MEDFLUEN HOME V2 — MODERN PRODUCTIVITY WORKSPACE
+   MEDFLUEN HOME V2 â€” MODERN PRODUCTIVITY WORKSPACE
    Visual language based on the approved calendar-first concept.
    ============================================================ */
 :root {
@@ -7901,7 +7982,7 @@ select.ui-control {
 
 
 /* ============================================================
-   CALENDAR WORKSPACE — FUNCTIONAL POLISH
+   CALENDAR WORKSPACE â€” FUNCTIONAL POLISH
    ============================================================ */
 .calendar-week-scroll {
   position: relative;
@@ -10504,7 +10585,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   SEGMENT 1 — APP SHELL, NAVIGATION & DOCUMENT WORKSPACES
+   SEGMENT 1 â€” APP SHELL, NAVIGATION & DOCUMENT WORKSPACES
    ============================================================ */
 .app-sidebar {
   width: var(--app-sidebar-width) !important;
@@ -10898,7 +10979,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 1.1 — quiet indicators, digital Pomodoro and lecture progress
+   SEGMENT 1.1 â€” quiet indicators, digital Pomodoro and lecture progress
    ============================================================ */
 .sidebar-badge,
 .sidebar-wide-row-badge,
@@ -11031,7 +11112,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 5.1 — FORELÆSNINGSOVERSIGT
+   SEGMENT 5.1 â€” FORELÃ†SNINGSOVERSIGT
    Kun venstre oversigtspanel: grupper, filtre og status-signaler.
    ============================================================ */
 .lecture-overview-controls {
@@ -11119,7 +11200,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   SEGMENT 6.2 FINAL — PAIRED PDF EXAM VIEWER
+   SEGMENT 6.2 FINAL â€” PAIRED PDF EXAM VIEWER
    ============================================================ */
 .exam-set-library-row .document-library-code { color: #7667d8; background: color-mix(in srgb,#7667d8 8%,var(--ui-panel)); border-color: color-mix(in srgb,#7667d8 18%,var(--ui-border)); }
 .exam-set-library-row[data-active="true"] .document-library-code { background: color-mix(in srgb,#7667d8 14%,var(--ui-panel)); border-color: color-mix(in srgb,#7667d8 34%,var(--ui-border)); }
@@ -11469,8 +11550,8 @@ select.ui-control {
 }
 
 /* ============================================================
-   SEGMENT 5.10 — KOMPAKT MODULOVERBLIK
-   Fire handlingsnære modultal, der fungerer som filtre.
+   SEGMENT 5.10 â€” KOMPAKT MODULOVERBLIK
+   Fire handlingsnÃ¦re modultal, der fungerer som filtre.
    ============================================================ */
 .lecture-module-overview-wrap {
   display: grid;
@@ -11572,7 +11653,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   SEGMENT 2.0 — HOME CONTROL CENTER
+   SEGMENT 2.0 â€” HOME CONTROL CENTER
    ============================================================ */
 .home-v2-heading { align-items: center; }
 .home-v2-customize-button { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 10.5px; font-weight: 780; box-shadow: none; }
@@ -11627,7 +11708,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 3.0 — CALENDAR, UNSCHEDULED QUEUE & CONTEXT MENUS
+   SEGMENT 3.0 â€” CALENDAR, UNSCHEDULED QUEUE & CONTEXT MENUS
    ============================================================ */
 .calendar-week-sticky-head { position: sticky; top: 0; z-index: 8; background: var(--ui-panel); border-bottom: 1px solid color-mix(in srgb, var(--ui-border) 70%, transparent); }
 .calendar-week-header { position: relative !important; top: auto !important; border-bottom: 0 !important; }
@@ -11700,7 +11781,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 4.0 — PHASED STUDY PLAN + FSRS CALENDAR QUEUE
+   SEGMENT 4.0 â€” PHASED STUDY PLAN + FSRS CALENDAR QUEUE
    ============================================================ */
 .study-plan-v4 { max-width: 1280px; margin: 0 auto; padding-bottom: 42px; color: var(--ui-text); }
 .study-plan-v4-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
@@ -11727,7 +11808,7 @@ select.ui-control {
 @keyframes studyPlanStepIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes studyPlanStepBack { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
 /* ============================================================
-   SEGMENT 4.3 — GUIDED PHASE TRANSITIONS + STUDY PLAN POLISH
+   SEGMENT 4.3 â€” GUIDED PHASE TRANSITIONS + STUDY PLAN POLISH
    ============================================================ */
 .study-plan-v4-step-context {
   display: grid;
@@ -12002,7 +12083,7 @@ select.ui-control {
 @media (prefers-reduced-motion: reduce) { .study-plan-v4-step { animation: none !important; } .fsrs-rating-grid button { transition: none !important; } }
 
 /* ============================================================
-   SEGMENT 4.4 FINAL — UNIFIED PRODUCTIVITY CALENDAR
+   SEGMENT 4.4 FINAL â€” UNIFIED PRODUCTIVITY CALENDAR
    ============================================================ */
 .home-v2-workspace { min-height: 0 !important; grid-template-columns: minmax(0,1fr) 235px; }
 .home-v2-calendar-area { min-height: 0; }
@@ -12074,6 +12155,9 @@ select.ui-control {
 .calendar-sync-pill[data-status="synced"] { background: var(--ui-green-soft); color: var(--ui-green); }
 .calendar-sync-pill[data-status="syncing"] { background: var(--ui-blue-soft); color: var(--ui-blue); }
 .calendar-sync-pill[data-status="offline"], .calendar-sync-pill[data-status="error"] { background: var(--ui-red-soft); color: var(--ui-red); }
+.calendar-sdu-refresh-button--busy svg { animation: lecturePdfSpin 800ms linear infinite; }
+.calendar-import-row[data-status="removed"] { opacity:.76; }
+.calendar-import-row[data-status="removed"] em { color:var(--ui-red); }
 .calendar-more-menu { position: relative; }
 .calendar-more-menu > summary { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-secondary); list-style: none; cursor: pointer; }
 .calendar-more-menu > summary::-webkit-details-marker { display: none; }
@@ -12213,7 +12297,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 4.4.8 — CALENDAR + STUDY PLAN POLISH ON APP (3).JS
+   SEGMENT 4.4.8 â€” CALENDAR + STUDY PLAN POLISH ON APP (3).JS
    ============================================================ */
 .calendar-week-scroll { --calendar-gutter-width: 74px; }
 .calendar-week-sticky-head {
@@ -12358,7 +12442,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   APP(7) — CALENDAR + COUNTER REFINEMENT V2
+   APP(7) â€” CALENDAR + COUNTER REFINEMENT V2
    Exact seven requested changes; no study-plan clear rewrite.
    ============================================================ */
 * {
@@ -12491,7 +12575,7 @@ select.ui-control {
 .home-v2-counter-focus .home-v2-progress-track { margin-top: 2px; }
 
 /* ============================================================
-   SEGMENT 5.2 — FORELÆSNINGSSTATUS + KONFIGURERBAR COUNTER
+   SEGMENT 5.2 â€” FORELÃ†SNINGSSTATUS + KONFIGURERBAR COUNTER
    ============================================================ */
 .home-v2-lecture-counter { position: relative; overflow: visible; }
 .home-v2-counter-title-actions { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 5px; }
@@ -12606,7 +12690,7 @@ select.ui-control {
 .lecture-overview-row .document-library-file-state[data-ready="true"] { border-color: var(--ui-green-border); }
 
 /* ============================================================
-   SEGMENT 5.3 — KOMPAKT FORELÆSNINGSHOVED
+   SEGMENT 5.3 â€” KOMPAKT FORELÃ†SNINGSHOVED
    ============================================================ */
 .document-workspace-grid--notes {
   grid-template-rows: auto minmax(0, 1fr);
@@ -12811,7 +12895,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   SEGMENT 5.9 — STÆRKERE SDU-INTEGRATION
+   SEGMENT 5.9 â€” STÃ†RKERE SDU-INTEGRATION
    ============================================================ */
 .lecture-sdu-session-summary {
   position: relative;
@@ -12937,7 +13021,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   SEGMENT 5.4 — PERMANENT MATERIALEBIBLIOTEK
+   SEGMENT 5.4 â€” PERMANENT MATERIALEBIBLIOTEK
    ============================================================ */
 .lecture-material-strip {
   flex-shrink: 0;
@@ -12999,7 +13083,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 5.5 — ADVANCED DOCUMENT VIEWER
+   SEGMENT 5.5 â€” ADVANCED DOCUMENT VIEWER
    ============================================================ */
 .lecture-pdf-viewer {
   width: 100%;
@@ -13094,7 +13178,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 5.6 — PRIVATE LECTURE NOTES
+   SEGMENT 5.6 â€” PRIVATE LECTURE NOTES
    ============================================================ */
 .lecture-notes-panel { overflow: hidden; }
 .lecture-own-note-shell { min-width: 0; min-height: 0; flex: 1; display: flex; flex-direction: column; background: var(--ui-panel); }
@@ -13146,7 +13230,7 @@ select.ui-control {
 
 
 /* ============================================================
-   SEGMENT 5.7 — SHARED LECTURE NOTES
+   SEGMENT 5.7 â€” SHARED LECTURE NOTES
    ============================================================ */
 .lecture-note-share-bar {
   flex-shrink: 0;
@@ -13221,7 +13305,7 @@ select.ui-control {
   .lecture-shared-note-selector button { min-width: 116px; }
 }
 /* ============================================================
-   SEGMENT 5.8 — FORELÆSNINGSOPFØLGNING
+   SEGMENT 5.8 â€” FORELÃ†SNINGSOPFÃ˜LGNING
    ============================================================ */
 .lecture-learning-meta > span[data-tone="warning"],
 .lecture-follow-up-row-badge { color: #a6750f; background: color-mix(in srgb,#d7a22f 10%,transparent); }
@@ -13322,7 +13406,7 @@ select.ui-control {
 }
 
 /* ============================================================
-   FORELÆSNINGSVISER FV5 — PRIVATE PDF WORKSPACE
+   FORELÃ†SNINGSVISER FV5 â€” PRIVATE PDF WORKSPACE
    ============================================================ */
 .lecture-pdf-viewer--workspace { min-width:0; background:#d9dee6; }
 .lecture-pdf-viewer--workspace:fullscreen { width:100vw; height:100vh; border-radius:0; background:#d9dee6; }
@@ -13405,7 +13489,7 @@ select.ui-control {
 
 
 /* ============================================================
-   FORELÆSNINGSVISER 2.0 — CONTINUOUS PDF + COMPACT WORKSPACE
+   FORELÃ†SNINGSVISER 2.0 â€” CONTINUOUS PDF + COMPACT WORKSPACE
    ============================================================ */
 .lecture-pdf-viewer--continuous { border-radius: 6px; box-shadow: none; background: #d9dee6; }
 .lecture-pdf-viewer--continuous .lecture-pdf-toolbar { min-height: 36px; justify-content: center; border-bottom-color: color-mix(in srgb,var(--ui-border) 82%,transparent); }
@@ -13585,8 +13669,8 @@ select.ui-control {
 
 
 /* ============================================================
-   FORELÆSNINGSVISER FV5.1 — PRO PDF WORKSPACE
-   Minimal UI · stable scroll · text-bound annotations
+   FORELÃ†SNINGSVISER FV5.1 â€” PRO PDF WORKSPACE
+   Minimal UI Â· stable scroll Â· text-bound annotations
    ============================================================ */
 .lecture-pdf-viewer--workspace { background:#eef1f4; }
 .lecture-pdf-viewer--workspace .lecture-pdf-toolbar--pro {
@@ -13675,8 +13759,8 @@ select.ui-control {
 
 
 /* ============================================================
-   FORELÆSNINGSVISER FV5.2 — MINIMAL SHELL REVAMP
-   Quiet chrome · PDF-first hierarchy · secondary actions on demand
+   FORELÃ†SNINGSVISER FV5.2 â€” MINIMAL SHELL REVAMP
+   Quiet chrome Â· PDF-first hierarchy Â· secondary actions on demand
    ============================================================ */
 .lecture-viewer-shell-revamp {
   --lecture-shell-line: color-mix(in srgb,var(--ui-border) 76%,transparent);
@@ -13809,7 +13893,7 @@ select.ui-control {
 .lecture-viewer-shell-revamp .lecture-materials-popover[data-open="true"] { inset-block-start:7px; inset-inline:8px auto; width:min(360px,calc(100% - 16px)); max-height:min(430px,70%); grid-template-columns:1fr; border-radius:12px; box-shadow:0 18px 48px rgba(20,35,60,.18); }
 .lecture-viewer-shell-revamp .lecture-materials-popover .lecture-material-strip-heading { border-inline-end:0; border-bottom:1px solid var(--lecture-shell-line); }
 
-/* PowerPoint Viewer 1.1 — material picker anchored to its trigger. */
+/* PowerPoint Viewer 1.1 â€” material picker anchored to its trigger. */
 .lecture-viewer-shell-revamp .lecture-material-compact-control { position:relative; z-index:85; }
 .lecture-viewer-shell-revamp .lecture-material-compact-control .lecture-materials-popover[data-open="true"] {
   position:absolute;
@@ -13951,7 +14035,7 @@ select.ui-control {
 }
 
 /* ================================================================
-   FORELÆSNINGSVISER FV5.3 — UI COHERENCE + SELECTION FIX
+   FORELÃ†SNINGSVISER FV5.3 â€” UI COHERENCE + SELECTION FIX
    ================================================================ */
 .lecture-viewer-shell-revamp .lecture-detail-more-popover {
   width:238px; padding:6px; border:1px solid color-mix(in srgb,var(--ui-border) 86%,transparent); border-radius:12px; background:var(--ui-panel); box-shadow:0 18px 48px rgba(22,35,55,.16);
@@ -13979,8 +14063,8 @@ select.ui-control {
 
 
 /* ================================================================
-   FORELÆSNINGSVISER FV5.4 — PRECISION POLISH
-   Neutral focus · quiet resume chrome · refined swatches · glyph-bound highlights
+   FORELÃ†SNINGSVISER FV5.4 â€” PRECISION POLISH
+   Neutral focus Â· quiet resume chrome Â· refined swatches Â· glyph-bound highlights
    ================================================================ */
 .lecture-pdf-search-head label:focus-within {
   border-color:color-mix(in srgb,var(--ui-border) 72%,var(--ui-text) 28%);
@@ -14013,8 +14097,8 @@ select.ui-control {
 .lecture-pdf-viewer--workspace[data-view-mode="annotations"] .lecture-pdf-continuous-page[data-current="true"] { outline-color:color-mix(in srgb,var(--ui-border) 70%,transparent); }
 
 /* ================================================================
-   FORELÆSNINGSVISER FV5.5 — ADAPTIVE HIGHLIGHT ENGINE
-   Glyph-tight geometry · adaptive dark/light blending · clearer palette
+   FORELÃ†SNINGSVISER FV5.5 â€” ADAPTIVE HIGHLIGHT ENGINE
+   Glyph-tight geometry Â· adaptive dark/light blending Â· clearer palette
    ================================================================ */
 .lecture-pdf-mark--highlight {
   border-radius:.5px;
@@ -14067,8 +14151,8 @@ select.ui-control {
 @media (max-width:720px) { .lecture-pptx-toolbar { gap:3px; padding-inline:5px; } .lecture-pptx-toolbar button { width:28px; } .lecture-pptx-zoom { display:none; } .lecture-pptx-stage-wrap { padding:5px; } .lecture-pptx-slide-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
 
 /* ================================================================
-   FORELÆSNINGSVISER FV6 — MOBILE & TABLET
-   Document-first · mutually exclusive slide-over panels · touch-safe controls
+   FORELÃ†SNINGSVISER FV6 â€” MOBILE & TABLET
+   Document-first Â· mutually exclusive slide-over panels Â· touch-safe controls
    ================================================================ */
 .lecture-viewer-shell-revamp .lecture-compact-backdrop { display:none; }
 
@@ -14170,7 +14254,7 @@ select.ui-control {
   .lecture-viewer-shell-revamp .lecture-notes-panel { transition:none !important; }
 }
 
-/* Segment 6.8 — Studieplan workspace */
+/* Segment 6.8 â€” Studieplan workspace */
 .study-plan-workspace { max-width: 1360px; margin: 0 auto; padding: 0 0 44px; color: var(--ui-text); }
 .study-plan-workspace-header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:16px; }
 .study-plan-workspace-header > div:first-child { min-width:0; }
@@ -14691,7 +14775,7 @@ function FeedbackBanner({
 }) {
   const symbol =
     tone === "success"
-      ? "✓"
+      ? "âœ“"
       : tone === "error"
         ? "!"
         : "i";
@@ -14848,7 +14932,7 @@ function DashboardSectionHeader({
 
 function Loader({ c, t, leaving, theme }) {
   const [fact] = useState(
-    "Regelmæssig aktiv genkaldelse styrker langtidshukommelsen."
+    "RegelmÃ¦ssig aktiv genkaldelse styrker langtidshukommelsen."
   );
 
   return (
@@ -14894,7 +14978,7 @@ function Onboarding({ c, t, language, theme, onComplete }) {
   const revealCopy = ({
     da: { welcomeTitle: (n) => `Velkommen, ${n}!`, welcomeLabel: "Godt at have dig med", introTitle: "Klar til at komme i gang", introLabel: "Vi guider dig gennem hovedrummet" },
     en: { welcomeTitle: (n) => `Welcome, ${n}!`, welcomeLabel: "Great to have you here", introTitle: "Ready to get started", introLabel: "We'll guide you through the main space" },
-    ar: { welcomeTitle: (n) => `أهلاً بك، ${n}!`, welcomeLabel: "سعداء بانضمامك", introTitle: "لنبدأ الآن", introLabel: "سنرشدك عبر المساحة الرئيسية" },
+    ar: { welcomeTitle: (n) => `Ø£Ù‡Ù„Ø§Ù‹ Ø¨ÙƒØŒ ${n}!`, welcomeLabel: "Ø³Ø¹Ø¯Ø§Ø¡ Ø¨Ø§Ù†Ø¶Ù…Ø§Ù…Ùƒ", introTitle: "Ù„Ù†Ø¨Ø¯Ø£ Ø§Ù„Ø¢Ù†", introLabel: "Ø³Ù†Ø±Ø´Ø¯Ùƒ Ø¹Ø¨Ø± Ø§Ù„Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©" },
   })[language] || {};
   function triggerReveal(type, after) {
     setReveal(type);
@@ -15265,13 +15349,13 @@ function ModuleSwitcher({
       : language === "en"
         ? "Choose module"
         : language === "ar"
-          ? "اختر الوحدة"
-          : "Vælg modul";
+          ? "Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø©"
+          : "VÃ¦lg modul";
 
   const copy = {
     da: {
       chooseModule:
-        "Vælg modul",
+        "VÃ¦lg modul",
       level:
         "Studieniveau",
       modules:
@@ -15289,15 +15373,15 @@ function ModuleSwitcher({
 
     ar: {
       chooseModule:
-        "اختر الوحدة",
+        "Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø©",
       level:
-        "المستوى الدراسي",
+        "Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠ",
       modules:
-        "الوحدات",
+        "Ø§Ù„ÙˆØ­Ø¯Ø§Øª",
     },
   }[language] || {
     chooseModule:
-      "Vælg modul",
+      "VÃ¦lg modul",
     level:
       "Studieniveau",
     modules:
@@ -15500,7 +15584,7 @@ function ModuleSwitcher({
               "transform 180ms ease",
           }}
         >
-          ⌄
+          âŒ„
         </span>
       </button>
 
@@ -15644,7 +15728,7 @@ function ModuleSwitcher({
               const moduleCode =
                 module.match(
                   /^[A-Z]\d+/
-                )?.[0] || "•";
+                )?.[0] || "â€¢";
 
               const cleanLabel =
                 module.replace(
@@ -15764,23 +15848,23 @@ function Timer({
   const copy = ({
     da: {
       homeSubtitle: "Dit studieoverblik",
-      mcqSubtitle: "Træn og repetér",
+      mcqSubtitle: "TrÃ¦n og repetÃ©r",
       insightsTitle: "Indsigter",
       insightsSubtitle: "Se din udvikling",
       planTitle: "Studieplan",
-      planSubtitle: "Planlæg frem mod eksamen",
+      planSubtitle: "PlanlÃ¦g frem mod eksamen",
       timerTitle: "Pomodoro",
-      openTimer: "Åbn Pomodoro",
+      openTimer: "Ã…bn Pomodoro",
       closeTimer: "Luk Pomodoro",
-      focusLength: "Læsning",
+      focusLength: "LÃ¦sning",
       breakLength: "Pause",
       todayHours: "I dag",
       weekHours: "Denne uge",
       hoursShort: "t",
       savedPlans: "Gemte planer",
       noSavedPlans: "Ingen gemte planer endnu",
-      planName: "Navn på plan",
-      planNamePlaceholder: "Fx Lang læseblok",
+      planName: "Navn pÃ¥ plan",
+      planNamePlaceholder: "Fx Lang lÃ¦seblok",
       savePlan: "Gem plan",
       startFocus: "Start fokus",
       activeFocus: "Fokus",
@@ -15815,30 +15899,30 @@ function Timer({
       applyPlan: "Use plan",
     },
     ar: {
-      homeSubtitle: "نظرة عامة على دراستك",
-      mcqSubtitle: "تدرّب وراجع",
-      insightsTitle: "الإحصاءات",
-      insightsSubtitle: "اطّلع على تقدمك",
-      planTitle: "خطة الدراسة",
-      planSubtitle: "خطط حتى موعد الامتحان",
-      timerTitle: "بومودورو",
-      openTimer: "فتح بومودورو",
-      closeTimer: "إغلاق بومودورو",
-      focusLength: "تركيز",
-      breakLength: "استراحة",
-      todayHours: "اليوم",
-      weekHours: "هذا الأسبوع",
-      hoursShort: "س",
-      savedPlans: "الخطط المحفوظة",
-      noSavedPlans: "لا توجد خطط محفوظة",
-      planName: "اسم الخطة",
-      planNamePlaceholder: "مثال: جلسة طويلة",
-      savePlan: "حفظ الخطة",
-      startFocus: "ابدأ التركيز",
-      activeFocus: "تركيز",
-      activeBreak: "استراحة",
-      deletePlan: "حذف الخطة",
-      applyPlan: "استخدام الخطة",
+      homeSubtitle: "Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø© Ø¹Ù„Ù‰ Ø¯Ø±Ø§Ø³ØªÙƒ",
+      mcqSubtitle: "ØªØ¯Ø±Ù‘Ø¨ ÙˆØ±Ø§Ø¬Ø¹",
+      insightsTitle: "Ø§Ù„Ø¥Ø­ØµØ§Ø¡Ø§Øª",
+      insightsSubtitle: "Ø§Ø·Ù‘Ù„Ø¹ Ø¹Ù„Ù‰ ØªÙ‚Ø¯Ù…Ùƒ",
+      planTitle: "Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      planSubtitle: "Ø®Ø·Ø· Ø­ØªÙ‰ Ù…ÙˆØ¹Ø¯ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      timerTitle: "Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ",
+      openTimer: "ÙØªØ­ Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ",
+      closeTimer: "Ø¥ØºÙ„Ø§Ù‚ Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ",
+      focusLength: "ØªØ±ÙƒÙŠØ²",
+      breakLength: "Ø§Ø³ØªØ±Ø§Ø­Ø©",
+      todayHours: "Ø§Ù„ÙŠÙˆÙ…",
+      weekHours: "Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹",
+      hoursShort: "Ø³",
+      savedPlans: "Ø§Ù„Ø®Ø·Ø· Ø§Ù„Ù…Ø­ÙÙˆØ¸Ø©",
+      noSavedPlans: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø®Ø·Ø· Ù…Ø­ÙÙˆØ¸Ø©",
+      planName: "Ø§Ø³Ù… Ø§Ù„Ø®Ø·Ø©",
+      planNamePlaceholder: "Ù…Ø«Ø§Ù„: Ø¬Ù„Ø³Ø© Ø·ÙˆÙŠÙ„Ø©",
+      savePlan: "Ø­ÙØ¸ Ø§Ù„Ø®Ø·Ø©",
+      startFocus: "Ø§Ø¨Ø¯Ø£ Ø§Ù„ØªØ±ÙƒÙŠØ²",
+      activeFocus: "ØªØ±ÙƒÙŠØ²",
+      activeBreak: "Ø§Ø³ØªØ±Ø§Ø­Ø©",
+      deletePlan: "Ø­Ø°Ù Ø§Ù„Ø®Ø·Ø©",
+      applyPlan: "Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ø®Ø·Ø©",
     },
   })[language] || {};
 
@@ -16542,15 +16626,15 @@ function computeStreak(days) {
 }
 
 const BADGE_DEFINITIONS = [
-  { id: "streak-3", type: "streak", threshold: 3, icon: "target", label: { da: "3 dages streak", en: "3-day streak", ar: "تتابع 3 أيام" } },
-  { id: "streak-7", type: "streak", threshold: 7, icon: "target", label: { da: "7 dages streak", en: "7-day streak", ar: "تتابع 7 أيام" } },
-  { id: "streak-30", type: "streak", threshold: 30, icon: "target", label: { da: "30 dages streak", en: "30-day streak", ar: "تتابع 30 يومًا" } },
-  { id: "questions-100", type: "questions", threshold: 100, icon: "clipboard", label: { da: "100 spørgsmål", en: "100 questions", ar: "100 سؤال" } },
-  { id: "questions-500", type: "questions", threshold: 500, icon: "clipboard", label: { da: "500 spørgsmål", en: "500 questions", ar: "500 سؤال" } },
-  { id: "questions-1000", type: "questions", threshold: 1000, icon: "clipboard", label: { da: "1000 spørgsmål", en: "1000 questions", ar: "1000 سؤال" } },
-  { id: "pomodoro-10", type: "pomodoro", threshold: 10, icon: "clock", label: { da: "10 pomodoros", en: "10 pomodoros", ar: "10 بومودورو" } },
-  { id: "pomodoro-50", type: "pomodoro", threshold: 50, icon: "clock", label: { da: "50 pomodoros", en: "50 pomodoros", ar: "50 بومودورو" } },
-  { id: "accuracy-90", type: "accuracy", threshold: 90, icon: "chart", label: { da: "90% nøjagtighed", en: "90% accuracy", ar: "دقة 90%" } },
+  { id: "streak-3", type: "streak", threshold: 3, icon: "target", label: { da: "3 dages streak", en: "3-day streak", ar: "ØªØªØ§Ø¨Ø¹ 3 Ø£ÙŠØ§Ù…" } },
+  { id: "streak-7", type: "streak", threshold: 7, icon: "target", label: { da: "7 dages streak", en: "7-day streak", ar: "ØªØªØ§Ø¨Ø¹ 7 Ø£ÙŠØ§Ù…" } },
+  { id: "streak-30", type: "streak", threshold: 30, icon: "target", label: { da: "30 dages streak", en: "30-day streak", ar: "ØªØªØ§Ø¨Ø¹ 30 ÙŠÙˆÙ…Ù‹Ø§" } },
+  { id: "questions-100", type: "questions", threshold: 100, icon: "clipboard", label: { da: "100 spÃ¸rgsmÃ¥l", en: "100 questions", ar: "100 Ø³Ø¤Ø§Ù„" } },
+  { id: "questions-500", type: "questions", threshold: 500, icon: "clipboard", label: { da: "500 spÃ¸rgsmÃ¥l", en: "500 questions", ar: "500 Ø³Ø¤Ø§Ù„" } },
+  { id: "questions-1000", type: "questions", threshold: 1000, icon: "clipboard", label: { da: "1000 spÃ¸rgsmÃ¥l", en: "1000 questions", ar: "1000 Ø³Ø¤Ø§Ù„" } },
+  { id: "pomodoro-10", type: "pomodoro", threshold: 10, icon: "clock", label: { da: "10 pomodoros", en: "10 pomodoros", ar: "10 Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ" } },
+  { id: "pomodoro-50", type: "pomodoro", threshold: 50, icon: "clock", label: { da: "50 pomodoros", en: "50 pomodoros", ar: "50 Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ" } },
+  { id: "accuracy-90", type: "accuracy", threshold: 90, icon: "chart", label: { da: "90% nÃ¸jagtighed", en: "90% accuracy", ar: "Ø¯Ù‚Ø© 90%" } },
 ];
 
 function computeEarnedBadges({ streakCurrent, totalQuestionsAnswered, totalPomodoros, bestSessionAccuracy }) {
@@ -16565,13 +16649,13 @@ function computeEarnedBadges({ streakCurrent, totalQuestionsAnswered, totalPomod
 
 /* ------------------------------------------------------------------------
    LECTURE LINE RACE + POMODORO CALENDAR HEATMAP (ECharts)
-   Bygger datasæt til:
+   Bygger datasÃ¦t til:
    1) Et animeret "line race" pr. emnegruppe, hvor hver linje er en
-      forelæsning, og y-værdien er den kumulative korrekt-procent over tid,
-      baseret på session.lectures (gemt pr. quiz-session).
-      Forelæsninger uden nogen besvarelser får `null` i hele arrayet, så
-      ECharts (med connectNulls:false) lader dem stå helt tomme i grafen
-      i stedet for at trække linjen ned til 0.
+      forelÃ¦sning, og y-vÃ¦rdien er den kumulative korrekt-procent over tid,
+      baseret pÃ¥ session.lectures (gemt pr. quiz-session).
+      ForelÃ¦sninger uden nogen besvarelser fÃ¥r `null` i hele arrayet, sÃ¥
+      ECharts (med connectNulls:false) lader dem stÃ¥ helt tomme i grafen
+      i stedet for at trÃ¦kke linjen ned til 0.
    2) Et kalender-heatmap over antal fokus-minutter pr. dag fra pomodoro-timeren.
    ------------------------------------------------------------------------ */
 function buildLectureRaceData(group, lectures, sessions) {
@@ -16630,13 +16714,13 @@ function LectureLineRace({ group, lectures, sessions, ink, emptyLabel }) {
 
   const palette = [ink.blue, ink.green, "#7a63f0", ink.red, "#f59e0b", "#0ea5b7", "#e879b9", "#8c564b", "#4ade80", "#60a5fa"];
 
-  // Fuldt navn på forelæsningen (fx "N5 · Neurofysiologi – EEG – EP") bruges som seriens navn,
-  // så legenden viser navnet i stedet for blot forelæsningskoden. Legenden ligger i højre side
-  // som en lodret liste med afkortet tekst + tooltip ved hover, så alle forelæsninger er synlige
-  // uden at man skal scrolle, uanset hvor mange forelæsninger gruppen indeholder.
+  // Fuldt navn pÃ¥ forelÃ¦sningen (fx "N5 Â· Neurofysiologi â€“ EEG â€“ EP") bruges som seriens navn,
+  // sÃ¥ legenden viser navnet i stedet for blot forelÃ¦sningskoden. Legenden ligger i hÃ¸jre side
+  // som en lodret liste med afkortet tekst + tooltip ved hover, sÃ¥ alle forelÃ¦sninger er synlige
+  // uden at man skal scrolle, uanset hvor mange forelÃ¦sninger gruppen indeholder.
   const legendNameById = {};
   series.forEach((s) => {
-    legendNameById[s.id] = s.title ? `${s.id} · ${s.title}` : s.id;
+    legendNameById[s.id] = s.title ? `${s.id} Â· ${s.title}` : s.id;
   });
 
   const legendHeight = Math.max(1, series.length) * 24;
@@ -16712,9 +16796,9 @@ function PomodoroCalendarHeatmap({ pomodoroMinutesLog, ink, year, emptyLabel }) 
     );
   }
 
-  // Fast, ikke-justerbar farveskala (piecewise) i stedet for en trækbar slider:
-  // 0-30 min, 30-60 min, 1-2 timer, 2-5 timer, 5+ timer. Farverne går fra lys til mørk blå,
-  // så mønstret i studieaktiviteten er let at aflæse uden at skulle interagere med grafen.
+  // Fast, ikke-justerbar farveskala (piecewise) i stedet for en trÃ¦kbar slider:
+  // 0-30 min, 30-60 min, 1-2 timer, 2-5 timer, 5+ timer. Farverne gÃ¥r fra lys til mÃ¸rk blÃ¥,
+  // sÃ¥ mÃ¸nstret i studieaktiviteten er let at aflÃ¦se uden at skulle interagere med grafen.
   const option = {
     backgroundColor: "transparent",
     tooltip: {
@@ -16732,10 +16816,10 @@ function PomodoroCalendarHeatmap({ pomodoroMinutesLog, ink, year, emptyLabel }) 
       itemHeight: 14,
       pieces: [
         { min: 0, max: 0, label: "0 min", color: ink.line },
-        { min: 1, max: 30, label: "0–30 min", color: "#c9dff7" },
-        { min: 31, max: 60, label: "30–60 min", color: "#8fbef0" },
-        { min: 61, max: 120, label: "1–2 timer", color: "#4f97e6" },
-        { min: 121, max: 300, label: "2–5 timer", color: "#1f6fd6" },
+        { min: 1, max: 30, label: "0â€“30 min", color: "#c9dff7" },
+        { min: 31, max: 60, label: "30â€“60 min", color: "#8fbef0" },
+        { min: 61, max: 120, label: "1â€“2 timer", color: "#4f97e6" },
+        { min: 121, max: 300, label: "2â€“5 timer", color: "#1f6fd6" },
         { min: 301, label: "5+ timer", color: "#0d3f8c" },
       ],
       textStyle: { color: ink.secondary, fontSize: 11 },
@@ -16767,7 +16851,7 @@ function calendarNormalizeMatchText(value) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9æøå]+/g, " ")
+    .replace(/[^a-z0-9Ã¦Ã¸Ã¥]+/g, " ")
     .trim();
 }
 
@@ -17051,7 +17135,7 @@ function calendarStudyPlanFollowUpId(moduleName, lectureId) {
 function calendarQueuedLectureBase({ moduleName, lecture, todayKeyString, existingEvent = null }) {
   return {
     id: existingEvent?.id || calendarStudyPlanLectureId(moduleName, lecture.id),
-    title: existingEvent?.title || `${lecture.id} · ${lecture.title}`,
+    title: existingEvent?.title || `${lecture.id} Â· ${lecture.title}`,
     date: todayKeyString,
     time: "",
     endTime: "",
@@ -17241,9 +17325,9 @@ function CalendarEventEditor({
   onClose,
 }) {
   const copy = ({
-    da: { end: "Slutter", endDate: "Slutdato", until: "Gentag til", location: "Sted", link: "Link", lecture: "Forelæsning", noLecture: "Ingen forelæsning", completed: "Gennemgået", description: "Beskrivelse eller forberedelse…", title: "Ny begivenhed", edit: "Redigér begivenhed", more: "Flere oplysninger", less: "Færre oplysninger", optional: "Valgfrit", allDay: "Hele dagen", reminder: "Påmindelse", recurrence: "Gentagelse", none: "Ingen", daily: "Dagligt", weekly: "Ugentligt", weekdays: "Hverdage", monthly: "Månedligt", attachment: "PDF eller note", conflict: "Tiden overlapper med en anden aktivitet.", suggest: "Find næste ledige tid", held: "Forelæsningen er afholdt", planned: "Planlagt", reviewed: "Gennemgået" },
-    en: { end: "Ends", endDate: "End date", until: "Repeat until", location: "Location", link: "Link", lecture: "Lecture", noLecture: "No lecture", completed: "Reviewed", description: "Description or preparation…", title: "New event", edit: "Edit event", more: "More options", less: "Fewer options", optional: "Optional", allDay: "All day", reminder: "Reminder", recurrence: "Repeat", none: "None", daily: "Daily", weekly: "Weekly", weekdays: "Weekdays", monthly: "Monthly", attachment: "PDF or note", conflict: "This time overlaps another activity.", suggest: "Find next free time", held: "Lecture held", planned: "Planned", reviewed: "Reviewed" },
-    ar: { end: "ينتهي", endDate: "تاريخ الانتهاء", until: "التكرار حتى", location: "المكان", link: "الرابط", lecture: "المحاضرة", noLecture: "بدون محاضرة", completed: "تمت المراجعة", description: "وصف أو تحضير…", title: "حدث جديد", edit: "تعديل الحدث", more: "المزيد", less: "أقل", optional: "اختياري", allDay: "طوال اليوم", reminder: "تذكير", recurrence: "تكرار", none: "لا شيء", daily: "يومي", weekly: "أسبوعي", weekdays: "أيام العمل", monthly: "شهري", attachment: "PDF أو ملاحظة", conflict: "يتداخل هذا الوقت مع نشاط آخر.", suggest: "العثور على الوقت المتاح التالي", held: "تمت المحاضرة", planned: "مخطط", reviewed: "تمت المراجعة" },
+    da: { end: "Slutter", endDate: "Slutdato", until: "Gentag til", location: "Sted", link: "Link", lecture: "ForelÃ¦sning", noLecture: "Ingen forelÃ¦sning", completed: "GennemgÃ¥et", description: "Beskrivelse eller forberedelseâ€¦", title: "Ny begivenhed", edit: "RedigÃ©r begivenhed", more: "Flere oplysninger", less: "FÃ¦rre oplysninger", optional: "Valgfrit", allDay: "Hele dagen", reminder: "PÃ¥mindelse", recurrence: "Gentagelse", none: "Ingen", daily: "Dagligt", weekly: "Ugentligt", weekdays: "Hverdage", monthly: "MÃ¥nedligt", attachment: "PDF eller note", conflict: "Tiden overlapper med en anden aktivitet.", suggest: "Find nÃ¦ste ledige tid", held: "ForelÃ¦sningen er afholdt", planned: "Planlagt", reviewed: "GennemgÃ¥et" },
+    en: { end: "Ends", endDate: "End date", until: "Repeat until", location: "Location", link: "Link", lecture: "Lecture", noLecture: "No lecture", completed: "Reviewed", description: "Description or preparationâ€¦", title: "New event", edit: "Edit event", more: "More options", less: "Fewer options", optional: "Optional", allDay: "All day", reminder: "Reminder", recurrence: "Repeat", none: "None", daily: "Daily", weekly: "Weekly", weekdays: "Weekdays", monthly: "Monthly", attachment: "PDF or note", conflict: "This time overlaps another activity.", suggest: "Find next free time", held: "Lecture held", planned: "Planned", reviewed: "Reviewed" },
+    ar: { end: "ÙŠÙ†ØªÙ‡ÙŠ", endDate: "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡", until: "Ø§Ù„ØªÙƒØ±Ø§Ø± Ø­ØªÙ‰", location: "Ø§Ù„Ù…ÙƒØ§Ù†", link: "Ø§Ù„Ø±Ø§Ø¨Ø·", lecture: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©", noLecture: "Ø¨Ø¯ÙˆÙ† Ù…Ø­Ø§Ø¶Ø±Ø©", completed: "ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©", description: "ÙˆØµÙ Ø£Ùˆ ØªØ­Ø¶ÙŠØ±â€¦", title: "Ø­Ø¯Ø« Ø¬Ø¯ÙŠØ¯", edit: "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø­Ø¯Ø«", more: "Ø§Ù„Ù…Ø²ÙŠØ¯", less: "Ø£Ù‚Ù„", optional: "Ø§Ø®ØªÙŠØ§Ø±ÙŠ", allDay: "Ø·ÙˆØ§Ù„ Ø§Ù„ÙŠÙˆÙ…", reminder: "ØªØ°ÙƒÙŠØ±", recurrence: "ØªÙƒØ±Ø§Ø±", none: "Ù„Ø§ Ø´ÙŠØ¡", daily: "ÙŠÙˆÙ…ÙŠ", weekly: "Ø£Ø³Ø¨ÙˆØ¹ÙŠ", weekdays: "Ø£ÙŠØ§Ù… Ø§Ù„Ø¹Ù…Ù„", monthly: "Ø´Ù‡Ø±ÙŠ", attachment: "PDF Ø£Ùˆ Ù…Ù„Ø§Ø­Ø¸Ø©", conflict: "ÙŠØªØ¯Ø§Ø®Ù„ Ù‡Ø°Ø§ Ø§Ù„ÙˆÙ‚Øª Ù…Ø¹ Ù†Ø´Ø§Ø· Ø¢Ø®Ø±.", suggest: "Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„ÙˆÙ‚Øª Ø§Ù„Ù…ØªØ§Ø­ Ø§Ù„ØªØ§Ù„ÙŠ", held: "ØªÙ…Øª Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©", planned: "Ù…Ø®Ø·Ø·", reviewed: "ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©" },
   })[language] || {};
   const [advancedOpen, setAdvancedOpen] = useState(Boolean(event.location || event.url || event.description || event.reminderMinutes || event.attachmentUrl));
   const duration = calendarDurationMinutes(event);
@@ -17290,9 +17374,9 @@ function CalendarEventEditor({
 
         <div className="calendar-quick-editor-body">
           <div className="calendar-quick-editor-row"><Icon name="calendar" size={16} /><div className="calendar-quick-date-grid"><label><small>{t.calendarEventDate}</small><input type="date" className="calendar-quick-control" value={event.date || ""} onChange={(e) => onChange({ ...event, date: e.target.value, endDate: !event.endDate || event.endDate < e.target.value ? e.target.value : event.endDate })} /></label><label><small>{copy.endDate}</small><input type="date" className="calendar-quick-control" min={event.date || undefined} value={event.endDate || event.date || ""} onChange={(e) => onChange({ ...event, endDate: e.target.value })} /></label></div></div>
-          <div className="calendar-quick-editor-row"><Icon name="clock" size={16} /><div className="calendar-quick-time-grid"><input type="time" className="calendar-quick-control" value={event.time || ""} onChange={(e) => updateStartTime(e.target.value)} /><span>–</span><input type="time" className="calendar-quick-control" value={event.endTime || ""} onChange={(e) => updateEndTime(e.target.value)} /><small>{duration} min</small></div></div>
+          <div className="calendar-quick-editor-row"><Icon name="clock" size={16} /><div className="calendar-quick-time-grid"><input type="time" className="calendar-quick-control" value={event.time || ""} onChange={(e) => updateStartTime(e.target.value)} /><span>â€“</span><input type="time" className="calendar-quick-control" value={event.endTime || ""} onChange={(e) => updateEndTime(e.target.value)} /><small>{duration} min</small></div></div>
           <div className="calendar-quick-editor-row"><Icon name="cards" size={16} /><select className="calendar-quick-control" value={event.type || "study"} onChange={(e) => onChange({ ...event, type: e.target.value })}><option value="study">{t.calendarTypeStudy}</option><option value="review">{t.calendarTypeReview}</option><option value="exam">{t.calendarTypeExam}</option><option value="other">{t.calendarTypeOther}</option></select></div>
-          {lectures.length > 0 && <div className="calendar-quick-editor-row"><Icon name="book" size={16} /><select className="calendar-quick-control" value={event.lectureId || ""} onChange={(e) => { const lectureId = e.target.value || null; onChange({ ...event, lectureId, lectureIds: lectureId ? [lectureId] : [], planModuleId: lectureId ? moduleName : event.planModuleId }); }}><option value="">{copy.noLecture}</option>{lectures.map((lecture) => <option key={lecture.id} value={lecture.id}>{lecture.id} · {lecture.title}</option>)}</select></div>}
+          {lectures.length > 0 && <div className="calendar-quick-editor-row"><Icon name="book" size={16} /><select className="calendar-quick-control" value={event.lectureId || ""} onChange={(e) => { const lectureId = e.target.value || null; onChange({ ...event, lectureId, lectureIds: lectureId ? [lectureId] : [], planModuleId: lectureId ? moduleName : event.planModuleId }); }}><option value="">{copy.noLecture}</option>{lectures.map((lecture) => <option key={lecture.id} value={lecture.id}>{lecture.id} Â· {lecture.title}</option>)}</select></div>}
           <div className="calendar-quick-editor-row calendar-quick-recurrence-row"><Icon name="reset" size={16} /><div className="calendar-quick-two-cols"><label><span>{copy.recurrence}</span><select className="calendar-quick-control" value={event.recurrence || "none"} onChange={(e) => onChange({ ...event, recurrence: e.target.value, recurrenceUntil: e.target.value === "none" ? "" : event.recurrenceUntil })}><option value="none">{copy.none}</option><option value="daily">{copy.daily}</option><option value="weekdays">{copy.weekdays}</option><option value="weekly">{copy.weekly}</option><option value="monthly">{copy.monthly}</option></select></label>{event.recurrence && event.recurrence !== "none" && <label><span>{copy.until}</span><input type="date" className="calendar-quick-control" min={event.date || undefined} value={event.recurrenceUntil || ""} onChange={(e) => onChange({ ...event, recurrenceUntil: e.target.value })} /></label>}</div></div>
 
           {conflicts.length > 0 && !event.conflictDismissedAt && <div className="calendar-conflict-callout"><Icon name="clock" size={14} /><span>{copy.conflict}</span><button type="button" onClick={suggestFreeTime}>{copy.suggest}</button></div>}
@@ -17348,16 +17432,16 @@ const STUDY_PLAN_ACTIVITY_KINDS = Object.freeze({
 function studyPlanNormalizeLoadLevel(value) {
   const raw = String(value || "").toLowerCase();
   if (["easy", "let", "light"].includes(raw)) return "easy";
-  if (["hard", "demanding", "krævende", "kraevende", "tung"].includes(raw)) return "demanding";
+  if (["hard", "demanding", "krÃ¦vende", "kraevende", "tung"].includes(raw)) return "demanding";
   return "moderate";
 }
 
 function studyPlanLoadLabel(value, language = "da") {
   const level = studyPlanNormalizeLoadLevel(value);
   const labels = {
-    da: { easy: "Let", moderate: "Moderat", demanding: "Krævende" },
+    da: { easy: "Let", moderate: "Moderat", demanding: "KrÃ¦vende" },
     en: { easy: "Easy", moderate: "Moderate", demanding: "Demanding" },
-    ar: { easy: "خفيف", moderate: "متوسط", demanding: "مجهد" },
+    ar: { easy: "Ø®ÙÙŠÙ", moderate: "Ù…ØªÙˆØ³Ø·", demanding: "Ù…Ø¬Ù‡Ø¯" },
   };
   return (labels[language] || labels.da)[level];
 }
@@ -17571,7 +17655,7 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   if (!today || !exam || exam <= today) structuralIssues.push("Eksamensdatoen skal ligge i fremtiden.");
   const weekdayHours = plan?.weekdayHours || { 0: 0, 1: 2, 2: 2, 3: 2, 4: 2, 5: 1, 6: 3 };
   const totalWeekCapacity = Object.values(weekdayHours).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
-  if (totalWeekCapacity <= 0) structuralIssues.push("Tilføj studietid på mindst én ugedag.");
+  if (totalWeekCapacity <= 0) structuralIssues.push("TilfÃ¸j studietid pÃ¥ mindst Ã©n ugedag.");
   if (structuralIssues.length) return { valid: false, realism: "unrealistic", issues: structuralIssues, warnings: [], phases: [], assignments: [], weeklyLoads: [], unassigned: [], lectureRequired: 0, lectureCapacity: 0, consolidationRequired: 0, consolidationCapacity: 0, examRequired: 0, examCapacity: 0, targetedRequired: 0, targetedCapacity: 0, fsrsReserveMinutes: 0, requiredTotal: 0, capacityTotal: 0, pendingCount: 0, examSetCount: 0, bufferDays: 0, planningQueueCount: 0 };
 
   const bufferDays = Math.max(1, Math.min(14, Number(plan.bufferDays) || 4));
@@ -17581,9 +17665,9 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   const lectureEnd = lectureDeadline;
   const examWindowStart = examSetStart;
   const examWindowEnd = addDays(bufferStart, -1);
-  if (lectureDeadline < today) structuralIssues.push("Forelæsningsfristen kan ikke ligge før planens start.");
-  if (lectureDeadline >= examSetStart) structuralIssues.push("Forelæsningsfristen skal ligge før eksamenssætfasen.");
-  if (examSetStart >= bufferStart) structuralIssues.push("Eksamenssæt skal starte før bufferperioden.");
+  if (lectureDeadline < today) structuralIssues.push("ForelÃ¦sningsfristen kan ikke ligge fÃ¸r planens start.");
+  if (lectureDeadline >= examSetStart) structuralIssues.push("ForelÃ¦sningsfristen skal ligge fÃ¸r eksamenssÃ¦tfasen.");
+  if (examSetStart >= bufferStart) structuralIssues.push("EksamenssÃ¦t skal starte fÃ¸r bufferperioden.");
 
   const excluded = new Set(plan.excludedDates || []);
   const done = new Set(plan.doneLectureIds || []);
@@ -17644,12 +17728,12 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   const unassignedExam = allocate(examItems, examRows);
 
   const assignments = [];
-  lectureRows.forEach((row) => row.items.forEach(({ lecture, minutes }) => assignments.push({ id: `studyplan-${moduleName}-lecture-${lecture.id}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.LECTURE, phase: "lecture", date: row.key, lectureId: lecture.id, lectureIds: [lecture.id], title: `${lecture.id} · ${lecture.title}`, loadMinutes: minutes, needsScheduling: true, type: "study" })));
-  examRows.forEach((row) => row.items.forEach(({ index, minutes }) => assignments.push({ id: `studyplan-${moduleName}-examset-${index}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE, phase: "exam", date: row.key, title: `Eksamenssæt ${index}`, loadMinutes: minutes, needsScheduling: true, type: "review", examSetIndex: index })));
+  lectureRows.forEach((row) => row.items.forEach(({ lecture, minutes }) => assignments.push({ id: `studyplan-${moduleName}-lecture-${lecture.id}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.LECTURE, phase: "lecture", date: row.key, lectureId: lecture.id, lectureIds: [lecture.id], title: `${lecture.id} Â· ${lecture.title}`, loadMinutes: minutes, needsScheduling: true, type: "study" })));
+  examRows.forEach((row) => row.items.forEach(({ index, minutes }) => assignments.push({ id: `studyplan-${moduleName}-examset-${index}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE, phase: "exam", date: row.key, title: `EksamenssÃ¦t ${index}`, loadMinutes: minutes, needsScheduling: true, type: "review", examSetIndex: index })));
 
   const phases = [
-    { id: "lecture", label: "Forelæsninger", start: studyPlanDateKey(today), end: studyPlanDateKey(lectureEnd), tone: studyPlanPhaseTone("lecture") },
-    { id: "exam", label: "Eksamenssæt", start: studyPlanDateKey(examWindowStart), end: studyPlanDateKey(examWindowEnd), tone: studyPlanPhaseTone("exam") },
+    { id: "lecture", label: "ForelÃ¦sninger", start: studyPlanDateKey(today), end: studyPlanDateKey(lectureEnd), tone: studyPlanPhaseTone("lecture") },
+    { id: "exam", label: "EksamenssÃ¦t", start: studyPlanDateKey(examWindowStart), end: studyPlanDateKey(examWindowEnd), tone: studyPlanPhaseTone("exam") },
     { id: "buffer", label: "Eksamensbuffer", start: studyPlanDateKey(bufferStart), end: studyPlanDateKey(addDays(exam, -1)), tone: studyPlanPhaseTone("buffer") },
   ].filter((phase) => phase.start && phase.end && phase.end >= phase.start);
 
@@ -17663,8 +17747,8 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   const fsrsReserveMinutes = 0;
 
   const warnings = [];
-  if (unassignedLectures.length) warnings.push(`${unassignedLectures.length} forelæsning${unassignedLectures.length === 1 ? "" : "er"} går til planlægningskøen, fordi de ikke kan placeres automatisk inden fristen.`);
-  if (unassignedExam.length) warnings.push(`${unassignedExam.length} eksamenssæt går til planlægningskøen, fordi ingen egnet studiedag har nok sammenhængende kapacitet.`);
+  if (unassignedLectures.length) warnings.push(`${unassignedLectures.length} forelÃ¦sning${unassignedLectures.length === 1 ? "" : "er"} gÃ¥r til planlÃ¦gningskÃ¸en, fordi de ikke kan placeres automatisk inden fristen.`);
+  if (unassignedExam.length) warnings.push(`${unassignedExam.length} eksamenssÃ¦t gÃ¥r til planlÃ¦gningskÃ¸en, fordi ingen egnet studiedag har nok sammenhÃ¦ngende kapacitet.`);
   if (bufferDays < 3) warnings.push("Bufferperioden er kortere end tre dage.");
   const unassigned = [...unassignedLectures, ...unassignedExam];
   const loadRatio = capacityTotal ? requiredTotal / capacityTotal : 99;
@@ -17732,8 +17816,8 @@ function buildFsrsCalendarReviewBundle({ spacedData, questions, moduleName, from
   groups.forEach((group) => {
     const id = `fsrs-review-${moduleName || "all"}-${group.lectureId}-${group.date}`;
     const count = group.questionIds.length;
-    const label = group.lectureId === "exam-set" ? "Eksamenssæt" : group.lectureId;
-    events.push({ id, title: `Flashkort · ${label} · ${count} MCQ`, date: group.date, time: "", type: "review", planModuleId: moduleName || null, estimatedHours: Math.max(.25, Math.min(2, count * .03)) });
+    const label = group.lectureId === "exam-set" ? "EksamenssÃ¦t" : group.lectureId;
+    events.push({ id, title: `Flashkort Â· ${label} Â· ${count} MCQ`, date: group.date, time: "", type: "review", planModuleId: moduleName || null, estimatedHours: Math.max(.25, Math.min(2, count * .03)) });
     metadata[id] = { source: "fsrs-review", status: "due", needsScheduling: true, questionIds: group.questionIds, questionCount: count, lectureId: group.lectureId === "exam-set" ? null : group.lectureId, earliestDue: group.earliestDue, fsrsVersion: FSRS_RUNTIME_VERSION, createdByUser: false };
   });
   return { events, metadata };
@@ -17783,7 +17867,7 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
       : `studyplan-${moduleName}-examset-${item?.index || 1}`;
     if (metadata[id]) return;
     const activityKind = isLecture ? STUDY_PLAN_ACTIVITY_KINDS.LECTURE : STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE;
-    const title = isLecture ? `${item.lecture.id} · ${item.lecture.title}` : `Eksamenssæt ${item?.index || 1}`;
+    const title = isLecture ? `${item.lecture.id} Â· ${item.lecture.title}` : `EksamenssÃ¦t ${item?.index || 1}`;
     const loadMinutes = Math.max(15, Number(item?.minutes) || 30);
     events.push({
       id, title, date: queueDate, time: "", endTime: "", type: isLecture ? "study" : "review",
@@ -17792,7 +17876,7 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
     });
     metadata[id] = {
       source: "study-plan", activityKind, status: "unscheduled", needsScheduling: true, planningQueue: true,
-      phase: isLecture ? "lecture" : "exam", phaseLabel: isLecture ? "Forelæsninger" : "Eksamenssæt",
+      phase: isLecture ? "lecture" : "exam", phaseLabel: isLecture ? "ForelÃ¦sninger" : "EksamenssÃ¦t",
       lectureId: isLecture ? item.lecture.id : null, lectureIds: isLecture ? [item.lecture.id] : [],
       lectureUnits: isLecture ? [{ id: item.lecture.id, title: item.lecture.title }] : [],
       loadMinutes, examSetIndex: isLecture ? null : item?.index || null, createdByUser: true,
@@ -17824,7 +17908,7 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
     const todayKey = studyPlanDateKey(fromDate) || studyPlanDateKey(new Date());
     events.push({
       id: followUpId,
-      title: `Opfølgning · ${lecture.id} · ${lecture.title}`,
+      title: `OpfÃ¸lgning Â· ${lecture.id} Â· ${lecture.title}`,
       date: todayKey,
       time: "",
       type: "review",
@@ -17839,7 +17923,7 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
       status: "unscheduled",
       needsScheduling: true,
       phase: "follow-up",
-      phaseLabel: "Forelæsningsopfølgning",
+      phaseLabel: "ForelÃ¦sningsopfÃ¸lgning",
       lectureId,
       lectureIds: [lectureId],
       lectureUnits: [{ id: lecture.id, title: lecture.title }],
@@ -17850,7 +17934,7 @@ function buildStudyPlanCalendarBundle({ moduleName, plan, lectures, questionTota
   });
 
   const examId = `studyplan-exam-${moduleName}`;
-  events.push({ id: examId, title: `${moduleName} · Eksamen`, date: plan.examDate, time: "", type: "exam", planModuleId: moduleName, estimatedHours: 1, activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY });
+  events.push({ id: examId, title: `${moduleName} Â· Eksamen`, date: plan.examDate, time: "", type: "exam", planModuleId: moduleName, estimatedHours: 1, activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY });
   metadata[examId] = { source: "study-plan", activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_DAY, status: "planned", needsScheduling: false, phase: "exam-day", createdByUser: true, lectureIds: [] };
   return { events, metadata, strategy };
 }
@@ -17919,12 +18003,12 @@ function CalendarLayerControls({ preferences, setPreferences, search, setSearch,
           </button>
         ))}
       </div>
-      <label className="calendar-search-box"><Icon name="search" size={13} /><input ref={inputRef} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Søg titel, lokale eller forelæsning" /></label>
+      <label className="calendar-search-box"><Icon name="search" size={13} /><input ref={inputRef} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="SÃ¸g titel, lokale eller forelÃ¦sning" /></label>
       <select className="calendar-compact-select" value={prefs.moduleScope || "all"} onChange={(event) => patch({ moduleScope: event.target.value })} title="Modulfilter">
         <option value="all">Alle moduler</option>
         <option value="current">Kun {moduleName || "aktuelt modul"}</option>
       </select>
-      <select className="calendar-compact-select" value={prefs.density || "compact"} onChange={(event) => patch({ density: event.target.value })} title="Tæthed">
+      <select className="calendar-compact-select" value={prefs.density || "compact"} onChange={(event) => patch({ density: event.target.value })} title="TÃ¦thed">
         <option value="compact">Kompakt</option>
         <option value="standard">Standard</option>
         <option value="comfortable">Rummelig</option>
@@ -17947,11 +18031,11 @@ function CalendarMiniMonth({ selectedDate, events, locale = "da-DK", onSelect })
   const today = new Date();
   const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   return (
-    <section className="calendar-mini-month" aria-label="Mini-måned">
+    <section className="calendar-mini-month" aria-label="Mini-mÃ¥ned">
       <header>
-        <button type="button" aria-label="Forrige måned" onClick={() => setCursor(new Date(year, month - 1, 1))}><Icon name="left" size={12} /></button>
+        <button type="button" aria-label="Forrige mÃ¥ned" onClick={() => setCursor(new Date(year, month - 1, 1))}><Icon name="left" size={12} /></button>
         <strong>{new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(cursor)}</strong>
-        <button type="button" aria-label="Næste måned" onClick={() => setCursor(new Date(year, month + 1, 1))}><Icon name="right" size={12} /></button>
+        <button type="button" aria-label="NÃ¦ste mÃ¥ned" onClick={() => setCursor(new Date(year, month + 1, 1))}><Icon name="right" size={12} /></button>
       </header>
       <div className="calendar-mini-weekdays">{weekdays.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
       <div className="calendar-mini-grid" role="grid">
@@ -17987,13 +18071,13 @@ function CalendarEventPopover({ c, event, locale = "da-DK", onEdit, onClose, onC
           <p><Icon name="clock" size={14} />{calendarFormatDateTime(event, locale)}</p>
           {event.location && <p><Icon name="target" size={14} />{event.location}</p>}
           {event.description && <p className="calendar-popover-description">{event.description}</p>}
-          {event.planModuleId && <p><Icon name="book" size={14} />{event.planModuleId}{event.lectureId ? ` · ${event.lectureId}` : ""}</p>}
-          {(event.recurrence && event.recurrence !== "none") || event.recurrenceParentId ? <p><Icon name="reset" size={14} />{event.recurrenceParentId ? "Gentaget forekomst" : event.recurrence === "daily" ? "Gentages hver dag" : event.recurrence === "weekdays" ? "Gentages på hverdage" : event.recurrence === "weekly" ? "Gentages hver uge" : "Gentages hver måned"}{event.recurrenceUntil ? ` · til ${event.recurrenceUntil}` : ""}</p> : null}
+          {event.planModuleId && <p><Icon name="book" size={14} />{event.planModuleId}{event.lectureId ? ` Â· ${event.lectureId}` : ""}</p>}
+          {(event.recurrence && event.recurrence !== "none") || event.recurrenceParentId ? <p><Icon name="reset" size={14} />{event.recurrenceParentId ? "Gentaget forekomst" : event.recurrence === "daily" ? "Gentages hver dag" : event.recurrence === "weekdays" ? "Gentages pÃ¥ hverdage" : event.recurrence === "weekly" ? "Gentages hver uge" : "Gentages hver mÃ¥ned"}{event.recurrenceUntil ? ` Â· til ${event.recurrenceUntil}` : ""}</p> : null}
         </div>
         <footer>
-          {!readOnly && <button type="button" className="ui-button ui-button--ghost" onClick={onComplete}><Icon name="check" size={14} />{event.completedAt ? "Markér ikke færdig" : "Markér færdig"}</button>}
-          {event.lectureId && <button type="button" className="ui-button ui-button--secondary" onClick={onOpenLecture}><Icon name="book" size={14} />Åbn forelæsning</button>}
-          {readOnly ? <span className="calendar-global-readonly"><Icon name="globe" size={12} />Global admin-kalender</span> : <button type="button" className="ui-button ui-button--primary" onClick={onEdit}><Icon name="edit" size={14} />Redigér</button>}
+          {!readOnly && <button type="button" className="ui-button ui-button--ghost" onClick={onComplete}><Icon name="check" size={14} />{event.completedAt ? "MarkÃ©r ikke fÃ¦rdig" : "MarkÃ©r fÃ¦rdig"}</button>}
+          {event.lectureId && <button type="button" className="ui-button ui-button--secondary" onClick={onOpenLecture}><Icon name="book" size={14} />Ã…bn forelÃ¦sning</button>}
+          {readOnly ? <span className="calendar-global-readonly"><Icon name="globe" size={12} />Global admin-kalender</span> : <button type="button" className="ui-button ui-button--primary" onClick={onEdit}><Icon name="edit" size={14} />RedigÃ©r</button>}
         </footer>
       </div>
     </div>
@@ -18010,20 +18094,20 @@ function CalendarImportPreview({ c, title, subtitle, diff, onConfirm, onClose, b
   return (
     <div className="calendar-import-overlay">
       <div className="calendar-import-dialog" role="dialog" aria-modal="true" aria-label={title}>
-        <header><div><span>Forhåndsvisning</span><h2>{title}</h2><p>{subtitle}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header>
+        <header><div><span>ForhÃ¥ndsvisning</span><h2>{title}</h2><p>{subtitle}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header>
         <div className="calendar-import-summary-grid">
-          <div><strong>{rows.length}</strong><span>fundet</span></div><div><strong>{counts.new || 0}</strong><span>nye</span></div><div><strong>{counts.changed || 0}</strong><span>ændrede</span></div><div><strong>{diff?.removed?.length || 0}</strong><span>fjernet hos kilden</span></div>
+          <div><strong>{rows.length}</strong><span>fundet</span></div><div><strong>{counts.new || 0}</strong><span>nye</span></div><div><strong>{counts.changed || 0}</strong><span>Ã¦ndrede</span></div><div><strong>{diff?.removed?.length || 0}</strong><span>fjernet hos kilden</span></div>
         </div>
-        {isAdmin && <div className="calendar-import-scope" role="group" aria-label="Importområde"><button type="button" data-active={scope === "global" ? "true" : "false"} onClick={() => setScope("global")}><Icon name="globe" size={13} /><span><strong>Importér globalt for alle</strong><small>Canonical admin-kalender for modulet</small></span></button><button type="button" data-active={scope === "private" ? "true" : "false"} onClick={() => setScope("private")}><Icon name="user" size={13} /><span><strong>Kun for mig</strong><small>Gemmes i din private kalender</small></span></button></div>}
-        <div className="calendar-import-actions"><button type="button" onClick={() => setSelected(new Set(rows.map(({ event }) => event.sourceId || event.id)))}>Vælg alle</button><button type="button" onClick={() => setSelected(new Set())}>Fravælg alle</button><span>{selected.size} valgt</span></div>
+        {isAdmin && <div className="calendar-import-scope" role="group" aria-label="ImportomrÃ¥de"><button type="button" data-active={scope === "global" ? "true" : "false"} onClick={() => setScope("global")}><Icon name="globe" size={13} /><span><strong>ImportÃ©r globalt for alle</strong><small>Canonical admin-kalender for modulet</small></span></button><button type="button" data-active={scope === "private" ? "true" : "false"} onClick={() => setScope("private")}><Icon name="user" size={13} /><span><strong>Kun for mig</strong><small>Gemmes i din private kalender</small></span></button></div>}
+        <div className="calendar-import-actions"><button type="button" onClick={() => setSelected(new Set(rows.map(({ event }) => event.sourceId || event.id)))}>VÃ¦lg alle</button><button type="button" onClick={() => setSelected(new Set())}>FravÃ¦lg alle</button><span>{selected.size} valgt</span></div>
         <div className="calendar-import-list">
           {rows.map(({ event, status }) => {
             const key = event.sourceId || event.id;
-            return <label key={key} className="calendar-import-row" data-status={status}><input type="checkbox" checked={selected.has(key)} onChange={() => toggle(key)} /><span className="calendar-import-type" data-type={event.activityType || "other"}>{event.activityType === "lecture" ? "F" : event.activityType === "class" ? "H" : event.activityType === "tbl" ? "TBL" : "A"}</span><span><strong>{event.title}</strong><small>{event.date} · {event.time || "Hele dagen"}{event.endTime ? `–${event.endTime}` : ""}{event.location ? ` · ${event.location}` : ""}</small></span><em>{status === "new" ? "Ny" : status === "changed" ? "Ændret" : "Uændret"}</em></label>;
+            return <label key={key} className="calendar-import-row" data-status={status}><input type="checkbox" checked={selected.has(key)} onChange={() => toggle(key)} /><span className="calendar-import-type" data-type={event.activityType || "other"}>{event.activityType === "lecture" ? "F" : event.activityType === "class" ? "H" : event.activityType === "tbl" ? "TBL" : "A"}</span><span><strong>{event.title}</strong><small>{event.date} Â· {event.time || "Hele dagen"}{event.endTime ? `â€“${event.endTime}` : ""}{event.location ? ` Â· ${event.location}` : ""}</small></span><em>{status === "new" ? "Ny" : status === "changed" ? "Ã†ndret" : "UÃ¦ndret"}</em></label>;
           })}
         </div>
-        {diff?.removed?.length > 0 && <details className="calendar-import-removed"><summary>{diff.removed.length} aktiviteter findes ikke længere hos kilden</summary>{diff.removed.map((event) => <div key={event.id}>{event.date} · {event.title}</div>)}</details>}
-        <footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={!selected.size || busy} onClick={() => onConfirm(rows.filter(({ event }) => selected.has(event.sourceId || event.id)).map(({ event }) => event), diff.removed || [], scope)}>{busy ? "Importerer…" : `${scope === "global" ? "Importér globalt" : "Importér"} · ${selected.size}`}</PrimaryButton></footer>
+        {diff?.removed?.length > 0 && <details className="calendar-import-removed"><summary>{diff.removed.length} aktiviteter findes ikke lÃ¦ngere hos kilden</summary>{diff.removed.map((event) => <div key={event.id}>{event.date} Â· {event.title}</div>)}</details>}
+        <footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={!selected.size || busy} onClick={() => onConfirm(rows.filter(({ event }) => selected.has(event.sourceId || event.id)).map(({ event }) => event), diff.removed || [], scope)}>{busy ? "Importererâ€¦" : `${scope === "global" ? "ImportÃ©r globalt" : "ImportÃ©r"} Â· ${selected.size}`}</PrimaryButton></footer>
       </div>
     </div>
   );
@@ -18039,13 +18123,13 @@ function CalendarImportManager({ c, privateGroups, globalImports, globalEvents, 
   return (
     <div className="calendar-import-overlay">
       <div className="calendar-import-manager" role="dialog" aria-modal="true" aria-label="Importerede kalendere">
-        <header><div><span>Kalenderkilder</span><h2>Administrér importerede kalendere</h2><p>Slet en hel import samlet. Admin kan gøre private imports globale for alle brugere.</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header>
+        <header><div><span>Kalenderkilder</span><h2>AdministrÃ©r importerede kalendere</h2><p>Slet en hel import samlet. Admin kan gÃ¸re private imports globale for alle brugere.</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header>
         <div className="calendar-import-manager-list">
-          {!hasAny && <div className="calendar-import-manager-empty"><Icon name="calendar" size={20} /><strong>Ingen importerede kalendere</strong><small>SDU- og iCal-imports vises her, når de er tilføjet.</small></div>}
-          {(globalImports || []).map((item) => <div key={`global-${item.id}`} className="calendar-import-manager-row"><span className="calendar-import-manager-icon"><Icon name="globe" size={14} /></span><span><strong>{item.source_label}</strong><small>Global · {item.source_type === "sdu" ? "SDU" : "iCal"}{item.term ? ` · ${item.term}` : ""} · {globalCounts[item.id] || 0} aktiviteter</small></span>{isAdmin ? <button type="button" data-danger="true" disabled={busy} onClick={() => onDeleteGlobal(item)}><Icon name="trash" size={12} />Slet globalt</button> : <em>Administreres af admin</em>}</div>)}
-          {(privateGroups || []).map((group) => <div key={`private-${group.key}`} className="calendar-import-manager-row"><span className="calendar-import-manager-icon"><Icon name="user" size={14} /></span><span><strong>{group.sourceLabel}</strong><small>Privat · {group.sourceType === "sdu" ? "SDU" : "iCal"} · {group.events.length} aktiviteter</small></span><div>{isAdmin && <button type="button" disabled={busy} onClick={() => onPromotePrivate(group)}><Icon name="globe" size={12} />Gør global</button>}<button type="button" data-danger="true" disabled={busy} onClick={() => onDeletePrivate(group)}><Icon name="trash" size={12} />Slet</button></div></div>)}
+          {!hasAny && <div className="calendar-import-manager-empty"><Icon name="calendar" size={20} /><strong>Ingen importerede kalendere</strong><small>SDU- og iCal-imports vises her, nÃ¥r de er tilfÃ¸jet.</small></div>}
+          {(globalImports || []).map((item) => <div key={`global-${item.id}`} className="calendar-import-manager-row"><span className="calendar-import-manager-icon"><Icon name="globe" size={14} /></span><span><strong>{item.source_label}</strong><small>Global Â· {item.source_type === "sdu" ? "SDU" : "iCal"}{item.term ? ` Â· ${item.term}` : ""} Â· {globalCounts[item.id] || 0} aktiviteter</small></span>{isAdmin ? <button type="button" data-danger="true" disabled={busy} onClick={() => onDeleteGlobal(item)}><Icon name="trash" size={12} />Slet globalt</button> : <em>Administreres af admin</em>}</div>)}
+          {(privateGroups || []).map((group) => <div key={`private-${group.key}`} className="calendar-import-manager-row"><span className="calendar-import-manager-icon"><Icon name="user" size={14} /></span><span><strong>{group.sourceLabel}</strong><small>Privat Â· {group.sourceType === "sdu" ? "SDU" : "iCal"} Â· {group.events.length} aktiviteter</small></span><div>{isAdmin && <button type="button" disabled={busy} onClick={() => onPromotePrivate(group)}><Icon name="globe" size={12} />GÃ¸r global</button>}<button type="button" data-danger="true" disabled={busy} onClick={() => onDeletePrivate(group)}><Icon name="trash" size={12} />Slet</button></div></div>)}
         </div>
-        <footer><PrimaryButton onClick={onClose}>Færdig</PrimaryButton></footer>
+        <footer><PrimaryButton onClick={onClose}>FÃ¦rdig</PrimaryButton></footer>
       </div>
     </div>
   );
@@ -18061,73 +18145,49 @@ function SduImportDialog({ c, moduleName, existingEvents, onImport, onClose, isA
       const response = await fetch(`/api/sdu-timetable?module=${encodeURIComponent(moduleName)}&term=${encodeURIComponent(term)}`);
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.ok) throw new Error(payload.message || "SDU-skemaet kunne ikke hentes.");
-      const moduleLectures = MODULE_LECTURES[moduleName] || [];
-      const normalizedAll = (payload.events || []).map((event) => {
-        const lecture = event.lectureId ? moduleLectures.find((item) => item.id === event.lectureId) : matchCalendarLecture(`${event.title || ""} ${event.originalTitle || event.moduleTitle || ""} ${event.description || ""}`, moduleLectures);
-        return {
-          id: event.stableId || `sdu-${event.sourceId}`,
-          sourceId: event.sourceId,
-          title: event.title,
-          originalTitle: event.originalTitle || event.moduleTitle || "",
-          date: event.date,
-          endDate: event.endDate || event.date,
-          time: event.time || "",
-          endTime: event.endTime || "",
-          estimatedHours: event.estimatedHours || (event.durationMinutes ? event.durationMinutes / 60 : 1),
-          type: "study",
-          description: event.description || "",
-          location: event.location || "",
-          url: event.url || payload.scheduleUrl || "",
-          lectureId: lecture?.id || null,
-          lectureIds: lecture?.id ? [lecture.id] : [],
-          planModuleId: moduleName,
-          importedSchedule: "sdu",
-          source: "sdu-schedule",
-          activityType: event.activityType || "other",
-          colorKey: event.activityType || "other",
-          term: payload.term || term,
-          uvaCode: payload.uvaCode || "",
-          importBatchId: `sdu-${moduleName}-${term}-${Date.now()}`,
-          importedAt: new Date().toISOString(),
-          lastSyncedAt: new Date().toISOString(),
-          allDay: Boolean(event.allDay),
-          status: String(event.status || "CONFIRMED").toUpperCase() === "CANCELLED" ? "cancelled" : "planned",
-          cancelledAt: String(event.status || "").toUpperCase() === "CANCELLED" ? new Date().toISOString() : null,
-          timeZone: CALENDAR_TIME_ZONE,
-        };
-      });
-      const cancelled = normalizedAll.filter((event) => event.status === "cancelled");
-      const normalized = normalizedAll.filter((event) => event.status !== "cancelled" && !event.allDay);
-      const diff = calendarImportDiff(normalized, existingEvents);
-      const cancelledIds = new Set(cancelled.map((event) => event.sourceId || event.id));
-      const cancelledExisting = (existingEvents || []).filter((event) => cancelledIds.has(event.sourceId || event.id));
-      diff.removed = [...new Map([...(diff.removed || []), ...cancelledExisting].map((event) => [event.sourceId || event.id, event])).values()];
-      setState({ loading: false, error: "", payload: { ...payload, normalized, cancelledCount: cancelled.length, diff } });
+      const normalizedPayload = calendarNormalizeSduPayload(payload, moduleName, term, existingEvents);
+      setState({ loading: false, error: "", payload: { ...payload, ...normalizedPayload } });
     } catch (error) {
       setState({ loading: false, error: error.message || String(error), payload: null });
     }
   }
   if (state.payload) {
-    return <CalendarImportPreview c={c} title={`${moduleName} · ${term}`} subtitle={`UVA ${state.payload.uvaCode || "—"} · ${state.payload.normalized.length} aktiviteter${state.payload.cancelledCount ? ` · ${state.payload.cancelledCount} aflyst` : ""} · ingen ældre termin anvendes`} diff={state.payload.diff} onClose={onClose} isAdmin={isAdmin} onConfirm={(selected, removed, scope) => onImport(selected, removed, { term, uvaCode: state.payload.uvaCode, sourceTitle: `${moduleName} · ${term}` }, scope)} />;
+    return <CalendarImportPreview c={c} title={`${moduleName} Â· ${term}`} subtitle={`UVA ${state.payload.uvaCode || "â€”"} Â· ${state.payload.normalized.length} aktiviteter${state.payload.cancelledCount ? ` Â· ${state.payload.cancelledCount} aflyst` : ""} Â· ingen Ã¦ldre termin anvendes`} diff={state.payload.diff} onClose={onClose} isAdmin={isAdmin} onConfirm={(selected, removed, scope) => onImport(selected, removed, { term, uvaCode: state.payload.uvaCode, sourceTitle: `${moduleName} Â· ${term}` }, scope)} />;
   }
   return (
-    <div className="calendar-import-overlay"><div className="calendar-sdu-dialog"><header><div><span>SDU Skemaplan</span><h2>Importer kommende skema</h2><p>{moduleName}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header><label>Termin<select value={term} onChange={(event) => setTerm(event.target.value)}>{terms.map((value) => <option key={value} value={value}>{value}</option>)}</select></label><div className="ui-feedback" data-tone="info"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content">MedFLUEN accepterer kun en officiel fagversion og et skema, der matcher præcis den valgte termin. Et ældre semester bruges aldrig som reserve.</div></div>{state.error && <div className="ui-feedback" data-tone="error"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{state.error}</div></div>}<footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={state.loading} onClick={loadPreview}>{state.loading ? "Finder UVA og skema…" : "Hent preview"}</PrimaryButton></footer></div></div>
+    <div className="calendar-import-overlay"><div className="calendar-sdu-dialog"><header><div><span>SDU Skemaplan</span><h2>Importer kommende skema</h2><p>{moduleName}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header><label>Termin<select value={term} onChange={(event) => setTerm(event.target.value)}>{terms.map((value) => <option key={value} value={value}>{value}</option>)}</select></label><div className="ui-feedback" data-tone="info"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content">MedFLUEN accepterer kun en officiel fagversion og et skema, der matcher prÃ¦cis den valgte termin. Et Ã¦ldre semester bruges aldrig som reserve.</div></div>{state.error && <div className="ui-feedback" data-tone="error"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{state.error}</div></div>}<footer><SecondaryButton onClick={onClose}>Annuller</SecondaryButton><PrimaryButton disabled={state.loading} onClick={loadPreview}>{state.loading ? "Finder UVA og skemaâ€¦" : "Hent preview"}</PrimaryButton></footer></div></div>
   );
+}
+
+function SduRefreshPreview({ c, moduleName, term, diff, impact, busy = false, applied = false, publishWarning = "", error = "", onApply, onClose, onOpenStudyPlan }) {
+  const changedRows = (diff?.rows || []).filter((row) => row.status === "new" || row.status === "changed");
+  const removed = Array.isArray(diff?.removed) ? diff.removed : [];
+  const newCount = changedRows.filter((row) => row.status === "new").length;
+  const changedCount = changedRows.filter((row) => row.status === "changed").length;
+  const hasChanges = changedRows.length > 0 || removed.length > 0;
+  const formatSlot = (event) => event ? `${event.date || "â€”"}${event.time ? ` Â· ${event.time}${event.endTime ? `â€“${event.endTime}` : ""}` : ""}` : "â€”";
+  if (error) {
+    return <div className="calendar-import-overlay"><div className="calendar-sdu-dialog" role="dialog" aria-modal="true" aria-label="SDU refresh fejl"><header><div><span>SDU-skema</span><h2>Kunne ikke hente skemaet</h2><p>{moduleName} Â· {term || "â€”"}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header><div className="ui-feedback" data-tone="error"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{error}</div></div><footer><PrimaryButton onClick={onClose}>Luk</PrimaryButton></footer></div></div>;
+  }
+  if (applied) {
+    return <div className="calendar-import-overlay"><div className="calendar-import-dialog" role="dialog" aria-modal="true" aria-label="SDU-skema opdateret"><header><div><span>SDU-skema</span><h2>SkemaÃ¦ndringer anvendt</h2><p>{moduleName} Â· {term}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header><div className="ui-feedback" data-tone="success"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content">{newCount} nye Â· {changedCount} Ã¦ndrede Â· {removed.length} fjernede aktiviteter er nu gemt i den globale kalender.</div></div>{impact?.needsStudyPlanReview && <div className="ui-feedback" data-tone="info"><span className="ui-feedback-icon"><Icon name="target" size={13} /></span><div className="ui-feedback-content"><strong>Din studieplan kan vÃ¦re pÃ¥virket.</strong><br />{impact.studyPlanEventCount} planaktivitet{impact.studyPlanEventCount === 1 ? "" : "er"} er koblet til {impact.changedLectureIds.length} Ã¦ndret{impact.changedLectureIds.length === 1 ? "" : "e"} forelÃ¦sning{impact.changedLectureIds.length === 1 ? "" : "er"}. Planen Ã¦ndres ikke automatisk.</div></div>}{publishWarning && <div className="ui-feedback" data-tone="info"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{publishWarning}</div></div>}<footer>{impact?.needsStudyPlanReview && onOpenStudyPlan ? <SecondaryButton onClick={onOpenStudyPlan}>GennemgÃ¥ studieplan</SecondaryButton> : null}<PrimaryButton onClick={onClose}>FÃ¦rdig</PrimaryButton></footer></div></div>;
+  }
+  return <div className="calendar-import-overlay"><div className="calendar-import-dialog" role="dialog" aria-modal="true" aria-label="Tjek SDU-skema"><header><div><span>SDU-skema</span><h2>{hasChanges ? "SkemaÃ¦ndringer fundet" : "Ingen Ã¦ndringer fundet"}</h2><p>{moduleName} Â· {term}</p></div><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={16} /></IconButton></header>{hasChanges ? <><div className="calendar-import-summary-grid"><div><strong>{newCount}</strong><span>nye</span></div><div><strong>{changedCount}</strong><span>Ã¦ndrede</span></div><div><strong>{removed.length}</strong><span>fjernet</span></div><div><strong>{impact?.changedLectureIds?.length || 0}</strong><span>forelÃ¦sninger berÃ¸rt</span></div></div><div className="calendar-import-list">{changedRows.map(({ event, previous, status }) => <div key={event.sourceId || event.id} className="calendar-import-row" data-status={status}><span className="calendar-import-type" data-type={event.activityType || "other"}>{event.activityType === "lecture" ? "F" : event.activityType === "class" ? "H" : event.activityType === "tbl" ? "TBL" : "A"}</span><span><strong>{event.title}</strong><small>{status === "changed" ? `${formatSlot(previous)} â†’ ${formatSlot(event)}` : formatSlot(event)}{event.location ? ` Â· ${event.location}` : ""}</small></span><em>{status === "new" ? "Ny" : "Ã†ndret"}</em></div>)}{removed.map((event) => <div key={`removed-${event.sourceId || event.id}`} className="calendar-import-row" data-status="removed"><span className="calendar-import-type" data-type={event.activityType || "other"}>â€“</span><span><strong>{event.title}</strong><small>{formatSlot(event)}{event.location ? ` Â· ${event.location}` : ""}</small></span><em>Fjernet</em></div>)}</div>{impact?.needsStudyPlanReview && <div className="ui-feedback" data-tone="info"><span className="ui-feedback-icon"><Icon name="target" size={13} /></span><div className="ui-feedback-content"><strong>Studieplan bÃ¸r gennemgÃ¥s efter opdateringen.</strong><br />{impact.studyPlanEventCount} af dine planaktiviteter er knyttet til de berÃ¸rte forelÃ¦sninger. MedFLUEN Ã¦ndrer ikke dine private planvalg automatisk.</div></div>}</> : <div className="ui-feedback" data-tone="success"><span className="ui-feedback-icon"><Icon name="check" size={13} /></span><div className="ui-feedback-content">Det officielle SDU-skema matcher den globale kalender. Der er intet at opdatere.</div></div>}<footer><SecondaryButton onClick={onClose}>{hasChanges ? "Annuller" : "Luk"}</SecondaryButton>{hasChanges && <PrimaryButton disabled={busy} onClick={onApply}>{busy ? "Opdatererâ€¦" : "Opdater globalt"}</PrimaryButton>}</footer></div></div>;
 }
 
 function CalendarTutorialOverlay({ c, onClose, onCreateTestData }) {
   const steps = [
-    ["24-timers tidslinje", "Dag og uge indeholder hele døgnet. Scroll inde i kalenderen fra 00:00 til 23:59; headeren bliver stående."],
-    ["Kalenderlag", "Slå SDU-skema, studieplan, egne events og Flashkort til eller fra uafhængigt."],
-    ["Tæthed og søgning", "Skift mellem kompakt, standard og rummelig visning. Søg efter titel, lokale eller forelæsnings-ID."],
-    ["Opret og flyt", "Klik et tomt tidspunkt for at oprette. Træk events mellem tidspunkter og dage. Kalenderen autoscroller ved kanten."],
-    ["Ændr varighed", "Træk det lille håndtag nederst på et event for at forkorte eller forlænge det i intervaller på 15 minutter."],
-    ["Hurtig visning", "Klik et event for et kompakt popover med tid, lokale, kilde og handlinger. Højreklik giver flere genveje."],
-    ["Import med preview", "iCal og SDU importeres aldrig direkte. Kontrollér nye, ændrede og fjernede aktiviteter før du godkender."],
-    ["Sync, gentagelser og påmindelser", "Metadata og sletninger synkroniseres. Gentagelser materialiseres som serier, og browserpåmindelser vises, når du har givet tilladelse."],
+    ["24-timers tidslinje", "Dag og uge indeholder hele dÃ¸gnet. Scroll inde i kalenderen fra 00:00 til 23:59; headeren bliver stÃ¥ende."],
+    ["Kalenderlag", "SlÃ¥ SDU-skema, studieplan, egne events og Flashkort til eller fra uafhÃ¦ngigt."],
+    ["TÃ¦thed og sÃ¸gning", "Skift mellem kompakt, standard og rummelig visning. SÃ¸g efter titel, lokale eller forelÃ¦snings-ID."],
+    ["Opret og flyt", "Klik et tomt tidspunkt for at oprette. TrÃ¦k events mellem tidspunkter og dage. Kalenderen autoscroller ved kanten."],
+    ["Ã†ndr varighed", "TrÃ¦k det lille hÃ¥ndtag nederst pÃ¥ et event for at forkorte eller forlÃ¦nge det i intervaller pÃ¥ 15 minutter."],
+    ["Hurtig visning", "Klik et event for et kompakt popover med tid, lokale, kilde og handlinger. HÃ¸jreklik giver flere genveje."],
+    ["Import med preview", "iCal og SDU importeres aldrig direkte. KontrollÃ©r nye, Ã¦ndrede og fjernede aktiviteter fÃ¸r du godkender."],
+    ["Sync, gentagelser og pÃ¥mindelser", "Metadata og sletninger synkroniseres. Gentagelser materialiseres som serier, og browserpÃ¥mindelser vises, nÃ¥r du har givet tilladelse."],
   ];
   const [index, setIndex] = useState(0);
-  return <div className="calendar-tutorial-overlay"><div className="calendar-tutorial-card"><header><span>{index + 1}/{steps.length}</span><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={15} /></IconButton></header><div className="calendar-tutorial-visual"><Icon name={index < 2 ? "calendar" : index < 5 ? "clock" : index === 6 ? "upload" : "check"} size={28} /></div><h2>{steps[index][0]}</h2><p>{steps[index][1]}</p><div className="calendar-tutorial-dots">{steps.map((_, stepIndex) => <i key={stepIndex} data-active={stepIndex === index ? "true" : "false"} />)}</div><footer><SecondaryButton disabled={index === 0} onClick={() => setIndex((value) => Math.max(0, value - 1))}>Tilbage</SecondaryButton>{index === steps.length - 1 ? <PrimaryButton onClick={() => { onCreateTestData?.(); onClose(); }}>Opret testdata</PrimaryButton> : <PrimaryButton onClick={() => setIndex((value) => value + 1)}>Næste</PrimaryButton>}</footer></div></div>;
+  return <div className="calendar-tutorial-overlay"><div className="calendar-tutorial-card"><header><span>{index + 1}/{steps.length}</span><IconButton c={c} title="Luk" onClick={onClose}><Icon name="close" size={15} /></IconButton></header><div className="calendar-tutorial-visual"><Icon name={index < 2 ? "calendar" : index < 5 ? "clock" : index === 6 ? "upload" : "check"} size={28} /></div><h2>{steps[index][0]}</h2><p>{steps[index][1]}</p><div className="calendar-tutorial-dots">{steps.map((_, stepIndex) => <i key={stepIndex} data-active={stepIndex === index ? "true" : "false"} />)}</div><footer><SecondaryButton disabled={index === 0} onClick={() => setIndex((value) => Math.max(0, value - 1))}>Tilbage</SecondaryButton>{index === steps.length - 1 ? <PrimaryButton onClick={() => { onCreateTestData?.(); onClose(); }}>Opret testdata</PrimaryButton> : <PrimaryButton onClick={() => setIndex((value) => value + 1)}>NÃ¦ste</PrimaryButton>}</footer></div></div>;
 }
 
 function CalendarReminderManager({ events }) {
@@ -18146,7 +18206,7 @@ function CalendarReminderManager({ events }) {
           notifiedRef.current.add(key);
           setActiveReminder(event);
           if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-            new Notification(event.title, { body: `${event.time}${event.location ? ` · ${event.location}` : ""}`, tag: key });
+            new Notification(event.title, { body: `${event.time}${event.location ? ` Â· ${event.location}` : ""}`, tag: key });
           }
         }
       });
@@ -18156,10 +18216,10 @@ function CalendarReminderManager({ events }) {
     return () => window.clearInterval(timer);
   }, [events]);
   if (!activeReminder) return null;
-  return <div className="calendar-reminder-toast" role="alert"><span><Icon name="clock" size={15} /></span><div><strong>{activeReminder.title}</strong><small>{activeReminder.time}{activeReminder.location ? ` · ${activeReminder.location}` : ""}</small></div><button type="button" onClick={() => setActiveReminder(null)} aria-label="Luk påmindelse">×</button></div>;
+  return <div className="calendar-reminder-toast" role="alert"><span><Icon name="clock" size={15} /></span><div><strong>{activeReminder.title}</strong><small>{activeReminder.time}{activeReminder.location ? ` Â· ${activeReminder.location}` : ""}</small></div><button type="button" onClick={() => setActiveReminder(null)} aria-label="Luk pÃ¥mindelse">Ã—</button></div>;
 }
 
-function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, userId = null, isAdmin = false }) {
+function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, onOpenStudyPlan = null, userId = null, isAdmin = false }) {
   const [events, setEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [eventMeta, setEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
@@ -18170,6 +18230,8 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   const [search, setSearch] = useState("");
   const [undoState, setUndoState] = useState(null);
   const [showSduImport, setShowSduImport] = useState(false);
+  const [sduRefreshPreview, setSduRefreshPreview] = useState(null);
+  const [sduRefreshBusy, setSduRefreshBusy] = useState(false);
   const [icalPreview, setIcalPreview] = useState(null);
   const [showImportManager, setShowImportManager] = useState(false);
   const [calendarImportBusy, setCalendarImportBusy] = useState(false);
@@ -18178,6 +18240,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   const [syncState, setSyncState] = useState({ status: typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "idle", detail: "" });
   const privateMergedEvents = mergeCalendarEventMeta(events, eventMeta);
   const globalCalendarData = useGlobalCalendarData(module, userId, globalCalendarRefreshToken);
+  const currentGlobalSduImport = (globalCalendarData.imports || []).find((item) => item.source_type === "sdu" && (!item.module_name || item.module_name === module)) || null;
   const mergedEvents = calendarMergePrivateAndGlobal(privateMergedEvents, globalCalendarData.events);
   const privateImportGroups = calendarBuildPrivateImportGroups(privateMergedEvents, module);
   const visibleEvents = calendarFilterEvents(mergedEvents, calendarPreferences, module, search);
@@ -18217,7 +18280,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   useEffect(() => {
     function handleSync(event) { setSyncState(event.detail || { status: "idle", detail: "" }); }
     function handleOnline() { setSyncState({ status: "idle", detail: "Online" }); }
-    function handleOffline() { setSyncState({ status: "offline", detail: "Offline · ændringer gemmes lokalt" }); }
+    function handleOffline() { setSyncState({ status: "offline", detail: "Offline Â· Ã¦ndringer gemmes lokalt" }); }
     window.addEventListener("medlearn-calendar-sync", handleSync);
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
@@ -18301,7 +18364,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       calendarEmitSync("error", linkedResult.error?.message || "Studieplansaktiviteten kunne ikke gemmes");
       return;
     }
-    snapshot("Ændring gemt");
+    snapshot("Ã†ndring gemt");
     const isSingleOccurrence = Boolean(clean.recurrenceParentId);
     const materialized = isSingleOccurrence ? [clean] : calendarMaterializeRecurrence(clean);
     const parentId = clean.id;
@@ -18331,7 +18394,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       const queuedEvent = { ...currentEvent, date: queuedDate, time: "", endTime: "", needsScheduling: true, planningQueue: true, status: "unscheduled" };
       const linkedResult = await studyPlanReturnLinkedToPlanningQueue(queuedEvent);
       if (!linkedResult.ok) { calendarEmitSync("error", linkedResult.error?.message || "Placeringen kunne ikke fjernes"); return; }
-      snapshot("Aktivitet returneret til planlægningskøen");
+      snapshot("Aktivitet returneret til planlÃ¦gningskÃ¸en");
       setEvents((previous) => previous.map((item) => item.id === id ? splitRecord(queuedEvent).base : item));
       setEventMeta((previous) => ({ ...previous, [id]: { ...(previous[id] || {}), ...splitRecord(queuedEvent).metadata } }));
       setEditingEvent(null); setQuickEvent(null);
@@ -18339,7 +18402,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     }
     if (calendarIsUnfinishedStudyPlanLecture(currentEvent)) {
       const queuedEvent = calendarReturnLectureToQueue(currentEvent, todayKey);
-      snapshot("Forelæsning returneret til køen");
+      snapshot("ForelÃ¦sning returneret til kÃ¸en");
       setEvents((previous) => previous.map((item) => item.id === id ? splitRecord(queuedEvent).base : item));
       setEventMeta((previous) => ({ ...previous, [id]: { ...(previous[id] || {}), ...splitRecord(queuedEvent).metadata } }));
       setEditingEvent(null);
@@ -18395,7 +18458,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     const kind = studyPlanActivityKind(event);
     const linkedResult = await studyPlanPersistLinkedCompletion(event, completing);
     if (!linkedResult.ok) { calendarEmitSync("error", linkedResult.error?.message || "Studieplansstatus kunne ikke gemmes"); return; }
-    snapshot(event.completedAt ? "Markering fjernet" : "Event markeret færdig");
+    snapshot(event.completedAt ? "Markering fjernet" : "Event markeret fÃ¦rdig");
     const completedAt = completing ? new Date().toISOString() : null;
     if (kind === STUDY_PLAN_ACTIVITY_KINDS.LECTURE && !completing) {
       const queued = calendarReturnLectureToQueue(event, todayKey);
@@ -18434,14 +18497,14 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   function duplicateEvent(event) {
     const start = timeToMinutes(event.time); const duration = calendarDurationMinutes(event); const shifted = start == null ? "" : minutesToTime(start + 15);
     const endFields = shifted ? calendarEndFields(event.date, timeToMinutes(shifted) || 0, duration) : { endDate: event.date, endTime: "" };
-    saveEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · kopi`, time: shifted, ...endFields, completedAt: null, source: "user", createdByUser: true, recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
+    saveEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} Â· kopi`, time: shifted, ...endFields, completedAt: null, source: "user", createdByUser: true, recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
   }
 
   function splitEvent(event) {
     const start = timeToMinutes(event.time); const duration = calendarDurationMinutes(event); if (start == null || duration < 60) return;
     const firstDuration = Math.round(duration / 2 / 15) * 15; const secondStart = start + firstDuration;
     saveEvent({ ...event, endTime: minutesToTime(secondStart), estimatedHours: firstDuration / 60 });
-    window.setTimeout(() => saveEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · del 2`, time: minutesToTime(secondStart), endTime: minutesToTime(start + duration), estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null, recurrence: "none" }), 0);
+    window.setTimeout(() => saveEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} Â· del 2`, time: minutesToTime(secondStart), endTime: minutesToTime(start + duration), estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null, recurrence: "none" }), 0);
   }
 
   function moveEventTo(event, targetDate, clearTime = false) { const shifted = calendarShiftEventDate(event, targetDate); moveEvent({ ...shifted, time: clearTime ? "" : event.time, endTime: clearTime ? "" : event.endTime, estimatedHours: clearTime ? null : event.estimatedHours }); }
@@ -18507,14 +18570,14 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       try {
         const importFeedId = `file:${calendarNormalizeMatchText(file.name) || "calendar"}`;
         const parsed = parseICalToEvents(String(reader.result || ""), { moduleName: module, lectures: moduleLectures, importFeedId });
-        if (!parsed.length) throw new Error(t.calendarICalEmpty || "Ingen hændelser fundet i filen.");
+        if (!parsed.length) throw new Error(t.calendarICalEmpty || "Ingen hÃ¦ndelser fundet i filen.");
         const active = parsed.filter((event) => !event.cancelled && !event.allDay);
         const cancelledIds = new Set(parsed.filter((event) => event.cancelled).map((event) => event.sourceId || event.id));
         const diff = calendarImportDiff(active, mergedEvents);
         const cancelledExisting = mergedEvents.filter((event) => cancelledIds.has(event.sourceId || event.id));
         diff.removed = [...new Map([...(diff.removed || []), ...cancelledExisting].map((event) => [event.sourceId || event.id, event])).values()];
         setIcalPreview({ diff, title: file.name, parsed: active, cancelledCount: cancelledIds.size, sourceTitle: file.name });
-      } catch (error) { setIcalPreview({ error: error.message || (t.calendarICalError || "Kunne ikke læse iCal-filen.") }); }
+      } catch (error) { setIcalPreview({ error: error.message || (t.calendarICalError || "Kunne ikke lÃ¦se iCal-filen.") }); }
     };
     reader.readAsText(file); fileEvent.target.value = "";
   }
@@ -18522,19 +18585,19 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   function removePrivateImportGroup(group) {
     if (!group?.events?.length) return;
     const ids = new Set(group.events.map((event) => event.id));
-    snapshot(`Import slettet · ${group.sourceLabel}`);
+    snapshot(`Import slettet Â· ${group.sourceLabel}`);
     setEvents((previous) => previous.filter((event) => !ids.has(event.id)));
     setEventMeta((previous) => { const next = { ...previous }; ids.forEach((id) => delete next[id]); return next; });
   }
 
   async function saveGlobalCalendarImport(selected, removed = [], sourceLabel = "import", importMeta = {}) {
-    if (!isAdmin || !userId || !module || !selected.length) throw new Error("Kun administratorer kan oprette globale kalenderimports.");
+    if (!isAdmin || !userId || !module || (!selected.length && !removed.length)) throw new Error("Kun administratorer kan oprette globale kalenderimports.");
     const sourceType = sourceLabel === "sdu" ? "sdu" : "ical";
     const first = selected[0] || removed[0] || {};
     const feedKey = sourceType === "sdu"
       ? `sdu:${module}:${first.term || importMeta.term || "current"}`
       : (first.importFeedId || `file:${calendarNormalizeMatchText(importMeta.sourceTitle || first.importSourceLabel || "calendar") || "calendar"}`);
-    const sourceTitle = importMeta.sourceTitle || first.importSourceLabel || (sourceType === "sdu" ? `${module} · ${first.term || importMeta.term || "SDU"}` : feedKey.replace(/^file:/, ""));
+    const sourceTitle = importMeta.sourceTitle || first.importSourceLabel || (sourceType === "sdu" ? `${module} Â· ${first.term || importMeta.term || "SDU"}` : feedKey.replace(/^file:/, ""));
     const { data: importRow, error: importError } = await supabase
       .from("global_calendar_imports")
       .upsert({ module_name: module, source_type: sourceType, source_label: sourceTitle, feed_key: feedKey, term: first.term || importMeta.term || null, uva_code: first.uvaCode || importMeta.uvaCode || null, created_by: userId, updated_at: new Date().toISOString() }, { onConflict: "module_name,source_type,feed_key" })
@@ -18560,8 +18623,10 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       delete data.globalImportId;
       return { import_id: importRow.id, event_id: event.id, source_id: event.sourceId || event.id, event_data: data, updated_at: new Date().toISOString() };
     });
-    const { error: eventError } = await supabase.from("global_calendar_events").upsert(rows, { onConflict: "import_id,event_id" });
-    if (eventError) throw eventError;
+    if (rows.length) {
+      const { error: eventError } = await supabase.from("global_calendar_events").upsert(rows, { onConflict: "import_id,event_id" });
+      if (eventError) throw eventError;
+    }
 
     // Remove the admin's equivalent private copies after promotion/import so the canonical row wins cleanly.
     const promotedKeys = new Set(selected.map(calendarImportedEventIdentity).filter(Boolean));
@@ -18574,7 +18639,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   }
 
   async function deleteGlobalCalendarImport(importRow) {
-    if (!isAdmin || !importRow?.id || !window.confirm(`Slet den globale kalenderimport “${importRow.source_label}” for alle brugere?`)) return;
+    if (!isAdmin || !importRow?.id || !window.confirm(`Slet den globale kalenderimport â€œ${importRow.source_label}â€ for alle brugere?`)) return;
     setCalendarImportBusy(true);
     try {
       const { error } = await supabase.from("global_calendar_imports").delete().eq("id", importRow.id);
@@ -18591,7 +18656,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     try {
       await saveGlobalCalendarImport(group.events, [], group.sourceType, { term: group.term, uvaCode: group.uvaCode, sourceTitle: group.sourceLabel });
     } catch (error) {
-      window.alert(error?.message || "Kalenderimporten kunne ikke gøres global.");
+      window.alert(error?.message || "Kalenderimporten kunne ikke gÃ¸res global.");
     } finally { setCalendarImportBusy(false); }
   }
 
@@ -18628,6 +18693,64 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     setIcalPreview(null); setShowSduImport(false);
   }
 
+  async function refreshSduSchedule() {
+    if (!isAdmin) return;
+    if (!currentGlobalSduImport?.term) {
+      setShowSduImport(true);
+      return;
+    }
+    setSduRefreshBusy(true);
+    setSduRefreshPreview(null);
+    try {
+      const term = currentGlobalSduImport.term;
+      const response = await fetch(`/api/sdu-timetable?module=${encodeURIComponent(module)}&term=${encodeURIComponent(term)}`);
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.ok) throw new Error(payload.message || "SDU-skemaet kunne ikke hentes.");
+      const currentImportEvents = (globalCalendarData.events || []).filter((event) => event.globalImportId === currentGlobalSduImport.id);
+      const normalizedPayload = calendarNormalizeSduPayload(payload, module, term, currentImportEvents);
+      const impact = calendarSduRefreshImpact(normalizedPayload.diff, privateMergedEvents, module);
+      setSduRefreshPreview({ ...normalizedPayload, impact, importRow: currentGlobalSduImport, applied: false, publishWarning: "", error: "" });
+    } catch (error) {
+      setSduRefreshPreview({ term: currentGlobalSduImport?.term || "", diff: null, impact: null, applied: false, publishWarning: "", error: error?.message || String(error) });
+    } finally {
+      setSduRefreshBusy(false);
+    }
+  }
+
+  async function applySduRefresh() {
+    if (!isAdmin || !sduRefreshPreview || sduRefreshPreview.error || sduRefreshPreview.applied) return;
+    setSduRefreshBusy(true);
+    try {
+      const term = sduRefreshPreview.term || currentGlobalSduImport?.term || "";
+      const diff = sduRefreshPreview.diff || { rows: [], removed: [] };
+      await saveGlobalCalendarImport(sduRefreshPreview.normalized || [], diff.removed || [], "sdu", { term, uvaCode: sduRefreshPreview.uvaCode || "", sourceTitle: `${module} Â· ${term}` });
+      const newCount = (diff.rows || []).filter((row) => row.status === "new").length;
+      const changedCount = (diff.rows || []).filter((row) => row.status === "changed").length;
+      let publishWarning = "";
+      const { error: publishError } = await supabase.rpc("publish_global_content", {
+        p_summary: {
+          type: "sdu-calendar-refresh",
+          module,
+          term,
+          new_events: newCount,
+          changed_events: changedCount,
+          removed_events: (diff.removed || []).length,
+          affected_lectures: sduRefreshPreview.impact?.changedLectureIds || [],
+        },
+      });
+      if (publishError) {
+        console.warn("SDU-skemaet blev gemt, men global content-version kunne ikke hÃ¦ves:", publishError);
+        publishWarning = "Skemaet er gemt globalt, men automatisk refresh hos allerede Ã¥bne klienter kunne ikke annonceres. De fÃ¥r stadig den nye kalender nÃ¦ste gang kalenderen hentes.";
+      }
+      setGlobalCalendarRefreshToken((value) => value + 1);
+      setSduRefreshPreview((current) => current ? { ...current, applied: true, publishWarning } : current);
+    } catch (error) {
+      setSduRefreshPreview((current) => ({ ...(current || {}), error: error?.message || "SDU-skemaet kunne ikke opdateres." }));
+    } finally {
+      setSduRefreshBusy(false);
+    }
+  }
+
   function createCalendarTestData() {
     snapshot("Kalendertest oprettet");
     const baseDate = selectedDate || todayKey;
@@ -18635,12 +18758,12 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     const nextDate = dateKey(nextDateObject.getFullYear(), nextDateObject.getMonth(), nextDateObject.getDate());
     const prefix = `calendar-test-${Date.now()}`;
     const testEvents = [
-      { id: `${prefix}-early`, title: "Test · Tidlig morgen", date: baseDate, endDate: baseDate, time: "06:30", endTime: "07:15", type: "study", source: "calendar-test", testEvent: true, createdByUser: true, description: "Kontrollér at du kan scrolle til før kl. 08:00." },
-      { id: `${prefix}-overlap-a`, title: "Test · Overlap A", date: baseDate, endDate: baseDate, time: "10:00", endTime: "11:30", type: "study", source: "calendar-test", testEvent: true, createdByUser: true },
-      { id: `${prefix}-overlap-b`, title: "Test · Overlap B", date: baseDate, endDate: baseDate, time: "10:30", endTime: "11:15", type: "review", source: "calendar-test", testEvent: true, createdByUser: true },
-      { id: `${prefix}-unscheduled`, title: "Test · Ikke placeret", date: baseDate, endDate: baseDate, time: "", endTime: "", type: "study", source: "calendar-test", testEvent: true, createdByUser: true, needsScheduling: true },
-      { id: `${prefix}-midnight`, title: "Test · Over midnat", date: baseDate, endDate: nextDate, time: "23:30", endTime: "01:00", type: "other", source: "calendar-test", testEvent: true, createdByUser: true, reminderMinutes: 10 },
-      { id: `${prefix}-series`, title: "Test · Ugentlig serie", date: baseDate, endDate: baseDate, time: "14:00", endTime: "14:45", type: "review", source: "calendar-test", testEvent: true, createdByUser: true, recurrence: "weekly", recurrenceUntil: dateKey(addDays(new Date(`${baseDate}T12:00:00`), 21).getFullYear(), addDays(new Date(`${baseDate}T12:00:00`), 21).getMonth(), addDays(new Date(`${baseDate}T12:00:00`), 21).getDate()) },
+      { id: `${prefix}-early`, title: "Test Â· Tidlig morgen", date: baseDate, endDate: baseDate, time: "06:30", endTime: "07:15", type: "study", source: "calendar-test", testEvent: true, createdByUser: true, description: "KontrollÃ©r at du kan scrolle til fÃ¸r kl. 08:00." },
+      { id: `${prefix}-overlap-a`, title: "Test Â· Overlap A", date: baseDate, endDate: baseDate, time: "10:00", endTime: "11:30", type: "study", source: "calendar-test", testEvent: true, createdByUser: true },
+      { id: `${prefix}-overlap-b`, title: "Test Â· Overlap B", date: baseDate, endDate: baseDate, time: "10:30", endTime: "11:15", type: "review", source: "calendar-test", testEvent: true, createdByUser: true },
+      { id: `${prefix}-unscheduled`, title: "Test Â· Ikke placeret", date: baseDate, endDate: baseDate, time: "", endTime: "", type: "study", source: "calendar-test", testEvent: true, createdByUser: true, needsScheduling: true },
+      { id: `${prefix}-midnight`, title: "Test Â· Over midnat", date: baseDate, endDate: nextDate, time: "23:30", endTime: "01:00", type: "other", source: "calendar-test", testEvent: true, createdByUser: true, reminderMinutes: 10 },
+      { id: `${prefix}-series`, title: "Test Â· Ugentlig serie", date: baseDate, endDate: baseDate, time: "14:00", endTime: "14:45", type: "review", source: "calendar-test", testEvent: true, createdByUser: true, recurrence: "weekly", recurrenceUntil: dateKey(addDays(new Date(`${baseDate}T12:00:00`), 21).getFullYear(), addDays(new Date(`${baseDate}T12:00:00`), 21).getMonth(), addDays(new Date(`${baseDate}T12:00:00`), 21).getDate()) },
     ].flatMap((event) => event.recurrence ? calendarMaterializeRecurrence(event) : [event]);
     setEvents((previous) => [...previous, ...testEvents.map((event) => splitRecord(event).base)]);
     setEventMeta((previous) => { const next = { ...previous }; testEvents.forEach((event) => { next[event.id] = { ...splitRecord(event).metadata, testEvent: true }; }); return next; });
@@ -18656,7 +18779,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   function currentLabel() {
     if (view === "month") return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(monthDate);
     if (view === "day") return new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(dayDate);
-    return `${weekStart.getDate()}/${weekStart.getMonth() + 1} – ${addDays(weekStart, 6).getDate()}/${addDays(weekStart, 6).getMonth() + 1}`;
+    return `${weekStart.getDate()}/${weekStart.getMonth() + 1} â€“ ${addDays(weekStart, 6).getDate()}/${addDays(weekStart, 6).getMonth() + 1}`;
   }
   function shift(delta) { if (view === "month") setMonthDate((previous) => new Date(previous.getFullYear(), previous.getMonth() + delta, 1)); else if (view === "day") setDayDate((previous) => addDays(previous, delta)); else setWeekStart((previous) => addDays(previous, delta * 7)); }
   function goToday() { const now = new Date(); setWeekStart(startOfWeek(now)); setMonthDate(new Date(now.getFullYear(), now.getMonth(), 1)); setDayDate(now); setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate())); }
@@ -18665,12 +18788,12 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   return (
     <div className="calendar-workspace fade-up" data-theme={theme}>
       <header className="calendar-workspace-header" data-tour="calendar-toolbar">
-        <div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module} · {visibleEvents.length} synlige</small></div><em className="calendar-sync-pill" data-status={syncState.status}>{syncState.status === "syncing" ? "Synkroniserer…" : syncState.status === "synced" ? "Synkroniseret" : syncState.status === "offline" ? "Offline" : syncState.status === "error" ? "Sync-fejl" : "Lokal + cloud"}</em></div>
+        <div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module} Â· {visibleEvents.length} synlige</small></div><em className="calendar-sync-pill" data-status={syncState.status}>{syncState.status === "syncing" ? "Synkronisererâ€¦" : syncState.status === "synced" ? "Synkroniseret" : syncState.status === "offline" ? "Offline" : syncState.status === "error" ? "Sync-fejl" : "Lokal + cloud"}</em></div>
         <div className="calendar-workspace-toolbar">
           <div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div>
-          <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><input className="calendar-date-jump" type="date" value={selectedDate} onChange={(event) => { const next = new Date(`${event.target.value}T12:00:00`); if (Number.isNaN(next.getTime())) return; setSelectedDate(event.target.value); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} aria-label="Gå til dato" /><SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
+          <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><input className="calendar-date-jump" type="date" value={selectedDate} onChange={(event) => { const next = new Date(`${event.target.value}T12:00:00`); if (Number.isNaN(next.getTime())) return; setSelectedDate(event.target.value); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} aria-label="GÃ¥ til dato" />{isAdmin && <IconButton c={c} className={sduRefreshBusy ? "calendar-sdu-refresh-button calendar-sdu-refresh-button--busy" : "calendar-sdu-refresh-button"} title={currentGlobalSduImport ? "Hent nyeste SDU-skema" : "ImportÃ©r SDU-skema"} disabled={sduRefreshBusy || calendarImportBusy || globalCalendarData.status === "loading"} onClick={refreshSduSchedule}><Icon name="reset" size={15} /></IconButton>}<SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
           <input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} />
-          <details className="calendar-more-menu"><summary><Icon name="more" size={16} /></summary><div><button type="button" onClick={() => setShowSduImport(true)}><Icon name="upload" size={14} />Importer SDU-skema</button><button type="button" onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />Importer iCal</button><button type="button" onClick={() => setShowImportManager(true)}><Icon name="settings" size={14} />Administrér importerede kalendere</button><button type="button" onClick={() => calendarDownloadICal(visibleEvents)}><Icon name="share" size={14} />Eksporter synlige</button><button type="button" onClick={enableNotifications}><Icon name="volume" size={14} />Aktivér påmindelser</button><button type="button" onClick={() => setShowTutorial(true)}><Icon name="sparkle" size={14} />Vis kalendertutorial</button><button type="button" onClick={createCalendarTestData}><Icon name="plus" size={14} />Opret testdata</button>{mergedEvents.some((event) => event.testEvent || event.source === "calendar-test") && <button type="button" onClick={removeCalendarTestData}><Icon name="trash" size={14} />Fjern testdata</button>}</div></details>
+          <details className="calendar-more-menu"><summary><Icon name="more" size={16} /></summary><div><button type="button" onClick={() => setShowSduImport(true)}><Icon name="upload" size={14} />Importer SDU-skema</button><button type="button" onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />Importer iCal</button><button type="button" onClick={() => setShowImportManager(true)}><Icon name="settings" size={14} />AdministrÃ©r importerede kalendere</button><button type="button" onClick={() => calendarDownloadICal(visibleEvents)}><Icon name="share" size={14} />Eksporter synlige</button><button type="button" onClick={enableNotifications}><Icon name="volume" size={14} />AktivÃ©r pÃ¥mindelser</button><button type="button" onClick={() => setShowTutorial(true)}><Icon name="sparkle" size={14} />Vis kalendertutorial</button><button type="button" onClick={createCalendarTestData}><Icon name="plus" size={14} />Opret testdata</button>{mergedEvents.some((event) => event.testEvent || event.source === "calendar-test") && <button type="button" onClick={removeCalendarTestData}><Icon name="trash" size={14} />Fjern testdata</button>}</div></details>
           <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
         </div>
       </header>
@@ -18681,20 +18804,21 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
         </main>
         <aside className="calendar-workspace-sidebar">
           <CalendarMiniMonth selectedDate={selectedDate} events={visibleEvents} locale={locale} onSelect={(key) => { const next = new Date(`${key}T12:00:00`); setSelectedDate(key); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} />
-          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setQuickEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); if (!calendarEventIsCanonical(event)) toggleEventComplete(event); }}><Icon name={calendarEventIsCanonical(event) ? "globe" : event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || (event.allDay ? "Hele dagen" : "Ikke placeret")}{event.location ? ` · ${event.location}` : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
-          <section className="calendar-side-section"><button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>{showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: `${lecture.id} · ${lecture.title}`, date: selectedDate, endDate: selectedDate, time: "", endTime: "", type: "study", estimatedHours: null, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], source: "user", createdByUser: true, needsScheduling: true, recurrence: "none" })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}</section>
-          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setQuickEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); if (!calendarEventIsCanonical(event)) toggleEventComplete(event); }}><Icon name={calendarEventIsCanonical(event) ? "globe" : "check"} size={12} /></span><span><strong>{event.title}</strong><small>{calendarFormatDateTime(event, locale)}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section>
+          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setQuickEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); if (!calendarEventIsCanonical(event)) toggleEventComplete(event); }}><Icon name={calendarEventIsCanonical(event) ? "globe" : event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || (event.allDay ? "Hele dagen" : "Ikke placeret")}{event.location ? ` Â· ${event.location}` : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
+          <section className="calendar-side-section"><button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>{showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: `${lecture.id} Â· ${lecture.title}`, date: selectedDate, endDate: selectedDate, time: "", endTime: "", type: "study", estimatedHours: null, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], source: "user", createdByUser: true, needsScheduling: true, recurrence: "none" })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}</section>
+          <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} Ã¥bne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setQuickEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); if (!calendarEventIsCanonical(event)) toggleEventComplete(event); }}><Icon name={calendarEventIsCanonical(event) ? "globe" : "check"} size={12} /></span><span><strong>{event.title}</strong><small>{calendarFormatDateTime(event, locale)}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section>
         </aside>
       </div>
       <CalendarContextMenu c={c} menu={contextMenu} items={contextItems()} onClose={() => setContextMenu(null)} />
       {quickEvent && <CalendarEventPopover c={c} event={quickEvent} locale={locale} onClose={() => setQuickEvent(null)} onEdit={() => { setEditingEvent(quickEvent); setQuickEvent(null); }} onComplete={() => { toggleEventComplete(quickEvent); setQuickEvent(null); }} onOpenLecture={() => { openLecture(quickEvent); setQuickEvent(null); }} />}
       {editingEvent && <CalendarEventEditor c={c} t={t} language={language} event={editingEvent} moduleName={module} lectures={moduleLectures} allEvents={mergedEvents} exists={events.some((event) => event.id === editingEvent.id)} onChange={setEditingEvent} onSave={() => saveEvent(editingEvent)} onDelete={() => deleteEvent(editingEvent.id)} onClose={() => setEditingEvent(null)} />}
+      {sduRefreshPreview && <SduRefreshPreview c={c} moduleName={module} term={sduRefreshPreview.term || currentGlobalSduImport?.term || ""} diff={sduRefreshPreview.diff} impact={sduRefreshPreview.impact} busy={sduRefreshBusy} applied={Boolean(sduRefreshPreview.applied)} publishWarning={sduRefreshPreview.publishWarning || ""} error={sduRefreshPreview.error || ""} onApply={applySduRefresh} onClose={() => setSduRefreshPreview(null)} onOpenStudyPlan={onOpenStudyPlan ? () => { setSduRefreshPreview(null); onOpenStudyPlan(); } : null} />}
       {showSduImport && <SduImportDialog c={c} moduleName={module} existingEvents={mergedEvents} isAdmin={isAdmin} onClose={() => setShowSduImport(false)} onImport={(selected, removed, meta, scope) => importCalendarEvents(selected, removed, "sdu", { ...(meta || {}), scope })} />}
-      {icalPreview?.diff && <CalendarImportPreview c={c} title={`iCal · ${icalPreview.title}`} subtitle={`Kontrollér datoer, tider og titler før import${icalPreview.cancelledCount ? ` · ${icalPreview.cancelledCount} aflyst` : ""}`} diff={icalPreview.diff} busy={calendarImportBusy} isAdmin={isAdmin} onClose={() => setIcalPreview(null)} onConfirm={(selected, removed, scope) => importCalendarEvents(selected, removed, "ical", { scope, sourceTitle: icalPreview.sourceTitle || icalPreview.title })} />}
-      {showImportManager && <CalendarImportManager c={c} privateGroups={privateImportGroups} globalImports={globalCalendarData.imports} globalEvents={globalCalendarData.events} isAdmin={isAdmin} busy={calendarImportBusy} onClose={() => setShowImportManager(false)} onDeletePrivate={(group) => { if (window.confirm(`Slet kalenderimporten “${group.sourceLabel}” fra din private kalender?`)) removePrivateImportGroup(group); }} onDeleteGlobal={deleteGlobalCalendarImport} onPromotePrivate={promotePrivateCalendarImport} />}
+      {icalPreview?.diff && <CalendarImportPreview c={c} title={`iCal Â· ${icalPreview.title}`} subtitle={`KontrollÃ©r datoer, tider og titler fÃ¸r import${icalPreview.cancelledCount ? ` Â· ${icalPreview.cancelledCount} aflyst` : ""}`} diff={icalPreview.diff} busy={calendarImportBusy} isAdmin={isAdmin} onClose={() => setIcalPreview(null)} onConfirm={(selected, removed, scope) => importCalendarEvents(selected, removed, "ical", { scope, sourceTitle: icalPreview.sourceTitle || icalPreview.title })} />}
+      {showImportManager && <CalendarImportManager c={c} privateGroups={privateImportGroups} globalImports={globalCalendarData.imports} globalEvents={globalCalendarData.events} isAdmin={isAdmin} busy={calendarImportBusy} onClose={() => setShowImportManager(false)} onDeletePrivate={(group) => { if (window.confirm(`Slet kalenderimporten â€œ${group.sourceLabel}â€ fra din private kalender?`)) removePrivateImportGroup(group); }} onDeleteGlobal={deleteGlobalCalendarImport} onPromotePrivate={promotePrivateCalendarImport} />}
       {icalPreview?.error && <div className="calendar-import-overlay"><div className="calendar-sdu-dialog"><div className="ui-feedback" data-tone="error"><span className="ui-feedback-icon">!</span><div className="ui-feedback-content">{icalPreview.error}</div></div><footer><PrimaryButton onClick={() => setIcalPreview(null)}>Luk</PrimaryButton></footer></div></div>}
       {showTutorial && <CalendarTutorialOverlay c={c} onClose={() => setShowTutorial(false)} onCreateTestData={createCalendarTestData} />}
-      {undoState && <div className="calendar-undo-toast"><span>{undoState.label}</span><button type="button" onClick={undo}>Fortryd</button><button type="button" onClick={() => setUndoState(null)}>×</button></div>}
+      {undoState && <div className="calendar-undo-toast"><span>{undoState.label}</span><button type="button" onClick={undo}>Fortryd</button><button type="button" onClick={() => setUndoState(null)}>Ã—</button></div>}
     </div>
   );
 }
@@ -18794,7 +18918,7 @@ function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onS
       ).map((q) => q.id)
     );
     if (!selectedIds.size) return;
-    setResetDialog({ type: "selected", ids: [...selectedIds], label: "det valgte område" });
+    setResetDialog({ type: "selected", ids: [...selectedIds], label: "det valgte omrÃ¥de" });
   }
 
   function confirmReset() {
@@ -18811,11 +18935,11 @@ function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onS
   return (
     <div data-tour="mcq-room" className="fade-up" style={{ width: "min(720px,100%)", margin: "0 auto" }}>
       {resetDialog && (
-        <div role="dialog" aria-modal="true" aria-label="Bekræft nulstilling" style={{ position: "fixed", inset: 0, zIndex: 1001, display: "grid", placeItems: "center", padding: 20, background: c.overlay }}>
+        <div role="dialog" aria-modal="true" aria-label="BekrÃ¦ft nulstilling" style={{ position: "fixed", inset: 0, zIndex: 1001, display: "grid", placeItems: "center", padding: 20, background: c.overlay }}>
           <div className="fade-up" style={{ width: "min(390px,100%)", padding: 22, borderRadius: 18, background: c.panel, border: `1px solid ${c.border}` }}>
             <div style={{ display: "grid", placeItems: "center", width: 38, height: 38, marginBottom: 13, borderRadius: 11, background: c.redSoft, color: c.red }}><Icon name="reset" size={18} /></div>
             <h2 style={{ margin: "0 0 7px", color: c.text, fontSize: 18 }}>Nulstil progress?</h2>
-            <p style={{ margin: "0 0 19px", color: c.secondary, fontSize: 13, lineHeight: 1.5 }}>Dette sletter planlægning og review-historik for {resetDialog.label}. Handlingen kan ikke fortrydes.</p>
+            <p style={{ margin: "0 0 19px", color: c.secondary, fontSize: 13, lineHeight: 1.5 }}>Dette sletter planlÃ¦gning og review-historik for {resetDialog.label}. Handlingen kan ikke fortrydes.</p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <button type="button" onClick={() => setResetDialog(null)} style={{ minHeight: 38, padding: "0 12px", borderRadius: 9, border: `1px solid ${c.border}`, background: c.panel, color: c.secondary, fontWeight: 750, cursor: "pointer" }}>Annuller</button>
               <button type="button" onClick={confirmReset} style={{ minHeight: 38, padding: "0 12px", borderRadius: 9, border: `1px solid ${c.red}`, background: c.redSoft, color: c.red, fontWeight: 800, cursor: "pointer" }}>Nulstil</button>
@@ -19012,11 +19136,11 @@ function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onS
       </div>
 
       <section style={{ marginBottom: 20, padding: 16, borderRadius: 16, background: c.panel, border: `1px solid ${c.border}` }}>
-        <div style={{ marginBottom: 10, color: c.text, fontSize: 14, fontWeight: 800 }}>Vælg sessionstype</div>
+        <div style={{ marginBottom: 10, color: c.text, fontSize: 14, fontWeight: 800 }}>VÃ¦lg sessionstype</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 8 }}>
           {[
             { key: "exam", title: "Eksamensmode", text: "Ingen feedback undervejs", icon: "clock" },
-            { key: "flashcard", title: "Flashcard mode", text: "Vurdér med Igen, Svær, God eller Nem", icon: "clipboard" },
+            { key: "flashcard", title: "Flashcard mode", text: "VurdÃ©r med Igen, SvÃ¦r, God eller Nem", icon: "clipboard" },
             { key: "recall", title: "Active recall", text: "Gengiv svaret selv, se derefter facit", icon: "brain" },
           ].map((option) => (
             <button
@@ -19116,7 +19240,7 @@ function SessionSetup({ c, t, language, user, spacedData, importedQuestions, onS
           {t.back}
         </button>
         <PrimaryButton onClick={start} disabled={!studyMode} style={{ flex: 1, opacity: studyMode ? 1 : .5 }}>
-          {studyMode ? t.start : "Vælg sessionstype"}
+          {studyMode ? t.start : "VÃ¦lg sessionstype"}
         </PrimaryButton>
       </div>
     </div>
@@ -19154,7 +19278,7 @@ function MCQ({
   // buildQuestionPool(sessionScope, spacedData, ...) using LIVE spacedData, so as soon as
   // the last due card in this session gets a day-based rating, that card's spaced-repetition
   // due date moves to a future day and buildQuestionPool filters it straight back out of
-  // "today's queue" — shrinking or emptying the pool mid-session. Without snapshotting,
+  // "today's queue" â€” shrinking or emptying the pool mid-session. Without snapshotting,
   // this broke both symptoms reported: the stats screen sometimes failed to trigger
   // (finishSession's guard checked a live pool.length that had already changed), and the
   // "review questions" button on the stats screen searched a pool that no longer contained
@@ -19431,7 +19555,7 @@ function MCQ({
 
     // NOTE (app-51): scheduling no longer happens here. The legacy SM-2
     // scheduler now runs only when the user explicitly rates the card via
-    // SM2AnswerFooter (Igen/Svær/God/Nem), after the explanation is shown.
+    // SM2AnswerFooter (Igen/SvÃ¦r/God/Nem), after the explanation is shown.
   }
 
   function flashNotice(message) {
@@ -19535,12 +19659,12 @@ if (!question && !finished) {
         title:
           sessionScope?.mode === "due"
             ? "Ingen kort klar til repetition"
-            : "Dette dæk er tomt",
+            : "Dette dÃ¦k er tomt",
         description:
           sessionScope?.mode === "due"
-            ? "Der er ingen kort, som skal repeteres lige nu. Vælg “Alle spørgsmål”, hvis du vil øve nye kort."
-            : "Der er endnu ingen spørgsmål i dette dæk. Tilføj spørgsmål, før du starter en session.",
-        button: "Tilbage til dækkene",
+            ? "Der er ingen kort, som skal repeteres lige nu. VÃ¦lg â€œAlle spÃ¸rgsmÃ¥lâ€, hvis du vil Ã¸ve nye kort."
+            : "Der er endnu ingen spÃ¸rgsmÃ¥l i dette dÃ¦k. TilfÃ¸j spÃ¸rgsmÃ¥l, fÃ¸r du starter en session.",
+        button: "Tilbage til dÃ¦kkene",
       },
 
       en: {
@@ -19550,7 +19674,7 @@ if (!question && !finished) {
             : "This deck is empty",
         description:
           sessionScope?.mode === "due"
-            ? "There are no cards ready for review right now. Select “All questions” to practise new cards."
+            ? "There are no cards ready for review right now. Select â€œAll questionsâ€ to practise new cards."
             : "There are no questions in this deck yet. Add questions before starting a session.",
         button: "Back to decks",
       },
@@ -19558,13 +19682,13 @@ if (!question && !finished) {
       ar: {
         title:
           sessionScope?.mode === "due"
-            ? "لا توجد بطاقات جاهزة للمراجعة"
-            : "هذه المجموعة فارغة",
+            ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨Ø·Ø§Ù‚Ø§Øª Ø¬Ø§Ù‡Ø²Ø© Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©"
+            : "Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© ÙØ§Ø±ØºØ©",
         description:
           sessionScope?.mode === "due"
-            ? "لا توجد بطاقات تحتاج إلى مراجعة الآن. اختر جميع الأسئلة للتدرب على بطاقات جديدة."
-            : "لا توجد أسئلة في هذه المجموعة بعد. أضف أسئلة قبل بدء الجلسة.",
-        button: "العودة إلى المجموعات",
+            ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨Ø·Ø§Ù‚Ø§Øª ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¢Ù†. Ø§Ø®ØªØ± Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ù„Ù„ØªØ¯Ø±Ø¨ Ø¹Ù„Ù‰ Ø¨Ø·Ø§Ù‚Ø§Øª Ø¬Ø¯ÙŠØ¯Ø©."
+            : "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Ø¨Ø¹Ø¯. Ø£Ø¶Ù Ø£Ø³Ø¦Ù„Ø© Ù‚Ø¨Ù„ Ø¨Ø¯Ø¡ Ø§Ù„Ø¬Ù„Ø³Ø©.",
+        button: "Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø§Øª",
       },
     };
 
@@ -19646,7 +19770,7 @@ if (!question && !finished) {
     );
   }
 
-  // Bevar den eksisterende adfærd under overgangen
+  // Bevar den eksisterende adfÃ¦rd under overgangen
   // fra det sidste kort til sessionsresultatet.
   return null;
 }
@@ -19693,7 +19817,7 @@ if (!question && !finished) {
 
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 10, padding: 16, borderRadius: 16, background: c.soft, border: `1px solid ${c.border}` }}>
           <div><div style={{ color: c.muted, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>Tid i alt</div><div style={{ marginTop: 4, color: c.text, fontSize: 16, fontWeight: 800 }}>{formatSessionTime(Math.max(1, Math.round((Date.now() - sessionStartedAt) / 1000)))}</div></div>
-          <div style={{ gridColumn: "span 1" }}><div style={{ color: c.muted, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>Sværest spørgsmål</div><div style={{ marginTop: 4, color: c.text, fontSize: 12.5, fontWeight: 700, lineHeight: 1.35 }}>{hardestQuestionText ? hardestQuestionText.slice(0, 90) + (hardestQuestionText.length > 90 ? "…" : "") : "Ingen data"}</div></div>
+          <div style={{ gridColumn: "span 1" }}><div style={{ color: c.muted, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>SvÃ¦rest spÃ¸rgsmÃ¥l</div><div style={{ marginTop: 4, color: c.text, fontSize: 12.5, fontWeight: 700, lineHeight: 1.35 }}>{hardestQuestionText ? hardestQuestionText.slice(0, 90) + (hardestQuestionText.length > 90 ? "â€¦" : "") : "Ingen data"}</div></div>
         </section>
 
         <section style={{ padding: 20, borderRadius: 20, background: c.panel, border: `1px solid ${c.border}` }}>
@@ -19740,7 +19864,7 @@ if (!question && !finished) {
             {isRecallMode ? "Active recall" : "Flashcard mode"}
           </div>
           <h1 style={{ margin: "16px 0 6px", color: c.text, fontSize: "clamp(26px,4vw,34px)", lineHeight: 1 }}>{t.sessionComplete}</h1>
-          <p style={{ maxWidth: 460, margin: 0, color: c.secondary, fontSize: 13.5, lineHeight: 1.55 }}>Du har gennemgået {sessionCardTotal} kort med aktiv genkaldelse. Her er, hvordan det gik.</p>
+          <p style={{ maxWidth: 460, margin: 0, color: c.secondary, fontSize: 13.5, lineHeight: 1.55 }}>Du har gennemgÃ¥et {sessionCardTotal} kort med aktiv genkaldelse. Her er, hvordan det gik.</p>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 9, marginTop: 22 }}>
             {SM2_RATING_ORDER.map((item) => {
@@ -19765,7 +19889,7 @@ if (!question && !finished) {
           <div><div style={{ color: c.muted, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>Tid i alt</div><div style={{ marginTop: 4, color: c.text, fontSize: 16, fontWeight: 800 }}>{formatSessionTime(Math.max(1, Math.round((Date.now() - sessionStartedAt) / 1000)))}</div></div>
           <div><div style={{ color: c.muted, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>Tid pr. kort</div><div style={{ marginTop: 4, color: c.text, fontSize: 16, fontWeight: 800 }}>{formatSessionTime(averageReviewSeconds)}</div></div>
           <div><div style={{ color: c.muted, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>Andel Igen</div><div style={{ marginTop: 4, color: c.text, fontSize: 16, fontWeight: 800 }}>{againShare}%</div></div>
-          <div><div style={{ color: c.muted, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>Sværest kort</div><div style={{ marginTop: 4, color: c.text, fontSize: 12.5, fontWeight: 700, lineHeight: 1.35 }}>{hardestQuestionText ? hardestQuestionText.slice(0, 90) + (hardestQuestionText.length > 90 ? "…" : "") : "Ingen vurderinger endnu"}</div></div>
+          <div><div style={{ color: c.muted, fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>SvÃ¦rest kort</div><div style={{ marginTop: 4, color: c.text, fontSize: 12.5, fontWeight: 700, lineHeight: 1.35 }}>{hardestQuestionText ? hardestQuestionText.slice(0, 90) + (hardestQuestionText.length > 90 ? "â€¦" : "") : "Ingen vurderinger endnu"}</div></div>
         </section>
 
         {flashcardCategoryStats.length > 0 && (
@@ -19773,7 +19897,7 @@ if (!question && !finished) {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 15 }}>
               <div>
                 <h2 style={{ margin: 0, color: c.text, fontSize: 15.5 }}>Emnekvalitet</h2>
-                <p style={{ margin: "4px 0 0", color: c.secondary, fontSize: 11.5 }}>Baseret på dine Igen/Svær/God/Nem-vurderinger pr. emne</p>
+                <p style={{ margin: "4px 0 0", color: c.secondary, fontSize: 11.5 }}>Baseret pÃ¥ dine Igen/SvÃ¦r/God/Nem-vurderinger pr. emne</p>
               </div>
               {weakestFlashcardCategory && (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 9px", borderRadius: 9, background: c.redSoft, color: c.red, fontSize: 11.5, fontWeight: 750 }}>
@@ -19789,7 +19913,7 @@ if (!question && !finished) {
                   <div key={stat.name}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6, color: c.text, fontSize: 12.5, fontWeight: 650 }}>
                       <span>{stat.name}</span>
-                      <span style={{ color: c.secondary }}>{stat.total} kort{stat.againCount ? ` · ${stat.againCount} Igen` : ""}</span>
+                      <span style={{ color: c.secondary }}>{stat.total} kort{stat.againCount ? ` Â· ${stat.againCount} Igen` : ""}</span>
                     </div>
                     <div style={{ height: 6, overflow: "hidden", borderRadius: 99, background: c.soft }}>
                       <div style={{ width: `${stat.qualityPercent}%`, height: "100%", borderRadius: 99, background: color }} />
@@ -19874,7 +19998,7 @@ async function submitFlag() {
     const isDuplicate =
       errorMessage
         .toLowerCase()
-        .includes("allerede et åbent flag") ||
+        .includes("allerede et Ã¥bent flag") ||
       errorMessage
         .toLowerCase()
         .includes("already");
@@ -20263,7 +20387,7 @@ async function submitFlag() {
           }}
         >
           <div style={{ color: c.secondary, fontSize: 13, lineHeight: 1.5 }}>
-            Gengiv svaret i dit hoved eller på papir, og tryk derefter for at se facit.
+            Gengiv svaret i dit hoved eller pÃ¥ papir, og tryk derefter for at se facit.
           </div>
           <PrimaryButton
             onClick={() => {
@@ -20513,7 +20637,7 @@ async function submitFlag() {
     ? language === "en"
       ? "Sending..."
       : language === "ar"
-        ? "جارٍ الإرسال..."
+        ? "Ø¬Ø§Ø±Ù Ø§Ù„Ø¥Ø±Ø³Ø§Ù„..."
         : "Sender..."
     : t.flagQuestionSubmit}
 </PrimaryButton>
@@ -20597,9 +20721,9 @@ function Insights({ c, t, language, user }) {
   const [depthGroupFilter, setDepthGroupFilter] = useState("all");
   const sessions = [...history].sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
 
-  // Denne visning bruger en fast, hvid baggrund med mørk tekst uafhængigt af app-temaet
-  // (lys/mørk), så indsigterne altid er tydelige og læsbare. Accentfarver (grøn/blå/rød)
-  // følger stadig samme betydning som resten af appen.
+  // Denne visning bruger en fast, hvid baggrund med mÃ¸rk tekst uafhÃ¦ngigt af app-temaet
+  // (lys/mÃ¸rk), sÃ¥ indsigterne altid er tydelige og lÃ¦sbare. Accentfarver (grÃ¸n/blÃ¥/rÃ¸d)
+  // fÃ¸lger stadig samme betydning som resten af appen.
   const ink = {
     page: "#ffffff",
     text: "#0f172a",
@@ -20617,7 +20741,7 @@ function Insights({ c, t, language, user }) {
   const x = ({
     da: {
       title: "Indsigter",
-      subtitle: "Din læring, fortalt",
+      subtitle: "Din lÃ¦ring, fortalt",
       score: "Samlet korrekt",
       accuracy: "Korrektprocent",
       answered: "Besvarede",
@@ -20639,34 +20763,34 @@ function Insights({ c, t, language, user }) {
       lowest: "Laveste emnescore",
       all: "Alle data",
       noData: "Ingen sessioner endnu",
-      noDataText: "Gennemfør en MCQ-session for at se din analyse her.",
+      noDataText: "GennemfÃ¸r en MCQ-session for at se din analyse her.",
       min: "min",
       activity: "Aktivitet",
       activityText: "Studiedage, pomodoros og gennemsnitlig score de sidste 14 dage",
-      currentStreak: "Nuværende streak",
-      longestStreak: "Længste streak",
+      currentStreak: "NuvÃ¦rende streak",
+      longestStreak: "LÃ¦ngste streak",
       totalPomodoros: "Pomodoros i alt",
       activeDays: "Aktive dage",
       allTopicsOption: "Alle emner",
       statusHeading: "Status",
-      statusStrongFor: (moduleName) => `Du har et solidt greb om ${moduleName}, og præstationen holder sig konsekvent på et højt niveau.`,
-      statusMixedFor: (moduleName) => `Din forståelse af ${moduleName} er i fremgang, men enkelte emner trækker stadig ned i det samlede billede.`,
-      statusWeakFor: (moduleName) => `${moduleName} kræver fortsat systematisk repetition — flere emner ligger under et sikkert niveau.`,
+      statusStrongFor: (moduleName) => `Du har et solidt greb om ${moduleName}, og prÃ¦stationen holder sig konsekvent pÃ¥ et hÃ¸jt niveau.`,
+      statusMixedFor: (moduleName) => `Din forstÃ¥else af ${moduleName} er i fremgang, men enkelte emner trÃ¦kker stadig ned i det samlede billede.`,
+      statusWeakFor: (moduleName) => `${moduleName} krÃ¦ver fortsat systematisk repetition â€” flere emner ligger under et sikkert niveau.`,
       statusEarlyFor: (moduleName) => `Du er tidligt i din gennemgang af ${moduleName}. Der er endnu ikke nok data til et fuldt billede.`,
-      statusNoModule: "Vælg et modul i din profil for at få en detaljeret gennemgang af din læring inden for det.",
-      statusGlobalNote: "Nedenstående afsnit dækker hele dit studieforløb, uafhængigt af modul.",
-      attentionHeading: "Opmærksomhedspunkter",
-      attentionIntroFor: (moduleName) => `De emner i ${moduleName}, der kræver mest opmærksomhed lige nu.`,
-      attentionNone: "Ingen emner i dette modul kræver særlig opmærksomhed lige nu — godt arbejde.",
-      attentionItem: (topic, percent) => `${topic} står aktuelt til ${percent} procent korrekte svar og bør prioriteres ved næste repetition.`,
+      statusNoModule: "VÃ¦lg et modul i din profil for at fÃ¥ en detaljeret gennemgang af din lÃ¦ring inden for det.",
+      statusGlobalNote: "NedenstÃ¥ende afsnit dÃ¦kker hele dit studieforlÃ¸b, uafhÃ¦ngigt af modul.",
+      attentionHeading: "OpmÃ¦rksomhedspunkter",
+      attentionIntroFor: (moduleName) => `De emner i ${moduleName}, der krÃ¦ver mest opmÃ¦rksomhed lige nu.`,
+      attentionNone: "Ingen emner i dette modul krÃ¦ver sÃ¦rlig opmÃ¦rksomhed lige nu â€” godt arbejde.",
+      attentionItem: (topic, percent) => `${topic} stÃ¥r aktuelt til ${percent} procent korrekte svar og bÃ¸r prioriteres ved nÃ¦ste repetition.`,
       depthHeading: "Emne for emne",
       allGroupsOption: "Alle underemner",
       depthNoData: "Ingen data for dette underemne endnu.",
-      depthIntroFor: (moduleName) => `Sådan udvikler hvert emne i ${moduleName} sig over dine seneste sessioner.`,
-      depthSentenceUp: (topic) => `${topic} er i fremgang og nærmer sig et solidt niveau.`,
-      depthSentenceDown: (topic) => `${topic} er gået tilbage siden dine tidligere sessioner og bør revurderes.`,
+      depthIntroFor: (moduleName) => `SÃ¥dan udvikler hvert emne i ${moduleName} sig over dine seneste sessioner.`,
+      depthSentenceUp: (topic) => `${topic} er i fremgang og nÃ¦rmer sig et solidt niveau.`,
+      depthSentenceDown: (topic) => `${topic} er gÃ¥et tilbage siden dine tidligere sessioner og bÃ¸r revurderes.`,
       depthSentenceStable: (topic) => `${topic} ligger stabilt uden markante udsving.`,
-      depthSentenceEarly: (topic) => `${topic} er endnu kun besvaret få gange — for tidligt at afgøre en tendens.`,
+      depthSentenceEarly: (topic) => `${topic} er endnu kun besvaret fÃ¥ gange â€” for tidligt at afgÃ¸re en tendens.`,
       trendHeading: "Udvikling over tid",
       recentHeading: "Dine seneste sessioner",
       activityHeading: "Aktivitet",
@@ -20709,13 +20833,13 @@ function Insights({ c, t, language, user }) {
       statusHeading: "Status",
       statusStrongFor: (moduleName) => `You have a solid grasp of ${moduleName}, and performance remains consistently strong.`,
       statusMixedFor: (moduleName) => `Your understanding of ${moduleName} is improving, but a few topics still weigh down the overall picture.`,
-      statusWeakFor: (moduleName) => `${moduleName} still needs systematic review — several topics remain below a safe level.`,
+      statusWeakFor: (moduleName) => `${moduleName} still needs systematic review â€” several topics remain below a safe level.`,
       statusEarlyFor: (moduleName) => `You are early in your review of ${moduleName}. There isn't enough data yet for a complete picture.`,
       statusNoModule: "Choose a module in your profile to get a detailed breakdown of your learning within it.",
       statusGlobalNote: "The sections below cover your entire study history, independent of module.",
       attentionHeading: "Points of attention",
       attentionIntroFor: (moduleName) => `The topics in ${moduleName} that need the most attention right now.`,
-      attentionNone: "No topics in this module need particular attention right now — good work.",
+      attentionNone: "No topics in this module need particular attention right now â€” good work.",
       attentionItem: (topic, percent) => `${topic} currently stands at ${percent} percent correct and should be prioritised in your next review.`,
       depthHeading: "Topic by topic",
       allGroupsOption: "All subtopics",
@@ -20724,7 +20848,7 @@ function Insights({ c, t, language, user }) {
       depthSentenceUp: (topic) => `${topic} is improving and approaching a solid level.`,
       depthSentenceDown: (topic) => `${topic} has declined since your earlier sessions and should be revisited.`,
       depthSentenceStable: (topic) => `${topic} remains stable without significant fluctuation.`,
-      depthSentenceEarly: (topic) => `${topic} has only been answered a few times — too early to determine a trend.`,
+      depthSentenceEarly: (topic) => `${topic} has only been answered a few times â€” too early to determine a trend.`,
       trendHeading: "Progress over time",
       recentHeading: "Your recent sessions",
       activityHeading: "Activity",
@@ -20732,62 +20856,62 @@ function Insights({ c, t, language, user }) {
       pomodoroHeatmapEmpty: "No pomodoro data yet. Start the focus timer to see your calendar overview.",
     },
     ar: {
-      title: "الإحصاءات",
-      subtitle: "مسيرتك التعليمية بصيغة سردية",
-      score: "الصحيح الإجمالي",
-      accuracy: "نسبة الصحة",
-      answered: "تمت الإجابة",
-      sessionsWord: "الجلسات",
-      trend: "التطور",
-      recent: "سجل الجلسات",
-      correct: "صحيحة",
-      time: "الوقت",
-      average: "المتوسط",
-      best: "الأفضل",
-      latest: "الأحدث",
-      details: "التفاصيل",
-      hide: "إغلاق",
-      topic: "الموضوع",
-      result: "النتيجة",
-      date: "التاريخ",
-      duration: "المدة",
-      noDuration: "غير مسجلة",
-      lowest: "أدنى نتيجة موضوع",
-      all: "كل البيانات",
-      noData: "لا توجد جلسات بعد",
-      noDataText: "أكمل جلسة أسئلة لرؤية التحليل هنا.",
-      min: "د",
-      activity: "النشاط",
-      activityText: "أيام الدراسة والبومودورو والمعدل خلال آخر 14 يومًا",
-      currentStreak: "التتابع الحالي",
-      longestStreak: "أطول تتابع",
-      totalPomodoros: "إجمالي البومودورو",
-      activeDays: "الأيام النشطة",
-      allTopicsOption: "جميع الموضوعات",
-      statusHeading: "الوضع الحالي",
-      statusStrongFor: (moduleName) => `لديك فهم قوي لمقرر ${moduleName}، وأدائك ثابت عند مستوى مرتفع.`,
-      statusMixedFor: (moduleName) => `فهمك لمقرر ${moduleName} يتحسن، لكن بعض الموضوعات لا تزال تؤثر سلبًا على الصورة العامة.`,
-      statusWeakFor: (moduleName) => `لا يزال مقرر ${moduleName} يحتاج إلى مراجعة منهجية — عدة موضوعات دون المستوى الآمن.`,
-      statusEarlyFor: (moduleName) => `أنت في بداية مراجعتك لمقرر ${moduleName}. لا توجد بيانات كافية بعد لصورة كاملة.`,
-      statusNoModule: "اختر وحدة في ملفك الشخصي للحصول على تحليل تفصيلي لمسيرتك التعليمية ضمنها.",
-      statusGlobalNote: "الأقسام أدناه تغطي مسيرتك الدراسية الكاملة، بغض النظر عن الوحدة.",
-      attentionHeading: "نقاط تحتاج إلى اهتمام",
-      attentionIntroFor: (moduleName) => `الموضوعات في ${moduleName} التي تحتاج إلى أكبر قدر من الاهتمام حاليًا.`,
-      attentionNone: "لا توجد موضوعات في هذه الوحدة تحتاج إلى اهتمام خاص حاليًا — عمل جيد.",
-      attentionItem: (topic, percent) => `يقف ${topic} حاليًا عند ${percent} بالمئة من الإجابات الصحيحة، وينبغي إعطاؤه الأولوية في مراجعتك القادمة.`,
-      depthHeading: "موضوع بموضوع",
-      allGroupsOption: "جميع المواضيع الفرعية",
-      depthNoData: "لا توجد بيانات لهذا الموضوع الفرعي بعد.",
-      depthIntroFor: (moduleName) => `كيف تطور كل موضوع في ${moduleName} عبر جلساتك الأخيرة.`,
-      depthSentenceUp: (topic) => `${topic} في تحسن ويقترب من مستوى جيد.`,
-      depthSentenceDown: (topic) => `${topic} تراجع منذ جلساتك السابقة وينبغي إعادة النظر فيه.`,
-      depthSentenceStable: (topic) => `${topic} مستقر دون تقلبات ملحوظة.`,
-      depthSentenceEarly: (topic) => `لم تتم الإجابة على ${topic} إلا قليلًا حتى الآن — من المبكر تحديد اتجاه.`,
-      trendHeading: "التطور مع الوقت",
-      recentHeading: "جلساتك الأخيرة",
-      activityHeading: "النشاط",
-      pomodoroHeatmapTitle: "دقائق التركيز يوميًا",
-      pomodoroHeatmapEmpty: "لا توجد بيانات بومودورو حتى الآن. ابدأ مؤقت التركيز لعرض التقويم.",
+      title: "Ø§Ù„Ø¥Ø­ØµØ§Ø¡Ø§Øª",
+      subtitle: "Ù…Ø³ÙŠØ±ØªÙƒ Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠØ© Ø¨ØµÙŠØºØ© Ø³Ø±Ø¯ÙŠØ©",
+      score: "Ø§Ù„ØµØ­ÙŠØ­ Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ",
+      accuracy: "Ù†Ø³Ø¨Ø© Ø§Ù„ØµØ­Ø©",
+      answered: "ØªÙ…Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+      sessionsWord: "Ø§Ù„Ø¬Ù„Ø³Ø§Øª",
+      trend: "Ø§Ù„ØªØ·ÙˆØ±",
+      recent: "Ø³Ø¬Ù„ Ø§Ù„Ø¬Ù„Ø³Ø§Øª",
+      correct: "ØµØ­ÙŠØ­Ø©",
+      time: "Ø§Ù„ÙˆÙ‚Øª",
+      average: "Ø§Ù„Ù…ØªÙˆØ³Ø·",
+      best: "Ø§Ù„Ø£ÙØ¶Ù„",
+      latest: "Ø§Ù„Ø£Ø­Ø¯Ø«",
+      details: "Ø§Ù„ØªÙØ§ØµÙŠÙ„",
+      hide: "Ø¥ØºÙ„Ø§Ù‚",
+      topic: "Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹",
+      result: "Ø§Ù„Ù†ØªÙŠØ¬Ø©",
+      date: "Ø§Ù„ØªØ§Ø±ÙŠØ®",
+      duration: "Ø§Ù„Ù…Ø¯Ø©",
+      noDuration: "ØºÙŠØ± Ù…Ø³Ø¬Ù„Ø©",
+      lowest: "Ø£Ø¯Ù†Ù‰ Ù†ØªÙŠØ¬Ø© Ù…ÙˆØ¶ÙˆØ¹",
+      all: "ÙƒÙ„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª",
+      noData: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¬Ù„Ø³Ø§Øª Ø¨Ø¹Ø¯",
+      noDataText: "Ø£ÙƒÙ…Ù„ Ø¬Ù„Ø³Ø© Ø£Ø³Ø¦Ù„Ø© Ù„Ø±Ø¤ÙŠØ© Ø§Ù„ØªØ­Ù„ÙŠÙ„ Ù‡Ù†Ø§.",
+      min: "Ø¯",
+      activity: "Ø§Ù„Ù†Ø´Ø§Ø·",
+      activityText: "Ø£ÙŠØ§Ù… Ø§Ù„Ø¯Ø±Ø§Ø³Ø© ÙˆØ§Ù„Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ ÙˆØ§Ù„Ù…Ø¹Ø¯Ù„ Ø®Ù„Ø§Ù„ Ø¢Ø®Ø± 14 ÙŠÙˆÙ…Ù‹Ø§",
+      currentStreak: "Ø§Ù„ØªØªØ§Ø¨Ø¹ Ø§Ù„Ø­Ø§Ù„ÙŠ",
+      longestStreak: "Ø£Ø·ÙˆÙ„ ØªØªØ§Ø¨Ø¹",
+      totalPomodoros: "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ",
+      activeDays: "Ø§Ù„Ø£ÙŠØ§Ù… Ø§Ù„Ù†Ø´Ø·Ø©",
+      allTopicsOption: "Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹Ø§Øª",
+      statusHeading: "Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø­Ø§Ù„ÙŠ",
+      statusStrongFor: (moduleName) => `Ù„Ø¯ÙŠÙƒ ÙÙ‡Ù… Ù‚ÙˆÙŠ Ù„Ù…Ù‚Ø±Ø± ${moduleName}ØŒ ÙˆØ£Ø¯Ø§Ø¦Ùƒ Ø«Ø§Ø¨Øª Ø¹Ù†Ø¯ Ù…Ø³ØªÙˆÙ‰ Ù…Ø±ØªÙØ¹.`,
+      statusMixedFor: (moduleName) => `ÙÙ‡Ù…Ùƒ Ù„Ù…Ù‚Ø±Ø± ${moduleName} ÙŠØªØ­Ø³Ù†ØŒ Ù„ÙƒÙ† Ø¨Ø¹Ø¶ Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹Ø§Øª Ù„Ø§ ØªØ²Ø§Ù„ ØªØ¤Ø«Ø± Ø³Ù„Ø¨Ù‹Ø§ Ø¹Ù„Ù‰ Ø§Ù„ØµÙˆØ±Ø© Ø§Ù„Ø¹Ø§Ù…Ø©.`,
+      statusWeakFor: (moduleName) => `Ù„Ø§ ÙŠØ²Ø§Ù„ Ù…Ù‚Ø±Ø± ${moduleName} ÙŠØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ù…Ù†Ù‡Ø¬ÙŠØ© â€” Ø¹Ø¯Ø© Ù…ÙˆØ¶ÙˆØ¹Ø§Øª Ø¯ÙˆÙ† Ø§Ù„Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø¢Ù…Ù†.`,
+      statusEarlyFor: (moduleName) => `Ø£Ù†Øª ÙÙŠ Ø¨Ø¯Ø§ÙŠØ© Ù…Ø±Ø§Ø¬Ø¹ØªÙƒ Ù„Ù…Ù‚Ø±Ø± ${moduleName}. Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª ÙƒØ§ÙÙŠØ© Ø¨Ø¹Ø¯ Ù„ØµÙˆØ±Ø© ÙƒØ§Ù…Ù„Ø©.`,
+      statusNoModule: "Ø§Ø®ØªØ± ÙˆØ­Ø¯Ø© ÙÙŠ Ù…Ù„ÙÙƒ Ø§Ù„Ø´Ø®ØµÙŠ Ù„Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ ØªØ­Ù„ÙŠÙ„ ØªÙØµÙŠÙ„ÙŠ Ù„Ù…Ø³ÙŠØ±ØªÙƒ Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠØ© Ø¶Ù…Ù†Ù‡Ø§.",
+      statusGlobalNote: "Ø§Ù„Ø£Ù‚Ø³Ø§Ù… Ø£Ø¯Ù†Ø§Ù‡ ØªØºØ·ÙŠ Ù…Ø³ÙŠØ±ØªÙƒ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ© Ø§Ù„ÙƒØ§Ù…Ù„Ø©ØŒ Ø¨ØºØ¶ Ø§Ù„Ù†Ø¸Ø± Ø¹Ù† Ø§Ù„ÙˆØ­Ø¯Ø©.",
+      attentionHeading: "Ù†Ù‚Ø§Ø· ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ø§Ù‡ØªÙ…Ø§Ù…",
+      attentionIntroFor: (moduleName) => `Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹Ø§Øª ÙÙŠ ${moduleName} Ø§Ù„ØªÙŠ ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ø£ÙƒØ¨Ø± Ù‚Ø¯Ø± Ù…Ù† Ø§Ù„Ø§Ù‡ØªÙ…Ø§Ù… Ø­Ø§Ù„ÙŠÙ‹Ø§.`,
+      attentionNone: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…ÙˆØ¶ÙˆØ¹Ø§Øª ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„ÙˆØ­Ø¯Ø© ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ø§Ù‡ØªÙ…Ø§Ù… Ø®Ø§Øµ Ø­Ø§Ù„ÙŠÙ‹Ø§ â€” Ø¹Ù…Ù„ Ø¬ÙŠØ¯.",
+      attentionItem: (topic, percent) => `ÙŠÙ‚Ù ${topic} Ø­Ø§Ù„ÙŠÙ‹Ø§ Ø¹Ù†Ø¯ ${percent} Ø¨Ø§Ù„Ù…Ø¦Ø© Ù…Ù† Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª Ø§Ù„ØµØ­ÙŠØ­Ø©ØŒ ÙˆÙŠÙ†Ø¨ØºÙŠ Ø¥Ø¹Ø·Ø§Ø¤Ù‡ Ø§Ù„Ø£ÙˆÙ„ÙˆÙŠØ© ÙÙŠ Ù…Ø±Ø§Ø¬Ø¹ØªÙƒ Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©.`,
+      depthHeading: "Ù…ÙˆØ¶ÙˆØ¹ Ø¨Ù…ÙˆØ¶ÙˆØ¹",
+      allGroupsOption: "Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…ÙˆØ§Ø¶ÙŠØ¹ Ø§Ù„ÙØ±Ø¹ÙŠØ©",
+      depthNoData: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ Ø¨Ø¹Ø¯.",
+      depthIntroFor: (moduleName) => `ÙƒÙŠÙ ØªØ·ÙˆØ± ÙƒÙ„ Ù…ÙˆØ¶ÙˆØ¹ ÙÙŠ ${moduleName} Ø¹Ø¨Ø± Ø¬Ù„Ø³Ø§ØªÙƒ Ø§Ù„Ø£Ø®ÙŠØ±Ø©.`,
+      depthSentenceUp: (topic) => `${topic} ÙÙŠ ØªØ­Ø³Ù† ÙˆÙŠÙ‚ØªØ±Ø¨ Ù…Ù† Ù…Ø³ØªÙˆÙ‰ Ø¬ÙŠØ¯.`,
+      depthSentenceDown: (topic) => `${topic} ØªØ±Ø§Ø¬Ø¹ Ù…Ù†Ø° Ø¬Ù„Ø³Ø§ØªÙƒ Ø§Ù„Ø³Ø§Ø¨Ù‚Ø© ÙˆÙŠÙ†Ø¨ØºÙŠ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù†Ø¸Ø± ÙÙŠÙ‡.`,
+      depthSentenceStable: (topic) => `${topic} Ù…Ø³ØªÙ‚Ø± Ø¯ÙˆÙ† ØªÙ‚Ù„Ø¨Ø§Øª Ù…Ù„Ø­ÙˆØ¸Ø©.`,
+      depthSentenceEarly: (topic) => `Ù„Ù… ØªØªÙ… Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø¹Ù„Ù‰ ${topic} Ø¥Ù„Ø§ Ù‚Ù„ÙŠÙ„Ù‹Ø§ Ø­ØªÙ‰ Ø§Ù„Ø¢Ù† â€” Ù…Ù† Ø§Ù„Ù…Ø¨ÙƒØ± ØªØ­Ø¯ÙŠØ¯ Ø§ØªØ¬Ø§Ù‡.`,
+      trendHeading: "Ø§Ù„ØªØ·ÙˆØ± Ù…Ø¹ Ø§Ù„ÙˆÙ‚Øª",
+      recentHeading: "Ø¬Ù„Ø³Ø§ØªÙƒ Ø§Ù„Ø£Ø®ÙŠØ±Ø©",
+      activityHeading: "Ø§Ù„Ù†Ø´Ø§Ø·",
+      pomodoroHeatmapTitle: "Ø¯Ù‚Ø§Ø¦Ù‚ Ø§Ù„ØªØ±ÙƒÙŠØ² ÙŠÙˆÙ…ÙŠÙ‹Ø§",
+      pomodoroHeatmapEmpty: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ Ø­ØªÙ‰ Ø§Ù„Ø¢Ù†. Ø§Ø¨Ø¯Ø£ Ù…Ø¤Ù‚Øª Ø§Ù„ØªØ±ÙƒÙŠØ² Ù„Ø¹Ø±Ø¶ Ø§Ù„ØªÙ‚ÙˆÙŠÙ….",
     },
   })[language] || {};
 
@@ -20822,14 +20946,14 @@ function Insights({ c, t, language, user }) {
     .map(([name, result]) => ({ name, ...result, percent: result.total ? Math.round((result.correct / result.total) * 100) : 0 }))
     .sort((a, b) => a.percent - b.percent);
 
-  // Modulafgrænset emnetabel — kun sessioner, hvor session.module matcher det aktuelt valgte modul, indgår.
+  // ModulafgrÃ¦nset emnetabel â€” kun sessioner, hvor session.module matcher det aktuelt valgte modul, indgÃ¥r.
   const moduleTopicMap = buildTopicMap(moduleSessions);
   const moduleTopics = Object.entries(moduleTopicMap)
     .map(([name, result]) => ({ name, ...result, percent: result.total ? Math.round((result.correct / result.total) * 100) : 0 }))
     .sort((a, b) => a.percent - b.percent);
 
-  // Tendens pr. emne: sammenligner den ældre halvdel af sessioner med den nyere halvdel,
-  // så "Emne for emne" kan formuleres som en udvikling snarere end et statisk øjebliksbillede.
+  // Tendens pr. emne: sammenligner den Ã¦ldre halvdel af sessioner med den nyere halvdel,
+  // sÃ¥ "Emne for emne" kan formuleres som en udvikling snarere end et statisk Ã¸jebliksbillede.
   const computeTopicTrends = (sourceSessions) => {
     const chronological = [...sourceSessions].sort((a, b) => new Date(a.completedAt) - new Date(b.completedAt));
     const perTopic = {};
@@ -20908,7 +21032,7 @@ getFullQuestionBank(
 
   const totalPomodoros = Object.values(pomodoroLog).reduce((sum, value) => sum + value, 0);
 
-  // Statistik uden panelbaggrund — tal bærer vægten typografisk i stedet for at blive pakket i kort.
+  // Statistik uden panelbaggrund â€” tal bÃ¦rer vÃ¦gten typografisk i stedet for at blive pakket i kort.
   const stat = (label, value, dimmed = false) => (
     <div key={label} style={{ minWidth: 88 }}>
       <div style={{ color: dimmed ? ink.red : ink.text, fontFamily: '"Space Mono", monospace', fontSize: 22, fontWeight: 700, letterSpacing: "-.01em" }}>{value}</div>
@@ -20920,7 +21044,7 @@ getFullQuestionBank(
     <div style={{ color: ink.muted, fontSize: 10.5, fontWeight: 800, letterSpacing: ".12em", textTransform: "uppercase" }}>{label}</div>
   );
 
-  // Synlige, konsistente skillelinjer mellem kapitlerne — fuld bredde, ensartet farve og luft.
+  // Synlige, konsistente skillelinjer mellem kapitlerne â€” fuld bredde, ensartet farve og luft.
   const divider = <div style={{ height: 1, background: ink.lineStrong, margin: "38px 0" }} />;
 
   return (
@@ -20942,7 +21066,7 @@ getFullQuestionBank(
         <h1 style={{ margin: "10px 0 0", color: ink.text, fontSize: 32, lineHeight: 1.15, letterSpacing: "-.03em", fontWeight: 700 }}>{x.title}</h1>
       </header>
 
-      {/* Kapitel 1 — Status --------------------------------------------- */}
+      {/* Kapitel 1 â€” Status --------------------------------------------- */}
       <section style={{ marginBottom: 8 }}>
         {eyebrow(x.statusHeading)}
         <p style={{ margin: "12px 0 0", color: ink.text, fontSize: 17, lineHeight: 1.65, fontWeight: 500, maxWidth: 620 }}>
@@ -20962,7 +21086,7 @@ getFullQuestionBank(
 
       {hasModuleData && divider}
 
-      {/* Kapitel 2 — Opmærksomhedspunkter (svage punkter, modulafgrænset) -- */}
+      {/* Kapitel 2 â€” OpmÃ¦rksomhedspunkter (svage punkter, modulafgrÃ¦nset) -- */}
       {hasModuleData && (
         <section style={{ marginBottom: 8 }}>
           {eyebrow(x.attentionHeading)}
@@ -20988,7 +21112,7 @@ getFullQuestionBank(
 
       {divider}
 
-      {/* Kapitel 5 — Fokus-kalender (globalt) --------------------------- */}
+      {/* Kapitel 5 â€” Fokus-kalender (globalt) --------------------------- */}
       <section style={{ marginBottom: 8 }}>
         {eyebrow(x.pomodoroHeatmapTitle)}
         <p style={{ margin: "12px 0 22px", color: ink.secondary, fontSize: 13.5, lineHeight: 1.6, maxWidth: 560 }}>{x.activityText}</p>
@@ -21004,7 +21128,7 @@ getFullQuestionBank(
 
       {hasModuleData && divider}
 
-      {/* Kapitel 3 — Emne for emne (reworket emneanalyse, modulafgrænset) -- */}
+      {/* Kapitel 3 â€” Emne for emne (reworket emneanalyse, modulafgrÃ¦nset) -- */}
       {hasModuleData && (
         <section style={{ marginBottom: 8 }}>
           {eyebrow(x.depthHeading)}
@@ -21106,7 +21230,7 @@ getFullQuestionBank(
                               fontWeight={700}
                               fill={ink.secondary}
                             >
-                              {topic.name.length > 16 ? `${topic.name.slice(0, 15)}…` : topic.name}
+                              {topic.name.length > 16 ? `${topic.name.slice(0, 15)}â€¦` : topic.name}
                             </text>
                           );
                         })}
@@ -21152,7 +21276,7 @@ getFullQuestionBank(
 
       {divider}
 
-      {/* Kapitel 6 — Sessionslog (globalt) -------------------------------- */}
+      {/* Kapitel 6 â€” Sessionslog (globalt) -------------------------------- */}
       <section>
         {eyebrow(x.recentHeading)}
         <div style={{ marginTop: 18 }}>
@@ -21182,7 +21306,7 @@ getFullQuestionBank(
                     <div style={{ display: "grid", gridTemplateColumns: "minmax(170px,.7fr) minmax(0,1.3fr)", gap: 20 }}>
                       <div>
                         <div style={{ color: ink.muted, fontSize: 10, fontWeight: 800, letterSpacing: ".07em", textTransform: "uppercase" }}>{x.lowest}</div>
-                        <div style={{ marginTop: 6, color: ink.text, fontSize: 13, fontWeight: 700 }}>{lowest ? `${lowest.name} · ${lowest.percent}%` : "—"}</div>
+                        <div style={{ marginTop: 6, color: ink.text, fontSize: 13, fontWeight: 700 }}>{lowest ? `${lowest.name} Â· ${lowest.percent}%` : "â€”"}</div>
                       </div>
                       <div style={{ display: "grid", gap: 8 }}>
                         {categoryRows.map((row) => (
@@ -21229,9 +21353,9 @@ function AdvancedPlanTimeline({ c, language, copy, today, exam, timelineDays, mo
           <header style={{ minHeight:58,margin:"0 -9px 11px",padding:"10px 9px 8px",borderBottom:`1px solid ${c.border}`,background:examColumn?c.redSoft:todayColumn?c.blueSoft:c.panel }}><div style={{ color:examColumn?c.red:todayColumn?c.blue:c.muted,fontSize:9,fontWeight:850,letterSpacing:".07em",textTransform:"uppercase" }}>{examColumn?copy.examDay:todayColumn?copy.today:label(date)}</div><div style={{ marginTop:4,color:c.text,fontFamily:'"Space Mono",monospace',fontSize:15,fontWeight:800 }}>{date.getDate()}</div></header>
           {todayColumn&&<span style={{ position:"absolute",top:0,bottom:0,insetInlineStart:0,width:3,background:c.blue }}/>} 
           {examColumn ? <div style={{ display:"grid",placeItems:"center",minHeight:140,padding:12,borderRadius:12,border:`1px solid ${c.red}44`,background:`${c.red}12`,color:c.red,textAlign:"center",fontSize:12,fontWeight:800 }}>{copy.examDay}</div> : <>
-            {units.length>0&&<div style={{ marginBottom:10 }}><div style={{ marginBottom:5,color:c.blue,fontSize:9,fontWeight:850,letterSpacing:".07em",textTransform:"uppercase" }}>{copy.lecture}</div>{units.slice(0,2).map((unit)=><div key={`${unit.id}-${unit.part||1}`} title={unit.title} style={{ marginBottom:5,padding:"7px 8px",borderRadius:8,border:`1px solid ${c.blueBorder}`,background:c.blueSoft,color:c.blue,fontSize:10,fontWeight:750,lineHeight:1.3 }}>{unit.title}{unit.part?` · ${unit.part}`:""}</div>)}{units.length>2&&<div style={{ color:c.muted,fontSize:10,fontWeight:750 }}>+{units.length-2} {language==="da"?"øvrige":"more"}</div>}</div>}
+            {units.length>0&&<div style={{ marginBottom:10 }}><div style={{ marginBottom:5,color:c.blue,fontSize:9,fontWeight:850,letterSpacing:".07em",textTransform:"uppercase" }}>{copy.lecture}</div>{units.slice(0,2).map((unit)=><div key={`${unit.id}-${unit.part||1}`} title={unit.title} style={{ marginBottom:5,padding:"7px 8px",borderRadius:8,border:`1px solid ${c.blueBorder}`,background:c.blueSoft,color:c.blue,fontSize:10,fontWeight:750,lineHeight:1.3 }}>{unit.title}{unit.part?` Â· ${unit.part}`:""}</div>)}{units.length>2&&<div style={{ color:c.muted,fontSize:10,fontWeight:750 }}>+{units.length-2} {language==="da"?"Ã¸vrige":"more"}</div>}</div>}
             {questions>0&&<div style={{ marginBottom:10 }}><div style={{ marginBottom:5,color:c.green,fontSize:9,fontWeight:850,letterSpacing:".07em",textTransform:"uppercase" }}>{copy.questionsLabel}</div><div style={{ padding:"9px 8px",borderRadius:8,border:`1px solid ${c.green}44`,background:c.greenSoft,color:c.green,fontFamily:'"Space Mono",monospace',fontSize:12,fontWeight:800 }}>{questions} {language==="da"?"nye":"new"}</div></div>}
-            {reviews.length>0&&<div><div style={{ marginBottom:5,color:c.blue,fontSize:9,fontWeight:850,letterSpacing:".07em",textTransform:"uppercase" }}>{copy.review}</div>{reviews.slice(0,2).map((unit,i)=><div key={`${unit.id}-${unit.offset}-${i}`} title={unit.title} style={{ overflow:"hidden",marginBottom:4,padding:"6px 7px",borderRadius:7,background:`${c.blue}14`,color:c.blue,fontSize:10,fontWeight:700,textOverflow:"ellipsis",whiteSpace:"nowrap" }}>↻ {unit.title}</div>)}{reviews.length>2&&<div style={{ color:c.muted,fontSize:10,fontWeight:750 }}>+{reviews.length-2} {language==="da"?"øvrige":"more"}</div>}</div>}
+            {reviews.length>0&&<div><div style={{ marginBottom:5,color:c.blue,fontSize:9,fontWeight:850,letterSpacing:".07em",textTransform:"uppercase" }}>{copy.review}</div>{reviews.slice(0,2).map((unit,i)=><div key={`${unit.id}-${unit.offset}-${i}`} title={unit.title} style={{ overflow:"hidden",marginBottom:4,padding:"6px 7px",borderRadius:7,background:`${c.blue}14`,color:c.blue,fontSize:10,fontWeight:700,textOverflow:"ellipsis",whiteSpace:"nowrap" }}>â†» {unit.title}</div>)}{reviews.length>2&&<div style={{ color:c.muted,fontSize:10,fontWeight:750 }}>+{reviews.length-2} {language==="da"?"Ã¸vrige":"more"}</div>}</div>}
           </>}
         </article>})}
       </div>
@@ -21441,13 +21565,13 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   const strategy = buildStudyPlanStrategy({ moduleName, plan: draft, lectures, fromDate: new Date(), reservedEvents: builderReservedEvents });
   const questionCount = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === moduleName).length;
   const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
-  const days = language === "en" ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : ["Søn", "Man", "Tir", "Ons", "Tor", "Fre", "Lør"];
+  const days = language === "en" ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] : ["SÃ¸n", "Man", "Tir", "Ons", "Tor", "Fre", "LÃ¸r"];
   const copy = language === "en" ? {
     title: "Study plan", subtitle: "Build a complete strategy before the exam", steps: ["Goal", "Content", "Capacity", "Strategy", "Preview", "Activate"], next: "Continue", back: "Back", activate: "Save and activate", edit: "Edit plan", active: "Active plan", clearCalendar: "Remove plan activities from calendar", resetPlan: "Reset study plan",
   } : language === "ar" ? {
-    title: "خطة الدراسة", subtitle: "ابنِ استراتيجية كاملة حتى موعد الامتحان", steps: ["الهدف", "المحتوى", "السعة", "الاستراتيجية", "المراجعة", "التفعيل"], next: "متابعة", back: "رجوع", activate: "حفظ وتفعيل", edit: "تعديل الخطة", active: "خطة نشطة", clearCalendar: "إزالة أنشطة الخطة من التقويم", resetPlan: "إعادة ضبط خطة الدراسة",
+    title: "Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", subtitle: "Ø§Ø¨Ù†Ù Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ© ÙƒØ§Ù…Ù„Ø© Ø­ØªÙ‰ Ù…ÙˆØ¹Ø¯ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", steps: ["Ø§Ù„Ù‡Ø¯Ù", "Ø§Ù„Ù…Ø­ØªÙˆÙ‰", "Ø§Ù„Ø³Ø¹Ø©", "Ø§Ù„Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØ©", "Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©", "Ø§Ù„ØªÙØ¹ÙŠÙ„"], next: "Ù…ØªØ§Ø¨Ø¹Ø©", back: "Ø±Ø¬ÙˆØ¹", activate: "Ø­ÙØ¸ ÙˆØªÙØ¹ÙŠÙ„", edit: "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø®Ø·Ø©", active: "Ø®Ø·Ø© Ù†Ø´Ø·Ø©", clearCalendar: "Ø¥Ø²Ø§Ù„Ø© Ø£Ù†Ø´Ø·Ø© Ø§Ù„Ø®Ø·Ø© Ù…Ù† Ø§Ù„ØªÙ‚ÙˆÙŠÙ…", resetPlan: "Ø¥Ø¹Ø§Ø¯Ø© Ø¶Ø¨Ø· Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
   } : {
-    title: "Studieplan", subtitle: "Byg en samlet strategi frem mod eksamen", steps: ["Mål", "Indhold", "Kapacitet", "Strategi", "Forhåndsvisning", "Aktivér"], next: "Fortsæt", back: "Tilbage", activate: "Gem og aktivér", edit: "Redigér plan", active: "Aktiv studieplan", clearCalendar: "Fjern planaktiviteter fra kalender", resetPlan: "Nulstil studieplan",
+    title: "Studieplan", subtitle: "Byg en samlet strategi frem mod eksamen", steps: ["MÃ¥l", "Indhold", "Kapacitet", "Strategi", "ForhÃ¥ndsvisning", "AktivÃ©r"], next: "FortsÃ¦t", back: "Tilbage", activate: "Gem og aktivÃ©r", edit: "RedigÃ©r plan", active: "Aktiv studieplan", clearCalendar: "Fjern planaktiviteter fra kalender", resetPlan: "Nulstil studieplan",
   };
 
   const MS_PER_STUDY_DAY = 24 * 60 * 60 * 1000;
@@ -21463,10 +21587,10 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     : 0;
   const weeksUntilExam = Math.max(0, Math.ceil(daysUntilExam / 7));
   const strategyRealismLabel = strategy.realism === "realistic"
-    ? (language === "en" ? "Realistic" : language === "ar" ? "واقعية" : "Realistisk")
+    ? (language === "en" ? "Realistic" : language === "ar" ? "ÙˆØ§Ù‚Ø¹ÙŠØ©" : "Realistisk")
     : strategy.realism === "demanding"
-      ? (language === "en" ? "Demanding" : language === "ar" ? "مكثفة" : "Krævende")
-      : (language === "en" ? "Not realistic" : language === "ar" ? "غير واقعية" : "Ikke realistisk");
+      ? (language === "en" ? "Demanding" : language === "ar" ? "Ù…ÙƒØ«ÙØ©" : "KrÃ¦vende")
+      : (language === "en" ? "Not realistic" : language === "ar" ? "ØºÙŠØ± ÙˆØ§Ù‚Ø¹ÙŠØ©" : "Ikke realistisk");
 
   const polishCopy = language === "en" ? {
     phase: "Phase",
@@ -21508,60 +21632,60 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     previewReady: "Your complete strategy is ready",
     previewDescription: "The final check combines workload, available capacity and every calendar activity before activation.",
   } : language === "ar" ? {
-    phase: "المرحلة",
-    of: "من",
-    ready: "جاهز للمتابعة",
-    autoSave: "تُطبّق التغييرات عند التفعيل",
-    continueNow: "متابعة الآن",
-    autoContinue: "سيتم الانتقال تلقائيا",
-    days: "يوما",
-    weeks: "أسابيع",
-    bufferDays: "أيام احتياطية",
-    phases: "مراحل",
-    lectures: "محاضرات",
-    selected: "مختارة",
-    pending: "متبقية",
-    studyHours: "ساعات دراسة مقدرة",
-    examSets: "نماذج امتحان",
-    hoursWeek: "ساعة/أسبوع",
-    activeDays: "أيام دراسة",
-    exceptions: "أيام مستثناة",
-    calendarCapacity: "السعة الكلية",
-    reviewReserve: "مساحة للمراجعة",
-    freezeDays: "أيام ثابتة",
-    manualTimes: "الأوقات اليدوية",
-    preserved: "محفوظة",
-    flexible: "قابلة للنقل",
-    retention: "هدف التذكر",
-    activities: "أنشطة التقويم",
-    required: "مطلوب",
-    capacity: "متاح",
-    timeframeSet: "تم تحديد الإطار الزمني",
-    timeframeDescription: "أصبح للخطة تاريخ امتحان ثابت وحدود واضحة للمادة الجديدة ونماذج الامتحان والوقت الاحتياطي.",
-    contentMapped: "تم تحديد محتوى المنهج",
-    contentDescription: "تم تحويل المحاضرات ونماذج الامتحان المختارة إلى عبء عمل واضح.",
-    capacityMapped: "تم تحديد سعتك الأسبوعية",
-    capacityDescription: "يمكن الآن توزيع العمل على الأيام المتاحة فعليا.",
-    rulesSet: "تم ضبط قواعد الخطة",
-    rulesDescription: "أصبحت المراجعة والمهام الفائتة والأوقات اليدوية ذات سلوك واضح.",
-    previewReady: "استراتيجيتك الكاملة جاهزة",
-    previewDescription: "يجمع الفحص النهائي بين عبء العمل والسعة المتاحة وجميع أنشطة التقويم قبل التفعيل.",
+    phase: "Ø§Ù„Ù…Ø±Ø­Ù„Ø©",
+    of: "Ù…Ù†",
+    ready: "Ø¬Ø§Ù‡Ø² Ù„Ù„Ù…ØªØ§Ø¨Ø¹Ø©",
+    autoSave: "ØªÙØ·Ø¨Ù‘Ù‚ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª Ø¹Ù†Ø¯ Ø§Ù„ØªÙØ¹ÙŠÙ„",
+    continueNow: "Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ø¢Ù†",
+    autoContinue: "Ø³ÙŠØªÙ… Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§",
+    days: "ÙŠÙˆÙ…Ø§",
+    weeks: "Ø£Ø³Ø§Ø¨ÙŠØ¹",
+    bufferDays: "Ø£ÙŠØ§Ù… Ø§Ø­ØªÙŠØ§Ø·ÙŠØ©",
+    phases: "Ù…Ø±Ø§Ø­Ù„",
+    lectures: "Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+    selected: "Ù…Ø®ØªØ§Ø±Ø©",
+    pending: "Ù…ØªØ¨Ù‚ÙŠØ©",
+    studyHours: "Ø³Ø§Ø¹Ø§Øª Ø¯Ø±Ø§Ø³Ø© Ù…Ù‚Ø¯Ø±Ø©",
+    examSets: "Ù†Ù…Ø§Ø°Ø¬ Ø§Ù…ØªØ­Ø§Ù†",
+    hoursWeek: "Ø³Ø§Ø¹Ø©/Ø£Ø³Ø¨ÙˆØ¹",
+    activeDays: "Ø£ÙŠØ§Ù… Ø¯Ø±Ø§Ø³Ø©",
+    exceptions: "Ø£ÙŠØ§Ù… Ù…Ø³ØªØ«Ù†Ø§Ø©",
+    calendarCapacity: "Ø§Ù„Ø³Ø¹Ø© Ø§Ù„ÙƒÙ„ÙŠØ©",
+    reviewReserve: "Ù…Ø³Ø§Ø­Ø© Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+    freezeDays: "Ø£ÙŠØ§Ù… Ø«Ø§Ø¨ØªØ©",
+    manualTimes: "Ø§Ù„Ø£ÙˆÙ‚Ø§Øª Ø§Ù„ÙŠØ¯ÙˆÙŠØ©",
+    preserved: "Ù…Ø­ÙÙˆØ¸Ø©",
+    flexible: "Ù‚Ø§Ø¨Ù„Ø© Ù„Ù„Ù†Ù‚Ù„",
+    retention: "Ù‡Ø¯Ù Ø§Ù„ØªØ°ÙƒØ±",
+    activities: "Ø£Ù†Ø´Ø·Ø© Ø§Ù„ØªÙ‚ÙˆÙŠÙ…",
+    required: "Ù…Ø·Ù„ÙˆØ¨",
+    capacity: "Ù…ØªØ§Ø­",
+    timeframeSet: "ØªÙ… ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ø¥Ø·Ø§Ø± Ø§Ù„Ø²Ù…Ù†ÙŠ",
+    timeframeDescription: "Ø£ØµØ¨Ø­ Ù„Ù„Ø®Ø·Ø© ØªØ§Ø±ÙŠØ® Ø§Ù…ØªØ­Ø§Ù† Ø«Ø§Ø¨Øª ÙˆØ­Ø¯ÙˆØ¯ ÙˆØ§Ø¶Ø­Ø© Ù„Ù„Ù…Ø§Ø¯Ø© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© ÙˆÙ†Ù…Ø§Ø°Ø¬ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† ÙˆØ§Ù„ÙˆÙ‚Øª Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠ.",
+    contentMapped: "ØªÙ… ØªØ­Ø¯ÙŠØ¯ Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ù…Ù†Ù‡Ø¬",
+    contentDescription: "ØªÙ… ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª ÙˆÙ†Ù…Ø§Ø°Ø¬ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ø§Ù„Ù…Ø®ØªØ§Ø±Ø© Ø¥Ù„Ù‰ Ø¹Ø¨Ø¡ Ø¹Ù…Ù„ ÙˆØ§Ø¶Ø­.",
+    capacityMapped: "ØªÙ… ØªØ­Ø¯ÙŠØ¯ Ø³Ø¹ØªÙƒ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ÙŠØ©",
+    capacityDescription: "ÙŠÙ…ÙƒÙ† Ø§Ù„Ø¢Ù† ØªÙˆØ²ÙŠØ¹ Ø§Ù„Ø¹Ù…Ù„ Ø¹Ù„Ù‰ Ø§Ù„Ø£ÙŠØ§Ù… Ø§Ù„Ù…ØªØ§Ø­Ø© ÙØ¹Ù„ÙŠØ§.",
+    rulesSet: "ØªÙ… Ø¶Ø¨Ø· Ù‚ÙˆØ§Ø¹Ø¯ Ø§Ù„Ø®Ø·Ø©",
+    rulesDescription: "Ø£ØµØ¨Ø­Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© ÙˆØ§Ù„Ù…Ù‡Ø§Ù… Ø§Ù„ÙØ§Ø¦ØªØ© ÙˆØ§Ù„Ø£ÙˆÙ‚Ø§Øª Ø§Ù„ÙŠØ¯ÙˆÙŠØ© Ø°Ø§Øª Ø³Ù„ÙˆÙƒ ÙˆØ§Ø¶Ø­.",
+    previewReady: "Ø§Ø³ØªØ±Ø§ØªÙŠØ¬ÙŠØªÙƒ Ø§Ù„ÙƒØ§Ù…Ù„Ø© Ø¬Ø§Ù‡Ø²Ø©",
+    previewDescription: "ÙŠØ¬Ù…Ø¹ Ø§Ù„ÙØ­Øµ Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ Ø¨ÙŠÙ† Ø¹Ø¨Ø¡ Ø§Ù„Ø¹Ù…Ù„ ÙˆØ§Ù„Ø³Ø¹Ø© Ø§Ù„Ù…ØªØ§Ø­Ø© ÙˆØ¬Ù…ÙŠØ¹ Ø£Ù†Ø´Ø·Ø© Ø§Ù„ØªÙ‚ÙˆÙŠÙ… Ù‚Ø¨Ù„ Ø§Ù„ØªÙØ¹ÙŠÙ„.",
   } : {
     phase: "Fase",
     of: "af",
-    ready: "Klar til at fortsætte",
-    autoSave: "Ændringer anvendes ved aktivering",
-    continueNow: "Fortsæt nu",
-    autoContinue: "Fortsætter automatisk",
+    ready: "Klar til at fortsÃ¦tte",
+    autoSave: "Ã†ndringer anvendes ved aktivering",
+    continueNow: "FortsÃ¦t nu",
+    autoContinue: "FortsÃ¦tter automatisk",
     days: "dage",
     weeks: "uger",
     bufferDays: "bufferdage",
     phases: "faser",
-    lectures: "forelæsninger",
+    lectures: "forelÃ¦sninger",
     selected: "valgt",
     pending: "resterende",
-    studyHours: "anslåede studietimer",
-    examSets: "eksamenssæt",
+    studyHours: "anslÃ¥ede studietimer",
+    examSets: "eksamenssÃ¦t",
     hoursWeek: "timer/uge",
     activeDays: "aktive studiedage",
     exceptions: "undtagelsesdage",
@@ -21570,93 +21694,93 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     freezeDays: "frosne dage",
     manualTimes: "manuelle tider",
     preserved: "bevares",
-    flexible: "må flyttes",
-    retention: "mål for fastholdelse",
+    flexible: "mÃ¥ flyttes",
+    retention: "mÃ¥l for fastholdelse",
     activities: "kalenderaktiviteter",
-    required: "krævet",
+    required: "krÃ¦vet",
     capacity: "kapacitet",
     timeframeSet: "Din tidsramme er fastlagt",
-    timeframeDescription: "Planen har nu en fast eksamensdato og tydelige grænser for nyt stof, eksamenssæt og buffer.",
+    timeframeDescription: "Planen har nu en fast eksamensdato og tydelige grÃ¦nser for nyt stof, eksamenssÃ¦t og buffer.",
     contentMapped: "Dit pensum er kortlagt",
-    contentDescription: "Valgte forelæsninger og eksamenssæt er nu omsat til en konkret arbejdsbelastning.",
+    contentDescription: "Valgte forelÃ¦sninger og eksamenssÃ¦t er nu omsat til en konkret arbejdsbelastning.",
     capacityMapped: "Din ugekapacitet er kortlagt",
-    capacityDescription: "Planen kan nu fordele arbejdet på de dage, du reelt har til rådighed.",
+    capacityDescription: "Planen kan nu fordele arbejdet pÃ¥ de dage, du reelt har til rÃ¥dighed.",
     rulesSet: "Planens regler er fastlagt",
-    rulesDescription: "Repetition, missede aktiviteter og manuelt placerede tider har nu en forudsigelig adfærd.",
+    rulesDescription: "Repetition, missede aktiviteter og manuelt placerede tider har nu en forudsigelig adfÃ¦rd.",
     previewReady: "Din samlede strategi er klar",
-    previewDescription: "Det sidste kontrolpunkt samler belastning, kapacitet og alle kalenderaktiviteter før aktivering.",
+    previewDescription: "Det sidste kontrolpunkt samler belastning, kapacitet og alle kalenderaktiviteter fÃ¸r aktivering.",
   };
 
   function validateStudyPlanStep(stepNumber) {
     if (stepNumber === 1) {
       if (!draft.examDate || !draft.lectureDeadline || !draft.examSetStartDate) {
-        return { ok: false, message: language === "en" ? "Choose all three key dates." : language === "ar" ? "اختر التواريخ الثلاثة الأساسية." : "Vælg alle tre nøgledatoer." };
+        return { ok: false, message: language === "en" ? "Choose all three key dates." : language === "ar" ? "Ø§Ø®ØªØ± Ø§Ù„ØªÙˆØ§Ø±ÙŠØ® Ø§Ù„Ø«Ù„Ø§Ø«Ø© Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©." : "VÃ¦lg alle tre nÃ¸gledatoer." };
       }
       if (draft.examDate < todayKey) {
-        return { ok: false, message: language === "en" ? "The exam date cannot be in the past." : language === "ar" ? "لا يمكن أن يكون تاريخ الامتحان في الماضي." : "Eksamensdatoen kan ikke ligge i fortiden." };
+        return { ok: false, message: language === "en" ? "The exam date cannot be in the past." : language === "ar" ? "Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø£Ù† ÙŠÙƒÙˆÙ† ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† ÙÙŠ Ø§Ù„Ù…Ø§Ø¶ÙŠ." : "Eksamensdatoen kan ikke ligge i fortiden." };
       }
       if (draft.lectureDeadline > draft.examDate) {
-        return { ok: false, message: language === "en" ? "The lecture deadline must be before the exam." : language === "ar" ? "يجب أن تنتهي المحاضرات قبل الامتحان." : "Forelæsningsfristen skal ligge før eksamen." };
+        return { ok: false, message: language === "en" ? "The lecture deadline must be before the exam." : language === "ar" ? "ÙŠØ¬Ø¨ Ø£Ù† ØªÙ†ØªÙ‡ÙŠ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ù‚Ø¨Ù„ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†." : "ForelÃ¦sningsfristen skal ligge fÃ¸r eksamen." };
       }
       if (draft.examSetStartDate < draft.lectureDeadline || draft.examSetStartDate > draft.examDate) {
-        return { ok: false, message: language === "en" ? "Exam sets must start between the lecture deadline and the exam." : language === "ar" ? "يجب أن تبدأ نماذج الامتحان بعد انتهاء المحاضرات وقبل الامتحان." : "Eksamenssæt skal starte mellem forelæsningsfristen og eksamen." };
+        return { ok: false, message: language === "en" ? "Exam sets must start between the lecture deadline and the exam." : language === "ar" ? "ÙŠØ¬Ø¨ Ø£Ù† ØªØ¨Ø¯Ø£ Ù†Ù…Ø§Ø°Ø¬ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ø¨Ø¹Ø¯ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª ÙˆÙ‚Ø¨Ù„ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†." : "EksamenssÃ¦t skal starte mellem forelÃ¦sningsfristen og eksamen." };
       }
       if (daysUntilExam < Number(draft.bufferDays || 0)) {
-        return { ok: false, message: language === "en" ? "The buffer is longer than the remaining time." : language === "ar" ? "الفترة الاحتياطية أطول من الوقت المتبقي." : "Bufferen er længere end tiden frem til eksamen." };
+        return { ok: false, message: language === "en" ? "The buffer is longer than the remaining time." : language === "ar" ? "Ø§Ù„ÙØªØ±Ø© Ø§Ù„Ø§Ø­ØªÙŠØ§Ø·ÙŠØ© Ø£Ø·ÙˆÙ„ Ù…Ù† Ø§Ù„ÙˆÙ‚Øª Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ." : "Bufferen er lÃ¦ngere end tiden frem til eksamen." };
       }
     }
     if (stepNumber === 2) {
       if (!draft.includedLectureIds.length) {
-        return { ok: false, message: language === "en" ? "Include at least one lecture." : language === "ar" ? "أضف محاضرة واحدة على الأقل." : "Medtag mindst én forelæsning." };
+        return { ok: false, message: language === "en" ? "Include at least one lecture." : language === "ar" ? "Ø£Ø¶Ù Ù…Ø­Ø§Ø¶Ø±Ø© ÙˆØ§Ø­Ø¯Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„." : "Medtag mindst Ã©n forelÃ¦sning." };
       }
       if (!Number.isFinite(Number(draft.examSetCount)) || Number(draft.examSetCount) < 0 || Number(draft.examSetCount) > 30) {
-        return { ok: false, message: language === "en" ? "Choose between 0 and 30 exam sets." : language === "ar" ? "اختر بين 0 و30 نموذجا." : "Vælg mellem 0 og 30 eksamenssæt." };
+        return { ok: false, message: language === "en" ? "Choose between 0 and 30 exam sets." : language === "ar" ? "Ø§Ø®ØªØ± Ø¨ÙŠÙ† 0 Ùˆ30 Ù†Ù…ÙˆØ°Ø¬Ø§." : "VÃ¦lg mellem 0 og 30 eksamenssÃ¦t." };
       }
     }
     if (stepNumber === 3) {
       if (weeklyCapacityHours <= 0) {
-        return { ok: false, message: language === "en" ? "Add study time to at least one weekday." : language === "ar" ? "أضف وقت دراسة ليوم واحد على الأقل." : "Tilføj studietid på mindst én ugedag." };
+        return { ok: false, message: language === "en" ? "Add study time to at least one weekday." : language === "ar" ? "Ø£Ø¶Ù ÙˆÙ‚Øª Ø¯Ø±Ø§Ø³Ø© Ù„ÙŠÙˆÙ… ÙˆØ§Ø­Ø¯ Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„." : "TilfÃ¸j studietid pÃ¥ mindst Ã©n ugedag." };
       }
       if (Object.values(draft.weekdayHours || {}).some((value) => Number(value) < 0 || Number(value) > 12)) {
-        return { ok: false, message: language === "en" ? "Daily capacity must be between 0 and 12 hours." : language === "ar" ? "يجب أن تكون السعة اليومية بين 0 و12 ساعة." : "Daglig kapacitet skal være mellem 0 og 12 timer." };
+        return { ok: false, message: language === "en" ? "Daily capacity must be between 0 and 12 hours." : language === "ar" ? "ÙŠØ¬Ø¨ Ø£Ù† ØªÙƒÙˆÙ† Ø§Ù„Ø³Ø¹Ø© Ø§Ù„ÙŠÙˆÙ…ÙŠØ© Ø¨ÙŠÙ† 0 Ùˆ12 Ø³Ø§Ø¹Ø©." : "Daglig kapacitet skal vÃ¦re mellem 0 og 12 timer." };
       }
       if (Number(draft.maxLecturesPerDay) < 1 || Number(draft.maxLecturesPerDay) > 8) {
-        return { ok: false, message: language === "en" ? "Choose 1–8 lectures per day." : language === "ar" ? "اختر من 1 إلى 8 محاضرات يوميا." : "Vælg 1–8 forelæsninger pr. dag." };
+        return { ok: false, message: language === "en" ? "Choose 1â€“8 lectures per day." : language === "ar" ? "Ø§Ø®ØªØ± Ù…Ù† 1 Ø¥Ù„Ù‰ 8 Ù…Ø­Ø§Ø¶Ø±Ø§Øª ÙŠÙˆÙ…ÙŠØ§." : "VÃ¦lg 1â€“8 forelÃ¦sninger pr. dag." };
       }
     }
     if (stepNumber === 4) {
       if (!Number.isFinite(Number(draft.freezeDays)) || Number(draft.freezeDays) < 0) {
-        return { ok: false, message: language === "en" ? "Choose a valid freeze window." : language === "ar" ? "اختر نافذة تثبيت صالحة." : "Vælg en gyldig frysegrænse." };
+        return { ok: false, message: language === "en" ? "Choose a valid freeze window." : language === "ar" ? "Ø§Ø®ØªØ± Ù†Ø§ÙØ°Ø© ØªØ«Ø¨ÙŠØª ØµØ§Ù„Ø­Ø©." : "VÃ¦lg en gyldig frysegrÃ¦nse." };
       }
     }
     if (stepNumber === 5 && !strategy.valid) {
-      return { ok: false, message: language === "en" ? "Resolve the structural date or capacity issue before activation." : language === "ar" ? "حل مشكلة التاريخ أو السعة الأساسية قبل التفعيل." : "Ret den strukturelle dato- eller kapacitetsfejl før aktivering." };
+      return { ok: false, message: language === "en" ? "Resolve the structural date or capacity issue before activation." : language === "ar" ? "Ø­Ù„ Ù…Ø´ÙƒÙ„Ø© Ø§Ù„ØªØ§Ø±ÙŠØ® Ø£Ùˆ Ø§Ù„Ø³Ø¹Ø© Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ© Ù‚Ø¨Ù„ Ø§Ù„ØªÙØ¹ÙŠÙ„." : "Ret den strukturelle dato- eller kapacitetsfejl fÃ¸r aktivering." };
     }
     return { ok: true, message: polishCopy.ready };
   }
 
   const stepValidation = validateStudyPlanStep(step);
   const phaseContexts = language === "en" ? [
-    { title: `${daysUntilExam} days until the exam`, detail: `${weeksUntilExam} weeks available · ${draft.bufferDays} buffer days` },
-    { title: `${pendingLectureCount} lectures remaining`, detail: `${selectedLectureCount} selected · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} estimated hours` },
-    { title: `${weeklyCapacityHours} hours per normal week`, detail: `${availableStudyDays} active days · ${draft.excludedDates.length} exceptions` },
-    { title: `Adaptive spaced repetition`, detail: `${draft.freezeDays} frozen days · manual repetition dates are preserved` },
-    { title: `${strategyRealismLabel} workload`, detail: `${Math.round(strategy.requiredTotal / 60)} required hours · ${Math.round(strategy.capacityTotal / 60)} available hours` },
+    { title: `${daysUntilExam} days until the exam`, detail: `${weeksUntilExam} weeks available Â· ${draft.bufferDays} buffer days` },
+    { title: `${pendingLectureCount} lectures remaining`, detail: `${selectedLectureCount} selected Â· ${Math.round(selectedLectureMinutes / 60 * 10) / 10} estimated hours` },
+    { title: `${weeklyCapacityHours} hours per normal week`, detail: `${availableStudyDays} active days Â· ${draft.excludedDates.length} exceptions` },
+    { title: `Adaptive spaced repetition`, detail: `${draft.freezeDays} frozen days Â· manual repetition dates are preserved` },
+    { title: `${strategyRealismLabel} workload`, detail: `${Math.round(strategy.requiredTotal / 60)} required hours Â· ${Math.round(strategy.capacityTotal / 60)} available hours` },
     { title: `${strategy.assignments.length} calendar activities`, detail: "Review the exact week-by-week plan before activation" },
   ] : language === "ar" ? [
-    { title: `${daysUntilExam} يوما حتى الامتحان`, detail: `${weeksUntilExam} أسابيع متاحة · ${draft.bufferDays} أيام احتياطية` },
-    { title: `${pendingLectureCount} محاضرات متبقية`, detail: `${selectedLectureCount} مختارة · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} ساعات مقدرة` },
-    { title: `${weeklyCapacityHours} ساعة في الأسبوع المعتاد`, detail: `${availableStudyDays} أيام دراسة · ${draft.excludedDates.length} أيام مستثناة` },
-    { title: `تكرار متباعد تكيفي`, detail: `${draft.freezeDays} أيام ثابتة · مواعيد التكرار اليدوية محفوظة` },
-    { title: `الخطة ${strategyRealismLabel}`, detail: `${Math.round(strategy.requiredTotal / 60)} ساعة مطلوبة · ${Math.round(strategy.capacityTotal / 60)} ساعة متاحة` },
-    { title: `${strategy.assignments.length} نشاطا في التقويم`, detail: "راجع الخطة الأسبوعية الدقيقة قبل التفعيل" },
+    { title: `${daysUntilExam} ÙŠÙˆÙ…Ø§ Ø­ØªÙ‰ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†`, detail: `${weeksUntilExam} Ø£Ø³Ø§Ø¨ÙŠØ¹ Ù…ØªØ§Ø­Ø© Â· ${draft.bufferDays} Ø£ÙŠØ§Ù… Ø§Ø­ØªÙŠØ§Ø·ÙŠØ©` },
+    { title: `${pendingLectureCount} Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ù…ØªØ¨Ù‚ÙŠØ©`, detail: `${selectedLectureCount} Ù…Ø®ØªØ§Ø±Ø© Â· ${Math.round(selectedLectureMinutes / 60 * 10) / 10} Ø³Ø§Ø¹Ø§Øª Ù…Ù‚Ø¯Ø±Ø©` },
+    { title: `${weeklyCapacityHours} Ø³Ø§Ø¹Ø© ÙÙŠ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ Ø§Ù„Ù…Ø¹ØªØ§Ø¯`, detail: `${availableStudyDays} Ø£ÙŠØ§Ù… Ø¯Ø±Ø§Ø³Ø© Â· ${draft.excludedDates.length} Ø£ÙŠØ§Ù… Ù…Ø³ØªØ«Ù†Ø§Ø©` },
+    { title: `ØªÙƒØ±Ø§Ø± Ù…ØªØ¨Ø§Ø¹Ø¯ ØªÙƒÙŠÙÙŠ`, detail: `${draft.freezeDays} Ø£ÙŠØ§Ù… Ø«Ø§Ø¨ØªØ© Â· Ù…ÙˆØ§Ø¹ÙŠØ¯ Ø§Ù„ØªÙƒØ±Ø§Ø± Ø§Ù„ÙŠØ¯ÙˆÙŠØ© Ù…Ø­ÙÙˆØ¸Ø©` },
+    { title: `Ø§Ù„Ø®Ø·Ø© ${strategyRealismLabel}`, detail: `${Math.round(strategy.requiredTotal / 60)} Ø³Ø§Ø¹Ø© Ù…Ø·Ù„ÙˆØ¨Ø© Â· ${Math.round(strategy.capacityTotal / 60)} Ø³Ø§Ø¹Ø© Ù…ØªØ§Ø­Ø©` },
+    { title: `${strategy.assignments.length} Ù†Ø´Ø§Ø·Ø§ ÙÙŠ Ø§Ù„ØªÙ‚ÙˆÙŠÙ…`, detail: "Ø±Ø§Ø¬Ø¹ Ø§Ù„Ø®Ø·Ø© Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ÙŠØ© Ø§Ù„Ø¯Ù‚ÙŠÙ‚Ø© Ù‚Ø¨Ù„ Ø§Ù„ØªÙØ¹ÙŠÙ„" },
   ] : [
-    { title: `${daysUntilExam} dage til eksamen`, detail: `${weeksUntilExam} uger til rådighed · ${draft.bufferDays} bufferdage` },
-    { title: `${pendingLectureCount} forelæsninger tilbage`, detail: `${selectedLectureCount} valgt · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} anslåede timer` },
-    { title: `${weeklyCapacityHours} timer i en normal uge`, detail: `${availableStudyDays} aktive studiedage · ${draft.excludedDates.length} undtagelser` },
-    { title: `Adaptiv spaced repetition`, detail: `${draft.freezeDays} frosne dage · manuelt valgte repetitionsdatoer bevares` },
-    { title: `${strategyRealismLabel} belastning`, detail: `${Math.round(strategy.requiredTotal / 60)} t krævet · ${Math.round(strategy.capacityTotal / 60)} t til rådighed` },
-    { title: `${strategy.assignments.length} kalenderaktiviteter`, detail: "Kontrollér den præcise ugeplan før aktivering" },
+    { title: `${daysUntilExam} dage til eksamen`, detail: `${weeksUntilExam} uger til rÃ¥dighed Â· ${draft.bufferDays} bufferdage` },
+    { title: `${pendingLectureCount} forelÃ¦sninger tilbage`, detail: `${selectedLectureCount} valgt Â· ${Math.round(selectedLectureMinutes / 60 * 10) / 10} anslÃ¥ede timer` },
+    { title: `${weeklyCapacityHours} timer i en normal uge`, detail: `${availableStudyDays} aktive studiedage Â· ${draft.excludedDates.length} undtagelser` },
+    { title: `Adaptiv spaced repetition`, detail: `${draft.freezeDays} frosne dage Â· manuelt valgte repetitionsdatoer bevares` },
+    { title: `${strategyRealismLabel} belastning`, detail: `${Math.round(strategy.requiredTotal / 60)} t krÃ¦vet Â· ${Math.round(strategy.capacityTotal / 60)} t til rÃ¥dighed` },
+    { title: `${strategy.assignments.length} kalenderaktiviteter`, detail: "KontrollÃ©r den prÃ¦cise ugeplan fÃ¸r aktivering" },
   ];
   const phaseContext = phaseContexts[step - 1] || phaseContexts[0];
 
@@ -21767,13 +21891,13 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       setUser((previous) => ({ ...previous, module: moduleName }));
       syncPlanToCalendar(planRecord);
       localStorage.removeItem(STORAGE.studyPlanDraft);
-      setSavedNotice(strategy.planningQueueCount ? `Studieplan aktiveret. ${strategy.planningQueueCount} aktivitet${strategy.planningQueueCount === 1 ? "" : "er"} ligger i planlægningskøen.` : "Studieplan aktiveret. Spaced repetition planlægges af dig efter gennemførte forelæsninger.");
+      setSavedNotice(strategy.planningQueueCount ? `Studieplan aktiveret. ${strategy.planningQueueCount} aktivitet${strategy.planningQueueCount === 1 ? "" : "er"} ligger i planlÃ¦gningskÃ¸en.` : "Studieplan aktiveret. Spaced repetition planlÃ¦gges af dig efter gennemfÃ¸rte forelÃ¦sninger.");
       setStep(6);
       onActivated?.(planRecord);
       window.setTimeout(() => setSavedNotice(""), 3500);
     } catch (error) {
       console.error("Kunne ikke gemme og aktivere studieplanen:", error);
-      setValidationMessage("Studieplanen kunne ikke gemmes. Dine ændringer er bevaret — prøv igen.");
+      setValidationMessage("Studieplanen kunne ikke gemmes. Dine Ã¦ndringer er bevaret â€” prÃ¸v igen.");
       setStep(5);
     }
   }
@@ -21805,7 +21929,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     });
     setConfirmClearCalendar(false);
     onCalendarCleared?.();
-    setSavedNotice("Planens genererede aktiviteter er fjernet fra kalenderen. Planen og din forelæsningsprogression er bevaret.");
+    setSavedNotice("Planens genererede aktiviteter er fjernet fra kalenderen. Planen og din forelÃ¦sningsprogression er bevaret.");
     window.setTimeout(() => setSavedNotice(""), 4200);
   }
 
@@ -21829,7 +21953,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     });
     setConfirmResetPlan(false);
     setStep(1);
-    setSavedNotice("Studieplan og forelæsningsprogression er nulstillet. Din Flashkort-progress er bevaret; gennemgå den separat og markér manuelt det, du stadig har styr på.");
+    setSavedNotice("Studieplan og forelÃ¦sningsprogression er nulstillet. Din Flashkort-progress er bevaret; gennemgÃ¥ den separat og markÃ©r manuelt det, du stadig har styr pÃ¥.");
     window.setTimeout(() => setSavedNotice(""), 6500);
   }
 
@@ -21837,41 +21961,41 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   const realismLabel = strategyRealismLabel;
 
   function StepGoal() {
-    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Fastlæg dine faser</h2><p>Stop nyt stof i god tid, så der er plads til repetition, eksamenssæt og buffer.</p><div className="study-plan-v4-fields"><label><span>Eksamensdato</span><input className="ui-control" type="date" min={todayKey} value={draft.examDate} onChange={(event) => update("examDate", event.target.value)} /></label><label><span>Færdig med forelæsninger</span><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={draft.lectureDeadline} onChange={(event) => update("lectureDeadline", event.target.value)} /></label><label><span>Eksamenssæt starter</span><input className="ui-control" type="date" min={draft.lectureDeadline || todayKey} max={draft.examDate} value={draft.examSetStartDate} onChange={(event) => update("examSetStartDate", event.target.value)} /></label><label><span>Buffer før eksamen</span><select className="ui-control" value={draft.bufferDays} onChange={(event) => update("bufferDays", Number(event.target.value))}>{[2,3,4,5,7,10].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label></div></section><PhaseTimeline phases={strategy.phases} /></div>;
+    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>FastlÃ¦g dine faser</h2><p>Stop nyt stof i god tid, sÃ¥ der er plads til repetition, eksamenssÃ¦t og buffer.</p><div className="study-plan-v4-fields"><label><span>Eksamensdato</span><input className="ui-control" type="date" min={todayKey} value={draft.examDate} onChange={(event) => update("examDate", event.target.value)} /></label><label><span>FÃ¦rdig med forelÃ¦sninger</span><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={draft.lectureDeadline} onChange={(event) => update("lectureDeadline", event.target.value)} /></label><label><span>EksamenssÃ¦t starter</span><input className="ui-control" type="date" min={draft.lectureDeadline || todayKey} max={draft.examDate} value={draft.examSetStartDate} onChange={(event) => update("examSetStartDate", event.target.value)} /></label><label><span>Buffer fÃ¸r eksamen</span><select className="ui-control" value={draft.bufferDays} onChange={(event) => update("bufferDays", Number(event.target.value))}>{[2,3,4,5,7,10].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label></div></section><PhaseTimeline phases={strategy.phases} /></div>;
   }
 
   function StepContent() {
     const groups = [...new Set(lectures.map((lecture) => lecture.group || "Andet"))];
-    const difficultyCopy = { easy: "Let", moderate: "Moderat", demanding: "Krævende" };
+    const difficultyCopy = { easy: "Let", moderate: "Moderat", demanding: "KrÃ¦vende" };
     return <div className="study-plan-v4-grid">
       <section className="study-plan-v4-card">
-        <div className="study-plan-v4-card-heading"><div><h2>Vælg pensum</h2><p>Medtag det relevante pensum og markér det, du allerede har gennemgået. Første placering bruger et neutralt startestimat; efter gennemgangen kalibrerer du faktisk tid og Let / Moderat / Krævende til spaced repetition.</p></div><span>{draft.includedLectureIds.length}/{lectures.length}</span></div>
+        <div className="study-plan-v4-card-heading"><div><h2>VÃ¦lg pensum</h2><p>Medtag det relevante pensum og markÃ©r det, du allerede har gennemgÃ¥et. FÃ¸rste placering bruger et neutralt startestimat; efter gennemgangen kalibrerer du faktisk tid og Let / Moderat / KrÃ¦vende til spaced repetition.</p></div><span>{draft.includedLectureIds.length}/{lectures.length}</span></div>
         <div className="study-plan-v4-lecture-list">{groups.map((group) => <div key={group} className="study-plan-v4-lecture-group"><h3>{group}</h3>{lectures.filter((lecture) => (lecture.group || "Andet") === group).map((lecture) => {
           const included = draft.includedLectureIds.includes(lecture.id);
           const difficulty = studyPlanNormalizeLoadLevel(draft.difficulty?.[lecture.id]);
           return <div key={lecture.id} className="study-plan-v4-lecture-row" data-included={included ? "true" : "false"} onContextMenu={(event) => openLectureContext(event, lecture)}>
-            <button type="button" className="study-plan-v4-check" onClick={() => toggleIncluded(lecture.id)} aria-label={included ? "Ekskludér forelæsning" : "Medtag forelæsning"}>{included ? "✓" : ""}</button>
-            <div><strong>{lecture.id} · {lecture.title}</strong><small>{lecture.parts ? `${lecture.parts} dele` : "1 forelæsning"} · startestimat {studyPlanLectureMinutes(lecture, "moderate")} min · kalibreres efter gennemgang</small></div>
-            <label><input type="checkbox" checked={draft.doneLectureIds.includes(lecture.id)} onChange={() => toggleDone(lecture.id)} />Gennemgået</label>
+            <button type="button" className="study-plan-v4-check" onClick={() => toggleIncluded(lecture.id)} aria-label={included ? "EkskludÃ©r forelÃ¦sning" : "Medtag forelÃ¦sning"}>{included ? "âœ“" : ""}</button>
+            <div><strong>{lecture.id} Â· {lecture.title}</strong><small>{lecture.parts ? `${lecture.parts} dele` : "1 forelÃ¦sning"} Â· startestimat {studyPlanLectureMinutes(lecture, "moderate")} min Â· kalibreres efter gennemgang</small></div>
+            <label><input type="checkbox" checked={draft.doneLectureIds.includes(lecture.id)} onChange={() => toggleDone(lecture.id)} />GennemgÃ¥et</label>
             <button type="button" className="study-plan-v4-more" aria-label={`Flere valg for ${lecture.id}`} onClick={(event) => openLectureContext({ preventDefault: () => {}, clientX: event.clientX, clientY: event.clientY }, lecture)}><Icon name="more" size={14} /></button>
           </div>;
         })}</div>)}</div>
       </section>
-      <section className="study-plan-v4-card"><h2>Eksamenssæt</h2><p>Planlæg selve eksamenssættene som konkrete, udelelige blokke. Fejl og markerede spørgsmål håndteres separat i eksamensreview og bliver ikke automatisk til en fast review-session.</p><div className="study-plan-v4-fields"><label><span>Antal sæt</span><input className="ui-control" type="number" min="0" max="30" value={draft.examSetCount} onChange={(event) => update("examSetCount", Number(event.target.value))} /></label><label><span>Tid til hvert sæt</span><select className="ui-control" value={draft.examSetMinutes} onChange={(event) => update("examSetMinutes", Number(event.target.value))}>{[60,90,120,180].map((value) => <option key={value} value={value}>{value} min</option>)}</select></label></div><div className="study-plan-v4-note">En 120-minutters simulation kræver en studiedag med mindst 120 minutters reel kapacitet. Den skjulte review-reserve reducerer ikke længere din dag.</div></section>
+      <section className="study-plan-v4-card"><h2>EksamenssÃ¦t</h2><p>PlanlÃ¦g selve eksamenssÃ¦ttene som konkrete, udelelige blokke. Fejl og markerede spÃ¸rgsmÃ¥l hÃ¥ndteres separat i eksamensreview og bliver ikke automatisk til en fast review-session.</p><div className="study-plan-v4-fields"><label><span>Antal sÃ¦t</span><input className="ui-control" type="number" min="0" max="30" value={draft.examSetCount} onChange={(event) => update("examSetCount", Number(event.target.value))} /></label><label><span>Tid til hvert sÃ¦t</span><select className="ui-control" value={draft.examSetMinutes} onChange={(event) => update("examSetMinutes", Number(event.target.value))}>{[60,90,120,180].map((value) => <option key={value} value={value}>{value} min</option>)}</select></label></div><div className="study-plan-v4-note">En 120-minutters simulation krÃ¦ver en studiedag med mindst 120 minutters reel kapacitet. Den skjulte review-reserve reducerer ikke lÃ¦ngere din dag.</div></section>
     </div>;
   }
 
   function StepCapacity() {
-    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Din normale uge</h2><p>Angiv realistisk studiekapacitet. Planen bruger det til fordelingen, men klokkeslættet vælges først på dagen.</p><div className="study-plan-v4-week-grid">{days.map((label, dayIndex) => <label key={dayIndex}><span>{label}</span><input type="number" min="0" max="12" step=".5" value={draft.weekdayHours[dayIndex] ?? 0} onChange={(event) => update("weekdayHours", { ...draft.weekdayHours, [dayIndex]: Number(event.target.value) })} /><small>timer</small></label>)}</div><label className="study-plan-v4-inline-field"><span>Maks. forelæsninger pr. dag</span><input className="ui-control" type="number" min="1" max="8" value={draft.maxLecturesPerDay} onChange={(event) => update("maxLecturesPerDay", Number(event.target.value))} /></label></section><section className="study-plan-v4-card"><h2>Undtagelsesdage</h2><div className="study-plan-v4-add-date"><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={exceptionDate} onChange={(event) => setExceptionDate(event.target.value)} /><button type="button" className="ui-button ui-button--secondary" onClick={addException}>Tilføj</button></div><div className="study-plan-v4-date-chips">{draft.excludedDates.length ? draft.excludedDates.map((date) => <button key={date} type="button" onClick={() => update("excludedDates", draft.excludedDates.filter((item) => item !== date))}>{new Date(`${date}T00:00:00`).toLocaleDateString(locale)} ×</button>) : <span>Ingen undtagelser.</span>}</div></section></div>;
+    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Din normale uge</h2><p>Angiv realistisk studiekapacitet. Planen bruger det til fordelingen, men klokkeslÃ¦ttet vÃ¦lges fÃ¸rst pÃ¥ dagen.</p><div className="study-plan-v4-week-grid">{days.map((label, dayIndex) => <label key={dayIndex}><span>{label}</span><input type="number" min="0" max="12" step=".5" value={draft.weekdayHours[dayIndex] ?? 0} onChange={(event) => update("weekdayHours", { ...draft.weekdayHours, [dayIndex]: Number(event.target.value) })} /><small>timer</small></label>)}</div><label className="study-plan-v4-inline-field"><span>Maks. forelÃ¦sninger pr. dag</span><input className="ui-control" type="number" min="1" max="8" value={draft.maxLecturesPerDay} onChange={(event) => update("maxLecturesPerDay", Number(event.target.value))} /></label></section><section className="study-plan-v4-card"><h2>Undtagelsesdage</h2><div className="study-plan-v4-add-date"><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={exceptionDate} onChange={(event) => setExceptionDate(event.target.value)} /><button type="button" className="ui-button ui-button--secondary" onClick={addException}>TilfÃ¸j</button></div><div className="study-plan-v4-date-chips">{draft.excludedDates.length ? draft.excludedDates.map((date) => <button key={date} type="button" onClick={() => update("excludedDates", draft.excludedDates.filter((item) => item !== date))}>{new Date(`${date}T00:00:00`).toLocaleDateString(locale)} Ã—</button>) : <span>Ingen undtagelser.</span>}</div></section></div>;
   }
 
   function StepStrategy() {
     return <div className="study-plan-v4-grid">
-      <section className="study-plan-v4-card"><h2>Planadfærd</h2><p>Vælg kun den adfærd, du normalt vil mærke i hverdagen. Tekniske regler ligger under avanceret.</p><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard, hvis noget ikke bliver gjort?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label></div><details className="study-plan-v4-advanced-settings"><summary><span><strong>Avancerede indstillinger</strong><small>Frysegrænse og beskyttelse af manuelle valg</small></span><Icon name="down" size={12} /></summary><div className="study-plan-v4-choice-list"><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer og spaced-repetition-datoer, du selv har valgt, overskrives ikke af regenerering.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></details></section>
+      <section className="study-plan-v4-card"><h2>PlanadfÃ¦rd</h2><p>VÃ¦lg kun den adfÃ¦rd, du normalt vil mÃ¦rke i hverdagen. Tekniske regler ligger under avanceret.</p><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal vÃ¦re standard, hvis noget ikke bliver gjort?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">SpÃ¸rg altid</option><option value="next-capacity">NÃ¦ste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label></div><details className="study-plan-v4-advanced-settings"><summary><span><strong>Avancerede indstillinger</strong><small>FrysegrÃ¦nse og beskyttelse af manuelle valg</small></span><Icon name="down" size={12} /></summary><div className="study-plan-v4-choice-list"><label><span><strong>FrysegrÃ¦nse</strong><small>NÃ¦rmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer og spaced-repetition-datoer, du selv har valgt, overskrives ikke af regenerering.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></details></section>
       <section className="study-plan-v4-card study-plan-v4-flashcard-card">
-        <div className="study-plan-v4-card-heading"><div><h2>Spaced repetition</h2><p>Forelæsninger får først en repetitionsplan, når du har gennemført dem og selv vurderet belastningen.</p></div><span>Brugerstyret</span></div>
-        <div className="study-plan-v4-review-modes"><strong>Sådan fungerer det</strong><div><span>Faktisk tidsforbrug</span><span>Let</span><span>Moderat</span><span>Krævende</span></div><small>MedFLUEN anbefaler interval og varighed ud fra din vurdering og eksamensdatoen. Du bestemmer altid den endelige dato.</small></div>
-        <div className="study-plan-v4-note">MCQ/flashcards fortsætter separat med FSRS og ændres ikke af Studieplan.</div>
+        <div className="study-plan-v4-card-heading"><div><h2>Spaced repetition</h2><p>ForelÃ¦sninger fÃ¥r fÃ¸rst en repetitionsplan, nÃ¥r du har gennemfÃ¸rt dem og selv vurderet belastningen.</p></div><span>Brugerstyret</span></div>
+        <div className="study-plan-v4-review-modes"><strong>SÃ¥dan fungerer det</strong><div><span>Faktisk tidsforbrug</span><span>Let</span><span>Moderat</span><span>KrÃ¦vende</span></div><small>MedFLUEN anbefaler interval og varighed ud fra din vurdering og eksamensdatoen. Du bestemmer altid den endelige dato.</small></div>
+        <div className="study-plan-v4-note">MCQ/flashcards fortsÃ¦tter separat med FSRS og Ã¦ndres ikke af Studieplan.</div>
       </section>
     </div>;
   }
@@ -21880,20 +22004,20 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   function StepPreview() {
     const maxWeekly = Math.max(1, ...strategy.weeklyLoads.map((week) => week.minutes));
     const distributionOptions = [
-      { value: "even", label: "Mest jævnt", detail: "Fordeler timerne så ens som muligt" },
-      { value: "balanced", label: "Efter kapacitet", detail: "Tager højde for dine forskellige ugedage" },
-      { value: "early", label: "Tidligt fokus", detail: "Lægger mere arbejde tidligt og skaber luft senere" },
+      { value: "even", label: "Mest jÃ¦vnt", detail: "Fordeler timerne sÃ¥ ens som muligt" },
+      { value: "balanced", label: "Efter kapacitet", detail: "Tager hÃ¸jde for dine forskellige ugedage" },
+      { value: "early", label: "Tidligt fokus", detail: "LÃ¦gger mere arbejde tidligt og skaber luft senere" },
     ];
     return <div className="study-plan-v4-preview">
-      <div className="study-plan-v4-preview-top"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Din eksamensstrategi</h2><p>{strategy.pendingCount} resterende forelæsninger, {draft.examSetCount} eksamenssæt og {draft.bufferDays} bufferdage.</p></div><div className="study-plan-v4-capacity"><strong>{Math.round(strategy.requiredTotal / 60)} t</strong><span>samlet planbelastning</span><small>{Math.round(strategy.capacityTotal / 60)} t tilgængelig plan-kapacitet</small></div></div>
+      <div className="study-plan-v4-preview-top"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Din eksamensstrategi</h2><p>{strategy.pendingCount} resterende forelÃ¦sninger, {draft.examSetCount} eksamenssÃ¦t og {draft.bufferDays} bufferdage.</p></div><div className="study-plan-v4-capacity"><strong>{Math.round(strategy.requiredTotal / 60)} t</strong><span>samlet planbelastning</span><small>{Math.round(strategy.capacityTotal / 60)} t tilgÃ¦ngelig plan-kapacitet</small></div></div>
       <PhaseTimeline phases={strategy.phases} />
-      <section className="study-plan-v4-card study-plan-v4-load-card"><div className="study-plan-v4-card-heading"><div><h2>Ugebelastning</h2><p>Vælg hvordan arbejdsbyrden skal fordeles. Planen opdateres med det samme.</p></div></div><div className="study-plan-v4-distribution-control">{distributionOptions.map((option) => <button key={option.value} type="button" data-active={draft.distributionMode === option.value ? "true" : "false"} onClick={() => update("distributionMode", option.value)}><strong>{option.label}</strong><small>{option.detail}</small></button>)}</div><div className="study-plan-v4-week-bars">{strategy.weeklyLoads.map((week) => { const weekNumber = studyPlanIsoWeekNumber(week.weekStart); return <div key={week.weekStart}><span>Uge {weekNumber ?? "—"}</span><div><i style={{ width: `${Math.max(3, (week.minutes / maxWeekly) * 100)}%` }} /></div><strong>{Math.round(week.minutes / 60 * 10) / 10} t</strong></div>; })}</div></section>
-      <section className="study-plan-v4-card"><h2>Kritisk kontrol</h2>{strategy.issues.length || strategy.warnings?.length ? <div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div> : <div className="study-plan-v4-success"><Icon name="check" size={15} />Planen har plads til alle aktiviteter.</div>}<div className="study-plan-v4-suggestions"><strong>Mulige justeringer</strong><span>Skift belastningsfordeling ovenfor, flyt forelæsningsfristen, øg timer på enkelte ugedage eller reducer antal eksamenssæt.</span></div></section>
-      {existing && <section className="study-plan-v4-card"><h2>Ved opdatering</h2><div className="study-plan-v4-change-grid"><span><b>{strategy.assignments.length}</b> fremtidige planobjekter</span><span><b>{draft.doneLectureIds.length}</b> gennemførte bevares</span><span><b>{draft.preserveManualTimes ? "Ja" : "Nej"}</b> bevar manuelle tider</span><span><b>{draft.freezeDays}</b> frosne dage</span></div></section>}
+      <section className="study-plan-v4-card study-plan-v4-load-card"><div className="study-plan-v4-card-heading"><div><h2>Ugebelastning</h2><p>VÃ¦lg hvordan arbejdsbyrden skal fordeles. Planen opdateres med det samme.</p></div></div><div className="study-plan-v4-distribution-control">{distributionOptions.map((option) => <button key={option.value} type="button" data-active={draft.distributionMode === option.value ? "true" : "false"} onClick={() => update("distributionMode", option.value)}><strong>{option.label}</strong><small>{option.detail}</small></button>)}</div><div className="study-plan-v4-week-bars">{strategy.weeklyLoads.map((week) => { const weekNumber = studyPlanIsoWeekNumber(week.weekStart); return <div key={week.weekStart}><span>Uge {weekNumber ?? "â€”"}</span><div><i style={{ width: `${Math.max(3, (week.minutes / maxWeekly) * 100)}%` }} /></div><strong>{Math.round(week.minutes / 60 * 10) / 10} t</strong></div>; })}</div></section>
+      <section className="study-plan-v4-card"><h2>Kritisk kontrol</h2>{strategy.issues.length || strategy.warnings?.length ? <div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div> : <div className="study-plan-v4-success"><Icon name="check" size={15} />Planen har plads til alle aktiviteter.</div>}<div className="study-plan-v4-suggestions"><strong>Mulige justeringer</strong><span>Skift belastningsfordeling ovenfor, flyt forelÃ¦sningsfristen, Ã¸g timer pÃ¥ enkelte ugedage eller reducer antal eksamenssÃ¦t.</span></div></section>
+      {existing && <section className="study-plan-v4-card"><h2>Ved opdatering</h2><div className="study-plan-v4-change-grid"><span><b>{strategy.assignments.length}</b> fremtidige planobjekter</span><span><b>{draft.doneLectureIds.length}</b> gennemfÃ¸rte bevares</span><span><b>{draft.preserveManualTimes ? "Ja" : "Nej"}</b> bevar manuelle tider</span><span><b>{draft.freezeDays}</b> frosne dage</span></div></section>}
     </div>;
   }
 
-  function PhaseTimeline({ phases }) { return <section className="study-plan-v4-card study-plan-v4-phase-card"><div className="study-plan-v4-card-heading"><div><h2>Faseplan</h2><p>Nyt stof stopper ved din valgte frist.</p></div></div><div className="study-plan-v4-phases">{phases.map((phase) => <div key={phase.id} style={{ "--phase-tone": phase.tone }}><i /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })} – {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}</small></span></div>)}</div></section>; }
+  function PhaseTimeline({ phases }) { return <section className="study-plan-v4-card study-plan-v4-phase-card"><div className="study-plan-v4-card-heading"><div><h2>Faseplan</h2><p>Nyt stof stopper ved din valgte frist.</p></div></div><div className="study-plan-v4-phases">{phases.map((phase) => <div key={phase.id} style={{ "--phase-tone": phase.tone }}><i /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })} â€“ {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}</small></span></div>)}</div></section>; }
 
   function StepActivate() {
     const counts = strategy.assignments.reduce((result, item) => ({ ...result, [item.phase]: (result[item.phase] || 0) + 1 }), {});
@@ -21904,24 +22028,24 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       return groups;
     }, {});
     const weekRows = Object.entries(assignmentsByWeek).sort(([a], [b]) => a.localeCompare(b));
-    const missedCopy = draft.missedPolicy === "ask" ? "Spørg altid" : draft.missedPolicy === "buffer" ? "Flyt til buffer" : draft.missedPolicy === "next-capacity" ? "Næste dag med kapacitet" : "Behold forsinket";
+    const missedCopy = draft.missedPolicy === "ask" ? "SpÃ¸rg altid" : draft.missedPolicy === "buffer" ? "Flyt til buffer" : draft.missedPolicy === "next-capacity" ? "NÃ¦ste dag med kapacitet" : "Behold forsinket";
     return <div className="study-plan-v4-activate study-plan-v4-activate-detailed">
-      <section className="study-plan-v4-card study-plan-v4-final-summary"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Kontrollér din samlede plan</h2><p>Kalenderen viser hver forelæsning én gang. Opfølgning og eventuelle oversprungne forelæsninger samles i forelæsningscounteren i stedet for at skabe dubletter.</p></div><div className="study-plan-v4-final-numbers"><span><b>{counts.lecture || 0}</b> forelæsninger</span><span><b>{selectedLectureCount}</b> følges i counteren</span><span><b>{counts.exam || 0}</b> eksamenssæt</span><span><b>{strategy.planningQueueCount || 0}</b> i planlægningskø</span></div></section>
+      <section className="study-plan-v4-card study-plan-v4-final-summary"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>KontrollÃ©r din samlede plan</h2><p>Kalenderen viser hver forelÃ¦sning Ã©n gang. OpfÃ¸lgning og eventuelle oversprungne forelÃ¦sninger samles i forelÃ¦sningscounteren i stedet for at skabe dubletter.</p></div><div className="study-plan-v4-final-numbers"><span><b>{counts.lecture || 0}</b> forelÃ¦sninger</span><span><b>{selectedLectureCount}</b> fÃ¸lges i counteren</span><span><b>{counts.exam || 0}</b> eksamenssÃ¦t</span><span><b>{strategy.planningQueueCount || 0}</b> i planlÃ¦gningskÃ¸</span></div></section>
       <div className="study-plan-v4-final-grid">
-        <section className="study-plan-v4-card"><h2>Nøgledatoer og regler</h2><div className="study-plan-v4-final-detail-list"><span><b>Planstart</b><small>{new Date().toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Færdig med forelæsninger</b><small>{new Date(`${draft.lectureDeadline}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamenssæt starter</b><small>{new Date(`${draft.examSetStartDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamen</b><small>{new Date(`${draft.examDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Missede aktiviteter</b><small>{missedCopy}</small></span><span><b>Flashkort</b><small>Planlægges separat og ændres ikke, når studieplanen nulstilles</small></span><span><b>Manuelle tider</b><small>{draft.preserveManualTimes ? "Bevares ved senere opdateringer" : "Må omfordeles"}</small></span></div></section>
-        <section className="study-plan-v4-card"><h2>Faseoverblik</h2><div className="study-plan-v4-final-phase-list">{strategy.phases.map((phase) => <div key={phase.id}><i style={{ background: phase.tone }} /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })} – {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })}</small></span></div>)}</div></section>
+        <section className="study-plan-v4-card"><h2>NÃ¸gledatoer og regler</h2><div className="study-plan-v4-final-detail-list"><span><b>Planstart</b><small>{new Date().toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>FÃ¦rdig med forelÃ¦sninger</b><small>{new Date(`${draft.lectureDeadline}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>EksamenssÃ¦t starter</b><small>{new Date(`${draft.examSetStartDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamen</b><small>{new Date(`${draft.examDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Missede aktiviteter</b><small>{missedCopy}</small></span><span><b>Flashkort</b><small>PlanlÃ¦gges separat og Ã¦ndres ikke, nÃ¥r studieplanen nulstilles</small></span><span><b>Manuelle tider</b><small>{draft.preserveManualTimes ? "Bevares ved senere opdateringer" : "MÃ¥ omfordeles"}</small></span></div></section>
+        <section className="study-plan-v4-card"><h2>Faseoverblik</h2><div className="study-plan-v4-final-phase-list">{strategy.phases.map((phase) => <div key={phase.id}><i style={{ background: phase.tone }} /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })} â€“ {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })}</small></span></div>)}</div></section>
       </div>
-      <section className="study-plan-v4-card study-plan-v4-week-overview"><div className="study-plan-v4-card-heading"><div><h2>Plan uge for uge</h2><p>En konkret oversigt over de aktiviteter, der bliver oprettet.</p></div><span>{strategy.assignments.length} aktiviteter</span></div><div>{weekRows.map(([weekStart, assignments]) => { const weekNumber = studyPlanIsoWeekNumber(weekStart); const sorted = [...assignments].sort((a,b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title)); return <article key={weekStart}><header><strong>Uge {weekNumber ?? "—"}</strong><small>{sorted.length} aktiviteter · {Math.round(sorted.reduce((sum,item)=>sum+(item.loadMinutes||0),0)/60*10)/10} t</small></header><div>{sorted.map((item) => <span key={item.id}><time>{new Date(`${item.date}T00:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}</time><b>{item.title}</b><small>{Math.round((item.loadMinutes || 0) / 15) * 15} min · {item.phase === "lecture" ? "Forelæsning" : item.phase === "consolidation" ? "Repetition" : item.phase === "exam" ? "Eksamenssæt" : "Fokusblok"}</small></span>)}</div></article>; })}</div></section>
-      {(strategy.issues.length > 0 || strategy.warnings?.length > 0) && <section className="study-plan-v4-card"><h2>Kontrollér før aktivering</h2><div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div>{strategy.planningQueueCount > 0 && <div className="study-plan-v4-note">Du kan stadig aktivere planen. Uplacerede aktiviteter bliver liggende i planlægningskøen, så du kan placere dem manuelt.</div>}</section>}
+      <section className="study-plan-v4-card study-plan-v4-week-overview"><div className="study-plan-v4-card-heading"><div><h2>Plan uge for uge</h2><p>En konkret oversigt over de aktiviteter, der bliver oprettet.</p></div><span>{strategy.assignments.length} aktiviteter</span></div><div>{weekRows.map(([weekStart, assignments]) => { const weekNumber = studyPlanIsoWeekNumber(weekStart); const sorted = [...assignments].sort((a,b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title)); return <article key={weekStart}><header><strong>Uge {weekNumber ?? "â€”"}</strong><small>{sorted.length} aktiviteter Â· {Math.round(sorted.reduce((sum,item)=>sum+(item.loadMinutes||0),0)/60*10)/10} t</small></header><div>{sorted.map((item) => <span key={item.id}><time>{new Date(`${item.date}T00:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}</time><b>{item.title}</b><small>{Math.round((item.loadMinutes || 0) / 15) * 15} min Â· {item.phase === "lecture" ? "ForelÃ¦sning" : item.phase === "consolidation" ? "Repetition" : item.phase === "exam" ? "EksamenssÃ¦t" : "Fokusblok"}</small></span>)}</div></article>; })}</div></section>
+      {(strategy.issues.length > 0 || strategy.warnings?.length > 0) && <section className="study-plan-v4-card"><h2>KontrollÃ©r fÃ¸r aktivering</h2><div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div>{strategy.planningQueueCount > 0 && <div className="study-plan-v4-note">Du kan stadig aktivere planen. Uplacerede aktiviteter bliver liggende i planlÃ¦gningskÃ¸en, sÃ¥ du kan placere dem manuelt.</div>}</section>}
     </div>;
   }
 
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan Â· 6.8.2</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
-        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
+        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "âœ“" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrÃ¦nser", "Pensum og eksamenssÃ¦t", "Ugekapacitet og fridage", "Repetition og planadfÃ¦rd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
           <div key={step} className="study-plan-v4-step" data-direction={direction}>
             <div className="study-plan-v4-step-context" data-valid={stepValidation.ok ? "true" : "false"}>
@@ -21937,11 +22061,11 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
             </div>
             {stepContent}
           </div>
-          <footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(true)}>{copy.clearCalendar}</button>}{existing && <button type="button" className="ui-button ui-button--danger" onClick={() => setConfirmResetPlan(true)}>{copy.resetPlan}</button>}</div><div>{validationMessage && <span className="study-plan-v4-validation" role="alert">{validationMessage}</span>}{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={step === 5 && !strategy.valid} data-valid={canContinue ? "true" : "false"} onClick={requestNextStep}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
+          <footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(true)}>{copy.clearCalendar}</button>}{existing && <button type="button" className="ui-button ui-button--danger" onClick={() => setConfirmResetPlan(true)}>{copy.resetPlan}</button>}</div><div>{validationMessage && <span className="study-plan-v4-validation" role="alert">{validationMessage}</span>}{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={step === 5 && !strategy.valid} data-valid={canContinue ? "true" : "false"} onClick={requestNextStep}>{step === 5 ? "GÃ¥ til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
       </div>
-      {lectureContext && <div className="study-plan-v4-context" style={{ left: lectureContext.x, top: lectureContext.y }} onPointerDown={(event) => event.stopPropagation()}><strong>{lectureContext.lecture.id} · {lectureContext.lecture.title}</strong><button type="button" onClick={() => runLectureContext("priority")}>Prioritér tidligere</button><button type="button" onClick={() => runLectureContext("done")}>{draft.doneLectureIds.includes(lectureContext.lecture.id) ? "Fortryd gennemgået" : "Markér gennemgået"}</button><button type="button" onClick={() => runLectureContext("include")}>{draft.includedLectureIds.includes(lectureContext.lecture.id) ? "Ekskludér fra planen" : "Medtag i planen"}</button></div>}
-      {confirmClearCalendar && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Fjern planaktiviteter fra kalenderen?</h2><p>Kun de genererede aktiviteter fra studieplanen for {moduleName} fjernes fra den fælles kalender. Planens indstillinger, counter og forelæsningsstatus bevares.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={clearStudyPlanCalendar}>Fjern aktiviteter</button></div></div></div>}
-      {confirmResetPlan && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Nulstil studieplan?</h2><p>Studieplan, genererede kalenderaktiviteter, forelæsningscounter og din læst-status nulstilles for {moduleName}. Flashkort-progress og repetitionshistorik slettes ikke.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmResetPlan(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={resetStudyPlan}>Nulstil studieplan</button></div></div></div>}
+      {lectureContext && <div className="study-plan-v4-context" style={{ left: lectureContext.x, top: lectureContext.y }} onPointerDown={(event) => event.stopPropagation()}><strong>{lectureContext.lecture.id} Â· {lectureContext.lecture.title}</strong><button type="button" onClick={() => runLectureContext("priority")}>PrioritÃ©r tidligere</button><button type="button" onClick={() => runLectureContext("done")}>{draft.doneLectureIds.includes(lectureContext.lecture.id) ? "Fortryd gennemgÃ¥et" : "MarkÃ©r gennemgÃ¥et"}</button><button type="button" onClick={() => runLectureContext("include")}>{draft.includedLectureIds.includes(lectureContext.lecture.id) ? "EkskludÃ©r fra planen" : "Medtag i planen"}</button></div>}
+      {confirmClearCalendar && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Fjern planaktiviteter fra kalenderen?</h2><p>Kun de genererede aktiviteter fra studieplanen for {moduleName} fjernes fra den fÃ¦lles kalender. Planens indstillinger, counter og forelÃ¦sningsstatus bevares.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={clearStudyPlanCalendar}>Fjern aktiviteter</button></div></div></div>}
+      {confirmResetPlan && <div className="ui-modal-backdrop study-plan-v4-modal"><div className="ui-modal-surface"><h2>Nulstil studieplan?</h2><p>Studieplan, genererede kalenderaktiviteter, forelÃ¦sningscounter og din lÃ¦st-status nulstilles for {moduleName}. Flashkort-progress og repetitionshistorik slettes ikke.</p><div><button className="ui-button ui-button--ghost" onClick={() => setConfirmResetPlan(false)}>Annuller</button><button className="ui-button ui-button--danger" onClick={resetStudyPlan}>Nulstil studieplan</button></div></div></div>}
     </div>
   );
 }
@@ -21992,7 +22116,7 @@ function studyPlanLectureRepetitionCalendarEvent(repetition, lecture) {
   const endFields = time ? calendarEndFields(date, timeToMinutes(time) || 0, duration) : { endDate: date, endTime: "" };
   const eventId = repetition?.calendarEventId || studyPlanLectureRepetitionCalendarEventId(repetition?.moduleName || "module", repetition?.id || "pending");
   return {
-    id: eventId, title: `Spaced repetition · ${lecture ? `${lecture.id} · ${lecture.title}` : repetition?.lectureId || "Forelæsning"}`, date, time, ...endFields,
+    id: eventId, title: `Spaced repetition Â· ${lecture ? `${lecture.id} Â· ${lecture.title}` : repetition?.lectureId || "ForelÃ¦sning"}`, date, time, ...endFields,
     type: "review", source: "study-plan", planModuleId: repetition?.moduleName || null, lectureId: repetition?.lectureId || null, lectureIds: repetition?.lectureId ? [repetition.lectureId] : [],
     activityKind: STUDY_PLAN_ACTIVITY_KINDS.REPETITION, phase: "lecture-repetition", repetitionId: repetition?.id || null, repetitionSequence: repetition?.sequenceNumber || 1,
     recommendedIntervalDays: repetition?.recommendedIntervalDays || null, chosenIntervalDays: repetition?.chosenIntervalDays || null, plannedMinutes: duration, loadRating: repetition?.loadRating || null, actualMinutes: repetition?.actualMinutes || null,
@@ -22005,30 +22129,30 @@ function studyPlanWorkspaceCopy(language) {
     da: {
       title: "Studieplan", eyebrow: "Personligt studie-workspace", activePlan: "Plan aktiv", noPlan: "Ingen aktiv plan",
       overview: "Overblik", review: "Spaced repetition", builder: "Planbygger",
-      overviewIntro: "Planlæg dit arbejde, styr spaced repetition og se det vigtigste uden at duplikere kalenderen.",
-      nextFocus: "Næste fokus", noNextFocus: "Ingen planlagt aktivitet endnu", noNextFocusHint: "Planlæg et review eller aktivér din plan for at få næste fokus her.",
-      openCalendar: "Åbn fuld kalender", openReview: "Åbn Spaced repetition", openBuilder: "Åbn Planbygger",
-      attention: "Kræver din opmærksomhed", thisWeek: "Denne uge", reviewNeeds: "Review-behov", planTasks: "Planopgaver",
-      unplanned: "Skal planlægges", planned: "Planlagt", completed: "Gennemført", revisit: "Skal ses igen", all: "Alle",
-      activeBacklog: "Aktiv review-backlog", addBacklog: "Send aktiv backlog til studieplan", backlogAdded: "Backlog er tilføjet til studieplanen.", simulations: "Eksamenssimulationer", planSimulation: "Tilføj simulation", simulationPlanned: "Simulation i studieplanen",
-      noReviewNeeds: "Ingen review-behov venter", noReviewNeedsHint: "Aktive fejl og markerede spørgsmål vises her, når de findes i Fejl & review.",
-      noTasks: "Ingen planopgaver i denne visning", noTasksHint: "Send et spørgsmål, en forelæsningsgruppe eller hele backloggen til studieplanen.",
-      mappedLecture: "Relateret forelæsning", mappedTopic: "Relateret emne", unmapped: "Ikke mappet til pensum endnu",
-      questions: "spørgsmål", questionSingular: "Spørgsmål", singleQuestions: "Enkeltspørgsmål", examSetLabel: "Eksamenssæt", errors: "fejl", minutes: "min", examReviewLabel: "Eksamensreview", lectureLabel: "Forelæsning", studyActivityLabel: "Studieaktivitet", hoursPerWeek: "timer / uge", lecturesLabel: "forelæsninger", sendGroup: "Tilføj review", sendQuestion: "Send til studieplan",
-      covered: "Dækket af eksisterende aktivitet", partialCovered: "Nogle spørgsmål er allerede dækket", openQuestions: "Åbn spørgsmål",
-      planTask: "Planlæg", placeWithPlan: "Placér med aktiv plan", openTask: "Detaljer", markComplete: "Markér gennemført", reopen: "Genåbn",
-      scheduleTitle: "Planlæg review", scheduleDate: "Dato", scheduleTime: "Tidspunkt", scheduleTimeHint: "Lad tidspunktet være tomt, hvis du kun vil vælge studiedag.",
-      cancel: "Annuller", saveSchedule: "Gem placering", scheduling: "Gemmer…", loadError: "Kunne ikke hente studieplansintegration", setupMissing: "Segment 6.8-databasen mangler",
-      setupMissingHint: "Kør segment_6_8_studyplan_integration.sql i Supabase. Planbygger og eksisterende kalenderdata er stadig bevaret.",
-      refreshing: "Henter review og planopgaver…", taskAdded: "Tilføjet til studieplanen", taskAlreadyCovered: "Spørgsmålet er allerede dækket af en planopgave.",
-      taskError: "Kunne ikke opdatere studieplanen", week: "Uge", month: "Måned", agenda: "Agenda", today: "I dag",
-      previous: "Forrige", next: "Næste", notPlaced: "Ikke placeret",       builderContext: "Planbyggeren bruger din faktiske kapacitet", builderContextHint: "Manuelt valgte spaced-repetition-datoer reserverer rigtige minutter. Planen fylder resten uden skjulte review-reserver.",
-      planInactiveHint: "Aktivér en plan for at kunne placere review-opgaver efter din ugekapacitet.",
-      taskDetail: "Planopgave", source: "Kilde", linkedItems: "Tilknyttede reviewspørgsmål", scheduledFor: "Planlagt til", status: "Status",
+      overviewIntro: "PlanlÃ¦g dit arbejde, styr spaced repetition og se det vigtigste uden at duplikere kalenderen.",
+      nextFocus: "NÃ¦ste fokus", noNextFocus: "Ingen planlagt aktivitet endnu", noNextFocusHint: "PlanlÃ¦g et review eller aktivÃ©r din plan for at fÃ¥ nÃ¦ste fokus her.",
+      openCalendar: "Ã…bn fuld kalender", openReview: "Ã…bn Spaced repetition", openBuilder: "Ã…bn Planbygger",
+      attention: "KrÃ¦ver din opmÃ¦rksomhed", thisWeek: "Denne uge", reviewNeeds: "Review-behov", planTasks: "Planopgaver",
+      unplanned: "Skal planlÃ¦gges", planned: "Planlagt", completed: "GennemfÃ¸rt", revisit: "Skal ses igen", all: "Alle",
+      activeBacklog: "Aktiv review-backlog", addBacklog: "Send aktiv backlog til studieplan", backlogAdded: "Backlog er tilfÃ¸jet til studieplanen.", simulations: "Eksamenssimulationer", planSimulation: "TilfÃ¸j simulation", simulationPlanned: "Simulation i studieplanen",
+      noReviewNeeds: "Ingen review-behov venter", noReviewNeedsHint: "Aktive fejl og markerede spÃ¸rgsmÃ¥l vises her, nÃ¥r de findes i Fejl & review.",
+      noTasks: "Ingen planopgaver i denne visning", noTasksHint: "Send et spÃ¸rgsmÃ¥l, en forelÃ¦sningsgruppe eller hele backloggen til studieplanen.",
+      mappedLecture: "Relateret forelÃ¦sning", mappedTopic: "Relateret emne", unmapped: "Ikke mappet til pensum endnu",
+      questions: "spÃ¸rgsmÃ¥l", questionSingular: "SpÃ¸rgsmÃ¥l", singleQuestions: "EnkeltspÃ¸rgsmÃ¥l", examSetLabel: "EksamenssÃ¦t", errors: "fejl", minutes: "min", examReviewLabel: "Eksamensreview", lectureLabel: "ForelÃ¦sning", studyActivityLabel: "Studieaktivitet", hoursPerWeek: "timer / uge", lecturesLabel: "forelÃ¦sninger", sendGroup: "TilfÃ¸j review", sendQuestion: "Send til studieplan",
+      covered: "DÃ¦kket af eksisterende aktivitet", partialCovered: "Nogle spÃ¸rgsmÃ¥l er allerede dÃ¦kket", openQuestions: "Ã…bn spÃ¸rgsmÃ¥l",
+      planTask: "PlanlÃ¦g", placeWithPlan: "PlacÃ©r med aktiv plan", openTask: "Detaljer", markComplete: "MarkÃ©r gennemfÃ¸rt", reopen: "GenÃ¥bn",
+      scheduleTitle: "PlanlÃ¦g review", scheduleDate: "Dato", scheduleTime: "Tidspunkt", scheduleTimeHint: "Lad tidspunktet vÃ¦re tomt, hvis du kun vil vÃ¦lge studiedag.",
+      cancel: "Annuller", saveSchedule: "Gem placering", scheduling: "Gemmerâ€¦", loadError: "Kunne ikke hente studieplansintegration", setupMissing: "Segment 6.8-databasen mangler",
+      setupMissingHint: "KÃ¸r segment_6_8_studyplan_integration.sql i Supabase. Planbygger og eksisterende kalenderdata er stadig bevaret.",
+      refreshing: "Henter review og planopgaverâ€¦", taskAdded: "TilfÃ¸jet til studieplanen", taskAlreadyCovered: "SpÃ¸rgsmÃ¥let er allerede dÃ¦kket af en planopgave.",
+      taskError: "Kunne ikke opdatere studieplanen", week: "Uge", month: "MÃ¥ned", agenda: "Agenda", today: "I dag",
+      previous: "Forrige", next: "NÃ¦ste", notPlaced: "Ikke placeret",       builderContext: "Planbyggeren bruger din faktiske kapacitet", builderContextHint: "Manuelt valgte spaced-repetition-datoer reserverer rigtige minutter. Planen fylder resten uden skjulte review-reserver.",
+      planInactiveHint: "AktivÃ©r en plan for at kunne placere review-opgaver efter din ugekapacitet.",
+      taskDetail: "Planopgave", source: "Kilde", linkedItems: "Tilknyttede reviewspÃ¸rgsmÃ¥l", scheduledFor: "Planlagt til", status: "Status",
       close: "Luk", overdue: "forfalden", reviewsWaiting: "reviews mangler placering", activitiesThisWeek: "aktiviteter denne uge",
       daysToExam: "dage til eksamen", noExamDate: "Eksamensdato ikke sat", planLoad: "Planbelastning", generatedPlan: "Aktiv studieplan",
       inboxCount: "review-opgaver venter", weekLoadEmpty: "Ingen studieplansaktiviteter denne uge.", saveFailed: "Placeringen kunne ikke gemmes.",
-      completionFailed: "Status kunne ikke synkroniseres med Fejl & review.", autoPlaced: "Reviewet er placeret på en studiedag. Vælg klokkeslæt i kalenderen, når det passer.",
+      completionFailed: "Status kunne ikke synkroniseres med Fejl & review.", autoPlaced: "Reviewet er placeret pÃ¥ en studiedag. VÃ¦lg klokkeslÃ¦t i kalenderen, nÃ¥r det passer.",
     },
     en: {
       title: "Study plan", eyebrow: "Personal study workspace", activePlan: "Plan active", noPlan: "No active plan",
@@ -22044,8 +22168,8 @@ function studyPlanWorkspaceCopy(language) {
       sendGroup: "Add review", sendQuestion: "Send to study plan", covered: "Covered by existing activity", partialCovered: "Some questions are already covered", openQuestions: "Open questions",
       planTask: "Schedule", placeWithPlan: "Place with active plan", openTask: "Details", markComplete: "Mark completed", reopen: "Reopen",
       scheduleTitle: "Schedule review", scheduleDate: "Date", scheduleTime: "Time", scheduleTimeHint: "Leave time empty if you only want to choose the study day.",
-      cancel: "Cancel", saveSchedule: "Save placement", scheduling: "Saving…", loadError: "Could not load study-plan integration", setupMissing: "Segment 6.8 database is missing",
-      setupMissingHint: "Run segment_6_8_studyplan_integration.sql in Supabase. The plan builder and existing calendar data are still preserved.", refreshing: "Loading review and plan tasks…",
+      cancel: "Cancel", saveSchedule: "Save placement", scheduling: "Savingâ€¦", loadError: "Could not load study-plan integration", setupMissing: "Segment 6.8 database is missing",
+      setupMissingHint: "Run segment_6_8_studyplan_integration.sql in Supabase. The plan builder and existing calendar data are still preserved.", refreshing: "Loading review and plan tasksâ€¦",
       taskAdded: "Added to study plan", taskAlreadyCovered: "This question is already covered by a plan task.", taskError: "Could not update the study plan",
       week: "Week", month: "Month", agenda: "Agenda", today: "Today", previous: "Previous", next: "Next", notPlaced: "Not placed",
             builderContext: "The plan builder uses your real capacity", builderContextHint: "Manually chosen spaced-repetition dates reserve real minutes. The engine fills the remaining capacity without hidden review reserves.",
@@ -22056,27 +22180,27 @@ function studyPlanWorkspaceCopy(language) {
       autoPlaced: "The review was placed on a study day. Choose an exact time in the calendar when convenient.",
     },
     ar: {
-      title: "خطة الدراسة", eyebrow: "مساحة الدراسة الشخصية", activePlan: "الخطة نشطة", noPlan: "لا توجد خطة نشطة",
-      overview: "نظرة عامة", review: "التكرار المتباعد", builder: "منشئ الخطة", overviewIntro: "خطط لعملك ونظّم التكرار المتباعد وشاهد الأهم دون تكرار التقويم.",
-      nextFocus: "التركيز التالي", noNextFocus: "لا يوجد نشاط مخطط بعد", noNextFocusHint: "خطط لمراجعة أو فعّل خطتك لإظهار التركيز التالي هنا.",
-      openCalendar: "فتح التقويم الكامل", openReview: "فتح المراجعة والتركيز", openBuilder: "فتح منشئ الخطة", attention: "يتطلب انتباهك", thisWeek: "هذا الأسبوع",
-      reviewNeeds: "احتياجات المراجعة", planTasks: "مهام الخطة", unplanned: "تحتاج تخطيطا", planned: "مخطط", completed: "مكتمل", revisit: "راجع مجددا", all: "الكل",
-      activeBacklog: "قائمة المراجعة النشطة", addBacklog: "إرسال القائمة النشطة إلى خطة الدراسة", backlogAdded: "تمت إضافة القائمة إلى خطة الدراسة.", simulations: "محاكاة الامتحان", planSimulation: "إضافة محاكاة", simulationPlanned: "المحاكاة في خطة الدراسة",
-      noReviewNeeds: "لا توجد مراجعات معلقة", noReviewNeedsHint: "تظهر الأخطاء والأسئلة المعلّمة هنا عندما تكون موجودة في الأخطاء والمراجعة.",
-      noTasks: "لا توجد مهام في هذه العرض", noTasksHint: "أرسل سؤالا أو مجموعة محاضرة أو القائمة كاملة إلى خطة الدراسة.", mappedLecture: "المحاضرة المرتبطة", mappedTopic: "الموضوع المرتبط",
-      unmapped: "لم يتم ربطه بالمنهج بعد", questions: "أسئلة", questionSingular: "سؤال", singleQuestions: "أسئلة فردية", examSetLabel: "مجموعة امتحان", errors: "أخطاء", minutes: "د", examReviewLabel: "مراجعة الامتحان", lectureLabel: "محاضرة", studyActivityLabel: "نشاط دراسي", hoursPerWeek: "ساعات / أسبوع", lecturesLabel: "محاضرات", sendGroup: "إضافة مراجعة", sendQuestion: "إرسال إلى خطة الدراسة",
-      covered: "مغطى بنشاط موجود", partialCovered: "بعض الأسئلة مغطاة بالفعل", openQuestions: "فتح الأسئلة", planTask: "جدولة", placeWithPlan: "وضع باستخدام الخطة النشطة",
-      openTask: "التفاصيل", markComplete: "تحديد كمكتمل", reopen: "إعادة فتح", scheduleTitle: "جدولة المراجعة", scheduleDate: "التاريخ", scheduleTime: "الوقت",
-      scheduleTimeHint: "اترك الوقت فارغا إذا أردت اختيار يوم الدراسة فقط.", cancel: "إلغاء", saveSchedule: "حفظ الموضع", scheduling: "جار الحفظ…", loadError: "تعذر تحميل تكامل خطة الدراسة",
-      setupMissing: "قاعدة بيانات Segment 6.8 غير موجودة", setupMissingHint: "شغّل segment_6_8_studyplan_integration.sql في Supabase. يظل منشئ الخطة والتقويم الحالي محفوظين.",
-      refreshing: "جار تحميل المراجعات ومهام الخطة…", taskAdded: "تمت الإضافة إلى خطة الدراسة", taskAlreadyCovered: "السؤال مغطى بالفعل بمهمة في الخطة.", taskError: "تعذر تحديث خطة الدراسة",
-      week: "أسبوع", month: "شهر", agenda: "جدول", today: "اليوم", previous: "السابق", next: "التالي", notPlaced: "غير موضوع",
-      builderContext: "يستخدم منشئ الخطة سعتك الفعلية",
-      builderContextHint: "تحجز تواريخ التكرار المتباعد التي تختارها دقائق فعلية، ويملأ المحرك السعة المتبقية.", planInactiveHint: "فعّل خطة لوضع مهام المراجعة وفق السعة الأسبوعية.", taskDetail: "مهمة الخطة",
-      source: "المصدر", linkedItems: "أسئلة المراجعة المرتبطة", scheduledFor: "مخطط في", status: "الحالة", close: "إغلاق", overdue: "متأخر", reviewsWaiting: "مراجعات تحتاج تخطيطا",
-      activitiesThisWeek: "أنشطة هذا الأسبوع", daysToExam: "أيام حتى الامتحان", noExamDate: "لم يحدد موعد الامتحان", planLoad: "عبء الخطة", generatedPlan: "خطة الدراسة النشطة",
-      inboxCount: "مهام مراجعة تنتظر", weekLoadEmpty: "لا توجد أنشطة لخطة الدراسة هذا الأسبوع.", saveFailed: "تعذر حفظ الموضع.", completionFailed: "تعذرت مزامنة الحالة مع الأخطاء والمراجعة.",
-      autoPlaced: "تم وضع المراجعة في يوم دراسة. اختر وقتا دقيقا في التقويم عندما يناسبك.",
+      title: "Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", eyebrow: "Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø§Ù„Ø´Ø®ØµÙŠØ©", activePlan: "Ø§Ù„Ø®Ø·Ø© Ù†Ø´Ø·Ø©", noPlan: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø®Ø·Ø© Ù†Ø´Ø·Ø©",
+      overview: "Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø©", review: "Ø§Ù„ØªÙƒØ±Ø§Ø± Ø§Ù„Ù…ØªØ¨Ø§Ø¹Ø¯", builder: "Ù…Ù†Ø´Ø¦ Ø§Ù„Ø®Ø·Ø©", overviewIntro: "Ø®Ø·Ø· Ù„Ø¹Ù…Ù„Ùƒ ÙˆÙ†Ø¸Ù‘Ù… Ø§Ù„ØªÙƒØ±Ø§Ø± Ø§Ù„Ù…ØªØ¨Ø§Ø¹Ø¯ ÙˆØ´Ø§Ù‡Ø¯ Ø§Ù„Ø£Ù‡Ù… Ø¯ÙˆÙ† ØªÙƒØ±Ø§Ø± Ø§Ù„ØªÙ‚ÙˆÙŠÙ….",
+      nextFocus: "Ø§Ù„ØªØ±ÙƒÙŠØ² Ø§Ù„ØªØ§Ù„ÙŠ", noNextFocus: "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù†Ø´Ø§Ø· Ù…Ø®Ø·Ø· Ø¨Ø¹Ø¯", noNextFocusHint: "Ø®Ø·Ø· Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø£Ùˆ ÙØ¹Ù‘Ù„ Ø®Ø·ØªÙƒ Ù„Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„ØªØ±ÙƒÙŠØ² Ø§Ù„ØªØ§Ù„ÙŠ Ù‡Ù†Ø§.",
+      openCalendar: "ÙØªØ­ Ø§Ù„ØªÙ‚ÙˆÙŠÙ… Ø§Ù„ÙƒØ§Ù…Ù„", openReview: "ÙØªØ­ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© ÙˆØ§Ù„ØªØ±ÙƒÙŠØ²", openBuilder: "ÙØªØ­ Ù…Ù†Ø´Ø¦ Ø§Ù„Ø®Ø·Ø©", attention: "ÙŠØªØ·Ù„Ø¨ Ø§Ù†ØªØ¨Ø§Ù‡Ùƒ", thisWeek: "Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹",
+      reviewNeeds: "Ø§Ø­ØªÙŠØ§Ø¬Ø§Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©", planTasks: "Ù…Ù‡Ø§Ù… Ø§Ù„Ø®Ø·Ø©", unplanned: "ØªØ­ØªØ§Ø¬ ØªØ®Ø·ÙŠØ·Ø§", planned: "Ù…Ø®Ø·Ø·", completed: "Ù…ÙƒØªÙ…Ù„", revisit: "Ø±Ø§Ø¬Ø¹ Ù…Ø¬Ø¯Ø¯Ø§", all: "Ø§Ù„ÙƒÙ„",
+      activeBacklog: "Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù†Ø´Ø·Ø©", addBacklog: "Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù†Ø´Ø·Ø© Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", backlogAdded: "ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©.", simulations: "Ù…Ø­Ø§ÙƒØ§Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", planSimulation: "Ø¥Ø¶Ø§ÙØ© Ù…Ø­Ø§ÙƒØ§Ø©", simulationPlanned: "Ø§Ù„Ù…Ø­Ø§ÙƒØ§Ø© ÙÙŠ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      noReviewNeeds: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø±Ø§Ø¬Ø¹Ø§Øª Ù…Ø¹Ù„Ù‚Ø©", noReviewNeedsHint: "ØªØ¸Ù‡Ø± Ø§Ù„Ø£Ø®Ø·Ø§Ø¡ ÙˆØ§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø¹Ù„Ù‘Ù…Ø© Ù‡Ù†Ø§ Ø¹Ù†Ø¯Ù…Ø§ ØªÙƒÙˆÙ† Ù…ÙˆØ¬ÙˆØ¯Ø© ÙÙŠ Ø§Ù„Ø£Ø®Ø·Ø§Ø¡ ÙˆØ§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©.",
+      noTasks: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù‡Ø§Ù… ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ø¹Ø±Ø¶", noTasksHint: "Ø£Ø±Ø³Ù„ Ø³Ø¤Ø§Ù„Ø§ Ø£Ùˆ Ù…Ø¬Ù…ÙˆØ¹Ø© Ù…Ø­Ø§Ø¶Ø±Ø© Ø£Ùˆ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© ÙƒØ§Ù…Ù„Ø© Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©.", mappedLecture: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø©", mappedTopic: "Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹ Ø§Ù„Ù…Ø±ØªØ¨Ø·",
+      unmapped: "Ù„Ù… ÙŠØªÙ… Ø±Ø¨Ø·Ù‡ Ø¨Ø§Ù„Ù…Ù†Ù‡Ø¬ Ø¨Ø¹Ø¯", questions: "Ø£Ø³Ø¦Ù„Ø©", questionSingular: "Ø³Ø¤Ø§Ù„", singleQuestions: "Ø£Ø³Ø¦Ù„Ø© ÙØ±Ø¯ÙŠØ©", examSetLabel: "Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù…ØªØ­Ø§Ù†", errors: "Ø£Ø®Ø·Ø§Ø¡", minutes: "Ø¯", examReviewLabel: "Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", lectureLabel: "Ù…Ø­Ø§Ø¶Ø±Ø©", studyActivityLabel: "Ù†Ø´Ø§Ø· Ø¯Ø±Ø§Ø³ÙŠ", hoursPerWeek: "Ø³Ø§Ø¹Ø§Øª / Ø£Ø³Ø¨ÙˆØ¹", lecturesLabel: "Ù…Ø­Ø§Ø¶Ø±Ø§Øª", sendGroup: "Ø¥Ø¶Ø§ÙØ© Ù…Ø±Ø§Ø¬Ø¹Ø©", sendQuestion: "Ø¥Ø±Ø³Ø§Ù„ Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      covered: "Ù…ØºØ·Ù‰ Ø¨Ù†Ø´Ø§Ø· Ù…ÙˆØ¬ÙˆØ¯", partialCovered: "Ø¨Ø¹Ø¶ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ù…ØºØ·Ø§Ø© Ø¨Ø§Ù„ÙØ¹Ù„", openQuestions: "ÙØªØ­ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©", planTask: "Ø¬Ø¯ÙˆÙ„Ø©", placeWithPlan: "ÙˆØ¶Ø¹ Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ø®Ø·Ø© Ø§Ù„Ù†Ø´Ø·Ø©",
+      openTask: "Ø§Ù„ØªÙØ§ØµÙŠÙ„", markComplete: "ØªØ­Ø¯ÙŠØ¯ ÙƒÙ…ÙƒØªÙ…Ù„", reopen: "Ø¥Ø¹Ø§Ø¯Ø© ÙØªØ­", scheduleTitle: "Ø¬Ø¯ÙˆÙ„Ø© Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©", scheduleDate: "Ø§Ù„ØªØ§Ø±ÙŠØ®", scheduleTime: "Ø§Ù„ÙˆÙ‚Øª",
+      scheduleTimeHint: "Ø§ØªØ±Ùƒ Ø§Ù„ÙˆÙ‚Øª ÙØ§Ø±ØºØ§ Ø¥Ø°Ø§ Ø£Ø±Ø¯Øª Ø§Ø®ØªÙŠØ§Ø± ÙŠÙˆÙ… Ø§Ù„Ø¯Ø±Ø§Ø³Ø© ÙÙ‚Ø·.", cancel: "Ø¥Ù„ØºØ§Ø¡", saveSchedule: "Ø­ÙØ¸ Ø§Ù„Ù…ÙˆØ¶Ø¹", scheduling: "Ø¬Ø§Ø± Ø§Ù„Ø­ÙØ¸â€¦", loadError: "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ ØªÙƒØ§Ù…Ù„ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      setupMissing: "Ù‚Ø§Ø¹Ø¯Ø© Ø¨ÙŠØ§Ù†Ø§Øª Segment 6.8 ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯Ø©", setupMissingHint: "Ø´ØºÙ‘Ù„ segment_6_8_studyplan_integration.sql ÙÙŠ Supabase. ÙŠØ¸Ù„ Ù…Ù†Ø´Ø¦ Ø§Ù„Ø®Ø·Ø© ÙˆØ§Ù„ØªÙ‚ÙˆÙŠÙ… Ø§Ù„Ø­Ø§Ù„ÙŠ Ù…Ø­ÙÙˆØ¸ÙŠÙ†.",
+      refreshing: "Ø¬Ø§Ø± ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø§Øª ÙˆÙ…Ù‡Ø§Ù… Ø§Ù„Ø®Ø·Ø©â€¦", taskAdded: "ØªÙ…Øª Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", taskAlreadyCovered: "Ø§Ù„Ø³Ø¤Ø§Ù„ Ù…ØºØ·Ù‰ Ø¨Ø§Ù„ÙØ¹Ù„ Ø¨Ù…Ù‡Ù…Ø© ÙÙŠ Ø§Ù„Ø®Ø·Ø©.", taskError: "ØªØ¹Ø°Ø± ØªØ­Ø¯ÙŠØ« Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      week: "Ø£Ø³Ø¨ÙˆØ¹", month: "Ø´Ù‡Ø±", agenda: "Ø¬Ø¯ÙˆÙ„", today: "Ø§Ù„ÙŠÙˆÙ…", previous: "Ø§Ù„Ø³Ø§Ø¨Ù‚", next: "Ø§Ù„ØªØ§Ù„ÙŠ", notPlaced: "ØºÙŠØ± Ù…ÙˆØ¶ÙˆØ¹",
+      builderContext: "ÙŠØ³ØªØ®Ø¯Ù… Ù…Ù†Ø´Ø¦ Ø§Ù„Ø®Ø·Ø© Ø³Ø¹ØªÙƒ Ø§Ù„ÙØ¹Ù„ÙŠØ©",
+      builderContextHint: "ØªØ­Ø¬Ø² ØªÙˆØ§Ø±ÙŠØ® Ø§Ù„ØªÙƒØ±Ø§Ø± Ø§Ù„Ù…ØªØ¨Ø§Ø¹Ø¯ Ø§Ù„ØªÙŠ ØªØ®ØªØ§Ø±Ù‡Ø§ Ø¯Ù‚Ø§Ø¦Ù‚ ÙØ¹Ù„ÙŠØ©ØŒ ÙˆÙŠÙ…Ù„Ø£ Ø§Ù„Ù…Ø­Ø±Ùƒ Ø§Ù„Ø³Ø¹Ø© Ø§Ù„Ù…ØªØ¨Ù‚ÙŠØ©.", planInactiveHint: "ÙØ¹Ù‘Ù„ Ø®Ø·Ø© Ù„ÙˆØ¶Ø¹ Ù…Ù‡Ø§Ù… Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© ÙˆÙÙ‚ Ø§Ù„Ø³Ø¹Ø© Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ÙŠØ©.", taskDetail: "Ù…Ù‡Ù…Ø© Ø§Ù„Ø®Ø·Ø©",
+      source: "Ø§Ù„Ù…ØµØ¯Ø±", linkedItems: "Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø©", scheduledFor: "Ù…Ø®Ø·Ø· ÙÙŠ", status: "Ø§Ù„Ø­Ø§Ù„Ø©", close: "Ø¥ØºÙ„Ø§Ù‚", overdue: "Ù…ØªØ£Ø®Ø±", reviewsWaiting: "Ù…Ø±Ø§Ø¬Ø¹Ø§Øª ØªØ­ØªØ§Ø¬ ØªØ®Ø·ÙŠØ·Ø§",
+      activitiesThisWeek: "Ø£Ù†Ø´Ø·Ø© Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹", daysToExam: "Ø£ÙŠØ§Ù… Ø­ØªÙ‰ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", noExamDate: "Ù„Ù… ÙŠØ­Ø¯Ø¯ Ù…ÙˆØ¹Ø¯ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", planLoad: "Ø¹Ø¨Ø¡ Ø§Ù„Ø®Ø·Ø©", generatedPlan: "Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø§Ù„Ù†Ø´Ø·Ø©",
+      inboxCount: "Ù…Ù‡Ø§Ù… Ù…Ø±Ø§Ø¬Ø¹Ø© ØªÙ†ØªØ¸Ø±", weekLoadEmpty: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ù†Ø´Ø·Ø© Ù„Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹.", saveFailed: "ØªØ¹Ø°Ø± Ø­ÙØ¸ Ø§Ù„Ù…ÙˆØ¶Ø¹.", completionFailed: "ØªØ¹Ø°Ø±Øª Ù…Ø²Ø§Ù…Ù†Ø© Ø§Ù„Ø­Ø§Ù„Ø© Ù…Ø¹ Ø§Ù„Ø£Ø®Ø·Ø§Ø¡ ÙˆØ§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©.",
+      autoPlaced: "ØªÙ… ÙˆØ¶Ø¹ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© ÙÙŠ ÙŠÙˆÙ… Ø¯Ø±Ø§Ø³Ø©. Ø§Ø®ØªØ± ÙˆÙ‚ØªØ§ Ø¯Ù‚ÙŠÙ‚Ø§ ÙÙŠ Ø§Ù„ØªÙ‚ÙˆÙŠÙ… Ø¹Ù†Ø¯Ù…Ø§ ÙŠÙ†Ø§Ø³Ø¨Ùƒ.",
     },
   };
   return copy[language] || copy.da;
@@ -22144,7 +22268,7 @@ function studyPlanReviewBuildGroups(items, curriculumLinks, curriculumTopics, mo
       type: lecture ? "lecture" : topic ? "topic" : "unmapped",
       lectureId: lecture?.id || null,
       topicId: topic?.id || null,
-      title: lecture ? `${lecture.id} · ${lecture.title}` : topic?.label || "",
+      title: lecture ? `${lecture.id} Â· ${lecture.title}` : topic?.label || "",
       items: [],
     });
     groups.get(key).items.push(item);
@@ -22196,9 +22320,9 @@ function StudyPlanScheduleDialog({ language, task, onClose, onSave, busy }) {
 
 function StudyPlanRepetitionDialog({ language, mode, lecture, memory, repetition, examDate, initialMinutes = 60, busy = false, onClose, onConfirm, onStop }) {
   const copy = ({
-    da: { first: "Kalibrér spaced repetition", later: "Vurder repetition", introFirst: "Fortæl hvor belastende forelæsningen var. MedFLUEN bruger din tid og belastning til at anbefale næste repetition før eksamen.", introLater: "Vurdér hvordan denne gennemgang føltes. Intervallet tilpasses, men du vælger altid selv datoen.", actual: "Hvor lang tid brugte du?", load: "Belastning", easy: "Let", moderate: "Moderat", demanding: "Krævende", easyHint: "Stoffet sad forholdsvis hurtigt", moderateHint: "Krævede normal koncentration", demandingHint: "Tungt eller krævede meget arbejde", recommendation: "MedFLUEN anbefaler", inDays: "om", days: "dage", duration: "Varighed", chooseDays: "Jeg vil se den igen om", exactDate: "Næste dato", afterExam: "Datoen ligger efter eksamen", afterExamHint: "Det anbefales at holde repetitionsforløbet inden eksamen. Markér kun hvis du bevidst vil planlægge efter eksamen.", allowAfter: "Tillad efter eksamen", stop: "Afslut repetitionsforløb", cancel: "Annuller", plan: "Planlæg næste repetition", save: "Gem og planlæg", examWeek: "Eksamensnær anbefaling", spacing: "Spaced repetition", minutes: "min" },
+    da: { first: "KalibrÃ©r spaced repetition", later: "Vurder repetition", introFirst: "FortÃ¦l hvor belastende forelÃ¦sningen var. MedFLUEN bruger din tid og belastning til at anbefale nÃ¦ste repetition fÃ¸r eksamen.", introLater: "VurdÃ©r hvordan denne gennemgang fÃ¸ltes. Intervallet tilpasses, men du vÃ¦lger altid selv datoen.", actual: "Hvor lang tid brugte du?", load: "Belastning", easy: "Let", moderate: "Moderat", demanding: "KrÃ¦vende", easyHint: "Stoffet sad forholdsvis hurtigt", moderateHint: "KrÃ¦vede normal koncentration", demandingHint: "Tungt eller krÃ¦vede meget arbejde", recommendation: "MedFLUEN anbefaler", inDays: "om", days: "dage", duration: "Varighed", chooseDays: "Jeg vil se den igen om", exactDate: "NÃ¦ste dato", afterExam: "Datoen ligger efter eksamen", afterExamHint: "Det anbefales at holde repetitionsforlÃ¸bet inden eksamen. MarkÃ©r kun hvis du bevidst vil planlÃ¦gge efter eksamen.", allowAfter: "Tillad efter eksamen", stop: "Afslut repetitionsforlÃ¸b", cancel: "Annuller", plan: "PlanlÃ¦g nÃ¦ste repetition", save: "Gem og planlÃ¦g", examWeek: "EksamensnÃ¦r anbefaling", spacing: "Spaced repetition", minutes: "min" },
     en: { first: "Calibrate spaced repetition", later: "Rate repetition", introFirst: "Tell MedFLUEN how demanding the lecture felt. Time and load are used to recommend the next repetition before the exam.", introLater: "Rate how this pass felt. The interval adapts, but you always choose the date.", actual: "How much time did you use?", load: "Load", easy: "Easy", moderate: "Moderate", demanding: "Demanding", easyHint: "The material settled quickly", moderateHint: "Required normal concentration", demandingHint: "Heavy or required substantial work", recommendation: "MedFLUEN recommends", inDays: "in", days: "days", duration: "Duration", chooseDays: "I want to revisit in", exactDate: "Next date", afterExam: "The date is after the exam", afterExamHint: "The repetition path is designed to finish before the exam. Only allow this if intentional.", allowAfter: "Allow after exam", stop: "End repetition path", cancel: "Cancel", plan: "Plan next repetition", save: "Save and plan", examWeek: "Exam-aware recommendation", spacing: "Spaced repetition", minutes: "min" },
-    ar: { first: "معايرة التكرار المتباعد", later: "تقييم التكرار", introFirst: "حدد مدى صعوبة المحاضرة. يستخدم MedFLUEN الوقت والعبء لاقتراح التكرار التالي قبل الامتحان.", introLater: "قيّم هذه المراجعة. تتكيف الفترة، لكنك تختار التاريخ دائمًا.", actual: "كم استغرق الأمر؟", load: "العبء", easy: "سهل", moderate: "متوسط", demanding: "متطلب", easyHint: "استقر المحتوى بسرعة", moderateHint: "احتاج تركيزًا عاديًا", demandingHint: "ثقيل أو احتاج جهدًا كبيرًا", recommendation: "توصية MedFLUEN", inDays: "بعد", days: "أيام", duration: "المدة", chooseDays: "أريد العودة بعد", exactDate: "التاريخ التالي", afterExam: "التاريخ بعد الامتحان", afterExamHint: "صُمم المسار للوصول إلى الامتحان. اسمح بذلك فقط إذا كان مقصودًا.", allowAfter: "السماح بعد الامتحان", stop: "إنهاء مسار التكرار", cancel: "إلغاء", plan: "جدولة التكرار التالي", save: "حفظ وجدولة", examWeek: "توصية مرتبطة بالامتحان", spacing: "تكرار متباعد", minutes: "دقيقة" },
+    ar: { first: "Ù…Ø¹Ø§ÙŠØ±Ø© Ø§Ù„ØªÙƒØ±Ø§Ø± Ø§Ù„Ù…ØªØ¨Ø§Ø¹Ø¯", later: "ØªÙ‚ÙŠÙŠÙ… Ø§Ù„ØªÙƒØ±Ø§Ø±", introFirst: "Ø­Ø¯Ø¯ Ù…Ø¯Ù‰ ØµØ¹ÙˆØ¨Ø© Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©. ÙŠØ³ØªØ®Ø¯Ù… MedFLUEN Ø§Ù„ÙˆÙ‚Øª ÙˆØ§Ù„Ø¹Ø¨Ø¡ Ù„Ø§Ù‚ØªØ±Ø§Ø­ Ø§Ù„ØªÙƒØ±Ø§Ø± Ø§Ù„ØªØ§Ù„ÙŠ Ù‚Ø¨Ù„ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†.", introLater: "Ù‚ÙŠÙ‘Ù… Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©. ØªØªÙƒÙŠÙ Ø§Ù„ÙØªØ±Ø©ØŒ Ù„ÙƒÙ†Ùƒ ØªØ®ØªØ§Ø± Ø§Ù„ØªØ§Ø±ÙŠØ® Ø¯Ø§Ø¦Ù…Ù‹Ø§.", actual: "ÙƒÙ… Ø§Ø³ØªØºØ±Ù‚ Ø§Ù„Ø£Ù…Ø±ØŸ", load: "Ø§Ù„Ø¹Ø¨Ø¡", easy: "Ø³Ù‡Ù„", moderate: "Ù…ØªÙˆØ³Ø·", demanding: "Ù…ØªØ·Ù„Ø¨", easyHint: "Ø§Ø³ØªÙ‚Ø± Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø¨Ø³Ø±Ø¹Ø©", moderateHint: "Ø§Ø­ØªØ§Ø¬ ØªØ±ÙƒÙŠØ²Ù‹Ø§ Ø¹Ø§Ø¯ÙŠÙ‹Ø§", demandingHint: "Ø«Ù‚ÙŠÙ„ Ø£Ùˆ Ø§Ø­ØªØ§Ø¬ Ø¬Ù‡Ø¯Ù‹Ø§ ÙƒØ¨ÙŠØ±Ù‹Ø§", recommendation: "ØªÙˆØµÙŠØ© MedFLUEN", inDays: "Ø¨Ø¹Ø¯", days: "Ø£ÙŠØ§Ù…", duration: "Ø§Ù„Ù…Ø¯Ø©", chooseDays: "Ø£Ø±ÙŠØ¯ Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¨Ø¹Ø¯", exactDate: "Ø§Ù„ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ§Ù„ÙŠ", afterExam: "Ø§Ù„ØªØ§Ø±ÙŠØ® Ø¨Ø¹Ø¯ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", afterExamHint: "ØµÙÙ…Ù… Ø§Ù„Ù…Ø³Ø§Ø± Ù„Ù„ÙˆØµÙˆÙ„ Ø¥Ù„Ù‰ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†. Ø§Ø³Ù…Ø­ Ø¨Ø°Ù„Ùƒ ÙÙ‚Ø· Ø¥Ø°Ø§ ÙƒØ§Ù† Ù…Ù‚ØµÙˆØ¯Ù‹Ø§.", allowAfter: "Ø§Ù„Ø³Ù…Ø§Ø­ Ø¨Ø¹Ø¯ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", stop: "Ø¥Ù†Ù‡Ø§Ø¡ Ù…Ø³Ø§Ø± Ø§Ù„ØªÙƒØ±Ø§Ø±", cancel: "Ø¥Ù„ØºØ§Ø¡", plan: "Ø¬Ø¯ÙˆÙ„Ø© Ø§Ù„ØªÙƒØ±Ø§Ø± Ø§Ù„ØªØ§Ù„ÙŠ", save: "Ø­ÙØ¸ ÙˆØ¬Ø¯ÙˆÙ„Ø©", examWeek: "ØªÙˆØµÙŠØ© Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", spacing: "ØªÙƒØ±Ø§Ø± Ù…ØªØ¨Ø§Ø¹Ø¯", minutes: "Ø¯Ù‚ÙŠÙ‚Ø©" },
   })[language] || null;
   const first = mode === "calibration";
   const [actualMinutes, setActualMinutes] = useState(Math.max(10, Number(repetition?.plannedMinutes) || Number(initialMinutes) || 60));
@@ -22248,14 +22372,14 @@ function StudyPlanRepetitionDialog({ language, mode, lecture, memory, repetition
   const payload = { actualMinutes: Math.max(1, Number(actualMinutes) || 1), loadLevel, recommendedIntervalDays: Math.max(1, recommendation.recommendedIntervalDays || 1), chosenIntervalDays: selectedDays, recommendedMinutes: recommendation.recommendedMinutes || 30, plannedMinutes: Math.max(10, Number(plannedMinutes) || 30), scheduledDate: selectedDate, scheduledTime: "", examDate: examDate || null };
   return <div className="ui-modal-backdrop study-plan-workspace-modal study-plan-sr-modal" role="presentation" onPointerDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
     <div className="ui-modal-surface" role="dialog" aria-modal="true" aria-label={first ? copy.first : copy.later}>
-      <div className="study-plan-workspace-modal-head"><span><Icon name="reset" size={17} /></span><div><strong>{first ? copy.first : copy.later}</strong><small>{lecture.id} · {lecture.title}</small></div></div>
+      <div className="study-plan-workspace-modal-head"><span><Icon name="reset" size={17} /></span><div><strong>{first ? copy.first : copy.later}</strong><small>{lecture.id} Â· {lecture.title}</small></div></div>
       <p className="study-plan-sr-intro">{first ? copy.introFirst : copy.introLater}</p>
       <label><span>{copy.actual}</span><div className="study-plan-sr-minute-row"><input type="number" min="1" max="720" value={actualMinutes} onChange={(event) => { setActualMinutes(Math.max(1, Number(event.target.value) || 1)); setManualChoice(false); }} /><small>{copy.minutes}</small></div></label>
       <div className="study-plan-sr-load"><span>{copy.load}</span><div>{[["easy",copy.easy,copy.easyHint],["moderate",copy.moderate,copy.moderateHint],["demanding",copy.demanding,copy.demandingHint]].map(([key,label,hint]) => <button type="button" key={key} data-active={loadLevel === key ? "true" : "false"} onClick={() => { setLoadLevel(key); setManualChoice(false); }}><strong>{label}</strong><small>{hint}</small></button>)}</div></div>
-      <div className="study-plan-sr-recommendation"><span><Icon name="sparkle" size={14} /></span><div><small>{recommendation.examPhase === "exam-week" || recommendation.examPhase === "exam-build-up" ? copy.examWeek : copy.spacing}</small><strong>{copy.recommendation}: {copy.inDays} {Math.max(1, recommendation.recommendedIntervalDays || 1)} {copy.days} · {recommendation.recommendedMinutes} {copy.minutes}</strong>{recommendation.daysToExam != null && <em>{recommendation.daysToExam} {copy.days} → eksamen</em>}</div></div>
+      <div className="study-plan-sr-recommendation"><span><Icon name="sparkle" size={14} /></span><div><small>{recommendation.examPhase === "exam-week" || recommendation.examPhase === "exam-build-up" ? copy.examWeek : copy.spacing}</small><strong>{copy.recommendation}: {copy.inDays} {Math.max(1, recommendation.recommendedIntervalDays || 1)} {copy.days} Â· {recommendation.recommendedMinutes} {copy.minutes}</strong>{recommendation.daysToExam != null && <em>{recommendation.daysToExam} {copy.days} â†’ eksamen</em>}</div></div>
       <div className="study-plan-sr-choice-grid"><label><span>{copy.chooseDays}</span><div className="study-plan-sr-day-input"><input type="number" min="1" max="3650" value={chosenDays} onChange={(event) => changeDays(event.target.value)} /><small>{copy.days}</small></div></label><label><span>{copy.exactDate}</span><input type="date" value={selectedDate || ""} onChange={(event) => changeDate(event.target.value)} /></label><label><span>{copy.duration}</span><select value={plannedMinutes} onChange={(event) => { setManualChoice(true); setPlannedMinutes(Number(event.target.value)); }}>{[15,20,30,45,60,75,90,120].map((minutes) => <option key={minutes} value={minutes}>{minutes} {copy.minutes}</option>)}</select></label></div>
       {afterExam && <div className="study-plan-sr-exam-warning"><Icon name="flag" size={14} /><div><strong>{copy.afterExam}</strong><small>{copy.afterExamHint}</small><label><input type="checkbox" checked={allowAfterExam} onChange={(event) => setAllowAfterExam(event.target.checked)} />{copy.allowAfter}</label></div></div>}
-      <div className="study-plan-workspace-modal-actions study-plan-sr-actions">{!first && onStop && <button type="button" className="ui-button ui-button--ghost" disabled={busy} onClick={onStop}>{copy.stop}</button>}<span /><button type="button" className="ui-button ui-button--ghost" disabled={busy} onClick={onClose}>{copy.cancel}</button><button type="button" className="ui-button ui-button--primary" disabled={busy || !selectedDate || (afterExam && !allowAfterExam)} onClick={() => onConfirm(payload)}>{busy ? "Gemmer…" : first ? copy.plan : copy.save}</button></div>
+      <div className="study-plan-workspace-modal-actions study-plan-sr-actions">{!first && onStop && <button type="button" className="ui-button ui-button--ghost" disabled={busy} onClick={onStop}>{copy.stop}</button>}<span /><button type="button" className="ui-button ui-button--ghost" disabled={busy} onClick={onClose}>{copy.cancel}</button><button type="button" className="ui-button ui-button--primary" disabled={busy || !selectedDate || (afterExam && !allowAfterExam)} onClick={() => onConfirm(payload)}>{busy ? "Gemmerâ€¦" : first ? copy.plan : copy.save}</button></div>
     </div>
   </div>;
 }
@@ -22360,8 +22484,8 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
   }
 
   function agendaDateLabel(dateKeyValue) {
-    if (dateKeyValue === todayKey) return language === "en" ? "Today" : language === "ar" ? "اليوم" : "I dag";
-    if (dateKeyValue === tomorrowKey) return language === "en" ? "Tomorrow" : language === "ar" ? "غدًا" : "I morgen";
+    if (dateKeyValue === todayKey) return language === "en" ? "Today" : language === "ar" ? "Ø§Ù„ÙŠÙˆÙ…" : "I dag";
+    if (dateKeyValue === tomorrowKey) return language === "en" ? "Tomorrow" : language === "ar" ? "ØºØ¯Ù‹Ø§" : "I morgen";
     return new Date(`${dateKeyValue}T12:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
   }
 
@@ -22461,7 +22585,7 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
       await materializeSavedRepetition(result.data);
       setRepetitionDialog(null);
       await loadReviewWorkspace();
-      flashFeedback(`Spaced repetition planlagt · ${repetitionDialog.lecture.id} · ${payload.scheduledDate}`);
+      flashFeedback(`Spaced repetition planlagt Â· ${repetitionDialog.lecture.id} Â· ${payload.scheduledDate}`);
     } catch (error) {
       console.error("Spaced repetition save failed", error);
       flashFeedback(copy.taskError);
@@ -22476,7 +22600,7 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
       const ids = new Set(reviewState.repetitions.filter((item) => item.lectureId === repetitionDialog.lecture.id && item.status !== "completed").map((item) => item.calendarEventId || studyPlanLectureRepetitionCalendarEventId(moduleName, item.id)));
       setCalendarEvents((current) => (Array.isArray(current) ? current : []).filter((event) => !ids.has(event.id)));
       setCalendarMeta((current) => { const next = { ...(current || {}) }; ids.forEach((id) => delete next[id]); return next; });
-      setRepetitionDialog(null); await loadReviewWorkspace(); flashFeedback("Repetitionsforløbet er afsluttet.");
+      setRepetitionDialog(null); await loadReviewWorkspace(); flashFeedback("RepetitionsforlÃ¸bet er afsluttet.");
     } else flashFeedback(copy.taskError);
     setRepetitionBusy(false);
   }
@@ -22520,7 +22644,7 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
     const topicId = related.find((link) => link.topicId)?.topicId || null;
     const lecture = lectureId ? examCurriculumLecture(moduleName, lectureId) : null;
     const questionLabel = copy.questionSingular.toLocaleLowerCase(locale);
-    const title = lecture ? `${lecture.id} · ${lecture.title} · ${questionLabel} ${item.sourceNumber || item.questionId}` : `${document?.name || copy.examReviewLabel} · ${questionLabel} ${item.sourceNumber || item.questionId}`;
+    const title = lecture ? `${lecture.id} Â· ${lecture.title} Â· ${questionLabel} ${item.sourceNumber || item.questionId}` : `${document?.name || copy.examReviewLabel} Â· ${questionLabel} ${item.sourceNumber || item.questionId}`;
     await createReviewTask({ sourceType: "question", sourceKey: studyPlanReviewSourceKey("question", item.examSetId, item.questionId), title, reviewItems: [item], lectureId, topicId, estimatedMinutes: 15 });
   }
 
@@ -22533,7 +22657,7 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
     await createReviewTask({
       sourceType: "simulation",
       sourceKey: studyPlanReviewSourceKey("simulation", document.id),
-      title: `${copy.simulations} · ${document.name}`,
+      title: `${copy.simulations} Â· ${document.name}`,
       reviewItems: [],
       estimatedMinutes: 180,
     });
@@ -22608,21 +22732,21 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
     }, {});
     return <div className="study-plan-workspace-overview study-plan-workspace-overview--refined">
       <section className="study-plan-overview-plan study-plan-overview-plan--hero">
-        <div className="study-plan-workspace-section-head"><div><span>{copy.generatedPlan}</span><h2>{activePlan ? copy.activePlan : copy.noPlan}</h2>{activePlan && <p>Din plan samler kapacitet, forelæsninger og spaced repetition. Kalenderplaceringer vises i den fælles kalender.</p>}</div>{activePlan && <button type="button" onClick={() => setTab("builder")}>{copy.openBuilder}<Icon name="right" size={12} /></button>}</div>
+        <div className="study-plan-workspace-section-head"><div><span>{copy.generatedPlan}</span><h2>{activePlan ? copy.activePlan : copy.noPlan}</h2>{activePlan && <p>Din plan samler kapacitet, forelÃ¦sninger og spaced repetition. Kalenderplaceringer vises i den fÃ¦lles kalender.</p>}</div>{activePlan && <button type="button" onClick={() => setTab("builder")}>{copy.openBuilder}<Icon name="right" size={12} /></button>}</div>
         {activePlan ? <div className="study-plan-overview-plan-summary">
-          <div><strong>{daysToExam ?? "—"}</strong><span>{copy.daysToExam}</span></div>
+          <div><strong>{daysToExam ?? "â€”"}</strong><span>{copy.daysToExam}</span></div>
           <div><strong>{weeklyHours}</strong><span>{copy.hoursPerWeek}</span></div>
-          <div><strong>{remainingLectures}</strong><span>forelæsninger tilbage</span></div>
+          <div><strong>{remainingLectures}</strong><span>forelÃ¦sninger tilbage</span></div>
           {activePlan.examDate && <div className="study-plan-overview-plan-date"><Icon name="calendar" size={14} /><span><small>Eksamen</small><strong>{new Date(`${activePlan.examDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"long", year:"numeric" })}</strong></span></div>}
-        </div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noPlan}</strong><p>Opret en plan ud fra din faktiske ugekapacitet. Kalenderen forbliver ét samlet sted i toolbaren.</p><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div>}
+        </div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noPlan}</strong><p>Opret en plan ud fra din faktiske ugekapacitet. Kalenderen forbliver Ã©t samlet sted i toolbaren.</p><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div>}
       </section>
 
       {activePlan && <section className="study-plan-mini-agenda">
-        <div className="study-plan-workspace-section-head"><div><span>Kommende</span><h2>Mini-agenda</h2><p>Synkroniseret direkte med studieplansaktiviteterne i den fælles kalender.</p></div><button type="button" onClick={() => openCanonicalCalendar()}>{copy.openCalendar}<Icon name="right" size={12} /></button></div>
-        {miniAgendaEvents.length ? <div className="study-plan-mini-agenda-list">{Object.entries(agendaGroups).map(([date, events]) => <div className="study-plan-mini-agenda-day" key={date}><div className="study-plan-mini-agenda-date"><strong>{agendaDateLabel(date)}</strong><small>{new Date(`${date}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"long" })}</small></div><div>{events.map((event) => <button type="button" key={event.id} onClick={() => openCanonicalCalendar(event.date)}><time>{event.time || copy.notPlaced}</time><span><strong>{event.title}</strong><small>{agendaKindLabel(event)}{event.estimatedHours ? ` · ${Math.max(15, Math.round(Number(event.estimatedHours) * 60))} min` : ""}</small></span><Icon name="right" size={12} /></button>)}</div></div>)}</div> : <div className="study-plan-mini-agenda-empty"><span><Icon name="calendar" size={17} /></span><div><strong>Ingen kommende planaktiviteter</strong><small>Aktivér eller opdatér planen, når du vil lægge nye aktiviteter i kalenderen.</small></div><button type="button" onClick={() => openCanonicalCalendar()}>{copy.openCalendar}</button></div>}
+        <div className="study-plan-workspace-section-head"><div><span>Kommende</span><h2>Mini-agenda</h2><p>Synkroniseret direkte med studieplansaktiviteterne i den fÃ¦lles kalender.</p></div><button type="button" onClick={() => openCanonicalCalendar()}>{copy.openCalendar}<Icon name="right" size={12} /></button></div>
+        {miniAgendaEvents.length ? <div className="study-plan-mini-agenda-list">{Object.entries(agendaGroups).map(([date, events]) => <div className="study-plan-mini-agenda-day" key={date}><div className="study-plan-mini-agenda-date"><strong>{agendaDateLabel(date)}</strong><small>{new Date(`${date}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"long" })}</small></div><div>{events.map((event) => <button type="button" key={event.id} onClick={() => openCanonicalCalendar(event.date)}><time>{event.time || copy.notPlaced}</time><span><strong>{event.title}</strong><small>{agendaKindLabel(event)}{event.estimatedHours ? ` Â· ${Math.max(15, Math.round(Number(event.estimatedHours) * 60))} min` : ""}</small></span><Icon name="right" size={12} /></button>)}</div></div>)}</div> : <div className="study-plan-mini-agenda-empty"><span><Icon name="calendar" size={17} /></span><div><strong>Ingen kommende planaktiviteter</strong><small>AktivÃ©r eller opdatÃ©r planen, nÃ¥r du vil lÃ¦gge nye aktiviteter i kalenderen.</small></div><button type="button" onClick={() => openCanonicalCalendar()}>{copy.openCalendar}</button></div>}
       </section>}
 
-      {attentionTotal + inboxTasks.length > 0 && <aside className="study-plan-overview-attention study-plan-overview-attention--compact"><div className="study-plan-workspace-section-head"><div><span>{copy.attention}</span><h2>Kun det, der kræver et valg</h2></div></div>
+      {attentionTotal + inboxTasks.length > 0 && <aside className="study-plan-overview-attention study-plan-overview-attention--compact"><div className="study-plan-workspace-section-head"><div><span>{copy.attention}</span><h2>Kun det, der krÃ¦ver et valg</h2></div></div>
         {(pendingCalibrations.length + pendingRatings.length) > 0 && <button type="button" onClick={() => setTab("review")}><span><Icon name="reset" size={15} /></span><div><strong>{pendingCalibrations.length + pendingRatings.length}</strong><small>spaced-repetition valg venter</small></div><Icon name="right" size={13} /></button>}
         {inboxTasks.length > 0 && <button type="button" onClick={() => setTab("review")}><span><Icon name="target" size={15} /></span><div><strong>{inboxTasks.length}</strong><small>eksamensfokus-opgaver mangler plan</small></div><Icon name="right" size={13} /></button>}
         {placementNeeds > 0 && <button type="button" onClick={() => openCanonicalCalendar()}><span><Icon name="clock" size={15} /></span><div><strong>{placementNeeds}</strong><small>planaktiviteter mangler et tidspunkt eller en dato</small></div><Icon name="right" size={13} /></button>}
@@ -22635,30 +22759,30 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
 
 
   function renderReview() {
-    if (reviewLoadState === "loading") return <div className="study-plan-workspace-empty"><span className="lecture-pdf-spinner" /><strong>Henter spaced repetition og eksamensfokus…</strong></div>;
-    if (reviewLoadState === "error") return <div className="study-plan-workspace-empty"><span><Icon name="flag" size={22} /></span><strong>{reviewError === "setup" ? "Segment 6.8.1-databasen mangler" : copy.loadError}</strong><p>{reviewError === "setup" ? "Kør segment_6_8_1_adaptive_studyplan.sql efter Segment 6.8-migrationen. Den eksisterende plan og kalender bevares." : copy.taskError}</p></div>;
+    if (reviewLoadState === "loading") return <div className="study-plan-workspace-empty"><span className="lecture-pdf-spinner" /><strong>Henter spaced repetition og eksamensfokusâ€¦</strong></div>;
+    if (reviewLoadState === "error") return <div className="study-plan-workspace-empty"><span><Icon name="flag" size={22} /></span><strong>{reviewError === "setup" ? "Segment 6.8.1-databasen mangler" : copy.loadError}</strong><p>{reviewError === "setup" ? "KÃ¸r segment_6_8_1_adaptive_studyplan.sql efter Segment 6.8-migrationen. Den eksisterende plan og kalender bevares." : copy.taskError}</p></div>;
     const stoppedProfiles = reviewState.memoryProfiles.filter((item) => item.stoppedAt);
     return <div className="study-plan-spaced-workspace">
       <section className="study-plan-workspace-review study-plan-sr-section">
-        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Spaced repetition</span><h2>Forelæsningshukommelse</h2><p>Du vurderer kun belastningen: <strong>Let · Moderat · Krævende</strong>. MedFLUEN kombinerer vurderingen med faktisk tidsforbrug og eksamensdatoen for at anbefale næste interval og varighed. Du kan altid overskrive begge.</p></div>{activePlan?.examDate && <div className="study-plan-sr-exam-chip"><Icon name="calendar" size={13} /><span>{daysToExam} dage</span><small>til eksamen</small></div>}</div>
+        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Spaced repetition</span><h2>ForelÃ¦sningshukommelse</h2><p>Du vurderer kun belastningen: <strong>Let Â· Moderat Â· KrÃ¦vende</strong>. MedFLUEN kombinerer vurderingen med faktisk tidsforbrug og eksamensdatoen for at anbefale nÃ¦ste interval og varighed. Du kan altid overskrive begge.</p></div>{activePlan?.examDate && <div className="study-plan-sr-exam-chip"><Icon name="calendar" size={13} /><span>{daysToExam} dage</span><small>til eksamen</small></div>}</div>
         {feedback && <div className="study-plan-workspace-feedback" role="status"><Icon name="check" size={13} />{feedback}</div>}
 
-        {(pendingCalibrations.length > 0 || pendingRatings.length > 0) && <section className="study-plan-sr-decisions"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kræver dit valg</span><h3>Næste repetition bestemmes først, når du har vurderet belastningen</h3></div><b>{pendingCalibrations.length + pendingRatings.length}</b></div><div className="study-plan-sr-decision-list">
-          {pendingCalibrations.map((lecture) => { const sourceEvent = planEvents.find((event) => event.lectureId === lecture.id && studyPlanIsLectureActivity(event)); const suggestedMinutes = Math.max(15, Number(sourceEvent?.loadMinutes) || Math.round((Number(sourceEvent?.estimatedHours) || 1) * 60)); return <article key={`cal-${lecture.id}`}><span className="study-plan-task-status"><Icon name="book" size={15} /></span><div><small>Første gennemgang er færdig</small><strong>{lecture.id} · {lecture.title}</strong><span>Planlagt belastning ca. {suggestedMinutes} min · mangler din vurdering</span></div><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureCalibration(lecture, sourceEvent)}>Vurdér & planlæg</button></article>; })}
-          {pendingRatings.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); return <article key={`rate-${item.id}`}><span className="study-plan-task-status"><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber} gennemført</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong><span>{item.plannedMinutes} min planlagt · vurder belastningen for næste interval</span></div><button type="button" className="ui-button ui-button--primary" onClick={() => openRepetitionRating(item)}>Vurdér & fortsæt</button></article>; })}
+        {(pendingCalibrations.length > 0 || pendingRatings.length > 0) && <section className="study-plan-sr-decisions"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">KrÃ¦ver dit valg</span><h3>NÃ¦ste repetition bestemmes fÃ¸rst, nÃ¥r du har vurderet belastningen</h3></div><b>{pendingCalibrations.length + pendingRatings.length}</b></div><div className="study-plan-sr-decision-list">
+          {pendingCalibrations.map((lecture) => { const sourceEvent = planEvents.find((event) => event.lectureId === lecture.id && studyPlanIsLectureActivity(event)); const suggestedMinutes = Math.max(15, Number(sourceEvent?.loadMinutes) || Math.round((Number(sourceEvent?.estimatedHours) || 1) * 60)); return <article key={`cal-${lecture.id}`}><span className="study-plan-task-status"><Icon name="book" size={15} /></span><div><small>FÃ¸rste gennemgang er fÃ¦rdig</small><strong>{lecture.id} Â· {lecture.title}</strong><span>Planlagt belastning ca. {suggestedMinutes} min Â· mangler din vurdering</span></div><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureCalibration(lecture, sourceEvent)}>VurdÃ©r & planlÃ¦g</button></article>; })}
+          {pendingRatings.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); return <article key={`rate-${item.id}`}><span className="study-plan-task-status"><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber} gennemfÃ¸rt</small><strong>{lecture ? `${lecture.id} Â· ${lecture.title}` : item.lectureId}</strong><span>{item.plannedMinutes} min planlagt Â· vurder belastningen for nÃ¦ste interval</span></div><button type="button" className="ui-button ui-button--primary" onClick={() => openRepetitionRating(item)}>VurdÃ©r & fortsÃ¦t</button></article>; })}
         </div></section>}
 
-        <section className="study-plan-sr-upcoming"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kommende</span><h3>Planlagte spaced repetitions</h3></div><span>{upcomingRepetitions.length}</span></div>{upcomingRepetitions.length ? <div className="study-plan-sr-upcoming-grid">{upcomingRepetitions.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); const memory = memoryByLecture.get(item.lectureId); const daysAway = item.scheduledDate ? studyPlan81DaysBetween(todayKey, item.scheduledDate) : null; return <article key={item.id}><header><span><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber}</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong></div><em>{daysAway === 0 ? "I dag" : daysAway === 1 ? "I morgen" : daysAway > 1 ? `Om ${daysAway} dage` : "Forfalden"}</em></header><div className="study-plan-sr-upcoming-meta"><span><Icon name="calendar" size={11} />{new Date(`${item.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}{item.scheduledTime ? ` · ${item.scheduledTime}` : ""}</span><span><Icon name="clock" size={11} />{item.plannedMinutes} min</span><span>{studyPlanLoadLabel(memory?.latestLoadRating || "moderate", language)}</span></div><footer><small>Anbefalet interval {item.recommendedIntervalDays} d · valgt {item.chosenIntervalDays} d</small><button type="button" onClick={() => openCanonicalCalendar(item.scheduledDate)}>Åbn fuld kalender<Icon name="right" size={11} /></button></footer></article>; })}</div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="reset" size={20} /></span><strong>Ingen kommende repetition</strong><p>Når du afslutter en forelæsning, kan du vælge om og hvornår du vil se den igen.</p></div>}</section>
+        <section className="study-plan-sr-upcoming"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kommende</span><h3>Planlagte spaced repetitions</h3></div><span>{upcomingRepetitions.length}</span></div>{upcomingRepetitions.length ? <div className="study-plan-sr-upcoming-grid">{upcomingRepetitions.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); const memory = memoryByLecture.get(item.lectureId); const daysAway = item.scheduledDate ? studyPlan81DaysBetween(todayKey, item.scheduledDate) : null; return <article key={item.id}><header><span><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber}</small><strong>{lecture ? `${lecture.id} Â· ${lecture.title}` : item.lectureId}</strong></div><em>{daysAway === 0 ? "I dag" : daysAway === 1 ? "I morgen" : daysAway > 1 ? `Om ${daysAway} dage` : "Forfalden"}</em></header><div className="study-plan-sr-upcoming-meta"><span><Icon name="calendar" size={11} />{new Date(`${item.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}{item.scheduledTime ? ` Â· ${item.scheduledTime}` : ""}</span><span><Icon name="clock" size={11} />{item.plannedMinutes} min</span><span>{studyPlanLoadLabel(memory?.latestLoadRating || "moderate", language)}</span></div><footer><small>Anbefalet interval {item.recommendedIntervalDays} d Â· valgt {item.chosenIntervalDays} d</small><button type="button" onClick={() => openCanonicalCalendar(item.scheduledDate)}>Ã…bn fuld kalender<Icon name="right" size={11} /></button></footer></article>; })}</div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="reset" size={20} /></span><strong>Ingen kommende repetition</strong><p>NÃ¥r du afslutter en forelÃ¦sning, kan du vÃ¦lge om og hvornÃ¥r du vil se den igen.</p></div>}</section>
 
-        {(repetitionHistory.length > 0 || reviewState.memoryProfiles.length > 0) && <details className="study-plan-secondary-details study-plan-sr-history"><summary><span><strong>Historik</strong><small>{reviewState.memoryProfiles.length} forelæsningsforløb</small></span><Icon name="down" size={12} /></summary><div className="study-plan-sr-memory-list">{reviewState.memoryProfiles.map((memory) => { const lecture = moduleLectures.find((candidate) => candidate.id === memory.lectureId); const history = repetitionHistory.filter((item) => item.lectureId === memory.lectureId); const next = upcomingRepetitions.find((item) => item.lectureId === memory.lectureId); return <article key={memory.id} data-stopped={memory.stoppedAt ? "true" : "false"}><span><strong>{lecture ? `${lecture.id} · ${lecture.title}` : memory.lectureId}</strong><small>{studyPlanLoadLabel(memory.latestLoadRating, language)} · {memory.completedRepetitions} gennemførte repetitioner · første gennemgang {memory.baselineMinutes} min</small></span><div>{next ? <small>Næste: {new Date(`${next.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })} · {next.plannedMinutes} min</small> : memory.stoppedAt ? <small>Forløb afsluttet</small> : <small>Afventer næste valg</small>}{memory.stoppedAt && lecture && <button type="button" onClick={() => openLectureCalibration(lecture)}>Start igen</button>}</div>{history.length > 0 && <em>{history.slice(0,3).map((item) => `#${item.sequenceNumber} ${studyPlanLoadLabel(item.loadRating, language)}`).join(" · ")}</em>}</article>; })}</div></details>}
+        {(repetitionHistory.length > 0 || reviewState.memoryProfiles.length > 0) && <details className="study-plan-secondary-details study-plan-sr-history"><summary><span><strong>Historik</strong><small>{reviewState.memoryProfiles.length} forelÃ¦sningsforlÃ¸b</small></span><Icon name="down" size={12} /></summary><div className="study-plan-sr-memory-list">{reviewState.memoryProfiles.map((memory) => { const lecture = moduleLectures.find((candidate) => candidate.id === memory.lectureId); const history = repetitionHistory.filter((item) => item.lectureId === memory.lectureId); const next = upcomingRepetitions.find((item) => item.lectureId === memory.lectureId); return <article key={memory.id} data-stopped={memory.stoppedAt ? "true" : "false"}><span><strong>{lecture ? `${lecture.id} Â· ${lecture.title}` : memory.lectureId}</strong><small>{studyPlanLoadLabel(memory.latestLoadRating, language)} Â· {memory.completedRepetitions} gennemfÃ¸rte repetitioner Â· fÃ¸rste gennemgang {memory.baselineMinutes} min</small></span><div>{next ? <small>NÃ¦ste: {new Date(`${next.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })} Â· {next.plannedMinutes} min</small> : memory.stoppedAt ? <small>ForlÃ¸b afsluttet</small> : <small>Afventer nÃ¦ste valg</small>}{memory.stoppedAt && lecture && <button type="button" onClick={() => openLectureCalibration(lecture)}>Start igen</button>}</div>{history.length > 0 && <em>{history.slice(0,3).map((item) => `#${item.sequenceNumber} ${studyPlanLoadLabel(item.loadRating, language)}`).join(" Â· ")}</em>}</article>; })}</div></details>}
       </section>
 
-      <details className="study-plan-secondary-details study-plan-exam-focus-section"><summary><span><strong>Eksamensfokus</strong><small>{activeReviewItems.length} aktive review-items · {reviewState.tasks.filter((task) => task.status !== "completed").length} planopgaver</small></span><Icon name="down" size={12} /></summary>
-        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Eksamensfokus</span><h2>Fejl, emner og simulationer</h2><p>Åbn kun dette område, når du vil arbejde konkret med eksamensfejl eller simulationer.</p></div><button type="button" className="ui-button ui-button--secondary" disabled={!activeReviewItems.length} onClick={sendBacklog}><Icon name="plus" size={13} />{copy.addBacklog}</button></div>
+      <details className="study-plan-secondary-details study-plan-exam-focus-section"><summary><span><strong>Eksamensfokus</strong><small>{activeReviewItems.length} aktive review-items Â· {reviewState.tasks.filter((task) => task.status !== "completed").length} planopgaver</small></span><Icon name="down" size={12} /></summary>
+        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Eksamensfokus</span><h2>Fejl, emner og simulationer</h2><p>Ã…bn kun dette omrÃ¥de, nÃ¥r du vil arbejde konkret med eksamensfejl eller simulationer.</p></div><button type="button" className="ui-button ui-button--secondary" disabled={!activeReviewItems.length} onClick={sendBacklog}><Icon name="plus" size={13} />{copy.addBacklog}</button></div>
         {reviewGroups.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="check" size={20} /></span><strong>{copy.noReviewNeeds}</strong><p>{copy.noReviewNeedsHint}</p></div> : <div className="study-plan-review-groups">{reviewGroups.map((group) => { const uncovered = group.items.filter((item) => !taskByReviewItem.has(item.id)); const wrong = group.items.reduce((sum, item) => sum + item.wrongCount, 0); return <article key={group.key} data-covered={uncovered.length === 0 ? "true" : "false"}><header><span><Icon name={group.type === "lecture" ? "book" : group.type === "topic" ? "target" : "flag"} size={15} /></span><div><small>{group.type === "lecture" ? copy.mappedLecture : group.type === "topic" ? copy.mappedTopic : copy.unmapped}</small><strong>{group.title || copy.unmapped}</strong></div><b>{group.items.length}</b></header><div className="study-plan-review-group-meta"><span>{group.items.length} {copy.questions}</span><span>{wrong} {copy.errors}</span><span>{studyPlanReviewEstimateMinutes(uncovered.length ? uncovered : group.items)} {copy.minutes}</span></div><footer>{uncovered.length === 0 ? <span className="study-plan-covered-label"><Icon name="check" size={12} />{copy.covered}</span> : <><span>{uncovered.length < group.items.length ? copy.partialCovered : `${uncovered.length} ${copy.questions}`}</span><button type="button" onClick={() => sendGroup(group)}>{copy.sendGroup}<Icon name="right" size={12} /></button></>}</footer></article>; })}</div>}
-        {reviewState.documents.length > 0 && <section className="study-plan-simulation-strip"><div><span className="study-plan-workspace-kicker">{copy.simulations}</span><h3>{copy.simulations}</h3></div><div>{reviewState.documents.slice(0,6).map((document) => { const key = studyPlanReviewSourceKey("simulation", document.id); const existingSimulation = reviewState.tasks.find((task) => task.sourceKey === key); const canPlanAgain = !existingSimulation || existingSimulation.status === "completed"; return <button type="button" key={document.id} data-added={existingSimulation && !canPlanAgain ? "true" : "false"} disabled={!canPlanAgain} onClick={() => sendSimulation(document)}><span><strong>{document.name}</strong><small>{document.year || "—"} · {document.examSession || "—"}</small></span><em><Icon name={canPlanAgain ? "plus" : "check"} size={11} />{existingSimulation?.status === "completed" ? "Planlæg igen" : existingSimulation ? copy.simulationPlanned : copy.planSimulation}</em></button>; })}</div></section>}
+        {reviewState.documents.length > 0 && <section className="study-plan-simulation-strip"><div><span className="study-plan-workspace-kicker">{copy.simulations}</span><h3>{copy.simulations}</h3></div><div>{reviewState.documents.slice(0,6).map((document) => { const key = studyPlanReviewSourceKey("simulation", document.id); const existingSimulation = reviewState.tasks.find((task) => task.sourceKey === key); const canPlanAgain = !existingSimulation || existingSimulation.status === "completed"; return <button type="button" key={document.id} data-added={existingSimulation && !canPlanAgain ? "true" : "false"} disabled={!canPlanAgain} onClick={() => sendSimulation(document)}><span><strong>{document.name}</strong><small>{document.year || "â€”"} Â· {document.examSession || "â€”"}</small></span><em><Icon name={canPlanAgain ? "plus" : "check"} size={11} />{existingSimulation?.status === "completed" ? "PlanlÃ¦g igen" : existingSimulation ? copy.simulationPlanned : copy.planSimulation}</em></button>; })}</div></section>}
         <div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">{copy.planTasks}</span><h3>{copy.planTasks}</h3></div><div className="study-plan-review-filter">{[["all",copy.all],["unplanned",copy.unplanned],["planned",copy.planned],["completed",copy.completed]].map(([key,label]) => <button type="button" key={key} data-active={reviewTaskFilter === key ? "true" : "false"} onClick={() => setReviewTaskFilter(key)}>{label}</button>)}</div></div>
-        {tasksForFilter.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noTasks}</strong><p>{copy.noTasksHint}</p></div> : <div className="study-plan-task-list">{tasksForFilter.map((task) => { const linked = reviewState.taskItems.filter((item) => item.taskId === task.id); const scheduled = Boolean(task.scheduledDate); return <article key={task.id} data-status={task.status}><span className="study-plan-task-status"><Icon name={task.status === "completed" ? "check" : scheduled ? "calendar" : "target"} size={15} /></span><div className="study-plan-task-main"><small>{task.lectureId ? `${copy.mappedLecture} · ${task.lectureId}` : task.sourceType === "backlog" ? copy.activeBacklog : task.sourceType === "simulation" ? copy.simulations : copy.examReviewLabel}</small><strong>{task.title}</strong><span>{linked.length} {copy.questions} · {task.estimatedMinutes} {copy.minutes}{task.scheduledDate ? ` · ${new Date(`${task.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}${task.scheduledTime ? ` ${task.scheduledTime}` : ` · ${copy.notPlaced}`}` : " · Planlægningskø"}</span></div><div className="study-plan-task-actions">{task.status !== "completed" && <><button type="button" onClick={() => setScheduleTask(task)}><Icon name="calendar" size={12} />{copy.planTask}</button><button type="button" disabled={!activePlan} onClick={() => placeTaskWithActivePlan(task)} title={!activePlan ? copy.planInactiveHint : ""}><Icon name="sparkle" size={12} />{copy.placeWithPlan}</button></>}<button type="button" onClick={() => toggleTaskComplete(task)}><Icon name={task.status === "completed" ? "reset" : "check"} size={12} />{task.status === "completed" ? copy.reopen : copy.markComplete}</button></div></article>; })}</div>}
+        {tasksForFilter.length === 0 ? <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noTasks}</strong><p>{copy.noTasksHint}</p></div> : <div className="study-plan-task-list">{tasksForFilter.map((task) => { const linked = reviewState.taskItems.filter((item) => item.taskId === task.id); const scheduled = Boolean(task.scheduledDate); return <article key={task.id} data-status={task.status}><span className="study-plan-task-status"><Icon name={task.status === "completed" ? "check" : scheduled ? "calendar" : "target"} size={15} /></span><div className="study-plan-task-main"><small>{task.lectureId ? `${copy.mappedLecture} Â· ${task.lectureId}` : task.sourceType === "backlog" ? copy.activeBacklog : task.sourceType === "simulation" ? copy.simulations : copy.examReviewLabel}</small><strong>{task.title}</strong><span>{linked.length} {copy.questions} Â· {task.estimatedMinutes} {copy.minutes}{task.scheduledDate ? ` Â· ${new Date(`${task.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}${task.scheduledTime ? ` ${task.scheduledTime}` : ` Â· ${copy.notPlaced}`}` : " Â· PlanlÃ¦gningskÃ¸"}</span></div><div className="study-plan-task-actions">{task.status !== "completed" && <><button type="button" onClick={() => setScheduleTask(task)}><Icon name="calendar" size={12} />{copy.planTask}</button><button type="button" disabled={!activePlan} onClick={() => placeTaskWithActivePlan(task)} title={!activePlan ? copy.planInactiveHint : ""}><Icon name="sparkle" size={12} />{copy.placeWithPlan}</button></>}<button type="button" onClick={() => toggleTaskComplete(task)}><Icon name={task.status === "completed" ? "reset" : "check"} size={12} />{task.status === "completed" ? copy.reopen : copy.markComplete}</button></div></article>; })}</div>}
       </details>
     </div>;
   }
@@ -22667,7 +22791,7 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
     <div className="study-plan-workspace">
       <header className="study-plan-workspace-header"><div><span>{copy.eyebrow}</span><h1>{copy.title}</h1><p>{copy.overviewIntro}</p></div><div className="study-plan-workspace-plan-state" data-active={activePlan ? "true" : "false"}><i />{activePlan ? copy.activePlan : copy.noPlan}{activePlan?.examDate && <small>{daysToExam} {copy.daysToExam}</small>}</div></header>
       <nav className="study-plan-workspace-tabs" aria-label={copy.title}>{[["overview","home",copy.overview],["review","reset",copy.review],["builder","clipboard",copy.builder]].map(([key,icon,label]) => <button type="button" key={key} data-active={tab === key ? "true" : "false"} onClick={() => setTab(key)}><Icon name={icon} size={15} /><span>{label}</span>{key === "review" && (pendingCalibrations.length + pendingRatings.length) > 0 && <b>{pendingCalibrations.length + pendingRatings.length}</b>}</button>)}</nav>
-      <main className="study-plan-workspace-body">{tab === "overview" ? renderOverview() : tab === "review" ? renderReview() : <div className="study-plan-builder-workspace"><div className="study-plan-builder-context"><span><Icon name="clipboard" size={16} /></span><div><strong>{copy.builderContext}</strong><small>{copy.builderContextHint}</small></div>{(pendingCalibrations.length + pendingRatings.length) > 0 && <button type="button" onClick={() => setTab("review")}>{pendingCalibrations.length + pendingRatings.length} · kræver dit valg<Icon name="right" size={12} /></button>}</div><StudyPlanBuilder c={c} language={language} user={user} setUser={setUser} onCalendarCleared={handleStudyPlanCalendarCleared} onActivated={() => setTab("overview")} /></div>}</main>
+      <main className="study-plan-workspace-body">{tab === "overview" ? renderOverview() : tab === "review" ? renderReview() : <div className="study-plan-builder-workspace"><div className="study-plan-builder-context"><span><Icon name="clipboard" size={16} /></span><div><strong>{copy.builderContext}</strong><small>{copy.builderContextHint}</small></div>{(pendingCalibrations.length + pendingRatings.length) > 0 && <button type="button" onClick={() => setTab("review")}>{pendingCalibrations.length + pendingRatings.length} Â· krÃ¦ver dit valg<Icon name="right" size={12} /></button>}</div><StudyPlanBuilder c={c} language={language} user={user} setUser={setUser} onCalendarCleared={handleStudyPlanCalendarCleared} onActivated={() => setTab("overview")} /></div>}</main>
       {feedback && tab !== "review" && <div className="study-plan-workspace-toast" role="status"><Icon name="check" size={13} />{feedback}</div>}
       <StudyPlanScheduleDialog language={language} task={scheduleTask} busy={scheduleBusy} onClose={() => !scheduleBusy && setScheduleTask(null)} onSave={(date, time) => saveTaskSchedule(scheduleTask, date, time)} />
       <StudyPlanRepetitionDialog language={language} mode={repetitionDialog?.mode} lecture={repetitionDialog?.lecture || null} memory={repetitionDialog?.memory || null} repetition={repetitionDialog?.repetition || null} examDate={activePlan?.examDate || null} initialMinutes={repetitionDialog?.initialMinutes || 60} busy={repetitionBusy} onClose={() => !repetitionBusy && setRepetitionDialog(null)} onConfirm={saveRepetitionRecommendation} onStop={repetitionDialog?.mode === "rating" ? stopRepetitionFlow : null} />
@@ -22704,9 +22828,9 @@ function HomeDaySchedule({ c, date, events, onEventClick, onSlotClick, onRangeCr
 
 function CalendarDailyPlanner({ c, language, todayEvents, missedEvents, onSaveToday, onResolveMissed, onDismiss }) {
   const copy = ({
-    da: { title: "Planlæg din dag", subtitle: "Vælg varighed og tidspunkt for dagens forelæsninger.", missed: "Ikke afsluttet fra tidligere", auto: "Placér automatisk", save: "Gem dagens placering", dismiss: "Behold ikke placeret", noTime: "Ikke placeret", today: "Flyt til i dag", tomorrow: "Flyt til i morgen", done: "Markér færdig", keep: "Behold på datoen", duration: "Varighed", start: "Starter" },
+    da: { title: "PlanlÃ¦g din dag", subtitle: "VÃ¦lg varighed og tidspunkt for dagens forelÃ¦sninger.", missed: "Ikke afsluttet fra tidligere", auto: "PlacÃ©r automatisk", save: "Gem dagens placering", dismiss: "Behold ikke placeret", noTime: "Ikke placeret", today: "Flyt til i dag", tomorrow: "Flyt til i morgen", done: "MarkÃ©r fÃ¦rdig", keep: "Behold pÃ¥ datoen", duration: "Varighed", start: "Starter" },
     en: { title: "Plan your day", subtitle: "Choose duration and time for today's lectures.", missed: "Unfinished from earlier", auto: "Auto-place", save: "Save today's schedule", dismiss: "Keep unscheduled", noTime: "Unscheduled", today: "Move to today", tomorrow: "Move to tomorrow", done: "Mark complete", keep: "Keep on date", duration: "Duration", start: "Starts" },
-    ar: { title: "خطط ليومك", subtitle: "اختر المدة والوقت لمحاضرات اليوم.", missed: "غير مكتمل سابقًا", auto: "وضع تلقائي", save: "حفظ جدول اليوم", dismiss: "إبقاء غير مجدول", noTime: "غير مجدول", today: "نقل لليوم", tomorrow: "نقل للغد", done: "مكتمل", keep: "إبقاء التاريخ", duration: "المدة", start: "البداية" },
+    ar: { title: "Ø®Ø·Ø· Ù„ÙŠÙˆÙ…Ùƒ", subtitle: "Ø§Ø®ØªØ± Ø§Ù„Ù…Ø¯Ø© ÙˆØ§Ù„ÙˆÙ‚Øª Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ø§Ù„ÙŠÙˆÙ….", missed: "ØºÙŠØ± Ù…ÙƒØªÙ…Ù„ Ø³Ø§Ø¨Ù‚Ù‹Ø§", auto: "ÙˆØ¶Ø¹ ØªÙ„Ù‚Ø§Ø¦ÙŠ", save: "Ø­ÙØ¸ Ø¬Ø¯ÙˆÙ„ Ø§Ù„ÙŠÙˆÙ…", dismiss: "Ø¥Ø¨Ù‚Ø§Ø¡ ØºÙŠØ± Ù…Ø¬Ø¯ÙˆÙ„", noTime: "ØºÙŠØ± Ù…Ø¬Ø¯ÙˆÙ„", today: "Ù†Ù‚Ù„ Ù„Ù„ÙŠÙˆÙ…", tomorrow: "Ù†Ù‚Ù„ Ù„Ù„ØºØ¯", done: "Ù…ÙƒØªÙ…Ù„", keep: "Ø¥Ø¨Ù‚Ø§Ø¡ Ø§Ù„ØªØ§Ø±ÙŠØ®", duration: "Ø§Ù„Ù…Ø¯Ø©", start: "Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©" },
   })[language] || {};
   const [draft, setDraft] = useState({});
   useEffect(() => {
@@ -22718,7 +22842,7 @@ function CalendarDailyPlanner({ c, language, todayEvents, missedEvents, onSaveTo
   function autoPlace() { let cursor = 9 * 60; const next = {}; todayEvents.forEach((event) => { const durationMinutes = draft[event.id]?.durationMinutes || calendarDurationMinutes(event) || 60; next[event.id] = { time: minutesToTime(cursor), durationMinutes }; cursor += durationMinutes + 15; }); setDraft(next); }
   return (
     <div className="daily-planner-overlay"><div className="daily-planner-card"><header className="daily-planner-header"><span className="daily-planner-icon"><Icon name="calendar" size={18} /></span><div><h2>{copy.title}</h2><p>{copy.subtitle}</p></div><IconButton c={c} title={copy.dismiss} onClick={onDismiss}><Icon name="close" size={16} /></IconButton></header>
-      {missedEvents.length > 0 && <section className="daily-planner-missed"><div className="daily-planner-section-title"><Icon name="reset" size={14} />{copy.missed}<span>{missedEvents.length}</span></div><div className="daily-planner-missed-list">{missedEvents.slice(0, 5).map((event) => <article key={event.id} className="daily-planner-missed-item"><div><strong>{event.title}</strong><small>{event.date}{event.time ? ` · ${event.time}` : ""}</small></div><div className="daily-planner-actions"><button type="button" onClick={() => onResolveMissed(event, "today")}>{copy.today}</button><button type="button" onClick={() => onResolveMissed(event, "tomorrow")}>{copy.tomorrow}</button><button type="button" onClick={() => onResolveMissed(event, "complete")}>{copy.done}</button><button type="button" onClick={() => onResolveMissed(event, "keep")}>{copy.keep}</button></div></article>)}</div></section>}
+      {missedEvents.length > 0 && <section className="daily-planner-missed"><div className="daily-planner-section-title"><Icon name="reset" size={14} />{copy.missed}<span>{missedEvents.length}</span></div><div className="daily-planner-missed-list">{missedEvents.slice(0, 5).map((event) => <article key={event.id} className="daily-planner-missed-item"><div><strong>{event.title}</strong><small>{event.date}{event.time ? ` Â· ${event.time}` : ""}</small></div><div className="daily-planner-actions"><button type="button" onClick={() => onResolveMissed(event, "today")}>{copy.today}</button><button type="button" onClick={() => onResolveMissed(event, "tomorrow")}>{copy.tomorrow}</button><button type="button" onClick={() => onResolveMissed(event, "complete")}>{copy.done}</button><button type="button" onClick={() => onResolveMissed(event, "keep")}>{copy.keep}</button></div></article>)}</div></section>}
       {todayEvents.length > 0 && <section className="daily-planner-today"><div className="daily-planner-section-title"><Icon name="clock" size={14} />{copy.title}<button type="button" onClick={autoPlace}>{copy.auto}</button></div><div className="daily-planner-event-list">{todayEvents.map((event) => <div key={event.id} className="daily-planner-event-row"><span className="daily-planner-event-dot" /><span className="daily-planner-event-copy"><strong>{event.title}</strong><small>{event.lectureId || event.type}</small></span><label><small>{copy.duration}</small><select value={draft[event.id]?.durationMinutes || 60} onChange={(e) => update(event.id, { durationMinutes: Number(e.target.value) })}><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 t</option><option value="90">1,5 t</option><option value="120">2 t</option><option value="180">3 t</option></select></label><label><small>{copy.start}</small><input type="time" value={draft[event.id]?.time || ""} onChange={(e) => update(event.id, { time: e.target.value })} /></label></div>)}</div></section>}
       <footer className="daily-planner-footer"><SecondaryButton onClick={onDismiss}>{copy.dismiss}</SecondaryButton>{todayEvents.length > 0 && <PrimaryButton onClick={() => onSaveToday(draft)}>{copy.save}</PrimaryButton>}</footer>
     </div></div>
@@ -22727,9 +22851,9 @@ function CalendarDailyPlanner({ c, language, todayEvents, missedEvents, onSaveTo
 
 function PlanProgressPage({ c, language, moduleName, plan, lectures, events, lectureProgress = {}, onBack, onToggleLecture }) {
   const copy = ({
-    da: { title: "Studieforløb", subtitle: "Faktiske undervisningsdatoer og din egen faglige progression", back: "Tilbage til Hjem", lectures: "Forelæsninger", held: "Afholdt på studiet", read: "Læst / har styr på", skipped: "Sprunget over", planned: "Planlagt", unscheduled: "Ikke placeret", date: "IRL-dato", status: "Status", source: "Kilde", planSource: "Studieplan", importSource: "SDU-skema", none: "Ingen dato", daysLeft: "dage til eksamen", markDone: "Markér som læst", undoDone: "Fjern læst-markering", notHeld: "Ikke afholdt endnu" },
+    da: { title: "StudieforlÃ¸b", subtitle: "Faktiske undervisningsdatoer og din egen faglige progression", back: "Tilbage til Hjem", lectures: "ForelÃ¦sninger", held: "Afholdt pÃ¥ studiet", read: "LÃ¦st / har styr pÃ¥", skipped: "Sprunget over", planned: "Planlagt", unscheduled: "Ikke placeret", date: "IRL-dato", status: "Status", source: "Kilde", planSource: "Studieplan", importSource: "SDU-skema", none: "Ingen dato", daysLeft: "dage til eksamen", markDone: "MarkÃ©r som lÃ¦st", undoDone: "Fjern lÃ¦st-markering", notHeld: "Ikke afholdt endnu" },
     en: { title: "Study journey", subtitle: "Actual teaching dates and your own academic progress", back: "Back to Home", lectures: "Lectures", held: "Held at university", read: "Read / confident", skipped: "Skipped", planned: "Planned", unscheduled: "Unscheduled", date: "Real date", status: "Status", source: "Source", planSource: "Study plan", importSource: "SDU schedule", none: "No date", daysLeft: "days to exam", markDone: "Mark as read", undoDone: "Remove read mark", notHeld: "Not held yet" },
-    ar: { title: "مسار الدراسة", subtitle: "مواعيد التدريس الفعلية وتقدمك الشخصي", back: "العودة للرئيسية", lectures: "المحاضرات", held: "تم تقديمها في الجامعة", read: "تمت دراستها / مفهومة", skipped: "تم تجاوزها", planned: "مخطط", unscheduled: "غير محدد", date: "التاريخ الفعلي", status: "الحالة", source: "المصدر", planSource: "خطة الدراسة", importSource: "جدول SDU", none: "بدون تاريخ", daysLeft: "أيام للامتحان", markDone: "تحديد كمقروء", undoDone: "إلغاء علامة القراءة", notHeld: "لم تُعقد بعد" },
+    ar: { title: "Ù…Ø³Ø§Ø± Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", subtitle: "Ù…ÙˆØ§Ø¹ÙŠØ¯ Ø§Ù„ØªØ¯Ø±ÙŠØ³ Ø§Ù„ÙØ¹Ù„ÙŠØ© ÙˆØªÙ‚Ø¯Ù…Ùƒ Ø§Ù„Ø´Ø®ØµÙŠ", back: "Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„Ø±Ø¦ÙŠØ³ÙŠØ©", lectures: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª", held: "ØªÙ… ØªÙ‚Ø¯ÙŠÙ…Ù‡Ø§ ÙÙŠ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø©", read: "ØªÙ…Øª Ø¯Ø±Ø§Ø³ØªÙ‡Ø§ / Ù…ÙÙ‡ÙˆÙ…Ø©", skipped: "ØªÙ… ØªØ¬Ø§ÙˆØ²Ù‡Ø§", planned: "Ù…Ø®Ø·Ø·", unscheduled: "ØºÙŠØ± Ù…Ø­Ø¯Ø¯", date: "Ø§Ù„ØªØ§Ø±ÙŠØ® Ø§Ù„ÙØ¹Ù„ÙŠ", status: "Ø§Ù„Ø­Ø§Ù„Ø©", source: "Ø§Ù„Ù…ØµØ¯Ø±", planSource: "Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", importSource: "Ø¬Ø¯ÙˆÙ„ SDU", none: "Ø¨Ø¯ÙˆÙ† ØªØ§Ø±ÙŠØ®", daysLeft: "Ø£ÙŠØ§Ù… Ù„Ù„Ø§Ù…ØªØ­Ø§Ù†", markDone: "ØªØ­Ø¯ÙŠØ¯ ÙƒÙ…Ù‚Ø±ÙˆØ¡", undoDone: "Ø¥Ù„ØºØ§Ø¡ Ø¹Ù„Ø§Ù…Ø© Ø§Ù„Ù‚Ø±Ø§Ø¡Ø©", notHeld: "Ù„Ù… ØªÙØ¹Ù‚Ø¯ Ø¨Ø¹Ø¯" },
   })[language] || {};
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
 
@@ -22769,13 +22893,13 @@ function PlanProgressPage({ c, language, moduleName, plan, lectures, events, lec
     <div className="plan-progress-page fade-up">
       <header className="plan-progress-page-header">
         <button type="button" className="ui-button ui-button--ghost" onClick={onBack}><Icon name="left" size={14} />{copy.back}</button>
-        <div><h1>{copy.title}</h1><p>{moduleName} · {copy.subtitle}</p></div>
+        <div><h1>{copy.title}</h1><p>{moduleName} Â· {copy.subtitle}</p></div>
       </header>
       <section className="plan-progress-summary">
         <div><span>{copy.held}</span><strong>{heldCount}/{lectures.length}</strong></div>
         <div><span>{copy.read}</span><strong>{readCount}/{lectures.length}</strong></div>
         <div data-tone={skippedCount ? "warning" : "neutral"}><span>{copy.skipped}</span><strong>{skippedCount}</strong></div>
-        <div><span>{copy.daysLeft}</span><strong>{daysLeft ?? "—"}</strong></div>
+        <div><span>{copy.daysLeft}</span><strong>{daysLeft ?? "â€”"}</strong></div>
       </section>
       <section className="plan-progress-table-card">
         <div className="plan-progress-table-head"><span>{copy.lectures}</span><span>{copy.date}</span><span>{copy.source}</span><span>{copy.status}</span></div>
@@ -22787,7 +22911,7 @@ function PlanProgressPage({ c, language, moduleName, plan, lectures, events, lec
               <div key={lecture.id} className="plan-progress-table-row" data-status={rowStatus}>
                 <span className="plan-progress-lecture"><i>{lecture.id}</i><strong>{lecture.title}</strong>{skipped && <em>{copy.skipped}</em>}</span>
                 <span>{event ? new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }) : copy.none}{event?.time ? <small>{event.time}</small> : null}</span>
-                <span>{schedule.events.length ? copy.importSource : event ? copy.planSource : "—"}</span>
+                <span>{schedule.events.length ? copy.importSource : event ? copy.planSource : "â€”"}</span>
                 <span className="plan-progress-status-stack">
                   <button type="button" className="plan-progress-completion-toggle" data-checked={read ? "true" : "false"} aria-pressed={read} onClick={() => onToggleLecture(lecture, event, read)}>
                     <span className="plan-progress-completion-box"><Icon name="check" size={11} /></span>
@@ -22927,35 +23051,35 @@ function Dashboard({
       greetingEvening: "Godaften",
       reviews: "Repetition",
       new: "Nye",
-      total: "Spørgsmål",
+      total: "SpÃ¸rgsmÃ¥l",
       streak: "Dages streak",
       thisWeek: "Denne uge",
-      continueReview: "Fortsæt repetition",
-      continueSession: "Fortsæt session",
-      openPlan: "Åbn studieplan",
+      continueReview: "FortsÃ¦t repetition",
+      continueSession: "FortsÃ¦t session",
+      openPlan: "Ã…bn studieplan",
       studyPlan: "Studieplan",
       today: "I dag",
       day: "Dag",
       week: "Uge",
-      month: "Måned",
-      examCountdown: "Eksamensnedtælling",
+      month: "MÃ¥ned",
+      examCountdown: "EksamensnedtÃ¦lling",
       days: "dage",
       noExam: "Ingen eksamensdato",
       moduleStatus: "Modulstatus",
-      lectures: "Forelæsninger",
-      examSets: "Eksamenssæt",
+      lectures: "ForelÃ¦sninger",
+      examSets: "EksamenssÃ¦t",
       upcoming: "Kommende",
       viewAll: "Se alle",
-      noUpcoming: "Ingen kommende hændelser",
+      noUpcoming: "Ingen kommende hÃ¦ndelser",
       activity: "Seneste aktivitet",
       tasks: "Dagens opgaver",
       results: "Resultater",
       noActivity: "Ingen afsluttede sessioner endnu",
       completedSession: "Afsluttet MCQ-session",
-      questions: "spørgsmål",
+      questions: "spÃ¸rgsmÃ¥l",
       accuracy: "korrekt",
-      todayComplete: "Dagens plan er gennemført",
-      addLecture: "Tilføj næste forelæsning",
+      todayComplete: "Dagens plan er gennemfÃ¸rt",
+      addLecture: "TilfÃ¸j nÃ¦ste forelÃ¦sning",
       noTasks: "Intet planlagt for i dag",
       catchUp: "Indhent planen",
       behind: "Planen er bagud",
@@ -22964,31 +23088,31 @@ function Dashboard({
       badgeCount: "optjent",
       customize: "Tilpas Hjem",
       customizeTitle: "Tilpas dashboard",
-      customizeHint: "Vælg hvad der skal vises, og flyt elementerne i den rækkefølge, der passer dig.",
+      customizeHint: "VÃ¦lg hvad der skal vises, og flyt elementerne i den rÃ¦kkefÃ¸lge, der passer dig.",
       statsSection: "Studieoverblik",
       recommendationSection: "Anbefaling",
       quickSection: "Hurtig adgang",
       bottomSection: "Aktivitet, opgaver og resultater",
-      saveDashboard: "Færdig",
+      saveDashboard: "FÃ¦rdig",
       moveUp: "Flyt op",
       moveDown: "Flyt ned",
       quickAccess: "Hurtig adgang",
-      resumeQuick: "Fortsæt seneste",
+      resumeQuick: "FortsÃ¦t seneste",
       reviewQuick: "Start repetition",
-      lectureQuick: "Næste forelæsning",
+      lectureQuick: "NÃ¦ste forelÃ¦sning",
       eventQuick: "Ny aktivitet",
-      noteQuick: "Åbn notesbog",
+      noteQuick: "Ã…bn notesbog",
       noPlanTitle: "Ingen aktiv studieplan",
-      noPlanDescription: "Opret en plan for at få eksamensdato, forelæsningsprogression og kommende aktiviteter samlet her.",
+      noPlanDescription: "Opret en plan for at fÃ¥ eksamensdato, forelÃ¦sningsprogression og kommende aktiviteter samlet her.",
       noUpcomingTitle: "Du er ajour",
-      noUpcomingDescription: "Der er ingen kommende studieplansaktiviteter. Du kan oprette en aktivitet eller åbne kalenderen.",
+      noUpcomingDescription: "Der er ingen kommende studieplansaktiviteter. Du kan oprette en aktivitet eller Ã¥bne kalenderen.",
       addEvent: "Opret aktivitet",
-      delayedRecommendation: "Håndtér forsinket arbejde",
-      placeRecommendation: "Placér dagens forelæsninger",
-      nextRecommendation: "Fortsæt dagens plan",
+      delayedRecommendation: "HÃ¥ndtÃ©r forsinket arbejde",
+      placeRecommendation: "PlacÃ©r dagens forelÃ¦sninger",
+      nextRecommendation: "FortsÃ¦t dagens plan",
       dayCloseTitle: "Dagens studiearbejde er afsluttet",
-      dayCloseDescription: "Et roligt overblik over det, du nåede i dag.",
-      activitiesDone: "aktiviteter gennemført",
+      dayCloseDescription: "Et roligt overblik over det, du nÃ¥ede i dag.",
+      activitiesDone: "aktiviteter gennemfÃ¸rt",
       focusToday: "fokus i dag",
       tomorrowItems: "aktiviteter i morgen",
       dismiss: "Skjul",
@@ -23066,83 +23190,83 @@ function Dashboard({
       dismiss: "Hide",
     },
     ar: {
-      greetingMorning: "صباح الخير",
-      greetingAfternoon: "مساء الخير",
-      greetingEvening: "مساء الخير",
-      reviews: "المراجعة",
-      new: "جديد",
-      total: "الأسئلة",
-      streak: "أيام متتالية",
-      thisWeek: "هذا الأسبوع",
-      continueReview: "تابع المراجعة",
-      continueSession: "تابع الجلسة",
-      openPlan: "افتح خطة الدراسة",
-      studyPlan: "خطة الدراسة",
-      today: "اليوم",
-      day: "يوم",
-      week: "أسبوع",
-      month: "شهر",
-      examCountdown: "العد التنازلي للامتحان",
-      days: "أيام",
-      noExam: "لا يوجد موعد امتحان",
-      moduleStatus: "حالة الوحدة",
-      lectures: "المحاضرات",
-      examSets: "مجموعة الامتحان",
-      upcoming: "القادمة",
-      viewAll: "عرض الكل",
-      noUpcoming: "لا توجد أحداث قادمة",
-      activity: "النشاط الأخير",
-      tasks: "مهام اليوم",
-      results: "النتائج",
-      noActivity: "لا توجد جلسات مكتملة بعد",
-      completedSession: "جلسة أسئلة مكتملة",
-      questions: "أسئلة",
-      accuracy: "دقة",
-      todayComplete: "اكتملت خطة اليوم",
-      addLecture: "أضف المحاضرة التالية",
-      noTasks: "لا يوجد شيء مخطط لليوم",
-      catchUp: "إعادة توزيع الخطة",
-      behind: "الخطة متأخرة",
-      createPlan: "أنشئ خطة دراسة",
-      focusSessions: "جلسات تركيز اليوم",
-      badgeCount: "مكتسب",
-      customize: "تخصيص الرئيسية",
-      customizeTitle: "تخصيص لوحة التحكم",
-      customizeHint: "اختر ما يظهر ورتّب العناصر بالطريقة التي تناسبك.",
-      statsSection: "نظرة الدراسة",
-      recommendationSection: "التوصية",
-      quickSection: "وصول سريع",
-      bottomSection: "النشاط والمهام والنتائج",
-      saveDashboard: "تم",
-      moveUp: "تحريك لأعلى",
-      moveDown: "تحريك لأسفل",
-      quickAccess: "وصول سريع",
-      resumeQuick: "متابعة الأحدث",
-      reviewQuick: "بدء المراجعة",
-      lectureQuick: "المحاضرة التالية",
-      eventQuick: "نشاط جديد",
-      noteQuick: "فتح دفتر الملاحظات",
-      noPlanTitle: "لا توجد خطة دراسة نشطة",
-      noPlanDescription: "أنشئ خطة لعرض موعد الامتحان وتقدم المحاضرات والمهام القادمة هنا.",
-      noUpcomingTitle: "أنت على المسار",
-      noUpcomingDescription: "لا توجد أنشطة قادمة في خطة الدراسة. أنشئ نشاطًا أو افتح التقويم.",
-      addEvent: "إنشاء نشاط",
-      delayedRecommendation: "معالجة العمل المتأخر",
-      placeRecommendation: "تحديد أوقات محاضرات اليوم",
-      nextRecommendation: "متابعة خطة اليوم",
-      dayCloseTitle: "اكتمل عمل اليوم الدراسي",
-      dayCloseDescription: "ملخص هادئ لما أنجزته اليوم.",
-      activitiesDone: "أنشطة مكتملة",
-      focusToday: "تركيز اليوم",
-      tomorrowItems: "أنشطة غدًا",
-      dismiss: "إخفاء",
+      greetingMorning: "ØµØ¨Ø§Ø­ Ø§Ù„Ø®ÙŠØ±",
+      greetingAfternoon: "Ù…Ø³Ø§Ø¡ Ø§Ù„Ø®ÙŠØ±",
+      greetingEvening: "Ù…Ø³Ø§Ø¡ Ø§Ù„Ø®ÙŠØ±",
+      reviews: "Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      new: "Ø¬Ø¯ÙŠØ¯",
+      total: "Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+      streak: "Ø£ÙŠØ§Ù… Ù…ØªØªØ§Ù„ÙŠØ©",
+      thisWeek: "Ù‡Ø°Ø§ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹",
+      continueReview: "ØªØ§Ø¨Ø¹ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      continueSession: "ØªØ§Ø¨Ø¹ Ø§Ù„Ø¬Ù„Ø³Ø©",
+      openPlan: "Ø§ÙØªØ­ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      studyPlan: "Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      today: "Ø§Ù„ÙŠÙˆÙ…",
+      day: "ÙŠÙˆÙ…",
+      week: "Ø£Ø³Ø¨ÙˆØ¹",
+      month: "Ø´Ù‡Ø±",
+      examCountdown: "Ø§Ù„Ø¹Ø¯ Ø§Ù„ØªÙ†Ø§Ø²Ù„ÙŠ Ù„Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      days: "Ø£ÙŠØ§Ù…",
+      noExam: "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù…ÙˆØ¹Ø¯ Ø§Ù…ØªØ­Ø§Ù†",
+      moduleStatus: "Ø­Ø§Ù„Ø© Ø§Ù„ÙˆØ­Ø¯Ø©",
+      lectures: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+      examSets: "Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      upcoming: "Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©",
+      viewAll: "Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„",
+      noUpcoming: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø­Ø¯Ø§Ø« Ù‚Ø§Ø¯Ù…Ø©",
+      activity: "Ø§Ù„Ù†Ø´Ø§Ø· Ø§Ù„Ø£Ø®ÙŠØ±",
+      tasks: "Ù…Ù‡Ø§Ù… Ø§Ù„ÙŠÙˆÙ…",
+      results: "Ø§Ù„Ù†ØªØ§Ø¦Ø¬",
+      noActivity: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¬Ù„Ø³Ø§Øª Ù…ÙƒØªÙ…Ù„Ø© Ø¨Ø¹Ø¯",
+      completedSession: "Ø¬Ù„Ø³Ø© Ø£Ø³Ø¦Ù„Ø© Ù…ÙƒØªÙ…Ù„Ø©",
+      questions: "Ø£Ø³Ø¦Ù„Ø©",
+      accuracy: "Ø¯Ù‚Ø©",
+      todayComplete: "Ø§ÙƒØªÙ…Ù„Øª Ø®Ø·Ø© Ø§Ù„ÙŠÙˆÙ…",
+      addLecture: "Ø£Ø¶Ù Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„ØªØ§Ù„ÙŠØ©",
+      noTasks: "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø´ÙŠØ¡ Ù…Ø®Ø·Ø· Ù„Ù„ÙŠÙˆÙ…",
+      catchUp: "Ø¥Ø¹Ø§Ø¯Ø© ØªÙˆØ²ÙŠØ¹ Ø§Ù„Ø®Ø·Ø©",
+      behind: "Ø§Ù„Ø®Ø·Ø© Ù…ØªØ£Ø®Ø±Ø©",
+      createPlan: "Ø£Ù†Ø´Ø¦ Ø®Ø·Ø© Ø¯Ø±Ø§Ø³Ø©",
+      focusSessions: "Ø¬Ù„Ø³Ø§Øª ØªØ±ÙƒÙŠØ² Ø§Ù„ÙŠÙˆÙ…",
+      badgeCount: "Ù…ÙƒØªØ³Ø¨",
+      customize: "ØªØ®ØµÙŠØµ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©",
+      customizeTitle: "ØªØ®ØµÙŠØµ Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…",
+      customizeHint: "Ø§Ø®ØªØ± Ù…Ø§ ÙŠØ¸Ù‡Ø± ÙˆØ±ØªÙ‘Ø¨ Ø§Ù„Ø¹Ù†Ø§ØµØ± Ø¨Ø§Ù„Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„ØªÙŠ ØªÙ†Ø§Ø³Ø¨Ùƒ.",
+      statsSection: "Ù†Ø¸Ø±Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      recommendationSection: "Ø§Ù„ØªÙˆØµÙŠØ©",
+      quickSection: "ÙˆØµÙˆÙ„ Ø³Ø±ÙŠØ¹",
+      bottomSection: "Ø§Ù„Ù†Ø´Ø§Ø· ÙˆØ§Ù„Ù…Ù‡Ø§Ù… ÙˆØ§Ù„Ù†ØªØ§Ø¦Ø¬",
+      saveDashboard: "ØªÙ…",
+      moveUp: "ØªØ­Ø±ÙŠÙƒ Ù„Ø£Ø¹Ù„Ù‰",
+      moveDown: "ØªØ­Ø±ÙŠÙƒ Ù„Ø£Ø³ÙÙ„",
+      quickAccess: "ÙˆØµÙˆÙ„ Ø³Ø±ÙŠØ¹",
+      resumeQuick: "Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ø£Ø­Ø¯Ø«",
+      reviewQuick: "Ø¨Ø¯Ø¡ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      lectureQuick: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„ØªØ§Ù„ÙŠØ©",
+      eventQuick: "Ù†Ø´Ø§Ø· Ø¬Ø¯ÙŠØ¯",
+      noteQuick: "ÙØªØ­ Ø¯ÙØªØ± Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª",
+      noPlanTitle: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø®Ø·Ø© Ø¯Ø±Ø§Ø³Ø© Ù†Ø´Ø·Ø©",
+      noPlanDescription: "Ø£Ù†Ø´Ø¦ Ø®Ø·Ø© Ù„Ø¹Ø±Ø¶ Ù…ÙˆØ¹Ø¯ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† ÙˆØªÙ‚Ø¯Ù… Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª ÙˆØ§Ù„Ù…Ù‡Ø§Ù… Ø§Ù„Ù‚Ø§Ø¯Ù…Ø© Ù‡Ù†Ø§.",
+      noUpcomingTitle: "Ø£Ù†Øª Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø³Ø§Ø±",
+      noUpcomingDescription: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ù†Ø´Ø·Ø© Ù‚Ø§Ø¯Ù…Ø© ÙÙŠ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©. Ø£Ù†Ø´Ø¦ Ù†Ø´Ø§Ø·Ù‹Ø§ Ø£Ùˆ Ø§ÙØªØ­ Ø§Ù„ØªÙ‚ÙˆÙŠÙ….",
+      addEvent: "Ø¥Ù†Ø´Ø§Ø¡ Ù†Ø´Ø§Ø·",
+      delayedRecommendation: "Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ù„Ø¹Ù…Ù„ Ø§Ù„Ù…ØªØ£Ø®Ø±",
+      placeRecommendation: "ØªØ­Ø¯ÙŠØ¯ Ø£ÙˆÙ‚Ø§Øª Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ø§Ù„ÙŠÙˆÙ…",
+      nextRecommendation: "Ù…ØªØ§Ø¨Ø¹Ø© Ø®Ø·Ø© Ø§Ù„ÙŠÙˆÙ…",
+      dayCloseTitle: "Ø§ÙƒØªÙ…Ù„ Ø¹Ù…Ù„ Ø§Ù„ÙŠÙˆÙ… Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠ",
+      dayCloseDescription: "Ù…Ù„Ø®Øµ Ù‡Ø§Ø¯Ø¦ Ù„Ù…Ø§ Ø£Ù†Ø¬Ø²ØªÙ‡ Ø§Ù„ÙŠÙˆÙ….",
+      activitiesDone: "Ø£Ù†Ø´Ø·Ø© Ù…ÙƒØªÙ…Ù„Ø©",
+      focusToday: "ØªØ±ÙƒÙŠØ² Ø§Ù„ÙŠÙˆÙ…",
+      tomorrowItems: "Ø£Ù†Ø´Ø·Ø© ØºØ¯Ù‹Ø§",
+      dismiss: "Ø¥Ø®ÙØ§Ø¡",
     },
   })[language] || {};
 
   const lectureCounterCopy = ({
-    da: { heldTab: "Afholdte", heldLabel: "Afholdte forelæsninger", readingTab: "Læst", readingLabel: "Selvstudie · forelæsning læst", deckTab: "Dæk", deckLabel: "Selvstudie · relevant dæk kørt", switchLabel: "Vælg forelæsningscounter", settings: "Vælg counters", settingsTitle: "Vis i forelæsningscounter", eligibleDecks: "forelæsninger med relevante dæk" },
-    en: { heldTab: "Held", heldLabel: "Lectures held", readingTab: "Read", readingLabel: "Self-study · lecture reviewed", deckTab: "Decks", deckLabel: "Self-study · relevant deck completed", switchLabel: "Choose lecture counter", settings: "Choose counters", settingsTitle: "Show in lecture counter", eligibleDecks: "lectures with relevant decks" },
-    ar: { heldTab: "مُنعقدة", heldLabel: "المحاضرات المنعقدة", readingTab: "مقروءة", readingLabel: "دراسة ذاتية · تمت قراءة المحاضرة", deckTab: "الحزم", deckLabel: "دراسة ذاتية · إكمال الحزمة المرتبطة", switchLabel: "اختر عداد المحاضرات", settings: "اختيار العدادات", settingsTitle: "إظهار في عداد المحاضرات", eligibleDecks: "محاضرات لها حزم مرتبطة" },
+    da: { heldTab: "Afholdte", heldLabel: "Afholdte forelÃ¦sninger", readingTab: "LÃ¦st", readingLabel: "Selvstudie Â· forelÃ¦sning lÃ¦st", deckTab: "DÃ¦k", deckLabel: "Selvstudie Â· relevant dÃ¦k kÃ¸rt", switchLabel: "VÃ¦lg forelÃ¦sningscounter", settings: "VÃ¦lg counters", settingsTitle: "Vis i forelÃ¦sningscounter", eligibleDecks: "forelÃ¦sninger med relevante dÃ¦k" },
+    en: { heldTab: "Held", heldLabel: "Lectures held", readingTab: "Read", readingLabel: "Self-study Â· lecture reviewed", deckTab: "Decks", deckLabel: "Self-study Â· relevant deck completed", switchLabel: "Choose lecture counter", settings: "Choose counters", settingsTitle: "Show in lecture counter", eligibleDecks: "lectures with relevant decks" },
+    ar: { heldTab: "Ù…ÙÙ†Ø¹Ù‚Ø¯Ø©", heldLabel: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ø§Ù„Ù…Ù†Ø¹Ù‚Ø¯Ø©", readingTab: "Ù…Ù‚Ø±ÙˆØ¡Ø©", readingLabel: "Ø¯Ø±Ø§Ø³Ø© Ø°Ø§ØªÙŠØ© Â· ØªÙ…Øª Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©", deckTab: "Ø§Ù„Ø­Ø²Ù…", deckLabel: "Ø¯Ø±Ø§Ø³Ø© Ø°Ø§ØªÙŠØ© Â· Ø¥ÙƒÙ…Ø§Ù„ Ø§Ù„Ø­Ø²Ù…Ø© Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø©", switchLabel: "Ø§Ø®ØªØ± Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª", settings: "Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ø¹Ø¯Ø§Ø¯Ø§Øª", settingsTitle: "Ø¥Ø¸Ù‡Ø§Ø± ÙÙŠ Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª", eligibleDecks: "Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ù„Ù‡Ø§ Ø­Ø²Ù… Ù…Ø±ØªØ¨Ø·Ø©" },
   })[language] || {};
 
   const hour = new Date().getHours();
@@ -23452,17 +23576,17 @@ function Dashboard({
     .sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"))[0];
   const unscheduledTodayCount = todaysPlanEvents.filter((event) => !event.time || event.needsScheduling).length;
   const recommendation = missedPlanEvents.length
-    ? { title: copy.delayedRecommendation, meta: `${missedPlanEvents.length} · ${copy.behind}`, badge: missedPlanEvents.length, icon: "clock", action: () => { setCalendarDate(new Date()); setCalendarView("day"); setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { ...(previous[todayKey] || {}), confirmed: false } })); } }
+    ? { title: copy.delayedRecommendation, meta: `${missedPlanEvents.length} Â· ${copy.behind}`, badge: missedPlanEvents.length, icon: "clock", action: () => { setCalendarDate(new Date()); setCalendarView("day"); setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { ...(previous[todayKey] || {}), confirmed: false } })); } }
     : unscheduledTodayCount > 0
-      ? { title: copy.placeRecommendation, meta: `${unscheduledTodayCount} · ${copy.today}`, badge: unscheduledTodayCount, icon: "calendar", action: () => { setCalendarDate(new Date()); setCalendarView("day"); setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { ...(previous[todayKey] || {}), confirmed: false } })); } }
+      ? { title: copy.placeRecommendation, meta: `${unscheduledTodayCount} Â· ${copy.today}`, badge: unscheduledTodayCount, icon: "calendar", action: () => { setCalendarDate(new Date()); setCalendarView("day"); setCalendarDailyPlanner((previous) => ({ ...previous, [todayKey]: { ...(previous[todayKey] || {}), confirmed: false } })); } }
       : hasResumableSession
         ? { title: copy.continueSession, meta: `${resumeAnswered} ${copy.questions}`, badge: resumeAnswered, icon: "play", action: () => onNavigate("mcq") }
         : reviewCount > 0
-          ? { title: copy.continueReview, meta: `${moduleCode} · ${reviewCount} ${copy.reviews.toLowerCase()}`, badge: reviewCount, icon: "reset", action: () => onNavigate("mcq", { mode: "due" }) }
+          ? { title: copy.continueReview, meta: `${moduleCode} Â· ${reviewCount} ${copy.reviews.toLowerCase()}`, badge: reviewCount, icon: "reset", action: () => onNavigate("mcq", { mode: "due" }) }
           : nextTodayEvent
-            ? { title: copy.nextRecommendation, meta: `${nextTodayEvent.time || copy.today} · ${nextTodayEvent.title}`, badge: "", icon: "play", action: () => setEditingPlanEvent(nextTodayEvent) }
+            ? { title: copy.nextRecommendation, meta: `${nextTodayEvent.time || copy.today} Â· ${nextTodayEvent.title}`, badge: "", icon: "play", action: () => setEditingPlanEvent(nextTodayEvent) }
             : activePlan
-              ? { title: copy.openPlan, meta: `${moduleCode} · ${doneLectureCount}/${planLectures.length} ${copy.lectures.toLowerCase()}`, badge: daysRemaining ?? "", icon: "calendar", action: () => onNavigate("study-plan") }
+              ? { title: copy.openPlan, meta: `${moduleCode} Â· ${doneLectureCount}/${planLectures.length} ${copy.lectures.toLowerCase()}`, badge: daysRemaining ?? "", icon: "calendar", action: () => onNavigate("study-plan") }
               : { title: copy.createPlan, meta: moduleName || currentModule, badge: "", icon: "calendar", action: () => onNavigate("study-plan") };
 
   const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
@@ -23749,7 +23873,7 @@ function Dashboard({
     const start = timeToMinutes(event.time);
     const shifted = start == null ? "" : minutesToTime((start + 15) % (24 * 60));
     const endFields = shifted ? calendarEndFields(event.date, timeToMinutes(shifted) || 0, duration) : { endDate: event.date, endTime: "" };
-    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · kopi`, time: shifted, ...endFields, completedAt: null, createdByUser: true, source: "duplicate", recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
+    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} Â· kopi`, time: shifted, ...endFields, completedAt: null, createdByUser: true, source: "duplicate", recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
   }
 
   function dashboardSplitEvent(event) {
@@ -23765,7 +23889,7 @@ function Dashboard({
     const secondEnd = calendarEndFields(secondDate, secondStart, duration - firstDuration);
     setCalendarEvents((previous) => previous.map((item) => item.id === event.id ? { ...item, estimatedHours: firstDuration / 60 } : item));
     setCalendarEventMeta((previous) => ({ ...previous, [event.id]: { ...(previous[event.id] || {}), ...firstEnd } }));
-    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} · del 2`, date: secondDate, time: minutesToTime(secondStart), ...secondEnd, estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null, createdByUser: true, recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
+    dashboardInsertEvent({ ...event, id: `event-${Date.now()}`, title: `${event.title} Â· del 2`, date: secondDate, time: minutesToTime(secondStart), ...secondEnd, estimatedHours: (duration - firstDuration) / 60, splitFromId: event.id, completedAt: null, createdByUser: true, recurrence: "none", recurrenceParentId: undefined, recurrenceMaster: false });
   }
 
   function dashboardDeleteEvent(event) {
@@ -24098,7 +24222,7 @@ function Dashboard({
             if (cardId === "upcoming") return (
               <div key={cardId} className="home-v2-rail-card" style={{ minHeight: 210 }}>
                 <div className="home-v2-rail-card-heading"><div className="home-v2-rail-title">{copy.upcoming}</div><button type="button" onClick={onOpenCalendar}>{copy.viewAll}</button></div>
-                {upcomingEvents.length ? <div className="home-v2-upcoming-list">{upcomingEvents.map((event) => <button key={event.id} type="button" className="home-v2-upcoming-item" onClick={() => setEditingPlanEvent(event)}><span className="home-v2-upcoming-check" role="checkbox" aria-checked="false" tabIndex={0} onClick={(domEvent) => { domEvent.stopPropagation(); togglePlanEventComplete(event); }} onKeyDown={(domEvent) => { if (domEvent.key === "Enter" || domEvent.key === " ") { domEvent.preventDefault(); domEvent.stopPropagation(); togglePlanEventComplete(event); } }}><Icon name="check" size={11} /></span><span style={{ minWidth: 0 }}><span className="home-v2-upcoming-title" style={{ display: "block" }}>{event.title}</span><span className="home-v2-upcoming-meta" style={{ display: "block" }}>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : " · Ikke placeret"}</span></span></button>)}</div> : <div className="home-v2-empty-card"><span><Icon name="check" size={17} /></span><strong>{copy.noUpcomingTitle}</strong><small>{copy.noUpcomingDescription}</small><div className="home-v2-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => createEvent(todayKey, "")}>{copy.addEvent}</button><button type="button" className="ui-button ui-button--ghost" onClick={onOpenCalendar}>{copy.viewAll}</button></div></div>}
+                {upcomingEvents.length ? <div className="home-v2-upcoming-list">{upcomingEvents.map((event) => <button key={event.id} type="button" className="home-v2-upcoming-item" onClick={() => setEditingPlanEvent(event)}><span className="home-v2-upcoming-check" role="checkbox" aria-checked="false" tabIndex={0} onClick={(domEvent) => { domEvent.stopPropagation(); togglePlanEventComplete(event); }} onKeyDown={(domEvent) => { if (domEvent.key === "Enter" || domEvent.key === " ") { domEvent.preventDefault(); domEvent.stopPropagation(); togglePlanEventComplete(event); } }}><Icon name="check" size={11} /></span><span style={{ minWidth: 0 }}><span className="home-v2-upcoming-title" style={{ display: "block" }}>{event.title}</span><span className="home-v2-upcoming-meta" style={{ display: "block" }}>{new Date(`${event.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}{event.time ? `, ${event.time}` : " Â· Ikke placeret"}</span></span></button>)}</div> : <div className="home-v2-empty-card"><span><Icon name="check" size={17} /></span><strong>{copy.noUpcomingTitle}</strong><small>{copy.noUpcomingDescription}</small><div className="home-v2-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => createEvent(todayKey, "")}>{copy.addEvent}</button><button type="button" className="ui-button ui-button--ghost" onClick={onOpenCalendar}>{copy.viewAll}</button></div></div>}
               </div>
             );
             return null;
@@ -24134,7 +24258,7 @@ function Dashboard({
                     <span className="home-v2-activity-icon"><Icon name="check" size={13} /></span>
                     <span style={{ minWidth: 0 }}>
                       <span className="home-v2-activity-title" style={{ display: "block" }}>{copy.completedSession}</span>
-                      <span className="home-v2-activity-meta" style={{ display: "block" }}>{session.answered || session.total || 0} {copy.questions} · {session.score || 0}% {copy.accuracy}<br />{session.completedAt ? new Date(session.completedAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) : ""}</span>
+                      <span className="home-v2-activity-meta" style={{ display: "block" }}>{session.answered || session.total || 0} {copy.questions} Â· {session.score || 0}% {copy.accuracy}<br />{session.completedAt ? new Date(session.completedAt).toLocaleDateString(locale, { day: "numeric", month: "short" }) : ""}</span>
                     </span>
                   </div>
                 ))}
@@ -24272,8 +24396,8 @@ async function save() {
       language === "en"
         ? "Enter a question."
         : language === "ar"
-          ? "أدخل نص السؤال."
-          : "Skriv en spørgsmålstekst."
+          ? "Ø£Ø¯Ø®Ù„ Ù†Øµ Ø§Ù„Ø³Ø¤Ø§Ù„."
+          : "Skriv en spÃ¸rgsmÃ¥lstekst."
     );
     return;
   }
@@ -24286,7 +24410,7 @@ async function save() {
       language === "en"
         ? "Enter at least two answer options."
         : language === "ar"
-          ? "أدخل خيارين للإجابة على الأقل."
+          ? "Ø£Ø¯Ø®Ù„ Ø®ÙŠØ§Ø±ÙŠÙ† Ù„Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„."
           : "Udfyld mindst to svarmuligheder."
     );
     return;
@@ -24371,8 +24495,8 @@ async function save() {
         (language === "en"
           ? "The question could not be saved."
           : language === "ar"
-            ? "تعذر حفظ السؤال."
-            : "Spørgsmålet kunne ikke gemmes.")
+            ? "ØªØ¹Ø°Ø± Ø­ÙØ¸ Ø§Ù„Ø³Ø¤Ø§Ù„."
+            : "SpÃ¸rgsmÃ¥let kunne ikke gemmes.")
     );
   } finally {
     setSaving(false);
@@ -24507,7 +24631,7 @@ async function save() {
     ? language === "en"
       ? "Saving..."
       : language === "ar"
-        ? "جارٍ الحفظ..."
+        ? "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸..."
         : "Gemmer..."
     : t.saveQuestion}
 </PrimaryButton>
@@ -24618,7 +24742,7 @@ async function saveQuestion(updated) {
 
   if (error) {
     console.error(
-      "Kunne ikke gemme spørgsmålet i Supabase:",
+      "Kunne ikke gemme spÃ¸rgsmÃ¥let i Supabase:",
       error
     );
 
@@ -24633,7 +24757,7 @@ async function saveQuestion(updated) {
 
 async function deleteQuestion(id) {
   // De oprindelige hardcodede QUESTIONS findes endnu ikke
-  // nødvendigvis som rækker i Supabase.
+  // nÃ¸dvendigvis som rÃ¦kker i Supabase.
 
   setConfirmingDeleteId(null);
 
@@ -24656,15 +24780,15 @@ async function deleteQuestion(id) {
         language === "en"
           ? "The question was not found in Supabase."
           : language === "ar"
-            ? "لم يتم العثور على السؤال في Supabase."
-            : "Spørgsmålet blev ikke fundet i Supabase."
+            ? "Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ø³Ø¤Ø§Ù„ ÙÙŠ Supabase."
+            : "SpÃ¸rgsmÃ¥let blev ikke fundet i Supabase."
       );
     }
 
     await pullQuestionBankIntoLocalStorage();
   } catch (error) {
     console.error(
-      "Kunne ikke arkivere spørgsmålet:",
+      "Kunne ikke arkivere spÃ¸rgsmÃ¥let:",
       error
     );
 
@@ -24673,8 +24797,8 @@ async function deleteQuestion(id) {
         (language === "en"
           ? "The question could not be removed."
           : language === "ar"
-            ? "تعذر حذف السؤال."
-            : "Spørgsmålet kunne ikke slettes.")
+            ? "ØªØ¹Ø°Ø± Ø­Ø°Ù Ø§Ù„Ø³Ø¤Ø§Ù„."
+            : "SpÃ¸rgsmÃ¥let kunne ikke slettes.")
     );
   }
 }
@@ -24770,7 +24894,7 @@ async function deleteQuestion(id) {
 onClick={() => {
   if (
     window.confirm(
-      "Nulstil progress for alle MCQ’er? Alle kortplaner og reviewhistorik slettes."
+      "Nulstil progress for alle MCQâ€™er? Alle kortplaner og reviewhistorik slettes."
     )
   ) {
     resetAllProgress();
@@ -24924,31 +25048,31 @@ function AdminPortal({ c, t, language, user, isAdmin, onClose, globalContentStat
 
   const globalPublishCopy = ({
     da: {
-      title: "Udgiv globale ændringer",
-      description: "Før publicering viser MedFLUEN præcis hvilke af dine private forelæsningsfiler der bliver gjort globale. Når du bekræfter, konverteres de viste filer, den fælles indholdsversion hæves, og aktive brugere henter de seneste globale kort, forelæsningsfiler, kalenderdata, pensummapping og øvrigt fælles indhold.",
-      button: "Gennemgå og udgiv", previewing: "Finder ændringer…", publishing: "Udgiver…", version: "Global version", last: "Senest udgivet", never: "Ikke udgivet endnu",
-      previewTitle: "Private → globalt", previewHint: "Kun dine private materialer, som allerede er knyttet til både modul og forelæsning, konverteres. Private studiedata og private kalenderimports forbliver private.",
-      lectureMaterials: "Forelæsningsfiler", lectures: "forelæsninger", noPrivate: "Ingen private forelæsningsfiler skal gøres globale ved denne udgivelse.", more: "flere filer",
-      cancel: "Annuller", confirmPublish: "Udgiv globale ændringer", confirmPromote: "Gør global og udgiv", success: "Globale ændringer er udgivet. Aktive klienter opdateres automatisk.", madeGlobal: "forelæsningsfiler blev gjort globale.",
-      error: "Kunne ikke udgive globale ændringer.", previewError: "Kunne ikke lave forhåndsvisningen.", setup: "Global publish-summary er ikke klargjort endnu. Kør global_publish_private_to_global.sql i Supabase."
+      title: "Udgiv globale Ã¦ndringer",
+      description: "FÃ¸r publicering viser MedFLUEN prÃ¦cis hvilke af dine private forelÃ¦sningsfiler der bliver gjort globale. NÃ¥r du bekrÃ¦fter, konverteres de viste filer, den fÃ¦lles indholdsversion hÃ¦ves, og aktive brugere henter de seneste globale kort, forelÃ¦sningsfiler, kalenderdata, pensummapping og Ã¸vrigt fÃ¦lles indhold.",
+      button: "GennemgÃ¥ og udgiv", previewing: "Finder Ã¦ndringerâ€¦", publishing: "Udgiverâ€¦", version: "Global version", last: "Senest udgivet", never: "Ikke udgivet endnu",
+      previewTitle: "Private â†’ globalt", previewHint: "Kun dine private materialer, som allerede er knyttet til bÃ¥de modul og forelÃ¦sning, konverteres. Private studiedata og private kalenderimports forbliver private.",
+      lectureMaterials: "ForelÃ¦sningsfiler", lectures: "forelÃ¦sninger", noPrivate: "Ingen private forelÃ¦sningsfiler skal gÃ¸res globale ved denne udgivelse.", more: "flere filer",
+      cancel: "Annuller", confirmPublish: "Udgiv globale Ã¦ndringer", confirmPromote: "GÃ¸r global og udgiv", success: "Globale Ã¦ndringer er udgivet. Aktive klienter opdateres automatisk.", madeGlobal: "forelÃ¦sningsfiler blev gjort globale.",
+      error: "Kunne ikke udgive globale Ã¦ndringer.", previewError: "Kunne ikke lave forhÃ¥ndsvisningen.", setup: "Global publish-summary er ikke klargjort endnu. KÃ¸r global_publish_private_to_global.sql i Supabase."
     },
     en: {
       title: "Publish global changes",
       description: "Before publishing, MedFLUEN shows exactly which of your private lecture files will become global. After confirmation, those files are converted, the shared content version is incremented, and active clients reload the latest shared content.",
-      button: "Review and publish", previewing: "Finding changes…", publishing: "Publishing…", version: "Global version", last: "Last published", never: "Not published yet",
-      previewTitle: "Private → global", previewHint: "Only your private materials already linked to both a module and lecture are converted. Private study data and private calendar imports stay private.",
+      button: "Review and publish", previewing: "Finding changesâ€¦", publishing: "Publishingâ€¦", version: "Global version", last: "Last published", never: "Not published yet",
+      previewTitle: "Private â†’ global", previewHint: "Only your private materials already linked to both a module and lecture are converted. Private study data and private calendar imports stay private.",
       lectureMaterials: "Lecture files", lectures: "lectures", noPrivate: "No private lecture files will be made global in this publish.", more: "more files",
       cancel: "Cancel", confirmPublish: "Publish global changes", confirmPromote: "Make global and publish", success: "Global changes published. Active clients will refresh automatically.", madeGlobal: "lecture files were made global.",
       error: "Could not publish global changes.", previewError: "Could not create the publish preview.", setup: "Global publish summary is not set up yet. Run global_publish_private_to_global.sql in Supabase."
     },
     ar: {
-      title: "نشر التغييرات العامة",
-      description: "قبل النشر يعرض MedFLUEN بالتحديد ملفات المحاضرات الخاصة التي ستصبح عامة. بعد التأكيد يتم تحويل الملفات المعروضة ورفع إصدار المحتوى المشترك وتحديث المحتوى العام لدى المستخدمين النشطين.",
-      button: "مراجعة ونشر", previewing: "جارٍ فحص التغييرات…", publishing: "جارٍ النشر…", version: "الإصدار العام", last: "آخر نشر", never: "لم يتم النشر بعد",
-      previewTitle: "خاص ← عام", previewHint: "يتم تحويل موادك الخاصة المرتبطة بوحدة ومحاضرة فقط. تبقى بيانات الدراسة والتقويمات الخاصة كما هي.",
-      lectureMaterials: "ملفات المحاضرات", lectures: "محاضرات", noPrivate: "لا توجد ملفات محاضرات خاصة ستصبح عامة في هذا النشر.", more: "ملفات إضافية",
-      cancel: "إلغاء", confirmPublish: "نشر التغييرات العامة", confirmPromote: "تحويل إلى عام والنشر", success: "تم نشر التغييرات العامة وسيتم تحديث العملاء النشطين تلقائيًا.", madeGlobal: "ملفات محاضرات أصبحت عامة.",
-      error: "تعذر نشر التغييرات العامة.", previewError: "تعذر إنشاء معاينة النشر.", setup: "ملخص النشر العام غير مهيأ بعد. شغّل global_publish_private_to_global.sql في Supabase."
+      title: "Ù†Ø´Ø± Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª Ø§Ù„Ø¹Ø§Ù…Ø©",
+      description: "Ù‚Ø¨Ù„ Ø§Ù„Ù†Ø´Ø± ÙŠØ¹Ø±Ø¶ MedFLUEN Ø¨Ø§Ù„ØªØ­Ø¯ÙŠØ¯ Ù…Ù„ÙØ§Øª Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ø§Ù„Ø®Ø§ØµØ© Ø§Ù„ØªÙŠ Ø³ØªØµØ¨Ø­ Ø¹Ø§Ù…Ø©. Ø¨Ø¹Ø¯ Ø§Ù„ØªØ£ÙƒÙŠØ¯ ÙŠØªÙ… ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ù…Ù„ÙØ§Øª Ø§Ù„Ù…Ø¹Ø±ÙˆØ¶Ø© ÙˆØ±ÙØ¹ Ø¥ØµØ¯Ø§Ø± Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ù…Ø´ØªØ±Ùƒ ÙˆØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø¹Ø§Ù… Ù„Ø¯Ù‰ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† Ø§Ù„Ù†Ø´Ø·ÙŠÙ†.",
+      button: "Ù…Ø±Ø§Ø¬Ø¹Ø© ÙˆÙ†Ø´Ø±", previewing: "Ø¬Ø§Ø±Ù ÙØ­Øµ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øªâ€¦", publishing: "Ø¬Ø§Ø±Ù Ø§Ù„Ù†Ø´Ø±â€¦", version: "Ø§Ù„Ø¥ØµØ¯Ø§Ø± Ø§Ù„Ø¹Ø§Ù…", last: "Ø¢Ø®Ø± Ù†Ø´Ø±", never: "Ù„Ù… ÙŠØªÙ… Ø§Ù„Ù†Ø´Ø± Ø¨Ø¹Ø¯",
+      previewTitle: "Ø®Ø§Øµ â† Ø¹Ø§Ù…", previewHint: "ÙŠØªÙ… ØªØ­ÙˆÙŠÙ„ Ù…ÙˆØ§Ø¯Ùƒ Ø§Ù„Ø®Ø§ØµØ© Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø© Ø¨ÙˆØ­Ø¯Ø© ÙˆÙ…Ø­Ø§Ø¶Ø±Ø© ÙÙ‚Ø·. ØªØ¨Ù‚Ù‰ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¯Ø±Ø§Ø³Ø© ÙˆØ§Ù„ØªÙ‚ÙˆÙŠÙ…Ø§Øª Ø§Ù„Ø®Ø§ØµØ© ÙƒÙ…Ø§ Ù‡ÙŠ.",
+      lectureMaterials: "Ù…Ù„ÙØ§Øª Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª", lectures: "Ù…Ø­Ø§Ø¶Ø±Ø§Øª", noPrivate: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù„ÙØ§Øª Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ø®Ø§ØµØ© Ø³ØªØµØ¨Ø­ Ø¹Ø§Ù…Ø© ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ù†Ø´Ø±.", more: "Ù…Ù„ÙØ§Øª Ø¥Ø¶Ø§ÙÙŠØ©",
+      cancel: "Ø¥Ù„ØºØ§Ø¡", confirmPublish: "Ù†Ø´Ø± Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª Ø§Ù„Ø¹Ø§Ù…Ø©", confirmPromote: "ØªØ­ÙˆÙŠÙ„ Ø¥Ù„Ù‰ Ø¹Ø§Ù… ÙˆØ§Ù„Ù†Ø´Ø±", success: "ØªÙ… Ù†Ø´Ø± Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª Ø§Ù„Ø¹Ø§Ù…Ø© ÙˆØ³ÙŠØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ Ø§Ù„Ù†Ø´Ø·ÙŠÙ† ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§.", madeGlobal: "Ù…Ù„ÙØ§Øª Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ø£ØµØ¨Ø­Øª Ø¹Ø§Ù…Ø©.",
+      error: "ØªØ¹Ø°Ø± Ù†Ø´Ø± Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª Ø§Ù„Ø¹Ø§Ù…Ø©.", previewError: "ØªØ¹Ø°Ø± Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø¹Ø§ÙŠÙ†Ø© Ø§Ù„Ù†Ø´Ø±.", setup: "Ù…Ù„Ø®Øµ Ø§Ù„Ù†Ø´Ø± Ø§Ù„Ø¹Ø§Ù… ØºÙŠØ± Ù…Ù‡ÙŠØ£ Ø¨Ø¹Ø¯. Ø´ØºÙ‘Ù„ global_publish_private_to_global.sql ÙÙŠ Supabase."
     },
   })[language] || null;
 
@@ -25008,7 +25132,7 @@ function AdminPortal({ c, t, language, user, isAdmin, onClose, globalContentStat
   }
 
 // Midlertidig kompatibilitet med den gamle adminportal.
-// Fjernes, når admin-UI'et genopbygges.
+// Fjernes, nÃ¥r admin-UI'et genopbygges.
 const setUnlocked = () => {};
 const [passcode, setPasscode] = useState("");
   const [error, setError] = useState(false);
@@ -25254,8 +25378,8 @@ function getAdminLectureLabel(
     return language === "en"
       ? "No lecture"
       : language === "ar"
-        ? "بدون محاضرة"
-        : "Ingen forelæsning";
+        ? "Ø¨Ø¯ÙˆÙ† Ù…Ø­Ø§Ø¶Ø±Ø©"
+        : "Ingen forelÃ¦sning";
   }
 
   const lecture = (
@@ -25265,7 +25389,7 @@ function getAdminLectureLabel(
   );
 
   return lecture?.title
-    ? `${lectureId} · ${lecture.title}`
+    ? `${lectureId} Â· ${lecture.title}`
     : lectureId;
 }
 
@@ -25359,14 +25483,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Missing question text"
         : language === "ar"
-          ? "نص السؤال مفقود"
-          : "Spørgsmålstekst mangler",
+          ? "Ù†Øµ Ø§Ù„Ø³Ø¤Ø§Ù„ Ù…ÙÙ‚ÙˆØ¯"
+          : "SpÃ¸rgsmÃ¥lstekst mangler",
     description:
       language === "en"
         ? "The question has no usable text."
         : language === "ar"
-          ? "لا يحتوي السؤال على نص صالح."
-          : "Spørgsmålet har ingen anvendelig tekst.",
+          ? "Ù„Ø§ ÙŠØ­ØªÙˆÙŠ Ø§Ù„Ø³Ø¤Ø§Ù„ Ø¹Ù„Ù‰ Ù†Øµ ØµØ§Ù„Ø­."
+          : "SpÃ¸rgsmÃ¥let har ingen anvendelig tekst.",
   },
 
   tooFewOptions: {
@@ -25375,14 +25499,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Too few answer options"
         : language === "ar"
-          ? "خيارات إجابة غير كافية"
-          : "For få svarmuligheder",
+          ? "Ø®ÙŠØ§Ø±Ø§Øª Ø¥Ø¬Ø§Ø¨Ø© ØºÙŠØ± ÙƒØ§ÙÙŠØ©"
+          : "For fÃ¥ svarmuligheder",
     description:
       language === "en"
         ? "At least two completed answer options are required."
         : language === "ar"
-          ? "يلزم وجود خيارين مكتملين على الأقل."
-          : "Der skal være mindst to udfyldte svarmuligheder.",
+          ? "ÙŠÙ„Ø²Ù… ÙˆØ¬ÙˆØ¯ Ø®ÙŠØ§Ø±ÙŠÙ† Ù…ÙƒØªÙ…Ù„ÙŠÙ† Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„."
+          : "Der skal vÃ¦re mindst to udfyldte svarmuligheder.",
   },
 
   blankOption: {
@@ -25391,13 +25515,13 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Empty answer option"
         : language === "ar"
-          ? "خيار إجابة فارغ"
+          ? "Ø®ÙŠØ§Ø± Ø¥Ø¬Ø§Ø¨Ø© ÙØ§Ø±Øº"
           : "Tom svarmulighed",
     description:
       language === "en"
         ? "One or more answer options are empty."
         : language === "ar"
-          ? "خيار واحد أو أكثر من خيارات الإجابة فارغ."
+          ? "Ø®ÙŠØ§Ø± ÙˆØ§Ø­Ø¯ Ø£Ùˆ Ø£ÙƒØ«Ø± Ù…Ù† Ø®ÙŠØ§Ø±Ø§Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© ÙØ§Ø±Øº."
           : "En eller flere svarmuligheder er tomme.",
   },
 
@@ -25407,14 +25531,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Invalid correct answer"
         : language === "ar"
-          ? "الإجابة الصحيحة غير صالحة"
+          ? "Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„ØµØ­ÙŠØ­Ø© ØºÙŠØ± ØµØ§Ù„Ø­Ø©"
           : "Ugyldigt korrekt svar",
     description:
       language === "en"
         ? "The correct-answer index does not point to a completed option."
         : language === "ar"
-          ? "فهرس الإجابة الصحيحة لا يشير إلى خيار مكتمل."
-          : "Indekset for det korrekte svar peger ikke på en udfyldt svarmulighed.",
+          ? "ÙÙ‡Ø±Ø³ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„ØµØ­ÙŠØ­Ø© Ù„Ø§ ÙŠØ´ÙŠØ± Ø¥Ù„Ù‰ Ø®ÙŠØ§Ø± Ù…ÙƒØªÙ…Ù„."
+          : "Indekset for det korrekte svar peger ikke pÃ¥ en udfyldt svarmulighed.",
   },
 
   unknownModule: {
@@ -25423,14 +25547,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Unknown module"
         : language === "ar"
-          ? "وحدة غير معروفة"
+          ? "ÙˆØ­Ø¯Ø© ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙØ©"
           : "Ukendt modul",
     description:
       language === "en"
         ? "The module ID does not exist in MODULE_LECTURES."
         : language === "ar"
-          ? "معرف الوحدة غير موجود في قائمة الوحدات."
-          : "Modul-ID’et findes ikke i MODULE_LECTURES.",
+          ? "Ù…Ø¹Ø±Ù Ø§Ù„ÙˆØ­Ø¯Ø© ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ ÙÙŠ Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„ÙˆØ­Ø¯Ø§Øª."
+          : "Modul-IDâ€™et findes ikke i MODULE_LECTURES.",
   },
 
   unknownLecture: {
@@ -25439,14 +25563,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Unknown lecture"
         : language === "ar"
-          ? "محاضرة غير معروفة"
-          : "Ukendt forelæsning",
+          ? "Ù…Ø­Ø§Ø¶Ø±Ø© ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙØ©"
+          : "Ukendt forelÃ¦sning",
     description:
       language === "en"
         ? "The lecture ID does not belong to the selected module."
         : language === "ar"
-          ? "معرف المحاضرة لا ينتمي إلى الوحدة المحددة."
-          : "Forelæsnings-ID’et hører ikke til det valgte modul.",
+          ? "Ù…Ø¹Ø±Ù Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ù„Ø§ ÙŠÙ†ØªÙ…ÙŠ Ø¥Ù„Ù‰ Ø§Ù„ÙˆØ­Ø¯Ø© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©."
+          : "ForelÃ¦snings-IDâ€™et hÃ¸rer ikke til det valgte modul.",
   },
 
   missingModule: {
@@ -25455,14 +25579,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Missing module"
         : language === "ar"
-          ? "الوحدة مفقودة"
+          ? "Ø§Ù„ÙˆØ­Ø¯Ø© Ù…ÙÙ‚ÙˆØ¯Ø©"
           : "Modul mangler",
     description:
       language === "en"
         ? "The question is not assigned to a module."
         : language === "ar"
-          ? "السؤال غير مرتبط بوحدة."
-          : "Spørgsmålet er ikke tilknyttet et modul.",
+          ? "Ø§Ù„Ø³Ø¤Ø§Ù„ ØºÙŠØ± Ù…Ø±ØªØ¨Ø· Ø¨ÙˆØ­Ø¯Ø©."
+          : "SpÃ¸rgsmÃ¥let er ikke tilknyttet et modul.",
   },
 
   missingLecture: {
@@ -25471,14 +25595,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Missing lecture"
         : language === "ar"
-          ? "المحاضرة مفقودة"
-          : "Forelæsning mangler",
+          ? "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ù…ÙÙ‚ÙˆØ¯Ø©"
+          : "ForelÃ¦sning mangler",
     description:
       language === "en"
         ? "The question may not appear in the intended lecture deck."
         : language === "ar"
-          ? "قد لا يظهر السؤال في مجموعة المحاضرة المقصودة."
-          : "Spørgsmålet vises muligvis ikke i den tilsigtede forelæsningsbunke.",
+          ? "Ù‚Ø¯ Ù„Ø§ ÙŠØ¸Ù‡Ø± Ø§Ù„Ø³Ø¤Ø§Ù„ ÙÙŠ Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„Ù…Ù‚ØµÙˆØ¯Ø©."
+          : "SpÃ¸rgsmÃ¥let vises muligvis ikke i den tilsigtede forelÃ¦sningsbunke.",
   },
 
   missingExplanation: {
@@ -25487,14 +25611,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Missing explanation"
         : language === "ar"
-          ? "الشرح مفقود"
+          ? "Ø§Ù„Ø´Ø±Ø­ Ù…ÙÙ‚ÙˆØ¯"
           : "Forklaring mangler",
     description:
       language === "en"
         ? "Students will not receive an explanation after answering."
         : language === "ar"
-          ? "لن يحصل الطلاب على شرح بعد الإجابة."
-          : "De studerende får ingen forklaring efter besvarelsen.",
+          ? "Ù„Ù† ÙŠØ­ØµÙ„ Ø§Ù„Ø·Ù„Ø§Ø¨ Ø¹Ù„Ù‰ Ø´Ø±Ø­ Ø¨Ø¹Ø¯ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©."
+          : "De studerende fÃ¥r ingen forklaring efter besvarelsen.",
   },
 
   missingCategory: {
@@ -25503,14 +25627,14 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Missing category"
         : language === "ar"
-          ? "الفئة مفقودة"
+          ? "Ø§Ù„ÙØ¦Ø© Ù…ÙÙ‚ÙˆØ¯Ø©"
           : "Kategori mangler",
     description:
       language === "en"
         ? "The question cannot be grouped clearly by topic."
         : language === "ar"
-          ? "لا يمكن تصنيف السؤال بوضوح حسب الموضوع."
-          : "Spørgsmålet kan ikke grupperes tydeligt efter emne.",
+          ? "Ù„Ø§ ÙŠÙ…ÙƒÙ† ØªØµÙ†ÙŠÙ Ø§Ù„Ø³Ø¤Ø§Ù„ Ø¨ÙˆØ¶ÙˆØ­ Ø­Ø³Ø¨ Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹."
+          : "SpÃ¸rgsmÃ¥let kan ikke grupperes tydeligt efter emne.",
   },
 
   duplicateOptions: {
@@ -25519,13 +25643,13 @@ const qualityIssueDefinitions = {
       language === "en"
         ? "Duplicate answer options"
         : language === "ar"
-          ? "خيارات إجابة مكررة"
+          ? "Ø®ÙŠØ§Ø±Ø§Øª Ø¥Ø¬Ø§Ø¨Ø© Ù…ÙƒØ±Ø±Ø©"
           : "Dublerede svarmuligheder",
     description:
       language === "en"
         ? "Two or more answer options contain the same text."
         : language === "ar"
-          ? "يحتوي خياران أو أكثر على النص نفسه."
+          ? "ÙŠØ­ØªÙˆÙŠ Ø®ÙŠØ§Ø±Ø§Ù† Ø£Ùˆ Ø£ÙƒØ«Ø± Ø¹Ù„Ù‰ Ø§Ù„Ù†Øµ Ù†ÙØ³Ù‡."
           : "To eller flere svarmuligheder har samme tekst.",
   },
 };
@@ -25965,7 +26089,7 @@ async function removeQuestion(id) {
 
     if (!data?.id) {
       throw new Error(
-        "Spørgsmålet blev ikke ændret. Kontrollér din adminadgang."
+        "SpÃ¸rgsmÃ¥let blev ikke Ã¦ndret. KontrollÃ©r din adminadgang."
       );
     }
 
@@ -25997,8 +26121,8 @@ await recordAdminActivity({
         language === "en"
           ? "The question was removed."
           : language === "ar"
-            ? "تمت إزالة السؤال."
-            : "Spørgsmålet blev fjernet.",
+            ? "ØªÙ…Øª Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø³Ø¤Ø§Ù„."
+            : "SpÃ¸rgsmÃ¥let blev fjernet.",
     });
 
     setDashboardRefreshKey(
@@ -26006,7 +26130,7 @@ await recordAdminActivity({
     );
   } catch (error) {
     console.error(
-      "Kunne ikke arkivere spørgsmålet:",
+      "Kunne ikke arkivere spÃ¸rgsmÃ¥let:",
       error
     );
 
@@ -26017,8 +26141,8 @@ await recordAdminActivity({
         (language === "en"
           ? "The question could not be removed."
           : language === "ar"
-            ? "تعذرت إزالة السؤال."
-            : "Spørgsmålet kunne ikke fjernes."),
+            ? "ØªØ¹Ø°Ø±Øª Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø³Ø¤Ø§Ù„."
+            : "SpÃ¸rgsmÃ¥let kunne ikke fjernes."),
     });
   } finally {
     setDeletingQuestionId(null);
@@ -26115,8 +26239,8 @@ await recordAdminActivity({
       language === "en"
         ? "The question was updated."
         : language === "ar"
-          ? "تم تحديث السؤال."
-          : "Spørgsmålet blev opdateret.",
+          ? "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø³Ø¤Ø§Ù„."
+          : "SpÃ¸rgsmÃ¥let blev opdateret.",
   });
 
   setDashboardRefreshKey(
@@ -26164,8 +26288,8 @@ async function createAdminQuestion(updated) {
       language === "en"
         ? "Choose a module and lecture."
         : language === "ar"
-          ? "اختر الوحدة والمحاضرة."
-          : "Vælg et modul og en forelæsning."
+          ? "Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø© ÙˆØ§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©."
+          : "VÃ¦lg et modul og en forelÃ¦sning."
     );
   }
 
@@ -26214,7 +26338,7 @@ async function createAdminQuestion(updated) {
 
   if (error) {
     console.error(
-      "Kunne ikke oprette adminspørgsmålet:",
+      "Kunne ikke oprette adminspÃ¸rgsmÃ¥let:",
       error
     );
 
@@ -26266,8 +26390,8 @@ async function createAdminQuestion(updated) {
       language === "en"
         ? "The question was created."
         : language === "ar"
-          ? "تم إنشاء السؤال."
-          : "Spørgsmålet blev oprettet.",
+          ? "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø³Ø¤Ø§Ù„."
+          : "SpÃ¸rgsmÃ¥let blev oprettet.",
   });
 
   setDashboardRefreshKey(
@@ -26354,7 +26478,7 @@ useEffect(() => {
       );
     } catch (error) {
       console.error(
-        "Kunne ikke hente arkiverede spørgsmål:",
+        "Kunne ikke hente arkiverede spÃ¸rgsmÃ¥l:",
         error
       );
 
@@ -26364,8 +26488,8 @@ useEffect(() => {
             (language === "en"
               ? "Archived questions could not be loaded."
               : language === "ar"
-                ? "تعذر تحميل الأسئلة المؤرشفة."
-                : "Arkiverede spørgsmål kunne ikke hentes.")
+                ? "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø¤Ø±Ø´ÙØ©."
+                : "Arkiverede spÃ¸rgsmÃ¥l kunne ikke hentes.")
         );
 
         setArchivedQuestions([]);
@@ -26461,7 +26585,7 @@ useEffect(() => {
             (language === "en"
               ? "The import history could not be loaded."
               : language === "ar"
-                ? "تعذر تحميل سجل الاستيراد."
+                ? "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯."
                 : "Importhistorikken kunne ikke hentes.")
         );
       }
@@ -26553,7 +26677,7 @@ useEffect(() => {
             (language === "en"
               ? "The activity log could not be loaded."
               : language === "ar"
-                ? "تعذر تحميل سجل النشاط."
+                ? "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ù†Ø´Ø§Ø·."
                 : "Aktivitetsloggen kunne ikke hentes.")
         );
       }
@@ -26595,8 +26719,8 @@ async function restoreArchivedQuestion(id) {
       language === "en"
         ? "Restore this question?"
         : language === "ar"
-          ? "هل تريد استعادة هذا السؤال؟"
-          : "Vil du gendanne dette spørgsmål?"
+          ? "Ù‡Ù„ ØªØ±ÙŠØ¯ Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ù‡Ø°Ø§ Ø§Ù„Ø³Ø¤Ø§Ù„ØŸ"
+          : "Vil du gendanne dette spÃ¸rgsmÃ¥l?"
     }${
       questionText
         ? `\n\n${questionText.slice(
@@ -26633,8 +26757,8 @@ async function restoreArchivedQuestion(id) {
         language === "en"
           ? "The question was not restored. Check your administrator access."
           : language === "ar"
-            ? "لم تتم استعادة السؤال. تحقق من صلاحيات المسؤول."
-            : "Spørgsmålet blev ikke gendannet. Kontrollér din adminadgang."
+            ? "Ù„Ù… ØªØªÙ… Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø³Ø¤Ø§Ù„. ØªØ­Ù‚Ù‚ Ù…Ù† ØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„."
+            : "SpÃ¸rgsmÃ¥let blev ikke gendannet. KontrollÃ©r din adminadgang."
       );
     }
 
@@ -26673,8 +26797,8 @@ async function restoreArchivedQuestion(id) {
         language === "en"
           ? "The question was restored."
           : language === "ar"
-            ? "تمت استعادة السؤال."
-            : "Spørgsmålet blev gendannet.",
+            ? "ØªÙ…Øª Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø³Ø¤Ø§Ù„."
+            : "SpÃ¸rgsmÃ¥let blev gendannet.",
     });
 
     setDashboardRefreshKey(
@@ -26682,7 +26806,7 @@ async function restoreArchivedQuestion(id) {
     );
   } catch (error) {
     console.error(
-      "Kunne ikke gendanne spørgsmålet:",
+      "Kunne ikke gendanne spÃ¸rgsmÃ¥let:",
       error
     );
 
@@ -26693,8 +26817,8 @@ async function restoreArchivedQuestion(id) {
         (language === "en"
           ? "The question could not be restored."
           : language === "ar"
-            ? "تعذرت استعادة السؤال."
-            : "Spørgsmålet kunne ikke gendannes."),
+            ? "ØªØ¹Ø°Ø±Øª Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø³Ø¤Ø§Ù„."
+            : "SpÃ¸rgsmÃ¥let kunne ikke gendannes."),
     });
     } finally {
     setArchiveActionId(null);
@@ -26734,12 +26858,12 @@ useEffect(() => {
             language
           ) ||
           item.question_id ||
-          "—",
+          "â€”",
 
         userName:
           item.reporter_email ||
           item.user_id ||
-          "—",
+          "â€”",
 
         reason: item.reason || "",
 
@@ -26765,7 +26889,7 @@ useEffect(() => {
       if (!cancelled) {
         setFlagsError(
           error?.message ||
-            "Flaggede spørgsmål kunne ikke hentes."
+            "Flaggede spÃ¸rgsmÃ¥l kunne ikke hentes."
         );
 
         setFlagged([]);
@@ -26803,13 +26927,13 @@ async function updateFlagStatus(
       ? language === "en"
         ? "Dismiss this flag?"
         : language === "ar"
-          ? "هل تريد رفض هذا البلاغ؟"
+          ? "Ù‡Ù„ ØªØ±ÙŠØ¯ Ø±ÙØ¶ Ù‡Ø°Ø§ Ø§Ù„Ø¨Ù„Ø§ØºØŸ"
           : "Vil du afvise dette flag?"
       : language === "en"
         ? "Mark this flag as resolved?"
         : language === "ar"
-          ? "هل تريد تحديد هذا البلاغ كمحلول؟"
-          : "Vil du markere dette flag som løst?"
+          ? "Ù‡Ù„ ØªØ±ÙŠØ¯ ØªØ­Ø¯ÙŠØ¯ Ù‡Ø°Ø§ Ø§Ù„Ø¨Ù„Ø§Øº ÙƒÙ…Ø­Ù„ÙˆÙ„ØŸ"
+          : "Vil du markere dette flag som lÃ¸st?"
   );
 
   if (!confirmed) return;
@@ -26888,7 +27012,7 @@ setDashboardRefreshKey(
         (language === "en"
           ? "The flag could not be updated."
           : language === "ar"
-            ? "تعذر تحديث البلاغ."
+            ? "ØªØ¹Ø°Ø± ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨Ù„Ø§Øº."
             : "Flaget kunne ikke opdateres.")
     );
   } finally {
@@ -26960,7 +27084,7 @@ useEffect(() => {
             (language === "en"
               ? "Dashboard statistics could not be loaded."
               : language === "ar"
-                ? "تعذر تحميل إحصائيات لوحة الإدارة."
+                ? "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ù„ÙˆØ­Ø© Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©."
                 : "Adminstatistik kunne ikke hentes.")
         );
       }
@@ -27023,19 +27147,19 @@ const adminWarnings = [
       language === "en"
         ? "Open question flags"
         : language === "ar"
-          ? "بلاغات الأسئلة المفتوحة"
-          : "Åbne spørgsmålsflags",
+          ? "Ø¨Ù„Ø§ØºØ§Øª Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…ÙØªÙˆØ­Ø©"
+          : "Ã…bne spÃ¸rgsmÃ¥lsflags",
     description:
       language === "en"
         ? "Users have reported questions that require administrative review."
         : language === "ar"
-          ? "أبلغ المستخدمون عن أسئلة تحتاج إلى مراجعة إدارية."
-          : "Brugere har rapporteret spørgsmål, som kræver administrativ behandling.",
+          ? "Ø£Ø¨Ù„Øº Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙˆÙ† Ø¹Ù† Ø£Ø³Ø¦Ù„Ø© ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¥Ø¯Ø§Ø±ÙŠØ©."
+          : "Brugere har rapporteret spÃ¸rgsmÃ¥l, som krÃ¦ver administrativ behandling.",
     actionLabel:
       language === "en"
         ? "Review flags"
         : language === "ar"
-          ? "مراجعة البلاغات"
+          ? "Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª"
           : "Behandl flags",
     onOpen: () =>
       setAdminTab("flagged"),
@@ -27045,24 +27169,24 @@ const adminWarnings = [
     count:
       recentFailedImports.length,
     level: "danger",
-    symbol: "↥",
+    symbol: "â†¥",
     title:
       language === "en"
         ? "Recent failed imports"
         : language === "ar"
-          ? "عمليات استيراد فاشلة حديثة"
+          ? "Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ø³ØªÙŠØ±Ø§Ø¯ ÙØ§Ø´Ù„Ø© Ø­Ø¯ÙŠØ«Ø©"
           : "Nyligt mislykkede importer",
     description:
       language === "en"
         ? "One or more imports have failed during the past seven days."
         : language === "ar"
-          ? "فشلت عملية استيراد واحدة أو أكثر خلال الأيام السبعة الماضية."
+          ? "ÙØ´Ù„Øª Ø¹Ù…Ù„ÙŠØ© Ø§Ø³ØªÙŠØ±Ø§Ø¯ ÙˆØ§Ø­Ø¯Ø© Ø£Ùˆ Ø£ÙƒØ«Ø± Ø®Ù„Ø§Ù„ Ø§Ù„Ø£ÙŠØ§Ù… Ø§Ù„Ø³Ø¨Ø¹Ø© Ø§Ù„Ù…Ø§Ø¶ÙŠØ©."
           : "En eller flere importer er mislykkedes inden for de seneste syv dage.",
     actionLabel:
       language === "en"
         ? "View import history"
         : language === "ar"
-          ? "عرض سجل الاستيراد"
+          ? "Ø¹Ø±Ø¶ Ø³Ø¬Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
           : "Se importhistorik",
     onOpen: () =>
       setAdminTab("importHistory"),
@@ -27075,25 +27199,25 @@ const adminWarnings = [
     criticalQualityQuestionCount > 0
       ? "danger"
       : "info",
-  symbol: "≠",
+  symbol: "â‰ ",
   title:
     language === "en"
       ? "Question data-quality issues"
       : language === "ar"
-        ? "مشكلات جودة بيانات الأسئلة"
+        ? "Ù…Ø´ÙƒÙ„Ø§Øª Ø¬ÙˆØ¯Ø© Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
         : "Datakvalitetsproblemer",
   description:
     language === "en"
       ? "Published questions contain missing, invalid or inconsistent information."
       : language === "ar"
-        ? "تحتوي الأسئلة المنشورة على معلومات مفقودة أو غير صالحة أو غير متسقة."
-        : "Publicerede spørgsmål indeholder manglende, ugyldige eller inkonsistente oplysninger.",
+        ? "ØªØ­ØªÙˆÙŠ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ù†Ø´ÙˆØ±Ø© Ø¹Ù„Ù‰ Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ù…ÙÙ‚ÙˆØ¯Ø© Ø£Ùˆ ØºÙŠØ± ØµØ§Ù„Ø­Ø© Ø£Ùˆ ØºÙŠØ± Ù…ØªØ³Ù‚Ø©."
+        : "Publicerede spÃ¸rgsmÃ¥l indeholder manglende, ugyldige eller inkonsistente oplysninger.",
   actionLabel:
     language === "en"
       ? "Review data quality"
       : language === "ar"
-        ? "مراجعة جودة البيانات"
-        : "Gennemgå datakvalitet",
+        ? "Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¬ÙˆØ¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª"
+        : "GennemgÃ¥ datakvalitet",
   onOpen: () =>
     setAdminTab("quality"),
 },
@@ -27113,56 +27237,56 @@ const activityActionLabels = {
     language === "en"
       ? "Question created"
       : language === "ar"
-        ? "تم إنشاء السؤال"
-        : "Spørgsmål oprettet",
+        ? "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø³Ø¤Ø§Ù„"
+        : "SpÃ¸rgsmÃ¥l oprettet",
 
   question_updated:
     language === "en"
       ? "Question updated"
       : language === "ar"
-        ? "تم تحديث السؤال"
-        : "Spørgsmål redigeret",
+        ? "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø³Ø¤Ø§Ù„"
+        : "SpÃ¸rgsmÃ¥l redigeret",
 
   question_archived:
     language === "en"
       ? "Question archived"
       : language === "ar"
-        ? "تمت أرشفة السؤال"
-        : "Spørgsmål arkiveret",
+        ? "ØªÙ…Øª Ø£Ø±Ø´ÙØ© Ø§Ù„Ø³Ø¤Ø§Ù„"
+        : "SpÃ¸rgsmÃ¥l arkiveret",
 
   question_restored:
     language === "en"
       ? "Question restored"
       : language === "ar"
-        ? "تمت استعادة السؤال"
-        : "Spørgsmål gendannet",
+        ? "ØªÙ…Øª Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø³Ø¤Ø§Ù„"
+        : "SpÃ¸rgsmÃ¥l gendannet",
 
   import_completed:
     language === "en"
       ? "Import completed"
       : language === "ar"
-        ? "اكتمل الاستيراد"
-        : "Import gennemført",
+        ? "Ø§ÙƒØªÙ…Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
+        : "Import gennemfÃ¸rt",
 
   import_failed:
     language === "en"
       ? "Import failed"
       : language === "ar"
-        ? "فشل الاستيراد"
+        ? "ÙØ´Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
         : "Import mislykkedes",
 
   flag_resolved:
     language === "en"
       ? "Flag resolved"
       : language === "ar"
-        ? "تم حل البلاغ"
-        : "Flag markeret som løst",
+        ? "ØªÙ… Ø­Ù„ Ø§Ù„Ø¨Ù„Ø§Øº"
+        : "Flag markeret som lÃ¸st",
 
   flag_dismissed:
     language === "en"
       ? "Flag dismissed"
       : language === "ar"
-        ? "تم رفض البلاغ"
+        ? "ØªÙ… Ø±ÙØ¶ Ø§Ù„Ø¨Ù„Ø§Øº"
         : "Flag afvist",
 };
 
@@ -27173,13 +27297,13 @@ const adminSections = [
       language === "en"
         ? "Overview"
         : language === "ar"
-          ? "نظرة عامة"
+          ? "Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø©"
           : "Overblik",
     description:
       language === "en"
         ? "Status, activity and quick actions."
         : language === "ar"
-          ? "الحالة والنشاط والإجراءات السريعة."
+          ? "Ø§Ù„Ø­Ø§Ù„Ø© ÙˆØ§Ù„Ù†Ø´Ø§Ø· ÙˆØ§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø§Ù„Ø³Ø±ÙŠØ¹Ø©."
           : "Status, aktivitet og hurtige handlinger.",
           badge: adminWarningCount,
   },
@@ -27189,14 +27313,14 @@ const adminSections = [
       language === "en"
         ? "Question bank"
         : language === "ar"
-          ? "بنك الأسئلة"
-          : "Spørgsmålsbank",
+          ? "Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
+          : "SpÃ¸rgsmÃ¥lsbank",
     description:
       language === "en"
         ? "Search, filter and manage published questions."
         : language === "ar"
-          ? "البحث عن الأسئلة المنشورة وتصفيتها وإدارتها."
-          : "Søg, filtrér og administrér publicerede spørgsmål.",
+          ? "Ø§Ù„Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ù†Ø´ÙˆØ±Ø© ÙˆØªØµÙÙŠØªÙ‡Ø§ ÙˆØ¥Ø¯Ø§Ø±ØªÙ‡Ø§."
+          : "SÃ¸g, filtrÃ©r og administrÃ©r publicerede spÃ¸rgsmÃ¥l.",
     badge: imported.length,
   },
 
@@ -27206,14 +27330,14 @@ const adminSections = [
     language === "en"
       ? "Data quality"
       : language === "ar"
-        ? "جودة البيانات"
+        ? "Ø¬ÙˆØ¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª"
         : "Datakvalitet",
   description:
     language === "en"
       ? "Find and correct invalid or incomplete questions."
       : language === "ar"
-        ? "العثور على الأسئلة غير الصالحة أو غير المكتملة وتصحيحها."
-        : "Find og ret ugyldige eller ufuldstændige spørgsmål.",
+        ? "Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© ØºÙŠØ± Ø§Ù„ØµØ§Ù„Ø­Ø© Ø£Ùˆ ØºÙŠØ± Ø§Ù„Ù…ÙƒØªÙ…Ù„Ø© ÙˆØªØµØ­ÙŠØ­Ù‡Ø§."
+        : "Find og ret ugyldige eller ufuldstÃ¦ndige spÃ¸rgsmÃ¥l.",
   badge:
     questionQualityRows.length,
 },
@@ -27225,8 +27349,8 @@ const adminSections = [
       language === "en"
         ? "Validate and import new questions."
         : language === "ar"
-          ? "التحقق من الأسئلة الجديدة واستيرادها."
-          : "Validér og importér nye spørgsmål.",
+          ? "Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© ÙˆØ§Ø³ØªÙŠØ±Ø§Ø¯Ù‡Ø§."
+          : "ValidÃ©r og importÃ©r nye spÃ¸rgsmÃ¥l.",
   },
   {
     key: "flagged",
@@ -27235,7 +27359,7 @@ const adminSections = [
       language === "en"
         ? "Review reports submitted by users."
         : language === "ar"
-          ? "مراجعة البلاغات المقدمة من المستخدمين."
+          ? "Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª Ø§Ù„Ù…Ù‚Ø¯Ù…Ø© Ù…Ù† Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ†."
           : "Behandl rapporter indsendt af brugere.",
     badge: openFlags.length,
   },
@@ -27245,14 +27369,14 @@ const adminSections = [
       language === "en"
         ? "Archive"
         : language === "ar"
-          ? "الأرشيف"
+          ? "Ø§Ù„Ø£Ø±Ø´ÙŠÙ"
           : "Arkiv",
     description:
       language === "en"
         ? "View and restore archived questions."
         : language === "ar"
-          ? "عرض الأسئلة المؤرشفة واستعادتها."
-          : "Se og gendan arkiverede spørgsmål.",
+          ? "Ø¹Ø±Ø¶ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø¤Ø±Ø´ÙØ© ÙˆØ§Ø³ØªØ¹Ø§Ø¯ØªÙ‡Ø§."
+          : "Se og gendan arkiverede spÃ¸rgsmÃ¥l.",
         badge: archivedQuestions.length,
   },
   {
@@ -27261,14 +27385,14 @@ const adminSections = [
       language === "en"
         ? "Import history"
         : language === "ar"
-          ? "سجل الاستيراد"
+          ? "Ø³Ø¬Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
           : "Importhistorik",
     description:
       language === "en"
         ? "Review previous imports and their results."
         : language === "ar"
-          ? "مراجعة عمليات الاستيراد السابقة ونتائجها."
-          : "Gennemgå tidligere importer og deres resultater.",
+          ? "Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ø³Ø§Ø¨Ù‚Ø© ÙˆÙ†ØªØ§Ø¦Ø¬Ù‡Ø§."
+          : "GennemgÃ¥ tidligere importer og deres resultater.",
           badge: importHistory.length,
   },
   {
@@ -27277,14 +27401,14 @@ const adminSections = [
       language === "en"
         ? "Activity log"
         : language === "ar"
-          ? "سجل النشاط"
+          ? "Ø³Ø¬Ù„ Ø§Ù„Ù†Ø´Ø§Ø·"
           : "Aktivitetslog",
     description:
       language === "en"
         ? "See administrative changes and actions."
         : language === "ar"
-          ? "عرض التغييرات والإجراءات الإدارية."
-          : "Se administrative ændringer og handlinger.",
+          ? "Ø¹Ø±Ø¶ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª ÙˆØ§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ©."
+          : "Se administrative Ã¦ndringer og handlinger.",
     badge: activityLog.length,
   },
 ];
@@ -27449,10 +27573,10 @@ if (creatingAdminQuestion) {
                 }}
               >
                 {language === "en"
-                  ? "Question bank · Create a new question"
+                  ? "Question bank Â· Create a new question"
                   : language === "ar"
-                    ? "بنك الأسئلة · إنشاء سؤال جديد"
-                    : "Spørgsmålsbank · Opret et nyt spørgsmål"}
+                    ? "Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Â· Ø¥Ù†Ø´Ø§Ø¡ Ø³Ø¤Ø§Ù„ Ø¬Ø¯ÙŠØ¯"
+                    : "SpÃ¸rgsmÃ¥lsbank Â· Opret et nyt spÃ¸rgsmÃ¥l"}
               </div>
             </div>
           </div>
@@ -27495,14 +27619,14 @@ if (creatingAdminQuestion) {
                   lineHeight: 1,
                 }}
               >
-                {language === "ar" ? "→" : "←"}
+                {language === "ar" ? "â†’" : "â†"}
               </span>
 
               {language === "en"
                 ? "Back to question bank"
                 : language === "ar"
-                  ? "العودة إلى بنك الأسئلة"
-                  : "Tilbage til Spørgsmålsbanken"}
+                  ? "Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
+                  : "Tilbage til SpÃ¸rgsmÃ¥lsbanken"}
             </button>
 
             <IconButton
@@ -27564,8 +27688,8 @@ if (creatingAdminQuestion) {
                 {language === "en"
                   ? "Question placement"
                   : language === "ar"
-                    ? "مكان السؤال"
-                    : "Placering af spørgsmålet"}
+                    ? "Ù…ÙƒØ§Ù† Ø§Ù„Ø³Ø¤Ø§Ù„"
+                    : "Placering af spÃ¸rgsmÃ¥let"}
               </div>
 
               <div
@@ -27579,8 +27703,8 @@ if (creatingAdminQuestion) {
                 {language === "en"
                   ? "Choose the module and lecture where the question should appear."
                   : language === "ar"
-                    ? "اختر الوحدة والمحاضرة التي يجب أن يظهر فيها السؤال."
-                    : "Vælg det modul og den forelæsning, hvor spørgsmålet skal vises."}
+                    ? "Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø© ÙˆØ§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„ØªÙŠ ÙŠØ¬Ø¨ Ø£Ù† ÙŠØ¸Ù‡Ø± ÙÙŠÙ‡Ø§ Ø§Ù„Ø³Ø¤Ø§Ù„."
+                    : "VÃ¦lg det modul og den forelÃ¦sning, hvor spÃ¸rgsmÃ¥let skal vises."}
               </div>
 
               <div
@@ -27605,7 +27729,7 @@ if (creatingAdminQuestion) {
                     {language === "en"
                       ? "Module"
                       : language === "ar"
-                        ? "الوحدة"
+                        ? "Ø§Ù„ÙˆØ­Ø¯Ø©"
                         : "Modul"}
                   </label>
 
@@ -27669,8 +27793,8 @@ if (creatingAdminQuestion) {
                     {language === "en"
                       ? "Lecture"
                       : language === "ar"
-                        ? "المحاضرة"
-                        : "Forelæsning"}
+                        ? "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©"
+                        : "ForelÃ¦sning"}
                   </label>
 
                   <select
@@ -27714,8 +27838,8 @@ if (creatingAdminQuestion) {
                         {language === "en"
                           ? "No lectures available"
                           : language === "ar"
-                            ? "لا توجد محاضرات"
-                            : "Ingen forelæsninger"}
+                            ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø­Ø§Ø¶Ø±Ø§Øª"
+                            : "Ingen forelÃ¦sninger"}
                       </option>
                     ) : (
                       adminCreationLectureOptions.map(
@@ -27725,7 +27849,7 @@ if (creatingAdminQuestion) {
                             value={lecture.id}
                           >
                             {lecture.id}
-                            {" · "}
+                            {" Â· "}
                             {lecture.title}
                           </option>
                         )
@@ -27763,8 +27887,8 @@ if (creatingAdminQuestion) {
                   {language === "en"
                     ? "Question content"
                     : language === "ar"
-                      ? "محتوى السؤال"
-                      : "Spørgsmålets indhold"}
+                      ? "Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø³Ø¤Ø§Ù„"
+                      : "SpÃ¸rgsmÃ¥lets indhold"}
                 </div>
 
                 <div
@@ -27778,8 +27902,8 @@ if (creatingAdminQuestion) {
                   {language === "en"
                     ? "Write the question, answer options and explanation."
                     : language === "ar"
-                      ? "اكتب السؤال وخيارات الإجابة والشرح."
-                      : "Skriv spørgsmålet, svarmulighederne og forklaringen."}
+                      ? "Ø§ÙƒØªØ¨ Ø§Ù„Ø³Ø¤Ø§Ù„ ÙˆØ®ÙŠØ§Ø±Ø§Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© ÙˆØ§Ù„Ø´Ø±Ø­."
+                      : "Skriv spÃ¸rgsmÃ¥let, svarmulighederne og forklaringen."}
                 </div>
               </div>
 
@@ -27820,8 +27944,8 @@ if (creatingAdminQuestion) {
                   {language === "en"
                     ? "Choose a module and lecture to continue."
                     : language === "ar"
-                      ? "اختر الوحدة والمحاضرة للمتابعة."
-                      : "Vælg et modul og en forelæsning for at fortsætte."}
+                      ? "Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø© ÙˆØ§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ù„Ù„Ù…ØªØ§Ø¨Ø¹Ø©."
+                      : "VÃ¦lg et modul og en forelÃ¦sning for at fortsÃ¦tte."}
                 </div>
               )}
             </section>
@@ -28045,8 +28169,8 @@ if (creatingAdminQuestion) {
               {language === "en"
                 ? "Manage questions, imports and reported content"
                 : language === "ar"
-                  ? "إدارة الأسئلة وعمليات الاستيراد والمحتوى المبلّغ عنه"
-                  : "Administrér spørgsmål, importer og rapporteret indhold"}
+                  ? "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø£Ø³Ø¦Ù„Ø© ÙˆØ¹Ù…Ù„ÙŠØ§Øª Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯ ÙˆØ§Ù„Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ù…Ø¨Ù„Ù‘Øº Ø¹Ù†Ù‡"
+                  : "AdministrÃ©r spÃ¸rgsmÃ¥l, importer og rapporteret indhold"}
             </div>
           </div>
         </div>
@@ -28087,7 +28211,7 @@ if (creatingAdminQuestion) {
             {language === "en"
               ? "Administrator"
               : language === "ar"
-                ? "مسؤول"
+                ? "Ù…Ø³Ø¤ÙˆÙ„"
                 : "Administrator"}
           </div>
 
@@ -28133,7 +28257,7 @@ if (creatingAdminQuestion) {
     language === "en"
       ? "Admin navigation"
       : language === "ar"
-        ? "تنقل الإدارة"
+        ? "ØªÙ†Ù‚Ù„ Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©"
         : "Adminnavigation"
   }
   style={{
@@ -28313,8 +28437,8 @@ color:
       {language === "en"
         ? "Questions"
         : language === "ar"
-          ? "الأسئلة"
-          : "Spørgsmål"}
+          ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
+          : "SpÃ¸rgsmÃ¥l"}
     </div>
 
     <div
@@ -28391,8 +28515,8 @@ questionLectureFilter !== "all"
         language === "en"
           ? "Filter by module"
           : language === "ar"
-            ? "تصفية حسب الوحدة"
-            : "Filtrér efter modul"
+            ? "ØªØµÙÙŠØ© Ø­Ø³Ø¨ Ø§Ù„ÙˆØ­Ø¯Ø©"
+            : "FiltrÃ©r efter modul"
       }
       style={{
         minWidth: 150,
@@ -28412,7 +28536,7 @@ questionLectureFilter !== "all"
         {language === "en"
           ? "All modules"
           : language === "ar"
-            ? "جميع الوحدات"
+            ? "Ø¬Ù…ÙŠØ¹ Ø§Ù„ÙˆØ­Ø¯Ø§Øª"
             : "Alle moduler"}
       </option>
 
@@ -28442,8 +28566,8 @@ questionLectureFilter !== "all"
         language === "en"
           ? "Filter by lecture"
           : language === "ar"
-            ? "تصفية حسب المحاضرة"
-            : "Filtrér efter forelæsning"
+            ? "ØªØµÙÙŠØ© Ø­Ø³Ø¨ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©"
+            : "FiltrÃ©r efter forelÃ¦sning"
       }
       style={{
         minWidth: 190,
@@ -28472,13 +28596,13 @@ questionLectureFilter !== "all"
           ? language === "en"
             ? "Choose a module first"
             : language === "ar"
-              ? "اختر الوحدة أولاً"
-              : "Vælg først et modul"
+              ? "Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø© Ø£ÙˆÙ„Ø§Ù‹"
+              : "VÃ¦lg fÃ¸rst et modul"
           : language === "en"
             ? "All lectures"
             : language === "ar"
-              ? "جميع المحاضرات"
-              : "Alle forelæsninger"}
+              ? "Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª"
+              : "Alle forelÃ¦sninger"}
       </option>
 
       {adminLectureOptions.map(
@@ -28507,15 +28631,15 @@ questionLectureFilter !== "all"
         language === "en"
           ? "Search questions"
           : language === "ar"
-            ? "البحث في الأسئلة"
-            : "Søg i spørgsmål"
+            ? "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
+            : "SÃ¸g i spÃ¸rgsmÃ¥l"
       }
       placeholder={
         language === "en"
           ? "Search question or category..."
           : language === "ar"
-            ? "ابحث عن سؤال أو فئة..."
-            : "Søg efter spørgsmål eller kategori..."
+            ? "Ø§Ø¨Ø­Ø« Ø¹Ù† Ø³Ø¤Ø§Ù„ Ø£Ùˆ ÙØ¦Ø©..."
+            : "SÃ¸g efter spÃ¸rgsmÃ¥l eller kategori..."
       }
       style={{
         width: "min(360px, 100%)",
@@ -28590,8 +28714,8 @@ questionLectureFilter !== "all"
   : language === "en"
     ? "No questions match the selected filters."
     : language === "ar"
-      ? "لا توجد أسئلة تطابق عوامل التصفية المحددة."
-      : "Ingen spørgsmål matcher de valgte filtre."}
+      ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© ØªØ·Ø§Ø¨Ù‚ Ø¹ÙˆØ§Ù…Ù„ Ø§Ù„ØªØµÙÙŠØ© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©."
+      : "Ingen spÃ¸rgsmÃ¥l matcher de valgte filtre."}
   </p>
             ) : (
               <div
@@ -28663,7 +28787,7 @@ questionLectureFilter !== "all"
                 fontWeight: 750,
               }}
             >
-              {question.moduleId || "—"}
+              {question.moduleId || "â€”"}
             </span>
 
             <span
@@ -28798,7 +28922,7 @@ questionLectureFilter !== "all"
               ? language === "en"
                 ? "Removing..."
                 : language === "ar"
-                  ? "جارٍ الحذف..."
+                  ? "Ø¬Ø§Ø±Ù Ø§Ù„Ø­Ø°Ù..."
                   : "Fjerner..."
               : t.adminDelete}
           </button>
@@ -28831,8 +28955,8 @@ questionLectureFilter !== "all"
             language === "en"
               ? "Affected questions"
               : language === "ar"
-                ? "الأسئلة المتأثرة"
-                : "Berørte spørgsmål",
+                ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…ØªØ£Ø«Ø±Ø©"
+                : "BerÃ¸rte spÃ¸rgsmÃ¥l",
           value:
             questionQualityRows.length,
           tone: "blue",
@@ -28842,8 +28966,8 @@ questionLectureFilter !== "all"
             language === "en"
               ? "Critical questions"
               : language === "ar"
-                ? "الأسئلة الحرجة"
-                : "Kritiske spørgsmål",
+                ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø­Ø±Ø¬Ø©"
+                : "Kritiske spÃ¸rgsmÃ¥l",
           value:
             criticalQualityQuestionCount,
           tone: "red",
@@ -28853,8 +28977,8 @@ questionLectureFilter !== "all"
             language === "en"
               ? "Questions with warnings"
               : language === "ar"
-                ? "أسئلة مع تحذيرات"
-                : "Spørgsmål med advarsler",
+                ? "Ø£Ø³Ø¦Ù„Ø© Ù…Ø¹ ØªØ­Ø°ÙŠØ±Ø§Øª"
+                : "SpÃ¸rgsmÃ¥l med advarsler",
           value:
             warningQualityQuestionCount,
           tone: "orange",
@@ -28864,7 +28988,7 @@ questionLectureFilter !== "all"
             language === "en"
               ? "Total issues"
               : language === "ar"
-                ? "إجمالي المشكلات"
+                ? "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ø´ÙƒÙ„Ø§Øª"
                 : "Problemer i alt",
           value: qualityIssueCount,
           tone: "blue",
@@ -28943,8 +29067,8 @@ questionLectureFilter !== "all"
     {language === "en"
       ? "Questions with data-quality issues"
       : language === "ar"
-        ? "الأسئلة التي تحتوي على مشكلات في جودة البيانات"
-        : "Spørgsmål med datakvalitetsproblemer"}
+        ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„ØªÙŠ ØªØ­ØªÙˆÙŠ Ø¹Ù„Ù‰ Ù…Ø´ÙƒÙ„Ø§Øª ÙÙŠ Ø¬ÙˆØ¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª"
+        : "SpÃ¸rgsmÃ¥l med datakvalitetsproblemer"}
   </div>
 
   <div
@@ -28983,8 +29107,8 @@ questionLectureFilter !== "all"
             language === "en"
               ? "Filter by severity"
               : language === "ar"
-                ? "التصفية حسب الخطورة"
-                : "Filtrér efter alvor"
+                ? "Ø§Ù„ØªØµÙÙŠØ© Ø­Ø³Ø¨ Ø§Ù„Ø®Ø·ÙˆØ±Ø©"
+                : "FiltrÃ©r efter alvor"
           }
           style={{
             minWidth: 155,
@@ -29004,7 +29128,7 @@ questionLectureFilter !== "all"
             {language === "en"
               ? "All issues"
               : language === "ar"
-                ? "كل المشكلات"
+                ? "ÙƒÙ„ Ø§Ù„Ù…Ø´ÙƒÙ„Ø§Øª"
                 : "Alle problemer"}
           </option>
 
@@ -29012,7 +29136,7 @@ questionLectureFilter !== "all"
             {language === "en"
               ? "Critical only"
               : language === "ar"
-                ? "الحرجة فقط"
+                ? "Ø§Ù„Ø­Ø±Ø¬Ø© ÙÙ‚Ø·"
                 : "Kun kritiske"}
           </option>
 
@@ -29020,7 +29144,7 @@ questionLectureFilter !== "all"
             {language === "en"
               ? "Warnings only"
               : language === "ar"
-                ? "التحذيرات فقط"
+                ? "Ø§Ù„ØªØ­Ø°ÙŠØ±Ø§Øª ÙÙ‚Ø·"
                 : "Kun advarsler"}
           </option>
         </select>
@@ -29037,15 +29161,15 @@ questionLectureFilter !== "all"
             language === "en"
               ? "Search data-quality issues"
               : language === "ar"
-                ? "البحث في مشكلات جودة البيانات"
-                : "Søg i datakvalitetsproblemer"
+                ? "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ù…Ø´ÙƒÙ„Ø§Øª Ø¬ÙˆØ¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª"
+                : "SÃ¸g i datakvalitetsproblemer"
           }
           placeholder={
             language === "en"
               ? "Search question, module or issue..."
               : language === "ar"
-                ? "ابحث عن سؤال أو وحدة أو مشكلة..."
-                : "Søg efter spørgsmål, modul eller problem..."
+                ? "Ø§Ø¨Ø­Ø« Ø¹Ù† Ø³Ø¤Ø§Ù„ Ø£Ùˆ ÙˆØ­Ø¯Ø© Ø£Ùˆ Ù…Ø´ÙƒÙ„Ø©..."
+                : "SÃ¸g efter spÃ¸rgsmÃ¥l, modul eller problem..."
           }
           style={{
             width:
@@ -29095,7 +29219,7 @@ questionLectureFilter !== "all"
               fontWeight: 900,
             }}
           >
-            ✓
+            âœ“
           </div>
 
           <div
@@ -29108,7 +29232,7 @@ questionLectureFilter !== "all"
             {language === "en"
               ? "No data-quality issues found"
               : language === "ar"
-                ? "لم يتم العثور على مشكلات في جودة البيانات"
+                ? "Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù…Ø´ÙƒÙ„Ø§Øª ÙÙŠ Ø¬ÙˆØ¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª"
                 : "Ingen datakvalitetsproblemer fundet"}
           </div>
 
@@ -29123,8 +29247,8 @@ questionLectureFilter !== "all"
             {language === "en"
               ? "All published questions pass the current checks."
               : language === "ar"
-                ? "جميع الأسئلة المنشورة اجتازت الفحوصات الحالية."
-                : "Alle publicerede spørgsmål består de nuværende kontroller."}
+                ? "Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ù†Ø´ÙˆØ±Ø© Ø§Ø¬ØªØ§Ø²Øª Ø§Ù„ÙØ­ÙˆØµØ§Øª Ø§Ù„Ø­Ø§Ù„ÙŠØ©."
+                : "Alle publicerede spÃ¸rgsmÃ¥l bestÃ¥r de nuvÃ¦rende kontroller."}
           </div>
         </div>
       </div>
@@ -29147,8 +29271,8 @@ questionLectureFilter !== "all"
         {language === "en"
           ? "No questions match the selected filters."
           : language === "ar"
-            ? "لا توجد أسئلة تطابق عوامل التصفية المحددة."
-            : "Ingen spørgsmål matcher de valgte filtre."}
+            ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© ØªØ·Ø§Ø¨Ù‚ Ø¹ÙˆØ§Ù…Ù„ Ø§Ù„ØªØµÙÙŠØ© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©."
+            : "Ingen spÃ¸rgsmÃ¥l matcher de valgte filtre."}
       </div>
     ) : (
       <div
@@ -29206,8 +29330,8 @@ questionLectureFilter !== "all"
                       (language === "en"
                         ? "Question without text"
                         : language === "ar"
-                          ? "سؤال بدون نص"
-                          : "Spørgsmål uden tekst")}
+                          ? "Ø³Ø¤Ø§Ù„ Ø¨Ø¯ÙˆÙ† Ù†Øµ"
+                          : "SpÃ¸rgsmÃ¥l uden tekst")}
                   </div>
 
                   <div
@@ -29233,7 +29357,7 @@ questionLectureFilter !== "all"
                       }}
                     >
                       {question.moduleId ||
-                        "—"}
+                        "â€”"}
                     </span>
 
                     <span
@@ -29286,7 +29410,7 @@ questionLectureFilter !== "all"
                           ? "issue"
                           : "issues"
                         : language === "ar"
-                          ? "مشكلات"
+                          ? "Ù…Ø´ÙƒÙ„Ø§Øª"
                           : issues.length ===
                               1
                             ? "problem"
@@ -29452,8 +29576,8 @@ questionLectureFilter !== "all"
       language === "en"
         ? "Loading flagged questions..."
         : language === "ar"
-          ? "جارٍ تحميل الأسئلة المعلّمة..."
-          : "Henter flaggede spørgsmål..."
+          ? "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø¹Ù„Ù‘Ù…Ø©..."
+          : "Henter flaggede spÃ¸rgsmÃ¥l..."
     }
   />
 ) : flagsError ? (
@@ -29544,7 +29668,7 @@ color:
     ? language === "en"
       ? "Dismissed"
       : language === "ar"
-        ? "مرفوض"
+        ? "Ù…Ø±ÙÙˆØ¶"
         : "Afvist"
     : t.adminFlaggedOpen}
                       </span>
@@ -29561,7 +29685,7 @@ color:
                       }}
                     >
                       <span>
-                        {t.adminFlaggedBy}: <strong style={{ color: c.text }}>{item.userName || "—"}</strong>
+                        {t.adminFlaggedBy}: <strong style={{ color: c.text }}>{item.userName || "â€”"}</strong>
                       </span>
                       <span>
                         {t.adminFlaggedAt}:{" "}
@@ -29629,7 +29753,7 @@ color:
         ? language === "en"
           ? "Saving..."
           : language === "ar"
-            ? "جارٍ الحفظ..."
+            ? "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸..."
             : "Gemmer..."
         : t.adminFlaggedResolve}
     </button>
@@ -29666,7 +29790,7 @@ color:
         ? language === "en"
           ? "Saving..."
           : language === "ar"
-            ? "جارٍ الحفظ..."
+            ? "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸..."
             : "Gemmer..."
         : t.adminFlaggedDismiss}
     </button>
@@ -29705,8 +29829,8 @@ color:
                 {language === "en"
                   ? "Archived questions"
                   : language === "ar"
-                    ? "الأسئلة المؤرشفة"
-                    : "Arkiverede spørgsmål"}
+                    ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø¤Ø±Ø´ÙØ©"
+                    : "Arkiverede spÃ¸rgsmÃ¥l"}
               </div>
 
               <div
@@ -29736,15 +29860,15 @@ color:
                 language === "en"
                   ? "Search archive"
                   : language === "ar"
-                    ? "البحث في الأرشيف"
-                    : "Søg i arkivet"
+                    ? "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ø£Ø±Ø´ÙŠÙ"
+                    : "SÃ¸g i arkivet"
               }
               placeholder={
                 language === "en"
                   ? "Search archived questions..."
                   : language === "ar"
-                    ? "ابحث في الأسئلة المؤرشفة..."
-                    : "Søg i arkiverede spørgsmål..."
+                    ? "Ø§Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ø¤Ø±Ø´ÙØ©..."
+                    : "SÃ¸g i arkiverede spÃ¸rgsmÃ¥l..."
               }
               style={{
                 width:
@@ -29810,7 +29934,7 @@ color:
               {language === "en"
                 ? "Loading archive..."
                 : language === "ar"
-                  ? "جارٍ تحميل الأرشيف..."
+                  ? "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£Ø±Ø´ÙŠÙ..."
                   : "Henter arkivet..."}
             </div>
           ) : archiveError ? (
@@ -29857,7 +29981,7 @@ color:
                     fontSize: 22,
                   }}
                 >
-                  ⌫
+                  âŒ«
                 </div>
 
                 <div
@@ -29872,13 +29996,13 @@ color:
                     ? language === "en"
                       ? "The archive is empty"
                       : language === "ar"
-                        ? "الأرشيف فارغ"
+                        ? "Ø§Ù„Ø£Ø±Ø´ÙŠÙ ÙØ§Ø±Øº"
                         : "Arkivet er tomt"
                     : language === "en"
                       ? "No matching questions"
                       : language === "ar"
-                        ? "لا توجد أسئلة مطابقة"
-                        : "Ingen matchende spørgsmål"}
+                        ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© Ù…Ø·Ø§Ø¨Ù‚Ø©"
+                        : "Ingen matchende spÃ¸rgsmÃ¥l"}
                 </div>
 
                 <div
@@ -29894,13 +30018,13 @@ color:
                     ? language === "en"
                       ? "Questions removed from the question bank will appear here."
                       : language === "ar"
-                        ? "ستظهر هنا الأسئلة التي تمت إزالتها من بنك الأسئلة."
-                        : "Spørgsmål, der fjernes fra Spørgsmålsbanken, vises her."
+                        ? "Ø³ØªØ¸Ù‡Ø± Ù‡Ù†Ø§ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„ØªÙŠ ØªÙ…Øª Ø¥Ø²Ø§Ù„ØªÙ‡Ø§ Ù…Ù† Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©."
+                        : "SpÃ¸rgsmÃ¥l, der fjernes fra SpÃ¸rgsmÃ¥lsbanken, vises her."
                     : language === "en"
                       ? "Try another search."
                       : language === "ar"
-                        ? "جرّب بحثًا آخر."
-                        : "Prøv en anden søgning."}
+                        ? "Ø¬Ø±Ù‘Ø¨ Ø¨Ø­Ø«Ù‹Ø§ Ø¢Ø®Ø±."
+                        : "PrÃ¸v en anden sÃ¸gning."}
                 </div>
               </div>
             </div>
@@ -29956,8 +30080,8 @@ color:
                             (language === "en"
                               ? "Question without text"
                               : language === "ar"
-                                ? "سؤال بدون نص"
-                                : "Spørgsmål uden tekst")}
+                                ? "Ø³Ø¤Ø§Ù„ Ø¨Ø¯ÙˆÙ† Ù†Øµ"
+                                : "SpÃ¸rgsmÃ¥l uden tekst")}
                         </div>
 
                         <div
@@ -29983,7 +30107,7 @@ color:
                             }}
                           >
                             {question.moduleId ||
-                              "—"}
+                              "â€”"}
                           </span>
 
                           <span
@@ -30099,12 +30223,12 @@ color:
                           ? language === "en"
                             ? "Restoring..."
                             : language === "ar"
-                              ? "جارٍ الاستعادة..."
+                              ? "Ø¬Ø§Ø±Ù Ø§Ù„Ø§Ø³ØªØ¹Ø§Ø¯Ø©..."
                               : "Gendanner..."
                           : language === "en"
                             ? "Restore"
                             : language === "ar"
-                              ? "استعادة"
+                              ? "Ø§Ø³ØªØ¹Ø§Ø¯Ø©"
                               : "Gendan"}
                       </button>
                     </div>
@@ -30142,7 +30266,7 @@ color:
                 {language === "en"
                   ? "Recorded imports"
                   : language === "ar"
-                    ? "عمليات الاستيراد المسجلة"
+                    ? "Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ù…Ø³Ø¬Ù„Ø©"
                     : "Registrerede importer"}
               </div>
 
@@ -30180,15 +30304,15 @@ color:
                   language === "en"
                     ? "Search import history"
                     : language === "ar"
-                      ? "البحث في سجل الاستيراد"
-                      : "Søg i importhistorikken"
+                      ? "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø³Ø¬Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
+                      : "SÃ¸g i importhistorikken"
                 }
                 placeholder={
                   language === "en"
                     ? "Search filename, module or status..."
                     : language === "ar"
-                      ? "ابحث عن ملف أو وحدة أو حالة..."
-                      : "Søg efter fil, modul eller status..."
+                      ? "Ø§Ø¨Ø­Ø« Ø¹Ù† Ù…Ù„Ù Ø£Ùˆ ÙˆØ­Ø¯Ø© Ø£Ùˆ Ø­Ø§Ù„Ø©..."
+                      : "SÃ¸g efter fil, modul eller status..."
                 }
                 style={{
                   width:
@@ -30240,13 +30364,13 @@ color:
                   ? language === "en"
                     ? "Updating..."
                     : language === "ar"
-                      ? "جارٍ التحديث..."
+                      ? "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ø¯ÙŠØ«..."
                       : "Opdaterer..."
                   : language === "en"
                     ? "Refresh"
                     : language === "ar"
-                      ? "تحديث"
-                      : "Opdatér"}
+                      ? "ØªØ­Ø¯ÙŠØ«"
+                      : "OpdatÃ©r"}
               </button>
             </div>
           </div>
@@ -30268,7 +30392,7 @@ color:
               {language === "en"
                 ? "Loading import history..."
                 : language === "ar"
-                  ? "جارٍ تحميل سجل الاستيراد..."
+                  ? "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯..."
                   : "Henter importhistorikken..."}
             </div>
           ) : importHistoryError ? (
@@ -30316,7 +30440,7 @@ color:
                   }}
                   aria-hidden="true"
                 >
-                  ↥
+                  â†¥
                 </div>
 
                 <div
@@ -30330,12 +30454,12 @@ color:
                     ? language === "en"
                       ? "No imports recorded yet"
                       : language === "ar"
-                        ? "لم يتم تسجيل أي عمليات استيراد بعد"
+                        ? "Ù„Ù… ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø£ÙŠ Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø¨Ø¹Ø¯"
                         : "Ingen importer registreret endnu"
                     : language === "en"
                       ? "No matching imports"
                       : language === "ar"
-                        ? "لا توجد عمليات استيراد مطابقة"
+                        ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ù…Ø·Ø§Ø¨Ù‚Ø©"
                         : "Ingen matchende importer"}
                 </div>
 
@@ -30351,13 +30475,13 @@ color:
                     ? language === "en"
                       ? "New import attempts will appear here."
                       : language === "ar"
-                        ? "ستظهر محاولات الاستيراد الجديدة هنا."
-                        : "Nye importforsøg vises her."
+                        ? "Ø³ØªØ¸Ù‡Ø± Ù…Ø­Ø§ÙˆÙ„Ø§Øª Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© Ù‡Ù†Ø§."
+                        : "Nye importforsÃ¸g vises her."
                     : language === "en"
                       ? "Try another search."
                       : language === "ar"
-                        ? "جرّب بحثًا آخر."
-                        : "Prøv en anden søgning."}
+                        ? "Ø¬Ø±Ù‘Ø¨ Ø¨Ø­Ø«Ù‹Ø§ Ø¢Ø®Ø±."
+                        : "PrÃ¸v en anden sÃ¸gning."}
                 </div>
               </div>
             </div>
@@ -30446,14 +30570,14 @@ color:
                                   ? "Completed"
                                   : language ===
                                       "ar"
-                                    ? "مكتمل"
-                                    : "Gennemført"
+                                    ? "Ù…ÙƒØªÙ…Ù„"
+                                    : "GennemfÃ¸rt"
                                 : language ===
                                     "en"
                                   ? "Failed"
                                   : language ===
                                       "ar"
-                                    ? "فشل"
+                                    ? "ÙØ´Ù„"
                                     : "Mislykket"}
                             </span>
 
@@ -30499,7 +30623,7 @@ color:
                               }}
                             >
                               {item.moduleId ||
-                                "—"}
+                                "â€”"}
                             </span>
 
                             {item.lectureId && (
@@ -30580,7 +30704,7 @@ color:
                                     "2-digit",
                                 }
                               )
-                            : "—"}
+                            : "â€”"}
                         </div>
                       </div>
 
@@ -30601,7 +30725,7 @@ color:
                                 ? "Found"
                                 : language ===
                                     "ar"
-                                  ? "تم العثور"
+                                  ? "ØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ±"
                                   : "Fundet",
                             value:
                               item.totalCount,
@@ -30613,7 +30737,7 @@ color:
                                 ? "Imported"
                                 : language ===
                                     "ar"
-                                  ? "تم الاستيراد"
+                                  ? "ØªÙ… Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
                                   : "Importeret",
                             value:
                               item.importedCount,
@@ -30625,7 +30749,7 @@ color:
                                 ? "Skipped"
                                 : language ===
                                     "ar"
-                                  ? "تم التخطي"
+                                  ? "ØªÙ… Ø§Ù„ØªØ®Ø·ÙŠ"
                                   : "Sprunget over",
                             value:
                               item.skippedCount,
@@ -30637,7 +30761,7 @@ color:
                                 ? "Issues"
                                 : language ===
                                     "ar"
-                                  ? "مشكلات"
+                                  ? "Ù…Ø´ÙƒÙ„Ø§Øª"
                                   : "Problemer",
                             value:
                               item.issueCount,
@@ -30735,7 +30859,7 @@ color:
                 {language === "en"
                   ? "Administrative activity"
                   : language === "ar"
-                    ? "النشاط الإداري"
+                    ? "Ø§Ù„Ù†Ø´Ø§Ø· Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠ"
                     : "Administrative handlinger"}
               </div>
 
@@ -30773,8 +30897,8 @@ color:
                   language === "en"
                     ? "Filter activity type"
                     : language === "ar"
-                      ? "تصفية نوع النشاط"
-                      : "Filtrér aktivitetstype"
+                      ? "ØªØµÙÙŠØ© Ù†ÙˆØ¹ Ø§Ù„Ù†Ø´Ø§Ø·"
+                      : "FiltrÃ©r aktivitetstype"
                 }
                 style={{
                   minWidth: 150,
@@ -30794,7 +30918,7 @@ color:
                   {language === "en"
                     ? "All activity"
                     : language === "ar"
-                      ? "كل الأنشطة"
+                      ? "ÙƒÙ„ Ø§Ù„Ø£Ù†Ø´Ø·Ø©"
                       : "Alle handlinger"}
                 </option>
 
@@ -30802,15 +30926,15 @@ color:
                   {language === "en"
                     ? "Questions"
                     : language === "ar"
-                      ? "الأسئلة"
-                      : "Spørgsmål"}
+                      ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
+                      : "SpÃ¸rgsmÃ¥l"}
                 </option>
 
                 <option value="import">
                   {language === "en"
                     ? "Imports"
                     : language === "ar"
-                      ? "عمليات الاستيراد"
+                      ? "Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
                       : "Importer"}
                 </option>
 
@@ -30818,7 +30942,7 @@ color:
                   {language === "en"
                     ? "Flags"
                     : language === "ar"
-                      ? "البلاغات"
+                      ? "Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª"
                       : "Flags"}
                 </option>
               </select>
@@ -30835,15 +30959,15 @@ color:
                   language === "en"
                     ? "Search activity..."
                     : language === "ar"
-                      ? "البحث في النشاط..."
-                      : "Søg i aktiviteter..."
+                      ? "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ù†Ø´Ø§Ø·..."
+                      : "SÃ¸g i aktiviteter..."
                 }
                 aria-label={
                   language === "en"
                     ? "Search activity log"
                     : language === "ar"
-                      ? "البحث في سجل النشاط"
-                      : "Søg i aktivitetsloggen"
+                      ? "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø³Ø¬Ù„ Ø§Ù„Ù†Ø´Ø§Ø·"
+                      : "SÃ¸g i aktivitetsloggen"
                 }
                 style={{
                   width:
@@ -30891,13 +31015,13 @@ color:
                   ? language === "en"
                     ? "Updating..."
                     : language === "ar"
-                      ? "جارٍ التحديث..."
+                      ? "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ø¯ÙŠØ«..."
                       : "Opdaterer..."
                   : language === "en"
                     ? "Refresh"
                     : language === "ar"
-                      ? "تحديث"
-                      : "Opdatér"}
+                      ? "ØªØ­Ø¯ÙŠØ«"
+                      : "OpdatÃ©r"}
               </button>
             </div>
           </div>
@@ -30918,7 +31042,7 @@ color:
               {language === "en"
                 ? "Loading activity log..."
                 : language === "ar"
-                  ? "جارٍ تحميل سجل النشاط..."
+                  ? "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ù†Ø´Ø§Ø·..."
                   : "Henter aktivitetsloggen..."}
             </div>
           ) : activityError ? (
@@ -30964,7 +31088,7 @@ color:
                     fontSize: 21,
                   }}
                 >
-                  ≡
+                  â‰¡
                 </div>
 
                 <div
@@ -30978,12 +31102,12 @@ color:
                     ? language === "en"
                       ? "No activity recorded yet"
                       : language === "ar"
-                        ? "لم يتم تسجيل أي نشاط بعد"
+                        ? "Ù„Ù… ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø£ÙŠ Ù†Ø´Ø§Ø· Ø¨Ø¹Ø¯"
                         : "Ingen aktiviteter registreret endnu"
                     : language === "en"
                       ? "No matching activity"
                       : language === "ar"
-                        ? "لا يوجد نشاط مطابق"
+                        ? "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù†Ø´Ø§Ø· Ù…Ø·Ø§Ø¨Ù‚"
                         : "Ingen matchende aktiviteter"}
                 </div>
               </div>
@@ -31021,20 +31145,20 @@ color:
                       ? "+"
                       : item.action ===
                           "question_updated"
-                        ? "✎"
+                        ? "âœŽ"
                         : item.action ===
                             "question_archived"
-                          ? "⌫"
+                          ? "âŒ«"
                           : item.action ===
                               "question_restored"
-                            ? "↺"
+                            ? "â†º"
                             : item.entityType ===
                                 "import"
-                              ? "↥"
+                              ? "â†¥"
                               : item.action ===
                                   "flag_resolved"
-                                ? "✓"
-                                : "×";
+                                ? "âœ“"
+                                : "Ã—";
 
                   return (
                     <article
@@ -31126,8 +31250,8 @@ color:
                                 ? "Question"
                                 : language ===
                                     "ar"
-                                  ? "سؤال"
-                                  : "Spørgsmål"
+                                  ? "Ø³Ø¤Ø§Ù„"
+                                  : "SpÃ¸rgsmÃ¥l"
                               : item.entityType ===
                                   "import"
                                 ? language ===
@@ -31135,7 +31259,7 @@ color:
                                   ? "Import"
                                   : language ===
                                       "ar"
-                                    ? "استيراد"
+                                    ? "Ø§Ø³ØªÙŠØ±Ø§Ø¯"
                                     : "Import"
                                 : "Flag"}
                           </span>
@@ -31153,7 +31277,7 @@ color:
                         >
                           {item.title ||
                             item.entityId ||
-                            "—"}
+                            "â€”"}
                         </div>
 
                         <div
@@ -31229,7 +31353,7 @@ color:
                             {language === "en"
                               ? "Imported"
                               : language === "ar"
-                                ? "تم الاستيراد"
+                                ? "ØªÙ… Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
                                 : "Importeret"}
                             {": "}
                             {Number(
@@ -31296,7 +31420,7 @@ color:
                                     "2-digit",
                                 }
                               )
-                            : "—"}
+                            : "â€”"}
                         </div>
 
                         <div
@@ -31317,7 +31441,7 @@ color:
                             (language === "en"
                               ? "Administrator"
                               : language === "ar"
-                                ? "المسؤول"
+                                ? "Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„"
                                 : "Administrator")}
                         </div>
                       </div>
@@ -31347,7 +31471,7 @@ color:
       </div>
       <p style={{ margin: "8px 0 0", maxWidth: 760, color: c.secondary, fontSize: 11.5, lineHeight: 1.55 }}>{globalPublishCopy.description}</p>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-        <span style={{ padding: "4px 8px", borderRadius: 99, background: c.panel, border: `1px solid ${c.border}`, color: c.secondary, fontSize: 10, fontWeight: 750 }}>{globalPublishCopy.version}: {globalContentState?.version ?? "—"}</span>
+        <span style={{ padding: "4px 8px", borderRadius: 99, background: c.panel, border: `1px solid ${c.border}`, color: c.secondary, fontSize: 10, fontWeight: 750 }}>{globalPublishCopy.version}: {globalContentState?.version ?? "â€”"}</span>
         <span style={{ padding: "4px 8px", borderRadius: 99, background: c.panel, border: `1px solid ${c.border}`, color: c.secondary, fontSize: 10, fontWeight: 750 }}>{globalPublishCopy.last}: {globalContentState?.updatedAt ? new Date(globalContentState.updatedAt).toLocaleString(adminFilterLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : globalPublishCopy.never}</span>
       </div>
     </div>
@@ -31377,7 +31501,7 @@ color:
           <div style={{ display: "grid", gap: 6, marginTop: 12, maxHeight: 260, overflowY: "auto" }}>
             {visibleFiles.map((file) => (
               <div key={file.id || `${file.moduleName}-${file.lectureId}-${file.fileName}`} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 10, alignItems: "center", padding: "8px 9px", borderRadius: 9, background: c.soft, border: `1px solid ${c.border}` }}>
-                <span style={{ minWidth: 0 }}><strong style={{ display: "block", color: c.text, fontSize: 10.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.fileName}</strong><small style={{ color: c.muted, fontSize: 9 }}>{file.moduleName} · {file.lectureId}</small></span>
+                <span style={{ minWidth: 0 }}><strong style={{ display: "block", color: c.text, fontSize: 10.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.fileName}</strong><small style={{ color: c.muted, fontSize: 9 }}>{file.moduleName} Â· {file.lectureId}</small></span>
                 <small style={{ color: c.secondary, fontSize: 9, fontWeight: 750 }}>{lectureMaterialFormatBytes(file.sizeBytes)}</small>
               </div>
             ))}
@@ -31386,7 +31510,7 @@ color:
         ) : <div style={{ marginTop: 12, padding: "9px 10px", borderRadius: 9, background: c.soft, color: c.secondary, fontSize: 10.5 }}>{globalPublishCopy.noPrivate}</div>}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
           <button type="button" className="ui-button" disabled={globalPublishState.status === "publishing"} onClick={() => { setGlobalPublishPreview(null); setGlobalPublishState({ status: "idle", message: "" }); }}>{globalPublishCopy.cancel}</button>
-          <button type="button" className="ui-button ui-button--primary" disabled={globalPublishState.status === "publishing"} onClick={confirmGlobalPublish}><Icon name="globe" size={14} />{globalPublishState.status === "publishing" ? globalPublishCopy.publishing : materials.count > 0 ? `${globalPublishCopy.confirmPromote} · ${materials.count}` : globalPublishCopy.confirmPublish}</button>
+          <button type="button" className="ui-button ui-button--primary" disabled={globalPublishState.status === "publishing"} onClick={confirmGlobalPublish}><Icon name="globe" size={14} />{globalPublishState.status === "publishing" ? globalPublishCopy.publishing : materials.count > 0 ? `${globalPublishCopy.confirmPromote} Â· ${materials.count}` : globalPublishCopy.confirmPublish}</button>
         </div>
       </div>
     );
@@ -31420,7 +31544,7 @@ color:
       {language === "en"
         ? "Live database statistics"
         : language === "ar"
-          ? "إحصائيات قاعدة البيانات المباشرة"
+          ? "Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø¨Ø§Ø´Ø±Ø©"
           : "Live databasestatistik"}
     </div>
 
@@ -31437,7 +31561,7 @@ color:
             language === "en"
               ? "Updated"
               : language === "ar"
-                ? "آخر تحديث"
+                ? "Ø¢Ø®Ø± ØªØ­Ø¯ÙŠØ«"
                 : "Opdateret"
           }: ${new Date(
             dashboardUpdatedAt
@@ -31456,7 +31580,7 @@ color:
         : language === "en"
           ? "Waiting for data"
           : language === "ar"
-            ? "في انتظار البيانات"
+            ? "ÙÙŠ Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª"
             : "Afventer data"}
     </div>
   </div>
@@ -31490,13 +31614,13 @@ color:
       ? language === "en"
         ? "Updating..."
         : language === "ar"
-          ? "جارٍ التحديث..."
+          ? "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ø¯ÙŠØ«..."
           : "Opdaterer..."
       : language === "en"
         ? "Refresh"
         : language === "ar"
-          ? "تحديث"
-          : "Opdatér"}
+          ? "ØªØ­Ø¯ÙŠØ«"
+          : "OpdatÃ©r"}
   </button>
 </div>
 
@@ -31551,8 +31675,8 @@ color:
         {language === "en"
           ? "Requires attention"
           : language === "ar"
-            ? "يتطلب الانتباه"
-            : "Kræver opmærksomhed"}
+            ? "ÙŠØªØ·Ù„Ø¨ Ø§Ù„Ø§Ù†ØªØ¨Ø§Ù‡"
+            : "KrÃ¦ver opmÃ¦rksomhed"}
       </div>
 
       <div
@@ -31566,8 +31690,8 @@ color:
         {language === "en"
           ? "Issues that may require an administrator."
           : language === "ar"
-            ? "مشكلات قد تتطلب تدخل المسؤول."
-            : "Forhold, som muligvis kræver en administrators handling."}
+            ? "Ù…Ø´ÙƒÙ„Ø§Øª Ù‚Ø¯ ØªØªØ·Ù„Ø¨ ØªØ¯Ø®Ù„ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„."
+            : "Forhold, som muligvis krÃ¦ver en administrators handling."}
       </div>
     </div>
 
@@ -31595,7 +31719,7 @@ color:
           {language === "en"
             ? "issues"
             : language === "ar"
-              ? "مشكلات"
+              ? "Ù…Ø´ÙƒÙ„Ø§Øª"
               : "forhold"}
         </span>
       )}
@@ -31618,7 +31742,7 @@ color:
       {language === "en"
         ? "Checking administrative warnings..."
         : language === "ar"
-          ? "جارٍ التحقق من التنبيهات الإدارية..."
+          ? "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ©..."
           : "Kontrollerer administrative advarsler..."}
     </div>
   ) : adminWarnings.length === 0 ? (
@@ -31649,7 +31773,7 @@ color:
           fontWeight: 900,
         }}
       >
-        ✓
+        âœ“
       </div>
 
       <div>
@@ -31663,7 +31787,7 @@ color:
           {language === "en"
             ? "Everything looks good"
             : language === "ar"
-              ? "كل شيء يبدو جيدًا"
+              ? "ÙƒÙ„ Ø´ÙŠØ¡ ÙŠØ¨Ø¯Ùˆ Ø¬ÙŠØ¯Ù‹Ø§"
               : "Alt ser godt ud"}
         </div>
 
@@ -31678,8 +31802,8 @@ color:
           {language === "en"
             ? "There are currently no administrative warnings."
             : language === "ar"
-              ? "لا توجد حاليًا أي تنبيهات إدارية."
-              : "Der er i øjeblikket ingen administrative advarsler."}
+              ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø­Ø§Ù„ÙŠÙ‹Ø§ Ø£ÙŠ ØªÙ†Ø¨ÙŠÙ‡Ø§Øª Ø¥Ø¯Ø§Ø±ÙŠØ©."
+              : "Der er i Ã¸jeblikket ingen administrative advarsler."}
         </div>
       </div>
     </div>
@@ -31867,15 +31991,15 @@ color:
       language === "en"
         ? "Active questions"
         : language === "ar"
-          ? "الأسئلة النشطة"
-          : "Aktive spørgsmål",
+          ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù†Ø´Ø·Ø©"
+          : "Aktive spÃ¸rgsmÃ¥l",
     value: dashboardStats.totalQuestions,
     detail:
       language === "en"
         ? "Published and draft questions"
         : language === "ar"
-          ? "الأسئلة المنشورة والمسودات"
-          : "Publicerede spørgsmål og kladder",
+          ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ù†Ø´ÙˆØ±Ø© ÙˆØ§Ù„Ù…Ø³ÙˆØ¯Ø§Øª"
+          : "Publicerede spÃ¸rgsmÃ¥l og kladder",
   },
   {
     key: "published",
@@ -31883,16 +32007,16 @@ color:
       language === "en"
         ? "Published questions"
         : language === "ar"
-          ? "الأسئلة المنشورة"
-          : "Publicerede spørgsmål",
+          ? "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…Ù†Ø´ÙˆØ±Ø©"
+          : "Publicerede spÃ¸rgsmÃ¥l",
     value:
       dashboardStats.publishedQuestions,
     detail:
       language === "en"
         ? "Available to students"
         : language === "ar"
-          ? "متاحة للطلاب"
-          : "Tilgængelige for studerende",
+          ? "Ù…ØªØ§Ø­Ø© Ù„Ù„Ø·Ù„Ø§Ø¨"
+          : "TilgÃ¦ngelige for studerende",
   },
   {
     key: "drafts",
@@ -31900,14 +32024,14 @@ color:
       language === "en"
         ? "Draft questions"
         : language === "ar"
-          ? "مسودات الأسئلة"
+          ? "Ù…Ø³ÙˆØ¯Ø§Øª Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
           : "Kladder",
     value: dashboardStats.draftQuestions,
     detail:
       language === "en"
         ? "Not published yet"
         : language === "ar"
-          ? "لم يتم نشرها بعد"
+          ? "Ù„Ù… ÙŠØªÙ… Ù†Ø´Ø±Ù‡Ø§ Ø¨Ø¹Ø¯"
           : "Endnu ikke publiceret",
   },
   {
@@ -31916,15 +32040,15 @@ color:
       language === "en"
         ? "Modules"
         : language === "ar"
-          ? "الوحدات"
+          ? "Ø§Ù„ÙˆØ­Ø¯Ø§Øª"
           : "Moduler",
     value: dashboardStats.moduleCount,
     detail:
       language === "en"
         ? "Modules with active questions"
         : language === "ar"
-          ? "وحدات تحتوي على أسئلة نشطة"
-          : "Moduler med aktive spørgsmål",
+          ? "ÙˆØ­Ø¯Ø§Øª ØªØ­ØªÙˆÙŠ Ø¹Ù„Ù‰ Ø£Ø³Ø¦Ù„Ø© Ù†Ø´Ø·Ø©"
+          : "Moduler med aktive spÃ¸rgsmÃ¥l",
   },
   {
     key: "lectures",
@@ -31932,15 +32056,15 @@ color:
       language === "en"
         ? "Lectures"
         : language === "ar"
-          ? "المحاضرات"
-          : "Forelæsninger",
+          ? "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª"
+          : "ForelÃ¦sninger",
     value: dashboardStats.lectureCount,
     detail:
       language === "en"
         ? "Lectures linked to questions"
         : language === "ar"
-          ? "محاضرات مرتبطة بالأسئلة"
-          : "Forelæsninger med spørgsmål",
+          ? "Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
+          : "ForelÃ¦sninger med spÃ¸rgsmÃ¥l",
   },
   {
     key: "flags",
@@ -31948,15 +32072,15 @@ color:
       language === "en"
         ? "Open flags"
         : language === "ar"
-          ? "البلاغات المفتوحة"
-          : "Åbne flags",
+          ? "Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª Ø§Ù„Ù…ÙØªÙˆØ­Ø©"
+          : "Ã…bne flags",
     value: dashboardStats.openFlags,
     detail:
       language === "en"
         ? "Require administrative review"
         : language === "ar"
-          ? "تحتاج إلى مراجعة إدارية"
-          : "Kræver administrativ behandling",
+          ? "ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¥Ø¯Ø§Ø±ÙŠØ©"
+          : "KrÃ¦ver administrativ behandling",
   },
   {
     key: "imports",
@@ -31964,8 +32088,8 @@ color:
       language === "en"
         ? "Completed imports"
         : language === "ar"
-          ? "عمليات الاستيراد المكتملة"
-          : "Gennemførte importer",
+          ? "Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ù…ÙƒØªÙ…Ù„Ø©"
+          : "GennemfÃ¸rte importer",
     value:
       dashboardStats.completedImports,
     detail: dashboardStats.lastImportAt
@@ -31973,7 +32097,7 @@ color:
           language === "en"
             ? "Latest"
             : language === "ar"
-              ? "الأحدث"
+              ? "Ø§Ù„Ø£Ø­Ø¯Ø«"
               : "Seneste"
         }: ${new Date(
           dashboardStats.lastImportAt
@@ -31994,8 +32118,8 @@ color:
       : language === "en"
         ? "No completed imports"
         : language === "ar"
-          ? "لا توجد عمليات استيراد مكتملة"
-          : "Ingen gennemførte importer",
+          ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù…Ù„ÙŠØ§Øª Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ù…ÙƒØªÙ…Ù„Ø©"
+          : "Ingen gennemfÃ¸rte importer",
   },
 ].map((card) => (
               <div
@@ -32030,7 +32154,7 @@ color:
                   }}
                 >
                   {dashboardLoading
-  ? "—"
+  ? "â€”"
   : card.value.toLocaleString(
       language === "en"
         ? "en-GB"
@@ -32085,7 +32209,7 @@ color:
         {language === "en"
           ? "Recent activity"
           : language === "ar"
-            ? "النشاط الأخير"
+            ? "Ø§Ù„Ù†Ø´Ø§Ø· Ø§Ù„Ø£Ø®ÙŠØ±"
             : "Seneste aktiviteter"}
       </div>
 
@@ -32100,8 +32224,8 @@ color:
         {language === "en"
           ? "The latest administrative changes and actions."
           : language === "ar"
-            ? "أحدث التغييرات والإجراءات الإدارية."
-            : "De nyeste administrative ændringer og handlinger."}
+            ? "Ø£Ø­Ø¯Ø« Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª ÙˆØ§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ©."
+            : "De nyeste administrative Ã¦ndringer og handlinger."}
       </div>
     </div>
 
@@ -32131,7 +32255,7 @@ color:
       {language === "en"
         ? "View full log"
         : language === "ar"
-          ? "عرض السجل الكامل"
+          ? "Ø¹Ø±Ø¶ Ø§Ù„Ø³Ø¬Ù„ Ø§Ù„ÙƒØ§Ù…Ù„"
           : "Se hele loggen"}
 
       <span
@@ -32141,7 +32265,7 @@ color:
           lineHeight: 1,
         }}
       >
-        {language === "ar" ? "←" : "→"}
+        {language === "ar" ? "â†" : "â†’"}
       </span>
     </button>
   </div>
@@ -32162,7 +32286,7 @@ color:
       {language === "en"
         ? "Loading recent activity..."
         : language === "ar"
-          ? "جارٍ تحميل النشاط الأخير..."
+          ? "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù†Ø´Ø§Ø· Ø§Ù„Ø£Ø®ÙŠØ±..."
           : "Henter seneste aktiviteter..."}
     </div>
   ) : activityError ? (
@@ -32210,7 +32334,7 @@ color:
             fontWeight: 800,
           }}
         >
-          ≡
+          â‰¡
         </div>
 
         <div
@@ -32223,7 +32347,7 @@ color:
           {language === "en"
             ? "No activity recorded yet"
             : language === "ar"
-              ? "لم يتم تسجيل أي نشاط بعد"
+              ? "Ù„Ù… ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø£ÙŠ Ù†Ø´Ø§Ø· Ø¨Ø¹Ø¯"
               : "Ingen aktiviteter registreret endnu"}
         </div>
 
@@ -32238,7 +32362,7 @@ color:
           {language === "en"
             ? "New administrative actions will appear here."
             : language === "ar"
-              ? "ستظهر الإجراءات الإدارية الجديدة هنا."
+              ? "Ø³ØªØ¸Ù‡Ø± Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© Ù‡Ù†Ø§."
               : "Nye administrative handlinger vises her."}
         </div>
       </div>
@@ -32277,20 +32401,20 @@ color:
               ? "+"
               : item.action ===
                   "question_updated"
-                ? "✎"
+                ? "âœŽ"
                 : item.action ===
                     "question_archived"
-                  ? "⌫"
+                  ? "âŒ«"
                   : item.action ===
                       "question_restored"
-                    ? "↺"
+                    ? "â†º"
                     : item.entityType ===
                         "import"
-                      ? "↥"
+                      ? "â†¥"
                       : item.action ===
                           "flag_resolved"
-                        ? "✓"
-                        : "×";
+                        ? "âœ“"
+                        : "Ã—";
 
           return (
             <article
@@ -32398,7 +32522,7 @@ color:
                 >
                   {item.title ||
                     item.entityId ||
-                    "—"}
+                    "â€”"}
                 </div>
 
                 <div
@@ -32420,7 +32544,7 @@ color:
                     (language === "en"
                       ? "Administrator"
                       : language === "ar"
-                        ? "المسؤول"
+                        ? "Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„"
                         : "Administrator")}
                 </div>
               </div>
@@ -32446,7 +32570,7 @@ color:
                         minute: "2-digit",
                       }
                     )
-                  : "—"}
+                  : "â€”"}
               </div>
             </article>
           );
@@ -32475,7 +32599,7 @@ color:
               {language === "en"
                 ? "Quick actions"
                 : language === "ar"
-                  ? "إجراءات سريعة"
+                  ? "Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø³Ø±ÙŠØ¹Ø©"
                   : "Hurtige handlinger"}
             </div>
 
@@ -32490,8 +32614,8 @@ color:
               {language === "en"
                 ? "Go directly to the most frequently used administrative tasks."
                 : language === "ar"
-                  ? "انتقل مباشرة إلى أكثر المهام الإدارية استخدامًا."
-                  : "Gå direkte til de mest anvendte administrative opgaver."}
+                  ? "Ø§Ù†ØªÙ‚Ù„ Ù…Ø¨Ø§Ø´Ø±Ø© Ø¥Ù„Ù‰ Ø£ÙƒØ«Ø± Ø§Ù„Ù…Ù‡Ø§Ù… Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ© Ø§Ø³ØªØ®Ø¯Ø§Ù…Ù‹Ø§."
+                  : "GÃ¥ direkte til de mest anvendte administrative opgaver."}
             </div>
 
             <div
@@ -32521,8 +32645,8 @@ color:
                 {language === "en"
                   ? "Import questions"
                   : language === "ar"
-                    ? "استيراد الأسئلة"
-                    : "Importér spørgsmål"}
+                    ? "Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
+                    : "ImportÃ©r spÃ¸rgsmÃ¥l"}
               </button>
 
               <button
@@ -32545,7 +32669,7 @@ color:
                 {language === "en"
                   ? "Review flags"
                   : language === "ar"
-                    ? "مراجعة البلاغات"
+                    ? "Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¨Ù„Ø§ØºØ§Øª"
                     : "Behandl flags"}
               </button>
             </div>
@@ -32571,7 +32695,7 @@ color:
   {language === "en"
     ? "Archive"
     : language === "ar"
-      ? "الأرشيف"
+      ? "Ø§Ù„Ø£Ø±Ø´ÙŠÙ"
       : "Arkiv"}
 </button>
 
@@ -32596,7 +32720,7 @@ color:
   {language === "en"
     ? "Import history"
     : language === "ar"
-      ? "سجل الاستيراد"
+      ? "Ø³Ø¬Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯"
       : "Importhistorik"}
 </button>
             
@@ -32621,8 +32745,8 @@ color:
   {language === "en"
     ? "Question bank"
     : language === "ar"
-      ? "بنك الأسئلة"
-      : "Spørgsmålsbank"}
+      ? "Ø¨Ù†Ùƒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©"
+      : "SpÃ¸rgsmÃ¥lsbank"}
 </button>
 
 <button
@@ -32646,7 +32770,7 @@ color:
   {language === "en"
     ? "Activity log"
     : language === "ar"
-      ? "سجل النشاط"
+      ? "Ø³Ø¬Ù„ Ø§Ù„Ù†Ø´Ø§Ø·"
       : "Aktivitetslog"}
 </button>
   <button
@@ -32670,7 +32794,7 @@ color:
   {language === "en"
     ? "Data quality"
     : language === "ar"
-      ? "جودة البيانات"
+      ? "Ø¬ÙˆØ¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª"
       : "Datakvalitet"}
 </button>
   
@@ -32733,8 +32857,8 @@ color:
               {language === "en"
                 ? "This section is ready in the new navigation and will be connected to Supabase in the next development steps."
                 : language === "ar"
-                  ? "هذا القسم جاهز في التنقل الجديد وسيتم ربطه بـ Supabase في خطوات التطوير التالية."
-                  : "Sektionen er klar i den nye navigation og forbindes til Supabase i de næste udviklingstrin."}
+                  ? "Ù‡Ø°Ø§ Ø§Ù„Ù‚Ø³Ù… Ø¬Ø§Ù‡Ø² ÙÙŠ Ø§Ù„ØªÙ†Ù‚Ù„ Ø§Ù„Ø¬Ø¯ÙŠØ¯ ÙˆØ³ÙŠØªÙ… Ø±Ø¨Ø·Ù‡ Ø¨Ù€ Supabase ÙÙŠ Ø®Ø·ÙˆØ§Øª Ø§Ù„ØªØ·ÙˆÙŠØ± Ø§Ù„ØªØ§Ù„ÙŠØ©."
+                  : "Sektionen er klar i den nye navigation og forbindes til Supabase i de nÃ¦ste udviklingstrin."}
             </div>
           </div>
         </div>
@@ -32753,7 +32877,7 @@ function parseDelimited(rawText) {
   if (lines.length === 0) return { header: [], rows: [] };
   const splitLine = (line) => line.split(delimiter).map((cell) => cell.trim().replace(/^"(.*)"$/, "$1"));
   const header = splitLine(lines[0]).map((cell) => cell.toLowerCase());
-  const looksLikeHeader = header.some((cell) => ["question", "spørgsmål", "front", "option1", "correct"].includes(cell));
+  const looksLikeHeader = header.some((cell) => ["question", "spÃ¸rgsmÃ¥l", "front", "option1", "correct"].includes(cell));
   const dataLines = looksLikeHeader ? lines.slice(1) : lines;
   const rows = dataLines.map((line, index) => ({ index, cells: splitLine(line) }));
   return { header: looksLikeHeader ? header : [], rows };
@@ -32801,7 +32925,7 @@ function ImportQuestionsModal({
   function normalizeCandidate(item, rowLabel) {
     const questionText = item.question || item.text || item.front || "";
     if (!questionText || String(questionText).trim().length === 0) {
-      return { error: `${rowLabel}: mangler spørgsmålstekst.` };
+      return { error: `${rowLabel}: mangler spÃ¸rgsmÃ¥lstekst.` };
     }
     let options = item.options;
     if (!Array.isArray(options) || options.length < 2) {
@@ -32836,10 +32960,10 @@ function ImportQuestionsModal({
     const candidates = [];
     list.forEach((item, index) => {
       if (!item || typeof item !== "object") {
-        errors.push(`Række ${index + 1}: ikke et gyldigt objekt.`);
+        errors.push(`RÃ¦kke ${index + 1}: ikke et gyldigt objekt.`);
         return;
       }
-      const result = normalizeCandidate(item, `Række ${index + 1}`);
+      const result = normalizeCandidate(item, `RÃ¦kke ${index + 1}`);
       if (result.error) errors.push(result.error);
       else candidates.push(result);
     });
@@ -32851,7 +32975,7 @@ function ImportQuestionsModal({
     const errors = [];
     const candidates = [];
     const colIndex = (names) => header.findIndex((h) => names.includes(h));
-    const qIdx = header.length ? colIndex(["question", "spørgsmål", "front"]) : 0;
+    const qIdx = header.length ? colIndex(["question", "spÃ¸rgsmÃ¥l", "front"]) : 0;
     const corrIdx = header.length ? colIndex(["correct", "correct_index", "svar"]) : -1;
     const explIdx = header.length ? colIndex(["explanation", "forklaring", "back"]) : -1;
     const catIdx = header.length ? colIndex(["category", "kategori"]) : -1;
@@ -32969,8 +33093,8 @@ async function confirmImport() {
       language === "en"
         ? "Choose a module before importing."
         : language === "ar"
-          ? "اختر الوحدة قبل الاستيراد."
-          : "Vælg et modul, før du importerer.";
+          ? "Ø§Ø®ØªØ± Ø§Ù„ÙˆØ­Ø¯Ø© Ù‚Ø¨Ù„ Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯."
+          : "VÃ¦lg et modul, fÃ¸r du importerer.";
 
     setStatus({
       type: "error",
@@ -33004,7 +33128,7 @@ async function confirmImport() {
       throw error;
     }
 
-    // Hent den opdaterede fælles spørgsmålsbank.
+    // Hent den opdaterede fÃ¦lles spÃ¸rgsmÃ¥lsbank.
     await pullQuestionBankIntoLocalStorage();
 
     const importedCount =
@@ -33045,7 +33169,7 @@ setStatus({
     }
   } catch (error) {
   console.error(
-    "Kunne ikke importere spørgsmål til Supabase:",
+    "Kunne ikke importere spÃ¸rgsmÃ¥l til Supabase:",
     error
   );
 
@@ -33380,7 +33504,7 @@ setStatus({
       ? language === "en"
         ? "Importing..."
         : language === "ar"
-          ? "جارٍ الاستيراد..."
+          ? "Ø¬Ø§Ø±Ù Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯..."
           : "Importerer..."
       : t.importConfirmButton(
           preview.candidates.filter(
@@ -33505,7 +33629,7 @@ function SettingsModal({
             lineHeight: 1.55,
           }}
         >
-          <strong style={{ color: c.text }}>Gemini 3.7 Flash</strong> · {t.drByteAiKeyHint}
+          <strong style={{ color: c.text }}>Gemini 3.7 Flash</strong> Â· {t.drByteAiKeyHint}
         </div>
       </div>
 
@@ -33967,7 +34091,7 @@ function lectureMaterialPreviewKind(material) {
 
 
 /* =============================================================================
-   SEGMENT 6.2 FINAL — PAIRED EXAM PDFs + SOURCE-FAITHFUL MCQ VIEWER
+   SEGMENT 6.2 FINAL â€” PAIRED EXAM PDFs + SOURCE-FAITHFUL MCQ VIEWER
    -----------------------------------------------------------------------------
    A permanent exam set has a question PDF and an optional/required answer PDF.
    The question PDF is the source of truth for question text, options, pages and
@@ -34006,8 +34130,8 @@ function examSetDocumentFromRow(row) {
   return {
     id: row.id,
     ownerUserId: row.user_id || null,
-    name: row.display_name || row.file_name || row.question_file_name || "Eksamenssæt",
-    fileName: row.file_name || row.question_file_name || row.display_name || "Eksamenssæt.pdf",
+    name: row.display_name || row.file_name || row.question_file_name || "EksamenssÃ¦t",
+    fileName: row.file_name || row.question_file_name || row.display_name || "EksamenssÃ¦t.pdf",
     storagePath: row.question_storage_path || row.storage_path || null,
     questionStoragePath: row.question_storage_path || row.storage_path || null,
     answerStoragePath: row.answer_storage_path || null,
@@ -34015,7 +34139,7 @@ function examSetDocumentFromRow(row) {
     size: Math.max(0, Number(row.question_size_bytes ?? row.size_bytes) || 0),
     questionSize: Math.max(0, Number(row.question_size_bytes ?? row.size_bytes) || 0),
     answerSize: Math.max(0, Number(row.answer_size_bytes) || 0),
-    questionFileName: row.question_file_name || row.file_name || "Spørgsmål.pdf",
+    questionFileName: row.question_file_name || row.file_name || "SpÃ¸rgsmÃ¥l.pdf",
     answerFileName: row.answer_file_name || "Svar.pdf",
     year: row.exam_year ? String(row.exam_year) : "",
     examSession: EXAM_SET_SESSIONS.includes(row.exam_session) ? row.exam_session : legacySession,
@@ -34330,13 +34454,13 @@ function examSetCleanPdfLines(lines) {
 
 function examSetExplicitQuestionMarker(text) {
   const value = examSetNormalizeSourceText(text);
-  const match = value.match(/^(?:spørgsmål|question)\s+(\d{1,3})\b\s*:?[\s–—-]*(.*)$/i);
+  const match = value.match(/^(?:spÃ¸rgsmÃ¥l|question)\s+(\d{1,3})\b\s*:?[\sâ€“â€”-]*(.*)$/i);
   return match ? { number: String(Number(match[1])), text: examSetNormalizeSourceText(match[2]) } : null;
 }
 
 function examSetQuestionCode(text) {
   const value = examSetNormalizeSourceText(text).toUpperCase();
-  const match = value.match(/(?:^|\s)((?:[A-ZÆØÅ]{1,7}\d{1,5}|PNP\d+|EPI\d+|TUMOR\d+))(?:$|\s)/i);
+  const match = value.match(/(?:^|\s)((?:[A-ZÃ†Ã˜Ã…]{1,7}\d{1,5}|PNP\d+|EPI\d+|TUMOR\d+))(?:$|\s)/i);
   return match ? match[1].toUpperCase() : "";
 }
 
@@ -34352,7 +34476,7 @@ function examSetStripAnswerOnlySuffix(value) {
     /\s+\([1-9A-H]\)\s*$/i,
   ];
   for (const pattern of suffixes) text = text.replace(pattern, "");
-  return examSetNormalizeSourceText(text.replace(/[✔✓]\s*$/g, ""));
+  return examSetNormalizeSourceText(text.replace(/[âœ”âœ“]\s*$/g, ""));
 }
 
 function examSetOptionTailCut(offsets, contentStart, defaultEnd) {
@@ -34363,7 +34487,7 @@ function examSetOptionTailCut(offsets, contentStart, defaultEnd) {
     const value = examSetNormalizeSourceText(offset.row?.text);
     if (!value) continue;
     const answerOnly = /^(?:Svaret\s+er\s*:|Rigtigt\s+svar\b|Svar\s+nummer\b|[1-9A-H]\)\s*er\s+det\s+rigtige\s+svar\b|Nr\.?\s*[1-9A-H]\s+er\s+svaret\b|\([1-9A-H]\)\s*$)/i.test(value);
-    const sourceTail = /^\((?:hvilke|bemærk|obs|note)\b[\s\S]*\)$/i.test(value);
+    const sourceTail = /^\((?:hvilke|bemÃ¦rk|obs|note)\b[\s\S]*\)$/i.test(value);
     if (!answerOnly && !sourceTail) continue;
     cut = Math.min(cut, offset.start);
     if (sourceTail) sourceNote = value;
@@ -34422,8 +34546,8 @@ function examSetOptionRun(lines) {
       if (run.length >= 2) runs.push(run);
     }
     if (!runs.length) return null;
-    // SDU-sæt kan have en nummereret del-liste inde i selve spørgsmålet.
-    // Den faktiske svarliste ligger typisk sidst, så seneste sammenhængende 1..N/A..N-run vinder.
+    // SDU-sÃ¦t kan have en nummereret del-liste inde i selve spÃ¸rgsmÃ¥let.
+    // Den faktiske svarliste ligger typisk sidst, sÃ¥ seneste sammenhÃ¦ngende 1..N/A..N-run vinder.
     const run = runs.sort((left, right) => right[0].start - left[0].start || right.length - left.length)[0];
     let sourceNote = "";
     const options = run.map((item, index) => {
@@ -34449,9 +34573,9 @@ function examSetQuestionTextFromRun(run, code = "") {
   let value = examSetNormalizeSourceText(run.flatText.slice(0, run.questionEnd));
   if (code) value = examSetNormalizeSourceText(value.replace(new RegExp(`(?:^|\\s)${examSetEscapeRegExp(code)}(?=\\s|$)`, "i"), " "));
   value = examSetNormalizeSourceText(value
-    .replace(/^\d{1,2}\s+(?=[A-ZÆØÅ])/i, "")
+    .replace(/^\d{1,2}\s+(?=[A-ZÃ†Ã˜Ã…])/i, "")
     .replace(/\bOpgavetekst\b\s*/gi, "")
-    .replace(/\bSvarmuligheder\b\s*Obs!\s*Kun\s+ét\s+svar\s+skal\s+være\s+korrekt\.?\s*/gi, "")
+    .replace(/\bSvarmuligheder\b\s*Obs!\s*Kun\s+Ã©t\s+svar\s+skal\s+vÃ¦re\s+korrekt\.?\s*/gi, "")
     .replace(/\bSvarmuligheder\b\s*/gi, ""));
   if (run.sourceNote) value = examSetNormalizeSourceText(`${value} ${run.sourceNote}`);
   return value;
@@ -34476,7 +34600,7 @@ function examSetRectOverlapArea(left, right) {
 }
 
 /* =============================================================================
-   SEGMENT 6.3.2 — INTELLIGENT, EVIDENCE-FIRST EXAM DETECTION
+   SEGMENT 6.3.2 â€” INTELLIGENT, EVIDENCE-FIRST EXAM DETECTION
    -----------------------------------------------------------------------------
    The question PDF is always the source of truth for question identity/content.
    The answer PDF is parsed independently and matched globally. Displayed question
@@ -34524,7 +34648,7 @@ function examSetQuestionBlocks(lines, { answerDocument = false } = {}) {
 
   // Last-resort answer-document mode for unusual layouts with no headings/codes.
   // Important: this fallback is ONLY used when the document has no stronger boundary
-  // signals. An answer note immediately before "Spørgsmål X" therefore remains inside
+  // signals. An answer note immediately before "SpÃ¸rgsmÃ¥l X" therefore remains inside
   // the PREVIOUS question block and can never be stolen by the next question.
   if (!starts.length && answerDocument) {
     source.forEach((line, index) => {
@@ -34569,7 +34693,7 @@ function examSetBlockCode(block) {
     const upper = value.toUpperCase();
     // A stable exam code is trusted only when it is structurally placed as a
     // standalone line, at the beginning of one of the first block lines, or
-    // immediately after a "Spørgsmål X" heading. This prevents medical tokens
+    // immediately after a "SpÃ¸rgsmÃ¥l X" heading. This prevents medical tokens
     // such as vitamin B12/CD4/T4 inside the stem from becoming question IDs.
     if (upper === code) return code;
     if (index <= 2 && upper.startsWith(`${code} `)) return code;
@@ -34687,8 +34811,8 @@ function examSetCollectAnswerEvidence(block, run) {
   }
 
   options.forEach((option) => {
-    if (!/[✔✓]/.test(run.flatText.slice(option.contentStart, option.end))) return;
-    evidence.push({ type: "checkmark", channel: "visual", label: option.label, strength: .95, text: "✓", page: null });
+    if (!/[âœ”âœ“]/.test(run.flatText.slice(option.contentStart, option.end))) return;
+    evidence.push({ type: "checkmark", channel: "visual", label: option.label, strength: .95, text: "âœ“", page: null });
   });
   return evidence;
 }
@@ -34750,7 +34874,7 @@ function examSetFingerprintTokens(text) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9æøå]+/gi, " ")
+    .replace(/[^a-z0-9Ã¦Ã¸Ã¥]+/gi, " ")
     .split(/\s+/)
     .filter((token) => token.length >= 2);
 }
@@ -34814,7 +34938,7 @@ function examSetQuestionPairScore(source, answer) {
   return { score: examSetClamp(score), semanticScore, codeExact, codeConflict, stem, options, number };
 }
 
-// Hungarian assignment maximizes the total global one-to-one source↔answer
+// Hungarian assignment maximizes the total global one-to-one sourceâ†”answer
 // similarity, preventing two source questions from independently claiming the
 // same answer block. This is safer than a per-question greedy nearest match.
 function examSetHungarianMaxAssignment(weightMatrix) {
@@ -35462,10 +35586,10 @@ async function examSetRenderPdfPageDataUrl(source, pageNumber, { maxWidth = 1200
 }
 
 async function examSetCallDocumentAi(mode, payload) {
-  if (typeof fetch !== "function") throw new Error("AI-resolver er ikke tilgængelig i dette miljø.");
+  if (typeof fetch !== "function") throw new Error("AI-resolver er ikke tilgÃ¦ngelig i dette miljÃ¸.");
   const { data: sessionData } = await supabase.auth.getSession();
   const accessToken = sessionData?.session?.access_token;
-  if (!accessToken) throw new Error("Du skal være logget ind for at bruge AI-dokumentanalyse.");
+  if (!accessToken) throw new Error("Du skal vÃ¦re logget ind for at bruge AI-dokumentanalyse.");
   const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
   const timeout = controller ? window.setTimeout(() => controller.abort(), 45000) : null;
   try {
@@ -35576,7 +35700,7 @@ function examSetApplyPatternProfile(question, patternProfile, representativePage
     channel: "ai-pattern",
     label,
     strength: examSetClamp(patternProfile.confidence),
-    text: String(patternProfile.patternSummary || "Stabil facitmarkering bekræftet på repræsentative sider").slice(0, 260),
+    text: String(patternProfile.patternSummary || "Stabil facitmarkering bekrÃ¦ftet pÃ¥ reprÃ¦sentative sider").slice(0, 260),
     page: question.answerPage || null,
   };
   const merged = {
@@ -35821,10 +35945,10 @@ function examSetEscapeHtml(value) {
   return String(value ?? "").replace(/[&<>\"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]);
 }
 
-async function examSetPrintStandardPdf({ questions, questionPdfUrl, title = "Eksamenssæt", includeAnswers = false }) {
+async function examSetPrintStandardPdf({ questions, questionPdfUrl, title = "EksamenssÃ¦t", includeAnswers = false }) {
   const printWindow = typeof window !== "undefined" ? window.open("", "_blank") : null;
-  if (!printWindow) throw new Error("Printvinduet kunne ikke åbnes.");
-  printWindow.document.write(`<div style="font-family:${EXAM_SET_STANDARD_FONT};padding:32px">Forbereder standardiseret PDF…</div>`);
+  if (!printWindow) throw new Error("Printvinduet kunne ikke Ã¥bnes.");
+  printWindow.document.write(`<div style="font-family:${EXAM_SET_STANDARD_FONT};padding:32px">Forbereder standardiseret PDFâ€¦</div>`);
   const questionList = Array.isArray(questions) ? questions : [];
   const visualUrls = {};
   for (const question of questionList) {
@@ -35841,15 +35965,15 @@ async function examSetPrintStandardPdf({ questions, questionPdfUrl, title = "Eks
   const body = questionList.map((question, index) => {
     const breakClass = question?.editor?.pageBreakBefore ? " page-break" : "";
     const keepClass = question?.editor?.keepTogether === false ? "" : " keep";
-    const images = (visualUrls[question.id] || []).map((src) => `<img class="visual" src="${src}" alt="Originalt billede fra spørgsmål ${examSetEscapeHtml(question.sourceNumber || index + 1)}">`).join("");
+    const images = (visualUrls[question.id] || []).map((src) => `<img class="visual" src="${src}" alt="Originalt billede fra spÃ¸rgsmÃ¥l ${examSetEscapeHtml(question.sourceNumber || index + 1)}">`).join("");
     const options = (question.options || []).map((option) => {
       const correct = includeAnswers && question.correctLabel === option.label ? " correct" : "";
       return `<div class="option${correct}"><b>${examSetEscapeHtml(option.label)}.</b><span>${examSetEscapeHtml(option.text)}</span></div>`;
     }).join("");
     const answer = includeAnswers ? `<div class="answer">Facit: ${question.correctLabel ? examSetEscapeHtml(question.correctLabel) : "Ikke sikkert fundet i svar-PDF"}</div>` : "";
-    return `<section class="question${breakClass}${keepClass}"><header><b>Spørgsmål ${examSetEscapeHtml(question.sourceNumber || index + 1)}</b><small>Original side ${(question.sourcePages || []).join("-") || "-"}</small></header><h2>${examSetEscapeHtml(question.text)}</h2>${images}<div class="options">${options}</div>${answer}</section>`;
+    return `<section class="question${breakClass}${keepClass}"><header><b>SpÃ¸rgsmÃ¥l ${examSetEscapeHtml(question.sourceNumber || index + 1)}</b><small>Original side ${(question.sourcePages || []).join("-") || "-"}</small></header><h2>${examSetEscapeHtml(question.text)}</h2>${images}<div class="options">${options}</div>${answer}</section>`;
   }).join("");
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${examSetEscapeHtml(title)}</title><style>@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:${EXAM_SET_STANDARD_FONT};color:#111;margin:0;font-size:10.5pt;line-height:1.42}h1{font-size:17pt;margin:0 0 7mm}.meta{font-size:9pt;color:#555;margin-bottom:8mm}.question{padding:0 0 7mm;margin:0 0 7mm;border-bottom:1px solid #ddd}.question.keep{break-inside:avoid-page}.question.page-break{break-before:page}.question header{display:flex;justify-content:space-between;gap:12px;margin-bottom:3mm}.question header b{font-size:11pt}.question header small{color:#666}.question h2{font:700 11pt/1.45 ${EXAM_SET_STANDARD_FONT};margin:0 0 4mm}.visual{display:block;max-width:100%;max-height:90mm;object-fit:contain;margin:4mm auto;border:1px solid #ddd}.options{display:grid;gap:2mm}.option{display:grid;grid-template-columns:7mm 1fr;gap:1mm;padding:2mm 2.5mm;border:1px solid #ddd;border-radius:2mm}.option.correct{background:#eef8ef;border-color:#83b98a}.answer{margin-top:3mm;font-weight:700}.print-hint{display:none}@media screen{body{padding:18mm;max-width:900px;margin:auto}.print-hint{display:block;padding:10px 12px;background:#f3f6fa;border:1px solid #dbe2ea;border-radius:8px;margin-bottom:20px}}@media print{.print-hint{display:none}}</style></head><body><div class="print-hint">Vælg <b>Gem som PDF</b> i browserens printdialog. Font og layout er standardiseret.</div><h1>${examSetEscapeHtml(title)}</h1><div class="meta">Genereret fra original spørgsmål-PDF${includeAnswers ? " · med officielt facit fra svar-PDF" : " · uden facit"}</div>${body}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script></body></html>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${examSetEscapeHtml(title)}</title><style>@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:${EXAM_SET_STANDARD_FONT};color:#111;margin:0;font-size:10.5pt;line-height:1.42}h1{font-size:17pt;margin:0 0 7mm}.meta{font-size:9pt;color:#555;margin-bottom:8mm}.question{padding:0 0 7mm;margin:0 0 7mm;border-bottom:1px solid #ddd}.question.keep{break-inside:avoid-page}.question.page-break{break-before:page}.question header{display:flex;justify-content:space-between;gap:12px;margin-bottom:3mm}.question header b{font-size:11pt}.question header small{color:#666}.question h2{font:700 11pt/1.45 ${EXAM_SET_STANDARD_FONT};margin:0 0 4mm}.visual{display:block;max-width:100%;max-height:90mm;object-fit:contain;margin:4mm auto;border:1px solid #ddd}.options{display:grid;gap:2mm}.option{display:grid;grid-template-columns:7mm 1fr;gap:1mm;padding:2mm 2.5mm;border:1px solid #ddd;border-radius:2mm}.option.correct{background:#eef8ef;border-color:#83b98a}.answer{margin-top:3mm;font-weight:700}.print-hint{display:none}@media screen{body{padding:18mm;max-width:900px;margin:auto}.print-hint{display:block;padding:10px 12px;background:#f3f6fa;border:1px solid #dbe2ea;border-radius:8px;margin-bottom:20px}}@media print{.print-hint{display:none}}</style></head><body><div class="print-hint">VÃ¦lg <b>Gem som PDF</b> i browserens printdialog. Font og layout er standardiseret.</div><h1>${examSetEscapeHtml(title)}</h1><div class="meta">Genereret fra original spÃ¸rgsmÃ¥l-PDF${includeAnswers ? " Â· med officielt facit fra svar-PDF" : " Â· uden facit"}</div>${body}<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script></body></html>`;
   printWindow.document.open();
   printWindow.document.write(html);
   printWindow.document.close();
@@ -35867,7 +35991,7 @@ function examSetQuestionGridState(question, practice) {
 
 
 /* =============================================================================
-   SEGMENT 5.6 — PRIVATE LECTURE NOTES
+   SEGMENT 5.6 â€” PRIVATE LECTURE NOTES
    -----------------------------------------------------------------------------
    Notes are stored per authenticated user + module + lecture in Supabase.
    A local draft cache is retained for instant typing/offline resilience and for
@@ -35921,12 +36045,12 @@ function lectureNoteHasContent(note) {
 
 function lectureNoteBuildExport(note, lecture, moduleName, format = "markdown", labels = {}) {
   const normalized = lectureNoteNormalize(note);
-  const lectureLabel = [lecture?.id, lecture?.title].filter(Boolean).join(" · ") || labels.lecture || "Forelæsning";
+  const lectureLabel = [lecture?.id, lecture?.title].filter(Boolean).join(" Â· ") || labels.lecture || "ForelÃ¦sning";
   const sections = [
     [labels.free || "Frie noter", normalized.freeText],
-    [labels.keyPoints || "Nøglepunkter", normalized.keyPoints],
+    [labels.keyPoints || "NÃ¸glepunkter", normalized.keyPoints],
     [labels.clinicalPoints || "Kliniske pointer", normalized.clinicalPoints],
-    [labels.openQuestions || "Uafklarede spørgsmål", normalized.openQuestions],
+    [labels.openQuestions || "Uafklarede spÃ¸rgsmÃ¥l", normalized.openQuestions],
   ].filter(([, value]) => String(value || "").trim());
   if (format === "text") {
     const blocks = [lectureLabel, moduleName ? `${labels.module || "Modul"}: ${moduleName}` : "", ""];
@@ -35952,7 +36076,7 @@ function lectureNoteDownload(filename, content, mimeType = "text/plain;charset=u
 
 
 /* =============================================================================
-   SEGMENT 5.7 — SHARED LECTURE NOTES
+   SEGMENT 5.7 â€” SHARED LECTURE NOTES
    -----------------------------------------------------------------------------
    Sharing is explicit and snapshot-based: private notes never become public
    automatically. A shared version can only be published/updated by its owner.
@@ -35990,7 +36114,7 @@ function sharedLectureNoteInitials(name) {
 
 
 /* =============================================================================
-   SEGMENT 5.5 — PDF.JS DOCUMENT VIEWER
+   SEGMENT 5.5 â€” PDF.JS DOCUMENT VIEWER
    -----------------------------------------------------------------------------
    A pinned PDF.js runtime is loaded only when a PDF is actually opened. This
    keeps the existing single-file App.js deployment model and avoids a new npm
@@ -36038,28 +36162,28 @@ function lecturePdfAnnotationId() {
 function lecturePdfWorkspaceLabels(language = "da") {
   const labels = {
     da: {
-      search: "Søg i PDF", searchPlaceholder: "Søg i dokumentet…", noSearchResults: "Ingen resultater", searchResults: "resultater",
-      thumbnails: "Miniaturer", fitPage: "Tilpas side", bookmark: "Bogmærke", bookmarked: "Bogmærket",
-      select: "Læs", highlight: "Highlight", underline: "Understreg", strike: "Overstreg", pen: "Pen", sticky: "Note", eraser: "Viskelæder",
-      undo: "Fortryd", redo: "Gentag", copyPage: "Kopiér sidetekst", copied: "Kopieret", fullscreen: "Fuld skærm", exitFullscreen: "Forlad fuld skærm",
-      notePlaceholder: "Skriv note…", save: "Gem", cancel: "Annuller", annotationsPrivate: "Dine markeringer gemmes privat på din konto", originalPdf: "Original PDF", myAnnotations: "Mine markeringer", markTextHint: "Markér tekst direkte i PDF’en",
-      annotationSaving: "Gemmer…", annotationSaved: "Gemt", annotationLocal: "Kun lokalt", pageTextUnavailable: "Sidetekst kunne ikke kopieres",
+      search: "SÃ¸g i PDF", searchPlaceholder: "SÃ¸g i dokumentetâ€¦", noSearchResults: "Ingen resultater", searchResults: "resultater",
+      thumbnails: "Miniaturer", fitPage: "Tilpas side", bookmark: "BogmÃ¦rke", bookmarked: "BogmÃ¦rket",
+      select: "LÃ¦s", highlight: "Highlight", underline: "Understreg", strike: "Overstreg", pen: "Pen", sticky: "Note", eraser: "ViskelÃ¦der",
+      undo: "Fortryd", redo: "Gentag", copyPage: "KopiÃ©r sidetekst", copied: "Kopieret", fullscreen: "Fuld skÃ¦rm", exitFullscreen: "Forlad fuld skÃ¦rm",
+      notePlaceholder: "Skriv noteâ€¦", save: "Gem", cancel: "Annuller", annotationsPrivate: "Dine markeringer gemmes privat pÃ¥ din konto", originalPdf: "Original PDF", myAnnotations: "Mine markeringer", markTextHint: "MarkÃ©r tekst direkte i PDFâ€™en",
+      annotationSaving: "Gemmerâ€¦", annotationSaved: "Gemt", annotationLocal: "Kun lokalt", pageTextUnavailable: "Sidetekst kunne ikke kopieres",
     },
     en: {
-      search: "Search PDF", searchPlaceholder: "Search document…", noSearchResults: "No results", searchResults: "results",
+      search: "Search PDF", searchPlaceholder: "Search documentâ€¦", noSearchResults: "No results", searchResults: "results",
       thumbnails: "Thumbnails", fitPage: "Fit page", bookmark: "Bookmark", bookmarked: "Bookmarked",
       select: "Read", highlight: "Highlight", underline: "Underline", strike: "Strikeout", pen: "Pen", sticky: "Note", eraser: "Eraser",
       undo: "Undo", redo: "Redo", copyPage: "Copy page text", copied: "Copied", fullscreen: "Fullscreen", exitFullscreen: "Exit fullscreen",
-      notePlaceholder: "Write note…", save: "Save", cancel: "Cancel", annotationsPrivate: "Your annotations are saved privately to your account", originalPdf: "Original PDF", myAnnotations: "My annotations", markTextHint: "Select text directly in the PDF",
-      annotationSaving: "Saving…", annotationSaved: "Saved", annotationLocal: "Local only", pageTextUnavailable: "Page text could not be copied",
+      notePlaceholder: "Write noteâ€¦", save: "Save", cancel: "Cancel", annotationsPrivate: "Your annotations are saved privately to your account", originalPdf: "Original PDF", myAnnotations: "My annotations", markTextHint: "Select text directly in the PDF",
+      annotationSaving: "Savingâ€¦", annotationSaved: "Saved", annotationLocal: "Local only", pageTextUnavailable: "Page text could not be copied",
     },
     ar: {
-      search: "البحث في PDF", searchPlaceholder: "ابحث في المستند…", noSearchResults: "لا توجد نتائج", searchResults: "نتائج",
-      thumbnails: "صور مصغرة", fitPage: "ملاءمة الصفحة", bookmark: "إشارة مرجعية", bookmarked: "محفوظ",
-      select: "قراءة", highlight: "تمييز", underline: "تسطير", strike: "شطب", pen: "قلم", sticky: "ملاحظة", eraser: "ممحاة",
-      undo: "تراجع", redo: "إعادة", copyPage: "نسخ نص الصفحة", copied: "تم النسخ", fullscreen: "ملء الشاشة", exitFullscreen: "الخروج من ملء الشاشة",
-      notePlaceholder: "اكتب ملاحظة…", save: "حفظ", cancel: "إلغاء", annotationsPrivate: "تُحفظ علاماتك بشكل خاص في حسابك", originalPdf: "PDF الأصلي", myAnnotations: "علاماتي", markTextHint: "حدد النص مباشرة في ملف PDF",
-      annotationSaving: "جارٍ الحفظ…", annotationSaved: "محفوظ", annotationLocal: "محلي فقط", pageTextUnavailable: "تعذر نسخ نص الصفحة",
+      search: "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ PDF", searchPlaceholder: "Ø§Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ù…Ø³ØªÙ†Ø¯â€¦", noSearchResults: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬", searchResults: "Ù†ØªØ§Ø¦Ø¬",
+      thumbnails: "ØµÙˆØ± Ù…ØµØºØ±Ø©", fitPage: "Ù…Ù„Ø§Ø¡Ù…Ø© Ø§Ù„ØµÙØ­Ø©", bookmark: "Ø¥Ø´Ø§Ø±Ø© Ù…Ø±Ø¬Ø¹ÙŠØ©", bookmarked: "Ù…Ø­ÙÙˆØ¸",
+      select: "Ù‚Ø±Ø§Ø¡Ø©", highlight: "ØªÙ…ÙŠÙŠØ²", underline: "ØªØ³Ø·ÙŠØ±", strike: "Ø´Ø·Ø¨", pen: "Ù‚Ù„Ù…", sticky: "Ù…Ù„Ø§Ø­Ø¸Ø©", eraser: "Ù…Ù…Ø­Ø§Ø©",
+      undo: "ØªØ±Ø§Ø¬Ø¹", redo: "Ø¥Ø¹Ø§Ø¯Ø©", copyPage: "Ù†Ø³Ø® Ù†Øµ Ø§Ù„ØµÙØ­Ø©", copied: "ØªÙ… Ø§Ù„Ù†Ø³Ø®", fullscreen: "Ù…Ù„Ø¡ Ø§Ù„Ø´Ø§Ø´Ø©", exitFullscreen: "Ø§Ù„Ø®Ø±ÙˆØ¬ Ù…Ù† Ù…Ù„Ø¡ Ø§Ù„Ø´Ø§Ø´Ø©",
+      notePlaceholder: "Ø§ÙƒØªØ¨ Ù…Ù„Ø§Ø­Ø¸Ø©â€¦", save: "Ø­ÙØ¸", cancel: "Ø¥Ù„ØºØ§Ø¡", annotationsPrivate: "ØªÙØ­ÙØ¸ Ø¹Ù„Ø§Ù…Ø§ØªÙƒ Ø¨Ø´ÙƒÙ„ Ø®Ø§Øµ ÙÙŠ Ø­Ø³Ø§Ø¨Ùƒ", originalPdf: "PDF Ø§Ù„Ø£ØµÙ„ÙŠ", myAnnotations: "Ø¹Ù„Ø§Ù…Ø§ØªÙŠ", markTextHint: "Ø­Ø¯Ø¯ Ø§Ù„Ù†Øµ Ù…Ø¨Ø§Ø´Ø±Ø© ÙÙŠ Ù…Ù„Ù PDF",
+      annotationSaving: "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸â€¦", annotationSaved: "Ù…Ø­ÙÙˆØ¸", annotationLocal: "Ù…Ø­Ù„ÙŠ ÙÙ‚Ø·", pageTextUnavailable: "ØªØ¹Ø°Ø± Ù†Ø³Ø® Ù†Øµ Ø§Ù„ØµÙØ­Ø©",
     },
   };
   return labels[language] || labels.da;
@@ -36088,7 +36212,7 @@ function lecturePdfSearchExcerpt(text, query) {
   if (index < 0) return source.slice(0, 130);
   const start = Math.max(0, index - 45);
   const end = Math.min(source.length, index + needle.length + 70);
-  return `${start > 0 ? "…" : ""}${source.slice(start, end)}${end < source.length ? "…" : ""}`;
+  return `${start > 0 ? "â€¦" : ""}${source.slice(start, end)}${end < source.length ? "â€¦" : ""}`;
 }
 
 function LecturePdfThumbnail({ pdf, pageNumber, active, current, bookmarked, onSelect, label }) {
@@ -36411,7 +36535,7 @@ function LecturePdfContinuousPage({ pdf, pageNumber, baseWidth, baseHeight, scal
 
   return (
     <div className="lecture-pdf-continuous-page-inner" data-tone={pageTone} style={{ width: displayWidth, height: displayHeight, aspectRatio: `${safeBaseWidth} / ${safeBaseHeight}` }}>
-      <canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />
+      <canvas ref={canvasRef} aria-label={`${fileName} Â· ${copy.pdfPage} ${pageNumber}`} />
       {workspace && active && <LecturePdfTextLayer pdf={pdf} pageNumber={pageNumber} scale={scale} active={active} activeTool={activeTool} showAnnotations={showAnnotations} onCreate={onCreateAnnotation} />}
       {workspace && active && <LecturePdfInkLayer pageNumber={pageNumber} annotations={annotations} searchBoxes={searchBoxes} activeTool={activeTool} activeColor={activeColor} labels={labels} showAnnotations={showAnnotations} onCreate={onCreateAnnotation} onUpdate={onUpdateAnnotation} onDelete={onDeleteAnnotation} />}
       {active && renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}
@@ -36702,7 +36826,7 @@ function LecturePdfViewer({
       <div className="lecture-pdf-toolbar lecture-pdf-toolbar--pro" role="toolbar" aria-label={copy.pdfViewerControls}>
         <div className="lecture-pdf-toolbar-group lecture-pdf-toolbar-group--pages">
           <button type="button" className="lecture-pdf-icon-control" title={copy.pdfPreviousPage} disabled={loadState !== "ready" || pageNumber <= 1} onClick={() => changePage(pageNumber - 1)}><Icon name="left" size={14} /></button>
-          <label className="lecture-pdf-page-control" title={copy.pdfPage}><input type="number" min="1" max={numPages || 1} value={pageDraft} onChange={(event) => setPageDraft(event.target.value)} onBlur={commitPageDraft} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitPageDraft(); event.currentTarget.blur(); } }} /><span>/ {numPages || "—"}</span></label>
+          <label className="lecture-pdf-page-control" title={copy.pdfPage}><input type="number" min="1" max={numPages || 1} value={pageDraft} onChange={(event) => setPageDraft(event.target.value)} onBlur={commitPageDraft} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitPageDraft(); event.currentTarget.blur(); } }} /><span>/ {numPages || "â€”"}</span></label>
           <button type="button" className="lecture-pdf-icon-control" title={copy.pdfNextPage} disabled={loadState !== "ready" || !numPages || pageNumber >= numPages} onClick={() => changePage(pageNumber + 1)}><Icon name="right" size={14} /></button>
         </div>
 
@@ -36719,7 +36843,7 @@ function LecturePdfViewer({
           {workspace && <>
             <span className="lecture-pdf-toolbar-divider" />
             <button type="button" className="lecture-pdf-icon-control" data-active={thumbnailOpen ? "true" : "false"} title={labels.thumbnails} onClick={() => { setThumbnailOpen((value) => !value); setSearchOpen(false); }}><Icon name="thumbnails" size={14} /></button>
-            <button type="button" className="lecture-pdf-icon-control" data-active={searchOpen ? "true" : "false"} title={`${labels.search} · Ctrl/Cmd+F`} onClick={() => { setSearchOpen((value) => !value); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); }}><Icon name="search" size={14} /></button>
+            <button type="button" className="lecture-pdf-icon-control" data-active={searchOpen ? "true" : "false"} title={`${labels.search} Â· Ctrl/Cmd+F`} onClick={() => { setSearchOpen((value) => !value); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); }}><Icon name="search" size={14} /></button>
             <button type="button" className="lecture-pdf-icon-control" data-active={Boolean(currentBookmark) ? "true" : "false"} title={currentBookmark ? labels.bookmarked : labels.bookmark} onClick={toggleBookmark}><Icon name="bookmark" size={14} /></button>
             <button type="button" className="lecture-pdf-icon-control" title={copyState === "copied" ? labels.copied : copyState === "error" ? labels.pageTextUnavailable : labels.copyPage} onClick={copyCurrentPageText}><Icon name={copyState === "copied" ? "check" : "copy"} size={14} /></button>
             <button type="button" className="lecture-pdf-icon-control" title={fullscreen ? labels.exitFullscreen : labels.fullscreen} onClick={toggleFullscreen}><Icon name={fullscreen ? "collapse" : "expand"} size={14} /></button>
@@ -36732,7 +36856,7 @@ function LecturePdfViewer({
         <span className="lecture-pdf-toolbar-divider" />
         <div className="lecture-pdf-color-set" aria-label="Annotation colors">{colors.map((color) => <button key={color} type="button" data-active={activeColor === color ? "true" : "false"} aria-label={color} title={color} style={{ "--pdf-color": color }} onClick={() => setActiveColor(color)} />)}</div>
         <span className="lecture-pdf-toolbar-divider" />
-        <div className="lecture-pdf-history-actions"><button type="button" disabled={!undoStackRef.current.length} title={`${labels.undo} · Ctrl/Cmd+Z`} onClick={undoAnnotation}><Icon name="undo" size={14} /></button><button type="button" disabled={!redoStackRef.current.length} title={`${labels.redo} · Ctrl/Cmd+Y`} onClick={redoAnnotation}><Icon name="redo" size={14} /></button></div>
+        <div className="lecture-pdf-history-actions"><button type="button" disabled={!undoStackRef.current.length} title={`${labels.undo} Â· Ctrl/Cmd+Z`} onClick={undoAnnotation}><Icon name="undo" size={14} /></button><button type="button" disabled={!redoStackRef.current.length} title={`${labels.redo} Â· Ctrl/Cmd+Y`} onClick={redoAnnotation}><Icon name="redo" size={14} /></button></div>
         <span className="lecture-pdf-tool-hint">{["highlight", "underline", "strike"].includes(activeTool) ? labels.markTextHint : labels[activeTool] || labels.annotationsPrivate}</span>
         <span className="lecture-pdf-private-state" data-state={annotationStatus}><i />{annotationStatus === "saving" ? labels.annotationSaving : annotationStatus === "ready" ? labels.annotationSaved : labels.annotationsPrivate}</span>
         <span style={{ display: "none" }}>{historyRevision}</span>
@@ -36742,7 +36866,7 @@ function LecturePdfViewer({
         {drawerOpen && <aside className="lecture-pdf-side-rail lecture-pdf-side-rail--overlay" data-mode={searchOpen ? "search" : "thumbnails"}>
           <div className="lecture-pdf-drawer-title"><strong>{searchOpen ? labels.search : labels.thumbnails}</strong><button type="button" onClick={() => { setSearchOpen(false); setThumbnailOpen(false); }} title={copy.close}><Icon name="close" size={13} /></button></div>
           {searchOpen ? <>
-            <div className="lecture-pdf-search-head"><label><Icon name="search" size={13} /><input ref={searchInputRef} value={pdfSearchQuery} onChange={(event) => setPdfSearchQuery(event.target.value)} placeholder={labels.searchPlaceholder} /></label><small>{pdfSearchState === "loading" ? "…" : `${pdfSearchResults.length} ${labels.searchResults}`}</small></div>
+            <div className="lecture-pdf-search-head"><label><Icon name="search" size={13} /><input ref={searchInputRef} value={pdfSearchQuery} onChange={(event) => setPdfSearchQuery(event.target.value)} placeholder={labels.searchPlaceholder} /></label><small>{pdfSearchState === "loading" ? "â€¦" : `${pdfSearchResults.length} ${labels.searchResults}`}</small></div>
             <div className="lecture-pdf-search-results">{pdfSearchResults.map((result) => <button key={result.id} type="button" data-current={result.page === pageNumber ? "true" : "false"} onClick={() => scrollToContinuousPage(result.page, 0, true)}><strong>{copy.pdfPage} {result.page}</strong><span>{result.excerpt}</span></button>)}{pdfSearchState === "ready" && !pdfSearchResults.length && pdfSearchQuery.trim().length >= 2 && <div className="lecture-pdf-side-empty">{labels.noSearchResults}</div>}</div>
           </> : <div className="lecture-pdf-thumbnail-list">{Array.from({ length: numPages }, (_, index) => { const page = index + 1; const bookmarked = annotations.some((annotation) => annotation.type === "bookmark" && Number(annotation.page) === page); return <LecturePdfThumbnail key={page} pdf={pdfRef.current} pageNumber={page} active={Math.abs(page - pageNumber) <= 7} current={page === pageNumber} bookmarked={bookmarked} onSelect={() => scrollToContinuousPage(page, 0, true)} label={copy.pdfPage} />; })}</div>}
         </aside>}
@@ -36753,7 +36877,7 @@ function LecturePdfViewer({
               <LecturePdfContinuousPage pdf={pdfRef.current} pageNumber={page} baseWidth={metric.width} baseHeight={metric.height} scale={scale} active={renderPages.has(page)} fileName={fileName} copy={copy} workspace={workspace} showAnnotations={showAnnotations} annotations={annotations.filter((annotation) => Number(annotation.page) === page)} searchBoxes={searchBoxesByPage.get(page) || []} activeTool={activeTool} activeColor={activeColor} labels={labels} onCreateAnnotation={(annotation) => createAnnotation({ ...annotation, color: annotation.color || activeColor })} onUpdateAnnotation={(next, previous) => updateAnnotation(next, previous)} onDeleteAnnotation={(annotation) => deleteAnnotation(annotation)} />
               <span className="lecture-pdf-page-number">{page}</span>
             </section>;
-          })}</div> : <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}><canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />{renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}{renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}</div>}
+          })}</div> : <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}><canvas ref={canvasRef} aria-label={`${fileName} Â· ${copy.pdfPage} ${pageNumber}`} />{renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}{renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}</div>}
         </div>
       </div>
     </div>
@@ -36792,7 +36916,7 @@ function lecturePptxSearch(slides, query) {
     if (hit < 0) return null;
     const start = Math.max(0, hit - 55);
     const end = Math.min(text.length, hit + needle.length + 95);
-    return { index, snippet: `${start ? "…" : ""}${text.slice(start, end)}${end < text.length ? "…" : ""}` };
+    return { index, snippet: `${start ? "â€¦" : ""}${text.slice(start, end)}${end < text.length ? "â€¦" : ""}` };
   }).filter(Boolean);
 }
 
@@ -36823,9 +36947,9 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
   const pptxTouchRef = useRef(null);
 
   const labels = ({
-    da: { loading: "Indlæser PowerPoint…", error: "PowerPoint-filen kunne ikke vises.", previous: "Forrige slide", next: "Næste slide", overview: "Slideoversigt", search: "Søg i PowerPoint", placeholder: "Søg i slides…", noResults: "Ingen slides matcher søgningen.", fit: "Tilpas slide", fullscreen: "Fuld skærm", close: "Luk", slide: "Slide" },
-    en: { loading: "Loading PowerPoint…", error: "The PowerPoint file could not be displayed.", previous: "Previous slide", next: "Next slide", overview: "Slide overview", search: "Search PowerPoint", placeholder: "Search slides…", noResults: "No slides match your search.", fit: "Fit slide", fullscreen: "Fullscreen", close: "Close", slide: "Slide" },
-    ar: { loading: "جارٍ تحميل PowerPoint…", error: "تعذر عرض ملف PowerPoint.", previous: "الشريحة السابقة", next: "الشريحة التالية", overview: "نظرة عامة على الشرائح", search: "بحث في PowerPoint", placeholder: "ابحث في الشرائح…", noResults: "لا توجد شرائح مطابقة.", fit: "ملاءمة الشريحة", fullscreen: "ملء الشاشة", close: "إغلاق", slide: "شريحة" },
+    da: { loading: "IndlÃ¦ser PowerPointâ€¦", error: "PowerPoint-filen kunne ikke vises.", previous: "Forrige slide", next: "NÃ¦ste slide", overview: "Slideoversigt", search: "SÃ¸g i PowerPoint", placeholder: "SÃ¸g i slidesâ€¦", noResults: "Ingen slides matcher sÃ¸gningen.", fit: "Tilpas slide", fullscreen: "Fuld skÃ¦rm", close: "Luk", slide: "Slide" },
+    en: { loading: "Loading PowerPointâ€¦", error: "The PowerPoint file could not be displayed.", previous: "Previous slide", next: "Next slide", overview: "Slide overview", search: "Search PowerPoint", placeholder: "Search slidesâ€¦", noResults: "No slides match your search.", fit: "Fit slide", fullscreen: "Fullscreen", close: "Close", slide: "Slide" },
+    ar: { loading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ PowerPointâ€¦", error: "ØªØ¹Ø°Ø± Ø¹Ø±Ø¶ Ù…Ù„Ù PowerPoint.", previous: "Ø§Ù„Ø´Ø±ÙŠØ­Ø© Ø§Ù„Ø³Ø§Ø¨Ù‚Ø©", next: "Ø§Ù„Ø´Ø±ÙŠØ­Ø© Ø§Ù„ØªØ§Ù„ÙŠØ©", overview: "Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø±Ø§Ø¦Ø­", search: "Ø¨Ø­Ø« ÙÙŠ PowerPoint", placeholder: "Ø§Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ø´Ø±Ø§Ø¦Ø­â€¦", noResults: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø´Ø±Ø§Ø¦Ø­ Ù…Ø·Ø§Ø¨Ù‚Ø©.", fit: "Ù…Ù„Ø§Ø¡Ù…Ø© Ø§Ù„Ø´Ø±ÙŠØ­Ø©", fullscreen: "Ù…Ù„Ø¡ Ø§Ù„Ø´Ø§Ø´Ø©", close: "Ø¥ØºÙ„Ø§Ù‚", slide: "Ø´Ø±ÙŠØ­Ø©" },
   })[language] || {};
 
   useEffect(() => { stateChangeRef.current = onStateChange; }, [onStateChange]);
@@ -37017,7 +37141,7 @@ function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onState
       <div className="lecture-pptx-toolbar" role="toolbar" aria-label="PowerPoint">
         <div className="lecture-pptx-toolbar-group">
           <button type="button" title={labels.previous} aria-label={labels.previous} disabled={status !== "ready" || slideIndex <= 0} onClick={() => move(-1)}><Icon name="left" size={14} /></button>
-          <div className="lecture-pptx-counter"><strong>{Math.min(slideCount || 1, slideIndex + 1)}</strong><span>/ {slideCount || "—"}</span></div>
+          <div className="lecture-pptx-counter"><strong>{Math.min(slideCount || 1, slideIndex + 1)}</strong><span>/ {slideCount || "â€”"}</span></div>
           <button type="button" title={labels.next} aria-label={labels.next} disabled={status !== "ready" || slideIndex >= slideCount - 1} onClick={() => move(1)}><Icon name="right" size={14} /></button>
         </div>
         <div className="lecture-pptx-toolbar-group">
@@ -37115,11 +37239,11 @@ function ExamSourcePagePreview({ url, pageNumber = 1, fileName = "Original eksam
   return (
     <div className="exam-set-source-visual">
       <div className="exam-set-source-visual-header">
-        <div><strong>{copy.examSetOriginalExcerpt}</strong><small> · {copy.examSetSourcePage} {pageNumber}</small></div>
+        <div><strong>{copy.examSetOriginalExcerpt}</strong><small> Â· {copy.examSetSourcePage} {pageNumber}</small></div>
         <button type="button" className="exam-set-original-button" onClick={onOpen}><Icon name="expand" size={11} />{copy.examSetOpenOriginal}</button>
       </div>
       <div ref={surfaceRef}>
-        {state === "loading" ? <div className="exam-set-parser-meta">{copy.examSetOriginalLoading}</div> : state === "error" ? <div className="exam-set-parser-meta">{copy.examSetOriginalError}</div> : <canvas ref={canvasRef} className="exam-set-source-visual-canvas" aria-label={`${fileName} · ${copy.examSetSourcePage} ${pageNumber}`} />}
+        {state === "loading" ? <div className="exam-set-parser-meta">{copy.examSetOriginalLoading}</div> : state === "error" ? <div className="exam-set-parser-meta">{copy.examSetOriginalError}</div> : <canvas ref={canvasRef} className="exam-set-source-visual-canvas" aria-label={`${fileName} Â· ${copy.examSetSourcePage} ${pageNumber}`} />}
       </div>
       <div className="exam-set-source-visual-note">{copy.examSetOriginalSourceNote}</div>
     </div>
@@ -37131,7 +37255,7 @@ function ExamOriginalPageModal({ c, url, pageNumber, fileName, copy, onClose, ti
     <Modal c={c} onClose={onClose} size="large">
       <div className="exam-set-original-modal">
         <header className="exam-set-original-modal-header">
-          <div><strong>{title || copy.examSetOriginalTitle}</strong><small>{fileName} · {copy.examSetSourcePage} {pageNumber}{sourceLabel ? ` · ${sourceLabel}` : ` · ${copy.examSetOriginalNoAnswers}`}</small></div>
+          <div><strong>{title || copy.examSetOriginalTitle}</strong><small>{fileName} Â· {copy.examSetSourcePage} {pageNumber}{sourceLabel ? ` Â· ${sourceLabel}` : ` Â· ${copy.examSetOriginalNoAnswers}`}</small></div>
           <button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button>
         </header>
         <div className="exam-set-original-modal-body">
@@ -37194,7 +37318,7 @@ function ExamSourceVisualRegionCanvas({ url, region, fileName = "Original eksame
     <div className="exam-set-source-region-canvas-wrap" data-state={state}>
       {state === "loading" && <span className="exam-set-parser-meta">{copy.examSetOriginalLoading}</span>}
       {state === "error" && <span className="exam-set-parser-meta">{copy.examSetOriginalError}</span>}
-      <canvas ref={canvasRef} className="exam-set-source-region-canvas" aria-label={`${fileName} · ${copy.examSetSourcePage} ${region?.page || "—"}`} />
+      <canvas ref={canvasRef} className="exam-set-source-region-canvas" aria-label={`${fileName} Â· ${copy.examSetSourcePage} ${region?.page || "â€”"}`} />
     </div>
   );
 }
@@ -37205,7 +37329,7 @@ function ExamQuestionOriginalVisuals({ url, question, fileName, copy, onOpen }) 
   return (
     <section className="exam-set-original-visuals">
       <div className="exam-set-source-visual-header">
-        <div><strong>{copy.examSetOriginalImages}</strong><small> · {regions.length === 1 ? copy.examSetOriginalImage : copy.examSetOriginalImagesCount(regions.length)}</small></div>
+        <div><strong>{copy.examSetOriginalImages}</strong><small> Â· {regions.length === 1 ? copy.examSetOriginalImage : copy.examSetOriginalImagesCount(regions.length)}</small></div>
         <button type="button" className="exam-set-original-button" onClick={onOpen}><Icon name="expand" size={11} />{copy.examSetOpenOriginal}</button>
       </div>
       <div className="exam-set-original-visual-grid">
@@ -37216,7 +37340,7 @@ function ExamQuestionOriginalVisuals({ url, question, fileName, copy, onOpen }) 
   );
 }
 
-function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, onRebuild, onPrint, saving = false, questionPdfUrl = "", answerPdfUrl = "", questionFileName = "Spørgsmål.pdf", answerFileName = "Svar.pdf" }) {
+function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, onRebuild, onPrint, saving = false, questionPdfUrl = "", answerPdfUrl = "", questionFileName = "SpÃ¸rgsmÃ¥l.pdf", answerFileName = "Svar.pdf" }) {
   const [draft, setDraft] = useState(() => (Array.isArray(questions) ? questions.map((question) => ({ ...question, editor: { ...(question.editor || {}) } })) : []));
   const [includeAnswers, setIncludeAnswers] = useState(false);
   const [evidencePreview, setEvidencePreview] = useState(null);
@@ -37320,7 +37444,7 @@ function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, on
             <span data-warning={blocked ? "true" : "false"}><strong>{blocked}</strong><small>{copy.examSetEditorBlocked}</small></span>
             <span><strong>{multiPage}</strong><small>{copy.examSetEditorMultiPage}</small></span>
           </div>
-          <div className="exam-pdf-editor-note"><Icon name="flag" size={11} /><span>{copy.examSetEditorPurpose} · Kun VERIFIED eller manuelt godkendte facit bruges i øvelsen.</span></div>
+          <div className="exam-pdf-editor-note"><Icon name="flag" size={11} /><span>{copy.examSetEditorPurpose} Â· Kun VERIFIED eller manuelt godkendte facit bruges i Ã¸velsen.</span></div>
           <div className="exam-pdf-editor-list">
             {draft.map((question, index) => {
               const startPage = Number(question.editor?.startPage || question.sourcePages?.[0] || 1);
@@ -37334,7 +37458,7 @@ function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, on
                 <div key={question.id || index} className="exam-pdf-editor-row" data-warning={needsCheck ? "true" : "false"} data-verification={status}>
                   <div className="exam-pdf-editor-question">
                     <strong>{copy.examSetQuestion} {question.sourceNumber || index + 1}</strong>
-                    <small>{question.code || "—"} · {question.hasVisual ? copy.examSetEditorHasImage : copy.examSetEditorNoImage}</small>
+                    <small>{question.code || "â€”"} Â· {question.hasVisual ? copy.examSetEditorHasImage : copy.examSetEditorNoImage}</small>
                     <span className="exam-pdf-status-pill" data-status={status}>{statusLabel(status)}</span>
                   </div>
                   <label><span>{copy.examSetEditorStartPage}</span><input type="number" min="1" max={pageCount} value={startPage} onChange={(event) => updateRange(index, "start", event.target.value)} /></label>
@@ -37346,7 +37470,7 @@ function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, on
                     <div className="exam-pdf-evidence-head">
                       <div>
                         <strong>{copy.examSetEditorEvidence}</strong>
-                        <small>{copy.examSetEditorMatch}: {question.answerMatch?.status || "blocked"} · {matchPercent}%{question.answerSourceNumber ? ` · ${copy.examSetQuestion} ${question.answerSourceNumber}` : ""}{question.answerCode ? ` · ${question.answerCode}` : ""}</small>
+                        <small>{copy.examSetEditorMatch}: {question.answerMatch?.status || "blocked"} Â· {matchPercent}%{question.answerSourceNumber ? ` Â· ${copy.examSetQuestion} ${question.answerSourceNumber}` : ""}{question.answerCode ? ` Â· ${question.answerCode}` : ""}</small>
                       </div>
                       <div className="exam-pdf-evidence-actions">
                         {questionPdfUrl && question.page ? <button type="button" className="ui-button ui-button--secondary" onClick={() => setEvidencePreview({ kind: "question", url: questionPdfUrl, page: question.page, fileName: questionFileName })}>{copy.examSetSourcePage} {question.page}</button> : null}
@@ -37357,21 +37481,21 @@ function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, on
                       <div className="exam-pdf-evidence-list">
                         {evidence.slice(0, 8).map((item, evidenceIndex) => (
                           <span key={`${item.type}-${item.label}-${evidenceIndex}`} data-channel={item.channel || item.type}>
-                            <b>{evidenceLabel(item)}</b><em>{item.label || "?"}</em><small>{item.text || ""}{Number(item.strength) ? ` · ${Math.round(Number(item.strength) * 100)}%` : ""}</small>
+                            <b>{evidenceLabel(item)}</b><em>{item.label || "?"}</em><small>{item.text || ""}{Number(item.strength) ? ` Â· ${Math.round(Number(item.strength) * 100)}%` : ""}</small>
                           </span>
                         ))}
                       </div>
                     ) : <div className="exam-pdf-no-evidence">{copy.examSetEditorNoEvidence}</div>}
-                    {question.aiReview?.status === "completed" ? <div className="exam-pdf-ai-note"><Icon name="sparkle" size={11} />{copy.examSetEditorAiChecked}{question.aiReview.markerType ? ` · ${question.aiReview.markerType}` : ""}</div> : null}
+                    {question.aiReview?.status === "completed" ? <div className="exam-pdf-ai-note"><Icon name="sparkle" size={11} />{copy.examSetEditorAiChecked}{question.aiReview.markerType ? ` Â· ${question.aiReview.markerType}` : ""}</div> : null}
                     <div className="exam-pdf-review-controls">
                       <label>
                         <span>{copy.examSetEditorAnswerPage}</span>
-                        <input type="number" min="1" max={answerPageCount} value={question.answerPage || ""} placeholder="—" onChange={(event) => updateAnswerPage(index, event.target.value)} />
+                        <input type="number" min="1" max={answerPageCount} value={question.answerPage || ""} placeholder="â€”" onChange={(event) => updateAnswerPage(index, event.target.value)} />
                       </label>
                       <label>
                         <span>{copy.examSetEditorCandidate}</span>
                         <select value={selectedLabel} onChange={(event) => updateReviewSelection(index, event.target.value)}>
-                          <option value="">—</option>
+                          <option value="">â€”</option>
                           {(question.options || []).map((option) => <option key={option.label} value={option.label}>{option.label}. {option.text}</option>)}
                         </select>
                       </label>
@@ -37412,8 +37536,8 @@ function ExamPdfEditorModal({ c, questions, parseMeta, copy, onClose, onSave, on
 }
 
 /* SEGMENT_6_7_RUNTIME_START
-   MedFLUEN Segment 6.7 — emne- og forelæsningskobling.
-   Dette lag er KUN metadata. Det ændrer aldrig parsed_questions, svarmuligheder,
+   MedFLUEN Segment 6.7 â€” emne- og forelÃ¦sningskobling.
+   Dette lag er KUN metadata. Det Ã¦ndrer aldrig parsed_questions, svarmuligheder,
    billeder, facit eller historiske attempt-snapshots.
 */
 
@@ -37422,34 +37546,34 @@ const EXAM_CURRICULUM_TABLE = "exam_question_curriculum_links";
 const EXAM_CURRICULUM_TOPIC_TABLE = "exam_curriculum_topics";
 
 const EXAM_CURRICULUM_STOPWORDS = new Set([
-  "og","i","jeg","det","at","en","den","til","er","som","på","de","med","af","for","ikke","der","et","har","om","vi","fra","du","eller","hvad","skal","kan","denne","dette","disse","hvilken","hvilket","hvilke","være","hvordan","hvorfor","spørgsmål","spørg","find","viser","noget","nogen","meget","mere","mest","funktion","funktioner","betydning","årsag","årsager","effekt","effekter","egenskab","egenskaber","vigtig","vigtigt","primær","primært","generelt","typisk","forklar","forklaring","korrekt","patient","patienten",
+  "og","i","jeg","det","at","en","den","til","er","som","pÃ¥","de","med","af","for","ikke","der","et","har","om","vi","fra","du","eller","hvad","skal","kan","denne","dette","disse","hvilken","hvilket","hvilke","vÃ¦re","hvordan","hvorfor","spÃ¸rgsmÃ¥l","spÃ¸rg","find","viser","noget","nogen","meget","mere","mest","funktion","funktioner","betydning","Ã¥rsag","Ã¥rsager","effekt","effekter","egenskab","egenskaber","vigtig","vigtigt","primÃ¦r","primÃ¦rt","generelt","typisk","forklar","forklaring","korrekt","patient","patienten",
   "the","is","at","which","on","a","an","and","or","of","to","in","for","with","that","this","these","those","what","who","how","why","when","where","find","show","question","questions","about","can","could","would","should","does","are","was","were","be","been","it","its","function","meaning","cause","effect","important","primary","main","general","typical","explain","correct","patient"
 ]);
 
 function examCurriculumCopy(language) {
   return ({
     da: {
-      related: "Relateret pensum", lecture: "Forelæsning", topic: "Emne", adminButton: "Pensummapping",
-      managerTitle: "Pensummapping", managerIntro: "Kobl eksamensspørgsmålet til eksisterende forelæsninger og kontrollerede emner. Det originale eksamensindhold ændres ikke.",
-      all: "Alle", mapped: "Mappet", unmapped: "Ikke mappet", search: "Søg i spørgsmål…", previous: "Forrige", next: "Næste", close: "Luk",
-      currentMapping: "Godkendt pensum", noMapping: "Ingen godkendt mapping endnu", lectures: "Forelæsninger", topics: "Emner", suggestions: "Forslag",
-      strongSuggestion: "Stærkt forslag", possibleSuggestion: "Muligt forslag", accept: "Godkend", remove: "Fjern", add: "Tilføj", createTopic: "Nyt emne",
-      topicPlaceholder: "Fx Cerebrovaskulær sygdom", topicHint: "Emnet oprettes én gang for modulet og kan genbruges på andre spørgsmål.",
-      saving: "Gemmer…", saved: "Gemt", error: "Kunne ikke gemme mappingen", loading: "Henter pensummapping…",
-      setupMissing: "Segment 6.7-databasen er ikke oprettet endnu. Kør den medfølgende segment_6_7.sql i Supabase først.",
-      noQuestions: "Der er ingen strukturerede spørgsmål at mappe i dette sæt.", noSuggestions: "Ingen tilstrækkeligt sikre forslag. Vælg manuelt, hvis du kender koblingen.",
-      original: "Åbn original", sourceQuestion: "Originalt spørgsmål", mappedCount: (a,b) => `${a} af ${b} spørgsmål mappet`,
-      filterLecture: "Forelæsning", filterTopic: "Emne", curriculumFilter: "Pensumfilter", currentMappingNote: "Filteret bruger den aktuelle godkendte pensummapping. Historiske svar og scores ændres ikke.",
+      related: "Relateret pensum", lecture: "ForelÃ¦sning", topic: "Emne", adminButton: "Pensummapping",
+      managerTitle: "Pensummapping", managerIntro: "Kobl eksamensspÃ¸rgsmÃ¥let til eksisterende forelÃ¦sninger og kontrollerede emner. Det originale eksamensindhold Ã¦ndres ikke.",
+      all: "Alle", mapped: "Mappet", unmapped: "Ikke mappet", search: "SÃ¸g i spÃ¸rgsmÃ¥lâ€¦", previous: "Forrige", next: "NÃ¦ste", close: "Luk",
+      currentMapping: "Godkendt pensum", noMapping: "Ingen godkendt mapping endnu", lectures: "ForelÃ¦sninger", topics: "Emner", suggestions: "Forslag",
+      strongSuggestion: "StÃ¦rkt forslag", possibleSuggestion: "Muligt forslag", accept: "Godkend", remove: "Fjern", add: "TilfÃ¸j", createTopic: "Nyt emne",
+      topicPlaceholder: "Fx CerebrovaskulÃ¦r sygdom", topicHint: "Emnet oprettes Ã©n gang for modulet og kan genbruges pÃ¥ andre spÃ¸rgsmÃ¥l.",
+      saving: "Gemmerâ€¦", saved: "Gemt", error: "Kunne ikke gemme mappingen", loading: "Henter pensummappingâ€¦",
+      setupMissing: "Segment 6.7-databasen er ikke oprettet endnu. KÃ¸r den medfÃ¸lgende segment_6_7.sql i Supabase fÃ¸rst.",
+      noQuestions: "Der er ingen strukturerede spÃ¸rgsmÃ¥l at mappe i dette sÃ¦t.", noSuggestions: "Ingen tilstrÃ¦kkeligt sikre forslag. VÃ¦lg manuelt, hvis du kender koblingen.",
+      original: "Ã…bn original", sourceQuestion: "Originalt spÃ¸rgsmÃ¥l", mappedCount: (a,b) => `${a} af ${b} spÃ¸rgsmÃ¥l mappet`,
+      filterLecture: "ForelÃ¦sning", filterTopic: "Emne", curriculumFilter: "Pensumfilter", currentMappingNote: "Filteret bruger den aktuelle godkendte pensummapping. Historiske svar og scores Ã¦ndres ikke.",
       noCurriculumFilter: "Alt pensum", manual: "Manuel", acceptedSuggestion: "Godkendt forslag", suggestionsVersion: "Forslagsmotor",
     },
     en: {
       related: "Related curriculum", lecture: "Lecture", topic: "Topic", adminButton: "Curriculum mapping",
       managerTitle: "Curriculum mapping", managerIntro: "Link exam questions to existing lectures and controlled topics. Original exam content is never changed.",
-      all: "All", mapped: "Mapped", unmapped: "Unmapped", search: "Search questions…", previous: "Previous", next: "Next", close: "Close",
+      all: "All", mapped: "Mapped", unmapped: "Unmapped", search: "Search questionsâ€¦", previous: "Previous", next: "Next", close: "Close",
       currentMapping: "Approved curriculum", noMapping: "No approved mapping yet", lectures: "Lectures", topics: "Topics", suggestions: "Suggestions",
       strongSuggestion: "Strong suggestion", possibleSuggestion: "Possible suggestion", accept: "Accept", remove: "Remove", add: "Add", createTopic: "New topic",
       topicPlaceholder: "E.g. Cerebrovascular disease", topicHint: "The topic is created once for the module and can be reused across questions.",
-      saving: "Saving…", saved: "Saved", error: "Could not save mapping", loading: "Loading curriculum mapping…",
+      saving: "Savingâ€¦", saved: "Saved", error: "Could not save mapping", loading: "Loading curriculum mappingâ€¦",
       setupMissing: "The Segment 6.7 database is not set up yet. Run the included segment_6_7.sql in Supabase first.",
       noQuestions: "There are no structured questions to map in this set.", noSuggestions: "No sufficiently reliable suggestions. Map manually if you know the relation.",
       original: "Open original", sourceQuestion: "Original question", mappedCount: (a,b) => `${a} of ${b} questions mapped`,
@@ -37457,18 +37581,18 @@ function examCurriculumCopy(language) {
       noCurriculumFilter: "All curriculum", manual: "Manual", acceptedSuggestion: "Accepted suggestion", suggestionsVersion: "Suggestion engine",
     },
     ar: {
-      related: "المنهج المرتبط", lecture: "المحاضرة", topic: "الموضوع", adminButton: "ربط المنهج",
-      managerTitle: "ربط المنهج", managerIntro: "اربط أسئلة الامتحان بالمحاضرات والموضوعات المعتمدة دون تغيير محتوى الامتحان الأصلي.",
-      all: "الكل", mapped: "مرتبط", unmapped: "غير مرتبط", search: "ابحث في الأسئلة…", previous: "السابق", next: "التالي", close: "إغلاق",
-      currentMapping: "المنهج المعتمد", noMapping: "لا يوجد ربط معتمد بعد", lectures: "المحاضرات", topics: "الموضوعات", suggestions: "اقتراحات",
-      strongSuggestion: "اقتراح قوي", possibleSuggestion: "اقتراح محتمل", accept: "اعتماد", remove: "إزالة", add: "إضافة", createTopic: "موضوع جديد",
-      topicPlaceholder: "مثال: أمراض الأوعية الدماغية", topicHint: "يُنشأ الموضوع مرة واحدة للوحدة ويمكن إعادة استخدامه.",
-      saving: "جارٍ الحفظ…", saved: "تم الحفظ", error: "تعذر حفظ الربط", loading: "جارٍ تحميل ربط المنهج…",
-      setupMissing: "قاعدة بيانات Segment 6.7 غير مهيأة بعد. شغّل ملف segment_6_7.sql المرفق في Supabase أولاً.",
-      noQuestions: "لا توجد أسئلة منظمة لربطها في هذه المجموعة.", noSuggestions: "لا توجد اقتراحات موثوقة بما يكفي. اختر يدويًا إذا كنت تعرف العلاقة.",
-      original: "فتح الأصل", sourceQuestion: "السؤال الأصلي", mappedCount: (a,b) => `${a} من ${b} أسئلة مرتبطة`,
-      filterLecture: "المحاضرة", filterTopic: "الموضوع", curriculumFilter: "تصفية المنهج", currentMappingNote: "يستخدم المرشح الربط الحالي المعتمد ولا يغير الإجابات أو النتائج التاريخية.",
-      noCurriculumFilter: "كل المنهج", manual: "يدوي", acceptedSuggestion: "اقتراح معتمد", suggestionsVersion: "محرك الاقتراح",
+      related: "Ø§Ù„Ù…Ù†Ù‡Ø¬ Ø§Ù„Ù…Ø±ØªØ¨Ø·", lecture: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©", topic: "Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹", adminButton: "Ø±Ø¨Ø· Ø§Ù„Ù…Ù†Ù‡Ø¬",
+      managerTitle: "Ø±Ø¨Ø· Ø§Ù„Ù…Ù†Ù‡Ø¬", managerIntro: "Ø§Ø±Ø¨Ø· Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ø¨Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª ÙˆØ§Ù„Ù…ÙˆØ¶ÙˆØ¹Ø§Øª Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø© Ø¯ÙˆÙ† ØªØºÙŠÙŠØ± Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ø§Ù„Ø£ØµÙ„ÙŠ.",
+      all: "Ø§Ù„ÙƒÙ„", mapped: "Ù…Ø±ØªØ¨Ø·", unmapped: "ØºÙŠØ± Ù…Ø±ØªØ¨Ø·", search: "Ø§Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©â€¦", previous: "Ø§Ù„Ø³Ø§Ø¨Ù‚", next: "Ø§Ù„ØªØ§Ù„ÙŠ", close: "Ø¥ØºÙ„Ø§Ù‚",
+      currentMapping: "Ø§Ù„Ù…Ù†Ù‡Ø¬ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯", noMapping: "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø±Ø¨Ø· Ù…Ø¹ØªÙ…Ø¯ Ø¨Ø¹Ø¯", lectures: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª", topics: "Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹Ø§Øª", suggestions: "Ø§Ù‚ØªØ±Ø§Ø­Ø§Øª",
+      strongSuggestion: "Ø§Ù‚ØªØ±Ø§Ø­ Ù‚ÙˆÙŠ", possibleSuggestion: "Ø§Ù‚ØªØ±Ø§Ø­ Ù…Ø­ØªÙ…Ù„", accept: "Ø§Ø¹ØªÙ…Ø§Ø¯", remove: "Ø¥Ø²Ø§Ù„Ø©", add: "Ø¥Ø¶Ø§ÙØ©", createTopic: "Ù…ÙˆØ¶ÙˆØ¹ Ø¬Ø¯ÙŠØ¯",
+      topicPlaceholder: "Ù…Ø«Ø§Ù„: Ø£Ù…Ø±Ø§Ø¶ Ø§Ù„Ø£ÙˆØ¹ÙŠØ© Ø§Ù„Ø¯Ù…Ø§ØºÙŠØ©", topicHint: "ÙŠÙÙ†Ø´Ø£ Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹ Ù…Ø±Ø© ÙˆØ§Ø­Ø¯Ø© Ù„Ù„ÙˆØ­Ø¯Ø© ÙˆÙŠÙ…ÙƒÙ† Ø¥Ø¹Ø§Ø¯Ø© Ø§Ø³ØªØ®Ø¯Ø§Ù…Ù‡.",
+      saving: "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸â€¦", saved: "ØªÙ… Ø§Ù„Ø­ÙØ¸", error: "ØªØ¹Ø°Ø± Ø­ÙØ¸ Ø§Ù„Ø±Ø¨Ø·", loading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø±Ø¨Ø· Ø§Ù„Ù…Ù†Ù‡Ø¬â€¦",
+      setupMissing: "Ù‚Ø§Ø¹Ø¯Ø© Ø¨ÙŠØ§Ù†Ø§Øª Segment 6.7 ØºÙŠØ± Ù…Ù‡ÙŠØ£Ø© Ø¨Ø¹Ø¯. Ø´ØºÙ‘Ù„ Ù…Ù„Ù segment_6_7.sql Ø§Ù„Ù…Ø±ÙÙ‚ ÙÙŠ Supabase Ø£ÙˆÙ„Ø§Ù‹.",
+      noQuestions: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© Ù…Ù†Ø¸Ù…Ø© Ù„Ø±Ø¨Ø·Ù‡Ø§ ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø©.", noSuggestions: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø§Ù‚ØªØ±Ø§Ø­Ø§Øª Ù…ÙˆØ«ÙˆÙ‚Ø© Ø¨Ù…Ø§ ÙŠÙƒÙÙŠ. Ø§Ø®ØªØ± ÙŠØ¯ÙˆÙŠÙ‹Ø§ Ø¥Ø°Ø§ ÙƒÙ†Øª ØªØ¹Ø±Ù Ø§Ù„Ø¹Ù„Ø§Ù‚Ø©.",
+      original: "ÙØªØ­ Ø§Ù„Ø£ØµÙ„", sourceQuestion: "Ø§Ù„Ø³Ø¤Ø§Ù„ Ø§Ù„Ø£ØµÙ„ÙŠ", mappedCount: (a,b) => `${a} Ù…Ù† ${b} Ø£Ø³Ø¦Ù„Ø© Ù…Ø±ØªØ¨Ø·Ø©`,
+      filterLecture: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©", filterTopic: "Ø§Ù„Ù…ÙˆØ¶ÙˆØ¹", curriculumFilter: "ØªØµÙÙŠØ© Ø§Ù„Ù…Ù†Ù‡Ø¬", currentMappingNote: "ÙŠØ³ØªØ®Ø¯Ù… Ø§Ù„Ù…Ø±Ø´Ø­ Ø§Ù„Ø±Ø¨Ø· Ø§Ù„Ø­Ø§Ù„ÙŠ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯ ÙˆÙ„Ø§ ÙŠØºÙŠØ± Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª Ø£Ùˆ Ø§Ù„Ù†ØªØ§Ø¦Ø¬ Ø§Ù„ØªØ§Ø±ÙŠØ®ÙŠØ©.",
+      noCurriculumFilter: "ÙƒÙ„ Ø§Ù„Ù…Ù†Ù‡Ø¬", manual: "ÙŠØ¯ÙˆÙŠ", acceptedSuggestion: "Ø§Ù‚ØªØ±Ø§Ø­ Ù…Ø¹ØªÙ…Ø¯", suggestionsVersion: "Ù…Ø­Ø±Ùƒ Ø§Ù„Ø§Ù‚ØªØ±Ø§Ø­",
     },
   })[language] || examCurriculumCopy("da");
 }
@@ -37490,7 +37614,7 @@ function examCurriculumTokens(text) {
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9æøå\s-]/gi, " ")
+    .replace(/[^a-z0-9Ã¦Ã¸Ã¥\s-]/gi, " ")
     .split(/\s+/)
     .map((word) => word.trim())
     .filter((word) => word.length >= 3 && !EXAM_CURRICULUM_STOPWORDS.has(word))
@@ -37554,7 +37678,7 @@ function examCurriculumSuggestLectures({ question, moduleName, importedQuestions
 function examCurriculumSlug(value) {
   return String(value || "")
     .toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9æøå]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+    .replace(/[^a-z0-9Ã¦Ã¸Ã¥]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
 function examCurriculumQuestionLinks(links, examSetId, questionId) {
@@ -37652,7 +37776,7 @@ function ExamCurriculumRelated({ language, moduleName, examSetId, questionId, li
         {related.map((link) => {
           const lecture = link.lectureId ? examCurriculumLecture(moduleName, link.lectureId) : null;
           const topic = link.topicId ? topicMap.get(link.topicId) : null;
-          const label = lecture ? `${lecture.id} · ${lecture.title}` : topic?.label;
+          const label = lecture ? `${lecture.id} Â· ${lecture.title}` : topic?.label;
           if (!label) return null;
           return <span key={link.id} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 7px", borderRadius: 99, border: "1px solid var(--ui-border-strong)", background: "var(--ui-panel)", color: "var(--ui-text)", fontSize: 9, fontWeight: 750 }}><Icon name={lecture ? "book" : "target"} size={10} />{label}</span>;
         })}
@@ -37670,7 +37794,7 @@ function ExamCurriculumFilterBar({ c, language, moduleName, links, topics, lectu
   return (
     <div style={{ display: "flex", alignItems: "end", gap: 8, flexWrap: "wrap", padding: "10px 12px", marginBottom: 10, border: `1px solid ${c?.border || "var(--ui-border)"}`, borderRadius: 12, background: c?.soft || "var(--ui-soft)" }}>
       <div style={{ display: "grid", gap: 2, marginInlineEnd: 4 }}><strong style={{ color: c?.text || "var(--ui-text)", fontSize: 9.5 }}>{copy.curriculumFilter}</strong><small style={{ color: c?.muted || "var(--ui-muted)", fontSize: 7.5 }}>{copy.currentMappingNote}</small></div>
-      <label style={{ display: "grid", gap: 3, color: c?.secondary || "var(--ui-muted)", fontSize: 8, fontWeight: 750 }}><span>{copy.filterLecture}</span><select value={lectureId} onChange={(event) => { setLectureId(event.target.value); if (event.target.value !== "all") setTopicId("all"); }} style={{ minHeight: 31, borderRadius: 8, border: `1px solid ${c?.border || "var(--ui-border)"}`, background: c?.panel || "var(--ui-panel)", color: c?.text || "var(--ui-text)", padding: "0 8px" }}><option value="all">{copy.noCurriculumFilter}</option>{lectureIds.map((id) => { const lecture = examCurriculumLecture(moduleName, id); return <option key={id} value={id}>{lecture ? `${lecture.id} · ${lecture.title}` : id}</option>; })}</select></label>
+      <label style={{ display: "grid", gap: 3, color: c?.secondary || "var(--ui-muted)", fontSize: 8, fontWeight: 750 }}><span>{copy.filterLecture}</span><select value={lectureId} onChange={(event) => { setLectureId(event.target.value); if (event.target.value !== "all") setTopicId("all"); }} style={{ minHeight: 31, borderRadius: 8, border: `1px solid ${c?.border || "var(--ui-border)"}`, background: c?.panel || "var(--ui-panel)", color: c?.text || "var(--ui-text)", padding: "0 8px" }}><option value="all">{copy.noCurriculumFilter}</option>{lectureIds.map((id) => { const lecture = examCurriculumLecture(moduleName, id); return <option key={id} value={id}>{lecture ? `${lecture.id} Â· ${lecture.title}` : id}</option>; })}</select></label>
       <label style={{ display: "grid", gap: 3, color: c?.secondary || "var(--ui-muted)", fontSize: 8, fontWeight: 750 }}><span>{copy.filterTopic}</span><select value={topicId} onChange={(event) => { setTopicId(event.target.value); if (event.target.value !== "all") setLectureId("all"); }} style={{ minHeight: 31, borderRadius: 8, border: `1px solid ${c?.border || "var(--ui-border)"}`, background: c?.panel || "var(--ui-panel)", color: c?.text || "var(--ui-text)", padding: "0 8px" }}><option value="all">{copy.noCurriculumFilter}</option>{topicIds.map((id) => <option key={id} value={id}>{topicMap.get(id)?.label || id}</option>)}</select></label>
     </div>
   );
@@ -37813,7 +37937,7 @@ function ExamCurriculumManager({ c, language, moduleName, examSet, questions, to
       <style>{`@media(max-width:900px){.exam-curriculum-manager-grid{grid-template-columns:1fr!important}.exam-curriculum-manager-list{max-height:180px!important}.exam-curriculum-manager-side{max-height:none!important}}`}</style>
       <section style={{ width: "min(1280px,96vw)", height: "min(860px,94vh)", display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: 18, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg || "0 30px 80px rgba(0,0,0,.28)" }} aria-label={copy.managerTitle}>
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 16px", borderBottom: `1px solid ${c.border}` }}>
-          <div><strong style={{ color: c.text, fontSize: 14 }}>{copy.managerTitle}</strong><div style={{ marginTop: 3, color: c.secondary, fontSize: 10.5 }}>{examSet?.name || ""} · {copy.mappedCount(mappedCount, safeQuestions.length)}</div></div>
+          <div><strong style={{ color: c.text, fontSize: 14 }}>{copy.managerTitle}</strong><div style={{ marginTop: 3, color: c.secondary, fontSize: 10.5 }}>{examSet?.name || ""} Â· {copy.mappedCount(mappedCount, safeQuestions.length)}</div></div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: saveState === "error" ? c.red : saveState === "saved" ? c.green : c.muted, fontSize: 9, fontWeight: 750 }}>{saveState === "saving" ? copy.saving : saveState === "saved" ? copy.saved : saveState === "error" ? copy.error : ""}</span><button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button></div>
         </header>
         <div style={{ padding: "9px 16px", borderBottom: `1px solid ${c.border}`, color: c.secondary, fontSize: 10.5, lineHeight: 1.45 }}>{copy.managerIntro}<span style={{ marginInlineStart: 8, color: c.muted, fontSize: 8.5 }}>{copy.suggestionsVersion}: {EXAM_CURRICULUM_SUGGESTION_VERSION}</span></div>
@@ -37821,19 +37945,19 @@ function ExamCurriculumManager({ c, language, moduleName, examSet, questions, to
           <div className="exam-curriculum-manager-grid" style={{ minHeight: 0, flex: 1, display: "grid", gridTemplateColumns: "260px minmax(0,1fr) 350px" }}>
             <aside style={{ minHeight: 0, display: "flex", flexDirection: "column", borderInlineEnd: `1px solid ${c.border}` }}>
               <div style={{ padding: 10, display: "grid", gap: 7, borderBottom: `1px solid ${c.border}` }}><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={copy.search} style={{ height: 34, borderRadius: 9, border: `1px solid ${c.border}`, background: c.soft, color: c.text, padding: "0 10px" }} /><div style={{ display: "flex", gap: 5 }}>{[["all",copy.all],["unmapped",copy.unmapped],["mapped",copy.mapped]].map(([value,label]) => <button key={value} type="button" onClick={() => setFilter(value)} style={{ flex: 1, height: 29, borderRadius: 8, border: `1px solid ${filter === value ? c.blueBorder : c.border}`, background: filter === value ? c.blueSoft : c.panel, color: filter === value ? c.blue : c.secondary, fontSize: 8.5, fontWeight: 750 }}>{label}</button>)}</div></div>
-              <div className="exam-curriculum-manager-list" style={{ minHeight: 0, flex: 1, overflowY: "auto", padding: 7, display: "grid", alignContent: "start", gap: 5 }}>{filtered.map((question, index) => { const active = String(question.id) === String(selectedQuestion?.id); const mapped = mappedQuestionIds.has(String(question.id)); return <button key={question.id} type="button" onClick={() => setSelectedId(question.id)} style={{ display: "grid", gridTemplateColumns: "28px 1fr 10px", gap: 7, alignItems: "start", textAlign: "start", padding: "8px 7px", borderRadius: 9, border: `1px solid ${active ? c.blueBorder : c.border}`, background: active ? c.blueSoft : c.panel, color: c.text }}><strong style={{ color: active ? c.blue : c.secondary, fontSize: 9 }}>Q{question.sourceNumber || index + 1}</strong><span style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", fontSize: 9, lineHeight: 1.35 }}>{question.text || "—"}</span><i style={{ width: 7, height: 7, marginTop: 2, borderRadius: 99, background: mapped ? c.green : c.borderStrong }} /></button>; })}</div>
+              <div className="exam-curriculum-manager-list" style={{ minHeight: 0, flex: 1, overflowY: "auto", padding: 7, display: "grid", alignContent: "start", gap: 5 }}>{filtered.map((question, index) => { const active = String(question.id) === String(selectedQuestion?.id); const mapped = mappedQuestionIds.has(String(question.id)); return <button key={question.id} type="button" onClick={() => setSelectedId(question.id)} style={{ display: "grid", gridTemplateColumns: "28px 1fr 10px", gap: 7, alignItems: "start", textAlign: "start", padding: "8px 7px", borderRadius: 9, border: `1px solid ${active ? c.blueBorder : c.border}`, background: active ? c.blueSoft : c.panel, color: c.text }}><strong style={{ color: active ? c.blue : c.secondary, fontSize: 9 }}>Q{question.sourceNumber || index + 1}</strong><span style={{ overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", fontSize: 9, lineHeight: 1.35 }}>{question.text || "â€”"}</span><i style={{ width: 7, height: 7, marginTop: 2, borderRadius: 99, background: mapped ? c.green : c.borderStrong }} /></button>; })}</div>
             </aside>
             <main style={{ minWidth: 0, minHeight: 0, overflowY: "auto", padding: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 13 }}><div style={{ display: "flex", gap: 6, flexWrap: "wrap", color: c.muted, fontSize: 8.5, fontWeight: 750 }}><span>{copy.sourceQuestion} {selectedQuestion?.sourceNumber || "—"}</span>{selectedQuestion?.sourcePages?.length ? <span>· PDF {selectedQuestion.sourcePages.join("–")}</span> : null}</div>{selectedQuestion && onOpenOriginal && <button type="button" className="ui-button ui-button--secondary" onClick={() => onOpenOriginal(selectedQuestion)}><Icon name="file" size={11} />{copy.original}</button>}</div>
-              <h2 style={{ margin: 0, color: c.text, fontSize: 17, lineHeight: 1.55, fontWeight: 750, whiteSpace: "pre-wrap" }}>{selectedQuestion?.text || "—"}</h2>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 13 }}><div style={{ display: "flex", gap: 6, flexWrap: "wrap", color: c.muted, fontSize: 8.5, fontWeight: 750 }}><span>{copy.sourceQuestion} {selectedQuestion?.sourceNumber || "â€”"}</span>{selectedQuestion?.sourcePages?.length ? <span>Â· PDF {selectedQuestion.sourcePages.join("â€“")}</span> : null}</div>{selectedQuestion && onOpenOriginal && <button type="button" className="ui-button ui-button--secondary" onClick={() => onOpenOriginal(selectedQuestion)}><Icon name="file" size={11} />{copy.original}</button>}</div>
+              <h2 style={{ margin: 0, color: c.text, fontSize: 17, lineHeight: 1.55, fontWeight: 750, whiteSpace: "pre-wrap" }}>{selectedQuestion?.text || "â€”"}</h2>
               <div style={{ display: "grid", gap: 8, marginTop: 18 }}>{(selectedQuestion?.options || []).map((option) => <div key={option.label} style={{ display: "grid", gridTemplateColumns: "28px 1fr", gap: 9, padding: "9px 10px", border: `1px solid ${c.border}`, borderRadius: 10, background: c.panel }}><strong style={{ width: 27, height: 27, display: "grid", placeItems: "center", borderRadius: 8, background: c.soft, color: c.secondary, fontSize: 10 }}>{option.label}</strong><span style={{ color: c.text, fontSize: 11, lineHeight: 1.45 }}>{option.text}</span></div>)}</div>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 18 }}><button type="button" className="ui-button ui-button--secondary" disabled={visibleIndex <= 0} onClick={() => step(-1)}><Icon name="left" size={11} />{copy.previous}</button><button type="button" className="ui-button ui-button--secondary" disabled={visibleIndex < 0 || visibleIndex >= filtered.length - 1} onClick={() => step(1)}>{copy.next}<Icon name="right" size={11} /></button></div>
             </main>
             <aside className="exam-curriculum-manager-side" style={{ minHeight: 0, overflowY: "auto", padding: 14, borderInlineStart: `1px solid ${c.border}`, background: c.soft }}>
               {errorMessage && <div style={{ marginBottom: 10, padding: 9, borderRadius: 9, background: c.redSoft, color: c.red, fontSize: 9.5 }}>{errorMessage}</div>}
-              <section style={{ padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.currentMapping}</strong><div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>{selectedLinks.length ? selectedLinks.map((link) => { const lecture = link.lectureId ? examCurriculumLecture(moduleName, link.lectureId) : null; const topic = link.topicId ? topicMap.get(link.topicId) : null; return <button key={link.id} type="button" title={copy.remove} disabled={saveState === "saving"} onClick={() => removeLink(link.id)} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 7px", borderRadius: 99, border: `1px solid ${c.borderStrong}`, background: c.soft, color: c.text, fontSize: 8.5, fontWeight: 750 }}><Icon name={lecture ? "book" : "target"} size={9} />{lecture ? `${lecture.id} · ${lecture.title}` : topic?.label || "—"}<Icon name="close" size={8} /></button>; }) : <span style={{ color: c.muted, fontSize: 9 }}>{copy.noMapping}</span>}</div></section>
-              <section style={{ marginTop: 10, padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.suggestions}</strong><div style={{ display: "grid", gap: 6, marginTop: 8 }}>{suggestions.length ? suggestions.map((suggestion) => <div key={suggestion.lectureId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 7, padding: 8, borderRadius: 9, background: suggestion.strength === "strong" ? c.blueSoft : c.soft, border: `1px solid ${suggestion.strength === "strong" ? c.blueBorder : c.border}` }}><div><strong style={{ display: "block", color: c.text, fontSize: 8.8 }}>{suggestion.lecture.id} · {suggestion.lecture.title}</strong><small style={{ color: suggestion.strength === "strong" ? c.blue : c.muted, fontSize: 7.5, fontWeight: 750 }}>{suggestion.strength === "strong" ? copy.strongSuggestion : copy.possibleSuggestion}</small></div><button type="button" disabled={saveState === "saving"} onClick={() => addLecture(suggestion.lectureId, "accepted_suggestion")} style={{ border: 0, borderRadius: 7, background: c.blue, color: "#fff", padding: "5px 7px", fontSize: 8, fontWeight: 800 }}>{copy.accept}</button></div>) : <span style={{ color: c.muted, fontSize: 8.5, lineHeight: 1.4 }}>{copy.noSuggestions}</span>}</div></section>
-              <section style={{ marginTop: 10, padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.lectures}</strong><div style={{ display: "grid", gap: 7, marginTop: 8 }}>{[...new Set(lectures.map((lecture) => lecture.group))].map((group) => <details key={group}><summary style={{ cursor: "pointer", color: c.secondary, fontSize: 8.5, fontWeight: 800 }}>{group}</summary><div style={{ display: "grid", gap: 4, marginTop: 5 }}>{lectures.filter((lecture) => lecture.group === group).map((lecture) => { const linked = selectedLectureIds.includes(lecture.id); return <button key={lecture.id} type="button" disabled={saveState === "saving"} onClick={() => linked ? removeLink(selectedLinks.find((link) => link.lectureId === lecture.id)?.id) : addLecture(lecture.id)} style={{ display: "flex", justifyContent: "space-between", gap: 7, padding: "6px 7px", textAlign: "start", borderRadius: 8, border: `1px solid ${linked ? c.greenBorder : c.border}`, background: linked ? c.greenSoft : c.soft, color: c.text, fontSize: 8.5 }}><span><strong>{lecture.id}</strong> · {lecture.title}</span><Icon name={linked ? "check" : "plus"} size={9} /></button>; })}</div></details>)}</div></section>
+              <section style={{ padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.currentMapping}</strong><div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>{selectedLinks.length ? selectedLinks.map((link) => { const lecture = link.lectureId ? examCurriculumLecture(moduleName, link.lectureId) : null; const topic = link.topicId ? topicMap.get(link.topicId) : null; return <button key={link.id} type="button" title={copy.remove} disabled={saveState === "saving"} onClick={() => removeLink(link.id)} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 7px", borderRadius: 99, border: `1px solid ${c.borderStrong}`, background: c.soft, color: c.text, fontSize: 8.5, fontWeight: 750 }}><Icon name={lecture ? "book" : "target"} size={9} />{lecture ? `${lecture.id} Â· ${lecture.title}` : topic?.label || "â€”"}<Icon name="close" size={8} /></button>; }) : <span style={{ color: c.muted, fontSize: 9 }}>{copy.noMapping}</span>}</div></section>
+              <section style={{ marginTop: 10, padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.suggestions}</strong><div style={{ display: "grid", gap: 6, marginTop: 8 }}>{suggestions.length ? suggestions.map((suggestion) => <div key={suggestion.lectureId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 7, padding: 8, borderRadius: 9, background: suggestion.strength === "strong" ? c.blueSoft : c.soft, border: `1px solid ${suggestion.strength === "strong" ? c.blueBorder : c.border}` }}><div><strong style={{ display: "block", color: c.text, fontSize: 8.8 }}>{suggestion.lecture.id} Â· {suggestion.lecture.title}</strong><small style={{ color: suggestion.strength === "strong" ? c.blue : c.muted, fontSize: 7.5, fontWeight: 750 }}>{suggestion.strength === "strong" ? copy.strongSuggestion : copy.possibleSuggestion}</small></div><button type="button" disabled={saveState === "saving"} onClick={() => addLecture(suggestion.lectureId, "accepted_suggestion")} style={{ border: 0, borderRadius: 7, background: c.blue, color: "#fff", padding: "5px 7px", fontSize: 8, fontWeight: 800 }}>{copy.accept}</button></div>) : <span style={{ color: c.muted, fontSize: 8.5, lineHeight: 1.4 }}>{copy.noSuggestions}</span>}</div></section>
+              <section style={{ marginTop: 10, padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.lectures}</strong><div style={{ display: "grid", gap: 7, marginTop: 8 }}>{[...new Set(lectures.map((lecture) => lecture.group))].map((group) => <details key={group}><summary style={{ cursor: "pointer", color: c.secondary, fontSize: 8.5, fontWeight: 800 }}>{group}</summary><div style={{ display: "grid", gap: 4, marginTop: 5 }}>{lectures.filter((lecture) => lecture.group === group).map((lecture) => { const linked = selectedLectureIds.includes(lecture.id); return <button key={lecture.id} type="button" disabled={saveState === "saving"} onClick={() => linked ? removeLink(selectedLinks.find((link) => link.lectureId === lecture.id)?.id) : addLecture(lecture.id)} style={{ display: "flex", justifyContent: "space-between", gap: 7, padding: "6px 7px", textAlign: "start", borderRadius: 8, border: `1px solid ${linked ? c.greenBorder : c.border}`, background: linked ? c.greenSoft : c.soft, color: c.text, fontSize: 8.5 }}><span><strong>{lecture.id}</strong> Â· {lecture.title}</span><Icon name={linked ? "check" : "plus"} size={9} /></button>; })}</div></details>)}</div></section>
               <section style={{ marginTop: 10, padding: 11, borderRadius: 11, border: `1px solid ${c.border}`, background: c.panel }}><strong style={{ color: c.text, fontSize: 10.5 }}>{copy.topics}</strong><div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 8 }}>{safeTopics.length ? safeTopics.map((topic) => { const linked = selectedLinks.some((link) => link.topicId === topic.id); return <button key={topic.id} type="button" disabled={saveState === "saving"} onClick={() => toggleTopic(topic.id)} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "5px 7px", borderRadius: 99, border: `1px solid ${linked ? c.greenBorder : c.border}`, background: linked ? c.greenSoft : c.soft, color: c.text, fontSize: 8.5, fontWeight: 700 }}>{linked && <Icon name="check" size={8} />}{topic.label}</button>; }) : <span style={{ color: c.muted, fontSize: 8.5 }}>{copy.noMapping}</span>}</div><div style={{ display: "flex", gap: 5, marginTop: 8 }}><input value={topicDraft} onChange={(event) => setTopicDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); createTopic(); } }} placeholder={copy.topicPlaceholder} style={{ minWidth: 0, flex: 1, height: 31, borderRadius: 8, border: `1px solid ${c.border}`, background: c.soft, color: c.text, padding: "0 8px", fontSize: 8.5 }} /><button type="button" disabled={!topicDraft.trim() || saveState === "saving"} onClick={createTopic} className="ui-button ui-button--secondary"><Icon name="plus" size={9} />{copy.createTopic}</button></div><small style={{ display: "block", marginTop: 5, color: c.muted, fontSize: 7.4, lineHeight: 1.35 }}>{copy.topicHint}</small></section>
             </aside>
           </div>
@@ -37883,11 +38007,11 @@ function ExamAttemptHistoryWorkspace({ copy, language, attempts, loadState, onOp
         <div><span className="exam-review-eyebrow">{copy.examAttemptPrivate}</span><h2>{copy.examAttemptHistoryTitle}</h2><p>{copy.examAttemptHistoryIntro}</p></div>
         <div className="exam-attempt-header-summary">
           <span><strong>{safeAttempts.length}</strong><small>{copy.examAttemptCount}</small></span>
-          <span><strong>{latest?.result ? `${latest.result.correctCount}/${latest.result.assessedCount}` : "—"}</strong><small>{copy.examAttemptLatest}</small></span>
-          <span><strong>{latestAccuracy == null ? "—" : `${Math.round(latestAccuracy * 100)}%`}</strong><small>{copy.examAttemptAccuracy}</small></span>
+          <span><strong>{latest?.result ? `${latest.result.correctCount}/${latest.result.assessedCount}` : "â€”"}</strong><small>{copy.examAttemptLatest}</small></span>
+          <span><strong>{latestAccuracy == null ? "â€”" : `${Math.round(latestAccuracy * 100)}%`}</strong><small>{copy.examAttemptAccuracy}</small></span>
         </div>
       </header>
-      {repeated.length > 0 && <div className="exam-attempt-repeat"><Icon name="flag" size={12} /><span><strong>{repeated.length}</strong> {copy.examAttemptRepeatedErrors}{repeated.slice(0, 6).length ? ` · ${repeated.slice(0, 6).map((item) => `Q${item.sourceNumber || "?"}×${item.count}`).join(" · ")}` : ""}</span></div>}
+      {repeated.length > 0 && <div className="exam-attempt-repeat"><Icon name="flag" size={12} /><span><strong>{repeated.length}</strong> {copy.examAttemptRepeatedErrors}{repeated.slice(0, 6).length ? ` Â· ${repeated.slice(0, 6).map((item) => `Q${item.sourceNumber || "?"}Ã—${item.count}`).join(" Â· ")}` : ""}</span></div>}
       {loadState === "loading" ? <div className="exam-attempt-empty"><Icon name="clock" size={21} /><strong>{copy.examAttemptLoading}</strong></div> : loadState === "error" ? <div className="exam-attempt-empty"><Icon name="flag" size={21} /><strong>{copy.examAttemptSetupMissing}</strong><p>{copy.examAttemptSetupHint}</p></div> : safeAttempts.length === 0 ? <div className="exam-attempt-empty"><Icon name="clock" size={21} /><strong>{copy.examAttemptEmpty}</strong><p>{copy.examAttemptEmptyHint}</p></div> : (
         <div className="exam-attempt-list">
           {safeAttempts.map((attempt, index) => {
@@ -37899,11 +38023,11 @@ function ExamAttemptHistoryWorkspace({ copy, language, attempts, loadState, onOp
             const delta = comparison?.accuracyDelta;
             const deltaTone = delta == null || Math.abs(delta) < .0005 ? "neutral" : delta > 0 ? "positive" : "negative";
             return <article key={attempt.id} className="exam-attempt-card">
-              <div className="exam-attempt-card-main"><strong>{copy.examAttemptNumber(attempt.attemptNumber || safeAttempts.length - index)}</strong><small>{submittedAt && !Number.isNaN(submittedAt.getTime()) ? submittedAt.toLocaleString(dateLocale, { dateStyle: "medium", timeStyle: "short" }) : "—"} · {attempt.snapshotVersion || "legacy"}</small></div>
-              <span className="exam-attempt-metric"><strong>{attempt.result ? `${attempt.result.correctCount}/${attempt.result.assessedCount}` : "—"}</strong><small>{copy.examAttemptScore}</small></span>
-              <span className="exam-attempt-metric"><strong>{accuracy == null ? "—" : `${Math.round(accuracy * 100)}%`}</strong><small>{copy.examAttemptAccuracy}</small>{delta != null && <em className="exam-attempt-delta" data-tone={deltaTone}>{delta > 0 ? "+" : ""}{Math.round(delta * 100)} pp</em>}</span>
-              <span className="exam-attempt-metric"><strong>{attempt.result?.wrongCount ?? "—"}</strong><small>{copy.examSetWrong}</small></span>
-              <span className="exam-attempt-metric"><strong>{elapsed ? examSimulationFormatTime(elapsed) : "—"}</strong><small>{copy.examAttemptDuration}</small></span>
+              <div className="exam-attempt-card-main"><strong>{copy.examAttemptNumber(attempt.attemptNumber || safeAttempts.length - index)}</strong><small>{submittedAt && !Number.isNaN(submittedAt.getTime()) ? submittedAt.toLocaleString(dateLocale, { dateStyle: "medium", timeStyle: "short" }) : "â€”"} Â· {attempt.snapshotVersion || "legacy"}</small></div>
+              <span className="exam-attempt-metric"><strong>{attempt.result ? `${attempt.result.correctCount}/${attempt.result.assessedCount}` : "â€”"}</strong><small>{copy.examAttemptScore}</small></span>
+              <span className="exam-attempt-metric"><strong>{accuracy == null ? "â€”" : `${Math.round(accuracy * 100)}%`}</strong><small>{copy.examAttemptAccuracy}</small>{delta != null && <em className="exam-attempt-delta" data-tone={deltaTone}>{delta > 0 ? "+" : ""}{Math.round(delta * 100)} pp</em>}</span>
+              <span className="exam-attempt-metric"><strong>{attempt.result?.wrongCount ?? "â€”"}</strong><small>{copy.examSetWrong}</small></span>
+              <span className="exam-attempt-metric"><strong>{elapsed ? examSimulationFormatTime(elapsed) : "â€”"}</strong><small>{copy.examAttemptDuration}</small></span>
               <button type="button" className="exam-attempt-open" onClick={() => onOpen(attempt)}><Icon name="cards" size={11} /> {copy.examAttemptOpen}</button>
             </article>;
           })}
@@ -37926,10 +38050,10 @@ function ExamAttemptSnapshotModal({ c, copy, language, attempt, onClose, onOpenS
   const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
   return <Modal c={c} onClose={onClose} size="large">
     <div className="exam-attempt-snapshot">
-      <header className="exam-attempt-snapshot-head"><div><strong>{copy.examAttemptNumber(attempt.attemptNumber || 1)} · {copy.examAttemptReadOnly}</strong><small>{submittedAt && !Number.isNaN(submittedAt.getTime()) ? submittedAt.toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" }) : "—"} · {attempt.result ? `${attempt.result.correctCount}/${attempt.result.assessedCount}` : "—"}</small></div><button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button></header>
+      <header className="exam-attempt-snapshot-head"><div><strong>{copy.examAttemptNumber(attempt.attemptNumber || 1)} Â· {copy.examAttemptReadOnly}</strong><small>{submittedAt && !Number.isNaN(submittedAt.getTime()) ? submittedAt.toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" }) : "â€”"} Â· {attempt.result ? `${attempt.result.correctCount}/${attempt.result.assessedCount}` : "â€”"}</small></div><button type="button" className="ui-button ui-button--secondary" onClick={onClose}>{copy.close}</button></header>
       <div className="exam-attempt-snapshot-body">
         {!question ? <div className="exam-attempt-empty"><strong>{copy.examAttemptSnapshotMissing}</strong></div> : <article className="exam-set-question-card">
-          <div className="exam-set-question-source"><span>{copy.examSetQuestion} {safeIndex + 1} / {questions.length}</span><span>{copy.examSetSourceQuestion} {question.sourceNumber || "—"}</span>{question.sourcePages?.length ? <span>{copy.examSetSourcePage} {question.sourcePages.join("–")}</span> : null}</div>
+          <div className="exam-set-question-source"><span>{copy.examSetQuestion} {safeIndex + 1} / {questions.length}</span><span>{copy.examSetSourceQuestion} {question.sourceNumber || "â€”"}</span>{question.sourcePages?.length ? <span>{copy.examSetSourcePage} {question.sourcePages.join("â€“")}</span> : null}</div>
           <h2 className="exam-set-question-text">{question.text}</h2>
           <div className="exam-set-options">{(question.options || []).map((option) => {
             const result = official ? option.label === official ? "correct" : selected === option.label ? "wrong" : "" : "";
@@ -37953,8 +38077,8 @@ function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, f
   const sessions = [...new Set(safeDocuments.map((document) => document?.examSession).filter(Boolean))];
   const documentMap = new Map(safeDocuments.map((document) => [document.id, document]));
   const statusLabel = (status) => status === "reviewed" ? copy.examReviewStatusReviewed : status === "revisit" ? copy.examReviewStatusRevisit : copy.examReviewStatusUnreviewed;
-  const sendToPlanLabel = language === "en" ? "Send to study plan" : language === "ar" ? "إرسال إلى خطة الدراسة" : "Send til studieplan";
-  const sentToPlanLabel = language === "en" ? "In study plan" : language === "ar" ? "في خطة الدراسة" : "I studieplanen";
+  const sendToPlanLabel = language === "en" ? "Send to study plan" : language === "ar" ? "Ø¥Ø±Ø³Ø§Ù„ Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©" : "Send til studieplan";
+  const sentToPlanLabel = language === "en" ? "In study plan" : language === "ar" ? "ÙÙŠ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©" : "I studieplanen";
   const filtered = safeItems.filter((item) => {
     const document = documentMap.get(item.examSetId);
     if (!document) return false;
@@ -38002,7 +38126,7 @@ function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, f
       <div className="exam-review-filters">
         <label><span>{copy.examReviewFilterYear}</span><select value={filters.year} onChange={(event) => setFilter("year", event.target.value)}><option value="all">{copy.examReviewAll}</option>{years.map((year) => <option key={year} value={year}>{year}</option>)}</select></label>
         <label><span>{copy.examReviewFilterSession}</span><select value={filters.session} onChange={(event) => setFilter("session", event.target.value)}><option value="all">{copy.examReviewAll}</option>{sessions.map((session) => <option key={session} value={session}>{sessionLabel(session)}</option>)}</select></label>
-        <label><span>{copy.examReviewFilterSet}</span><select value={filters.examSetId} onChange={(event) => setFilter("examSetId", event.target.value)}><option value="all">{copy.examReviewAll}</option>{safeDocuments.map((document) => <option key={document.id} value={document.id}>{document.name} · {document.year || "—"}</option>)}</select></label>
+        <label><span>{copy.examReviewFilterSet}</span><select value={filters.examSetId} onChange={(event) => setFilter("examSetId", event.target.value)}><option value="all">{copy.examReviewAll}</option>{safeDocuments.map((document) => <option key={document.id} value={document.id}>{document.name} Â· {document.year || "â€”"}</option>)}</select></label>
         <label><span>{copy.examReviewFilterStatus}</span><select value={filters.status} onChange={(event) => setFilter("status", event.target.value)}><option value="active">{copy.examReviewFilterActive}</option><option value="unreviewed">{copy.examReviewStatusUnreviewed}</option><option value="revisit">{copy.examReviewStatusRevisit}</option><option value="reviewed">{copy.examReviewStatusReviewed}</option><option value="all">{copy.examReviewAll}</option></select></label>
         <label className="exam-review-include"><input type="checkbox" checked={filters.includeExcluded} onChange={(event) => setFilter("includeExcluded", event.target.checked)} /><span>{copy.examReviewIncludeExcluded}</span></label>
       </div>
@@ -38020,7 +38144,7 @@ function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, f
         <div className="exam-review-list">
           {filtered.map((item) => {
             const { document, question } = examReviewResolveQuestion(item, safeDocuments);
-            const sourceNumber = question?.sourceNumber || item.sourceNumber || "—";
+            const sourceNumber = question?.sourceNumber || item.sourceNumber || "â€”";
             const page = Number(question?.page || question?.sourcePages?.[0] || 0);
             const reasonChips = [
               item.wrongCount > 0 ? { key: "wrong", label: copy.examReviewWrongCount(item.wrongCount) } : null,
@@ -38032,11 +38156,11 @@ function ExamReviewWorkspace({ c, copy, language, items, documents, loadState, f
               <article key={item.id} className="exam-review-card" data-excluded={item.excluded ? "true" : "false"}>
                 <div className="exam-review-card-main">
                   <header>
-                    <div><span className="exam-review-set-name">{document?.name || copy.examReviewUnknownSet}</span><strong>{copy.examSetQuestion} {sourceNumber}</strong><small>{document?.year || "—"} · {sessionLabel(document?.examSession)}{page ? ` · ${copy.examSetSourcePage} ${page}` : ""}</small></div>
+                    <div><span className="exam-review-set-name">{document?.name || copy.examReviewUnknownSet}</span><strong>{copy.examSetQuestion} {sourceNumber}</strong><small>{document?.year || "â€”"} Â· {sessionLabel(document?.examSession)}{page ? ` Â· ${copy.examSetSourcePage} ${page}` : ""}</small></div>
                     <div className="exam-review-reasons">{reasonChips.map((reason) => <span key={reason.key} data-reason={reason.key}>{reason.label}</span>)}</div>
                   </header>
                   <div className="exam-review-answer-line">
-                    {item.lastUserAnswer ? <span><small>{copy.examReviewYourAnswer}</small><b>{item.lastUserAnswer}</b></span> : <span><small>{copy.examReviewYourAnswer}</small><b>—</b></span>}
+                    {item.lastUserAnswer ? <span><small>{copy.examReviewYourAnswer}</small><b>{item.lastUserAnswer}</b></span> : <span><small>{copy.examReviewYourAnswer}</small><b>â€”</b></span>}
                     {item.officialAnswer ? <span><small>{copy.examReviewOfficialAnswer}</small><b>{item.officialAnswer}</b></span> : <span><small>{copy.examReviewOfficialAnswer}</small><b>{copy.examReviewNoVerifiedAnswer}</b></span>}
                   </div>
                   <label className="exam-review-note"><span>{copy.examReviewNote}</span><textarea value={item.note} maxLength={4000} placeholder={copy.examReviewNotePlaceholder} onChange={(event) => onPatch(item.id, { note: event.target.value })} /></label>
@@ -38235,100 +38359,100 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
 
   const copy = ({
     da: {
-      lectures: "Forelæsninger",
-      examSets: "Eksamenssæt",
-      lectureSubtitle: "Permanent materialebibliotek, viewer og forelæsningsnoter",
-      examSubtitle: "Parrede spørgsmål-/svar-PDF'er, source-faithful MCQ-viewer og privat øvelse",
-      searchLectures: "Søg efter forelæsning…",
-      searchExamSets: "Søg efter fil, år eller eksamenstermin…",
-      examSetPermanent: "Spørgsmål-PDF'erne er fælles for alle loggede MedFLUEN-brugere. Svar-PDF'en bruges som intern facitkilde, mens dine svar, markeringer og øvelsesdata er private.",
-      examSetLoading: "Henter eksamenssæt…",
-      examSetSetupMissing: "Eksamenssæt er ikke klargjort. Kør SQL-filen til Segment 6.2 FINAL i Supabase.",
-      examSetUploadTitle: "Tilføj eksamenssæt",
-      examSetEditTitle: "Redigér eksamenssæt",
+      lectures: "ForelÃ¦sninger",
+      examSets: "EksamenssÃ¦t",
+      lectureSubtitle: "Permanent materialebibliotek, viewer og forelÃ¦sningsnoter",
+      examSubtitle: "Parrede spÃ¸rgsmÃ¥l-/svar-PDF'er, source-faithful MCQ-viewer og privat Ã¸velse",
+      searchLectures: "SÃ¸g efter forelÃ¦sningâ€¦",
+      searchExamSets: "SÃ¸g efter fil, Ã¥r eller eksamensterminâ€¦",
+      examSetPermanent: "SpÃ¸rgsmÃ¥l-PDF'erne er fÃ¦lles for alle loggede MedFLUEN-brugere. Svar-PDF'en bruges som intern facitkilde, mens dine svar, markeringer og Ã¸velsesdata er private.",
+      examSetLoading: "Henter eksamenssÃ¦tâ€¦",
+      examSetSetupMissing: "EksamenssÃ¦t er ikke klargjort. KÃ¸r SQL-filen til Segment 6.2 FINAL i Supabase.",
+      examSetUploadTitle: "TilfÃ¸j eksamenssÃ¦t",
+      examSetEditTitle: "RedigÃ©r eksamenssÃ¦t",
       examSetName: "Visningsnavn",
-      examSetYear: "Årstal",
+      examSetYear: "Ã…rstal",
       examSetSession: "Eksamenstermin",
       examSetDate: "Eksamensdato (valgfri)",
       examSetSessionSummer: "Sommer",
       examSetSessionWinter: "Vinter",
       examSetSessionReexam: "Reeksamen",
-      examSetQuestionPdf: "Spørgsmål-PDF",
+      examSetQuestionPdf: "SpÃ¸rgsmÃ¥l-PDF",
       examSetAnswerPdf: "Svar-/facit-PDF",
-      examSetChooseQuestionPdf: "Vælg spørgsmål-PDF",
-      examSetChooseAnswerPdf: "Vælg svar-PDF",
-      examSetQuestionPdfRequired: "Spørgsmål-PDF er påkrævet.",
-      examSetAnswerPdfRequired: "Svar-/facit-PDF er påkrævet for et komplet eksamenssæt.",
+      examSetChooseQuestionPdf: "VÃ¦lg spÃ¸rgsmÃ¥l-PDF",
+      examSetChooseAnswerPdf: "VÃ¦lg svar-PDF",
+      examSetQuestionPdfRequired: "SpÃ¸rgsmÃ¥l-PDF er pÃ¥krÃ¦vet.",
+      examSetAnswerPdfRequired: "Svar-/facit-PDF er pÃ¥krÃ¦vet for et komplet eksamenssÃ¦t.",
       examSetAnswerPdfPrivate: "Svar-PDF'en bruges som intern facitkilde og deles ikke direkte med andre brugere.",
-      examSetSave: "Gem eksamenssæt",
+      examSetSave: "Gem eksamenssÃ¦t",
       examSetCancel: "Annuller",
-      examSetEdit: "Redigér",
+      examSetEdit: "RedigÃ©r",
       examSetDelete: "Slet",
-      examSetDownload: "Download spørgsmål",
-      examSetOpen: "Åbn spørgsmål",
-      examSetDeleteConfirm: "Slet dette fælles eksamenssæt permanent?",
-      examSetTooLarge: "En PDF-fil er større end 50 MB og kan ikke uploades.",
-      examSetInvalidFile: "Kun PDF-filer kan tilføjes til eksamenssætbiblioteket.",
-      examSetRequiredMeta: "Årstal, eksamenstermin og begge PDF-versioner skal være valgt, før et nyt sæt kan gemmes.",
-      examSetHashing: "Kontrollerer PDF'er og dubletter…",
-      examSetParsing: "Analyserer spørgsmål, svar og originale visuelle elementer…",
-      examSetDuplicate: "Dette eksamenssæt findes allerede. Samme modul + år + termin eller samme PDF kan ikke uploades igen.",
-      examSetSaved: "Eksamenssættet er gemt i det fælles bibliotek.",
-      examSetUpdated: "Eksamenssættet er opdateret.",
-      examSetDeleted: "Eksamenssættet er slettet.",
-      examSetLoadError: "Eksamenssættene kunne ikke hentes.",
-      examSetActionError: "Handlingen kunne ikke gennemføres.",
-      examSetShared: "Fælles spørgsmål",
-      examSetAnswerKeyReady: "Facit høstet",
+      examSetDownload: "Download spÃ¸rgsmÃ¥l",
+      examSetOpen: "Ã…bn spÃ¸rgsmÃ¥l",
+      examSetDeleteConfirm: "Slet dette fÃ¦lles eksamenssÃ¦t permanent?",
+      examSetTooLarge: "En PDF-fil er stÃ¸rre end 50 MB og kan ikke uploades.",
+      examSetInvalidFile: "Kun PDF-filer kan tilfÃ¸jes til eksamenssÃ¦tbiblioteket.",
+      examSetRequiredMeta: "Ã…rstal, eksamenstermin og begge PDF-versioner skal vÃ¦re valgt, fÃ¸r et nyt sÃ¦t kan gemmes.",
+      examSetHashing: "Kontrollerer PDF'er og dubletterâ€¦",
+      examSetParsing: "Analyserer spÃ¸rgsmÃ¥l, svar og originale visuelle elementerâ€¦",
+      examSetDuplicate: "Dette eksamenssÃ¦t findes allerede. Samme modul + Ã¥r + termin eller samme PDF kan ikke uploades igen.",
+      examSetSaved: "EksamenssÃ¦ttet er gemt i det fÃ¦lles bibliotek.",
+      examSetUpdated: "EksamenssÃ¦ttet er opdateret.",
+      examSetDeleted: "EksamenssÃ¦ttet er slettet.",
+      examSetLoadError: "EksamenssÃ¦ttene kunne ikke hentes.",
+      examSetActionError: "Handlingen kunne ikke gennemfÃ¸res.",
+      examSetShared: "FÃ¦lles spÃ¸rgsmÃ¥l",
+      examSetAnswerKeyReady: "Facit hÃ¸stet",
       examSetOwnerOnly: "Kun uploaderen kan redigere eller slette kildedokumenterne.",
       examSetPdfMode: "Original PDF",
       examSetViewerMode: "Eksamensviewer",
       examSetQuestionsSource: "Uden svar",
       examSetAnswersSource: "Med facit",
-      examSetCreateViewer: "Generér MCQ-viewer",
-      examSetRebuildViewer: "Genlæs PDF'er",
-      examSetExtracting: "Læser spørgsmål og kobler facit…",
-      examSetExtractHint: "Spørgsmål, svarmuligheder og billeder kommer kun fra spørgsmål-PDF'en. Facit kommer kun fra svar-PDF'en. MedFLUEN opfinder ikke nye spørgsmål eller svar.",
-      examSetExtracted: (count, keyed, visual) => `${count} MCQ fundet · ${keyed} med facit · ${visual} med originale visuelle elementer`,
-      examSetNoQuestions: "Ingen sikre MCQ-spørgsmål kunne udtrækkes fra spørgsmål-PDF'en. Der er ikke oprettet eller gættet nye spørgsmål.",
-      examSetScannedHint: "Hvis PDF'en er scannet som billeder eller har et usædvanligt layout, markeres sættet til kontrol i stedet for at gætte.",
-      examSetQuestion: "Spørgsmål",
-      examSetSourceQuestion: "Originalt spørgsmål",
+      examSetCreateViewer: "GenerÃ©r MCQ-viewer",
+      examSetRebuildViewer: "GenlÃ¦s PDF'er",
+      examSetExtracting: "LÃ¦ser spÃ¸rgsmÃ¥l og kobler facitâ€¦",
+      examSetExtractHint: "SpÃ¸rgsmÃ¥l, svarmuligheder og billeder kommer kun fra spÃ¸rgsmÃ¥l-PDF'en. Facit kommer kun fra svar-PDF'en. MedFLUEN opfinder ikke nye spÃ¸rgsmÃ¥l eller svar.",
+      examSetExtracted: (count, keyed, visual) => `${count} MCQ fundet Â· ${keyed} med facit Â· ${visual} med originale visuelle elementer`,
+      examSetNoQuestions: "Ingen sikre MCQ-spÃ¸rgsmÃ¥l kunne udtrÃ¦kkes fra spÃ¸rgsmÃ¥l-PDF'en. Der er ikke oprettet eller gÃ¦ttet nye spÃ¸rgsmÃ¥l.",
+      examSetScannedHint: "Hvis PDF'en er scannet som billeder eller har et usÃ¦dvanligt layout, markeres sÃ¦ttet til kontrol i stedet for at gÃ¦tte.",
+      examSetQuestion: "SpÃ¸rgsmÃ¥l",
+      examSetSourceQuestion: "Originalt spÃ¸rgsmÃ¥l",
       examSetSourcePage: "PDF-side",
       examSetPreviousQuestion: "Forrige",
-      examSetNextQuestion: "Næste",
-      examSetMarkLater: "Markér til senere",
+      examSetNextQuestion: "NÃ¦ste",
+      examSetMarkLater: "MarkÃ©r til senere",
       examSetUnmarkLater: "Fjern markering",
-      examSetGridTitle: "Spørgsmålsgrid",
-      examSetGridHint: "Klik 1–X for at hoppe direkte mellem MCQ'er. Farven viser status.",
+      examSetGridTitle: "SpÃ¸rgsmÃ¥lsgrid",
+      examSetGridHint: "Klik 1â€“X for at hoppe direkte mellem MCQ'er. Farven viser status.",
       examSetAnswered: "Besvaret",
       examSetMarked: "Til senere",
       examSetCorrect: "Korrekt",
       examSetWrong: "Forkert",
       examSetUnanswered: "Ikke besvaret",
-      examSetSubmit: "Aflever øvelse",
+      examSetSubmit: "Aflever Ã¸velse",
       examSetSubmitted: "Afleveret",
-      examSetAnswerKeyMissing: "Der blev ikke fundet et sikkert facit i svar-PDF'en. MedFLUEN gætter ikke.",
+      examSetAnswerKeyMissing: "Der blev ikke fundet et sikkert facit i svar-PDF'en. MedFLUEN gÃ¦tter ikke.",
       examSetCorrectAnswer: (label) => `Officielt facit fra svar-PDF: ${label}`,
       examSetShowAnswers: "Vis svar",
       examSetHideAnswers: "Skjul svar",
       examSetOpenOriginal: "Se original PDF-side",
       examSetOriginalTitle: "Original eksamensside",
-      examSetOriginalNoAnswers: "Spørgsmål-PDF · uden svar",
+      examSetOriginalNoAnswers: "SpÃ¸rgsmÃ¥l-PDF Â· uden svar",
       examSetOriginalExcerpt: "Originalt visuelt element",
-      examSetOriginalSourceNote: "Dette udsnit er renderet direkte fra den originale spørgsmål-PDF. MedFLUEN genererer eller tegner ikke billedet om.",
-      examSetOriginalLoading: "Henter originalt udsnit…",
+      examSetOriginalSourceNote: "Dette udsnit er renderet direkte fra den originale spÃ¸rgsmÃ¥l-PDF. MedFLUEN genererer eller tegner ikke billedet om.",
+      examSetOriginalLoading: "Henter originalt udsnitâ€¦",
       examSetOriginalError: "Det originale udsnit kunne ikke vises. Brug knappen til hele PDF-siden.",
-      examSetPracticeLoading: "Henter din private øvelse…",
-      examSetPracticeSaving: "Gemmer…",
+      examSetPracticeLoading: "Henter din private Ã¸velseâ€¦",
+      examSetPracticeSaving: "Gemmerâ€¦",
       examSetPracticeSaved: "Gemt privat",
-      examSetPracticeError: "Din øvelse kunne ikke gemmes. Kontroller Segment 6.2 FINAL SQL.",
+      examSetPracticeError: "Din Ã¸velse kunne ikke gemmes. Kontroller Segment 6.2 FINAL SQL.",
       examSimulationStart: "Start eksamenssimulation",
-      examSimulationResume: "Fortsæt simulation",
+      examSimulationResume: "FortsÃ¦t simulation",
       examSimulationTitle: "Eksamenssimulation",
-      examSimulationIntro: "Kør sættet under eksamenslignende forhold. Facit er låst, indtil du afleverer.",
+      examSimulationIntro: "KÃ¸r sÃ¦ttet under eksamenslignende forhold. Facit er lÃ¥st, indtil du afleverer.",
       examSimulationDuration: "Varighed (minutter)",
-      examSimulationDurationHint: "Timeren gemmes som starttid + varighed og fortsætter korrekt efter reload.",
+      examSimulationDurationHint: "Timeren gemmes som starttid + varighed og fortsÃ¦tter korrekt efter reload.",
       examSimulationSafeKey: "med sikkert facit",
       examSimulationNoKey: "uden sikkert facit",
       examSimulationBegin: "Start nu",
@@ -38337,104 +38461,104 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSimulationTimeLeft: "Tid tilbage",
       examSimulationSubmit: "Aflever eksamen",
       examSimulationSubmitTitle: "Aflever eksamenssimulation?",
-      examSimulationSubmitHint: "Efter aflevering låses denne session permanent. Resultatet beregnes kun på spørgsmål med sikkert officielt facit.",
-      examSimulationConfirmSubmit: "Bekræft aflevering",
+      examSimulationSubmitHint: "Efter aflevering lÃ¥ses denne session permanent. Resultatet beregnes kun pÃ¥ spÃ¸rgsmÃ¥l med sikkert officielt facit.",
+      examSimulationConfirmSubmit: "BekrÃ¦ft aflevering",
       examSimulationSubmitted: "Simulation afleveret",
-      examSimulationBackToPractice: "Tilbage til fri øvelse",
+      examSimulationBackToPractice: "Tilbage til fri Ã¸velse",
       examSimulationAssessed: "vurderet",
       examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} korrekte`,
-      examSimulationAutosaveError: "Simulationen kunne ikke gemmes. Kør Segment 6.5 SQL i Supabase.",
-      examSimulationSetupHint: "Kør Segment 6.5 SQL i Supabase og genindlæs siden.",
-      examAttemptHistoryMode: "Forsøg",
-      examAttemptHistoryTitle: "Forsøg og historik",
+      examSimulationAutosaveError: "Simulationen kunne ikke gemmes. KÃ¸r Segment 6.5 SQL i Supabase.",
+      examSimulationSetupHint: "KÃ¸r Segment 6.5 SQL i Supabase og genindlÃ¦s siden.",
+      examAttemptHistoryMode: "ForsÃ¸g",
+      examAttemptHistoryTitle: "ForsÃ¸g og historik",
       examAttemptPrivate: "Privat eksamenshistorik",
-      examAttemptHistoryIntro: "Hvert afleveret simulationsforsøg er et permanent, skrivebeskyttet snapshot af spørgsmål, svar, markeringer, resultat og parser-version.",
-      examAttemptCount: "forsøg",
+      examAttemptHistoryIntro: "Hvert afleveret simulationsforsÃ¸g er et permanent, skrivebeskyttet snapshot af spÃ¸rgsmÃ¥l, svar, markeringer, resultat og parser-version.",
+      examAttemptCount: "forsÃ¸g",
       examAttemptLatest: "seneste",
-      examAttemptAccuracy: "træfsikkerhed",
+      examAttemptAccuracy: "trÃ¦fsikkerhed",
       examAttemptScore: "korrekte",
       examAttemptDuration: "tid",
-      examAttemptRepeatedErrors: "spørgsmål er besvaret forkert i mindst to forsøg",
-      examAttemptLoading: "Henter din private forsøgshistorik…",
-      examAttemptSetupMissing: "Forsøgshistorik er ikke klargjort.",
-      examAttemptSetupHint: "Kør Segment 6.6 SQL i Supabase og genindlæs siden.",
-      examAttemptEmpty: "Ingen afleverede simulationsforsøg endnu",
-      examAttemptEmptyHint: "Når du afleverer en eksamenssimulation, gemmes den her uden at overskrive tidligere forsøg.",
-      examAttemptNumber: (number) => `Forsøg ${number}`,
-      examAttemptOpen: "Åbn forsøg",
+      examAttemptRepeatedErrors: "spÃ¸rgsmÃ¥l er besvaret forkert i mindst to forsÃ¸g",
+      examAttemptLoading: "Henter din private forsÃ¸gshistorikâ€¦",
+      examAttemptSetupMissing: "ForsÃ¸gshistorik er ikke klargjort.",
+      examAttemptSetupHint: "KÃ¸r Segment 6.6 SQL i Supabase og genindlÃ¦s siden.",
+      examAttemptEmpty: "Ingen afleverede simulationsforsÃ¸g endnu",
+      examAttemptEmptyHint: "NÃ¥r du afleverer en eksamenssimulation, gemmes den her uden at overskrive tidligere forsÃ¸g.",
+      examAttemptNumber: (number) => `ForsÃ¸g ${number}`,
+      examAttemptOpen: "Ã…bn forsÃ¸g",
       examAttemptReadOnly: "skrivebeskyttet snapshot",
-      examAttemptSnapshotMissing: "Dette ældre forsøg har ikke et komplet spørgsmålssnapshot.",
-      examAttemptQuestionPdf: "Spørgsmål-PDF",
+      examAttemptSnapshotMissing: "Dette Ã¦ldre forsÃ¸g har ikke et komplet spÃ¸rgsmÃ¥lssnapshot.",
+      examAttemptQuestionPdf: "SpÃ¸rgsmÃ¥l-PDF",
       examAttemptAnswerPdf: "Svar-PDF",
       examReviewMode: "Fejl og review",
       examReviewTitle: "Fejl og review",
       examReviewPrivate: "Privat review-backlog",
-      examReviewIntro: "Forkerte, ubesvarede og markerede spørgsmål samles her uden at ændre det originale eksamensindhold.",
-      examReviewLoading: "Henter din private fejllog…",
+      examReviewIntro: "Forkerte, ubesvarede og markerede spÃ¸rgsmÃ¥l samles her uden at Ã¦ndre det originale eksamensindhold.",
+      examReviewLoading: "Henter din private fejllogâ€¦",
       examReviewSetupMissing: "Fejlloggen er ikke klargjort endnu.",
-      examReviewSetupHint: "Kør SQL-filen til Segment 6.4 i Supabase og genindlæs siden.",
+      examReviewSetupHint: "KÃ¸r SQL-filen til Segment 6.4 i Supabase og genindlÃ¦s siden.",
       examReviewActive: "aktive",
       examReviewRevisitCount: "skal ses igen",
-      examReviewReviewedCount: "gennemgået",
-      examReviewSyncing: "Synkroniserer seneste aflevering med fejlloggen…",
-      examReviewSyncError: "Afleveringen er gemt, men fejlloggen kunne ikke synkroniseres. Tryk Aflever igen for at prøve sikkert igen.",
-      examReviewFilterYear: "År",
+      examReviewReviewedCount: "gennemgÃ¥et",
+      examReviewSyncing: "Synkroniserer seneste aflevering med fejlloggenâ€¦",
+      examReviewSyncError: "Afleveringen er gemt, men fejlloggen kunne ikke synkroniseres. Tryk Aflever igen for at prÃ¸ve sikkert igen.",
+      examReviewFilterYear: "Ã…r",
       examReviewFilterSession: "Termin",
-      examReviewFilterSet: "Eksamenssæt",
+      examReviewFilterSet: "EksamenssÃ¦t",
       examReviewFilterStatus: "Review-status",
       examReviewFilterActive: "Aktiv backlog",
       examReviewAll: "Alle",
       examReviewIncludeExcluded: "Vis ikke relevante",
       examReviewDataBasis: "Datagrundlag",
-      examReviewAbsoluteSummary: (count, assessed) => `${count} reviewspørgsmål · ${assessed} spørgsmål med sikkert facit`,
+      examReviewAbsoluteSummary: (count, assessed) => `${count} reviewspÃ¸rgsmÃ¥l Â· ${assessed} spÃ¸rgsmÃ¥l med sikkert facit`,
       examReviewStatus: "Status",
-      examReviewStatusUnreviewed: "Ikke gennemgået",
-      examReviewStatusReviewed: "Gennemgået",
+      examReviewStatusUnreviewed: "Ikke gennemgÃ¥et",
+      examReviewStatusReviewed: "GennemgÃ¥et",
       examReviewStatusRevisit: "Skal ses igen",
       examReviewNotRelevant: "Ikke relevant for review",
-      examReviewNote: "Privat læringsnote",
-      examReviewNotePlaceholder: "Skriv kort, hvad du vil huske næste gang…",
+      examReviewNote: "Privat lÃ¦ringsnote",
+      examReviewNotePlaceholder: "Skriv kort, hvad du vil huske nÃ¦ste gangâ€¦",
       examReviewWrongCount: (count) => `${count} fejl`,
       examReviewUnansweredCount: (count) => `${count} ubesvaret`,
       examReviewMarkedCount: (count) => `${count} markeret`,
       examReviewYourAnswer: "Dit seneste svar",
       examReviewOfficialAnswer: "Officielt facit",
       examReviewNoVerifiedAnswer: "Intet sikkert facit",
-      examReviewOpenMcq: "Åbn MCQ",
+      examReviewOpenMcq: "Ã…bn MCQ",
       examReviewOpenPdf: "Original PDF",
-      examReviewSaving: "Gemmer…",
+      examReviewSaving: "Gemmerâ€¦",
       examReviewSaved: "Gemt",
       examReviewSaveError: "Kunne ikke gemme",
-      examReviewEmptyTitle: "Ingen reviewspørgsmål endnu",
-      examReviewEmptyText: "Når du afleverer en øvelse, kommer relevante spørgsmål automatisk herind.",
+      examReviewEmptyTitle: "Ingen reviewspÃ¸rgsmÃ¥l endnu",
+      examReviewEmptyText: "NÃ¥r du afleverer en Ã¸velse, kommer relevante spÃ¸rgsmÃ¥l automatisk herind.",
       examReviewNoMatches: "Ingen poster matcher filtrene",
       examReviewNoMatchesHint: "Juster filtrene eller vis ikke-relevante poster.",
-      examReviewUnknownSet: "Ukendt eksamenssæt",
-      examReviewSourceMissing: "Kildespørgsmålet kunne ikke findes sikkert via question-ID. Intet er blevet gættet.",
+      examReviewUnknownSet: "Ukendt eksamenssÃ¦t",
+      examReviewSourceMissing: "KildespÃ¸rgsmÃ¥let kunne ikke findes sikkert via question-ID. Intet er blevet gÃ¦ttet.",
       examSetOriginalImages: "Originale billeder",
       examSetOriginalImage: "1 billede",
       examSetOriginalImagesCount: (count) => `${count} billeder`,
       examSetEditorTitle: "PDF-editor",
-      examSetEditorIntro: "Kontrollér sidekobling, dokumentmatch og facit-evidens. Usikre svar kræver manuel godkendelse.",
-      examSetEditorQuestions: "spørgsmål",
-      examSetEditorMultiPage: "går over flere sider",
-      examSetEditorNeedsCheck: "kræver kontrol",
+      examSetEditorIntro: "KontrollÃ©r sidekobling, dokumentmatch og facit-evidens. Usikre svar krÃ¦ver manuel godkendelse.",
+      examSetEditorQuestions: "spÃ¸rgsmÃ¥l",
+      examSetEditorMultiPage: "gÃ¥r over flere sider",
+      examSetEditorNeedsCheck: "krÃ¦ver kontrol",
       examSetEditorFont: "standardfont",
-      examSetEditorPurpose: "Spørgsmål, svarmuligheder og billeder forbliver fra spørgsmål-PDF’en. Facit godkendes kun ved sikker dokumentevidens eller manuel kontrol mod svar-PDF’en.",
+      examSetEditorPurpose: "SpÃ¸rgsmÃ¥l, svarmuligheder og billeder forbliver fra spÃ¸rgsmÃ¥l-PDFâ€™en. Facit godkendes kun ved sikker dokumentevidens eller manuel kontrol mod svar-PDFâ€™en.",
       examSetEditorStartPage: "Fra side",
       examSetEditorEndPage: "Til side",
       examSetEditorKeepTogether: "Hold samlet",
-      examSetEditorPageBreak: "Ny PDF-side før",
+      examSetEditorPageBreak: "Ny PDF-side fÃ¸r",
       examSetEditorHasImage: "originalt billede fundet",
       examSetEditorNoImage: "intet billede fundet",
-      examSetEditorCheck: "kontrollér",
+      examSetEditorCheck: "kontrollÃ©r",
       examSetEditorPrintAnswers: "Med facit i genereret PDF",
-      examSetEditorGeneratePdf: "Generér standard-PDF",
-      examSetEditorReanalyse: "Genanalysér PDF'er",
+      examSetEditorGeneratePdf: "GenerÃ©r standard-PDF",
+      examSetEditorReanalyse: "GenanalysÃ©r PDF'er",
       examSetEditorSave: "Gem rettelser",
-      examSetEditorSaving: "Gemmer…",
+      examSetEditorSaving: "Gemmerâ€¦",
       examSetEditorVerified: "verificeret",
-      examSetEditorReview: "kræver kontrol",
+      examSetEditorReview: "krÃ¦ver kontrol",
       examSetEditorBlocked: "blokeret",
       examSetEditorEvidence: "Facit-evidens",
       examSetEditorMatch: "Dokumentmatch",
@@ -38448,14 +38572,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetEditorOpenAnswerPage: "Se facit-side",
       examSetEditorOpen: "PDF-editor",
       examSetEditorSaved: "PDF-editorens sidekoblinger er gemt.",
-      examSetEditorOwnerOnly: "Kun uploaderen kan ændre den fælles PDF-editor.",
+      examSetEditorOwnerOnly: "Kun uploaderen kan Ã¦ndre den fÃ¦lles PDF-editor.",
       examSetEditorRebuilt: "PDF'erne er genanalyseret med den forbedrede SDU-parser.",
       examSetEditorPrintError: "Den standardiserede PDF kunne ikke forberedes.",
-      upload: "Tilføj eksamenssæt",
+      upload: "TilfÃ¸j eksamenssÃ¦t",
 
       replace: "Udskift PDF",
       noPdf: "Der er endnu ikke knyttet en PDF til dette element.",
-      selectItem: "Vælg et element i listen for at åbne arbejdsfladen.",
+      selectItem: "VÃ¦lg et element i listen for at Ã¥bne arbejdsfladen.",
       ownNotes: "Egne noter",
       sharedNotes: "Delte noter",
       sharedPrivate: "Privat",
@@ -38464,70 +38588,70 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sharedShareNote: "Del note",
       sharedUpdateNote: "Opdater delt version",
       sharedStopSharing: "Stop deling",
-      sharedStopConfirm: "Vil du stoppe delingen af denne forelæsningsnote? Din private note bliver ikke slettet.",
-      sharedExplicitHint: "Deling sker kun, når du selv publicerer. Senere private ændringer deles ikke automatisk.",
-      sharedPublishedHint: "Andre MedFLUEN-brugere kan læse den publicerede version. Din private kladde forbliver separat.",
-      sharedUpdateAvailable: "Din private note er ændret siden den delte version.",
-      sharedNoContent: "Skriv noget i din private note, før den kan deles.",
-      sharedPublishing: "Publicerer…",
+      sharedStopConfirm: "Vil du stoppe delingen af denne forelÃ¦sningsnote? Din private note bliver ikke slettet.",
+      sharedExplicitHint: "Deling sker kun, nÃ¥r du selv publicerer. Senere private Ã¦ndringer deles ikke automatisk.",
+      sharedPublishedHint: "Andre MedFLUEN-brugere kan lÃ¦se den publicerede version. Din private kladde forbliver separat.",
+      sharedUpdateAvailable: "Din private note er Ã¦ndret siden den delte version.",
+      sharedNoContent: "Skriv noget i din private note, fÃ¸r den kan deles.",
+      sharedPublishing: "Publicererâ€¦",
       sharedPublishSuccess: "Noten er delt som en skrivebeskyttet version.",
       sharedUpdateSuccess: "Den delte note er opdateret med en ny version.",
       sharedUnshareSuccess: "Delingen er stoppet. Din private note er bevaret.",
-      sharedLoad: "Henter delte noter…",
-      sharedRefresh: "Opdatér delte noter",
+      sharedLoad: "Henter delte noterâ€¦",
+      sharedRefresh: "OpdatÃ©r delte noter",
       sharedEmptyTitle: "Ingen delte noter endnu",
-      sharedEmptyText: "Når en studerende aktivt deler sin note til denne forelæsning, vises den her som skrivebeskyttet.",
+      sharedEmptyText: "NÃ¥r en studerende aktivt deler sin note til denne forelÃ¦sning, vises den her som skrivebeskyttet.",
       sharedCount: (count) => count === 1 ? "1 delt note" : `${count} delte noter`,
       sharedVersion: (version) => `Version ${version}`,
       sharedUpdated: "Senest opdateret",
       sharedYou: "Dig",
       sharedAnonymous: "Studerende",
-      sharedSetupMissing: "Delte noter er ikke klargjort. Kør Segment 5.7 SQL-filen i Supabase.",
+      sharedSetupMissing: "Delte noter er ikke klargjort. KÃ¸r Segment 5.7 SQL-filen i Supabase.",
       sharedLoadError: "Kunne ikke hente delte noter.",
-      sharedActionError: "Handlingen kunne ikke gennemføres. Prøv igen.",
-      notesPlaceholder: "Skriv noter til denne forelæsning…",
+      sharedActionError: "Handlingen kunne ikke gennemfÃ¸res. PrÃ¸v igen.",
+      notesPlaceholder: "Skriv noter til denne forelÃ¦sningâ€¦",
       noteFreeView: "Fri note",
       noteStructuredView: "Struktureret",
-      noteKeyPoints: "Nøglepunkter",
+      noteKeyPoints: "NÃ¸glepunkter",
       noteClinicalPoints: "Kliniske pointer",
-      noteOpenQuestions: "Uafklarede spørgsmål",
-      noteKeyPointsPlaceholder: "Skriv de vigtigste pointer fra forelæsningen…",
-      noteClinicalPointsPlaceholder: "Skriv kliniske pointer, røde flag eller praktiske koblinger…",
-      noteOpenQuestionsPlaceholder: "Skriv det, du stadig skal have afklaret…",
-      noteLoading: "Henter dine noter…",
-      noteSaving: "Gemmer…",
+      noteOpenQuestions: "Uafklarede spÃ¸rgsmÃ¥l",
+      noteKeyPointsPlaceholder: "Skriv de vigtigste pointer fra forelÃ¦sningenâ€¦",
+      noteClinicalPointsPlaceholder: "Skriv kliniske pointer, rÃ¸de flag eller praktiske koblingerâ€¦",
+      noteOpenQuestionsPlaceholder: "Skriv det, du stadig skal have afklaretâ€¦",
+      noteLoading: "Henter dine noterâ€¦",
+      noteSaving: "Gemmerâ€¦",
       noteSaved: "Gemt",
       noteLocalOnly: "Kun lokalt",
       noteSyncError: "Kunne ikke synkronisere. Din lokale kladde er bevaret.",
-      noteSetupMissing: "Notelageret er ikke klargjort. Kør Segment 5.6 SQL-filen i Supabase.",
-      noteExportText: "Eksportér som tekst",
-      noteExportMarkdown: "Eksportér som Markdown",
-      sessionOnly: "PDF-filer beholdes i denne browsersession i denne første workspace-version.",
+      noteSetupMissing: "Notelageret er ikke klargjort. KÃ¸r Segment 5.6 SQL-filen i Supabase.",
+      noteExportText: "EksportÃ©r som tekst",
+      noteExportMarkdown: "EksportÃ©r som Markdown",
+      sessionOnly: "PDF-filer beholdes i denne browsersession i denne fÃ¸rste workspace-version.",
       pdfViewer: "PDF-viewer",
-      noLectures: "Ingen forelæsninger findes til det valgte modul.",
-      noExamSets: "Ingen eksamenssæt er tilføjet endnu.",
-      openSeparate: "Åbn separat",
+      noLectures: "Ingen forelÃ¦sninger findes til det valgte modul.",
+      noExamSets: "Ingen eksamenssÃ¦t er tilfÃ¸jet endnu.",
+      openSeparate: "Ã…bn separat",
       close: "Luk workspace",
       viewed: "Set",
       notViewed: "Ikke set",
       mastery: "Fagligt niveau",
       masteryUnrated: "Ikke vurderet",
       masteryUncertain: "Usikker",
-      masteryDeveloping: "På vej",
+      masteryDeveloping: "PÃ¥ vej",
       masteryConfident: "Sikker",
       timesViewed: "gange set",
-      lectureOverview: "Forelæsningsoversigt",
+      lectureOverview: "ForelÃ¦sningsoversigt",
       moduleOverview: "Moduloverblik",
       moduleOverviewHeld: "Afholdte",
       moduleOverviewSelfStudy: "Selvstudie",
-      moduleOverviewSelfStudyHint: "Gennemgået som selvstudie",
-      moduleOverviewFollowUp: "Følg op",
+      moduleOverviewSelfStudyHint: "GennemgÃ¥et som selvstudie",
+      moduleOverviewFollowUp: "FÃ¸lg op",
       moduleOverviewMissingMaterial: "Mangler materiale",
       filterAll: "Alle",
       filterFavorites: "Stjernemarkerede",
-      favoriteLecture: "Stjernemarkér forelæsning",
+      favoriteLecture: "StjernemarkÃ©r forelÃ¦sning",
       unfavoriteLecture: "Fjern stjernemarkering",
-      viewerLibrary: "Forelæsninger",
+      viewerLibrary: "ForelÃ¦sninger",
       viewerNotes: "Noter",
       viewerFocus: "Fokus",
       viewerExitFocus: "Forlad fokus",
@@ -38536,44 +38660,44 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       viewerHidePanel: "Skjul panel",
       filterUpcoming: "Kommende",
       filterHeld: "Afholdte",
-      filterNotReviewed: "Ikke gennemgået",
+      filterNotReviewed: "Ikke gennemgÃ¥et",
       filterSelfStudy: "Selvstudie",
       filterMissingMaterial: "Mangler materiale",
-      filterFollowUp: "Følg op",
+      filterFollowUp: "FÃ¸lg op",
       sortLecturesLabel: "Sorter",
       sortLecturesNumber: "Nr.",
       sortLecturesDate: "Dato",
-      followUp: "Følg op",
-      followUpShort: "Opfølgning",
-      followUpTitle: "Forelæsningsopfølgning",
-      followUpIntro: "Markér hvorfor forelæsningen kræver opfølgning. Du kan gemme markeringen alene eller sende den direkte til studieplanen.",
+      followUp: "FÃ¸lg op",
+      followUpShort: "OpfÃ¸lgning",
+      followUpTitle: "ForelÃ¦sningsopfÃ¸lgning",
+      followUpIntro: "MarkÃ©r hvorfor forelÃ¦sningen krÃ¦ver opfÃ¸lgning. Du kan gemme markeringen alene eller sende den direkte til studieplanen.",
       followUpMissingMaterial: "Materiale mangler",
-      followUpReread: "Skal læses igen",
+      followUpReread: "Skal lÃ¦ses igen",
       followUpUnresolved: "Uafklaret emne",
-      followUpAbsence: "Fravær",
+      followUpAbsence: "FravÃ¦r",
       followUpOther: "Andet",
       followUpComment: "Egen kommentar",
-      followUpCommentPlaceholder: "Tilføj evt. hvad du konkret skal følge op på…",
-      followUpSave: "Gem opfølgning",
+      followUpCommentPlaceholder: "TilfÃ¸j evt. hvad du konkret skal fÃ¸lge op pÃ¥â€¦",
+      followUpSave: "Gem opfÃ¸lgning",
       followUpSend: "Send til studieplan",
       followUpUpdatePlan: "Opdater studieplan",
-      followUpRemove: "Fjern opfølgning",
-      followUpSaved: "Opfølgningen er gemt.",
-      followUpSent: "Opfølgningen er sendt til studieplanen uden at oprette en ekstra aktivitet, hvis forelæsningen allerede ligger i planen.",
-      followUpRemoved: "Opfølgningen er fjernet.",
-      followUpPlanMissing: "Opret eller aktivér en studieplan, før opfølgningen kan sendes dertil.",
+      followUpRemove: "Fjern opfÃ¸lgning",
+      followUpSaved: "OpfÃ¸lgningen er gemt.",
+      followUpSent: "OpfÃ¸lgningen er sendt til studieplanen uden at oprette en ekstra aktivitet, hvis forelÃ¦sningen allerede ligger i planen.",
+      followUpRemoved: "OpfÃ¸lgningen er fjernet.",
+      followUpPlanMissing: "Opret eller aktivÃ©r en studieplan, fÃ¸r opfÃ¸lgningen kan sendes dertil.",
       followUpPlanCurrent: "Sendt til studieplan",
-      followUpPlanOutdated: "Ændret siden sidste afsendelse",
-      followUpChooseReason: "Vælg mindst én årsag eller skriv en kommentar.",
-      lectureNoMatches: "Ingen forelæsninger matcher søgningen eller det valgte filter.",
-      collapseGroup: "Fold fagområde sammen",
-      expandGroup: "Fold fagområde ud",
+      followUpPlanOutdated: "Ã†ndret siden sidste afsendelse",
+      followUpChooseReason: "VÃ¦lg mindst Ã©n Ã¥rsag eller skriv en kommentar.",
+      lectureNoMatches: "Ingen forelÃ¦sninger matcher sÃ¸gningen eller det valgte filter.",
+      collapseGroup: "Fold fagomrÃ¥de sammen",
+      expandGroup: "Fold fagomrÃ¥de ud",
       scheduleHeld: "Afholdt",
       schedulePartial: "Delvist afholdt",
       scheduleUpcoming: "Kommende",
       scheduleUnscheduled: "Ingen SDU-dato",
-      reviewedLabel: "Gennemgået",
-      notReviewedLabel: "Ikke gennemgået",
+      reviewedLabel: "GennemgÃ¥et",
+      notReviewedLabel: "Ikke gennemgÃ¥et",
       materialReady: "Materiale tilknyttet",
       materialMissing: "Mangler materiale",
       attendance: "Deltagelse",
@@ -38583,92 +38707,92 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       selfStudyStatus: "Selvstudie",
       selfStudyNotStarted: "Ikke startet",
       selfStudyInProgress: "I gang",
-      selfStudyReviewed: "Gennemgået",
-      deckStatus: "Relevant dæk",
-      deckUnavailable: "Intet relevant dæk",
-      deckNotStarted: "Dæk ikke startet",
-      deckInProgress: "Dæk i gang",
-      deckReviewed: "Dæk gennemgået",
-      deckQuestions: (reviewed, total) => `${reviewed}/${total} spørgsmål`,
-      showingLectures: (shown, total) => `${shown} af ${total} forelæsninger`,
-      previousLecture: "Forrige forelæsning",
-      nextLecture: "Næste forelæsning",
-      favoritePreviousLecture: "Forrige stjernemarkerede forelæsning",
-      favoriteNextLecture: "Næste stjernemarkerede forelæsning",
-      viewerResumePage: (page) => `Fortsætter · side ${page}`,
-      viewerSearchShortcut: "Tryk / for at søge",
+      selfStudyReviewed: "GennemgÃ¥et",
+      deckStatus: "Relevant dÃ¦k",
+      deckUnavailable: "Intet relevant dÃ¦k",
+      deckNotStarted: "DÃ¦k ikke startet",
+      deckInProgress: "DÃ¦k i gang",
+      deckReviewed: "DÃ¦k gennemgÃ¥et",
+      deckQuestions: (reviewed, total) => `${reviewed}/${total} spÃ¸rgsmÃ¥l`,
+      showingLectures: (shown, total) => `${shown} af ${total} forelÃ¦sninger`,
+      previousLecture: "Forrige forelÃ¦sning",
+      nextLecture: "NÃ¦ste forelÃ¦sning",
+      favoritePreviousLecture: "Forrige stjernemarkerede forelÃ¦sning",
+      favoriteNextLecture: "NÃ¦ste stjernemarkerede forelÃ¦sning",
+      viewerResumePage: (page) => `FortsÃ¦tter Â· side ${page}`,
+      viewerSearchShortcut: "Tryk / for at sÃ¸ge",
       lecturePosition: (current, total) => `${current}/${total}`,
-      openLectureLink: "Åbn undervisningslink",
+      openLectureLink: "Ã…bn undervisningslink",
       scheduleLocation: "Sted",
-      lectureHeader: "Valgt forelæsning",
+      lectureHeader: "Valgt forelÃ¦sning",
       sduSessions: (count) => count === 1 ? "1 undervisningsgang" : `${count} undervisningsgange`,
       sduMatchEdit: "Ret SDU-match",
       sduMatchTitle: "Tilknyt SDU-undervisning",
       sduMatchIntro: "Admin-match gemmes globalt og bruges af alle studerende. Private kalenderdata deles ikke.",
-      sduMatchSearch: "Søg i SDU-aktiviteter…",
-      sduMatchCurrent: "Tilknyttet denne forelæsning",
+      sduMatchSearch: "SÃ¸g i SDU-aktiviteterâ€¦",
+      sduMatchCurrent: "Tilknyttet denne forelÃ¦sning",
       sduMatchAttach: "Tilknyt",
       sduMatchRemove: "Fjern",
       sduMatchAutomatic: "Brug automatisk match",
       sduMatchManual: "Globalt admin-match",
       sduMatchOtherLecture: "Matchet til",
-      sduMatchNone: "Ingen forelæsning",
-      sduMatchEmpty: "Ingen SDU-aktiviteter matcher søgningen.",
-      sduMatchClose: "Færdig",
-      addMaterial: "Tilføj materiale",
+      sduMatchNone: "Ingen forelÃ¦sning",
+      sduMatchEmpty: "Ingen SDU-aktiviteter matcher sÃ¸gningen.",
+      sduMatchClose: "FÃ¦rdig",
+      addMaterial: "TilfÃ¸j materiale",
       materialLibrary: "Materialer",
-      materialLibraryEmpty: "Der er endnu ikke tilføjet materiale til denne forelæsning.",
+      materialLibraryEmpty: "Der er endnu ikke tilfÃ¸jet materiale til denne forelÃ¦sning.",
       materialPermanent: "Globale adminmaterialer deles med alle brugere. Private uploads forbliver kun dine.",
       materialVisibility: "Synlighed",
       materialVisibilityGlobal: "Global for alle",
       materialVisibilityPrivate: "Kun for mig",
       materialGlobalLabel: "Global",
       materialPrivateLabel: "Privat",
-      materialMakeGlobal: "Gør global",
-      materialMakePrivate: "Gør privat",
-      materialVisibilityGlobalHint: "Canonical materiale for forelæsningen. Alle brugere på modulet kan åbne det.",
+      materialMakeGlobal: "GÃ¸r global",
+      materialMakePrivate: "GÃ¸r privat",
+      materialVisibilityGlobalHint: "Canonical materiale for forelÃ¦sningen. Alle brugere pÃ¥ modulet kan Ã¥bne det.",
       materialVisibilityPrivateHint: "Personligt materiale, som kun du kan se.",
-      materialLoading: "Henter materialer…",
-      materialSetupMissing: "Materialelageret er ikke klargjort. Kør Segment 5.4 SQL-filen i Supabase.",
-      materialUploadTitle: "Tilføj materiale",
-      materialEditTitle: "Redigér materiale",
+      materialLoading: "Henter materialerâ€¦",
+      materialSetupMissing: "Materialelageret er ikke klargjort. KÃ¸r Segment 5.4 SQL-filen i Supabase.",
+      materialUploadTitle: "TilfÃ¸j materiale",
+      materialEditTitle: "RedigÃ©r materiale",
       materialFiles: "Valgte filer",
       materialName: "Visningsnavn",
       materialType: "Materialetype",
-      materialPrimary: "Primært materiale",
-      materialPrimaryHint: "Åbnes automatisk, når forelæsningen vælges.",
+      materialPrimary: "PrimÃ¦rt materiale",
+      materialPrimaryHint: "Ã…bnes automatisk, nÃ¥r forelÃ¦sningen vÃ¦lges.",
       materialSave: "Gem materiale",
       materialCancel: "Annuller",
-      materialSetPrimary: "Gør primært",
-      materialPrimaryLabel: "Primær",
-      materialRename: "Redigér",
+      materialSetPrimary: "GÃ¸r primÃ¦rt",
+      materialPrimaryLabel: "PrimÃ¦r",
+      materialRename: "RedigÃ©r",
       materialReplace: "Erstat fil",
       materialDelete: "Slet",
       materialDownload: "Download",
-      materialOpen: "Åbn",
-      materialNoPreview: "Denne filtype kan ikke forhåndsvises i appen.",
-      materialOpenExternally: "Åbn eller download filen for at se indholdet.",
+      materialOpen: "Ã…bn",
+      materialNoPreview: "Denne filtype kan ikke forhÃ¥ndsvises i appen.",
+      materialOpenExternally: "Ã…bn eller download filen for at se indholdet.",
       materialUploadError: "Materialet kunne ikke gemmes.",
       materialDeleteConfirm: "Vil du slette dette materiale permanent?",
-      materialTooLarge: "Filen er større end 50 MB og kan ikke uploades.",
-      materialUnsupported: "Filtypen understøttes ikke i dette materialebibliotek.",
+      materialTooLarge: "Filen er stÃ¸rre end 50 MB og kan ikke uploades.",
+      materialUnsupported: "Filtypen understÃ¸ttes ikke i dette materialebibliotek.",
       materialSaved: "Materialet er gemt.",
       materialDeleted: "Materialet er slettet.",
       materialReplaced: "Filen er erstattet.",
       materialUpdated: "Materialet er opdateret.",
-      materialTypeSlides: "Forelæsningsslides",
+      materialTypeSlides: "ForelÃ¦sningsslides",
       materialTypeCompendium: "Kompendium",
       materialTypeArticle: "Artikel",
       materialTypeOwn: "Eget dokument",
       materialTypeSupplement: "Supplerende materiale",
       materialTypeOther: "Andet",
-      materialAdded: "Tilføjet",
+      materialAdded: "TilfÃ¸jet",
       pdfViewerControls: "PDF-kontroller",
-      pdfLoading: "Indlæser PDF…",
+      pdfLoading: "IndlÃ¦ser PDFâ€¦",
       pdfRenderError: "PDF-siden kunne ikke vises.",
-      pdfViewerFallback: "Den avancerede PDF-visning kunne ikke indlæses. Browserens PDF-visning bruges i stedet.",
+      pdfViewerFallback: "Den avancerede PDF-visning kunne ikke indlÃ¦ses. Browserens PDF-visning bruges i stedet.",
       pdfPreviousPage: "Forrige side",
-      pdfNextPage: "Næste side",
+      pdfNextPage: "NÃ¦ste side",
       pdfPage: "Side",
       pdfZoomOut: "Zoom ud",
       pdfZoomIn: "Zoom ind",
@@ -38679,10 +38803,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSets: "Exam sets",
       lectureSubtitle: "Permanent material library, viewer and lecture notes",
       examSubtitle: "Shared PDF library and private exam practice generated directly from the PDF",
-      searchLectures: "Search lectures…",
-      searchExamSets: "Search file, year or exam session…",
+      searchLectures: "Search lecturesâ€¦",
+      searchExamSets: "Search file, year or exam sessionâ€¦",
       examSetPermanent: "Question PDFs are shared with all signed-in MedFLUEN users. The answer PDF is an internal key source, while your answers, flags and practice data remain private.",
-      examSetLoading: "Loading exam sets…",
+      examSetLoading: "Loading exam setsâ€¦",
       examSetSetupMissing: "Exam sets are not configured. Run the Segment 6.2 FINAL SQL file in Supabase.",
       examSetUploadTitle: "Add exam set",
       examSetEditTitle: "Edit exam set",
@@ -38710,8 +38834,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetTooLarge: "A PDF file is larger than 50 MB and cannot be uploaded.",
       examSetInvalidFile: "Only PDF files can be added to the exam-set library.",
       examSetRequiredMeta: "Year, exam session and both PDF versions must be selected before a new set can be saved.",
-      examSetHashing: "Checking PDFs and duplicates…",
-      examSetParsing: "Analyzing questions, answers and original visual elements…",
+      examSetHashing: "Checking PDFs and duplicatesâ€¦",
+      examSetParsing: "Analyzing questions, answers and original visual elementsâ€¦",
       examSetDuplicate: "This exam set already exists. The same module + year + session or same PDF cannot be uploaded again.",
       examSetSaved: "The exam set is saved in the shared library.",
       examSetUpdated: "The exam set has been updated.",
@@ -38727,9 +38851,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetAnswersSource: "With answer key",
       examSetCreateViewer: "Generate MCQ viewer",
       examSetRebuildViewer: "Re-read PDFs",
-      examSetExtracting: "Reading questions and matching the answer key…",
+      examSetExtracting: "Reading questions and matching the answer keyâ€¦",
       examSetExtractHint: "Questions, answer choices and images come only from the question PDF. The answer key comes only from the answer PDF. MedFLUEN does not invent questions or answers.",
-      examSetExtracted: (count, keyed, visual) => `${count} MCQs found · ${keyed} with answer key · ${visual} with original visual elements`,
+      examSetExtracted: (count, keyed, visual) => `${count} MCQs found Â· ${keyed} with answer key Â· ${visual} with original visual elements`,
       examSetNoQuestions: "No reliable MCQs could be extracted from the question PDF. No questions or answers were invented.",
       examSetScannedHint: "If the PDF is scanned as images or uses an unusual layout, the set is flagged for review instead of guessing.",
       examSetQuestion: "Question",
@@ -38740,7 +38864,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetMarkLater: "Mark for later",
       examSetUnmarkLater: "Remove mark",
       examSetGridTitle: "Question grid",
-      examSetGridHint: "Click 1–X to jump between MCQs. Color shows status.",
+      examSetGridHint: "Click 1â€“X to jump between MCQs. Color shows status.",
       examSetAnswered: "Answered",
       examSetMarked: "For later",
       examSetCorrect: "Correct",
@@ -38754,13 +38878,13 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetHideAnswers: "Hide answers",
       examSetOpenOriginal: "View original PDF page",
       examSetOriginalTitle: "Original exam page",
-      examSetOriginalNoAnswers: "Question PDF · without answers",
+      examSetOriginalNoAnswers: "Question PDF Â· without answers",
       examSetOriginalExcerpt: "Original visual element",
       examSetOriginalSourceNote: "This excerpt is rendered directly from the original question PDF. MedFLUEN does not redraw or generate the image.",
-      examSetOriginalLoading: "Loading original excerpt…",
+      examSetOriginalLoading: "Loading original excerptâ€¦",
       examSetOriginalError: "The original excerpt could not be shown. Use the button for the full PDF page.",
-      examSetPracticeLoading: "Loading your private practice…",
-      examSetPracticeSaving: "Saving…",
+      examSetPracticeLoading: "Loading your private practiceâ€¦",
+      examSetPracticeSaving: "Savingâ€¦",
       examSetPracticeSaved: "Saved privately",
       examSetPracticeError: "Your practice could not be saved. Check the Segment 6.2 FINAL SQL.",
       examSimulationStart: "Start exam simulation",
@@ -38795,7 +38919,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examAttemptScore: "correct",
       examAttemptDuration: "time",
       examAttemptRepeatedErrors: "questions were answered incorrectly in at least two attempts",
-      examAttemptLoading: "Loading your private attempt history…",
+      examAttemptLoading: "Loading your private attempt historyâ€¦",
       examAttemptSetupMissing: "Attempt history is not configured.",
       examAttemptSetupHint: "Run the Segment 6.6 SQL file in Supabase and reload.",
       examAttemptEmpty: "No submitted simulation attempts yet",
@@ -38810,13 +38934,13 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examReviewTitle: "Errors & review",
       examReviewPrivate: "Private review backlog",
       examReviewIntro: "Incorrect, unanswered and marked questions are collected here without changing the original exam content.",
-      examReviewLoading: "Loading your private review log…",
+      examReviewLoading: "Loading your private review logâ€¦",
       examReviewSetupMissing: "The review log is not configured yet.",
       examReviewSetupHint: "Run the Segment 6.4 SQL file in Supabase and reload the page.",
       examReviewActive: "active",
       examReviewRevisitCount: "revisit",
       examReviewReviewedCount: "reviewed",
-      examReviewSyncing: "Syncing the latest submission to your review log…",
+      examReviewSyncing: "Syncing the latest submission to your review logâ€¦",
       examReviewSyncError: "The submission is saved, but the review log could not sync. Submit again to retry safely.",
       examReviewFilterYear: "Year",
       examReviewFilterSession: "Session",
@@ -38826,14 +38950,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examReviewAll: "All",
       examReviewIncludeExcluded: "Show not relevant",
       examReviewDataBasis: "Data basis",
-      examReviewAbsoluteSummary: (count, assessed) => `${count} review questions · ${assessed} questions with verified key`,
+      examReviewAbsoluteSummary: (count, assessed) => `${count} review questions Â· ${assessed} questions with verified key`,
       examReviewStatus: "Status",
       examReviewStatusUnreviewed: "Not reviewed",
       examReviewStatusReviewed: "Reviewed",
       examReviewStatusRevisit: "Revisit",
       examReviewNotRelevant: "Not relevant for review",
       examReviewNote: "Private learning note",
-      examReviewNotePlaceholder: "Write a short point to remember next time…",
+      examReviewNotePlaceholder: "Write a short point to remember next timeâ€¦",
       examReviewWrongCount: (count) => `${count} incorrect`,
       examReviewUnansweredCount: (count) => `${count} unanswered`,
       examReviewMarkedCount: (count) => `${count} marked`,
@@ -38842,7 +38966,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examReviewNoVerifiedAnswer: "No verified key",
       examReviewOpenMcq: "Open MCQ",
       examReviewOpenPdf: "Original PDF",
-      examReviewSaving: "Saving…",
+      examReviewSaving: "Savingâ€¦",
       examReviewSaved: "Saved",
       examReviewSaveError: "Could not save",
       examReviewEmptyTitle: "No review questions yet",
@@ -38872,7 +38996,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       examSetEditorGeneratePdf: "Generate standard PDF",
       examSetEditorReanalyse: "Re-analyse PDFs",
       examSetEditorSave: "Save corrections",
-      examSetEditorSaving: "Saving…",
+      examSetEditorSaving: "Savingâ€¦",
       examSetEditorVerified: "verified",
       examSetEditorReview: "needs review",
       examSetEditorBlocked: "blocked",
@@ -38908,11 +39032,11 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sharedPublishedHint: "Other MedFLUEN users can read the published version. Your private draft remains separate.",
       sharedUpdateAvailable: "Your private note has changed since the shared version.",
       sharedNoContent: "Write something in your private note before sharing it.",
-      sharedPublishing: "Publishing…",
+      sharedPublishing: "Publishingâ€¦",
       sharedPublishSuccess: "The note is shared as a read-only version.",
       sharedUpdateSuccess: "The shared note has been updated with a new version.",
       sharedUnshareSuccess: "Sharing has stopped. Your private note is preserved.",
-      sharedLoad: "Loading shared notes…",
+      sharedLoad: "Loading shared notesâ€¦",
       sharedRefresh: "Refresh shared notes",
       sharedEmptyTitle: "No shared notes yet",
       sharedEmptyText: "When a student explicitly shares a note for this lecture, it appears here as read only.",
@@ -38924,17 +39048,17 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sharedSetupMissing: "Shared notes are not ready. Run the Segment 5.7 SQL file in Supabase.",
       sharedLoadError: "Could not load shared notes.",
       sharedActionError: "The action could not be completed. Try again.",
-      notesPlaceholder: "Write notes for this lecture…",
+      notesPlaceholder: "Write notes for this lectureâ€¦",
       noteFreeView: "Free note",
       noteStructuredView: "Structured",
       noteKeyPoints: "Key points",
       noteClinicalPoints: "Clinical points",
       noteOpenQuestions: "Open questions",
-      noteKeyPointsPlaceholder: "Write the most important points from the lecture…",
-      noteClinicalPointsPlaceholder: "Write clinical points, red flags or practical links…",
-      noteOpenQuestionsPlaceholder: "Write what you still need to clarify…",
-      noteLoading: "Loading your notes…",
-      noteSaving: "Saving…",
+      noteKeyPointsPlaceholder: "Write the most important points from the lectureâ€¦",
+      noteClinicalPointsPlaceholder: "Write clinical points, red flags or practical linksâ€¦",
+      noteOpenQuestionsPlaceholder: "Write what you still need to clarifyâ€¦",
+      noteLoading: "Loading your notesâ€¦",
+      noteSaving: "Savingâ€¦",
       noteSaved: "Saved",
       noteLocalOnly: "Local only",
       noteSyncError: "Could not sync. Your local draft has been preserved.",
@@ -38992,7 +39116,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       followUpAbsence: "Absence",
       followUpOther: "Other",
       followUpComment: "Own comment",
-      followUpCommentPlaceholder: "Optionally add what you need to follow up on…",
+      followUpCommentPlaceholder: "Optionally add what you need to follow up onâ€¦",
       followUpSave: "Save follow-up",
       followUpSend: "Send to study plan",
       followUpUpdatePlan: "Update study plan",
@@ -39034,7 +39158,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       nextLecture: "Next lecture",
       favoritePreviousLecture: "Previous starred lecture",
       favoriteNextLecture: "Next starred lecture",
-      viewerResumePage: (page) => `Resume · page ${page}`,
+      viewerResumePage: (page) => `Resume Â· page ${page}`,
       viewerSearchShortcut: "Press / to search",
       lecturePosition: (current, total) => `${current}/${total}`,
       openLectureLink: "Open teaching link",
@@ -39044,7 +39168,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       sduMatchEdit: "Fix SDU match",
       sduMatchTitle: "Link SDU teaching",
       sduMatchIntro: "Admin matches are saved globally and used by every student. Private calendar data is never shared.",
-      sduMatchSearch: "Search SDU events…",
+      sduMatchSearch: "Search SDU eventsâ€¦",
       sduMatchCurrent: "Linked to this lecture",
       sduMatchAttach: "Link",
       sduMatchRemove: "Remove",
@@ -39067,7 +39191,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       materialMakePrivate: "Make private",
       materialVisibilityGlobalHint: "Canonical lecture material. Every user in the module can open it.",
       materialVisibilityPrivateHint: "Personal material visible only to you.",
-      materialLoading: "Loading materials…",
+      materialLoading: "Loading materialsâ€¦",
       materialSetupMissing: "The material store is not configured. Run the Segment 5.4 SQL file in Supabase.",
       materialUploadTitle: "Add material",
       materialEditTitle: "Edit material",
@@ -39103,7 +39227,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       materialTypeOther: "Other",
       materialAdded: "Added",
       pdfViewerControls: "PDF controls",
-      pdfLoading: "Loading PDF…",
+      pdfLoading: "Loading PDFâ€¦",
       pdfRenderError: "The PDF page could not be displayed.",
       pdfViewerFallback: "The advanced PDF viewer could not load. The browser PDF viewer is used instead.",
       pdfPreviousPage: "Previous page",
@@ -39114,443 +39238,443 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       pdfFitWidth: "Fit width",
     },
     ar: {
-      lectures: "المحاضرات",
-      examSets: "مجموعات الامتحان",
-      lectureSubtitle: "مكتبة مواد دائمة وعارض وملاحظات المحاضرات",
-      examSubtitle: "مكتبة PDF مشتركة وتدريب امتحاني خاص يُنشأ مباشرة من ملف PDF",
-      searchLectures: "ابحث في المحاضرات…",
-      searchExamSets: "ابحث بالملف أو السنة أو موسم الامتحان…",
-      examSetPermanent: "ملفات الأسئلة PDF مشتركة بين جميع مستخدمي MedFLUEN المسجلين. ويُستخدم ملف الإجابات كمصدر داخلي، بينما تبقى إجاباتك وعلاماتك وبيانات تدريبك خاصة.",
-      examSetLoading: "جارٍ تحميل نماذج الامتحان…",
-      examSetSetupMissing: "نماذج الامتحان غير مهيأة. شغّل ملف SQL الخاص بـ Segment 6.2 FINAL في Supabase.",
-      examSetUploadTitle: "إضافة مجموعة امتحان",
-      examSetEditTitle: "تعديل مجموعة الامتحان",
-      examSetName: "اسم العرض",
-      examSetYear: "السنة",
-      examSetSession: "فترة الامتحان",
-      examSetDate: "تاريخ الامتحان (اختياري)",
-      examSetSessionSummer: "الصيف",
-      examSetSessionWinter: "الشتاء",
-      examSetSessionReexam: "إعادة الامتحان",
-      examSetQuestionPdf: "ملف أسئلة PDF",
-      examSetAnswerPdf: "ملف الإجابات PDF",
-      examSetChooseQuestionPdf: "اختر ملف الأسئلة",
-      examSetChooseAnswerPdf: "اختر ملف الإجابات",
-      examSetQuestionPdfRequired: "ملف الأسئلة مطلوب.",
-      examSetAnswerPdfRequired: "ملف الإجابات مطلوب لمجموعة امتحان مكتملة.",
-      examSetAnswerPdfPrivate: "يُستخدم ملف الإجابات كمصدر داخلي للمفتاح ولا تتم مشاركته مباشرة مع المستخدمين الآخرين.",
-      examSetSave: "حفظ مجموعة الامتحان",
-      examSetCancel: "إلغاء",
-      examSetEdit: "تعديل",
-      examSetDelete: "حذف",
-      examSetDownload: "تنزيل الأسئلة",
-      examSetOpen: "فتح الأسئلة",
-      examSetDeleteConfirm: "هل تريد حذف مجموعة الامتحان المشتركة نهائياً؟",
-      examSetTooLarge: "ملف PDF أكبر من 50 ميغابايت ولا يمكن رفعه.",
-      examSetInvalidFile: "يمكن إضافة ملفات PDF فقط.",
-      examSetRequiredMeta: "يجب اختيار السنة وفترة الامتحان وملفي PDF قبل حفظ مجموعة جديدة.",
-      examSetHashing: "جارٍ فحص ملفات PDF والتكرارات…",
-      examSetParsing: "جارٍ تحليل الأسئلة والإجابات والعناصر المرئية الأصلية…",
-      examSetDuplicate: "مجموعة الامتحان هذه موجودة بالفعل. لا يمكن رفع نفس الوحدة والسنة والفترة أو نفس ملف PDF مرة أخرى.",
-      examSetSaved: "تم حفظ مجموعة الامتحان في المكتبة المشتركة.",
-      examSetUpdated: "تم تحديث مجموعة الامتحان.",
-      examSetDeleted: "تم حذف مجموعة الامتحان.",
-      examSetLoadError: "تعذر تحميل مجموعات الامتحان.",
-      examSetActionError: "تعذر تنفيذ العملية.",
-      examSetShared: "أسئلة مشتركة",
-      examSetAnswerKeyReady: "تم استخراج مفتاح الإجابة",
-      examSetOwnerOnly: "يمكن فقط لرافع الملفات تعديل أو حذف المستندات المصدر.",
-      examSetPdfMode: "ملف PDF الأصلي",
-      examSetViewerMode: "عارض الامتحان",
-      examSetQuestionsSource: "بدون إجابات",
-      examSetAnswersSource: "مع مفتاح الإجابة",
-      examSetCreateViewer: "إنشاء عارض MCQ",
-      examSetRebuildViewer: "إعادة قراءة ملفات PDF",
-      examSetExtracting: "جارٍ قراءة الأسئلة ومطابقة مفتاح الإجابة…",
-      examSetExtractHint: "الأسئلة والخيارات والصور تأتي فقط من ملف الأسئلة. مفتاح الإجابة يأتي فقط من ملف الإجابات. لا يتم اختراع أسئلة أو إجابات.",
-      examSetExtracted: (count, keyed, visual) => `${count} سؤال MCQ · ${keyed} مع مفتاح إجابة · ${visual} مع عناصر مرئية أصلية`,
-      examSetNoQuestions: "تعذر استخراج أسئلة MCQ موثوقة من ملف الأسئلة. لم يتم اختراع أي أسئلة أو إجابات.",
-      examSetScannedHint: "إذا كان الملف ممسوحاً ضوئياً أو يستخدم تنسيقاً غير معتاد، سيتم وضعه للمراجعة بدلاً من التخمين.",
-      examSetQuestion: "السؤال",
-      examSetSourceQuestion: "السؤال الأصلي",
-      examSetSourcePage: "صفحة PDF",
-      examSetPreviousQuestion: "السابق",
-      examSetNextQuestion: "التالي",
-      examSetMarkLater: "وضع علامة للمراجعة لاحقاً",
-      examSetUnmarkLater: "إزالة العلامة",
-      examSetGridTitle: "شبكة الأسئلة",
-      examSetGridHint: "اضغط 1–X للانتقال مباشرة بين الأسئلة. اللون يوضح الحالة.",
-      examSetAnswered: "تمت الإجابة",
-      examSetMarked: "للمراجعة لاحقاً",
-      examSetCorrect: "صحيح",
-      examSetWrong: "خطأ",
-      examSetUnanswered: "بدون إجابة",
-      examSetSubmit: "تسليم التدريب",
-      examSetSubmitted: "تم التسليم",
-      examSetAnswerKeyMissing: "لم يتم العثور على مفتاح إجابة موثوق في ملف الإجابات. لن يتم التخمين.",
-      examSetCorrectAnswer: (label) => `الإجابة الرسمية من ملف الإجابات: ${label}`,
-      examSetShowAnswers: "إظهار الإجابات",
-      examSetHideAnswers: "إخفاء الإجابات",
-      examSetOpenOriginal: "عرض صفحة PDF الأصلية",
-      examSetOriginalTitle: "صفحة الامتحان الأصلية",
-      examSetOriginalNoAnswers: "ملف الأسئلة · بدون إجابات",
-      examSetOriginalExcerpt: "العنصر المرئي الأصلي",
-      examSetOriginalSourceNote: "تم عرض هذا المقتطف مباشرة من ملف الأسئلة الأصلي. لا يتم إعادة رسم الصورة أو إنشاؤها.",
-      examSetOriginalLoading: "جارٍ تحميل المقتطف الأصلي…",
-      examSetOriginalError: "تعذر عرض المقتطف الأصلي. استخدم الزر لفتح صفحة PDF كاملة.",
-      examSetPracticeLoading: "جارٍ تحميل تدريبك الخاص…",
-      examSetPracticeSaving: "جارٍ الحفظ…",
-      examSetPracticeSaved: "محفوظ بشكل خاص",
-      examSetPracticeError: "تعذر حفظ تدريبك. تحقق من SQL الخاص بـ Segment 6.2 FINAL.",
-      examSimulationStart: "بدء محاكاة الامتحان",
-      examSimulationResume: "متابعة المحاكاة",
-      examSimulationTitle: "محاكاة الامتحان",
-      examSimulationIntro: "أجرِ المجموعة كاختبار حقيقي. تبقى الإجابات الصحيحة مخفية حتى التسليم.",
-      examSimulationDuration: "المدة (بالدقائق)",
-      examSimulationDurationHint: "يعتمد المؤقت على وقت البدء والمدة ويستمر بدقة بعد إعادة التحميل.",
-      examSimulationSafeKey: "بإجابة رسمية مؤكدة",
-      examSimulationNoKey: "دون إجابة رسمية مؤكدة",
-      examSimulationBegin: "ابدأ الآن",
-      examSimulationCancel: "إلغاء",
-      examSimulationActive: "المحاكاة نشطة",
-      examSimulationTimeLeft: "الوقت المتبقي",
-      examSimulationSubmit: "تسليم الامتحان",
-      examSimulationSubmitTitle: "تسليم محاكاة الامتحان؟",
-      examSimulationSubmitHint: "بعد التسليم تُقفل الجلسة نهائياً، وتُحسب النتيجة فقط للأسئلة ذات الإجابة الرسمية المؤكدة.",
-      examSimulationConfirmSubmit: "تأكيد التسليم",
-      examSimulationSubmitted: "تم تسليم المحاكاة",
-      examSimulationBackToPractice: "العودة إلى التدريب الحر",
-      examSimulationAssessed: "مُقيّم",
-      examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} صحيحة`,
-      examSimulationAutosaveError: "تعذر حفظ المحاكاة. شغّل SQL الخاص بـ Segment 6.5 في Supabase.",
-      examSimulationSetupHint: "شغّل SQL الخاص بـ Segment 6.5 في Supabase ثم أعد التحميل.",
-      examAttemptHistoryMode: "المحاولات",
-      examAttemptHistoryTitle: "المحاولات والسجل",
-      examAttemptPrivate: "سجل امتحان خاص",
-      examAttemptHistoryIntro: "تُحفظ كل محاكاة مُسلّمة كلقطة دائمة للقراءة فقط للأسئلة والإجابات والنتيجة وإصدار المحلل.",
-      examAttemptCount: "محاولات",
-      examAttemptLatest: "الأحدث",
-      examAttemptAccuracy: "الدقة",
-      examAttemptScore: "صحيح",
-      examAttemptDuration: "الوقت",
-      examAttemptRepeatedErrors: "أسئلة أُجيب عنها خطأ في محاولتين على الأقل",
-      examAttemptLoading: "جارٍ تحميل سجل المحاولات الخاص…",
-      examAttemptSetupMissing: "سجل المحاولات غير مُعد بعد.",
-      examAttemptSetupHint: "شغّل SQL الخاص بالمقطع 6.6 في Supabase ثم أعد التحميل.",
-      examAttemptEmpty: "لا توجد محاولات محاكاة مُسلّمة بعد",
-      examAttemptEmptyHint: "عند تسليم محاكاة امتحان ستُحفظ هنا دون الكتابة فوق المحاولات السابقة.",
-      examAttemptNumber: (number) => `المحاولة ${number}`,
-      examAttemptOpen: "فتح المحاولة",
-      examAttemptReadOnly: "لقطة للقراءة فقط",
-      examAttemptSnapshotMissing: "هذه المحاولة القديمة لا تحتوي على لقطة أسئلة كاملة.",
-      examAttemptQuestionPdf: "PDF الأسئلة",
-      examAttemptAnswerPdf: "PDF الإجابات",
-      examReviewMode: "الأخطاء والمراجعة",
-      examReviewTitle: "الأخطاء والمراجعة",
-      examReviewPrivate: "قائمة مراجعة خاصة",
-      examReviewIntro: "تُجمع الأسئلة الخاطئة وغير المجابة والمعلّمة هنا دون تغيير محتوى الامتحان الأصلي.",
-      examReviewLoading: "جارٍ تحميل سجل المراجعة الخاص بك…",
-      examReviewSetupMissing: "لم يتم إعداد سجل المراجعة بعد.",
-      examReviewSetupHint: "شغّل ملف SQL الخاص بـ Segment 6.4 في Supabase ثم أعد تحميل الصفحة.",
-      examReviewActive: "نشطة",
-      examReviewRevisitCount: "تحتاج مراجعة أخرى",
-      examReviewReviewedCount: "تمت مراجعتها",
-      examReviewSyncing: "جارٍ مزامنة آخر تسليم مع سجل المراجعة…",
-      examReviewSyncError: "تم حفظ التسليم، لكن تعذرت مزامنة سجل المراجعة. اضغط تسليم مرة أخرى لإعادة المحاولة بأمان.",
-      examReviewFilterYear: "السنة",
-      examReviewFilterSession: "الفترة",
-      examReviewFilterSet: "مجموعة الامتحان",
-      examReviewFilterStatus: "حالة المراجعة",
-      examReviewFilterActive: "القائمة النشطة",
-      examReviewAll: "الكل",
-      examReviewIncludeExcluded: "إظهار غير ذي الصلة",
-      examReviewDataBasis: "حجم البيانات",
-      examReviewAbsoluteSummary: (count, assessed) => `${count} سؤال للمراجعة · ${assessed} سؤال بإجابة رسمية موثقة`,
-      examReviewStatus: "الحالة",
-      examReviewStatusUnreviewed: "لم تتم مراجعته",
-      examReviewStatusReviewed: "تمت مراجعته",
-      examReviewStatusRevisit: "راجع مرة أخرى",
-      examReviewNotRelevant: "غير ذي صلة للمراجعة",
-      examReviewNote: "ملاحظة تعلم خاصة",
-      examReviewNotePlaceholder: "اكتب نقطة قصيرة تريد تذكرها في المرة القادمة…",
-      examReviewWrongCount: (count) => `${count} خطأ`,
-      examReviewUnansweredCount: (count) => `${count} دون إجابة`,
-      examReviewMarkedCount: (count) => `${count} معلّم`,
-      examReviewYourAnswer: "آخر إجابة لك",
-      examReviewOfficialAnswer: "الإجابة الرسمية",
-      examReviewNoVerifiedAnswer: "لا توجد إجابة موثقة",
-      examReviewOpenMcq: "فتح MCQ",
-      examReviewOpenPdf: "PDF الأصلي",
-      examReviewSaving: "جارٍ الحفظ…",
-      examReviewSaved: "تم الحفظ",
-      examReviewSaveError: "تعذر الحفظ",
-      examReviewEmptyTitle: "لا توجد أسئلة للمراجعة بعد",
-      examReviewEmptyText: "ستظهر الأسئلة ذات الصلة هنا تلقائيًا بعد تسليم التدريب.",
-      examReviewNoMatches: "لا توجد عناصر تطابق عوامل التصفية",
-      examReviewNoMatchesHint: "غيّر عوامل التصفية أو أظهر العناصر غير ذات الصلة.",
-      examReviewUnknownSet: "مجموعة امتحان غير معروفة",
-      examReviewSourceMissing: "تعذر العثور على السؤال الأصلي بأمان باستخدام معرّف السؤال. لم يتم التخمين.",
-      examSetOriginalImages: "الصور الأصلية",
-      examSetOriginalImage: "صورة واحدة",
-      examSetOriginalImagesCount: (count) => `${count} صور`,
-      examSetEditorTitle: "محرر PDF",
-      examSetEditorIntro: "تحقق من صفحات المصدر المرتبطة بكل سؤال وتحكم في فواصل الصفحات في ملف PDF الموحّد.",
-      examSetEditorQuestions: "أسئلة",
-      examSetEditorMultiPage: "تمتد على عدة صفحات",
-      examSetEditorNeedsCheck: "تحتاج مراجعة",
-      examSetEditorFont: "الخط القياسي",
-      examSetEditorPurpose: "تبقى الأسئلة والخيارات والصور من ملف الأسئلة. لا تُعتمد الإجابة إلا بدليل مستند آمن أو مراجعة يدوية مقابل ملف الإجابات.",
-      examSetEditorStartPage: "من صفحة",
-      examSetEditorEndPage: "إلى صفحة",
-      examSetEditorKeepTogether: "إبقاء السؤال معاً",
-      examSetEditorPageBreak: "صفحة PDF جديدة قبل",
-      examSetEditorHasImage: "تم العثور على صورة أصلية",
-      examSetEditorNoImage: "لا توجد صورة",
-      examSetEditorCheck: "راجع",
-      examSetEditorPrintAnswers: "تضمين الإجابات في PDF المولّد",
-      examSetEditorGeneratePdf: "إنشاء PDF موحّد",
-      examSetEditorReanalyse: "إعادة تحليل ملفات PDF",
-      examSetEditorSave: "حفظ التصحيحات",
-      examSetEditorSaving: "جارٍ الحفظ…",
-      examSetEditorVerified: "تم التحقق",
-      examSetEditorReview: "يحتاج مراجعة",
-      examSetEditorBlocked: "محظور",
-      examSetEditorEvidence: "دليل الإجابة",
-      examSetEditorMatch: "مطابقة المستند",
-      examSetEditorAnswerPage: "صفحة الإجابة",
-      examSetEditorCandidate: "مرشح",
-      examSetEditorApprove: "اعتماد الإجابة",
-      examSetEditorApproved: "تم التحقق يدويًا",
-      examSetEditorClearApproval: "إزالة الاعتماد اليدوي",
-      examSetEditorNoEvidence: "لم يتم العثور على دليل إجابة آمن",
-      examSetEditorAiChecked: "تحقق الذكاء الاصطناعي من علامة المستند",
-      examSetEditorOpenAnswerPage: "عرض صفحة الإجابة",
-      examSetEditorOpen: "محرر PDF",
-      examSetEditorSaved: "تم حفظ ربط الصفحات في محرر PDF.",
-      examSetEditorOwnerOnly: "يمكن للرافع فقط تعديل محرر PDF المشترك.",
-      examSetEditorRebuilt: "تمت إعادة تحليل ملفات PDF باستخدام محلل SDU المحسن.",
-      examSetEditorPrintError: "تعذر إعداد ملف PDF الموحّد.",
-      upload: "إضافة مجموعة امتحان",
-      replace: "استبدال PDF",
-      noPdf: "لا يوجد ملف PDF مرتبط بهذا العنصر بعد.",
-      selectItem: "اختر عنصرًا من القائمة لفتح مساحة العمل.",
-      ownNotes: "ملاحظاتي",
-      sharedNotes: "ملاحظات مشتركة",
-      sharedPrivate: "خاص",
-      sharedPublished: "مشارك",
-      sharedReadOnly: "للقراءة فقط",
-      sharedShareNote: "مشاركة الملاحظة",
-      sharedUpdateNote: "تحديث النسخة المشتركة",
-      sharedStopSharing: "إيقاف المشاركة",
-      sharedStopConfirm: "هل تريد إيقاف مشاركة ملاحظة هذه المحاضرة؟ لن يتم حذف ملاحظتك الخاصة.",
-      sharedExplicitHint: "لا تتم المشاركة إلا عندما تنشر الملاحظة بنفسك. التعديلات الخاصة اللاحقة لا تُشارك تلقائيًا.",
-      sharedPublishedHint: "يمكن لمستخدمي MedFLUEN الآخرين قراءة النسخة المنشورة، بينما تبقى مسودتك الخاصة منفصلة.",
-      sharedUpdateAvailable: "تم تعديل ملاحظتك الخاصة منذ النسخة المشتركة.",
-      sharedNoContent: "اكتب شيئًا في ملاحظتك الخاصة قبل مشاركتها.",
-      sharedPublishing: "جارٍ النشر…",
-      sharedPublishSuccess: "تمت مشاركة الملاحظة كنسخة للقراءة فقط.",
-      sharedUpdateSuccess: "تم تحديث الملاحظة المشتركة إلى نسخة جديدة.",
-      sharedUnshareSuccess: "تم إيقاف المشاركة مع الاحتفاظ بملاحظتك الخاصة.",
-      sharedLoad: "جارٍ تحميل الملاحظات المشتركة…",
-      sharedRefresh: "تحديث الملاحظات المشتركة",
-      sharedEmptyTitle: "لا توجد ملاحظات مشتركة بعد",
-      sharedEmptyText: "عندما يشارك طالب ملاحظة لهذه المحاضرة بشكل صريح، ستظهر هنا للقراءة فقط.",
-      sharedCount: (count) => count === 1 ? "ملاحظة مشتركة واحدة" : `${count} ملاحظات مشتركة`,
-      sharedVersion: (version) => `الإصدار ${version}`,
-      sharedUpdated: "آخر تحديث",
-      sharedYou: "أنت",
-      sharedAnonymous: "طالب",
-      sharedSetupMissing: "الملاحظات المشتركة غير مهيأة. شغّل ملف SQL الخاص بالمقطع 5.7 في Supabase.",
-      sharedLoadError: "تعذر تحميل الملاحظات المشتركة.",
-      sharedActionError: "تعذر تنفيذ الإجراء. حاول مرة أخرى.",
-      notesPlaceholder: "اكتب ملاحظات لهذه المحاضرة…",
-      noteFreeView: "ملاحظة حرة",
-      noteStructuredView: "منظمة",
-      noteKeyPoints: "النقاط الرئيسية",
-      noteClinicalPoints: "نقاط سريرية",
-      noteOpenQuestions: "أسئلة غير محسومة",
-      noteKeyPointsPlaceholder: "اكتب أهم النقاط من المحاضرة…",
-      noteClinicalPointsPlaceholder: "اكتب النقاط السريرية أو علامات الخطر أو الروابط العملية…",
-      noteOpenQuestionsPlaceholder: "اكتب ما لا يزال يحتاج إلى توضيح…",
-      noteLoading: "جارٍ تحميل ملاحظاتك…",
-      noteSaving: "جارٍ الحفظ…",
-      noteSaved: "تم الحفظ",
-      noteLocalOnly: "محلي فقط",
-      noteSyncError: "تعذرت المزامنة. تم الاحتفاظ بالمسودة المحلية.",
-      noteSetupMissing: "مخزن الملاحظات غير مهيأ. شغّل ملف SQL الخاص بالمقطع 5.6 في Supabase.",
-      noteExportText: "تصدير كنص",
-      noteExportMarkdown: "تصدير Markdown",
-      sessionOnly: "تبقى ملفات PDF متاحة خلال جلسة المتصفح الحالية في هذه النسخة الأولى.",
-      pdfViewer: "عارض PDF",
-      noLectures: "لا توجد محاضرات للوحدة المختارة.",
-      noExamSets: "لم تتم إضافة مجموعات امتحان بعد.",
-      openSeparate: "فتح منفصل",
-      close: "إغلاق مساحة العمل",
-      viewed: "تمت المشاهدة",
-      notViewed: "لم تتم المشاهدة",
-      mastery: "مستوى الإتقان",
-      masteryUnrated: "غير مقيّم",
-      masteryUncertain: "غير متأكد",
-      masteryDeveloping: "قيد التطور",
-      masteryConfident: "واثق",
-      timesViewed: "مرات المشاهدة",
-      lectureOverview: "نظرة عامة على المحاضرات",
-      moduleOverview: "نظرة عامة على الوحدة",
-      moduleOverviewHeld: "منعقدة",
-      moduleOverviewSelfStudy: "دراسة ذاتية",
-      moduleOverviewSelfStudyHint: "مكتملة كدراسة ذاتية",
-      moduleOverviewFollowUp: "متابعة",
-      moduleOverviewMissingMaterial: "بدون مواد",
-      filterAll: "الكل",
-      filterFavorites: "المميزة",
-      favoriteLecture: "تمييز المحاضرة",
-      unfavoriteLecture: "إزالة التمييز",
-      viewerLibrary: "المحاضرات",
-      viewerNotes: "الملاحظات",
-      viewerFocus: "تركيز",
-      viewerExitFocus: "إنهاء التركيز",
-      viewerMaterials: "المواد", viewerMore: "المزيد",
-      viewerShowPanel: "إظهار اللوحة",
-      viewerHidePanel: "إخفاء اللوحة",
-      filterUpcoming: "القادمة",
-      filterHeld: "المنعقدة",
-      filterNotReviewed: "لم تتم مراجعتها",
-      filterSelfStudy: "دراسة ذاتية",
-      filterMissingMaterial: "بدون مواد",
-      filterFollowUp: "متابعة",
-      sortLecturesLabel: "ترتيب",
-      sortLecturesNumber: "الرقم",
-      sortLecturesDate: "التاريخ",
-      followUp: "متابعة",
-      followUpShort: "متابعة",
-      followUpTitle: "متابعة المحاضرة",
-      followUpIntro: "حدّد سبب حاجة المحاضرة إلى متابعة. يمكنك حفظ العلامة فقط أو إرسالها مباشرة إلى خطة الدراسة.",
-      followUpMissingMaterial: "المواد ناقصة",
-      followUpReread: "تحتاج إعادة قراءة",
-      followUpUnresolved: "موضوع غير محسوم",
-      followUpAbsence: "غياب",
-      followUpOther: "أخرى",
-      followUpComment: "تعليق شخصي",
-      followUpCommentPlaceholder: "أضف ما تحتاج إلى متابعته إن رغبت…",
-      followUpSave: "حفظ المتابعة",
-      followUpSend: "إرسال إلى خطة الدراسة",
-      followUpUpdatePlan: "تحديث خطة الدراسة",
-      followUpRemove: "إزالة المتابعة",
-      followUpSaved: "تم حفظ المتابعة.",
-      followUpSent: "تم إرسال المتابعة إلى خطة الدراسة دون إنشاء نشاط إضافي إذا كانت المحاضرة موجودة بالفعل في الخطة.",
-      followUpRemoved: "تمت إزالة المتابعة.",
-      followUpPlanMissing: "أنشئ أو فعّل خطة دراسة قبل إرسال المتابعة إليها.",
-      followUpPlanCurrent: "مرسلة إلى خطة الدراسة",
-      followUpPlanOutdated: "تغيّرت منذ آخر إرسال",
-      followUpChooseReason: "اختر سببًا واحدًا على الأقل أو اكتب تعليقًا.",
-      lectureNoMatches: "لا توجد محاضرات تطابق البحث أو عامل التصفية المحدد.",
-      collapseGroup: "طي المجال",
-      expandGroup: "توسيع المجال",
-      scheduleHeld: "منعقدة",
-      schedulePartial: "منعقدة جزئيًا",
-      scheduleUpcoming: "قادمة",
-      scheduleUnscheduled: "بدون موعد SDU",
-      reviewedLabel: "تمت مراجعتها",
-      notReviewedLabel: "لم تتم مراجعتها",
-      materialReady: "المادة مرفقة",
-      materialMissing: "المادة مفقودة",
-      attendance: "الحضور",
-      attendanceUnmarked: "غير محدد",
-      attendanceAttended: "حضرت",
-      attendanceMissed: "لم أحضر",
-      selfStudyStatus: "الدراسة الذاتية",
-      selfStudyNotStarted: "لم تبدأ",
-      selfStudyInProgress: "قيد الدراسة",
-      selfStudyReviewed: "تمت المراجعة",
-      deckStatus: "الحزمة المرتبطة",
-      deckUnavailable: "لا توجد حزمة مرتبطة",
-      deckNotStarted: "لم تبدأ الحزمة",
-      deckInProgress: "الحزمة قيد الدراسة",
-      deckReviewed: "اكتملت الحزمة",
-      deckQuestions: (reviewed, total) => `${reviewed}/${total} سؤال`,
-      showingLectures: (shown, total) => `${shown} من ${total} محاضرة`,
-      previousLecture: "المحاضرة السابقة",
-      nextLecture: "المحاضرة التالية",
-      favoritePreviousLecture: "المحاضرة المميزة السابقة",
-      favoriteNextLecture: "المحاضرة المميزة التالية",
-      viewerResumePage: (page) => `متابعة · الصفحة ${page}`,
-      viewerSearchShortcut: "اضغط / للبحث",
+      lectures: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+      examSets: "Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      lectureSubtitle: "Ù…ÙƒØªØ¨Ø© Ù…ÙˆØ§Ø¯ Ø¯Ø§Ø¦Ù…Ø© ÙˆØ¹Ø§Ø±Ø¶ ÙˆÙ…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+      examSubtitle: "Ù…ÙƒØªØ¨Ø© PDF Ù…Ø´ØªØ±ÙƒØ© ÙˆØªØ¯Ø±ÙŠØ¨ Ø§Ù…ØªØ­Ø§Ù†ÙŠ Ø®Ø§Øµ ÙŠÙÙ†Ø´Ø£ Ù…Ø¨Ø§Ø´Ø±Ø© Ù…Ù† Ù…Ù„Ù PDF",
+      searchLectures: "Ø§Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øªâ€¦",
+      searchExamSets: "Ø§Ø¨Ø­Ø« Ø¨Ø§Ù„Ù…Ù„Ù Ø£Ùˆ Ø§Ù„Ø³Ù†Ø© Ø£Ùˆ Ù…ÙˆØ³Ù… Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†â€¦",
+      examSetPermanent: "Ù…Ù„ÙØ§Øª Ø§Ù„Ø£Ø³Ø¦Ù„Ø© PDF Ù…Ø´ØªØ±ÙƒØ© Ø¨ÙŠÙ† Ø¬Ù…ÙŠØ¹ Ù…Ø³ØªØ®Ø¯Ù…ÙŠ MedFLUEN Ø§Ù„Ù…Ø³Ø¬Ù„ÙŠÙ†. ÙˆÙŠÙØ³ØªØ®Ø¯Ù… Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª ÙƒÙ…ØµØ¯Ø± Ø¯Ø§Ø®Ù„ÙŠØŒ Ø¨ÙŠÙ†Ù…Ø§ ØªØ¨Ù‚Ù‰ Ø¥Ø¬Ø§Ø¨Ø§ØªÙƒ ÙˆØ¹Ù„Ø§Ù…Ø§ØªÙƒ ÙˆØ¨ÙŠØ§Ù†Ø§Øª ØªØ¯Ø±ÙŠØ¨Ùƒ Ø®Ø§ØµØ©.",
+      examSetLoading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ù†Ù…Ø§Ø°Ø¬ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†â€¦",
+      examSetSetupMissing: "Ù†Ù…Ø§Ø°Ø¬ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† ØºÙŠØ± Ù…Ù‡ÙŠØ£Ø©. Ø´ØºÙ‘Ù„ Ù…Ù„Ù SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ù€ Segment 6.2 FINAL ÙÙŠ Supabase.",
+      examSetUploadTitle: "Ø¥Ø¶Ø§ÙØ© Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù…ØªØ­Ø§Ù†",
+      examSetEditTitle: "ØªØ¹Ø¯ÙŠÙ„ Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examSetName: "Ø§Ø³Ù… Ø§Ù„Ø¹Ø±Ø¶",
+      examSetYear: "Ø§Ù„Ø³Ù†Ø©",
+      examSetSession: "ÙØªØ±Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examSetDate: "ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)",
+      examSetSessionSummer: "Ø§Ù„ØµÙŠÙ",
+      examSetSessionWinter: "Ø§Ù„Ø´ØªØ§Ø¡",
+      examSetSessionReexam: "Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examSetQuestionPdf: "Ù…Ù„Ù Ø£Ø³Ø¦Ù„Ø© PDF",
+      examSetAnswerPdf: "Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª PDF",
+      examSetChooseQuestionPdf: "Ø§Ø®ØªØ± Ù…Ù„Ù Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+      examSetChooseAnswerPdf: "Ø§Ø®ØªØ± Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª",
+      examSetQuestionPdfRequired: "Ù…Ù„Ù Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ù…Ø·Ù„ÙˆØ¨.",
+      examSetAnswerPdfRequired: "Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª Ù…Ø·Ù„ÙˆØ¨ Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù…ØªØ­Ø§Ù† Ù…ÙƒØªÙ…Ù„Ø©.",
+      examSetAnswerPdfPrivate: "ÙŠÙØ³ØªØ®Ø¯Ù… Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª ÙƒÙ…ØµØ¯Ø± Ø¯Ø§Ø®Ù„ÙŠ Ù„Ù„Ù…ÙØªØ§Ø­ ÙˆÙ„Ø§ ØªØªÙ… Ù…Ø´Ø§Ø±ÙƒØªÙ‡ Ù…Ø¨Ø§Ø´Ø±Ø© Ù…Ø¹ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† Ø§Ù„Ø¢Ø®Ø±ÙŠÙ†.",
+      examSetSave: "Ø­ÙØ¸ Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examSetCancel: "Ø¥Ù„ØºØ§Ø¡",
+      examSetEdit: "ØªØ¹Ø¯ÙŠÙ„",
+      examSetDelete: "Ø­Ø°Ù",
+      examSetDownload: "ØªÙ†Ø²ÙŠÙ„ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+      examSetOpen: "ÙØªØ­ Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+      examSetDeleteConfirm: "Ù‡Ù„ ØªØ±ÙŠØ¯ Ø­Ø°Ù Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ø§Ù„Ù…Ø´ØªØ±ÙƒØ© Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ØŸ",
+      examSetTooLarge: "Ù…Ù„Ù PDF Ø£ÙƒØ¨Ø± Ù…Ù† 50 Ù…ÙŠØºØ§Ø¨Ø§ÙŠØª ÙˆÙ„Ø§ ÙŠÙ…ÙƒÙ† Ø±ÙØ¹Ù‡.",
+      examSetInvalidFile: "ÙŠÙ…ÙƒÙ† Ø¥Ø¶Ø§ÙØ© Ù…Ù„ÙØ§Øª PDF ÙÙ‚Ø·.",
+      examSetRequiredMeta: "ÙŠØ¬Ø¨ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ø³Ù†Ø© ÙˆÙØªØ±Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† ÙˆÙ…Ù„ÙÙŠ PDF Ù‚Ø¨Ù„ Ø­ÙØ¸ Ù…Ø¬Ù…ÙˆØ¹Ø© Ø¬Ø¯ÙŠØ¯Ø©.",
+      examSetHashing: "Ø¬Ø§Ø±Ù ÙØ­Øµ Ù…Ù„ÙØ§Øª PDF ÙˆØ§Ù„ØªÙƒØ±Ø§Ø±Ø§Øªâ€¦",
+      examSetParsing: "Ø¬Ø§Ø±Ù ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© ÙˆØ§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª ÙˆØ§Ù„Ø¹Ù†Ø§ØµØ± Ø§Ù„Ù…Ø±Ø¦ÙŠØ© Ø§Ù„Ø£ØµÙ„ÙŠØ©â€¦",
+      examSetDuplicate: "Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ù‡Ø°Ù‡ Ù…ÙˆØ¬ÙˆØ¯Ø© Ø¨Ø§Ù„ÙØ¹Ù„. Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø±ÙØ¹ Ù†ÙØ³ Ø§Ù„ÙˆØ­Ø¯Ø© ÙˆØ§Ù„Ø³Ù†Ø© ÙˆØ§Ù„ÙØªØ±Ø© Ø£Ùˆ Ù†ÙØ³ Ù…Ù„Ù PDF Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
+      examSetSaved: "ØªÙ… Ø­ÙØ¸ Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† ÙÙŠ Ø§Ù„Ù…ÙƒØªØ¨Ø© Ø§Ù„Ù…Ø´ØªØ±ÙƒØ©.",
+      examSetUpdated: "ØªÙ… ØªØ­Ø¯ÙŠØ« Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†.",
+      examSetDeleted: "ØªÙ… Ø­Ø°Ù Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†.",
+      examSetLoadError: "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†.",
+      examSetActionError: "ØªØ¹Ø°Ø± ØªÙ†ÙÙŠØ° Ø§Ù„Ø¹Ù…Ù„ÙŠØ©.",
+      examSetShared: "Ø£Ø³Ø¦Ù„Ø© Ù…Ø´ØªØ±ÙƒØ©",
+      examSetAnswerKeyReady: "ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ù…ÙØªØ§Ø­ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+      examSetOwnerOnly: "ÙŠÙ…ÙƒÙ† ÙÙ‚Ø· Ù„Ø±Ø§ÙØ¹ Ø§Ù„Ù…Ù„ÙØ§Øª ØªØ¹Ø¯ÙŠÙ„ Ø£Ùˆ Ø­Ø°Ù Ø§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª Ø§Ù„Ù…ØµØ¯Ø±.",
+      examSetPdfMode: "Ù…Ù„Ù PDF Ø§Ù„Ø£ØµÙ„ÙŠ",
+      examSetViewerMode: "Ø¹Ø§Ø±Ø¶ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examSetQuestionsSource: "Ø¨Ø¯ÙˆÙ† Ø¥Ø¬Ø§Ø¨Ø§Øª",
+      examSetAnswersSource: "Ù…Ø¹ Ù…ÙØªØ§Ø­ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+      examSetCreateViewer: "Ø¥Ù†Ø´Ø§Ø¡ Ø¹Ø§Ø±Ø¶ MCQ",
+      examSetRebuildViewer: "Ø¥Ø¹Ø§Ø¯Ø© Ù‚Ø±Ø§Ø¡Ø© Ù…Ù„ÙØ§Øª PDF",
+      examSetExtracting: "Ø¬Ø§Ø±Ù Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„Ø£Ø³Ø¦Ù„Ø© ÙˆÙ…Ø·Ø§Ø¨Ù‚Ø© Ù…ÙØªØ§Ø­ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©â€¦",
+      examSetExtractHint: "Ø§Ù„Ø£Ø³Ø¦Ù„Ø© ÙˆØ§Ù„Ø®ÙŠØ§Ø±Ø§Øª ÙˆØ§Ù„ØµÙˆØ± ØªØ£ØªÙŠ ÙÙ‚Ø· Ù…Ù† Ù…Ù„Ù Ø§Ù„Ø£Ø³Ø¦Ù„Ø©. Ù…ÙØªØ§Ø­ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© ÙŠØ£ØªÙŠ ÙÙ‚Ø· Ù…Ù† Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª. Ù„Ø§ ÙŠØªÙ… Ø§Ø®ØªØ±Ø§Ø¹ Ø£Ø³Ø¦Ù„Ø© Ø£Ùˆ Ø¥Ø¬Ø§Ø¨Ø§Øª.",
+      examSetExtracted: (count, keyed, visual) => `${count} Ø³Ø¤Ø§Ù„ MCQ Â· ${keyed} Ù…Ø¹ Ù…ÙØªØ§Ø­ Ø¥Ø¬Ø§Ø¨Ø© Â· ${visual} Ù…Ø¹ Ø¹Ù†Ø§ØµØ± Ù…Ø±Ø¦ÙŠØ© Ø£ØµÙ„ÙŠØ©`,
+      examSetNoQuestions: "ØªØ¹Ø°Ø± Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø£Ø³Ø¦Ù„Ø© MCQ Ù…ÙˆØ«ÙˆÙ‚Ø© Ù…Ù† Ù…Ù„Ù Ø§Ù„Ø£Ø³Ø¦Ù„Ø©. Ù„Ù… ÙŠØªÙ… Ø§Ø®ØªØ±Ø§Ø¹ Ø£ÙŠ Ø£Ø³Ø¦Ù„Ø© Ø£Ùˆ Ø¥Ø¬Ø§Ø¨Ø§Øª.",
+      examSetScannedHint: "Ø¥Ø°Ø§ ÙƒØ§Ù† Ø§Ù„Ù…Ù„Ù Ù…Ù…Ø³ÙˆØ­Ø§Ù‹ Ø¶ÙˆØ¦ÙŠØ§Ù‹ Ø£Ùˆ ÙŠØ³ØªØ®Ø¯Ù… ØªÙ†Ø³ÙŠÙ‚Ø§Ù‹ ØºÙŠØ± Ù…Ø¹ØªØ§Ø¯ØŒ Ø³ÙŠØªÙ… ÙˆØ¶Ø¹Ù‡ Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¨Ø¯Ù„Ø§Ù‹ Ù…Ù† Ø§Ù„ØªØ®Ù…ÙŠÙ†.",
+      examSetQuestion: "Ø§Ù„Ø³Ø¤Ø§Ù„",
+      examSetSourceQuestion: "Ø§Ù„Ø³Ø¤Ø§Ù„ Ø§Ù„Ø£ØµÙ„ÙŠ",
+      examSetSourcePage: "ØµÙØ­Ø© PDF",
+      examSetPreviousQuestion: "Ø§Ù„Ø³Ø§Ø¨Ù‚",
+      examSetNextQuestion: "Ø§Ù„ØªØ§Ù„ÙŠ",
+      examSetMarkLater: "ÙˆØ¶Ø¹ Ø¹Ù„Ø§Ù…Ø© Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ù„Ø§Ø­Ù‚Ø§Ù‹",
+      examSetUnmarkLater: "Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø¹Ù„Ø§Ù…Ø©",
+      examSetGridTitle: "Ø´Ø¨ÙƒØ© Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+      examSetGridHint: "Ø§Ø¶ØºØ· 1â€“X Ù„Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ù…Ø¨Ø§Ø´Ø±Ø© Ø¨ÙŠÙ† Ø§Ù„Ø£Ø³Ø¦Ù„Ø©. Ø§Ù„Ù„ÙˆÙ† ÙŠÙˆØ¶Ø­ Ø§Ù„Ø­Ø§Ù„Ø©.",
+      examSetAnswered: "ØªÙ…Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+      examSetMarked: "Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ù„Ø§Ø­Ù‚Ø§Ù‹",
+      examSetCorrect: "ØµØ­ÙŠØ­",
+      examSetWrong: "Ø®Ø·Ø£",
+      examSetUnanswered: "Ø¨Ø¯ÙˆÙ† Ø¥Ø¬Ø§Ø¨Ø©",
+      examSetSubmit: "ØªØ³Ù„ÙŠÙ… Ø§Ù„ØªØ¯Ø±ÙŠØ¨",
+      examSetSubmitted: "ØªÙ… Ø§Ù„ØªØ³Ù„ÙŠÙ…",
+      examSetAnswerKeyMissing: "Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù…ÙØªØ§Ø­ Ø¥Ø¬Ø§Ø¨Ø© Ù…ÙˆØ«ÙˆÙ‚ ÙÙŠ Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª. Ù„Ù† ÙŠØªÙ… Ø§Ù„ØªØ®Ù…ÙŠÙ†.",
+      examSetCorrectAnswer: (label) => `Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„Ø±Ø³Ù…ÙŠØ© Ù…Ù† Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª: ${label}`,
+      examSetShowAnswers: "Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª",
+      examSetHideAnswers: "Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª",
+      examSetOpenOriginal: "Ø¹Ø±Ø¶ ØµÙØ­Ø© PDF Ø§Ù„Ø£ØµÙ„ÙŠØ©",
+      examSetOriginalTitle: "ØµÙØ­Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ø§Ù„Ø£ØµÙ„ÙŠØ©",
+      examSetOriginalNoAnswers: "Ù…Ù„Ù Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Â· Ø¨Ø¯ÙˆÙ† Ø¥Ø¬Ø§Ø¨Ø§Øª",
+      examSetOriginalExcerpt: "Ø§Ù„Ø¹Ù†ØµØ± Ø§Ù„Ù…Ø±Ø¦ÙŠ Ø§Ù„Ø£ØµÙ„ÙŠ",
+      examSetOriginalSourceNote: "ØªÙ… Ø¹Ø±Ø¶ Ù‡Ø°Ø§ Ø§Ù„Ù…Ù‚ØªØ·Ù Ù…Ø¨Ø§Ø´Ø±Ø© Ù…Ù† Ù…Ù„Ù Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø£ØµÙ„ÙŠ. Ù„Ø§ ÙŠØªÙ… Ø¥Ø¹Ø§Ø¯Ø© Ø±Ø³Ù… Ø§Ù„ØµÙˆØ±Ø© Ø£Ùˆ Ø¥Ù†Ø´Ø§Ø¤Ù‡Ø§.",
+      examSetOriginalLoading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ù‚ØªØ·Ù Ø§Ù„Ø£ØµÙ„ÙŠâ€¦",
+      examSetOriginalError: "ØªØ¹Ø°Ø± Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù‚ØªØ·Ù Ø§Ù„Ø£ØµÙ„ÙŠ. Ø§Ø³ØªØ®Ø¯Ù… Ø§Ù„Ø²Ø± Ù„ÙØªØ­ ØµÙØ­Ø© PDF ÙƒØ§Ù…Ù„Ø©.",
+      examSetPracticeLoading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ ØªØ¯Ø±ÙŠØ¨Ùƒ Ø§Ù„Ø®Ø§Øµâ€¦",
+      examSetPracticeSaving: "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸â€¦",
+      examSetPracticeSaved: "Ù…Ø­ÙÙˆØ¸ Ø¨Ø´ÙƒÙ„ Ø®Ø§Øµ",
+      examSetPracticeError: "ØªØ¹Ø°Ø± Ø­ÙØ¸ ØªØ¯Ø±ÙŠØ¨Ùƒ. ØªØ­Ù‚Ù‚ Ù…Ù† SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ù€ Segment 6.2 FINAL.",
+      examSimulationStart: "Ø¨Ø¯Ø¡ Ù…Ø­Ø§ÙƒØ§Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examSimulationResume: "Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ù…Ø­Ø§ÙƒØ§Ø©",
+      examSimulationTitle: "Ù…Ø­Ø§ÙƒØ§Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examSimulationIntro: "Ø£Ø¬Ø±Ù Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© ÙƒØ§Ø®ØªØ¨Ø§Ø± Ø­Ù‚ÙŠÙ‚ÙŠ. ØªØ¨Ù‚Ù‰ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª Ø§Ù„ØµØ­ÙŠØ­Ø© Ù…Ø®ÙÙŠØ© Ø­ØªÙ‰ Ø§Ù„ØªØ³Ù„ÙŠÙ….",
+      examSimulationDuration: "Ø§Ù„Ù…Ø¯Ø© (Ø¨Ø§Ù„Ø¯Ù‚Ø§Ø¦Ù‚)",
+      examSimulationDurationHint: "ÙŠØ¹ØªÙ…Ø¯ Ø§Ù„Ù…Ø¤Ù‚Øª Ø¹Ù„Ù‰ ÙˆÙ‚Øª Ø§Ù„Ø¨Ø¯Ø¡ ÙˆØ§Ù„Ù…Ø¯Ø© ÙˆÙŠØ³ØªÙ…Ø± Ø¨Ø¯Ù‚Ø© Ø¨Ø¹Ø¯ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„.",
+      examSimulationSafeKey: "Ø¨Ø¥Ø¬Ø§Ø¨Ø© Ø±Ø³Ù…ÙŠØ© Ù…Ø¤ÙƒØ¯Ø©",
+      examSimulationNoKey: "Ø¯ÙˆÙ† Ø¥Ø¬Ø§Ø¨Ø© Ø±Ø³Ù…ÙŠØ© Ù…Ø¤ÙƒØ¯Ø©",
+      examSimulationBegin: "Ø§Ø¨Ø¯Ø£ Ø§Ù„Ø¢Ù†",
+      examSimulationCancel: "Ø¥Ù„ØºØ§Ø¡",
+      examSimulationActive: "Ø§Ù„Ù…Ø­Ø§ÙƒØ§Ø© Ù†Ø´Ø·Ø©",
+      examSimulationTimeLeft: "Ø§Ù„ÙˆÙ‚Øª Ø§Ù„Ù…ØªØ¨Ù‚ÙŠ",
+      examSimulationSubmit: "ØªØ³Ù„ÙŠÙ… Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examSimulationSubmitTitle: "ØªØ³Ù„ÙŠÙ… Ù…Ø­Ø§ÙƒØ§Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†ØŸ",
+      examSimulationSubmitHint: "Ø¨Ø¹Ø¯ Ø§Ù„ØªØ³Ù„ÙŠÙ… ØªÙÙ‚ÙÙ„ Ø§Ù„Ø¬Ù„Ø³Ø© Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ØŒ ÙˆØªÙØ­Ø³Ø¨ Ø§Ù„Ù†ØªÙŠØ¬Ø© ÙÙ‚Ø· Ù„Ù„Ø£Ø³Ø¦Ù„Ø© Ø°Ø§Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„Ø±Ø³Ù…ÙŠØ© Ø§Ù„Ù…Ø¤ÙƒØ¯Ø©.",
+      examSimulationConfirmSubmit: "ØªØ£ÙƒÙŠØ¯ Ø§Ù„ØªØ³Ù„ÙŠÙ…",
+      examSimulationSubmitted: "ØªÙ… ØªØ³Ù„ÙŠÙ… Ø§Ù„Ù…Ø­Ø§ÙƒØ§Ø©",
+      examSimulationBackToPractice: "Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ø§Ù„ØªØ¯Ø±ÙŠØ¨ Ø§Ù„Ø­Ø±",
+      examSimulationAssessed: "Ù…ÙÙ‚ÙŠÙ‘Ù…",
+      examSimulationCorrectOfAssessed: (correct, assessed) => `${correct}/${assessed} ØµØ­ÙŠØ­Ø©`,
+      examSimulationAutosaveError: "ØªØ¹Ø°Ø± Ø­ÙØ¸ Ø§Ù„Ù…Ø­Ø§ÙƒØ§Ø©. Ø´ØºÙ‘Ù„ SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ù€ Segment 6.5 ÙÙŠ Supabase.",
+      examSimulationSetupHint: "Ø´ØºÙ‘Ù„ SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ù€ Segment 6.5 ÙÙŠ Supabase Ø«Ù… Ø£Ø¹Ø¯ Ø§Ù„ØªØ­Ù…ÙŠÙ„.",
+      examAttemptHistoryMode: "Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø§Øª",
+      examAttemptHistoryTitle: "Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø§Øª ÙˆØ§Ù„Ø³Ø¬Ù„",
+      examAttemptPrivate: "Ø³Ø¬Ù„ Ø§Ù…ØªØ­Ø§Ù† Ø®Ø§Øµ",
+      examAttemptHistoryIntro: "ØªÙØ­ÙØ¸ ÙƒÙ„ Ù…Ø­Ø§ÙƒØ§Ø© Ù…ÙØ³Ù„Ù‘Ù…Ø© ÙƒÙ„Ù‚Ø·Ø© Ø¯Ø§Ø¦Ù…Ø© Ù„Ù„Ù‚Ø±Ø§Ø¡Ø© ÙÙ‚Ø· Ù„Ù„Ø£Ø³Ø¦Ù„Ø© ÙˆØ§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª ÙˆØ§Ù„Ù†ØªÙŠØ¬Ø© ÙˆØ¥ØµØ¯Ø§Ø± Ø§Ù„Ù…Ø­Ù„Ù„.",
+      examAttemptCount: "Ù…Ø­Ø§ÙˆÙ„Ø§Øª",
+      examAttemptLatest: "Ø§Ù„Ø£Ø­Ø¯Ø«",
+      examAttemptAccuracy: "Ø§Ù„Ø¯Ù‚Ø©",
+      examAttemptScore: "ØµØ­ÙŠØ­",
+      examAttemptDuration: "Ø§Ù„ÙˆÙ‚Øª",
+      examAttemptRepeatedErrors: "Ø£Ø³Ø¦Ù„Ø© Ø£ÙØ¬ÙŠØ¨ Ø¹Ù†Ù‡Ø§ Ø®Ø·Ø£ ÙÙŠ Ù…Ø­Ø§ÙˆÙ„ØªÙŠÙ† Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„",
+      examAttemptLoading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø§Øª Ø§Ù„Ø®Ø§Øµâ€¦",
+      examAttemptSetupMissing: "Ø³Ø¬Ù„ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø§Øª ØºÙŠØ± Ù…ÙØ¹Ø¯ Ø¨Ø¹Ø¯.",
+      examAttemptSetupHint: "Ø´ØºÙ‘Ù„ SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ù…Ù‚Ø·Ø¹ 6.6 ÙÙŠ Supabase Ø«Ù… Ø£Ø¹Ø¯ Ø§Ù„ØªØ­Ù…ÙŠÙ„.",
+      examAttemptEmpty: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø­Ø§ÙˆÙ„Ø§Øª Ù…Ø­Ø§ÙƒØ§Ø© Ù…ÙØ³Ù„Ù‘Ù…Ø© Ø¨Ø¹Ø¯",
+      examAttemptEmptyHint: "Ø¹Ù†Ø¯ ØªØ³Ù„ÙŠÙ… Ù…Ø­Ø§ÙƒØ§Ø© Ø§Ù…ØªØ­Ø§Ù† Ø³ØªÙØ­ÙØ¸ Ù‡Ù†Ø§ Ø¯ÙˆÙ† Ø§Ù„ÙƒØªØ§Ø¨Ø© ÙÙˆÙ‚ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø§Øª Ø§Ù„Ø³Ø§Ø¨Ù‚Ø©.",
+      examAttemptNumber: (number) => `Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© ${number}`,
+      examAttemptOpen: "ÙØªØ­ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©",
+      examAttemptReadOnly: "Ù„Ù‚Ø·Ø© Ù„Ù„Ù‚Ø±Ø§Ø¡Ø© ÙÙ‚Ø·",
+      examAttemptSnapshotMissing: "Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ø§Ù„Ù‚Ø¯ÙŠÙ…Ø© Ù„Ø§ ØªØ­ØªÙˆÙŠ Ø¹Ù„Ù‰ Ù„Ù‚Ø·Ø© Ø£Ø³Ø¦Ù„Ø© ÙƒØ§Ù…Ù„Ø©.",
+      examAttemptQuestionPdf: "PDF Ø§Ù„Ø£Ø³Ø¦Ù„Ø©",
+      examAttemptAnswerPdf: "PDF Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª",
+      examReviewMode: "Ø§Ù„Ø£Ø®Ø·Ø§Ø¡ ÙˆØ§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      examReviewTitle: "Ø§Ù„Ø£Ø®Ø·Ø§Ø¡ ÙˆØ§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      examReviewPrivate: "Ù‚Ø§Ø¦Ù…Ø© Ù…Ø±Ø§Ø¬Ø¹Ø© Ø®Ø§ØµØ©",
+      examReviewIntro: "ØªÙØ¬Ù…Ø¹ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø®Ø§Ø·Ø¦Ø© ÙˆØºÙŠØ± Ø§Ù„Ù…Ø¬Ø§Ø¨Ø© ÙˆØ§Ù„Ù…Ø¹Ù„Ù‘Ù…Ø© Ù‡Ù†Ø§ Ø¯ÙˆÙ† ØªØºÙŠÙŠØ± Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ø§Ù„Ø£ØµÙ„ÙŠ.",
+      examReviewLoading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø³Ø¬Ù„ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒâ€¦",
+      examReviewSetupMissing: "Ù„Ù… ÙŠØªÙ… Ø¥Ø¹Ø¯Ø§Ø¯ Ø³Ø¬Ù„ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¨Ø¹Ø¯.",
+      examReviewSetupHint: "Ø´ØºÙ‘Ù„ Ù…Ù„Ù SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ù€ Segment 6.4 ÙÙŠ Supabase Ø«Ù… Ø£Ø¹Ø¯ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØµÙØ­Ø©.",
+      examReviewActive: "Ù†Ø´Ø·Ø©",
+      examReviewRevisitCount: "ØªØ­ØªØ§Ø¬ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø£Ø®Ø±Ù‰",
+      examReviewReviewedCount: "ØªÙ…Øª Ù…Ø±Ø§Ø¬Ø¹ØªÙ‡Ø§",
+      examReviewSyncing: "Ø¬Ø§Ø±Ù Ù…Ø²Ø§Ù…Ù†Ø© Ø¢Ø®Ø± ØªØ³Ù„ÙŠÙ… Ù…Ø¹ Ø³Ø¬Ù„ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©â€¦",
+      examReviewSyncError: "ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØ³Ù„ÙŠÙ…ØŒ Ù„ÙƒÙ† ØªØ¹Ø°Ø±Øª Ù…Ø²Ø§Ù…Ù†Ø© Ø³Ø¬Ù„ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©. Ø§Ø¶ØºØ· ØªØ³Ù„ÙŠÙ… Ù…Ø±Ø© Ø£Ø®Ø±Ù‰ Ù„Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ø¨Ø£Ù…Ø§Ù†.",
+      examReviewFilterYear: "Ø§Ù„Ø³Ù†Ø©",
+      examReviewFilterSession: "Ø§Ù„ÙØªØ±Ø©",
+      examReviewFilterSet: "Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†",
+      examReviewFilterStatus: "Ø­Ø§Ù„Ø© Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      examReviewFilterActive: "Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù†Ø´Ø·Ø©",
+      examReviewAll: "Ø§Ù„ÙƒÙ„",
+      examReviewIncludeExcluded: "Ø¥Ø¸Ù‡Ø§Ø± ØºÙŠØ± Ø°ÙŠ Ø§Ù„ØµÙ„Ø©",
+      examReviewDataBasis: "Ø­Ø¬Ù… Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª",
+      examReviewAbsoluteSummary: (count, assessed) => `${count} Ø³Ø¤Ø§Ù„ Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Â· ${assessed} Ø³Ø¤Ø§Ù„ Ø¨Ø¥Ø¬Ø§Ø¨Ø© Ø±Ø³Ù…ÙŠØ© Ù…ÙˆØ«Ù‚Ø©`,
+      examReviewStatus: "Ø§Ù„Ø­Ø§Ù„Ø©",
+      examReviewStatusUnreviewed: "Ù„Ù… ØªØªÙ… Ù…Ø±Ø§Ø¬Ø¹ØªÙ‡",
+      examReviewStatusReviewed: "ØªÙ…Øª Ù…Ø±Ø§Ø¬Ø¹ØªÙ‡",
+      examReviewStatusRevisit: "Ø±Ø§Ø¬Ø¹ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰",
+      examReviewNotRelevant: "ØºÙŠØ± Ø°ÙŠ ØµÙ„Ø© Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      examReviewNote: "Ù…Ù„Ø§Ø­Ø¸Ø© ØªØ¹Ù„Ù… Ø®Ø§ØµØ©",
+      examReviewNotePlaceholder: "Ø§ÙƒØªØ¨ Ù†Ù‚Ø·Ø© Ù‚ØµÙŠØ±Ø© ØªØ±ÙŠØ¯ ØªØ°ÙƒØ±Ù‡Ø§ ÙÙŠ Ø§Ù„Ù…Ø±Ø© Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©â€¦",
+      examReviewWrongCount: (count) => `${count} Ø®Ø·Ø£`,
+      examReviewUnansweredCount: (count) => `${count} Ø¯ÙˆÙ† Ø¥Ø¬Ø§Ø¨Ø©`,
+      examReviewMarkedCount: (count) => `${count} Ù…Ø¹Ù„Ù‘Ù…`,
+      examReviewYourAnswer: "Ø¢Ø®Ø± Ø¥Ø¬Ø§Ø¨Ø© Ù„Ùƒ",
+      examReviewOfficialAnswer: "Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø§Ù„Ø±Ø³Ù…ÙŠØ©",
+      examReviewNoVerifiedAnswer: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¥Ø¬Ø§Ø¨Ø© Ù…ÙˆØ«Ù‚Ø©",
+      examReviewOpenMcq: "ÙØªØ­ MCQ",
+      examReviewOpenPdf: "PDF Ø§Ù„Ø£ØµÙ„ÙŠ",
+      examReviewSaving: "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸â€¦",
+      examReviewSaved: "ØªÙ… Ø§Ù„Ø­ÙØ¸",
+      examReviewSaveError: "ØªØ¹Ø°Ø± Ø§Ù„Ø­ÙØ¸",
+      examReviewEmptyTitle: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø³Ø¦Ù„Ø© Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¨Ø¹Ø¯",
+      examReviewEmptyText: "Ø³ØªØ¸Ù‡Ø± Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø°Ø§Øª Ø§Ù„ØµÙ„Ø© Ù‡Ù†Ø§ ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§ Ø¨Ø¹Ø¯ ØªØ³Ù„ÙŠÙ… Ø§Ù„ØªØ¯Ø±ÙŠØ¨.",
+      examReviewNoMatches: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù†Ø§ØµØ± ØªØ·Ø§Ø¨Ù‚ Ø¹ÙˆØ§Ù…Ù„ Ø§Ù„ØªØµÙÙŠØ©",
+      examReviewNoMatchesHint: "ØºÙŠÙ‘Ø± Ø¹ÙˆØ§Ù…Ù„ Ø§Ù„ØªØµÙÙŠØ© Ø£Ùˆ Ø£Ø¸Ù‡Ø± Ø§Ù„Ø¹Ù†Ø§ØµØ± ØºÙŠØ± Ø°Ø§Øª Ø§Ù„ØµÙ„Ø©.",
+      examReviewUnknownSet: "Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù…ØªØ­Ø§Ù† ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙØ©",
+      examReviewSourceMissing: "ØªØ¹Ø°Ø± Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ø³Ø¤Ø§Ù„ Ø§Ù„Ø£ØµÙ„ÙŠ Ø¨Ø£Ù…Ø§Ù† Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Ù…Ø¹Ø±Ù‘Ù Ø§Ù„Ø³Ø¤Ø§Ù„. Ù„Ù… ÙŠØªÙ… Ø§Ù„ØªØ®Ù…ÙŠÙ†.",
+      examSetOriginalImages: "Ø§Ù„ØµÙˆØ± Ø§Ù„Ø£ØµÙ„ÙŠØ©",
+      examSetOriginalImage: "ØµÙˆØ±Ø© ÙˆØ§Ø­Ø¯Ø©",
+      examSetOriginalImagesCount: (count) => `${count} ØµÙˆØ±`,
+      examSetEditorTitle: "Ù…Ø­Ø±Ø± PDF",
+      examSetEditorIntro: "ØªØ­Ù‚Ù‚ Ù…Ù† ØµÙØ­Ø§Øª Ø§Ù„Ù…ØµØ¯Ø± Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø© Ø¨ÙƒÙ„ Ø³Ø¤Ø§Ù„ ÙˆØªØ­ÙƒÙ… ÙÙŠ ÙÙˆØ§ØµÙ„ Ø§Ù„ØµÙØ­Ø§Øª ÙÙŠ Ù…Ù„Ù PDF Ø§Ù„Ù…ÙˆØ­Ù‘Ø¯.",
+      examSetEditorQuestions: "Ø£Ø³Ø¦Ù„Ø©",
+      examSetEditorMultiPage: "ØªÙ…ØªØ¯ Ø¹Ù„Ù‰ Ø¹Ø¯Ø© ØµÙØ­Ø§Øª",
+      examSetEditorNeedsCheck: "ØªØ­ØªØ§Ø¬ Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      examSetEditorFont: "Ø§Ù„Ø®Ø· Ø§Ù„Ù‚ÙŠØ§Ø³ÙŠ",
+      examSetEditorPurpose: "ØªØ¨Ù‚Ù‰ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© ÙˆØ§Ù„Ø®ÙŠØ§Ø±Ø§Øª ÙˆØ§Ù„ØµÙˆØ± Ù…Ù† Ù…Ù„Ù Ø§Ù„Ø£Ø³Ø¦Ù„Ø©. Ù„Ø§ ØªÙØ¹ØªÙ…Ø¯ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø¥Ù„Ø§ Ø¨Ø¯Ù„ÙŠÙ„ Ù…Ø³ØªÙ†Ø¯ Ø¢Ù…Ù† Ø£Ùˆ Ù…Ø±Ø§Ø¬Ø¹Ø© ÙŠØ¯ÙˆÙŠØ© Ù…Ù‚Ø§Ø¨Ù„ Ù…Ù„Ù Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª.",
+      examSetEditorStartPage: "Ù…Ù† ØµÙØ­Ø©",
+      examSetEditorEndPage: "Ø¥Ù„Ù‰ ØµÙØ­Ø©",
+      examSetEditorKeepTogether: "Ø¥Ø¨Ù‚Ø§Ø¡ Ø§Ù„Ø³Ø¤Ø§Ù„ Ù…Ø¹Ø§Ù‹",
+      examSetEditorPageBreak: "ØµÙØ­Ø© PDF Ø¬Ø¯ÙŠØ¯Ø© Ù‚Ø¨Ù„",
+      examSetEditorHasImage: "ØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ ØµÙˆØ±Ø© Ø£ØµÙ„ÙŠØ©",
+      examSetEditorNoImage: "Ù„Ø§ ØªÙˆØ¬Ø¯ ØµÙˆØ±Ø©",
+      examSetEditorCheck: "Ø±Ø§Ø¬Ø¹",
+      examSetEditorPrintAnswers: "ØªØ¶Ù…ÙŠÙ† Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø§Øª ÙÙŠ PDF Ø§Ù„Ù…ÙˆÙ„Ù‘Ø¯",
+      examSetEditorGeneratePdf: "Ø¥Ù†Ø´Ø§Ø¡ PDF Ù…ÙˆØ­Ù‘Ø¯",
+      examSetEditorReanalyse: "Ø¥Ø¹Ø§Ø¯Ø© ØªØ­Ù„ÙŠÙ„ Ù…Ù„ÙØ§Øª PDF",
+      examSetEditorSave: "Ø­ÙØ¸ Ø§Ù„ØªØµØ­ÙŠØ­Ø§Øª",
+      examSetEditorSaving: "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸â€¦",
+      examSetEditorVerified: "ØªÙ… Ø§Ù„ØªØ­Ù‚Ù‚",
+      examSetEditorReview: "ÙŠØ­ØªØ§Ø¬ Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      examSetEditorBlocked: "Ù…Ø­Ø¸ÙˆØ±",
+      examSetEditorEvidence: "Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+      examSetEditorMatch: "Ù…Ø·Ø§Ø¨Ù‚Ø© Ø§Ù„Ù…Ø³ØªÙ†Ø¯",
+      examSetEditorAnswerPage: "ØµÙØ­Ø© Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+      examSetEditorCandidate: "Ù…Ø±Ø´Ø­",
+      examSetEditorApprove: "Ø§Ø¹ØªÙ…Ø§Ø¯ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+      examSetEditorApproved: "ØªÙ… Ø§Ù„ØªØ­Ù‚Ù‚ ÙŠØ¯ÙˆÙŠÙ‹Ø§",
+      examSetEditorClearApproval: "Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ Ø§Ù„ÙŠØ¯ÙˆÙŠ",
+      examSetEditorNoEvidence: "Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø¯Ù„ÙŠÙ„ Ø¥Ø¬Ø§Ø¨Ø© Ø¢Ù…Ù†",
+      examSetEditorAiChecked: "ØªØ­Ù‚Ù‚ Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ Ù…Ù† Ø¹Ù„Ø§Ù…Ø© Ø§Ù„Ù…Ø³ØªÙ†Ø¯",
+      examSetEditorOpenAnswerPage: "Ø¹Ø±Ø¶ ØµÙØ­Ø© Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©",
+      examSetEditorOpen: "Ù…Ø­Ø±Ø± PDF",
+      examSetEditorSaved: "ØªÙ… Ø­ÙØ¸ Ø±Ø¨Ø· Ø§Ù„ØµÙØ­Ø§Øª ÙÙŠ Ù…Ø­Ø±Ø± PDF.",
+      examSetEditorOwnerOnly: "ÙŠÙ…ÙƒÙ† Ù„Ù„Ø±Ø§ÙØ¹ ÙÙ‚Ø· ØªØ¹Ø¯ÙŠÙ„ Ù…Ø­Ø±Ø± PDF Ø§Ù„Ù…Ø´ØªØ±Ùƒ.",
+      examSetEditorRebuilt: "ØªÙ…Øª Ø¥Ø¹Ø§Ø¯Ø© ØªØ­Ù„ÙŠÙ„ Ù…Ù„ÙØ§Øª PDF Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Ù…Ø­Ù„Ù„ SDU Ø§Ù„Ù…Ø­Ø³Ù†.",
+      examSetEditorPrintError: "ØªØ¹Ø°Ø± Ø¥Ø¹Ø¯Ø§Ø¯ Ù…Ù„Ù PDF Ø§Ù„Ù…ÙˆØ­Ù‘Ø¯.",
+      upload: "Ø¥Ø¶Ø§ÙØ© Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù…ØªØ­Ø§Ù†",
+      replace: "Ø§Ø³ØªØ¨Ø¯Ø§Ù„ PDF",
+      noPdf: "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù…Ù„Ù PDF Ù…Ø±ØªØ¨Ø· Ø¨Ù‡Ø°Ø§ Ø§Ù„Ø¹Ù†ØµØ± Ø¨Ø¹Ø¯.",
+      selectItem: "Ø§Ø®ØªØ± Ø¹Ù†ØµØ±Ù‹Ø§ Ù…Ù† Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ù„ÙØªØ­ Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„.",
+      ownNotes: "Ù…Ù„Ø§Ø­Ø¸Ø§ØªÙŠ",
+      sharedNotes: "Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ù…Ø´ØªØ±ÙƒØ©",
+      sharedPrivate: "Ø®Ø§Øµ",
+      sharedPublished: "Ù…Ø´Ø§Ø±Ùƒ",
+      sharedReadOnly: "Ù„Ù„Ù‚Ø±Ø§Ø¡Ø© ÙÙ‚Ø·",
+      sharedShareNote: "Ù…Ø´Ø§Ø±ÙƒØ© Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø©",
+      sharedUpdateNote: "ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„Ù…Ø´ØªØ±ÙƒØ©",
+      sharedStopSharing: "Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ©",
+      sharedStopConfirm: "Ù‡Ù„ ØªØ±ÙŠØ¯ Ø¥ÙŠÙ‚Ø§Ù Ù…Ø´Ø§Ø±ÙƒØ© Ù…Ù„Ø§Ø­Ø¸Ø© Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©ØŸ Ù„Ù† ÙŠØªÙ… Ø­Ø°Ù Ù…Ù„Ø§Ø­Ø¸ØªÙƒ Ø§Ù„Ø®Ø§ØµØ©.",
+      sharedExplicitHint: "Ù„Ø§ ØªØªÙ… Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ© Ø¥Ù„Ø§ Ø¹Ù†Ø¯Ù…Ø§ ØªÙ†Ø´Ø± Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø© Ø¨Ù†ÙØ³Ùƒ. Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª Ø§Ù„Ø®Ø§ØµØ© Ø§Ù„Ù„Ø§Ø­Ù‚Ø© Ù„Ø§ ØªÙØ´Ø§Ø±Ùƒ ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§.",
+      sharedPublishedHint: "ÙŠÙ…ÙƒÙ† Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠ MedFLUEN Ø§Ù„Ø¢Ø®Ø±ÙŠÙ† Ù‚Ø±Ø§Ø¡Ø© Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„Ù…Ù†Ø´ÙˆØ±Ø©ØŒ Ø¨ÙŠÙ†Ù…Ø§ ØªØ¨Ù‚Ù‰ Ù…Ø³ÙˆØ¯ØªÙƒ Ø§Ù„Ø®Ø§ØµØ© Ù…Ù†ÙØµÙ„Ø©.",
+      sharedUpdateAvailable: "ØªÙ… ØªØ¹Ø¯ÙŠÙ„ Ù…Ù„Ø§Ø­Ø¸ØªÙƒ Ø§Ù„Ø®Ø§ØµØ© Ù…Ù†Ø° Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„Ù…Ø´ØªØ±ÙƒØ©.",
+      sharedNoContent: "Ø§ÙƒØªØ¨ Ø´ÙŠØ¦Ù‹Ø§ ÙÙŠ Ù…Ù„Ø§Ø­Ø¸ØªÙƒ Ø§Ù„Ø®Ø§ØµØ© Ù‚Ø¨Ù„ Ù…Ø´Ø§Ø±ÙƒØªÙ‡Ø§.",
+      sharedPublishing: "Ø¬Ø§Ø±Ù Ø§Ù„Ù†Ø´Ø±â€¦",
+      sharedPublishSuccess: "ØªÙ…Øª Ù…Ø´Ø§Ø±ÙƒØ© Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø© ÙƒÙ†Ø³Ø®Ø© Ù„Ù„Ù‚Ø±Ø§Ø¡Ø© ÙÙ‚Ø·.",
+      sharedUpdateSuccess: "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø© Ø§Ù„Ù…Ø´ØªØ±ÙƒØ© Ø¥Ù„Ù‰ Ù†Ø³Ø®Ø© Ø¬Ø¯ÙŠØ¯Ø©.",
+      sharedUnshareSuccess: "ØªÙ… Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ù…Ø´Ø§Ø±ÙƒØ© Ù…Ø¹ Ø§Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨Ù…Ù„Ø§Ø­Ø¸ØªÙƒ Ø§Ù„Ø®Ø§ØµØ©.",
+      sharedLoad: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ù…Ø´ØªØ±ÙƒØ©â€¦",
+      sharedRefresh: "ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ù…Ø´ØªØ±ÙƒØ©",
+      sharedEmptyTitle: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ù…Ø´ØªØ±ÙƒØ© Ø¨Ø¹Ø¯",
+      sharedEmptyText: "Ø¹Ù†Ø¯Ù…Ø§ ÙŠØ´Ø§Ø±Ùƒ Ø·Ø§Ù„Ø¨ Ù…Ù„Ø§Ø­Ø¸Ø© Ù„Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø¨Ø´ÙƒÙ„ ØµØ±ÙŠØ­ØŒ Ø³ØªØ¸Ù‡Ø± Ù‡Ù†Ø§ Ù„Ù„Ù‚Ø±Ø§Ø¡Ø© ÙÙ‚Ø·.",
+      sharedCount: (count) => count === 1 ? "Ù…Ù„Ø§Ø­Ø¸Ø© Ù…Ø´ØªØ±ÙƒØ© ÙˆØ§Ø­Ø¯Ø©" : `${count} Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ù…Ø´ØªØ±ÙƒØ©`,
+      sharedVersion: (version) => `Ø§Ù„Ø¥ØµØ¯Ø§Ø± ${version}`,
+      sharedUpdated: "Ø¢Ø®Ø± ØªØ­Ø¯ÙŠØ«",
+      sharedYou: "Ø£Ù†Øª",
+      sharedAnonymous: "Ø·Ø§Ù„Ø¨",
+      sharedSetupMissing: "Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ù…Ø´ØªØ±ÙƒØ© ØºÙŠØ± Ù…Ù‡ÙŠØ£Ø©. Ø´ØºÙ‘Ù„ Ù…Ù„Ù SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ù…Ù‚Ø·Ø¹ 5.7 ÙÙŠ Supabase.",
+      sharedLoadError: "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ù…Ø´ØªØ±ÙƒØ©.",
+      sharedActionError: "ØªØ¹Ø°Ø± ØªÙ†ÙÙŠØ° Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡. Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
+      notesPlaceholder: "Ø§ÙƒØªØ¨ Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ù„Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©â€¦",
+      noteFreeView: "Ù…Ù„Ø§Ø­Ø¸Ø© Ø­Ø±Ø©",
+      noteStructuredView: "Ù…Ù†Ø¸Ù…Ø©",
+      noteKeyPoints: "Ø§Ù„Ù†Ù‚Ø§Ø· Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©",
+      noteClinicalPoints: "Ù†Ù‚Ø§Ø· Ø³Ø±ÙŠØ±ÙŠØ©",
+      noteOpenQuestions: "Ø£Ø³Ø¦Ù„Ø© ØºÙŠØ± Ù…Ø­Ø³ÙˆÙ…Ø©",
+      noteKeyPointsPlaceholder: "Ø§ÙƒØªØ¨ Ø£Ù‡Ù… Ø§Ù„Ù†Ù‚Ø§Ø· Ù…Ù† Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©â€¦",
+      noteClinicalPointsPlaceholder: "Ø§ÙƒØªØ¨ Ø§Ù„Ù†Ù‚Ø§Ø· Ø§Ù„Ø³Ø±ÙŠØ±ÙŠØ© Ø£Ùˆ Ø¹Ù„Ø§Ù…Ø§Øª Ø§Ù„Ø®Ø·Ø± Ø£Ùˆ Ø§Ù„Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ø¹Ù…Ù„ÙŠØ©â€¦",
+      noteOpenQuestionsPlaceholder: "Ø§ÙƒØªØ¨ Ù…Ø§ Ù„Ø§ ÙŠØ²Ø§Ù„ ÙŠØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ ØªÙˆØ¶ÙŠØ­â€¦",
+      noteLoading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ù…Ù„Ø§Ø­Ø¸Ø§ØªÙƒâ€¦",
+      noteSaving: "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸â€¦",
+      noteSaved: "ØªÙ… Ø§Ù„Ø­ÙØ¸",
+      noteLocalOnly: "Ù…Ø­Ù„ÙŠ ÙÙ‚Ø·",
+      noteSyncError: "ØªØ¹Ø°Ø±Øª Ø§Ù„Ù…Ø²Ø§Ù…Ù†Ø©. ØªÙ… Ø§Ù„Ø§Ø­ØªÙØ§Ø¸ Ø¨Ø§Ù„Ù…Ø³ÙˆØ¯Ø© Ø§Ù„Ù…Ø­Ù„ÙŠØ©.",
+      noteSetupMissing: "Ù…Ø®Ø²Ù† Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª ØºÙŠØ± Ù…Ù‡ÙŠØ£. Ø´ØºÙ‘Ù„ Ù…Ù„Ù SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ù…Ù‚Ø·Ø¹ 5.6 ÙÙŠ Supabase.",
+      noteExportText: "ØªØµØ¯ÙŠØ± ÙƒÙ†Øµ",
+      noteExportMarkdown: "ØªØµØ¯ÙŠØ± Markdown",
+      sessionOnly: "ØªØ¨Ù‚Ù‰ Ù…Ù„ÙØ§Øª PDF Ù…ØªØ§Ø­Ø© Ø®Ù„Ø§Ù„ Ø¬Ù„Ø³Ø© Ø§Ù„Ù…ØªØµÙØ­ Ø§Ù„Ø­Ø§Ù„ÙŠØ© ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù†Ø³Ø®Ø© Ø§Ù„Ø£ÙˆÙ„Ù‰.",
+      pdfViewer: "Ø¹Ø§Ø±Ø¶ PDF",
+      noLectures: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ù„Ù„ÙˆØ­Ø¯Ø© Ø§Ù„Ù…Ø®ØªØ§Ø±Ø©.",
+      noExamSets: "Ù„Ù… ØªØªÙ… Ø¥Ø¶Ø§ÙØ© Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù…ØªØ­Ø§Ù† Ø¨Ø¹Ø¯.",
+      openSeparate: "ÙØªØ­ Ù…Ù†ÙØµÙ„",
+      close: "Ø¥ØºÙ„Ø§Ù‚ Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„",
+      viewed: "ØªÙ…Øª Ø§Ù„Ù…Ø´Ø§Ù‡Ø¯Ø©",
+      notViewed: "Ù„Ù… ØªØªÙ… Ø§Ù„Ù…Ø´Ø§Ù‡Ø¯Ø©",
+      mastery: "Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø¥ØªÙ‚Ø§Ù†",
+      masteryUnrated: "ØºÙŠØ± Ù…Ù‚ÙŠÙ‘Ù…",
+      masteryUncertain: "ØºÙŠØ± Ù…ØªØ£ÙƒØ¯",
+      masteryDeveloping: "Ù‚ÙŠØ¯ Ø§Ù„ØªØ·ÙˆØ±",
+      masteryConfident: "ÙˆØ§Ø«Ù‚",
+      timesViewed: "Ù…Ø±Ø§Øª Ø§Ù„Ù…Ø´Ø§Ù‡Ø¯Ø©",
+      lectureOverview: "Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+      moduleOverview: "Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø© Ø¹Ù„Ù‰ Ø§Ù„ÙˆØ­Ø¯Ø©",
+      moduleOverviewHeld: "Ù…Ù†Ø¹Ù‚Ø¯Ø©",
+      moduleOverviewSelfStudy: "Ø¯Ø±Ø§Ø³Ø© Ø°Ø§ØªÙŠØ©",
+      moduleOverviewSelfStudyHint: "Ù…ÙƒØªÙ…Ù„Ø© ÙƒØ¯Ø±Ø§Ø³Ø© Ø°Ø§ØªÙŠØ©",
+      moduleOverviewFollowUp: "Ù…ØªØ§Ø¨Ø¹Ø©",
+      moduleOverviewMissingMaterial: "Ø¨Ø¯ÙˆÙ† Ù…ÙˆØ§Ø¯",
+      filterAll: "Ø§Ù„ÙƒÙ„",
+      filterFavorites: "Ø§Ù„Ù…Ù…ÙŠØ²Ø©",
+      favoriteLecture: "ØªÙ…ÙŠÙŠØ² Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©",
+      unfavoriteLecture: "Ø¥Ø²Ø§Ù„Ø© Ø§Ù„ØªÙ…ÙŠÙŠØ²",
+      viewerLibrary: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª",
+      viewerNotes: "Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª",
+      viewerFocus: "ØªØ±ÙƒÙŠØ²",
+      viewerExitFocus: "Ø¥Ù†Ù‡Ø§Ø¡ Ø§Ù„ØªØ±ÙƒÙŠØ²",
+      viewerMaterials: "Ø§Ù„Ù…ÙˆØ§Ø¯", viewerMore: "Ø§Ù„Ù…Ø²ÙŠØ¯",
+      viewerShowPanel: "Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„Ù„ÙˆØ­Ø©",
+      viewerHidePanel: "Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ù„ÙˆØ­Ø©",
+      filterUpcoming: "Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©",
+      filterHeld: "Ø§Ù„Ù…Ù†Ø¹Ù‚Ø¯Ø©",
+      filterNotReviewed: "Ù„Ù… ØªØªÙ… Ù…Ø±Ø§Ø¬Ø¹ØªÙ‡Ø§",
+      filterSelfStudy: "Ø¯Ø±Ø§Ø³Ø© Ø°Ø§ØªÙŠØ©",
+      filterMissingMaterial: "Ø¨Ø¯ÙˆÙ† Ù…ÙˆØ§Ø¯",
+      filterFollowUp: "Ù…ØªØ§Ø¨Ø¹Ø©",
+      sortLecturesLabel: "ØªØ±ØªÙŠØ¨",
+      sortLecturesNumber: "Ø§Ù„Ø±Ù‚Ù…",
+      sortLecturesDate: "Ø§Ù„ØªØ§Ø±ÙŠØ®",
+      followUp: "Ù…ØªØ§Ø¨Ø¹Ø©",
+      followUpShort: "Ù…ØªØ§Ø¨Ø¹Ø©",
+      followUpTitle: "Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©",
+      followUpIntro: "Ø­Ø¯Ù‘Ø¯ Ø³Ø¨Ø¨ Ø­Ø§Ø¬Ø© Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø¥Ù„Ù‰ Ù…ØªØ§Ø¨Ø¹Ø©. ÙŠÙ…ÙƒÙ†Ùƒ Ø­ÙØ¸ Ø§Ù„Ø¹Ù„Ø§Ù…Ø© ÙÙ‚Ø· Ø£Ùˆ Ø¥Ø±Ø³Ø§Ù„Ù‡Ø§ Ù…Ø¨Ø§Ø´Ø±Ø© Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©.",
+      followUpMissingMaterial: "Ø§Ù„Ù…ÙˆØ§Ø¯ Ù†Ø§Ù‚ØµØ©",
+      followUpReread: "ØªØ­ØªØ§Ø¬ Ø¥Ø¹Ø§Ø¯Ø© Ù‚Ø±Ø§Ø¡Ø©",
+      followUpUnresolved: "Ù…ÙˆØ¶ÙˆØ¹ ØºÙŠØ± Ù…Ø­Ø³ÙˆÙ…",
+      followUpAbsence: "ØºÙŠØ§Ø¨",
+      followUpOther: "Ø£Ø®Ø±Ù‰",
+      followUpComment: "ØªØ¹Ù„ÙŠÙ‚ Ø´Ø®ØµÙŠ",
+      followUpCommentPlaceholder: "Ø£Ø¶Ù Ù…Ø§ ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ù…ØªØ§Ø¨Ø¹ØªÙ‡ Ø¥Ù† Ø±ØºØ¨Øªâ€¦",
+      followUpSave: "Ø­ÙØ¸ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©",
+      followUpSend: "Ø¥Ø±Ø³Ø§Ù„ Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      followUpUpdatePlan: "ØªØ­Ø¯ÙŠØ« Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      followUpRemove: "Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©",
+      followUpSaved: "ØªÙ… Ø­ÙØ¸ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©.",
+      followUpSent: "ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø¯ÙˆÙ† Ø¥Ù†Ø´Ø§Ø¡ Ù†Ø´Ø§Ø· Ø¥Ø¶Ø§ÙÙŠ Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ù…ÙˆØ¬ÙˆØ¯Ø© Ø¨Ø§Ù„ÙØ¹Ù„ ÙÙŠ Ø§Ù„Ø®Ø·Ø©.",
+      followUpRemoved: "ØªÙ…Øª Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©.",
+      followUpPlanMissing: "Ø£Ù†Ø´Ø¦ Ø£Ùˆ ÙØ¹Ù‘Ù„ Ø®Ø·Ø© Ø¯Ø±Ø§Ø³Ø© Ù‚Ø¨Ù„ Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¥Ù„ÙŠÙ‡Ø§.",
+      followUpPlanCurrent: "Ù…Ø±Ø³Ù„Ø© Ø¥Ù„Ù‰ Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      followUpPlanOutdated: "ØªØºÙŠÙ‘Ø±Øª Ù…Ù†Ø° Ø¢Ø®Ø± Ø¥Ø±Ø³Ø§Ù„",
+      followUpChooseReason: "Ø§Ø®ØªØ± Ø³Ø¨Ø¨Ù‹Ø§ ÙˆØ§Ø­Ø¯Ù‹Ø§ Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„ Ø£Ùˆ Ø§ÙƒØªØ¨ ØªØ¹Ù„ÙŠÙ‚Ù‹Ø§.",
+      lectureNoMatches: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø­Ø§Ø¶Ø±Ø§Øª ØªØ·Ø§Ø¨Ù‚ Ø§Ù„Ø¨Ø­Ø« Ø£Ùˆ Ø¹Ø§Ù…Ù„ Ø§Ù„ØªØµÙÙŠØ© Ø§Ù„Ù…Ø­Ø¯Ø¯.",
+      collapseGroup: "Ø·ÙŠ Ø§Ù„Ù…Ø¬Ø§Ù„",
+      expandGroup: "ØªÙˆØ³ÙŠØ¹ Ø§Ù„Ù…Ø¬Ø§Ù„",
+      scheduleHeld: "Ù…Ù†Ø¹Ù‚Ø¯Ø©",
+      schedulePartial: "Ù…Ù†Ø¹Ù‚Ø¯Ø© Ø¬Ø²Ø¦ÙŠÙ‹Ø§",
+      scheduleUpcoming: "Ù‚Ø§Ø¯Ù…Ø©",
+      scheduleUnscheduled: "Ø¨Ø¯ÙˆÙ† Ù…ÙˆØ¹Ø¯ SDU",
+      reviewedLabel: "ØªÙ…Øª Ù…Ø±Ø§Ø¬Ø¹ØªÙ‡Ø§",
+      notReviewedLabel: "Ù„Ù… ØªØªÙ… Ù…Ø±Ø§Ø¬Ø¹ØªÙ‡Ø§",
+      materialReady: "Ø§Ù„Ù…Ø§Ø¯Ø© Ù…Ø±ÙÙ‚Ø©",
+      materialMissing: "Ø§Ù„Ù…Ø§Ø¯Ø© Ù…ÙÙ‚ÙˆØ¯Ø©",
+      attendance: "Ø§Ù„Ø­Ø¶ÙˆØ±",
+      attendanceUnmarked: "ØºÙŠØ± Ù…Ø­Ø¯Ø¯",
+      attendanceAttended: "Ø­Ø¶Ø±Øª",
+      attendanceMissed: "Ù„Ù… Ø£Ø­Ø¶Ø±",
+      selfStudyStatus: "Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø§Ù„Ø°Ø§ØªÙŠØ©",
+      selfStudyNotStarted: "Ù„Ù… ØªØ¨Ø¯Ø£",
+      selfStudyInProgress: "Ù‚ÙŠØ¯ Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      selfStudyReviewed: "ØªÙ…Øª Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©",
+      deckStatus: "Ø§Ù„Ø­Ø²Ù…Ø© Ø§Ù„Ù…Ø±ØªØ¨Ø·Ø©",
+      deckUnavailable: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø­Ø²Ù…Ø© Ù…Ø±ØªØ¨Ø·Ø©",
+      deckNotStarted: "Ù„Ù… ØªØ¨Ø¯Ø£ Ø§Ù„Ø­Ø²Ù…Ø©",
+      deckInProgress: "Ø§Ù„Ø­Ø²Ù…Ø© Ù‚ÙŠØ¯ Ø§Ù„Ø¯Ø±Ø§Ø³Ø©",
+      deckReviewed: "Ø§ÙƒØªÙ…Ù„Øª Ø§Ù„Ø­Ø²Ù…Ø©",
+      deckQuestions: (reviewed, total) => `${reviewed}/${total} Ø³Ø¤Ø§Ù„`,
+      showingLectures: (shown, total) => `${shown} Ù…Ù† ${total} Ù…Ø­Ø§Ø¶Ø±Ø©`,
+      previousLecture: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„Ø³Ø§Ø¨Ù‚Ø©",
+      nextLecture: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„ØªØ§Ù„ÙŠØ©",
+      favoritePreviousLecture: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„Ù…Ù…ÙŠØ²Ø© Ø§Ù„Ø³Ø§Ø¨Ù‚Ø©",
+      favoriteNextLecture: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„Ù…Ù…ÙŠØ²Ø© Ø§Ù„ØªØ§Ù„ÙŠØ©",
+      viewerResumePage: (page) => `Ù…ØªØ§Ø¨Ø¹Ø© Â· Ø§Ù„ØµÙØ­Ø© ${page}`,
+      viewerSearchShortcut: "Ø§Ø¶ØºØ· / Ù„Ù„Ø¨Ø­Ø«",
       lecturePosition: (current, total) => `${current}/${total}`,
-      openLectureLink: "فتح رابط المحاضرة",
-      scheduleLocation: "المكان",
-      lectureHeader: "المحاضرة المختارة",
-      sduSessions: (count) => count === 1 ? "جلسة تدريس واحدة" : `${count} جلسات تدريس`,
-      sduMatchEdit: "تصحيح مطابقة SDU",
-      sduMatchTitle: "ربط تدريس SDU",
-      sduMatchIntro: "تُحفظ مطابقة المسؤول عالميًا وتُستخدم لجميع الطلاب، بينما تبقى بيانات التقويم الخاصة خاصة.",
-      sduMatchSearch: "البحث في أحداث SDU…",
-      sduMatchCurrent: "مرتبط بهذه المحاضرة",
-      sduMatchAttach: "ربط",
-      sduMatchRemove: "إزالة",
-      sduMatchAutomatic: "استخدام المطابقة التلقائية",
-      sduMatchManual: "مطابقة مسؤول عامة",
-      sduMatchOtherLecture: "مطابق لـ",
-      sduMatchNone: "بدون محاضرة",
-      sduMatchEmpty: "لا توجد أحداث SDU مطابقة للبحث.",
-      sduMatchClose: "تم",
-      addMaterial: "إضافة مادة",
-      materialLibrary: "المواد",
-      materialLibraryEmpty: "لم تتم إضافة مواد لهذه المحاضرة بعد.",
-      materialPermanent: "تتم مشاركة مواد المسؤول العامة مع جميع المستخدمين، بينما تبقى الرفوعات الخاصة لك فقط.",
-      materialVisibility: "الرؤية",
-      materialVisibilityGlobal: "عام للجميع",
-      materialVisibilityPrivate: "لي فقط",
-      materialGlobalLabel: "عام",
-      materialPrivateLabel: "خاص",
-      materialMakeGlobal: "اجعلها عامة",
-      materialMakePrivate: "اجعلها خاصة",
-      materialVisibilityGlobalHint: "مادة أساسية للمحاضرة يمكن لجميع مستخدمي الوحدة فتحها.",
-      materialVisibilityPrivateHint: "مادة شخصية لا يراها سواك.",
-      materialLoading: "جارٍ تحميل المواد…",
-      materialSetupMissing: "لم يتم إعداد مخزن المواد. شغّل ملف SQL الخاص بالقسم 5.4 في Supabase.",
-      materialUploadTitle: "إضافة مادة",
-      materialEditTitle: "تعديل المادة",
-      materialFiles: "الملفات المحددة",
-      materialName: "اسم العرض",
-      materialType: "نوع المادة",
-      materialPrimary: "المادة الأساسية",
-      materialPrimaryHint: "تُفتح تلقائيًا عند اختيار المحاضرة.",
-      materialSave: "حفظ المادة",
-      materialCancel: "إلغاء",
-      materialSetPrimary: "تعيين كأساسية",
-      materialPrimaryLabel: "أساسية",
-      materialRename: "تعديل",
-      materialReplace: "استبدال الملف",
-      materialDelete: "حذف",
-      materialDownload: "تنزيل",
-      materialOpen: "فتح",
-      materialNoPreview: "لا يمكن معاينة هذا النوع من الملفات داخل التطبيق.",
-      materialOpenExternally: "افتح الملف أو نزّله لعرض محتواه.",
-      materialUploadError: "تعذر حفظ المادة.",
-      materialDeleteConfirm: "هل تريد حذف هذه المادة نهائيًا؟",
-      materialTooLarge: "حجم الملف أكبر من 50 ميغابايت ولا يمكن رفعه.",
-      materialUnsupported: "نوع الملف غير مدعوم في مكتبة المواد.",
-      materialSaved: "تم حفظ المادة.",
-      materialDeleted: "تم حذف المادة.",
-      materialReplaced: "تم استبدال الملف.",
-      materialUpdated: "تم تحديث المادة.",
-      materialTypeSlides: "شرائح المحاضرة",
-      materialTypeCompendium: "ملزمة",
-      materialTypeArticle: "مقالة",
-      materialTypeOwn: "مستند شخصي",
-      materialTypeSupplement: "مادة إضافية",
-      materialTypeOther: "أخرى",
-      materialAdded: "أضيفت",
-      pdfViewerControls: "عناصر تحكم PDF",
-      pdfLoading: "جارٍ تحميل PDF…",
-      pdfRenderError: "تعذر عرض صفحة PDF.",
-      pdfViewerFallback: "تعذر تحميل عارض PDF المتقدم. سيتم استخدام عارض المتصفح بدلاً منه.",
-      pdfPreviousPage: "الصفحة السابقة",
-      pdfNextPage: "الصفحة التالية",
-      pdfPage: "الصفحة",
-      pdfZoomOut: "تصغير",
-      pdfZoomIn: "تكبير",
-      pdfFitWidth: "ملاءمة العرض",
+      openLectureLink: "ÙØªØ­ Ø±Ø§Ø¨Ø· Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©",
+      scheduleLocation: "Ø§Ù„Ù…ÙƒØ§Ù†",
+      lectureHeader: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø§Ù„Ù…Ø®ØªØ§Ø±Ø©",
+      sduSessions: (count) => count === 1 ? "Ø¬Ù„Ø³Ø© ØªØ¯Ø±ÙŠØ³ ÙˆØ§Ø­Ø¯Ø©" : `${count} Ø¬Ù„Ø³Ø§Øª ØªØ¯Ø±ÙŠØ³`,
+      sduMatchEdit: "ØªØµØ­ÙŠØ­ Ù…Ø·Ø§Ø¨Ù‚Ø© SDU",
+      sduMatchTitle: "Ø±Ø¨Ø· ØªØ¯Ø±ÙŠØ³ SDU",
+      sduMatchIntro: "ØªÙØ­ÙØ¸ Ù…Ø·Ø§Ø¨Ù‚Ø© Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ Ø¹Ø§Ù„Ù…ÙŠÙ‹Ø§ ÙˆØªÙØ³ØªØ®Ø¯Ù… Ù„Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø·Ù„Ø§Ø¨ØŒ Ø¨ÙŠÙ†Ù…Ø§ ØªØ¨Ù‚Ù‰ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ØªÙ‚ÙˆÙŠÙ… Ø§Ù„Ø®Ø§ØµØ© Ø®Ø§ØµØ©.",
+      sduMatchSearch: "Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø£Ø­Ø¯Ø§Ø« SDUâ€¦",
+      sduMatchCurrent: "Ù…Ø±ØªØ¨Ø· Ø¨Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©",
+      sduMatchAttach: "Ø±Ø¨Ø·",
+      sduMatchRemove: "Ø¥Ø²Ø§Ù„Ø©",
+      sduMatchAutomatic: "Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„Ù…Ø·Ø§Ø¨Ù‚Ø© Ø§Ù„ØªÙ„Ù‚Ø§Ø¦ÙŠØ©",
+      sduMatchManual: "Ù…Ø·Ø§Ø¨Ù‚Ø© Ù…Ø³Ø¤ÙˆÙ„ Ø¹Ø§Ù…Ø©",
+      sduMatchOtherLecture: "Ù…Ø·Ø§Ø¨Ù‚ Ù„Ù€",
+      sduMatchNone: "Ø¨Ø¯ÙˆÙ† Ù…Ø­Ø§Ø¶Ø±Ø©",
+      sduMatchEmpty: "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ø­Ø¯Ø§Ø« SDU Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ù„Ø¨Ø­Ø«.",
+      sduMatchClose: "ØªÙ…",
+      addMaterial: "Ø¥Ø¶Ø§ÙØ© Ù…Ø§Ø¯Ø©",
+      materialLibrary: "Ø§Ù„Ù…ÙˆØ§Ø¯",
+      materialLibraryEmpty: "Ù„Ù… ØªØªÙ… Ø¥Ø¶Ø§ÙØ© Ù…ÙˆØ§Ø¯ Ù„Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø© Ø¨Ø¹Ø¯.",
+      materialPermanent: "ØªØªÙ… Ù…Ø´Ø§Ø±ÙƒØ© Ù…ÙˆØ§Ø¯ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ Ø§Ù„Ø¹Ø§Ù…Ø© Ù…Ø¹ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ†ØŒ Ø¨ÙŠÙ†Ù…Ø§ ØªØ¨Ù‚Ù‰ Ø§Ù„Ø±ÙÙˆØ¹Ø§Øª Ø§Ù„Ø®Ø§ØµØ© Ù„Ùƒ ÙÙ‚Ø·.",
+      materialVisibility: "Ø§Ù„Ø±Ø¤ÙŠØ©",
+      materialVisibilityGlobal: "Ø¹Ø§Ù… Ù„Ù„Ø¬Ù…ÙŠØ¹",
+      materialVisibilityPrivate: "Ù„ÙŠ ÙÙ‚Ø·",
+      materialGlobalLabel: "Ø¹Ø§Ù…",
+      materialPrivateLabel: "Ø®Ø§Øµ",
+      materialMakeGlobal: "Ø§Ø¬Ø¹Ù„Ù‡Ø§ Ø¹Ø§Ù…Ø©",
+      materialMakePrivate: "Ø§Ø¬Ø¹Ù„Ù‡Ø§ Ø®Ø§ØµØ©",
+      materialVisibilityGlobalHint: "Ù…Ø§Ø¯Ø© Ø£Ø³Ø§Ø³ÙŠØ© Ù„Ù„Ù…Ø­Ø§Ø¶Ø±Ø© ÙŠÙ…ÙƒÙ† Ù„Ø¬Ù…ÙŠØ¹ Ù…Ø³ØªØ®Ø¯Ù…ÙŠ Ø§Ù„ÙˆØ­Ø¯Ø© ÙØªØ­Ù‡Ø§.",
+      materialVisibilityPrivateHint: "Ù…Ø§Ø¯Ø© Ø´Ø®ØµÙŠØ© Ù„Ø§ ÙŠØ±Ø§Ù‡Ø§ Ø³ÙˆØ§Ùƒ.",
+      materialLoading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…ÙˆØ§Ø¯â€¦",
+      materialSetupMissing: "Ù„Ù… ÙŠØªÙ… Ø¥Ø¹Ø¯Ø§Ø¯ Ù…Ø®Ø²Ù† Ø§Ù„Ù…ÙˆØ§Ø¯. Ø´ØºÙ‘Ù„ Ù…Ù„Ù SQL Ø§Ù„Ø®Ø§Øµ Ø¨Ø§Ù„Ù‚Ø³Ù… 5.4 ÙÙŠ Supabase.",
+      materialUploadTitle: "Ø¥Ø¶Ø§ÙØ© Ù…Ø§Ø¯Ø©",
+      materialEditTitle: "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù…Ø§Ø¯Ø©",
+      materialFiles: "Ø§Ù„Ù…Ù„ÙØ§Øª Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©",
+      materialName: "Ø§Ø³Ù… Ø§Ù„Ø¹Ø±Ø¶",
+      materialType: "Ù†ÙˆØ¹ Ø§Ù„Ù…Ø§Ø¯Ø©",
+      materialPrimary: "Ø§Ù„Ù…Ø§Ø¯Ø© Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©",
+      materialPrimaryHint: "ØªÙÙØªØ­ ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§ Ø¹Ù†Ø¯ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©.",
+      materialSave: "Ø­ÙØ¸ Ø§Ù„Ù…Ø§Ø¯Ø©",
+      materialCancel: "Ø¥Ù„ØºØ§Ø¡",
+      materialSetPrimary: "ØªØ¹ÙŠÙŠÙ† ÙƒØ£Ø³Ø§Ø³ÙŠØ©",
+      materialPrimaryLabel: "Ø£Ø³Ø§Ø³ÙŠØ©",
+      materialRename: "ØªØ¹Ø¯ÙŠÙ„",
+      materialReplace: "Ø§Ø³ØªØ¨Ø¯Ø§Ù„ Ø§Ù„Ù…Ù„Ù",
+      materialDelete: "Ø­Ø°Ù",
+      materialDownload: "ØªÙ†Ø²ÙŠÙ„",
+      materialOpen: "ÙØªØ­",
+      materialNoPreview: "Ù„Ø§ ÙŠÙ…ÙƒÙ† Ù…Ø¹Ø§ÙŠÙ†Ø© Ù‡Ø°Ø§ Ø§Ù„Ù†ÙˆØ¹ Ù…Ù† Ø§Ù„Ù…Ù„ÙØ§Øª Ø¯Ø§Ø®Ù„ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚.",
+      materialOpenExternally: "Ø§ÙØªØ­ Ø§Ù„Ù…Ù„Ù Ø£Ùˆ Ù†Ø²Ù‘Ù„Ù‡ Ù„Ø¹Ø±Ø¶ Ù…Ø­ØªÙˆØ§Ù‡.",
+      materialUploadError: "ØªØ¹Ø°Ø± Ø­ÙØ¸ Ø§Ù„Ù…Ø§Ø¯Ø©.",
+      materialDeleteConfirm: "Ù‡Ù„ ØªØ±ÙŠØ¯ Ø­Ø°Ù Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø§Ø¯Ø© Ù†Ù‡Ø§Ø¦ÙŠÙ‹Ø§ØŸ",
+      materialTooLarge: "Ø­Ø¬Ù… Ø§Ù„Ù…Ù„Ù Ø£ÙƒØ¨Ø± Ù…Ù† 50 Ù…ÙŠØºØ§Ø¨Ø§ÙŠØª ÙˆÙ„Ø§ ÙŠÙ…ÙƒÙ† Ø±ÙØ¹Ù‡.",
+      materialUnsupported: "Ù†ÙˆØ¹ Ø§Ù„Ù…Ù„Ù ØºÙŠØ± Ù…Ø¯Ø¹ÙˆÙ… ÙÙŠ Ù…ÙƒØªØ¨Ø© Ø§Ù„Ù…ÙˆØ§Ø¯.",
+      materialSaved: "ØªÙ… Ø­ÙØ¸ Ø§Ù„Ù…Ø§Ø¯Ø©.",
+      materialDeleted: "ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ø§Ø¯Ø©.",
+      materialReplaced: "ØªÙ… Ø§Ø³ØªØ¨Ø¯Ø§Ù„ Ø§Ù„Ù…Ù„Ù.",
+      materialUpdated: "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ø§Ø¯Ø©.",
+      materialTypeSlides: "Ø´Ø±Ø§Ø¦Ø­ Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©",
+      materialTypeCompendium: "Ù…Ù„Ø²Ù…Ø©",
+      materialTypeArticle: "Ù…Ù‚Ø§Ù„Ø©",
+      materialTypeOwn: "Ù…Ø³ØªÙ†Ø¯ Ø´Ø®ØµÙŠ",
+      materialTypeSupplement: "Ù…Ø§Ø¯Ø© Ø¥Ø¶Ø§ÙÙŠØ©",
+      materialTypeOther: "Ø£Ø®Ø±Ù‰",
+      materialAdded: "Ø£Ø¶ÙŠÙØª",
+      pdfViewerControls: "Ø¹Ù†Ø§ØµØ± ØªØ­ÙƒÙ… PDF",
+      pdfLoading: "Ø¬Ø§Ø±Ù ØªØ­Ù…ÙŠÙ„ PDFâ€¦",
+      pdfRenderError: "ØªØ¹Ø°Ø± Ø¹Ø±Ø¶ ØµÙØ­Ø© PDF.",
+      pdfViewerFallback: "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø¹Ø§Ø±Ø¶ PDF Ø§Ù„Ù…ØªÙ‚Ø¯Ù…. Ø³ÙŠØªÙ… Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø¹Ø§Ø±Ø¶ Ø§Ù„Ù…ØªØµÙØ­ Ø¨Ø¯Ù„Ø§Ù‹ Ù…Ù†Ù‡.",
+      pdfPreviousPage: "Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø³Ø§Ø¨Ù‚Ø©",
+      pdfNextPage: "Ø§Ù„ØµÙØ­Ø© Ø§Ù„ØªØ§Ù„ÙŠØ©",
+      pdfPage: "Ø§Ù„ØµÙØ­Ø©",
+      pdfZoomOut: "ØªØµØºÙŠØ±",
+      pdfZoomIn: "ØªÙƒØ¨ÙŠØ±",
+      pdfFitWidth: "Ù…Ù„Ø§Ø¡Ù…Ø© Ø§Ù„Ø¹Ø±Ø¶",
     },
   })[language] || {};
 
@@ -40141,7 +40265,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
 
   const normalizedQuery = query.trim().toLowerCase();
   function examSetSessionLabel(session) {
-    return ({ summer: copy.examSetSessionSummer, winter: copy.examSetSessionWinter, reexam: copy.examSetSessionReexam })[session] || "—";
+    return ({ summer: copy.examSetSessionSummer, winter: copy.examSetSessionWinter, reexam: copy.examSetSessionReexam })[session] || "â€”";
   }
   function examSetDateLabel(date) {
     if (!date) return "";
@@ -40487,7 +40611,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     ? new Date(`${selectedScheduleEvent.date}T12:00:00`).toLocaleDateString(lectureHeaderLocale, { weekday: "short", day: "numeric", month: "short" })
     : "";
   const selectedScheduleTime = selectedScheduleEvent?.time
-    ? `${selectedScheduleEvent.time}${selectedScheduleEvent.endTime ? `–${selectedScheduleEvent.endTime}` : ""}`
+    ? `${selectedScheduleEvent.time}${selectedScheduleEvent.endTime ? `â€“${selectedScheduleEvent.endTime}` : ""}`
     : "";
   const normalizedSduMatchQuery = String(sduMatchQuery || "").trim().toLowerCase();
   const sduMatchCandidates = moduleSduEvents.filter((event) => {
@@ -40581,10 +40705,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       ? new Date(`${first.date}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })
       : "";
     const timeLabel = first?.time
-      ? `${first.time}${first.endTime ? `–${first.endTime}` : ""}`
+      ? `${first.time}${first.endTime ? `â€“${first.endTime}` : ""}`
       : "";
     const sessionCount = Array.isArray(schedule?.events) ? schedule.events.length : 0;
-    const detail = [dateLabel, timeLabel, sessionCount > 1 ? `+${sessionCount - 1}` : ""].filter(Boolean).join(" · ");
+    const detail = [dateLabel, timeLabel, sessionCount > 1 ? `+${sessionCount - 1}` : ""].filter(Boolean).join(" Â· ");
     if (schedule?.held) return { key: "held", label: copy.scheduleHeld, detail, icon: "check" };
     if (schedule?.started) return { key: "partial", label: copy.schedulePartial, detail, icon: "clock" };
     if (first) return { key: "upcoming", label: copy.scheduleUpcoming, detail, icon: "calendar" };
@@ -40732,7 +40856,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       selectedLecture,
       moduleName,
       format === "markdown" ? "markdown" : "text",
-      { free: copy.noteFreeView, keyPoints: copy.noteKeyPoints, clinicalPoints: copy.noteClinicalPoints, openQuestions: copy.noteOpenQuestions, module: language === "en" ? "Module" : language === "ar" ? "الوحدة" : "Modul", lecture: copy.lectures }
+      { free: copy.noteFreeView, keyPoints: copy.noteKeyPoints, clinicalPoints: copy.noteClinicalPoints, openQuestions: copy.noteOpenQuestions, module: language === "en" ? "Module" : language === "ar" ? "Ø§Ù„ÙˆØ­Ø¯Ø©" : "Modul", lecture: copy.lectures }
     );
     lectureNoteDownload(filename, content, format === "markdown" ? "text/markdown;charset=utf-8" : "text/plain;charset=utf-8");
   }
@@ -40988,7 +41112,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
 
   function formatSduSessionTime(event) {
     if (!event?.time) return "";
-    return `${event.time}${event.endTime ? `–${event.endTime}` : ""}`;
+    return `${event.time}${event.endTime ? `â€“${event.endTime}` : ""}`;
   }
 
   function sduEventIsHeld(event) {
@@ -41000,7 +41124,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     if (!ids.length) return copy.sduMatchNone;
     return ids.map((id) => {
       const lecture = lectures.find((item) => item.id === id);
-      return lecture ? `${lecture.id} · ${lecture.title}` : id;
+      return lecture ? `${lecture.id} Â· ${lecture.title}` : id;
     }).join(", ");
   }
 
@@ -41065,7 +41189,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       const exists = previous.some((event) => event.id === standaloneId);
       const standaloneEvent = {
         id: standaloneId,
-        title: `Opfølgning · ${lecture.id} · ${lecture.title}`,
+        title: `OpfÃ¸lgning Â· ${lecture.id} Â· ${lecture.title}`,
         date: todayKeyString,
         time: "",
         type: "review",
@@ -41087,7 +41211,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         status: primary ? (next[targetId]?.status || "planned") : "unscheduled",
         needsScheduling: primary ? (next[targetId]?.needsScheduling !== false) : true,
         phase: primary ? (next[targetId]?.phase || "lecture") : "follow-up",
-        phaseLabel: primary ? (next[targetId]?.phaseLabel || "Forelæsninger") : "Forelæsningsopfølgning",
+        phaseLabel: primary ? (next[targetId]?.phaseLabel || "ForelÃ¦sninger") : "ForelÃ¦sningsopfÃ¸lgning",
         lectureId: lecture.id,
         lectureIds: [lecture.id],
         followUp: true,
@@ -42011,7 +42135,7 @@ async function downloadExamSetDocument(examDocument = selectedExamDocument) {
   const url = URL.createObjectURL(data);
   const anchor = window.document.createElement("a");
   anchor.href = url;
-  anchor.download = examDocument.questionFileName || `${examDocument.name || "eksamenssaet"}-spørgsmål.pdf`;
+  anchor.download = examDocument.questionFileName || `${examDocument.name || "eksamenssaet"}-spÃ¸rgsmÃ¥l.pdf`;
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
@@ -42104,10 +42228,10 @@ async function downloadExamSetDocument(examDocument = selectedExamDocument) {
       const topicId = related.find((link) => link.topicId)?.topicId || null;
       const lecture = lectureId ? examCurriculumLecture(moduleName, lectureId) : null;
       const sourceNumber = item.sourceNumber || item.questionId;
-      const questionLabel = language === "en" ? "question" : language === "ar" ? "سؤال" : "spørgsmål";
+      const questionLabel = language === "en" ? "question" : language === "ar" ? "Ø³Ø¤Ø§Ù„" : "spÃ¸rgsmÃ¥l";
       const title = lecture
-        ? `${lecture.id} · ${lecture.title} · ${questionLabel} ${sourceNumber}`
-        : `${document?.name || "Eksamensreview"} · ${questionLabel} ${sourceNumber}`;
+        ? `${lecture.id} Â· ${lecture.title} Â· ${questionLabel} ${sourceNumber}`
+        : `${document?.name || "Eksamensreview"} Â· ${questionLabel} ${sourceNumber}`;
       const { error } = await supabase.rpc("upsert_study_plan_review_task", {
         p_module_name: moduleName,
         p_source_type: "question",
@@ -42315,7 +42439,7 @@ async function printExamSetStandardPdf(questions, includeAnswers = false) {
     await examSetPrintStandardPdf({
       questions,
       questionPdfUrl: examSetPreviewUrl,
-      title: `${selectedExamDocument?.name || copy.examSets} · ${selectedExamDocument?.year || ""} ${examSetSessionLabel(selectedExamDocument?.examSession)}`.trim(),
+      title: `${selectedExamDocument?.name || copy.examSets} Â· ${selectedExamDocument?.year || ""} ${examSetSessionLabel(selectedExamDocument?.examSession)}`.trim(),
       includeAnswers,
     });
   } catch (error) {
@@ -42341,7 +42465,7 @@ async function openExamAttemptSnapshotPage(attempt, question, kind = "questions"
     setExamSetStatus({ state: "error", message: copy.examReviewSourceMissing });
     return;
   }
-  setExamAttemptOriginalPreview({ url: data.signedUrl, page, fileName: fileName || (answer ? "Svar.pdf" : "Spørgsmål.pdf") });
+  setExamAttemptOriginalPreview({ url: data.signedUrl, page, fileName: fileName || (answer ? "Svar.pdf" : "SpÃ¸rgsmÃ¥l.pdf") });
 }
 
 async function openExamReviewItem(item, target = "mcq") {
@@ -42638,7 +42762,7 @@ async function openExamSetPdfEditor() {
   const selectedAttendance = selectedLectureRow ? attendanceDefinition(selectedLectureRow.attendanceStatus) : null;
   const selectedSelfStudy = selectedLectureRow ? selfStudyDefinition(selectedLectureRow.selfStudyStatus) : null;
   const selectedMastery = selectedLectureRow ? masteryDefinition(selectedLectureRow.progressState.mastery) : null;
-  const selectedFollowUpReasonText = selectedFollowUp.reasons.map((reason) => followUpReasonDefinitions().find((item) => item.id === reason)?.label).filter(Boolean).join(" · ");
+  const selectedFollowUpReasonText = selectedFollowUp.reasons.map((reason) => followUpReasonDefinitions().find((item) => item.id === reason)?.label).filter(Boolean).join(" Â· ");
   const selectedMasteryTone = selectedLectureRow?.progressState?.mastery === "confident"
     ? "positive"
     : selectedLectureRow?.progressState?.mastery === "developing"
@@ -42781,7 +42905,7 @@ async function openExamSetPdfEditor() {
                                   <small className="lecture-learning-meta">
                                     <span data-tone={attendance.tone} title={`${copy.attendance}: ${attendance.label}`}><Icon name={attendance.icon} size={9} />{attendance.label}</span>
                                     <span data-tone={selfStudy.tone} title={`${copy.selfStudyStatus}: ${selfStudy.label}`}><Icon name={selfStudy.icon} size={9} />{selfStudy.label}</span>
-                                    <span data-tone={deck.tone} title={`${copy.deckStatus}: ${deck.label}${deckStudy.total ? ` · ${copy.deckQuestions(deckStudy.reviewedCount, deckStudy.total)}` : ""}`}><Icon name="cards" size={9} />{deckStudy.total ? `${deckStudy.reviewedCount}/${deckStudy.total}` : "—"}</span>
+                                    <span data-tone={deck.tone} title={`${copy.deckStatus}: ${deck.label}${deckStudy.total ? ` Â· ${copy.deckQuestions(deckStudy.reviewedCount, deckStudy.total)}` : ""}`}><Icon name="cards" size={9} />{deckStudy.total ? `${deckStudy.reviewedCount}/${deckStudy.total}` : "â€”"}</span>
                                     {followUp.active && <span data-tone="warning" className="lecture-follow-up-row-badge" title={copy.followUpTitle}><Icon name="flag" size={9} />{copy.followUpShort}</span>}
                                   </small>
                                 </span>
@@ -42791,7 +42915,7 @@ async function openExamSetPdfEditor() {
                                 <button type="button" className="lecture-status-toggle" data-tone={attendance.tone} title={`${copy.attendance}: ${attendance.label}`} aria-label={`${copy.attendance}: ${attendance.label}`} onClick={() => cycleLectureAttendance(lecture.id)}><Icon name={attendance.icon} size={11} /></button>
                                 <button type="button" className="lecture-status-toggle" data-tone={selfStudy.tone} title={`${copy.selfStudyStatus}: ${selfStudy.label}`} aria-label={`${copy.selfStudyStatus}: ${selfStudy.label}`} onClick={() => cycleLectureSelfStudy(lecture.id)}><Icon name={selfStudy.icon} size={11} /></button>
                                 <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
-                                <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"} title={hasPdf ? `${copy.materialReady} · ${materialCount}` : copy.materialMissing}><Icon name={hasPdf ? "file" : "plus"} size={12} />{materialCount > 1 && <small className="lecture-material-count">{materialCount}</small>}</span>
+                                <span className="document-library-file-state" data-ready={hasPdf ? "true" : "false"} title={hasPdf ? `${copy.materialReady} Â· ${materialCount}` : copy.materialMissing}><Icon name={hasPdf ? "file" : "plus"} size={12} />{materialCount > 1 && <small className="lecture-material-count">{materialCount}</small>}</span>
                               </div>
                             </div>
                           );
@@ -42807,7 +42931,7 @@ async function openExamSetPdfEditor() {
                   <span className="document-library-code"><Icon name="file" size={14} /></span>
                   <span className="document-library-copy">
                     <strong>{document.name}</strong>
-                    <small className="exam-set-library-meta"><span>{document.year || "—"}</span><i /><span>{examSetSessionLabel(document.examSession)}</span>{document.examDate && <><i /><span>{examSetDateLabel(document.examDate)}</span></>}<i /><span className="exam-set-shared-badge"><Icon name="share" size={8} />{copy.examSetShared}</span>{Number(document.parseMeta?.questionsWithKey) > 0 && <><i /><span className="exam-set-answer-source-badge"><Icon name="check" size={8} />{copy.examSetAnswerKeyReady}</span></>}</small>
+                    <small className="exam-set-library-meta"><span>{document.year || "â€”"}</span><i /><span>{examSetSessionLabel(document.examSession)}</span>{document.examDate && <><i /><span>{examSetDateLabel(document.examDate)}</span></>}<i /><span className="exam-set-shared-badge"><Icon name="share" size={8} />{copy.examSetShared}</span>{Number(document.parseMeta?.questionsWithKey) > 0 && <><i /><span className="exam-set-answer-source-badge"><Icon name="check" size={8} />{copy.examSetAnswerKeyReady}</span></>}</small>
                   </span>
                 </button>
               )) : <div className="document-library-empty">{examSetStatus.state === "error" ? examSetStatus.message : copy.noExamSets}</div>
@@ -42828,7 +42952,7 @@ async function openExamSetPdfEditor() {
                     <i />{selectedLectureRow.scheduleView.label}
                   </span>
                   {(selectedScheduleDate || selectedScheduleTime) && (
-                    <span><Icon name="calendar" size={10} />{[selectedScheduleDate, selectedScheduleTime].filter(Boolean).join(" · ")}</span>
+                    <span><Icon name="calendar" size={10} />{[selectedScheduleDate, selectedScheduleTime].filter(Boolean).join(" Â· ")}</span>
                   )}
                   {selectedScheduleEvent?.location && (
                     <span title={`${copy.scheduleLocation}: ${selectedScheduleEvent.location}`}><Icon name="target" size={10} />{selectedScheduleEvent.location}</span>
@@ -42844,8 +42968,8 @@ async function openExamSetPdfEditor() {
                           <div key={session.id || `${session.date}-${session.time}-${index}`} className="lecture-sdu-session-row" data-held={sduEventIsHeld(session) ? "true" : "false"}>
                             <i />
                             <div>
-                              <strong>{[formatSduSessionDate(session), formatSduSessionTime(session)].filter(Boolean).join(" · ") || copy.scheduleUnscheduled}</strong>
-                              <small>{[session.location, session.title].filter(Boolean).join(" · ")}</small>
+                              <strong>{[formatSduSessionDate(session), formatSduSessionTime(session)].filter(Boolean).join(" Â· ") || copy.scheduleUnscheduled}</strong>
+                              <small>{[session.location, session.title].filter(Boolean).join(" Â· ")}</small>
                             </div>
                             {session.url ? <a href={session.url} target="_blank" rel="noreferrer" title={copy.openLectureLink}><Icon name="expand" size={10} /></a> : <span />}
                           </div>
@@ -42893,10 +43017,10 @@ async function openExamSetPdfEditor() {
                             data-primary={material.is_primary ? "true" : "false"}
                             aria-current={material.id === activeLectureMaterial?.id ? "true" : undefined}
                             onClick={() => { selectLectureMaterial(material.id); setLectureMaterialsOpen(false); }}
-                            title={`${material.file_name} · ${lectureMaterialFormatBytes(material.size_bytes)}`}
+                            title={`${material.file_name} Â· ${lectureMaterialFormatBytes(material.size_bytes)}`}
                           >
                             <span><Icon name={material.is_primary ? "star" : "file"} size={11} /></span>
-                            <span><strong>{material.file_name}</strong><small>{material.visibility === "global" ? copy.materialGlobalLabel : copy.materialPrivateLabel} · {materialTypeLabel(material.material_type)} · {lectureMaterialFormatBytes(material.size_bytes)}</small></span>
+                            <span><strong>{material.file_name}</strong><small>{material.visibility === "global" ? copy.materialGlobalLabel : copy.materialPrivateLabel} Â· {materialTypeLabel(material.material_type)} Â· {lectureMaterialFormatBytes(material.size_bytes)}</small></span>
                             {material.id === activeLectureMaterial?.id && <Icon name="check" size={11} />}
                           </button>
                         ))}
@@ -42951,8 +43075,8 @@ async function openExamSetPdfEditor() {
                     <span><small>{copy.followUp}</small><strong>{selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? copy.followUpPlanOutdated : copy.followUpPlanCurrent) : (selectedFollowUp.active ? copy.followUpShort : copy.followUp)}</strong></span>
                   </button>
                   <nav className="lecture-favorite-navigation lecture-favorite-navigation--menu" aria-label={copy.filterFavorites}>
-                    <button type="button" className="lecture-favorite-nav-button" disabled={!previousFavoriteLecture} title={`${copy.favoritePreviousLecture} · Alt + [`} aria-label={copy.favoritePreviousLecture} onClick={() => selectAdjacentLecture(previousFavoriteLecture)}><Icon name={language === "ar" ? "right" : "left"} size={10} /><Icon name="star" size={10} /></button>
-                    <button type="button" className="lecture-favorite-nav-button" disabled={!nextFavoriteLecture} title={`${copy.favoriteNextLecture} · Alt + ]`} aria-label={copy.favoriteNextLecture} onClick={() => selectAdjacentLecture(nextFavoriteLecture)}><Icon name="star" size={10} /><Icon name={language === "ar" ? "left" : "right"} size={10} /></button>
+                    <button type="button" className="lecture-favorite-nav-button" disabled={!previousFavoriteLecture} title={`${copy.favoritePreviousLecture} Â· Alt + [`} aria-label={copy.favoritePreviousLecture} onClick={() => selectAdjacentLecture(previousFavoriteLecture)}><Icon name={language === "ar" ? "right" : "left"} size={10} /><Icon name="star" size={10} /></button>
+                    <button type="button" className="lecture-favorite-nav-button" disabled={!nextFavoriteLecture} title={`${copy.favoriteNextLecture} Â· Alt + ]`} aria-label={copy.favoriteNextLecture} onClick={() => selectAdjacentLecture(nextFavoriteLecture)}><Icon name="star" size={10} /><Icon name={language === "ar" ? "left" : "right"} size={10} /></button>
                   </nav>
                   {isAdmin && <button type="button" className="lecture-detail-more-action" onClick={openSduMatchDialog}><Icon name="edit" size={11} />{copy.sduMatchEdit}</button>}
                 </div>
@@ -43117,7 +43241,7 @@ examSetMode === "history" ? (
     const selectedIsCorrect = submitted && question.correctLabel && selectedAnswer ? selectedAnswer === question.correctLabel : null;
     return (
       <div className="exam-set-practice-shell">
-        {examSimulationSubmitted && examSimulation.result && <div className="exam-simulation-result-banner"><span><Icon name="check" size={12} />{copy.examSimulationSubmitted}</span><strong>{copy.examSimulationCorrectOfAssessed(examSimulation.result.correctCount, examSimulation.result.assessedCount)}</strong><small>{examSimulation.result.answeredCount} {copy.examSetAnswered.toLowerCase()} · {examSimulation.result.unansweredCount} {copy.examSetUnanswered.toLowerCase()} · {examSimulation.result.markedCount} {copy.examSetMarked.toLowerCase()}</small></div>}
+        {examSimulationSubmitted && examSimulation.result && <div className="exam-simulation-result-banner"><span><Icon name="check" size={12} />{copy.examSimulationSubmitted}</span><strong>{copy.examSimulationCorrectOfAssessed(examSimulation.result.correctCount, examSimulation.result.assessedCount)}</strong><small>{examSimulation.result.answeredCount} {copy.examSetAnswered.toLowerCase()} Â· {examSimulation.result.unansweredCount} {copy.examSetUnanswered.toLowerCase()} Â· {examSimulation.result.markedCount} {copy.examSetMarked.toLowerCase()}</small></div>}
         <section className="exam-set-question-stage">
           <header className="exam-set-question-header">
             <div><strong>{copy.examSetQuestion} {currentIndex + 1} / {examSetQuestions.length}</strong><small>{copy.examSetExtracted(examSetQuestions.length, keyedCount, examSetQuestions.filter((item) => item.hasVisual).length)}</small></div>
@@ -43138,7 +43262,7 @@ examSetMode === "history" ? (
           </header>
           <div className="exam-set-question-scroll">
             <article className="exam-set-question-card">
-              <div className="exam-set-question-source"><span>{copy.examSetSourceQuestion} {question.sourceNumber}</span>{question.sourcePages?.length ? <span>{copy.examSetSourcePage} {question.sourcePages.join("–")}</span> : question.page ? <span>{copy.examSetSourcePage} {question.page}</span> : null}{question.hasVisual && <span>{copy.examSetOriginalExcerpt}</span>}</div>
+              <div className="exam-set-question-source"><span>{copy.examSetSourceQuestion} {question.sourceNumber}</span>{question.sourcePages?.length ? <span>{copy.examSetSourcePage} {question.sourcePages.join("â€“")}</span> : question.page ? <span>{copy.examSetSourcePage} {question.page}</span> : null}{question.hasVisual && <span>{copy.examSetOriginalExcerpt}</span>}</div>
               <h2 className="exam-set-question-text">{question.text}</h2>
               {!examSimulationActive && <ExamCurriculumRelated language={language} moduleName={moduleName} examSetId={selectedExamDocument?.id} questionId={question.id} links={examCurriculumData.links} topics={examCurriculumData.topics} />}
               {question.hasVisual && examSetPreviewUrl && <ExamQuestionOriginalVisuals url={examSetPreviewUrl} question={question} fileName={selectedExamDocument?.questionFileName || selectedExamDocument?.name} copy={copy} onOpen={() => openOriginalExamPage(question)} />}
@@ -43190,7 +43314,7 @@ examSetMode === "history" ? (
       </div>
     );
   })() : (
-    <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetNoQuestions}</strong><p>{copy.examSetExtractHint}<br />{copy.examSetScannedHint}</p>{examSetParseMeta && <span className="exam-set-parser-meta">{examSetParseMeta.questionPdfPages || 0} PDF-sider · {examSetParseMeta.questionCount || 0} MCQ · {examSetParseMeta.questionsWithKey || 0} med facit · {examSetParseMeta.questionsWithVisuals || 0} med visual</span>}<button type="button" className="ui-button ui-button--secondary" onClick={() => setExamSetMode("pdf")}><Icon name="file" size={13} />{copy.examSetPdfMode}</button></div>
+    <div className="exam-set-parser-state"><span><Icon name="cards" size={23} /></span><strong>{copy.examSetNoQuestions}</strong><p>{copy.examSetExtractHint}<br />{copy.examSetScannedHint}</p>{examSetParseMeta && <span className="exam-set-parser-meta">{examSetParseMeta.questionPdfPages || 0} PDF-sider Â· {examSetParseMeta.questionCount || 0} MCQ Â· {examSetParseMeta.questionsWithKey || 0} med facit Â· {examSetParseMeta.questionsWithVisuals || 0} med visual</span>}<button type="button" className="ui-button ui-button--secondary" onClick={() => setExamSetMode("pdf")}><Icon name="file" size={13} />{copy.examSetPdfMode}</button></div>
   )
               ) : examSetPreviewState === "loading" ? (
                 <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.examSetLoading}</strong></div>
@@ -43238,7 +43362,7 @@ examSetMode === "history" ? (
                   <div className="lecture-note-share-status" data-shared={ownSharedNote ? "true" : "false"}>
                     <span><Icon name={ownSharedNote ? "share" : "user"} size={12} /></span>
                     <div>
-                      <strong>{ownSharedNote ? `${copy.sharedPublished} · ${copy.sharedVersion(ownSharedNote.version)}` : copy.sharedPrivate}</strong>
+                      <strong>{ownSharedNote ? `${copy.sharedPublished} Â· ${copy.sharedVersion(ownSharedNote.version)}` : copy.sharedPrivate}</strong>
                       <small>{ownSharedNote ? (ownSharedNoteNeedsUpdate ? copy.sharedUpdateAvailable : copy.sharedPublishedHint) : copy.sharedExplicitHint}</small>
                     </div>
                   </div>
@@ -43328,12 +43452,12 @@ examSetMode === "history" ? (
             <div className="lecture-sdu-match-heading">
               <div>
                 <strong>{copy.sduMatchTitle}</strong>
-                <small>{selectedLecture.id} · {selectedLecture.title}<br />{copy.sduMatchIntro}</small>
+                <small>{selectedLecture.id} Â· {selectedLecture.title}<br />{copy.sduMatchIntro}</small>
               </div>
               <button type="button" className="lecture-detail-nav-button" title={copy.sduMatchClose} aria-label={copy.sduMatchClose} onClick={() => setSduMatchDialogOpen(false)}><Icon name="close" size={14} /></button>
             </div>
             <input className="lecture-sdu-match-search" value={sduMatchQuery} onChange={(event) => setSduMatchQuery(event.target.value)} placeholder={copy.sduMatchSearch} autoFocus />
-            <div className="lecture-sdu-match-current">{copy.sduMatchCurrent}<span>{selectedScheduleEvents.length}</span>{canonicalSduMatchStatus === "saving" && <small>Gemmer globalt…</small>}{canonicalSduMatchStatus === "error" && <small>Kunne ikke gemme</small>}</div>
+            <div className="lecture-sdu-match-current">{copy.sduMatchCurrent}<span>{selectedScheduleEvents.length}</span>{canonicalSduMatchStatus === "saving" && <small>Gemmer globaltâ€¦</small>}{canonicalSduMatchStatus === "error" && <small>Kunne ikke gemme</small>}</div>
             <div className="lecture-sdu-match-list">
               {sduMatchCandidates.length ? sduMatchCandidates.map((event) => {
                 const effectiveIds = calendarLectureIds(event);
@@ -43343,11 +43467,11 @@ examSetMode === "history" ? (
                 const automaticHere = automaticIds.includes(selectedLecture.id);
                 return (
                   <div key={event.id} className="lecture-sdu-match-row" data-selected={matchedHere ? "true" : "false"}>
-                    <div className="lecture-sdu-match-when"><strong>{formatSduSessionDate(event) || event.date || "—"}</strong><small>{formatSduSessionTime(event) || "—"}</small></div>
+                    <div className="lecture-sdu-match-when"><strong>{formatSduSessionDate(event) || event.date || "â€”"}</strong><small>{formatSduSessionTime(event) || "â€”"}</small></div>
                     <div className="lecture-sdu-match-copy">
                       <strong>{event.title || "SDU"}</strong>
-                      <small>{[event.location, event.teacher].filter(Boolean).join(" · ") || sduEventMatchLabel(event)}</small>
-                      <em>{hasManualOverride ? `${copy.sduMatchManual} · ${sduEventMatchLabel(event)}` : `${copy.sduMatchOtherLecture}: ${sduEventMatchLabel(event)}`}</em>
+                      <small>{[event.location, event.teacher].filter(Boolean).join(" Â· ") || sduEventMatchLabel(event)}</small>
+                      <em>{hasManualOverride ? `${copy.sduMatchManual} Â· ${sduEventMatchLabel(event)}` : `${copy.sduMatchOtherLecture}: ${sduEventMatchLabel(event)}`}</em>
                     </div>
                     <div className="lecture-sdu-match-actions">
                       {matchedHere ? (
@@ -43371,7 +43495,7 @@ examSetMode === "history" ? (
     <div className="exam-simulation-dialog">
       <div className="exam-simulation-dialog-head"><span><Icon name="clock" size={17} /></span><div><strong>{copy.examSimulationTitle}</strong><small>{copy.examSimulationIntro}</small></div></div>
       <div className="exam-simulation-facts">
-        <span><strong>{selectedExamDocument?.year || "—"}</strong><small>{examSetSessionLabel(selectedExamDocument?.examSession)}</small></span>
+        <span><strong>{selectedExamDocument?.year || "â€”"}</strong><small>{examSetSessionLabel(selectedExamDocument?.examSession)}</small></span>
         <span><strong>{examSetQuestions.length}</strong><small>{copy.examSetQuestion}</small></span>
         <span><strong>{examSetQuestions.filter((item) => item.verificationStatus === "verified" && item.correctLabel).length}</strong><small>{copy.examSimulationSafeKey}</small></span>
         <span><strong>{examSetQuestions.filter((item) => !(item.verificationStatus === "verified" && item.correctLabel)).length}</strong><small>{copy.examSimulationNoKey}</small></span>
@@ -43409,18 +43533,18 @@ examSetMode === "history" ? (
         <label className="lecture-material-field"><span>{copy.examSetYear}</span><input type="number" min="1900" max="2100" inputMode="numeric" value={examSetDialog.year || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, year: event.target.value }))} /></label>
       </div>
       <div className="exam-set-dialog-grid">
-        <label className="lecture-material-field"><span>{copy.examSetSession}</span><select value={examSetDialog.examSession || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, examSession: event.target.value }))}><option value="">—</option>{EXAM_SET_SESSIONS.map((session) => <option key={session} value={session}>{examSetSessionLabel(session)}</option>)}</select></label>
+        <label className="lecture-material-field"><span>{copy.examSetSession}</span><select value={examSetDialog.examSession || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, examSession: event.target.value }))}><option value="">â€”</option>{EXAM_SET_SESSIONS.map((session) => <option key={session} value={session}>{examSetSessionLabel(session)}</option>)}</select></label>
         <label className="lecture-material-field"><span>{copy.examSetDate}</span><input type="date" value={examSetDialog.examDate || ""} onChange={(event) => setExamSetDialog((current) => ({ ...current, examDate: event.target.value }))} /></label>
       </div>
       <div className="exam-set-paired-files">
         <section className="exam-set-file-pick" data-ready={examSetDialog.questionFile || examSetDialog.document?.questionFileName ? "true" : "false"}>
-          <header><strong>{copy.examSetQuestionPdf}</strong><small>Påkrævet</small></header>
-          <div className="exam-set-file-pick-body"><Icon name="file" size={16} /><div><strong>{examSetDialog.questionFile?.name || examSetDialog.document?.questionFileName || "—"}</strong><small>{examSetDialog.questionFile ? lectureMaterialFormatBytes(examSetDialog.questionFile.size) : examSetDialog.document?.questionSize ? lectureMaterialFormatBytes(examSetDialog.document.questionSize) : "Ingen fil valgt"}</small></div></div>
+          <header><strong>{copy.examSetQuestionPdf}</strong><small>PÃ¥krÃ¦vet</small></header>
+          <div className="exam-set-file-pick-body"><Icon name="file" size={16} /><div><strong>{examSetDialog.questionFile?.name || examSetDialog.document?.questionFileName || "â€”"}</strong><small>{examSetDialog.questionFile ? lectureMaterialFormatBytes(examSetDialog.questionFile.size) : examSetDialog.document?.questionSize ? lectureMaterialFormatBytes(examSetDialog.document.questionSize) : "Ingen fil valgt"}</small></div></div>
           {examSetDialog.mode === "upload" && <button type="button" disabled={examSetSaving} onClick={() => uploadRef.current?.click()}>{copy.examSetChooseQuestionPdf}</button>}
         </section>
         <section className="exam-set-file-pick" data-ready={examSetDialog.answerFile || examSetDialog.document?.answerFileName ? "true" : "false"}>
-          <header><strong>{copy.examSetAnswerPdf}</strong><small>Påkrævet</small></header>
-          <div className="exam-set-file-pick-body"><Icon name="check" size={16} /><div><strong>{examSetDialog.answerFile?.name || examSetDialog.document?.answerFileName || "—"}</strong><small>{examSetDialog.answerFile ? lectureMaterialFormatBytes(examSetDialog.answerFile.size) : examSetDialog.document?.answerSize ? lectureMaterialFormatBytes(examSetDialog.document.answerSize) : "Ingen fil valgt"}</small></div></div>
+          <header><strong>{copy.examSetAnswerPdf}</strong><small>PÃ¥krÃ¦vet</small></header>
+          <div className="exam-set-file-pick-body"><Icon name="check" size={16} /><div><strong>{examSetDialog.answerFile?.name || examSetDialog.document?.answerFileName || "â€”"}</strong><small>{examSetDialog.answerFile ? lectureMaterialFormatBytes(examSetDialog.answerFile.size) : examSetDialog.document?.answerSize ? lectureMaterialFormatBytes(examSetDialog.document.answerSize) : "Ingen fil valgt"}</small></div></div>
           <button type="button" disabled={examSetSaving} onClick={() => answerUploadRef.current?.click()}>{copy.examSetChooseAnswerPdf}</button>
         </section>
       </div>
@@ -43484,7 +43608,7 @@ examSetMode === "history" ? (
           <div className="lecture-material-dialog">
             <div className="lecture-material-dialog-heading">
               <span><Icon name={materialDialog.mode === "upload" ? "upload" : "edit"} size={17} /></span>
-              <div><strong>{materialDialog.mode === "upload" ? copy.materialUploadTitle : copy.materialEditTitle}</strong><small>{selectedLecture?.id} · {selectedLecture?.title}</small></div>
+              <div><strong>{materialDialog.mode === "upload" ? copy.materialUploadTitle : copy.materialEditTitle}</strong><small>{selectedLecture?.id} Â· {selectedLecture?.title}</small></div>
             </div>
             {materialDialog.mode === "upload" && (
               <div className="lecture-material-dialog-files">
@@ -43512,9 +43636,9 @@ function MobileBottomNav({ c, t, language, route, activeWorkspace, onNavigate, o
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
   const copy = ({
-    da: { more: "Mere", lectures: "Forelæsninger", examSets: "Eksamenssæt", review: "Repetition", studyPlan: "Studieplan", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode" },
+    da: { more: "Mere", lectures: "ForelÃ¦sninger", examSets: "EksamenssÃ¦t", review: "Repetition", studyPlan: "Studieplan", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode" },
     en: { more: "More", lectures: "Lectures", examSets: "Exam sets", review: "Review", studyPlan: "Study plan", enterAdmin: "Switch to Admin mode", exitAdmin: "Switch to Study mode" },
-    ar: { more: "المزيد", lectures: "المحاضرات", examSets: "مجموعات الامتحان", review: "المراجعة", studyPlan: "خطة الدراسة", enterAdmin: "التبديل إلى وضع المسؤول", exitAdmin: "التبديل إلى وضع الدراسة" },
+    ar: { more: "Ø§Ù„Ù…Ø²ÙŠØ¯", lectures: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª", examSets: "Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", review: "Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©", studyPlan: "Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", enterAdmin: "Ø§Ù„ØªØ¨Ø¯ÙŠÙ„ Ø¥Ù„Ù‰ ÙˆØ¶Ø¹ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„", exitAdmin: "Ø§Ù„ØªØ¨Ø¯ÙŠÙ„ Ø¥Ù„Ù‰ ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø±Ø§Ø³Ø©" },
   })[language] || {};
 
   useEffect(() => {
@@ -43597,9 +43721,9 @@ function Sidebar({
   const [quickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, ["mcq", "repeat", "insights"]);
 
   const copy = ({
-    da: { repetition: "Repetition", lectures: "Forelæsninger", examSets: "Eksamenssæt", studyPlan: "Studieplan", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode", adminActive: "Admin mode aktiv" },
+    da: { repetition: "Repetition", lectures: "ForelÃ¦sninger", examSets: "EksamenssÃ¦t", studyPlan: "Studieplan", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode", adminActive: "Admin mode aktiv" },
     en: { repetition: "Review", lectures: "Lectures", examSets: "Exam sets", studyPlan: "Study plan", enterAdmin: "Switch to Admin mode", exitAdmin: "Switch to Study mode", adminActive: "Admin mode active" },
-    ar: { repetition: "المراجعة", lectures: "المحاضرات", examSets: "مجموعات الامتحان", studyPlan: "خطة الدراسة", enterAdmin: "التبديل إلى وضع المسؤول", exitAdmin: "التبديل إلى وضع الدراسة", adminActive: "وضع المسؤول نشط" },
+    ar: { repetition: "Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©", lectures: "Ø§Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª", examSets: "Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†", studyPlan: "Ø®Ø·Ø© Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", enterAdmin: "Ø§Ù„ØªØ¨Ø¯ÙŠÙ„ Ø¥Ù„Ù‰ ÙˆØ¶Ø¹ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„", exitAdmin: "Ø§Ù„ØªØ¨Ø¯ÙŠÙ„ Ø¥Ù„Ù‰ ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø±Ø§Ø³Ø©", adminActive: "ÙˆØ¶Ø¹ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ Ù†Ø´Ø·" },
   })[language] || {};
 
   useEffect(() => {
@@ -43678,17 +43802,17 @@ function Sidebar({
   ];
 
   return (
-    <aside data-tour="sidebar" className="app-sidebar app-surface" aria-label={language === "en" ? "Primary navigation" : language === "ar" ? "التنقل الرئيسي" : "Primær navigation"} style={{ width: 74, height: "100%", display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, padding: "12px 0 10px", background: c.panel, borderInlineEnd: `1px solid ${c.border}`, direction: "ltr", overflow: "visible" }}>
-      <button type="button" title="MedFLUEN" aria-label={language === "en" ? "Go to home" : language === "ar" ? "الانتقال إلى الصفحة الرئيسية" : "Gå til Hjem"} onClick={() => navigate("home")} className="sidebar-logo" style={{ width: 40, height: 40, display: "grid", placeItems: "center", flexShrink: 0, marginBottom: 13, padding: 0, border: 0, borderRadius: 11, background: c.blueGradient, color: "#fff", boxShadow: "0 7px 16px rgba(22,101,234,.20)" }}><Icon name="logo" size={20} stroke={2.2} /></button>
+    <aside data-tour="sidebar" className="app-sidebar app-surface" aria-label={language === "en" ? "Primary navigation" : language === "ar" ? "Ø§Ù„ØªÙ†Ù‚Ù„ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ" : "PrimÃ¦r navigation"} style={{ width: 74, height: "100%", display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, padding: "12px 0 10px", background: c.panel, borderInlineEnd: `1px solid ${c.border}`, direction: "ltr", overflow: "visible" }}>
+      <button type="button" title="MedFLUEN" aria-label={language === "en" ? "Go to home" : language === "ar" ? "Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ø¥Ù„Ù‰ Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©" : "GÃ¥ til Hjem"} onClick={() => navigate("home")} className="sidebar-logo" style={{ width: 40, height: 40, display: "grid", placeItems: "center", flexShrink: 0, marginBottom: 13, padding: 0, border: 0, borderRadius: 11, background: c.blueGradient, color: "#fff", boxShadow: "0 7px 16px rgba(22,101,234,.20)" }}><Icon name="logo" size={20} stroke={2.2} /></button>
 
-      <nav className="sidebar-nav-group" aria-label="Primær studienavigation">
+      <nav className="sidebar-nav-group" aria-label="PrimÃ¦r studienavigation">
         <NavButton icon="home" title={t.home} active={route === "home" && !activeWorkspace} isRoute onClick={() => navigate("home")} />
         {safeQuickOrder.map((id) => { const item = quickDefinitions[id]; return <NavButton key={id} icon={item.icon} title={item.label} active={item.active} badge={item.badge} isRoute={id !== "repeat"} onClick={item.action} />; })}
       </nav>
 
       <div className="sidebar-divider" aria-hidden="true" />
 
-      <nav className="sidebar-nav-group" aria-label="Planlægning og dokumenter">
+      <nav className="sidebar-nav-group" aria-label="PlanlÃ¦gning og dokumenter">
         <NavButton icon="book" title={copy.lectures} active={activeWorkspace === "lectures"} onClick={() => openWorkspace("lectures")} />
         <NavButton icon="target" title={copy.studyPlan} active={route === "study-plan" && !activeWorkspace} badge={planAttentionCount} isRoute onClick={() => navigate("study-plan")} />
         <NavButton icon="calendar" title={t.calendar} active={activeWorkspace === "calendar"} badge={calendarAttentionCount} onClick={() => openWorkspace("calendar")} />
@@ -43707,7 +43831,7 @@ function Sidebar({
         {adminMode && <span className="sidebar-admin-mode-dot" title={copy.adminActive} aria-label={copy.adminActive} style={{ position: "absolute", top: 7, insetInlineEnd: -2, width: 9, height: 9, borderRadius: "50%", background: c.red, border: `2px solid ${c.panel}`, boxSizing: "border-box", pointerEvents: "none" }} />}
         {profileOpen && (
           <div ref={profileMenuRef} role="menu" className="sidebar-profile-menu" style={{ position: "fixed", zIndex: 1200, insetInlineStart: 86, bottom: 12, width: 258, padding: 8, borderRadius: 14, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg, direction: menuDirection }}>
-            <div className="sidebar-profile-summary"><span>{userInitial}</span><div><strong>{displayName}</strong><small>{moduleLabel}{adminMode ? ` · ${copy.adminActive}` : ""}</small></div></div>
+            <div className="sidebar-profile-summary"><span>{userInitial}</span><div><strong>{displayName}</strong><small>{moduleLabel}{adminMode ? ` Â· ${copy.adminActive}` : ""}</small></div></div>
             {profileActions.map(([action, icon, label]) => <button key={action} type="button" role="menuitem" className="sidebar-menu-item" onClick={() => onProfileAction(action)} style={{ color: action === "signout" ? c.red : c.text }}><Icon name={icon} size={14} /><span>{label}</span></button>)}
           </div>
         )}
@@ -43735,9 +43859,9 @@ function Modal({ c, children, onClose, size = "default" }) {
   style={{
         position: "fixed",
         inset: 0,
-        // zIndex skal ligge over kalenderens fuldskærmswrapper (zIndex: 999),
-        // så Indstillinger/Sprog/Admin/Logud-modalerne altid vises foran
-        // kalenderen, uanset om den er åben i fuldskærm.
+        // zIndex skal ligge over kalenderens fuldskÃ¦rmswrapper (zIndex: 999),
+        // sÃ¥ Indstillinger/Sprog/Admin/Logud-modalerne altid vises foran
+        // kalenderen, uanset om den er Ã¥ben i fuldskÃ¦rm.
         zIndex: 1000,
         display: "grid",
         placeItems: "center",
@@ -43773,49 +43897,49 @@ function Modal({ c, children, onClose, size = "default" }) {
 
 
 /* ============================================================
-   DR. BYTE — DOKTOR-SPEJDER-MUS MASCOT + KONTEKSTUEL MOTOR
+   DR. BYTE â€” DOKTOR-SPEJDER-MUS MASCOT + KONTEKSTUEL MOTOR
    ============================================================ */
 
 const MASCOT_COPY = {
   da: {
     name: "Dr. Byte",
-    recordStreak: (n) => `Ny personlig rekord! ${n} dages streak i træk — flot arbejde.`,
-    recordAccuracy: (n) => `Ny rekord: ${n}% nøjagtighed i en session. Det er dit bedste resultat endnu!`,
-    recordQuestions: (n) => `Personlig rekord: ${n} besvarede spørgsmål i alt. Bliv ved!`,
-    recordPomodoro: (n) => `Ny rekord: ${n} pomodoro-sessioner på en dag. Flot fokus!`,
+    recordStreak: (n) => `Ny personlig rekord! ${n} dages streak i trÃ¦k â€” flot arbejde.`,
+    recordAccuracy: (n) => `Ny rekord: ${n}% nÃ¸jagtighed i en session. Det er dit bedste resultat endnu!`,
+    recordQuestions: (n) => `Personlig rekord: ${n} besvarede spÃ¸rgsmÃ¥l i alt. Bliv ved!`,
+    recordPomodoro: (n) => `Ny rekord: ${n} pomodoro-sessioner pÃ¥ en dag. Flot fokus!`,
     inactive: (days) =>
       `Jeg har ikke set dig i ${days} dage. Bare et par minutters repetition holder pensum varmt.`,
     morningGreetingWithGoal: (name, count) =>
-      `Godmorgen, ${name}! I dag foreslår din studieplan ${count} ${count === 1 ? "opgave" : "opgaver"}. Skal vi komme i gang?`,
+      `Godmorgen, ${name}! I dag foreslÃ¥r din studieplan ${count} ${count === 1 ? "opgave" : "opgaver"}. Skal vi komme i gang?`,
     morningGreetingNoGoal: (name) =>
-      `Godmorgen, ${name}! Du har ingen aktiv studieplan endnu — vil du sætte en op?`,
+      `Godmorgen, ${name}! Du har ingen aktiv studieplan endnu â€” vil du sÃ¦tte en op?`,
     examCountdown: (days) => `Kun ${days} dage til eksamen. Lad os holde fremdriften ved.`,
-    adviceReview: (n) => `Du har ${n} spørgsmål til repetition lige nu. Det er et godt tidspunkt at tage dem.`,
-    adviceNew: (n) => `Der er ${n} nye spørgsmål klar i dit modul. Skal vi prøve et par stykker?`,
-    adviceStreakZero: "Din streak er nulstillet. Én kort session i dag genstarter den.",
-    adviceLowAccuracy: (pct) => `Din seneste nøjagtighed lå på ${pct}%. Lidt ekstra repetition kan hjælpe.`,
-    adviceNoPlan: "Du har ingen aktiv studieplan. Vil du sætte et mål for eksamen?",
-    adviceNoPomodoroToday: "Du har ikke haft en fokus-session i dag. Prøv 25 minutter med Pomodoro-timeren.",
-    adviceExamSoon: (days) => `Der er ${days} dage til eksamen. Overvej at prioritere de sidste forelæsninger.`,
-    adviceAllCaughtUp: "Du er helt opdateret! Godt arbejde — måske en frisk gennemgang af et gammelt emne?",
+    adviceReview: (n) => `Du har ${n} spÃ¸rgsmÃ¥l til repetition lige nu. Det er et godt tidspunkt at tage dem.`,
+    adviceNew: (n) => `Der er ${n} nye spÃ¸rgsmÃ¥l klar i dit modul. Skal vi prÃ¸ve et par stykker?`,
+    adviceStreakZero: "Din streak er nulstillet. Ã‰n kort session i dag genstarter den.",
+    adviceLowAccuracy: (pct) => `Din seneste nÃ¸jagtighed lÃ¥ pÃ¥ ${pct}%. Lidt ekstra repetition kan hjÃ¦lpe.`,
+    adviceNoPlan: "Du har ingen aktiv studieplan. Vil du sÃ¦tte et mÃ¥l for eksamen?",
+    adviceNoPomodoroToday: "Du har ikke haft en fokus-session i dag. PrÃ¸v 25 minutter med Pomodoro-timeren.",
+    adviceExamSoon: (days) => `Der er ${days} dage til eksamen. Overvej at prioritere de sidste forelÃ¦sninger.`,
+    adviceAllCaughtUp: "Du er helt opdateret! Godt arbejde â€” mÃ¥ske en frisk gennemgang af et gammelt emne?",
     adviceBehindSchedule: "Du er lidt bagud med studieplanen. Vil du indhente forsinkelsen og omfordele resten af pensum?",
-    adviceExceptionDayToday: "I dag er markeret som en fridag i din studieplan. Slap af — planen fortsætter i morgen.",
+    adviceExceptionDayToday: "I dag er markeret som en fridag i din studieplan. Slap af â€” planen fortsÃ¦tter i morgen.",
     dismiss: "Luk",
     start: "Kom i gang",
-    tapHint: "Tryk for et godt råd",
+    tapHint: "Tryk for et godt rÃ¥d",
     back: "Tilbage",
-    next: "Næste",
+    next: "NÃ¦ste",
   },
   en: {
     name: "Dr. Byte",
-    recordStreak: (n) => `New personal record! ${n}-day streak in a row — great work.`,
+    recordStreak: (n) => `New personal record! ${n}-day streak in a row â€” great work.`,
     recordAccuracy: (n) => `New record: ${n}% accuracy in one session. Your best yet!`,
     recordQuestions: (n) => `Personal record: ${n} questions answered in total. Keep going!`,
     recordPomodoro: (n) => `New record: ${n} pomodoro sessions in one day. Great focus!`,
     inactive: (days) => `I haven't seen you in ${days} days. A few minutes of review keeps it fresh.`,
     morningGreetingWithGoal: (name, count) =>
       `Good morning, ${name}! Your study plan suggests ${count} ${count === 1 ? "task" : "tasks"} today. Ready to start?`,
-    morningGreetingNoGoal: (name) => `Good morning, ${name}! You don't have an active study plan yet — want to set one up?`,
+    morningGreetingNoGoal: (name) => `Good morning, ${name}! You don't have an active study plan yet â€” want to set one up?`,
     examCountdown: (days) => `Only ${days} days left until the exam. Let's keep the momentum.`,
     adviceReview: (n) => `You have ${n} questions due for review right now. Good time to tackle them.`,
     adviceNew: (n) => `There are ${n} new questions ready in your module. Want to try a few?`,
@@ -43824,9 +43948,9 @@ const MASCOT_COPY = {
     adviceNoPlan: "You don't have an active study plan. Want to set an exam goal?",
     adviceNoPomodoroToday: "You haven't had a focus session today. Try 25 minutes with the Pomodoro timer.",
     adviceExamSoon: (days) => `There are ${days} days left until the exam. Consider prioritizing the last lectures.`,
-    adviceAllCaughtUp: "You're fully caught up! Great work — maybe a fresh review of an old topic?",
+    adviceAllCaughtUp: "You're fully caught up! Great work â€” maybe a fresh review of an old topic?",
     adviceBehindSchedule: "You're a bit behind on your study plan. Want to catch up and redistribute the rest of the syllabus?",
-    adviceExceptionDayToday: "Today is marked as a day off in your study plan. Relax — the plan continues tomorrow.",
+    adviceExceptionDayToday: "Today is marked as a day off in your study plan. Relax â€” the plan continues tomorrow.",
     dismiss: "Dismiss",
     start: "Let's go",
     tapHint: "Tap for a tip",
@@ -43834,30 +43958,30 @@ const MASCOT_COPY = {
     next: "Next",
   },
   ar: {
-    name: "د. بايت",
-    recordStreak: (n) => `رقم قياسي جديد! ${n} يومًا متتاليًا — عمل رائع.`,
-    recordAccuracy: (n) => `رقم قياسي جديد: دقة ${n}% في جلسة واحدة. أفضل نتيجة لك حتى الآن!`,
-    recordQuestions: (n) => `رقم قياسي شخصي: ${n} سؤالاً تمت الإجابة عليها إجمالاً. واصل التقدم!`,
-    recordPomodoro: (n) => `رقم قياسي جديد: ${n} جلسات بومودورو في يوم واحد. تركيز رائع!`,
-    inactive: (days) => `لم أرك منذ ${days} أيام. بضع دقائق من المراجعة تكفي للحفاظ على المستوى.`,
-    morningGreetingWithGoal: (name, count) => `صباح الخير، ${name}! تقترح خطتك اليوم ${count} مهمة. هل نبدأ؟`,
-    morningGreetingNoGoal: (name) => `صباح الخير، ${name}! ليس لديك خطة دراسية نشطة بعد — أترغب في إنشاء واحدة؟`,
-    examCountdown: (days) => `${days} أيام فقط حتى الامتحان. لنحافظ على التقدم.`,
-    adviceReview: (n) => `لديك ${n} سؤالاً للمراجعة الآن. وقت جيد لإنجازها.`,
-    adviceNew: (n) => `هناك ${n} سؤالاً جديدًا جاهزًا في وحدتك. هل نجرب بعضها؟`,
-    adviceStreakZero: "تم إعادة تعيين تتابعك. جلسة قصيرة اليوم ستعيده.",
-    adviceLowAccuracy: (pct) => `كانت دقتك الأخيرة ${pct}%. قليل من المراجعة الإضافية قد يساعد.`,
-    adviceNoPlan: "ليس لديك خطة دراسية نشطة. هل تريد تحديد هدف للامتحان؟",
-    adviceNoPomodoroToday: "لم تحظ بجلسة تركيز اليوم. جرّب 25 دقيقة مع مؤقت بومودورو.",
-    adviceExamSoon: (days) => `${days} أيام حتى الامتحان. فكر في إعطاء الأولوية للمحاضرات الأخيرة.`,
-    adviceAllCaughtUp: "أنت محدث بالكامل! عمل رائع — ماذا عن مراجعة سريعة لموضوع قديم؟",
-    adviceBehindSchedule: "أنت متأخر قليلاً عن خطتك الدراسية. هل تريد تعويض التأخير وإعادة توزيع باقي المنهج؟",
-    adviceExceptionDayToday: "اليوم يوم راحة في خطتك الدراسية. استرخِ — تستمر الخطة غدًا.",
-    dismiss: "إغلاق",
-    start: "لنبدأ",
-    tapHint: "اضغط للحصول على نصيحة",
-    back: "رجوع",
-    next: "التالي",
+    name: "Ø¯. Ø¨Ø§ÙŠØª",
+    recordStreak: (n) => `Ø±Ù‚Ù… Ù‚ÙŠØ§Ø³ÙŠ Ø¬Ø¯ÙŠØ¯! ${n} ÙŠÙˆÙ…Ù‹Ø§ Ù…ØªØªØ§Ù„ÙŠÙ‹Ø§ â€” Ø¹Ù…Ù„ Ø±Ø§Ø¦Ø¹.`,
+    recordAccuracy: (n) => `Ø±Ù‚Ù… Ù‚ÙŠØ§Ø³ÙŠ Ø¬Ø¯ÙŠØ¯: Ø¯Ù‚Ø© ${n}% ÙÙŠ Ø¬Ù„Ø³Ø© ÙˆØ§Ø­Ø¯Ø©. Ø£ÙØ¶Ù„ Ù†ØªÙŠØ¬Ø© Ù„Ùƒ Ø­ØªÙ‰ Ø§Ù„Ø¢Ù†!`,
+    recordQuestions: (n) => `Ø±Ù‚Ù… Ù‚ÙŠØ§Ø³ÙŠ Ø´Ø®ØµÙŠ: ${n} Ø³Ø¤Ø§Ù„Ø§Ù‹ ØªÙ…Øª Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø© Ø¹Ù„ÙŠÙ‡Ø§ Ø¥Ø¬Ù…Ø§Ù„Ø§Ù‹. ÙˆØ§ØµÙ„ Ø§Ù„ØªÙ‚Ø¯Ù…!`,
+    recordPomodoro: (n) => `Ø±Ù‚Ù… Ù‚ÙŠØ§Ø³ÙŠ Ø¬Ø¯ÙŠØ¯: ${n} Ø¬Ù„Ø³Ø§Øª Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ ÙÙŠ ÙŠÙˆÙ… ÙˆØ§Ø­Ø¯. ØªØ±ÙƒÙŠØ² Ø±Ø§Ø¦Ø¹!`,
+    inactive: (days) => `Ù„Ù… Ø£Ø±Ùƒ Ù…Ù†Ø° ${days} Ø£ÙŠØ§Ù…. Ø¨Ø¶Ø¹ Ø¯Ù‚Ø§Ø¦Ù‚ Ù…Ù† Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© ØªÙƒÙÙŠ Ù„Ù„Ø­ÙØ§Ø¸ Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø³ØªÙˆÙ‰.`,
+    morningGreetingWithGoal: (name, count) => `ØµØ¨Ø§Ø­ Ø§Ù„Ø®ÙŠØ±ØŒ ${name}! ØªÙ‚ØªØ±Ø­ Ø®Ø·ØªÙƒ Ø§Ù„ÙŠÙˆÙ… ${count} Ù…Ù‡Ù…Ø©. Ù‡Ù„ Ù†Ø¨Ø¯Ø£ØŸ`,
+    morningGreetingNoGoal: (name) => `ØµØ¨Ø§Ø­ Ø§Ù„Ø®ÙŠØ±ØŒ ${name}! Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ Ø®Ø·Ø© Ø¯Ø±Ø§Ø³ÙŠØ© Ù†Ø´Ø·Ø© Ø¨Ø¹Ø¯ â€” Ø£ØªØ±ØºØ¨ ÙÙŠ Ø¥Ù†Ø´Ø§Ø¡ ÙˆØ§Ø­Ø¯Ø©ØŸ`,
+    examCountdown: (days) => `${days} Ø£ÙŠØ§Ù… ÙÙ‚Ø· Ø­ØªÙ‰ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†. Ù„Ù†Ø­Ø§ÙØ¸ Ø¹Ù„Ù‰ Ø§Ù„ØªÙ‚Ø¯Ù….`,
+    adviceReview: (n) => `Ù„Ø¯ÙŠÙƒ ${n} Ø³Ø¤Ø§Ù„Ø§Ù‹ Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¢Ù†. ÙˆÙ‚Øª Ø¬ÙŠØ¯ Ù„Ø¥Ù†Ø¬Ø§Ø²Ù‡Ø§.`,
+    adviceNew: (n) => `Ù‡Ù†Ø§Ùƒ ${n} Ø³Ø¤Ø§Ù„Ø§Ù‹ Ø¬Ø¯ÙŠØ¯Ù‹Ø§ Ø¬Ø§Ù‡Ø²Ù‹Ø§ ÙÙŠ ÙˆØ­Ø¯ØªÙƒ. Ù‡Ù„ Ù†Ø¬Ø±Ø¨ Ø¨Ø¹Ø¶Ù‡Ø§ØŸ`,
+    adviceStreakZero: "ØªÙ… Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† ØªØªØ§Ø¨Ø¹Ùƒ. Ø¬Ù„Ø³Ø© Ù‚ØµÙŠØ±Ø© Ø§Ù„ÙŠÙˆÙ… Ø³ØªØ¹ÙŠØ¯Ù‡.",
+    adviceLowAccuracy: (pct) => `ÙƒØ§Ù†Øª Ø¯Ù‚ØªÙƒ Ø§Ù„Ø£Ø®ÙŠØ±Ø© ${pct}%. Ù‚Ù„ÙŠÙ„ Ù…Ù† Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø¥Ø¶Ø§ÙÙŠØ© Ù‚Ø¯ ÙŠØ³Ø§Ø¹Ø¯.`,
+    adviceNoPlan: "Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ Ø®Ø·Ø© Ø¯Ø±Ø§Ø³ÙŠØ© Ù†Ø´Ø·Ø©. Ù‡Ù„ ØªØ±ÙŠØ¯ ØªØ­Ø¯ÙŠØ¯ Ù‡Ø¯Ù Ù„Ù„Ø§Ù…ØªØ­Ø§Ù†ØŸ",
+    adviceNoPomodoroToday: "Ù„Ù… ØªØ­Ø¸ Ø¨Ø¬Ù„Ø³Ø© ØªØ±ÙƒÙŠØ² Ø§Ù„ÙŠÙˆÙ…. Ø¬Ø±Ù‘Ø¨ 25 Ø¯Ù‚ÙŠÙ‚Ø© Ù…Ø¹ Ù…Ø¤Ù‚Øª Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ.",
+    adviceExamSoon: (days) => `${days} Ø£ÙŠØ§Ù… Ø­ØªÙ‰ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†. ÙÙƒØ± ÙÙŠ Ø¥Ø¹Ø·Ø§Ø¡ Ø§Ù„Ø£ÙˆÙ„ÙˆÙŠØ© Ù„Ù„Ù…Ø­Ø§Ø¶Ø±Ø§Øª Ø§Ù„Ø£Ø®ÙŠØ±Ø©.`,
+    adviceAllCaughtUp: "Ø£Ù†Øª Ù…Ø­Ø¯Ø« Ø¨Ø§Ù„ÙƒØ§Ù…Ù„! Ø¹Ù…Ù„ Ø±Ø§Ø¦Ø¹ â€” Ù…Ø§Ø°Ø§ Ø¹Ù† Ù…Ø±Ø§Ø¬Ø¹Ø© Ø³Ø±ÙŠØ¹Ø© Ù„Ù…ÙˆØ¶ÙˆØ¹ Ù‚Ø¯ÙŠÙ…ØŸ",
+    adviceBehindSchedule: "Ø£Ù†Øª Ù…ØªØ£Ø®Ø± Ù‚Ù„ÙŠÙ„Ø§Ù‹ Ø¹Ù† Ø®Ø·ØªÙƒ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©. Ù‡Ù„ ØªØ±ÙŠØ¯ ØªØ¹ÙˆÙŠØ¶ Ø§Ù„ØªØ£Ø®ÙŠØ± ÙˆØ¥Ø¹Ø§Ø¯Ø© ØªÙˆØ²ÙŠØ¹ Ø¨Ø§Ù‚ÙŠ Ø§Ù„Ù…Ù†Ù‡Ø¬ØŸ",
+    adviceExceptionDayToday: "Ø§Ù„ÙŠÙˆÙ… ÙŠÙˆÙ… Ø±Ø§Ø­Ø© ÙÙŠ Ø®Ø·ØªÙƒ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©. Ø§Ø³ØªØ±Ø®Ù â€” ØªØ³ØªÙ…Ø± Ø§Ù„Ø®Ø·Ø© ØºØ¯Ù‹Ø§.",
+    dismiss: "Ø¥ØºÙ„Ø§Ù‚",
+    start: "Ù„Ù†Ø¨Ø¯Ø£",
+    tapHint: "Ø§Ø¶ØºØ· Ù„Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ Ù†ØµÙŠØ­Ø©",
+    back: "Ø±Ø¬ÙˆØ¹",
+    next: "Ø§Ù„ØªØ§Ù„ÙŠ",
   },
 };
 
@@ -43869,12 +43993,12 @@ const MASCOT_INTRO_COPY = {
       return `${greet}, ${name}! Klar til at studere?`;
     },
     factTemplate: (category, explanation) => `Vidste du det? Om ${category}: ${explanation}`,
-    factNone: "Tilføj et par spørgsmål til dit modul, så finder jeg et spændende fakta til dig.",
-    planReview: (n) => `Anbefaling: du har ${n} spørgsmål til repetition — godt sted at starte i dag.`,
-    planNew: (n) => `Anbefaling: prøv et par af de ${n} nye spørgsmål i dit modul.`,
-    planExamSoon: (days) => `Anbefaling: kun ${days} dage til eksamen — prioriter de sidste emner.`,
-    planNoPlan: "Anbefaling: opret en studieplan, så jeg kan guide dig bedre dag for dag.",
-    planAllGood: "Anbefaling: du er opdateret — måske en hurtig repetition af et gammelt emne?",
+    factNone: "TilfÃ¸j et par spÃ¸rgsmÃ¥l til dit modul, sÃ¥ finder jeg et spÃ¦ndende fakta til dig.",
+    planReview: (n) => `Anbefaling: du har ${n} spÃ¸rgsmÃ¥l til repetition â€” godt sted at starte i dag.`,
+    planNew: (n) => `Anbefaling: prÃ¸v et par af de ${n} nye spÃ¸rgsmÃ¥l i dit modul.`,
+    planExamSoon: (days) => `Anbefaling: kun ${days} dage til eksamen â€” prioriter de sidste emner.`,
+    planNoPlan: "Anbefaling: opret en studieplan, sÃ¥ jeg kan guide dig bedre dag for dag.",
+    planAllGood: "Anbefaling: du er opdateret â€” mÃ¥ske en hurtig repetition af et gammelt emne?",
   },
   en: {
     welcome: (name) => {
@@ -43884,25 +44008,25 @@ const MASCOT_INTRO_COPY = {
     },
     factTemplate: (category, explanation) => `Did you know? About ${category}: ${explanation}`,
     factNone: "Add a few questions to your module and I'll find a fun fact for you.",
-    planReview: (n) => `Recommendation: you have ${n} questions due for review — good place to start today.`,
+    planReview: (n) => `Recommendation: you have ${n} questions due for review â€” good place to start today.`,
     planNew: (n) => `Recommendation: try a few of the ${n} new questions in your module.`,
-    planExamSoon: (days) => `Recommendation: only ${days} days until the exam — prioritize the last topics.`,
+    planExamSoon: (days) => `Recommendation: only ${days} days until the exam â€” prioritize the last topics.`,
     planNoPlan: "Recommendation: set up a study plan so I can guide you better day by day.",
-    planAllGood: "Recommendation: you're all caught up — maybe a quick review of an old topic?",
+    planAllGood: "Recommendation: you're all caught up â€” maybe a quick review of an old topic?",
   },
   ar: {
     welcome: (name) => {
       const hour = new Date().getHours();
-      const greet = hour < 10 ? "صباح الخير" : hour < 18 ? "نهارك سعيد" : "مساء الخير";
-      return `${greet}، ${name}! هل أنت جاهز للمذاكرة؟`;
+      const greet = hour < 10 ? "ØµØ¨Ø§Ø­ Ø§Ù„Ø®ÙŠØ±" : hour < 18 ? "Ù†Ù‡Ø§Ø±Ùƒ Ø³Ø¹ÙŠØ¯" : "Ù…Ø³Ø§Ø¡ Ø§Ù„Ø®ÙŠØ±";
+      return `${greet}ØŒ ${name}! Ù‡Ù„ Ø£Ù†Øª Ø¬Ø§Ù‡Ø² Ù„Ù„Ù…Ø°Ø§ÙƒØ±Ø©ØŸ`;
     },
-    factTemplate: (category, explanation) => `هل تعلم؟ عن ${category}: ${explanation}`,
-    factNone: "أضف بعض الأسئلة إلى وحدتك وسأجد لك حقيقة مثيرة.",
-    planReview: (n) => `التوصية: لديك ${n} سؤالاً للمراجعة — نقطة انطلاق جيدة اليوم.`,
-    planNew: (n) => `التوصية: جرّب بعض الأسئلة الجديدة (${n}) في وحدتك.`,
-    planExamSoon: (days) => `التوصية: ${days} أيام فقط حتى الامتحان — رتّب أولوياتك حول المواضيع الأخيرة.`,
-    planNoPlan: "التوصية: أنشئ خطة دراسية لأتمكن من مساعدتك يوميًا بشكل أفضل.",
-    planAllGood: "التوصية: أنت محدث بالكامل — ماذا عن مراجعة سريعة لموضوع قديم؟",
+    factTemplate: (category, explanation) => `Ù‡Ù„ ØªØ¹Ù„Ù…ØŸ Ø¹Ù† ${category}: ${explanation}`,
+    factNone: "Ø£Ø¶Ù Ø¨Ø¹Ø¶ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø¥Ù„Ù‰ ÙˆØ­Ø¯ØªÙƒ ÙˆØ³Ø£Ø¬Ø¯ Ù„Ùƒ Ø­Ù‚ÙŠÙ‚Ø© Ù…Ø«ÙŠØ±Ø©.",
+    planReview: (n) => `Ø§Ù„ØªÙˆØµÙŠØ©: Ù„Ø¯ÙŠÙƒ ${n} Ø³Ø¤Ø§Ù„Ø§Ù‹ Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© â€” Ù†Ù‚Ø·Ø© Ø§Ù†Ø·Ù„Ø§Ù‚ Ø¬ÙŠØ¯Ø© Ø§Ù„ÙŠÙˆÙ….`,
+    planNew: (n) => `Ø§Ù„ØªÙˆØµÙŠØ©: Ø¬Ø±Ù‘Ø¨ Ø¨Ø¹Ø¶ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© (${n}) ÙÙŠ ÙˆØ­Ø¯ØªÙƒ.`,
+    planExamSoon: (days) => `Ø§Ù„ØªÙˆØµÙŠØ©: ${days} Ø£ÙŠØ§Ù… ÙÙ‚Ø· Ø­ØªÙ‰ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† â€” Ø±ØªÙ‘Ø¨ Ø£ÙˆÙ„ÙˆÙŠØ§ØªÙƒ Ø­ÙˆÙ„ Ø§Ù„Ù…ÙˆØ§Ø¶ÙŠØ¹ Ø§Ù„Ø£Ø®ÙŠØ±Ø©.`,
+    planNoPlan: "Ø§Ù„ØªÙˆØµÙŠØ©: Ø£Ù†Ø´Ø¦ Ø®Ø·Ø© Ø¯Ø±Ø§Ø³ÙŠØ© Ù„Ø£ØªÙ…ÙƒÙ† Ù…Ù† Ù…Ø³Ø§Ø¹Ø¯ØªÙƒ ÙŠÙˆÙ…ÙŠÙ‹Ø§ Ø¨Ø´ÙƒÙ„ Ø£ÙØ¶Ù„.",
+    planAllGood: "Ø§Ù„ØªÙˆØµÙŠØ©: Ø£Ù†Øª Ù…Ø­Ø¯Ø« Ø¨Ø§Ù„ÙƒØ§Ù…Ù„ â€” Ù…Ø§Ø°Ø§ Ø¹Ù† Ù…Ø±Ø§Ø¬Ø¹Ø© Ø³Ø±ÙŠØ¹Ø© Ù„Ù…ÙˆØ¶ÙˆØ¹ Ù‚Ø¯ÙŠÙ…ØŸ",
   },
 };
 
@@ -43918,9 +44042,9 @@ function daysBetween(aIso, bIso) {
 }
 
 /* ---------- Doktor-spejder-mus avatar ----------
-   Fuld, stående chibi-figur: mus-ører, snude, whiskers, doktorkittel,
-   stetoskop, pandespejl og en lille skråtaske med rødt medicinsk kryds
-   (spejder-detalje). Moods styrer øjenbryn, øjenform, mund og arm. */
+   Fuld, stÃ¥ende chibi-figur: mus-Ã¸rer, snude, whiskers, doktorkittel,
+   stetoskop, pandespejl og en lille skrÃ¥taske med rÃ¸dt medicinsk kryds
+   (spejder-detalje). Moods styrer Ã¸jenbryn, Ã¸jenform, mund og arm. */
 function MascotAvatar({ size = 72, mood = "default" }) {
   const eyeColor = mood === "alert" ? "#ff7b85" : "#5aa8ff";
   const eyeShape =
@@ -43980,7 +44104,7 @@ function MascotAvatar({ size = 72, mood = "default" }) {
   );
 }
 
-/* ---------- Genererer et kontekstuelt råd baseret på eksisterende data ---------- */
+/* ---------- Genererer et kontekstuelt rÃ¥d baseret pÃ¥ eksisterende data ---------- */
 function buildAdviceTip({ copy, user, spacedData, importedQuestions, streakData, history, pomodoroLog, studyPlans }) {
   if (!user) return null;
   const todayIso = todayIsoKey();
@@ -44013,8 +44137,8 @@ function buildAdviceTip({ copy, user, spacedData, importedQuestions, streakData,
 }
 
 /* ---------- Genererer et fakta trukket fra MCQ-databasen for det aktive modul ----------
-   Bruger getFullQuestionBank, som allerede inkluderer importerede/nye spørgsmål
-   og gemte overrides, så nye tilføjelser automatisk kan indgå i faktaene. */
+   Bruger getFullQuestionBank, som allerede inkluderer importerede/nye spÃ¸rgsmÃ¥l
+   og gemte overrides, sÃ¥ nye tilfÃ¸jelser automatisk kan indgÃ¥ i faktaene. */
 function buildModuleFact({ copy, user, importedQuestions, language }) {
   const bank = getFullQuestionBank(importedQuestions).filter(
     (q) => q.moduleId === user.module
@@ -44026,7 +44150,7 @@ function buildModuleFact({ copy, user, importedQuestions, language }) {
   return copy.factTemplate(category, explanation);
 }
 
-/* ---------- Genererer en plan-anbefaling baseret på due/nye spørgsmål og studieplan ---------- */
+/* ---------- Genererer en plan-anbefaling baseret pÃ¥ due/nye spÃ¸rgsmÃ¥l og studieplan ---------- */
 function buildPlanRecommendation({ copy, user, spacedData, importedQuestions, studyPlans }) {
   const bank = getFullQuestionBank(importedQuestions).filter(
     (q) => q.moduleId === user.module
@@ -44176,14 +44300,14 @@ function useMascotEngine({ user, language, spacedData, importedQuestions, }) {
 
 /* ---------- Tre-boble intro-sekvens ved hvert sideload ----------
    1) Velkomst  2) Modul-fakta (fra MCQ-databasen, inkl. nye/importerede)
-   3) Plan-anbefaling. Kører automatisk hver gang komponenten mountes. */
+   3) Plan-anbefaling. KÃ¸rer automatisk hver gang komponenten mountes. */
 
 
-/* ---------- Altid-synlig flydende mascot i nederste højre hjørne ----------
-   Klik åbner enten en ventende kontekstuel besked (rekord/inaktivitet/
-   morgen-check-in) eller — hvis ingen findes — genererer et råd på
-   stedet baseret på eksisterende data (forfaldne spørgsmål, streak,
-   seneste nøjagtighed, studieplan, pomodoro-brug i dag osv.). */
+/* ---------- Altid-synlig flydende mascot i nederste hÃ¸jre hjÃ¸rne ----------
+   Klik Ã¥bner enten en ventende kontekstuel besked (rekord/inaktivitet/
+   morgen-check-in) eller â€” hvis ingen findes â€” genererer et rÃ¥d pÃ¥
+   stedet baseret pÃ¥ eksisterende data (forfaldne spÃ¸rgsmÃ¥l, streak,
+   seneste nÃ¸jagtighed, studieplan, pomodoro-brug i dag osv.). */
 function MascotAssistant({ c, user, language, tutorialActive, spacedData, importedQuestions, onNavigate, hidden = false }) {
   const { currentTip, dismissCurrent, requestAdvice } = useMascotEngine({
     user,
@@ -44537,18 +44661,18 @@ function TutorialOverlay({ c, t, language, route, setRoute, onFinish }) {
       skip: "Spring over",
       next: "Videre",
       back: "Tilbage",
-      done: "Forstået",
+      done: "ForstÃ¥et",
       mascotName: "Dr. Byte",
       steps: [
-        { route: "home", title: "Hej, jeg er Dr. Byte!", text: "Jeg viser dig rundt i MedLearn på et minut. Klik videre, når du er klar." },
-        { route: "home", title: "Kliniske MCQ\u2019er", text: "På forsiden finder du kortet til kliniske MCQ\u2019er, hvor du øver eksamenslignende spørgsmål organiseret efter modul og forelæsning." },
-        { route: "mcq", title: "Sådan fungerer det", text: "Vælg et emne, sæt en session i gang, og få direkte feedback med forklaringer efter hvert spørgsmål." },
-        { route: "home", title: "Indsigter", text: "Indsigter-kortet på forsiden viser din fremgang: samlet score, antal besvarede spørgsmål og sessioner." },
-        { route: "insights", title: "Dine tal", text: "Her ser du din samlede score, antal besvarede spørgsmål, og hvor mange sessioner du har gennemført." },
-        { route: "insights", title: "Udvikling over tid", text: "Grafen på siden viser din udvikling dag for dag, så du nemt kan se, hvor du forbedrer dig." },
+        { route: "home", title: "Hej, jeg er Dr. Byte!", text: "Jeg viser dig rundt i MedLearn pÃ¥ et minut. Klik videre, nÃ¥r du er klar." },
+        { route: "home", title: "Kliniske MCQ\u2019er", text: "PÃ¥ forsiden finder du kortet til kliniske MCQ\u2019er, hvor du Ã¸ver eksamenslignende spÃ¸rgsmÃ¥l organiseret efter modul og forelÃ¦sning." },
+        { route: "mcq", title: "SÃ¥dan fungerer det", text: "VÃ¦lg et emne, sÃ¦t en session i gang, og fÃ¥ direkte feedback med forklaringer efter hvert spÃ¸rgsmÃ¥l." },
+        { route: "home", title: "Indsigter", text: "Indsigter-kortet pÃ¥ forsiden viser din fremgang: samlet score, antal besvarede spÃ¸rgsmÃ¥l og sessioner." },
+        { route: "insights", title: "Dine tal", text: "Her ser du din samlede score, antal besvarede spÃ¸rgsmÃ¥l, og hvor mange sessioner du har gennemfÃ¸rt." },
+        { route: "insights", title: "Udvikling over tid", text: "Grafen pÃ¥ siden viser din udvikling dag for dag, sÃ¥ du nemt kan se, hvor du forbedrer dig." },
         { route: "insights", title: "Naviger rundt", text: "Brug menuen til venstre til at skifte mellem hjem, MCQ\u2019er, notesbog, kalender og din profil." },
-        { route: "insights", title: "Fokusuret", text: "Oppe i toppen kan du starte en fokus-session med Pomodoro-teknikken, når du skal koncentrere dig." },
-        { route: "home", title: "Sådan var det!", text: "Du er nu klar til at komme i gang. God fornøjelse med at læse!" },
+        { route: "insights", title: "Fokusuret", text: "Oppe i toppen kan du starte en fokus-session med Pomodoro-teknikken, nÃ¥r du skal koncentrere dig." },
+        { route: "home", title: "SÃ¥dan var det!", text: "Du er nu klar til at komme i gang. God fornÃ¸jelse med at lÃ¦se!" },
       ],
     },
     en: {
@@ -44570,21 +44694,21 @@ function TutorialOverlay({ c, t, language, route, setRoute, onFinish }) {
       ],
     },
     ar: {
-      skip: "تخطي",
-      next: "التالي",
-      back: "رجوع",
-      done: "فهمت",
-      mascotName: "د. بايت",
+      skip: "ØªØ®Ø·ÙŠ",
+      next: "Ø§Ù„ØªØ§Ù„ÙŠ",
+      back: "Ø±Ø¬ÙˆØ¹",
+      done: "ÙÙ‡Ù…Øª",
+      mascotName: "Ø¯. Ø¨Ø§ÙŠØª",
       steps: [
-        { route: "home", title: "مرحبًا، أنا د. بايت!", text: "سأدلك على تطبيق MedLearn في دقيقة واحدة. اضغط للمتابعة عندما تكون جاهزًا." },
-        { route: "home", title: "أسئلة سريرية متعددة الخيارات", text: "في الشاشة الرئيسية ستجد بطاقة الأسئلة السريرية، حيث تتدرب على أسئلة شبيهة بالامتحان منظمة حسب الوحدة والمحاضرة." },
-        { route: "mcq", title: "كيف يعمل", text: "اختر موضوعًا، ابدأ جلسة، واحصل على تغذية راجعة فورية مع تفسيرات بعد كل سؤال." },
-        { route: "home", title: "الإحصاءات", text: "بطاقة الإحصاءات في الشاشة الرئيسية تتابع تقدمك: النتيجة الإجمالية، الأسئلة المُجابة، والجلسات المكتملة." },
-        { route: "insights", title: "أرقامك", text: "هنا يمكنك رؤية نتيجتك الإجمالية، عدد الأسئلة المُجابة، والجلسات المكتملة." },
-        { route: "insights", title: "التقدم عبر الزمن", text: "يوضح الرسم البياني في هذه الصفحة تطورك يوميًا، لترى بسهولة أين تتحسن." },
-        { route: "insights", title: "التنقل", text: "استخدم القائمة على اليسار للتبديل بين الرئيسية والأسئلة ودفتر الملاحظات والتقويم وملفك الشخصي." },
-        { route: "insights", title: "مؤقت التركيز", text: "في الأعلى يمكنك بدء جلسة تركيز بتقنية بومودورو عندما تحتاج إلى التركيز." },
-        { route: "home", title: "هذا كل شيء!", text: "أنت جاهز للانطلاق. أتمنى لك دراسة موفقة!" },
+        { route: "home", title: "Ù…Ø±Ø­Ø¨Ù‹Ø§ØŒ Ø£Ù†Ø§ Ø¯. Ø¨Ø§ÙŠØª!", text: "Ø³Ø£Ø¯Ù„Ùƒ Ø¹Ù„Ù‰ ØªØ·Ø¨ÙŠÙ‚ MedLearn ÙÙŠ Ø¯Ù‚ÙŠÙ‚Ø© ÙˆØ§Ø­Ø¯Ø©. Ø§Ø¶ØºØ· Ù„Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¹Ù†Ø¯Ù…Ø§ ØªÙƒÙˆÙ† Ø¬Ø§Ù‡Ø²Ù‹Ø§." },
+        { route: "home", title: "Ø£Ø³Ø¦Ù„Ø© Ø³Ø±ÙŠØ±ÙŠØ© Ù…ØªØ¹Ø¯Ø¯Ø© Ø§Ù„Ø®ÙŠØ§Ø±Ø§Øª", text: "ÙÙŠ Ø§Ù„Ø´Ø§Ø´Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© Ø³ØªØ¬Ø¯ Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ø³Ø±ÙŠØ±ÙŠØ©ØŒ Ø­ÙŠØ« ØªØªØ¯Ø±Ø¨ Ø¹Ù„Ù‰ Ø£Ø³Ø¦Ù„Ø© Ø´Ø¨ÙŠÙ‡Ø© Ø¨Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ù…Ù†Ø¸Ù…Ø© Ø­Ø³Ø¨ Ø§Ù„ÙˆØ­Ø¯Ø© ÙˆØ§Ù„Ù…Ø­Ø§Ø¶Ø±Ø©." },
+        { route: "mcq", title: "ÙƒÙŠÙ ÙŠØ¹Ù…Ù„", text: "Ø§Ø®ØªØ± Ù…ÙˆØ¶ÙˆØ¹Ù‹Ø§ØŒ Ø§Ø¨Ø¯Ø£ Ø¬Ù„Ø³Ø©ØŒ ÙˆØ§Ø­ØµÙ„ Ø¹Ù„Ù‰ ØªØºØ°ÙŠØ© Ø±Ø§Ø¬Ø¹Ø© ÙÙˆØ±ÙŠØ© Ù…Ø¹ ØªÙØ³ÙŠØ±Ø§Øª Ø¨Ø¹Ø¯ ÙƒÙ„ Ø³Ø¤Ø§Ù„." },
+        { route: "home", title: "Ø§Ù„Ø¥Ø­ØµØ§Ø¡Ø§Øª", text: "Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø¥Ø­ØµØ§Ø¡Ø§Øª ÙÙŠ Ø§Ù„Ø´Ø§Ø´Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© ØªØªØ§Ø¨Ø¹ ØªÙ‚Ø¯Ù…Ùƒ: Ø§Ù„Ù†ØªÙŠØ¬Ø© Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ©ØŒ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…ÙØ¬Ø§Ø¨Ø©ØŒ ÙˆØ§Ù„Ø¬Ù„Ø³Ø§Øª Ø§Ù„Ù…ÙƒØªÙ…Ù„Ø©." },
+        { route: "insights", title: "Ø£Ø±Ù‚Ø§Ù…Ùƒ", text: "Ù‡Ù†Ø§ ÙŠÙ…ÙƒÙ†Ùƒ Ø±Ø¤ÙŠØ© Ù†ØªÙŠØ¬ØªÙƒ Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠØ©ØŒ Ø¹Ø¯Ø¯ Ø§Ù„Ø£Ø³Ø¦Ù„Ø© Ø§Ù„Ù…ÙØ¬Ø§Ø¨Ø©ØŒ ÙˆØ§Ù„Ø¬Ù„Ø³Ø§Øª Ø§Ù„Ù…ÙƒØªÙ…Ù„Ø©." },
+        { route: "insights", title: "Ø§Ù„ØªÙ‚Ø¯Ù… Ø¹Ø¨Ø± Ø§Ù„Ø²Ù…Ù†", text: "ÙŠÙˆØ¶Ø­ Ø§Ù„Ø±Ø³Ù… Ø§Ù„Ø¨ÙŠØ§Ù†ÙŠ ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„ØµÙØ­Ø© ØªØ·ÙˆØ±Ùƒ ÙŠÙˆÙ…ÙŠÙ‹Ø§ØŒ Ù„ØªØ±Ù‰ Ø¨Ø³Ù‡ÙˆÙ„Ø© Ø£ÙŠÙ† ØªØªØ­Ø³Ù†." },
+        { route: "insights", title: "Ø§Ù„ØªÙ†Ù‚Ù„", text: "Ø§Ø³ØªØ®Ø¯Ù… Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø¹Ù„Ù‰ Ø§Ù„ÙŠØ³Ø§Ø± Ù„Ù„ØªØ¨Ø¯ÙŠÙ„ Ø¨ÙŠÙ† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© ÙˆØ§Ù„Ø£Ø³Ø¦Ù„Ø© ÙˆØ¯ÙØªØ± Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª ÙˆØ§Ù„ØªÙ‚ÙˆÙŠÙ… ÙˆÙ…Ù„ÙÙƒ Ø§Ù„Ø´Ø®ØµÙŠ." },
+        { route: "insights", title: "Ù…Ø¤Ù‚Øª Ø§Ù„ØªØ±ÙƒÙŠØ²", text: "ÙÙŠ Ø§Ù„Ø£Ø¹Ù„Ù‰ ÙŠÙ…ÙƒÙ†Ùƒ Ø¨Ø¯Ø¡ Ø¬Ù„Ø³Ø© ØªØ±ÙƒÙŠØ² Ø¨ØªÙ‚Ù†ÙŠØ© Ø¨ÙˆÙ…ÙˆØ¯ÙˆØ±Ùˆ Ø¹Ù†Ø¯Ù…Ø§ ØªØ­ØªØ§Ø¬ Ø¥Ù„Ù‰ Ø§Ù„ØªØ±ÙƒÙŠØ²." },
+        { route: "home", title: "Ù‡Ø°Ø§ ÙƒÙ„ Ø´ÙŠØ¡!", text: "Ø£Ù†Øª Ø¬Ø§Ù‡Ø² Ù„Ù„Ø§Ù†Ø·Ù„Ø§Ù‚. Ø£ØªÙ…Ù†Ù‰ Ù„Ùƒ Ø¯Ø±Ø§Ø³Ø© Ù…ÙˆÙÙ‚Ø©!" },
       ],
     },
   })[language] || {};
@@ -44742,7 +44866,7 @@ async function refreshGlobalSharedContent(version, reason = "version-change") {
   try {
     await pullQuestionBankIntoLocalStorage();
   } catch (error) {
-    console.warn("Kunne ikke opdatere den globale spørgsmålsbank:", error);
+    console.warn("Kunne ikke opdatere den globale spÃ¸rgsmÃ¥lsbank:", error);
   } finally {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent(GLOBAL_CONTENT_REFRESH_EVENT, { detail: { version, reason, at: Date.now() } }));
@@ -44814,7 +44938,7 @@ function AdminModeIndicator({ c, language, onExit }) {
   const copy = ({
     da: { label: "Admin mode", exit: "Til studiemode" },
     en: { label: "Admin mode", exit: "Study mode" },
-    ar: { label: "وضع المسؤول", exit: "وضع الدراسة" },
+    ar: { label: "ÙˆØ¶Ø¹ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„", exit: "ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø±Ø§Ø³Ø©" },
   })[language] || null;
   return (
     <div style={{ position: "fixed", top: 12, insetInlineEnd: 14, zIndex: 1400, display: "flex", alignItems: "center", gap: 7, padding: "6px 8px 6px 10px", borderRadius: 99, background: c.panel, border: `1px solid ${c.redBorder}`, boxShadow: c.shadowSm }}>
@@ -44931,7 +45055,7 @@ function AuthScreen({ c, t, language, theme }) {
 
   const copy = {
     da: {
-      loginTitle: "Log ind på MedLearn",
+      loginTitle: "Log ind pÃ¥ MedLearn",
       signupTitle: "Opret en konto",
       email: "E-mail",
       password: "Adgangskode",
@@ -44939,8 +45063,8 @@ function AuthScreen({ c, t, language, theme }) {
       signupButton: "Opret konto",
       switchToSignup: "Har du ikke en konto? Opret en her",
       switchToLogin: "Har du allerede en konto? Log ind her",
-      signupSuccess: "Konto oprettet. Bekræft din e-mail for at logge ind.",
-      genericError: "Noget gik galt. Kontrollér dine oplysninger og prøv igen.",
+      signupSuccess: "Konto oprettet. BekrÃ¦ft din e-mail for at logge ind.",
+      genericError: "Noget gik galt. KontrollÃ©r dine oplysninger og prÃ¸v igen.",
     },
     en: {
       loginTitle: "Log in to MedLearn",
@@ -44955,16 +45079,16 @@ function AuthScreen({ c, t, language, theme }) {
       genericError: "Something went wrong. Check your details and try again.",
     },
     ar: {
-      loginTitle: "تسجيل الدخول إلى MedLearn",
-      signupTitle: "إنشاء حساب",
-      email: "البريد الإلكتروني",
-      password: "كلمة المرور",
-      loginButton: "تسجيل الدخول",
-      signupButton: "إنشاء حساب",
-      switchToSignup: "ليس لديك حساب؟ أنشئ حسابًا هنا",
-      switchToLogin: "لديك حساب بالفعل؟ سجل الدخول هنا",
-      signupSuccess: "تم إنشاء الحساب. يرجى تأكيد بريدك الإلكتروني لتسجيل الدخول.",
-      genericError: "حدث خطأ ما. تحقق من بياناتك وحاول مرة أخرى.",
+      loginTitle: "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¥Ù„Ù‰ MedLearn",
+      signupTitle: "Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨",
+      email: "Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ",
+      password: "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±",
+      loginButton: "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„",
+      signupButton: "Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨",
+      switchToSignup: "Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ØŸ Ø£Ù†Ø´Ø¦ Ø­Ø³Ø§Ø¨Ù‹Ø§ Ù‡Ù†Ø§",
+      switchToLogin: "Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ Ø¨Ø§Ù„ÙØ¹Ù„ØŸ Ø³Ø¬Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù‡Ù†Ø§",
+      signupSuccess: "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨. ÙŠØ±Ø¬Ù‰ ØªØ£ÙƒÙŠØ¯ Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù„ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„.",
+      genericError: "Ø­Ø¯Ø« Ø®Ø·Ø£ Ù…Ø§. ØªØ­Ù‚Ù‚ Ù…Ù† Ø¨ÙŠØ§Ù†Ø§ØªÙƒ ÙˆØ­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.",
     },
   }[language] || {};
 
@@ -45086,7 +45210,7 @@ function AuthScreen({ c, t, language, theme }) {
         ? language === "en"
           ? "Use at least six characters."
           : language === "ar"
-            ? "استخدم ستة أحرف على الأقل."
+            ? "Ø§Ø³ØªØ®Ø¯Ù… Ø³ØªØ© Ø£Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„."
             : "Brug mindst seks tegn."
         : null
     }
@@ -45434,11 +45558,11 @@ useEffect(() => {
     setStage("onboarding");
   }
 
-  // Kræver et bekræftet Supabase-login, før appen overhovedet viser
+  // KrÃ¦ver et bekrÃ¦ftet Supabase-login, fÃ¸r appen overhovedet viser
   // onboarding eller det almindelige indhold. "session === undefined"
   // betyder at Supabase stadig tjekker for en eksisterende session
-  // (fx efter en genindlæsning), så vi viser en tom skærm et kort øjeblik
-  // i stedet for fejlagtigt at vise login-skærmen.
+  // (fx efter en genindlÃ¦sning), sÃ¥ vi viser en tom skÃ¦rm et kort Ã¸jeblik
+  // i stedet for fejlagtigt at vise login-skÃ¦rmen.
   if (session === undefined) {
     return (
       <>
@@ -45664,7 +45788,7 @@ useEffect(() => {
           closing={calendarClosing}
         >
           {activeWorkspace === "calendar" && (
-            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={effectiveAdmin} onClose={closeWorkspace} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
+            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={effectiveAdmin} onClose={closeWorkspace} onOpenStudyPlan={() => navigateFromShell("study-plan")} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
           )}
           {activeWorkspace === "notes" && (
             <Notebook c={c} t={t} onClose={closeWorkspace} />
@@ -46020,8 +46144,8 @@ onNavigate={navigateFromShell}
 
 export default App;
 
-/* FORELÆSNINGSVISER FV7 — PERFORMANCE, CALENDAR & FINISH */
+/* FORELÃ†SNINGSVISER FV7 â€” PERFORMANCE, CALENDAR & FINISH */
 
-/* FORELÆSNINGSVISER FV7.1 — GLOBAL ADMIN CALENDAR MATCHING */
+/* FORELÃ†SNINGSVISER FV7.1 â€” GLOBAL ADMIN CALENDAR MATCHING */
 
-/* SEGMENT 6.6 — FORSØG OG HISTORIK */
+/* SEGMENT 6.6 â€” FORSÃ˜G OG HISTORIK */
