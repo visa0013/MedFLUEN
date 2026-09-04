@@ -1951,6 +1951,27 @@ function calendarBuildLectureScheduleStatus(moduleName, lectureId, events, nowMs
 }
 /* SEGMENT_6_8_2_4_CALENDAR_CONSISTENCY_HELPERS_END */
 
+/* SEGMENT_6_8_2_5_CALENDAR_LABEL_HELPERS_START */
+function calendarLectureDisplayTitle(event) {
+  const title = String(event?.title || "").trim();
+  const lectureCode = String(event?.lectureId || event?.lectureIds?.[0] || "").trim();
+  if (!title || !lectureCode) return title;
+  const escapedCode = lectureCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const leadingCode = new RegExp(`^${escapedCode}(?:\\s*(?:[·:–—-])\\s*|\\s+)`, "i");
+  let displayTitle = title;
+  while (leadingCode.test(displayTitle)) {
+    const nextTitle = displayTitle.replace(leadingCode, "").trim();
+    if (!nextTitle || nextTitle === displayTitle) break;
+    displayTitle = nextTitle;
+  }
+  return displayTitle || title;
+}
+
+function calendarWeekEventStateLabels({ held = false } = {}) {
+  return held ? ["Afholdt"] : [];
+}
+/* SEGMENT_6_8_2_5_CALENDAR_LABEL_HELPERS_END */
+
 function calendarGlobalEventFromRow(row) {
   if (!row?.event_id) return null;
   const payload = row.event_data && typeof row.event_data === "object" && !Array.isArray(row.event_data) ? row.event_data : {};
@@ -2588,7 +2609,7 @@ function WeekCalendar({
                     }}
                     title={event.title}
                   >
-                    <span>{event.lectureId || (studyPlanActivityKind(event) === STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE ? "EX" : "•")}</span><strong>{event.title}</strong>
+                    <span>{event.lectureId || (studyPlanActivityKind(event) === STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE ? "EX" : "•")}</span><strong>{calendarLectureDisplayTitle(event)}</strong>
                   </button>
                 )) : <span className="calendar-week-unscheduled-empty">—</span>}
               </div>
@@ -2691,8 +2712,7 @@ function WeekCalendar({
                     <span className="calendar-week-event-time">{event._segmentContinuation ? "Fortsætter" : `${event.time}–${event.endTime || calendarEndFields(event.date, start, end - start).endTime}`}</span>
                     <span className="calendar-week-event-title">{event.title}</span>
                     <span className="calendar-week-event-meta">{event.location || tone.label}</span>
-                    {calendarIsSduScheduleEvent(event) && calendarSduEventHasEnded(event, calendarNowMs) && <span className="calendar-week-event-state">Afholdt</span>}
-                    {readOnly && <span className="calendar-week-event-state">Global</span>}
+                    {calendarWeekEventStateLabels({ held: calendarIsSduScheduleEvent(event) && calendarSduEventHasEnded(event, calendarNowMs) }).map((label) => <span key={label} className="calendar-week-event-state">{label}</span>)}
                     {!readOnly && <span className="calendar-week-resize-handle" onPointerDown={(domEvent) => startResize(domEvent, event)} aria-hidden="true" />}
                   </button>
                 );
@@ -22399,7 +22419,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2.4</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2.5</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
         <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
