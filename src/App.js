@@ -65,7 +65,83 @@ const STORAGE = {
   fsrsSettings: "medlearn-fsrs-settings",
   studyPlanDraft: "medlearn-study-plan-draft",
   calendarPreferences: "medlearn-calendar-preferences",
+  insightWorkspace: "medlearn-insight-workspace",
 };
+
+/* SEGMENT_6_9_HELPERS_START */
+function medfluenPrimaryArea(route, workspace) {
+  if (workspace === "examSets" || route === "mcq" || route === "training-history") return "training";
+  if (workspace === "lectures" || workspace === "notes") return "curriculum";
+  if (workspace === "calendar" || route === "study-plan") return "planning";
+  if (route === "insights") return "insight";
+  return "home";
+}
+
+function medfluenAreaTab(route, workspace, sessionScope) {
+  if (workspace === "examSets") return "training-exams";
+  if (route === "training-history") return "training-history";
+  if (route === "mcq" && sessionScope?.mode === "due") return "training-review";
+  if (route === "mcq") return "training-start";
+  if (workspace === "notes") return "curriculum-notes";
+  if (workspace === "lectures") return "curriculum-lectures";
+  if (route === "study-plan") return "planning-study-plan";
+  if (workspace === "calendar") return "planning-calendar";
+  return null;
+}
+
+function insightBuildModel(history, questions, moduleName, scope = "module") {
+  const sourceHistory = Array.isArray(history) ? history : [];
+  const sessions = sourceHistory
+    .filter((session) => scope === "all" || !moduleName || session?.module === moduleName)
+    .slice()
+    .sort((a, b) => new Date(b?.completedAt || 0) - new Date(a?.completedAt || 0));
+  const questionIndex = new Map((Array.isArray(questions) ? questions : []).map((question) => [String(question?.id || ""), question]));
+  const topicMap = new Map();
+  const wrongMap = new Map();
+  let totalAnswered = 0;
+  let totalCorrect = 0;
+
+  sessions.forEach((session) => {
+    const answered = Number(session?.answered ?? session?.total) || 0;
+    const correct = Number(session?.correct) || 0;
+    totalAnswered += answered;
+    totalCorrect += correct;
+    Object.entries(session?.categories || {}).forEach(([name, result]) => {
+      const current = topicMap.get(name) || { name, correct: 0, total: 0 };
+      current.correct += Number(result?.correct) || 0;
+      current.total += Number(result?.total) || 0;
+      topicMap.set(name, current);
+    });
+    (Array.isArray(session?.wrongQuestionIds) ? session.wrongQuestionIds : []).forEach((questionId) => {
+      const id = String(questionId || "");
+      if (!id) return;
+      wrongMap.set(id, (wrongMap.get(id) || 0) + 1);
+    });
+  });
+
+  const topics = Array.from(topicMap.values())
+    .map((topic) => ({ ...topic, percent: topic.total ? Math.round((topic.correct / topic.total) * 100) : null }))
+    .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  const repeatedQuestions = Array.from(wrongMap.entries())
+    .filter(([, count]) => count >= 2)
+    .map(([id, count]) => {
+      const question = questionIndex.get(id) || null;
+      return { id, count, question };
+    })
+    .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
+
+  return {
+    sessions,
+    latestSession: sessions[0] || null,
+    sessionCount: sessions.length,
+    totalAnswered,
+    totalCorrect,
+    percent: totalAnswered ? Math.round((totalCorrect / totalAnswered) * 100) : null,
+    topics,
+    repeatedQuestions,
+  };
+}
+/* SEGMENT_6_9_HELPERS_END */
 
 const LANGUAGES = [
   { code: "da", label: "Dansk", native: "Dansk", dir: "ltr" },
@@ -4776,8 +4852,51 @@ function Icon({ name, size = 20, stroke = 2.1 }) {
     ),
     logo: (
       <>
-        <path d="M3 12h4l2.5-7 4.5 14 2.5-7H21" />
-        <circle cx="12" cy="12" r="9" opacity=".35" />
+        <path d="M2.5 13h3.1l2.1-5.2 3.1 8.4 2.7-11 2.5 7.8h5.5" />
+        <path d="M4.5 17.5c2.2 1.7 4.7 2.5 7.5 2.5s5.3-.8 7.5-2.5" opacity=".55" />
+      </>
+    ),
+    training: (
+      <>
+        <rect x="4" y="5" width="12" height="14" rx="3" />
+        <path d="M8 9h4M8 13h2" />
+        <path d="M16 8h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8" opacity=".7" />
+        <path d="m13 15 1.4 1.4L17.5 13" />
+      </>
+    ),
+    curriculum: (
+      <>
+        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5Z" />
+        <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5Z" />
+        <path d="M6.8 7h2M15.2 7h2M6.8 10h2M15.2 10h2" opacity=".7" />
+      </>
+    ),
+    planning: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="3" />
+        <path d="M7 3v4M17 3v4M3 10h18" />
+        <path d="M7 15h3l2-2 2 4 3-3" />
+      </>
+    ),
+    insight: (
+      <>
+        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z" />
+        <circle cx="9" cy="12" r="1.25" fill="currentColor" stroke="none" />
+        <circle cx="13" cy="9.5" r="1.25" fill="currentColor" stroke="none" />
+        <circle cx="15.5" cy="14" r="1.25" fill="currentColor" stroke="none" />
+      </>
+    ),
+    assistant: (
+      <>
+        <path d="M4 5h16v11H9l-5 4Z" />
+        <path d="M12 8.2v5.6M9.2 11h5.6" />
+        <circle cx="12" cy="11" r="3.2" opacity=".35" />
+      </>
+    ),
+    focus: (
+      <>
+        <path d="M18.4 6.2A8.5 8.5 0 1 1 12 3.5" />
+        <path d="M12 7v5l3 2M14.5 2.5H20V8" />
       </>
     ),
     home: (
@@ -11441,31 +11560,34 @@ select.ui-control {
 }
 
 .topbar-digital-clock {
-  width: 176px;
-  min-height: 54px;
-  display: grid;
-  place-items: center;
-  padding: 5px 16px;
-  border: 0;
+  width: auto;
+  min-width: 112px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border: 1px solid var(--ui-border);
   border-radius: 12px;
-  background: transparent;
+  background: var(--ui-soft);
   color: var(--ui-text);
   outline: none;
 }
 .topbar-digital-clock:focus-visible { box-shadow: 0 0 0 3px var(--ui-ring); }
 .topbar-digital-time {
   display: block;
-  font-family: "Orbitron", "Azeret Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: 27px;
-  font-weight: 600;
-  letter-spacing: .075em;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .01em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   transform-origin: center;
   transition: transform 180ms var(--ui-ease), color 160ms ease;
 }
-.topbar-digital-clock:hover { filter: none !important; background: transparent !important; }
-.topbar-digital-clock:hover .topbar-digital-time { transform: scale(1.075); color: var(--ui-blue); }
+.topbar-digital-clock:hover { filter: none !important; border-color: var(--ui-blue-border) !important; background: var(--ui-blue-soft) !important; color: var(--ui-blue); }
+.topbar-digital-clock:hover .topbar-digital-time { transform: none; color: var(--ui-blue); }
 .topbar-digital-clock:active .topbar-digital-time { transform: scale(1.02); }
 
 .pomodoro-popover-v11 {
@@ -11480,6 +11602,16 @@ select.ui-control {
   border-radius: 14px;
   transform: translateX(-50%);
 }
+.topbar-mobile-utilities { display: none; align-items: center; gap: 4px; }
+.topbar-mobile-utilities > button,
+.topbar-mobile-profile-menu > button { border: 0; background: transparent; color: var(--ui-secondary); }
+.topbar-mobile-utilities > button { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; }
+.topbar-mobile-utilities > button:hover { background: var(--ui-soft); color: var(--ui-blue); }
+.topbar-mobile-profile-menu > button { width: 100%; min-height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 9px; border-radius: 8px; font-size: 9.5px; font-weight: 760; text-align: start; }
+.topbar-mobile-profile-menu > button:hover { background: var(--ui-soft); color: var(--ui-blue); }
+.mobile-workspace-utilities { display: none; }
+.medfluen-area-tabs { scrollbar-width: none; }
+.medfluen-area-tabs::-webkit-scrollbar { display: none; }
 .pomodoro-v11-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .pomodoro-v11-header > div { min-width: 0; display: grid; gap: 3px; }
 .pomodoro-v11-header strong { color: var(--ui-text); font-size: 13px; font-weight: 850; }
@@ -12092,8 +12224,19 @@ select.ui-control {
 }
 
 @media (max-width: 760px) {
-  .topbar-digital-clock { width: 132px; min-height: 48px; padding-inline: 8px; }
-  .topbar-digital-time { font-size: 21px; }
+  .topbar-digital-clock { min-width: 82px; min-height: 38px; padding-inline: 9px; }
+  .topbar-digital-time { font-size: 9.5px; }
+  .topbar-mobile-utilities { display: flex; }
+  .mobile-workspace-utilities { position: fixed; z-index: 1700; top: 7px; inset-inline-end: 50px; display: flex; align-items: center; gap: 4px; }
+  .mobile-workspace-utilities > button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-secondary); }
+  .mobile-workspace-profile-menu { position: absolute; top: 42px; inset-inline-end: 0; width: 170px; padding: 7px; border-radius: 12px; }
+  .mobile-workspace-profile-menu > button { width: 100%; min-height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: var(--ui-secondary); font-size: 9.5px; font-weight: 760; text-align: start; }
+  .mobile-workspace-profile-menu > button:hover { background: var(--ui-soft); color: var(--ui-blue); }
+  .medfluen-area-tabs { justify-content: flex-start !important; overflow-x: auto; padding-inline: 8px !important; }
+  .medfluen-area-tabs > button { flex: 0 0 auto; min-height: 36px !important; }
+  .insight69-cards { grid-template-columns: 1fr !important; }
+  .insight69-query > div { align-items: stretch !important; flex-direction: column; }
+  .insight69-query select { width: 100%; }
   .pomodoro-popover-v11 { left: 10px !important; right: 10px !important; top: 64px !important; width: auto !important; max-height: calc(100vh - 136px) !important; transform: none !important; }
 }
 
@@ -16277,6 +16420,8 @@ function Timer({
   user,
   setUser,
   route,
+  onAssistant = null,
+  onProfileAction = null,
 }) {
   const [settings, setSettings] = useStoredState(STORAGE.timer, {
     focus: 25,
@@ -16289,7 +16434,7 @@ function Timer({
   const [mode, setMode] = useState("idle");
   const [running, setRunning] = useState(false);
   const [seconds, setSeconds] = useState((Number(settings.focus) || 25) * 60);
-  const [clock, setClock] = useState("");
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const [pomodoroLog, setPomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
   const [pomodoroMinutesLog, setPomodoroMinutesLog] = useStoredState(STORAGE.pomodoroMinutesLog, {});
   const triggerRef = useRef(null);
@@ -16299,8 +16444,10 @@ function Timer({
     da: {
       homeSubtitle: "Dit studieoverblik",
       mcqSubtitle: "Træn og repetér",
-      insightsTitle: "Indsigter",
-      insightsSubtitle: "Se din udvikling",
+      trainingTitle: "Træning",
+      historySubtitle: "Dine registrerede sessioner",
+      insightsTitle: "Indblik",
+      insightsSubtitle: "Undersøg dine egne data",
       planTitle: "Studieplan",
       planSubtitle: "Planlæg frem mod eksamen",
       timerTitle: "Pomodoro",
@@ -16321,12 +16468,15 @@ function Timer({
       activeBreak: "Pause",
       deletePlan: "Slet plan",
       applyPlan: "Brug plan",
+      focusControl: "Fokus",
     },
     en: {
       homeSubtitle: "Your study overview",
       mcqSubtitle: "Practice and review",
-      insightsTitle: "Insights",
-      insightsSubtitle: "View your progress",
+      trainingTitle: "Training",
+      historySubtitle: "Your recorded sessions",
+      insightsTitle: "Insight",
+      insightsSubtitle: "Explore your own data",
       planTitle: "Study plan",
       planSubtitle: "Plan towards your exam",
       timerTitle: "Pomodoro",
@@ -16347,12 +16497,15 @@ function Timer({
       activeBreak: "Break",
       deletePlan: "Delete plan",
       applyPlan: "Use plan",
+      focusControl: "Focus",
     },
     ar: {
       homeSubtitle: "نظرة عامة على دراستك",
       mcqSubtitle: "تدرّب وراجع",
-      insightsTitle: "الإحصاءات",
-      insightsSubtitle: "اطّلع على تقدمك",
+      trainingTitle: "التدريب",
+      historySubtitle: "جلساتك المسجلة",
+      insightsTitle: "نظرة",
+      insightsSubtitle: "استكشف بياناتك بنفسك",
       planTitle: "خطة الدراسة",
       planSubtitle: "خطط حتى موعد الامتحان",
       timerTitle: "بومودورو",
@@ -16373,6 +16526,7 @@ function Timer({
       activeBreak: "استراحة",
       deletePlan: "حذف الخطة",
       applyPlan: "استخدام الخطة",
+      focusControl: "تركيز",
     },
   })[language] || {};
 
@@ -16397,26 +16551,14 @@ function Timer({
   }).reduce((sum, value) => sum + value, 0);
 
   const routeData = route === "mcq"
-    ? { title: t.clinicalMcq, subtitle: copy.mcqSubtitle, icon: "clipboard" }
+    ? { title: copy.trainingTitle, subtitle: copy.mcqSubtitle, icon: "training" }
+    : route === "training-history"
+      ? { title: copy.trainingTitle, subtitle: copy.historySubtitle, icon: "training" }
     : route === "insights"
-      ? { title: copy.insightsTitle, subtitle: copy.insightsSubtitle, icon: "chart" }
+      ? { title: copy.insightsTitle, subtitle: copy.insightsSubtitle, icon: "insight" }
       : route === "study-plan"
         ? { title: copy.planTitle, subtitle: copy.planSubtitle, icon: "calendar" }
         : { title: t.home, subtitle: copy.homeSubtitle, icon: "home" };
-
-  useEffect(() => {
-    function updateClock() {
-      const now = new Date();
-      setClock(now.toLocaleTimeString(locale, {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }));
-    }
-    updateClock();
-    const interval = window.setInterval(updateClock, 1000);
-    return () => window.clearInterval(interval);
-  }, [locale]);
 
   useEffect(() => {
     if (!running) return undefined;
@@ -16541,9 +16683,6 @@ function Timer({
       }}
     >
       <div className="topbar-page-context" style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10, justifySelf: "start" }}>
-        <span aria-hidden="true" className="topbar-page-icon" style={{ width: 36, height: 36, flexShrink: 0, display: "grid", placeItems: "center", borderRadius: 12, background: c.blueSoft, border: `1px solid ${c.blueBorder}`, color: c.blue }}>
-          <Icon name={routeData.icon} size={16} />
-        </span>
         <span style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
           <span style={{ color: c.text, fontSize: 12, fontWeight: 850, lineHeight: 1.15 }}>{routeData.title}</span>
           <span style={{ maxWidth: 220, marginTop: 3, color: c.muted, fontSize: 9.5, fontWeight: 650, lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{routeData.subtitle}</span>
@@ -16555,13 +16694,14 @@ function Timer({
           ref={triggerRef}
           type="button"
           data-tour="pomodoro"
-          className="topbar-digital-clock"
-          aria-label={`${open ? copy.closeTimer : copy.openTimer}: ${active ? formatTime(seconds) : clock}`}
+          className="topbar-digital-clock topbar-focus-control"
+          aria-label={`${open ? copy.closeTimer : copy.openTimer}: ${active ? formatTime(seconds) : copy.focusControl}`}
           aria-expanded={open}
           aria-haspopup="dialog"
           onClick={() => setOpen((value) => !value)}
         >
-          <span className="topbar-digital-time">{active ? formatTime(seconds) : clock}</span>
+          <Icon name="focus" size={16} />
+          <span className="topbar-digital-time">{active ? formatTime(seconds) : copy.focusControl}</span>
         </button>
 
         {open && (
@@ -16642,7 +16782,18 @@ function Timer({
         )}
       </div>
 
-      <ModuleSwitcher c={c} t={t} language={language} user={user} setUser={setUser} />
+      <div style={{ position: "relative", justifySelf: "end", display: "flex", alignItems: "center", gap: 6 }}>
+        <div className="topbar-mobile-utilities">
+          <button type="button" title={t.drByte} aria-label={t.drByte} onClick={onAssistant}><Icon name="assistant" size={16} /></button>
+          <button type="button" title={t.profile} aria-label={t.profile} aria-expanded={mobileProfileOpen} onClick={() => setMobileProfileOpen((value) => !value)}><Icon name="user" size={16} /></button>
+        </div>
+        {mobileProfileOpen && <div className="topbar-mobile-profile-menu" style={{ position: "absolute", zIndex: 1200, top: 48, insetInlineEnd: 0, width: 170, padding: 7, border: `1px solid ${c.border}`, borderRadius: 12, background: c.panel, boxShadow: c.shadowLg }}>
+          <button type="button" onClick={() => { setMobileProfileOpen(false); onProfileAction?.("settings"); }}><Icon name="settings" size={13} />{t.settings}</button>
+          <button type="button" onClick={() => { setMobileProfileOpen(false); onProfileAction?.("language"); }}><Icon name="globe" size={13} />{t.language}</button>
+          <button type="button" onClick={() => { setMobileProfileOpen(false); onProfileAction?.("signout"); }}><Icon name="logout" size={13} />{t.signOutAction}</button>
+        </div>}
+        <ModuleSwitcher c={c} t={t} language={language} user={user} setUser={setUser} />
+      </div>
     </header>
   );
 }
@@ -21161,7 +21312,7 @@ async function submitFlag() {
   );
 }
 
-function Insights({ c, t, language, user }) {
+function LegacyInsights({ c, t, language, user }) {
   const [history] = useStoredState(STORAGE.quizHistory, []);
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
@@ -21781,6 +21932,156 @@ getFullQuestionBank(
   );
 }
 
+function Insights69({ c, language, user, userId = null, onOpenExamSets, onReviewQuestions }) {
+  const [history] = useStoredState(STORAGE.quizHistory, []);
+  const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
+  const [workspace, setWorkspace] = useStoredState(STORAGE.insightWorkspace, { view: "sessions", scope: "module", privateNote: "" });
+  const [examAttempts, setExamAttempts] = useState([]);
+  const [reviewItems, setReviewItems] = useState([]);
+  const [remoteState, setRemoteState] = useState("idle");
+  const view = ["sessions", "topics", "questions"].includes(workspace?.view) ? workspace.view : "sessions";
+  const scope = workspace?.scope === "all" ? "all" : "module";
+  const questions = getFullQuestionBank(importedQuestions);
+  const model = insightBuildModel(history, questions, user?.module || "", scope);
+  const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+  const copy = ({
+    da: {
+      title: "Indblik", subtitle: "Undersøg dine egne data", latest: "Seneste forsøg", foundation: "Datagrundlag", reviews: "Åbne gennemgange",
+      noAttempt: "Ingen registrerede forsøg", localSession: "Træningssession", examAttempt: "Eksamensforsøg", sessions: "Forsøg", topics: "Emner", questions: "Gentagne spørgsmål",
+      show: "Vis mig", forLabel: "for", currentModule: "Nuværende modul", allModules: "Alle moduler", answeredAcross: (answered, count) => `${answered} besvarelser · ${count} sessioner`,
+      openReviewText: (count) => `${count} åbne poster`, noRows: "Der er endnu ingen data i den valgte visning.", correct: "korrekte", answered: "vurderede", occurrences: "registreringer",
+      openSource: "Åbn kilde", openExamSets: "Åbn eksamenssæt", startReview: "Åbn spørgsmål", personalNote: "Min note til denne visning", personalNoteHint: "Skriv din egen observation eller konklusion…",
+      private: "Gemmes privat på denne enhed", remoteUnavailable: "Private eksamensdata kunne ikke hentes. Lokal træningshistorik vises fortsat.", remoteLoading: "Henter private eksamensdata…",
+      allShown: "Alle viste resultater følger den valgte afgrænsning.", dataBasis: (correct, total) => `${correct} af ${total}`,
+    },
+    en: {
+      title: "Insight", subtitle: "Explore your own data", latest: "Latest attempt", foundation: "Data basis", reviews: "Open reviews",
+      noAttempt: "No recorded attempts", localSession: "Training session", examAttempt: "Exam attempt", sessions: "Attempts", topics: "Topics", questions: "Repeated questions",
+      show: "Show me", forLabel: "for", currentModule: "Current module", allModules: "All modules", answeredAcross: (answered, count) => `${answered} answers · ${count} sessions`,
+      openReviewText: (count) => `${count} open items`, noRows: "There is no data in the selected view yet.", correct: "correct", answered: "assessed", occurrences: "records",
+      openSource: "Open source", openExamSets: "Open exam sets", startReview: "Open questions", personalNote: "My note for this view", personalNoteHint: "Write your own observation or conclusion…",
+      private: "Stored privately on this device", remoteUnavailable: "Private exam data could not be loaded. Local training history remains available.", remoteLoading: "Loading private exam data…",
+      allShown: "Every result shown follows the selected scope.", dataBasis: (correct, total) => `${correct} of ${total}`,
+    },
+    ar: {
+      title: "نظرة", subtitle: "استكشف بياناتك بنفسك", latest: "أحدث محاولة", foundation: "حجم البيانات", reviews: "المراجعات المفتوحة",
+      noAttempt: "لا توجد محاولات مسجلة", localSession: "جلسة تدريب", examAttempt: "محاولة امتحان", sessions: "المحاولات", topics: "الموضوعات", questions: "الأسئلة المتكررة",
+      show: "أظهر لي", forLabel: "ضمن", currentModule: "الوحدة الحالية", allModules: "كل الوحدات", answeredAcross: (answered, count) => `${answered} إجابة · ${count} جلسات`,
+      openReviewText: (count) => `${count} عناصر مفتوحة`, noRows: "لا توجد بيانات في العرض المحدد حتى الآن.", correct: "صحيحة", answered: "مقيّمة", occurrences: "سجلات",
+      openSource: "فتح المصدر", openExamSets: "فتح مجموعات الامتحان", startReview: "فتح الأسئلة", personalNote: "ملاحظتي لهذا العرض", personalNoteHint: "اكتب ملاحظتك أو استنتاجك الخاص…",
+      private: "تُحفظ بشكل خاص على هذا الجهاز", remoteUnavailable: "تعذر تحميل بيانات الامتحان الخاصة. يظل سجل التدريب المحلي متاحًا.", remoteLoading: "جارٍ تحميل بيانات الامتحان الخاصة…",
+      allShown: "كل النتائج المعروضة تتبع النطاق المحدد.", dataBasis: (correct, total) => `${correct} من ${total}`,
+    },
+  })[language] || {};
+
+  useEffect(() => {
+    if (!userId) {
+      setExamAttempts([]);
+      setReviewItems([]);
+      setRemoteState("idle");
+      return undefined;
+    }
+    let cancelled = false;
+    setRemoteState("loading");
+    Promise.all([
+      supabase.from("exam_simulation_sessions")
+        .select("id,user_id,exam_set_id,status,duration_minutes,started_at,submitted_at,answers,marked,current_index,result,parse_version,attempt_number,question_snapshot,exam_snapshot,snapshot_version,updated_at")
+        .eq("user_id", userId).eq("status", "submitted").order("submitted_at", { ascending: false }).limit(100),
+      supabase.from("exam_review_items")
+        .select("id,exam_set_id,question_id,source_number,status,note,excluded,wrong_count,unanswered_count,marked_count,last_user_answer,official_answer,first_seen_at,last_seen_at,updated_at")
+        .eq("user_id", userId).order("last_seen_at", { ascending: false }).limit(250),
+    ]).then(([attemptResult, reviewResult]) => {
+      if (cancelled) return;
+      if (attemptResult.error || reviewResult.error) {
+        setExamAttempts([]);
+        setReviewItems([]);
+        setRemoteState("error");
+        return;
+      }
+      setExamAttempts(examAttemptHistoryFromRows(attemptResult.data || []));
+      setReviewItems((reviewResult.data || []).map((row) => examReviewItemFromRow(row)));
+      setRemoteState("ready");
+    }).catch(() => {
+      if (!cancelled) setRemoteState("error");
+    });
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const openReviews = reviewItems.filter((item) => !item?.excluded && item?.status !== "reviewed");
+  const latestExamAttempt = examAttempts[0] || null;
+  const latestLocal = model.latestSession;
+  const latestCandidate = latestExamAttempt && (!latestLocal || new Date(latestExamAttempt.submittedAt || 0) >= new Date(latestLocal.completedAt || 0))
+    ? { type: "exam", date: latestExamAttempt.submittedAt, correct: latestExamAttempt.result?.correctCount, total: latestExamAttempt.result?.assessedCount }
+    : latestLocal ? { type: "local", date: latestLocal.completedAt, correct: latestLocal.correct, total: latestLocal.answered ?? latestLocal.total } : null;
+  const formatDate = (value) => value ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(new Date(value)) : "—";
+  const questionText = (item) => {
+    const raw = item?.question?.question;
+    if (raw && typeof raw === "object") return raw[language] || raw.da || raw.en || Object.values(raw)[0] || item.id;
+    return String(raw || item?.question?.text || item?.id || "—");
+  };
+  const patchWorkspace = (patch) => setWorkspace((current) => ({ ...(current || {}), ...patch }));
+
+  const cardStyle = { minWidth: 0, padding: 18, border: `1px solid ${c.border}`, borderRadius: 16, background: c.panel };
+  const mutedLabel = { display: "block", color: c.muted, fontSize: 9, fontWeight: 850, letterSpacing: ".07em", textTransform: "uppercase" };
+  const resultRows = view === "sessions" ? model.sessions.slice(0, 7) : view === "topics" ? model.topics.slice(0, 7) : model.repeatedQuestions.slice(0, 7);
+
+  return (
+    <section className="fade-up" style={{ width: "min(1080px,100%)", margin: "0 auto", display: "grid", gap: 18 }}>
+      <header style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 18 }}>
+        <div><span style={mutedLabel}>{copy.subtitle}</span><h1 style={{ margin: "7px 0 0", color: c.text, fontSize: 30, letterSpacing: "-.035em" }}>{copy.title}</h1></div>
+        {remoteState === "loading" && <small style={{ color: c.muted }}>{copy.remoteLoading}</small>}
+      </header>
+
+      {remoteState === "error" && <div className="ui-feedback" data-tone="info"><span className="ui-feedback-icon"><Icon name="insight" size={13} /></span><div className="ui-feedback-content">{copy.remoteUnavailable}</div></div>}
+
+      <div className="insight69-cards" style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 10 }}>
+        <article data-insight-card="latest" style={cardStyle}><span style={mutedLabel}>{copy.latest}</span><strong style={{ display: "block", marginTop: 10, color: c.text, fontSize: 18 }}>{latestCandidate ? formatDate(latestCandidate.date) : copy.noAttempt}</strong>{latestCandidate && <small style={{ display: "block", marginTop: 6, color: c.secondary }}>{latestCandidate.type === "exam" ? copy.examAttempt : copy.localSession}{Number.isFinite(Number(latestCandidate.total)) ? ` · ${copy.dataBasis(Number(latestCandidate.correct) || 0, Number(latestCandidate.total) || 0)}` : ""}</small>}</article>
+        <article data-insight-card="foundation" style={cardStyle}><span style={mutedLabel}>{copy.foundation}</span><strong style={{ display: "block", marginTop: 10, color: c.text, fontSize: 18 }}>{model.totalAnswered}</strong><small style={{ display: "block", marginTop: 6, color: c.secondary }}>{copy.answeredAcross(model.totalAnswered, model.sessionCount)}</small></article>
+        <article data-insight-card="reviews" style={cardStyle}><span style={mutedLabel}>{copy.reviews}</span><strong style={{ display: "block", marginTop: 10, color: c.text, fontSize: 18 }}>{openReviews.length}</strong><small style={{ display: "block", marginTop: 6, color: c.secondary }}>{copy.openReviewText(openReviews.length)}</small></article>
+      </div>
+
+      <section className="insight69-query" style={{ padding: 14, border: `1px solid ${c.border}`, borderRadius: 16, background: c.soft }}>
+        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+          <strong style={{ color: c.text, fontSize: 12 }}>{copy.show}</strong>
+          <div style={{ display: "flex", gap: 4, padding: 3, border: `1px solid ${c.border}`, borderRadius: 10, background: c.panel }}>
+            {[["sessions", copy.sessions], ["topics", copy.topics], ["questions", copy.questions]].map(([id, label]) => <button key={id} type="button" data-insight-view={id} data-active={view === id ? "true" : "false"} onClick={() => patchWorkspace({ view: id })} style={{ minHeight: 32, padding: "0 11px", border: 0, borderRadius: 7, background: view === id ? c.blueSoft : "transparent", color: view === id ? c.blue : c.secondary, fontSize: 10, fontWeight: 800 }}>{label}</button>)}
+          </div>
+          <span style={{ color: c.muted, fontSize: 10 }}>{copy.forLabel}</span>
+          <select value={scope} onChange={(event) => patchWorkspace({ scope: event.target.value })} style={{ minHeight: 38, padding: "0 10px", border: `1px solid ${c.border}`, borderRadius: 10, background: c.panel, color: c.text, fontSize: 10, fontWeight: 750 }}><option value="module">{copy.currentModule}{user?.module ? ` · ${user.module}` : ""}</option><option value="all">{copy.allModules}</option></select>
+          <small style={{ marginInlineStart: "auto", color: c.muted }}>{copy.allShown}</small>
+        </div>
+      </section>
+
+      <section style={{ overflow: "hidden", border: `1px solid ${c.border}`, borderRadius: 18, background: c.panel }}>
+        {!resultRows.length ? <div style={{ padding: 42, color: c.muted, textAlign: "center" }}>{copy.noRows}</div> : view === "sessions" ? resultRows.map((session, index) => {
+          const total = Number(session.answered ?? session.total) || 0;
+          const correct = Number(session.correct) || 0;
+          return <article key={session.id || index} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto auto", gap: 14, alignItems: "center", padding: "14px 16px", borderBottom: index < resultRows.length - 1 ? `1px solid ${c.border}` : 0 }}><div><strong style={{ color: c.text, fontSize: 12 }}>{session.module || copy.localSession}</strong><small style={{ display: "block", marginTop: 4, color: c.muted }}>{formatDate(session.completedAt)}</small></div><span style={{ color: c.secondary, fontSize: 11 }}>{correct} {copy.correct}</span><span style={{ color: c.text, fontSize: 11, fontWeight: 850 }}>{copy.dataBasis(correct, total)}</span></article>;
+        }) : view === "topics" ? resultRows.map((topic, index) => <article key={topic.name} style={{ display: "grid", gridTemplateColumns: "minmax(130px,1fr) minmax(110px,1.6fr) auto", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: index < resultRows.length - 1 ? `1px solid ${c.border}` : 0 }}><strong style={{ color: c.text, fontSize: 11 }}>{topic.name}</strong><span style={{ height: 6, overflow: "hidden", borderRadius: 99, background: c.soft }}><span style={{ display: "block", width: `${topic.percent || 0}%`, height: "100%", borderRadius: 99, background: c.blue }} /></span><span style={{ color: c.secondary, fontSize: 10, fontWeight: 800 }}>{copy.dataBasis(topic.correct, topic.total)} · {topic.percent ?? 0}%</span></article>) : resultRows.map((item, index) => <article key={item.id} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto auto", gap: 12, alignItems: "center", padding: "14px 16px", borderBottom: index < resultRows.length - 1 ? `1px solid ${c.border}` : 0 }}><div><strong style={{ display: "block", overflow: "hidden", color: c.text, fontSize: 11, textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{questionText(item)}</strong><small style={{ display: "block", marginTop: 4, color: c.muted }}>{item.id}</small></div><span style={{ color: c.secondary, fontSize: 10 }}>{item.count} {copy.occurrences}</span><button type="button" className="ui-button ui-button--secondary" onClick={() => onReviewQuestions?.([item.id])}>{copy.openSource}</button></article>)}
+      </section>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        {view === "questions" && resultRows.length > 0 && <button type="button" className="ui-button ui-button--secondary" onClick={() => onReviewQuestions?.(resultRows.map((item) => item.id))}><Icon name="training" size={13} />{copy.startReview}</button>}
+        {examAttempts.length > 0 && <button type="button" className="ui-button ui-button--secondary" onClick={onOpenExamSets}><Icon name="training" size={13} />{copy.openExamSets}</button>}
+      </div>
+
+      <details style={{ padding: 14, border: `1px solid ${c.border}`, borderRadius: 14, background: c.panel }}>
+        <summary style={{ color: c.text, fontSize: 11, fontWeight: 850, cursor: "pointer" }}>{copy.personalNote}</summary>
+        <textarea value={workspace?.privateNote || ""} onChange={(event) => patchWorkspace({ privateNote: event.target.value })} placeholder={copy.personalNoteHint} style={{ width: "100%", minHeight: 90, marginTop: 12, padding: 12, resize: "vertical", border: `1px solid ${c.border}`, borderRadius: 10, outline: 0, background: c.soft, color: c.text, font: "inherit", lineHeight: 1.55 }} />
+        <small style={{ display: "block", marginTop: 7, color: c.muted }}>{copy.private}</small>
+      </details>
+    </section>
+  );
+}
+
+function TrainingHistory69({ c, language, user }) {
+  const [history] = useStoredState(STORAGE.quizHistory, []);
+  const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
+  const model = insightBuildModel(history, getFullQuestionBank(importedQuestions), user?.module || "", "module");
+  const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
+  const copy = language === "en" ? { title: "Training history", empty: "No training sessions have been recorded for this module.", assessed: "assessed", correct: "correct" } : language === "ar" ? { title: "سجل التدريب", empty: "لا توجد جلسات تدريب مسجلة لهذه الوحدة.", assessed: "مقيّمة", correct: "صحيحة" } : { title: "Træningshistorik", empty: "Der er ikke registreret træningssessioner for dette modul endnu.", assessed: "vurderede", correct: "korrekte" };
+  return <section className="fade-up" style={{ width: "min(900px,100%)", margin: "0 auto" }}><h1 style={{ margin: "0 0 18px", color: c.text, fontSize: 25 }}>{copy.title}</h1><div style={{ overflow: "hidden", border: `1px solid ${c.border}`, borderRadius: 16, background: c.panel }}>{model.sessions.length ? model.sessions.map((session, index) => { const total = Number(session.answered ?? session.total) || 0; const date = session.completedAt ? new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(session.completedAt)) : "—"; return <article key={session.id || index} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 14, padding: 15, borderBottom: index < model.sessions.length - 1 ? `1px solid ${c.border}` : 0 }}><div><strong style={{ color: c.text }}>{session.module || "MCQ"}</strong><small style={{ display: "block", marginTop: 4, color: c.muted }}>{date}</small></div><span style={{ color: c.secondary, fontSize: 11 }}>{Number(session.correct) || 0} {copy.correct} · {total} {copy.assessed}</span></article>; }) : <div style={{ padding: 42, color: c.muted, textAlign: "center" }}>{copy.empty}</div>}</div></section>;
+}
 
 function AdvancedPlanTimeline({ c, language, copy, today, exam, timelineDays, mode, questionTotal, questionsForDayIndex, unitForDay, reviewIntervals }) {
   const scrollRef = useRef(null);
@@ -38153,7 +38454,7 @@ function ExamCurriculumManager({ c, language, moduleName, examSet, questions, to
 
 /* SEGMENT_6_7_RUNTIME_END */
 
-function WorkspaceShell({ c, label, drByteOpen = false, closing = false, children }) {
+function WorkspaceShell({ c, label, drByteOpen = false, closing = false, toolbar = null, children }) {
   return (
     <section
       className={`workspace-shell ${closing ? "workspace-shell--closing" : ""}`}
@@ -38166,13 +38467,16 @@ function WorkspaceShell({ c, label, drByteOpen = false, closing = false, childre
         insetInlineEnd: drByteOpen ? 380 : 0,
         zIndex: 998,
         minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
         overflow: "hidden",
         background: c.panel,
         borderInlineStart: `1px solid ${c.border}`,
         transition: "inset-inline-end 260ms cubic-bezier(.16,1,.3,1)",
       }}
     >
-      {children}
+      {toolbar}
+      <div style={{ minHeight: 0, flex: 1, overflow: "hidden" }}>{children}</div>
     </section>
   );
 }
@@ -43792,63 +44096,40 @@ examSetMode === "history" ? (
   );
 }
 
-function MobileBottomNav({ c, t, language, route, activeWorkspace, onNavigate, onWorkspace, drByteOpen, setDrByteOpen, onProfileAction, dueCount = 0, accountIsAdmin = false, adminMode = false }) {
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef(null);
+function MedfluenAreaTabs({ c, language, area, activeTab, dueCount = 0, onSelect }) {
   const copy = ({
-    da: { more: "Mere", lectures: "Forelæsninger", examSets: "Eksamenssæt", review: "Repetition", studyPlan: "Studieplan", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode" },
-    en: { more: "More", lectures: "Lectures", examSets: "Exam sets", review: "Review", studyPlan: "Study plan", enterAdmin: "Switch to Admin mode", exitAdmin: "Switch to Study mode" },
-    ar: { more: "المزيد", lectures: "المحاضرات", examSets: "مجموعات الامتحان", review: "المراجعة", studyPlan: "خطة الدراسة", enterAdmin: "التبديل إلى وضع المسؤول", exitAdmin: "التبديل إلى وضع الدراسة" },
+    da: { start: "Start", review: "Repetition", exams: "Eksamenssæt", history: "Historik", lectures: "Forelæsninger", notes: "Noter", calendar: "Kalender", studyPlan: "Studieplan" },
+    en: { start: "Start", review: "Review", exams: "Exam sets", history: "History", lectures: "Lectures", notes: "Notes", calendar: "Calendar", studyPlan: "Study plan" },
+    ar: { start: "ابدأ", review: "المراجعة", exams: "مجموعات الامتحان", history: "السجل", lectures: "المحاضرات", notes: "الملاحظات", calendar: "التقويم", studyPlan: "خطة الدراسة" },
   })[language] || {};
+  const tabs = area === "training"
+    ? [["training-start", copy.start, "training"], ["training-review", copy.review, "reset", dueCount], ["training-exams", copy.exams, "file"], ["training-history", copy.history, "clock"]]
+    : area === "curriculum"
+      ? [["curriculum-lectures", copy.lectures, "curriculum"], ["curriculum-notes", copy.notes, "notebook"]]
+      : area === "planning"
+        ? [["planning-calendar", copy.calendar, "calendar"], ["planning-study-plan", copy.studyPlan, "planning"]]
+        : [];
+  if (!tabs.length) return null;
+  return <nav className="medfluen-area-tabs" aria-label={area} style={{ minHeight: 46, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "6px 12px", borderBottom: `1px solid ${c.border}`, background: c.panel }}>
+    {tabs.map(([id, label, icon, badge]) => <button key={id} type="button" data-active={activeTab === id ? "true" : "false"} onClick={() => onSelect(id)} style={{ minHeight: 34, display: "inline-flex", alignItems: "center", gap: 6, padding: "0 11px", border: `1px solid ${activeTab === id ? c.blueBorder : "transparent"}`, borderRadius: 9, background: activeTab === id ? c.blueSoft : "transparent", color: activeTab === id ? c.blue : c.secondary, fontSize: 9.5, fontWeight: 820 }}><Icon name={icon} size={13} /><span>{label}</span>{badge > 0 && <em style={{ minWidth: 16, height: 16, display: "grid", placeItems: "center", padding: "0 4px", borderRadius: 99, background: c.blueSoft, color: c.blue, fontSize: 7, fontStyle: "normal" }}>{badge > 99 ? "99+" : badge}</em>}</button>)}
+  </nav>;
+}
 
-  useEffect(() => {
-    if (!moreOpen) return undefined;
-    function handlePointer(event) { if (!moreRef.current?.contains(event.target)) setMoreOpen(false); }
-    function handleKey(event) { if (event.key === "Escape") setMoreOpen(false); }
-    document.addEventListener("mousedown", handlePointer);
-    document.addEventListener("keydown", handleKey);
-    return () => { document.removeEventListener("mousedown", handlePointer); document.removeEventListener("keydown", handleKey); };
-  }, [moreOpen]);
-
-  function action(callback) { setMoreOpen(false); callback(); }
+function MobileBottomNav({ c, t, language, route, activeWorkspace, onNavigate, onWorkspace, dueCount = 0 }) {
+  const copy = language === "en" ? { training: "Training", curriculum: "Curriculum", planning: "Planning", insight: "Insight" } : language === "ar" ? { training: "التدريب", curriculum: "المنهج", planning: "التخطيط", insight: "نظرة" } : { training: "Træning", curriculum: "Pensum", planning: "Planlægning", insight: "Indblik" };
+  const activeArea = medfluenPrimaryArea(route, activeWorkspace);
+  /* SEGMENT_6_9_PRIMARY_NAV_START */
   const primary = [
-    ["home", "home", t.home, () => onNavigate("home"), route === "home" && !activeWorkspace],
-    ["mcq", "clipboard", t.clinicalMcq, () => onNavigate("mcq"), route === "mcq" && !activeWorkspace],
-    ["calendar", "calendar", t.calendar, () => onWorkspace("calendar"), activeWorkspace === "calendar"],
-    ["notes", "notebook", t.notebook, () => onWorkspace("notes"), activeWorkspace === "notes"],
+    { id: "home", icon: "home", label: t.home, action: () => onNavigate("home") },
+    { id: "training", icon: "training", label: copy.training, badge: dueCount, action: () => onNavigate("mcq") },
+    { id: "curriculum", icon: "curriculum", label: copy.curriculum, action: () => activeWorkspace !== "lectures" && onWorkspace("lectures") },
+    { id: "planning", icon: "planning", label: copy.planning, action: () => activeWorkspace !== "calendar" && onWorkspace("calendar") },
+    { id: "insight", icon: "insight", label: copy.insight, action: () => onNavigate("insights") },
   ];
-
-  return (
-    <nav className="mobile-bottom-nav" aria-label="Mobil navigation" style={{ background: c.panel, borderTop: `1px solid ${c.border}` }}>
-      {primary.map(([id, icon, label, callback, active]) => (
-        <button key={id} type="button" data-active={active ? "true" : "false"} onClick={callback} style={{ color: active ? c.blue : c.secondary }}>
-          <span><Icon name={icon} size={18} />{id === "mcq" && dueCount > 0 && <em>{dueCount > 9 ? "9+" : dueCount}</em>}</span>
-          <small>{label}</small>
-        </button>
-      ))}
-      <div ref={moreRef} className="mobile-more-wrap">
-        <button type="button" data-active={moreOpen ? "true" : "false"} onClick={() => setMoreOpen((value) => !value)} style={{ color: moreOpen ? c.blue : c.secondary }}><span><Icon name="more" size={18} /></span><small>{copy.more}</small></button>
-        {moreOpen && (
-          <div className="mobile-more-sheet" style={{ background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg }}>
-            {[
-              ["reset", copy.review, () => onNavigate("mcq", { mode: "due" })],
-              ["chart", t.insights, () => onNavigate("insights")],
-              ["book", copy.lectures, () => onWorkspace("lectures")],
-              ["target", copy.studyPlan, () => onNavigate("study-plan")],
-              ["cards", copy.examSets, () => onWorkspace("examSets")],
-              ["chat", t.drByte, () => setDrByteOpen(!drByteOpen)],
-              ...(accountIsAdmin ? [[adminMode ? "user" : "settings", adminMode ? copy.exitAdmin : copy.enterAdmin, () => onProfileAction("adminMode")]] : []),
-              ...(adminMode ? [["book", t.adminPortal, () => onProfileAction("admin")]] : []),
-              ["settings", t.settings, () => onProfileAction("settings")],
-              ["globe", t.language, () => onProfileAction("language")],
-            ].map(([icon, label, callback]) => (
-              <button key={label} type="button" onClick={() => action(callback)}><Icon name={icon} size={15} /><span>{label}</span></button>
-            ))}
-          </div>
-        )}
-      </div>
-    </nav>
-  );
+  /* SEGMENT_6_9_PRIMARY_NAV_END */
+  return <nav className="mobile-bottom-nav" aria-label="Mobil navigation" style={{ background: c.panel, borderTop: `1px solid ${c.border}` }}>
+    {primary.map((item) => { const active = activeArea === item.id; return <button key={item.id} type="button" data-active={active ? "true" : "false"} onClick={item.action} style={{ color: active ? c.blue : c.secondary }}><span><Icon name={item.icon} size={18} />{item.badge > 0 && <em>{item.badge > 9 ? "9+" : item.badge}</em>}</span><small>{item.label}</small></button>; })}
+  </nav>;
 }
 
 function Sidebar({
@@ -43869,8 +44150,6 @@ function Sidebar({
   setProfileOpen,
   onProfileAction,
   dueCount = 0,
-  planAttentionCount = 0,
-  calendarAttentionCount = 0,
 }) {
   const displayName = String(user?.name || t.profile || "MedFLUEN").trim();
   const userInitial = displayName.slice(0, 1).toUpperCase() || "M";
@@ -43878,12 +44157,10 @@ function Sidebar({
   const menuDirection = language === "ar" ? "rtl" : "ltr";
   const profileButtonRef = useRef(null);
   const profileMenuRef = useRef(null);
-  const [quickAccessOrder] = useStoredState(STORAGE.quickAccessOrder, ["mcq", "repeat", "insights"]);
-
   const copy = ({
-    da: { repetition: "Repetition", lectures: "Forelæsninger", examSets: "Eksamenssæt", studyPlan: "Studieplan", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode", adminActive: "Admin mode aktiv" },
-    en: { repetition: "Review", lectures: "Lectures", examSets: "Exam sets", studyPlan: "Study plan", enterAdmin: "Switch to Admin mode", exitAdmin: "Switch to Study mode", adminActive: "Admin mode active" },
-    ar: { repetition: "المراجعة", lectures: "المحاضرات", examSets: "مجموعات الامتحان", studyPlan: "خطة الدراسة", enterAdmin: "التبديل إلى وضع المسؤول", exitAdmin: "التبديل إلى وضع الدراسة", adminActive: "وضع المسؤول نشط" },
+    da: { training: "Træning", curriculum: "Pensum", planning: "Planlægning", insight: "Indblik", enterAdmin: "Skift til admin mode", exitAdmin: "Skift til studiemode", adminActive: "Admin mode aktiv" },
+    en: { training: "Training", curriculum: "Curriculum", planning: "Planning", insight: "Insight", enterAdmin: "Switch to Admin mode", exitAdmin: "Switch to Study mode", adminActive: "Admin mode active" },
+    ar: { training: "التدريب", curriculum: "المنهج", planning: "التخطيط", insight: "نظرة", enterAdmin: "التبديل إلى وضع المسؤول", exitAdmin: "التبديل إلى وضع الدراسة", adminActive: "وضع المسؤول نشط" },
   })[language] || {};
 
   useEffect(() => {
@@ -43906,7 +44183,7 @@ function Sidebar({
 
   function openWorkspace(type) {
     setProfileOpen(false);
-    onWorkspace(activeWorkspace === type ? null : type);
+    if (activeWorkspace !== type) onWorkspace(type);
   }
 
   function NavButton({ icon, title, active, onClick, badge = 0, isRoute = false }) {
@@ -43945,12 +44222,14 @@ function Sidebar({
     );
   }
 
-  const quickDefinitions = {
-    mcq: { icon: "clipboard", label: t.clinicalMcq, badge: 0, active: route === "mcq" && !activeWorkspace, action: () => navigate("mcq") },
-    repeat: { icon: "reset", label: copy.repetition, badge: dueCount, active: false, action: () => navigate("mcq", { mode: "due" }) },
-    insights: { icon: "chart", label: t.insights, badge: 0, active: route === "insights" && !activeWorkspace, action: () => navigate("insights") },
-  };
-  const safeQuickOrder = [...quickAccessOrder.filter((id) => quickDefinitions[id]), ...["mcq", "repeat", "insights"].filter((id) => !quickAccessOrder.includes(id))];
+  const activeArea = medfluenPrimaryArea(route, activeWorkspace);
+  const primaryAreas = [
+    { id: "home", icon: "home", label: t.home, badge: 0, action: () => navigate("home") },
+    { id: "training", icon: "training", label: copy.training, badge: dueCount, action: () => navigate("mcq") },
+    { id: "curriculum", icon: "curriculum", label: copy.curriculum, badge: 0, action: () => openWorkspace("lectures") },
+    { id: "planning", icon: "planning", label: copy.planning, badge: 0, action: () => openWorkspace("calendar") },
+    { id: "insight", icon: "insight", label: copy.insight, badge: 0, action: () => navigate("insights") },
+  ];
   const profileActions = [
     ...(accountIsAdmin ? [["adminMode", adminMode ? "user" : "settings", adminMode ? copy.exitAdmin : copy.enterAdmin]] : []),
     ...(isAdmin ? [["admin", "book", t.adminPortal]] : []),
@@ -43966,24 +44245,13 @@ function Sidebar({
       <button type="button" title="MedFLUEN" aria-label={language === "en" ? "Go to home" : language === "ar" ? "الانتقال إلى الصفحة الرئيسية" : "Gå til Hjem"} onClick={() => navigate("home")} className="sidebar-logo" style={{ width: 40, height: 40, display: "grid", placeItems: "center", flexShrink: 0, marginBottom: 13, padding: 0, border: 0, borderRadius: 11, background: c.blueGradient, color: "#fff", boxShadow: "0 7px 16px rgba(22,101,234,.20)" }}><Icon name="logo" size={20} stroke={2.2} /></button>
 
       <nav className="sidebar-nav-group" aria-label="Primær studienavigation">
-        <NavButton icon="home" title={t.home} active={route === "home" && !activeWorkspace} isRoute onClick={() => navigate("home")} />
-        {safeQuickOrder.map((id) => { const item = quickDefinitions[id]; return <NavButton key={id} icon={item.icon} title={item.label} active={item.active} badge={item.badge} isRoute={id !== "repeat"} onClick={item.action} />; })}
-      </nav>
-
-      <div className="sidebar-divider" aria-hidden="true" />
-
-      <nav className="sidebar-nav-group" aria-label="Planlægning og dokumenter">
-        <NavButton icon="book" title={copy.lectures} active={activeWorkspace === "lectures"} onClick={() => openWorkspace("lectures")} />
-        <NavButton icon="target" title={copy.studyPlan} active={route === "study-plan" && !activeWorkspace} badge={planAttentionCount} isRoute onClick={() => navigate("study-plan")} />
-        <NavButton icon="calendar" title={t.calendar} active={activeWorkspace === "calendar"} badge={calendarAttentionCount} onClick={() => openWorkspace("calendar")} />
-        <NavButton icon="notebook" title={t.notebook} active={activeWorkspace === "notes"} onClick={() => openWorkspace("notes")} />
-        <NavButton icon="cards" title={copy.examSets} active={activeWorkspace === "examSets"} onClick={() => openWorkspace("examSets")} />
+        {primaryAreas.map((item) => <NavButton key={item.id} icon={item.icon} title={item.label} active={activeArea === item.id} badge={item.badge} isRoute onClick={item.action} />)}
       </nav>
 
       <div className="sidebar-divider" aria-hidden="true" />
 
       <nav className="sidebar-nav-group" aria-label="Assistent">
-        <NavButton icon="chat" title={t.drByte} active={drByteOpen} onClick={() => { setProfileOpen(false); setDrByteOpen((value) => !value); }} />
+        <NavButton icon="assistant" title={t.drByte} active={drByteOpen} onClick={() => { setProfileOpen(false); setDrByteOpen((value) => !value); }} />
       </nav>
 
       <div style={{ position: "relative", marginTop: "auto", paddingTop: 10 }}>
@@ -45778,9 +46046,6 @@ useEffect(() => {
     (q) => spacedData[q.id] && isDue(spacedData[q.id])
   ).length;
   const shellMergedEvents = mergeCalendarEventMeta(shellCalendarEvents, shellCalendarMeta);
-  const shellToday = dateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-  const sidebarCalendarAttentionCount = shellMergedEvents.filter((event) => event.date === shellToday && !event.completedAt).length;
-  const sidebarPlanAttentionCount = shellMergedEvents.filter((event) => event.source === "study-plan" && !event.completedAt && (event.needsScheduling || (event.date && event.date < shellToday))).length;
 
   function navigateFromShell(target, options) {
     setActiveWorkspace(null);
@@ -45789,6 +46054,20 @@ useEffect(() => {
       setSessionScope(options ? { moduleId: user.module, groupFilter: null, lectureFilter: null, mode: options.mode || null, contentType: options.contentType || null } : null);
     }
     setRoute(target);
+  }
+
+  const activePrimaryArea = medfluenPrimaryArea(route, activeWorkspace);
+  const activeAreaTab = medfluenAreaTab(route, activeWorkspace, sessionScope);
+  function selectAreaTab(tabId) {
+    setDrByteOpen(false);
+    if (tabId === "training-start") { setActiveWorkspace(null); setSessionScope(null); setRoute("mcq"); return; }
+    if (tabId === "training-review") { setActiveWorkspace(null); setSessionScope({ moduleId: user.module, groupFilter: null, lectureFilter: null, mode: "due", contentType: null }); setRoute("mcq"); return; }
+    if (tabId === "training-exams") { setSessionScope(null); setActiveWorkspace("examSets"); return; }
+    if (tabId === "training-history") { setActiveWorkspace(null); setSessionScope(null); setRoute("training-history"); return; }
+    if (tabId === "curriculum-lectures") { setActiveWorkspace("lectures"); return; }
+    if (tabId === "curriculum-notes") { setActiveWorkspace("notes"); return; }
+    if (tabId === "planning-calendar") { setActiveWorkspace("calendar"); return; }
+    if (tabId === "planning-study-plan") { setActiveWorkspace(null); setRoute("study-plan"); }
   }
 
   function handleProfileAction(action) {
@@ -45931,8 +46210,6 @@ useEffect(() => {
         profileOpen={profileOpen}
         setProfileOpen={setProfileOpen}
         dueCount={sidebarDueCount}
-        planAttentionCount={sidebarPlanAttentionCount}
-        calendarAttentionCount={sidebarCalendarAttentionCount}
         isAdmin={effectiveAdmin}
         accountIsAdmin={accountIsAdmin}
         adminMode={adminModeEnabled}
@@ -45940,12 +46217,23 @@ useEffect(() => {
         onProfileAction={handleProfileAction}
       />
 
+      {activeWorkspace && <div className="mobile-workspace-utilities">
+        <button type="button" title={t.drByte} aria-label={t.drByte} onClick={() => setDrByteOpen((value) => !value)}><Icon name="assistant" size={16} /></button>
+        <button type="button" title={t.profile} aria-label={t.profile} aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}><Icon name="user" size={16} /></button>
+        {profileOpen && <div className="mobile-workspace-profile-menu" style={{ background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg }}>
+          <button type="button" onClick={() => handleProfileAction("settings")}><Icon name="settings" size={13} />{t.settings}</button>
+          <button type="button" onClick={() => handleProfileAction("language")}><Icon name="globe" size={13} />{t.language}</button>
+          <button type="button" onClick={() => handleProfileAction("signout")}><Icon name="logout" size={13} />{t.signOutAction}</button>
+        </div>}
+      </div>}
+
       {activeWorkspace && (
         <WorkspaceShell
           c={c}
           label={activeWorkspace}
           drByteOpen={drByteOpen}
           closing={calendarClosing}
+          toolbar={<MedfluenAreaTabs c={c} language={language} area={activePrimaryArea} activeTab={activeAreaTab} dueCount={sidebarDueCount} onSelect={selectAreaTab} />}
         >
           {activeWorkspace === "calendar" && (
             <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={effectiveAdmin} onClose={closeWorkspace} onOpenStudyPlan={() => navigateFromShell("study-plan")} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
@@ -45973,7 +46261,8 @@ useEffect(() => {
           flexDirection: "column",
         }}
       >
-        {!activeWorkspace && <Timer c={c} t={t} language={language} user={user} setUser={setUser} route={route} />}
+        {!activeWorkspace && <Timer c={c} t={t} language={language} user={user} setUser={setUser} route={route} onAssistant={() => setDrByteOpen((value) => !value)} onProfileAction={handleProfileAction} />}
+        {!activeWorkspace && ["training", "curriculum", "planning"].includes(activePrimaryArea) && <MedfluenAreaTabs c={c} language={language} area={activePrimaryArea} activeTab={activeAreaTab} dueCount={sidebarDueCount} onSelect={selectAreaTab} />}
 
         <div className="app-main-area"
           style={{
@@ -46037,7 +46326,9 @@ onNavigate={navigateFromShell}
                 </button>
 
                 {route === "insights" ? (
-                  <Insights c={c} t={t} language={language} user={user} />
+                  <Insights69 c={c} language={language} user={user} userId={session?.user?.id} onOpenExamSets={() => setActiveWorkspace("examSets")} onReviewQuestions={(questionIds) => { setSessionScope({ moduleId: user.module, groupFilter: null, lectureFilter: null, mode: "all", contentType: null, questionIds }); setRoute("mcq"); }} />
+                ) : route === "training-history" ? (
+                  <TrainingHistory69 c={c} language={language} user={user} />
                 ) : route === "study-plan" ? (
                   <StudyPlan c={c} language={language} user={user} setUser={setUser} userId={session?.user?.id} onOpenCalendar={(date = null) => {
                     const currentPreferences = loadStorage(STORAGE.calendarPreferences, CALENDAR_DEFAULT_PREFERENCES) || {};
