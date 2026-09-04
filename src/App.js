@@ -1381,10 +1381,7 @@ const CALENDAR_DENSITY_HEIGHT = Object.freeze({ compact: 38, standard: 48, comfo
 const CALENDAR_TIME_ZONE = "Europe/Copenhagen";
 
 function calendarEventLayer(event) {
-  if (event?.source === "sdu-schedule" || event?.source === "sdu" || event?.importedSchedule === "sdu") return "sdu";
-  if (event?.source === "study-plan") return "studyPlan";
-  if (event?.source === "fsrs-review") return "fsrs";
-  return "own";
+  return calendarConsistencyEventLayer(event);
 }
 
 function calendarIsAllDayRecord(event, metadata = {}) {
@@ -1418,21 +1415,14 @@ function calendarActivityTone(c, event) {
     review: isDark ? "#173f34" : "#dcf7ea",
     own: isDark ? "#2a303a" : "#eef1f5",
   };
-  if (event?.source === "fsrs-review") return { color: "#7667d8", background: surfaces.flashcards, label: "Flashkort" };
-  if (calendarEventLayer(event) === "sdu") {
-    const type = event.activityType || event.colorKey || "other";
-    if (type === "lecture") return { color: c.blue, background: surfaces.lecture, label: "Forelæsning" };
-    if (type === "class") return { color: c.green, background: surfaces.class, label: "Holdtime" };
-    if (type === "tbl") return { color: c.purple, background: surfaces.tbl, label: "TBL" };
-    return { color: "#c9822f", background: surfaces.sduOther, label: "Andet" };
-  }
-  const palette = {
-    exam: { color: "#c9822f", background: surfaces.exam, label: "Eksamen" },
-    study: { color: c.blue, background: surfaces.study, label: "Studieplan" },
-    review: { color: c.green, background: surfaces.review, label: "Repetition" },
-    other: { color: c.secondary, background: surfaces.own, label: "Eget event" },
-  };
-  return palette[event?.type] || palette.other;
+  const role = calendarConsistencyToneRole(event);
+  if (role === "fsrs") return { color: "#7667d8", background: surfaces.flashcards, label: "Flashkort" };
+  if (role === "study-plan") return { color: c.green, background: surfaces.review, label: "Studieplan" };
+  if (role === "own") return { color: c.secondary, background: surfaces.own, label: "Eget event" };
+  if (role === "sdu-lecture") return { color: c.blue, background: surfaces.lecture, label: "Forelæsning" };
+  if (role === "sdu-class") return { color: c.green, background: surfaces.class, label: "Holdtime" };
+  if (role === "sdu-tbl") return { color: c.purple, background: surfaces.tbl, label: "TBL" };
+  return { color: "#c9822f", background: surfaces.sduOther, label: "Andet" };
 }
 
 function calendarDateRangeContains(event, dateString) {
@@ -1587,6 +1577,7 @@ function calendarNormalizeSduPayload(payload, moduleName, term, existingEvents) 
       url: event.url || payload?.scheduleUrl || "",
       lectureId: lecture?.id || null,
       lectureIds: lecture?.id ? [lecture.id] : [],
+      lectureMatchSource: event.lectureId && lecture?.id ? "source-id" : lecture?.id ? "title" : "none",
       planModuleId: moduleName,
       importedSchedule: "sdu",
       source: "sdu-schedule",
@@ -1694,6 +1685,272 @@ function calendarPlanSduSnapshotReplacement({
 }
 /* SEGMENT_6_8_2_3_SDU_REPLACEMENT_HELPERS_END */
 
+/* SEGMENT_6_8_2_4_CALENDAR_CONSISTENCY_HELPERS_START */
+function calendarConsistencyEventLayer(event) {
+  if (event?.source === "sdu-schedule" || event?.source === "sdu" || event?.importedSchedule === "sdu") return "sdu";
+  if (event?.source === "study-plan") return "studyPlan";
+  if (event?.source === "fsrs-review") return "fsrs";
+  return "own";
+}
+
+function calendarConsistencyImportedIdentity(event) {
+  return String(event?.sourceId || event?.id || "");
+}
+
+function calendarMergeAuthoritativeEvents(privateEvents, globalEvents) {
+  const globals = (Array.isArray(globalEvents) ? globalEvents : []).filter(Boolean);
+  const globalKeys = new Set(globals.map(calendarConsistencyImportedIdentity).filter(Boolean));
+  const globalSduModules = new Set(
+    globals
+      .filter((event) => calendarConsistencyEventLayer(event) === "sdu")
+      .map((event) => String(event?.planModuleId || event?.moduleName || "").trim())
+      .filter(Boolean)
+  );
+  const privateVisible = (Array.isArray(privateEvents) ? privateEvents : []).filter((event) => {
+    const layer = calendarConsistencyEventLayer(event);
+    const eventModule = String(event?.planModuleId || event?.moduleName || "").trim();
+    if (layer === "sdu" && eventModule && globalSduModules.has(eventModule)) return false;
+    const isImported = layer === "sdu" || event?.source === "ical" || event?.importedSchedule === true;
+    const key = calendarConsistencyImportedIdentity(event);
+    return !isImported || !key || !globalKeys.has(key);
+  });
+  return [...privateVisible, ...globals];
+}
+
+function calendarConsistencyToneRole(event) {
+  const layer = calendarConsistencyEventLayer(event);
+  if (layer === "fsrs") return "fsrs";
+  if (layer === "studyPlan") return "study-plan";
+  if (layer === "own") return "own";
+  const type = event?.activityType || event?.colorKey || "other";
+  if (type === "lecture") return "sdu-lecture";
+  if (type === "class") return "sdu-class";
+  if (type === "tbl") return "sdu-tbl";
+  return "sdu-other";
+}
+
+function calendarZoneDateParts(timestamp, timeZone = "Europe/Copenhagen") {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+  return Object.fromEntries(
+    formatter
+      .formatToParts(new Date(timestamp))
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
+  );
+}
+
+function calendarCopenhagenTimestamp(dateString, timeString = "00:00") {
+  const dateMatch = String(dateString || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const timeMatch = String(timeString || "").match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (!dateMatch || !timeMatch) return null;
+  const year = Number(dateMatch[1]);
+  const month = Number(dateMatch[2]);
+  const day = Number(dateMatch[3]);
+  const hour = Number(timeMatch[1]);
+  const minute = Number(timeMatch[2]);
+  const second = Number(timeMatch[3] || 0);
+  if (month < 1 || month > 12 || day < 1 || day > 31 || hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59) return null;
+  const wanted = Date.UTC(year, month - 1, day, hour, minute, second);
+  let guess = wanted;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const parts = calendarZoneDateParts(guess, "Europe/Copenhagen");
+    const actual = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour),
+      Number(parts.minute),
+      Number(parts.second || 0)
+    );
+    const correction = wanted - actual;
+    guess += correction;
+    if (!correction) break;
+  }
+  return Number.isFinite(guess) ? guess : null;
+}
+
+function calendarConsistencyAddDateDays(dateString, amount) {
+  const parts = String(dateString || "").split("-").map(Number);
+  if (parts.length !== 3 || parts.some((value) => !Number.isFinite(value))) return dateString;
+  const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + Number(amount || 0), 12, 0, 0));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+
+function calendarConsistencyClockMinutes(value) {
+  const match = String(value || "").match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return hour * 60 + minute;
+}
+
+function calendarSduEventEndTimestamp(event) {
+  if (!event?.date) return null;
+  if (event.allDay) return calendarCopenhagenTimestamp(event.endDate || event.date, "23:59:59");
+  const startMinutes = calendarConsistencyClockMinutes(event.time);
+  const endMinutes = calendarConsistencyClockMinutes(event.endTime);
+  if (endMinutes != null) {
+    let endDate = event.endDate || event.date;
+    if ((!event.endDate || event.endDate === event.date) && startMinutes != null && endMinutes < startMinutes) {
+      endDate = calendarConsistencyAddDateDays(event.date, 1);
+    }
+    return calendarCopenhagenTimestamp(endDate, event.endTime);
+  }
+  if (startMinutes != null) {
+    const start = calendarCopenhagenTimestamp(event.date, event.time);
+    const estimatedHours = Number(event.estimatedHours);
+    const durationMinutes = Number.isFinite(estimatedHours) && estimatedHours > 0
+      ? Math.max(15, Math.round(estimatedHours * 60))
+      : 60;
+    return Number.isFinite(start) ? start + durationMinutes * 60000 : null;
+  }
+  return calendarCopenhagenTimestamp(event.endDate || event.date, "23:59:59");
+}
+
+function calendarSduEventHasEnded(event, nowMs = Date.now()) {
+  const endedAt = calendarSduEventEndTimestamp(event);
+  return Number.isFinite(endedAt) && endedAt <= Number(nowMs);
+}
+
+function calendarConsistencyNormalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9æøå]+/g, " ")
+    .trim();
+}
+
+function calendarConsistencyEditDistance(first, second) {
+  const a = String(first || "");
+  const b = String(second || "");
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let aIndex = 1; aIndex <= a.length; aIndex += 1) {
+    const current = [aIndex];
+    for (let bIndex = 1; bIndex <= b.length; bIndex += 1) {
+      current[bIndex] = Math.min(
+        current[bIndex - 1] + 1,
+        previous[bIndex] + 1,
+        previous[bIndex - 1] + (a[aIndex - 1] === b[bIndex - 1] ? 0 : 1)
+      );
+    }
+    for (let index = 0; index < current.length; index += 1) previous[index] = current[index];
+  }
+  return previous[b.length];
+}
+
+function calendarConsistencySignificantWords(value) {
+  const stopWords = new Set([
+    "af", "den", "det", "en", "et", "for", "fra", "i", "lektion", "med", "modul", "og", "om", "pa", "på", "tema", "til", "undervisning", "ved", "forelæsning", "forelaesning", "introduktion",
+  ]);
+  return [...new Set(
+    calendarConsistencyNormalizeText(value)
+      .split(/\s+/)
+      .filter((word) => word.length >= 4 && !stopWords.has(word))
+  )];
+}
+
+function calendarConsistencyWordsMatch(first, second) {
+  if (first === second) return true;
+  const shortest = Math.min(first.length, second.length);
+  if (shortest < 7 || Math.abs(first.length - second.length) > 2) return false;
+  return calendarConsistencyEditDistance(first, second) <= 2;
+}
+
+function calendarConservativeLectureMatch(title, lectures) {
+  const normalized = calendarConsistencyNormalizeText(title);
+  const candidates = Array.isArray(lectures) ? lectures.filter(Boolean) : [];
+  if (!normalized || !candidates.length) return null;
+  const idMatch = candidates.find((lecture) => {
+    const escaped = String(lecture.id || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return escaped && new RegExp(`(^|\\s)${escaped.toLowerCase()}($|\\s)`).test(normalized);
+  });
+  if (idMatch) return idMatch;
+
+  const inputWords = calendarConsistencySignificantWords(normalized);
+  if (!inputWords.length) return null;
+  const scored = candidates.map((lecture) => {
+    const lectureWords = calendarConsistencySignificantWords(lecture.title);
+    const matchedWords = lectureWords.filter((word) => inputWords.some((candidate) => calendarConsistencyWordsMatch(candidate, word)));
+    const coverage = lectureWords.length ? matchedWords.length / lectureWords.length : 0;
+    const precision = inputWords.length ? matchedWords.length / inputWords.length : 0;
+    const normalizedLectureTitle = calendarConsistencyNormalizeText(lecture.title);
+    const phraseMatch = Boolean(normalizedLectureTitle && normalized.includes(normalizedLectureTitle));
+    const qualifies = phraseMatch || (matchedWords.length >= 1 && coverage === 1) || (matchedWords.length >= 2 && coverage >= 0.66);
+    return { lecture, qualifies, score: coverage * 0.7 + precision * 0.3 + (phraseMatch ? 0.5 : 0), matchedWords: matchedWords.length };
+  }).filter((entry) => entry.qualifies && entry.matchedWords > 0).sort((a, b) => b.score - a.score || b.matchedWords - a.matchedWords);
+  if (!scored.length) return null;
+  if (scored[1] && Math.abs(scored[0].score - scored[1].score) < 0.08) return null;
+  return scored[0].lecture;
+}
+
+function calendarResolveSduLectureIds(event, canonicalMatches, moduleName, lectures) {
+  if (!event) return [];
+  const candidates = Array.isArray(lectures) ? lectures.filter(Boolean) : [];
+  const validIds = new Set(candidates.map((lecture) => lecture.id).filter(Boolean));
+  const matches = canonicalMatches && typeof canonicalMatches === "object" ? canonicalMatches : {};
+  if (event.id && Object.prototype.hasOwnProperty.call(matches, event.id)) {
+    return [...new Set((Array.isArray(matches[event.id]) ? matches[event.id] : []).filter((id) => validIds.has(id)))];
+  }
+  if (event.lectureMatchSource === "source-id") {
+    const sourceIds = Array.isArray(event.lectureIds) && event.lectureIds.length ? event.lectureIds : event.lectureId ? [event.lectureId] : [];
+    return [...new Set(sourceIds.filter((id) => validIds.has(id)))];
+  }
+  const matched = calendarConservativeLectureMatch(
+    [event.title, event.originalTitle, event.description].filter(Boolean).join(" "),
+    candidates
+  );
+  return matched?.id ? [matched.id] : [];
+}
+
+function calendarConsistencyLectureIds(event) {
+  if (event && Object.prototype.hasOwnProperty.call(event, "manualLectureIds")) {
+    return Array.isArray(event.manualLectureIds) ? event.manualLectureIds.filter(Boolean) : [];
+  }
+  if (Array.isArray(event?.lectureIds) && event.lectureIds.length) return event.lectureIds.filter(Boolean);
+  return event?.lectureId ? [event.lectureId] : [];
+}
+
+function calendarBuildLectureScheduleStatus(moduleName, lectureId, events, nowMs = Date.now()) {
+  const scheduleEvents = (Array.isArray(events) ? events : [])
+    .filter((event) => {
+      if (calendarConsistencyEventLayer(event) !== "sdu") return false;
+      if (event.cancelled || String(event.status || "").toLowerCase() === "cancelled") return false;
+      if (moduleName && event.planModuleId && event.planModuleId !== moduleName) return false;
+      return calendarConsistencyLectureIds(event).includes(lectureId);
+    })
+    .sort((a, b) => `${a.date || ""} ${a.time || ""} ${a.id || ""}`.localeCompare(`${b.date || ""} ${b.time || ""} ${b.id || ""}`));
+  const heldEvents = scheduleEvents.filter((event) => calendarSduEventHasEnded(event, nowMs));
+  const heldIds = new Set(heldEvents.map((event) => event.id));
+  const upcomingEvents = scheduleEvents.filter((event) => !heldIds.has(event.id));
+  const firstEvent = scheduleEvents[0] || null;
+  const lastEvent = scheduleEvents[scheduleEvents.length - 1] || null;
+  const nextEvent = upcomingEvents[0] || null;
+  return {
+    events: scheduleEvents,
+    firstEvent,
+    lastEvent,
+    nextEvent,
+    displayEvent: nextEvent || lastEvent || firstEvent,
+    held: scheduleEvents.length > 0 && heldEvents.length === scheduleEvents.length,
+    started: heldEvents.length > 0,
+  };
+}
+/* SEGMENT_6_8_2_4_CALENDAR_CONSISTENCY_HELPERS_END */
+
 function calendarGlobalEventFromRow(row) {
   if (!row?.event_id) return null;
   const payload = row.event_data && typeof row.event_data === "object" && !Array.isArray(row.event_data) ? row.event_data : {};
@@ -1708,14 +1965,7 @@ function calendarGlobalEventFromRow(row) {
 }
 
 function calendarMergePrivateAndGlobal(privateEvents, globalEvents) {
-  const globals = (Array.isArray(globalEvents) ? globalEvents : []).filter(Boolean);
-  const globalKeys = new Set(globals.map(calendarImportedEventIdentity).filter(Boolean));
-  const privateVisible = (Array.isArray(privateEvents) ? privateEvents : []).filter((event) => {
-    if (!calendarIsImportedEvent(event)) return true;
-    const key = calendarImportedEventIdentity(event);
-    return !key || !globalKeys.has(key);
-  });
-  return [...privateVisible, ...globals];
+  return calendarMergeAuthoritativeEvents(privateEvents, globalEvents);
 }
 
 function calendarBuildPrivateImportGroups(events, moduleName = "") {
@@ -1778,6 +2028,52 @@ function useGlobalCalendarData(moduleName, userId, refreshToken = 0) {
     return () => { cancelled = true; };
   }, [moduleName, userId, refreshToken, globalContentRefreshKey]);
   return state;
+}
+
+function useCanonicalSduMatchData(moduleName, userId) {
+  const [matches, setMatches] = useState({});
+  const [status, setStatus] = useState("idle");
+  const globalContentRefreshKey = useGlobalContentRefreshKey();
+  useEffect(() => {
+    let cancelled = false;
+    if (!moduleName || !userId) {
+      setMatches({});
+      setStatus("idle");
+      return undefined;
+    }
+    setStatus("loading");
+    supabase
+      .from("lecture_calendar_canonical_matches")
+      .select("event_id,lecture_ids")
+      .eq("module_name", moduleName)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.warn("Kunne ikke hente globale SDU-match:", error);
+          setMatches({});
+          setStatus("unavailable");
+          return;
+        }
+        setMatches(Object.fromEntries(
+          (data || []).map((row) => [
+            row.event_id,
+            Array.isArray(row.lecture_ids) ? row.lecture_ids.filter(Boolean) : [],
+          ])
+        ));
+        setStatus("ready");
+      });
+    return () => { cancelled = true; };
+  }, [moduleName, userId, globalContentRefreshKey]);
+  return { matches, setMatches, status, setStatus };
+}
+
+function useCalendarNow(intervalMs = 30000) {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), intervalMs);
+    return () => window.clearInterval(timer);
+  }, [intervalMs]);
+  return nowMs;
 }
 
 function calendarScrollTargetMinutes(events, dateStrings, now = new Date()) {
@@ -1970,7 +2266,8 @@ function WeekCalendar({
   const endHour = 24;
   const hourHeight = CALENDAR_DENSITY_HEIGHT[density] || CALENDAR_DENSITY_HEIGHT.compact;
   const totalHeight = (endHour - startHour) * hourHeight;
-  const today = new Date();
+  const calendarNowMs = useCalendarNow();
+  const today = new Date(calendarNowMs);
   const todayString = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const nowTop = (nowMinutes / 60) * hourHeight;
@@ -2394,7 +2691,7 @@ function WeekCalendar({
                     <span className="calendar-week-event-time">{event._segmentContinuation ? "Fortsætter" : `${event.time}–${event.endTime || calendarEndFields(event.date, start, end - start).endTime}`}</span>
                     <span className="calendar-week-event-title">{event.title}</span>
                     <span className="calendar-week-event-meta">{event.location || tone.label}</span>
-                    {event.deliveryStatus === "held" && <span className="calendar-week-event-state">Afholdt</span>}
+                    {calendarIsSduScheduleEvent(event) && calendarSduEventHasEnded(event, calendarNowMs) && <span className="calendar-week-event-state">Afholdt</span>}
                     {readOnly && <span className="calendar-week-event-state">Global</span>}
                     {!readOnly && <span className="calendar-week-resize-handle" onPointerDown={(domEvent) => startResize(domEvent, event)} aria-hidden="true" />}
                   </button>
@@ -16915,28 +17212,7 @@ function calendarNormalizeMatchText(value) {
 }
 
 function matchCalendarLecture(title, lectures) {
-  const normalized = calendarNormalizeMatchText(title);
-  if (!normalized) return null;
-  const idMatch = lectures.find((lecture) => {
-    const escaped = String(lecture.id).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return new RegExp(`(^|\\s)${escaped.toLowerCase()}($|\\s)`).test(normalized);
-  });
-  if (idMatch) return idMatch;
-
-  const titleWords = new Set(normalized.split(/\s+/).filter((word) => word.length >= 4));
-  let best = null;
-  let bestScore = 0;
-  lectures.forEach((lecture) => {
-    const words = calendarNormalizeMatchText(lecture.title).split(/\s+/).filter((word) => word.length >= 4);
-    if (!words.length) return;
-    const matches = words.filter((word) => [...titleWords].some((candidate) => candidate === word || (Math.min(candidate.length, word.length) >= 6 && levenshtein(candidate, word) <= 2))).length;
-    const score = matches / Math.max(2, Math.min(words.length, titleWords.size || 1));
-    if (score > bestScore) {
-      bestScore = score;
-      best = lecture;
-    }
-  });
-  return bestScore >= 0.34 ? best : null;
+  return calendarConservativeLectureMatch(title, lectures);
 }
 
 function calendarEventMetaFields(event) {
@@ -16949,7 +17225,7 @@ function calendarEventMetaFields(event) {
     "attachmentLabel", "attachmentUrl", "splitFromId", "conflictDismissedAt", "endDate",
     "sourceId", "activityType", "term", "uvaCode", "importBatchId", "importFeedId", "importedAt", "lastSyncedAt",
     "originalTitle", "timeZone", "cancelled", "cancelledAt", "teacher", "exdates", "importSourceLabel", "testEvent", "phase", "phaseLabel",
-    "questionIds", "earliestDue", "fsrsVersion", "loadMinutes", "examSetIndex",
+    "questionIds", "earliestDue", "fsrsVersion", "loadMinutes", "examSetIndex", "lectureMatchSource",
     "manualLectureIds", "manualLectureMatchUpdatedAt", "globalCalendar", "calendarScope", "globalImportId",
     "activityKind", "reviewTaskId", "repetitionId", "repetitionSequence", "recommendedIntervalDays", "chosenIntervalDays", "loadRating", "actualMinutes", "plannedMinutes", "planningQueue",
   ];
@@ -16965,6 +17241,7 @@ function mergeCalendarEventMeta(events, metadata) {
 
 function calendarEventEndTimestamp(event) {
   if (!event?.date) return null;
+  if (calendarIsSduScheduleEvent(event)) return calendarSduEventEndTimestamp(event);
   if (event.allDay) return new Date(`${event.endDate || event.date}T23:59:59`).getTime();
   return calendarAbsoluteEventRange(event)?.end || new Date(`${event.date}T23:59:59`).getTime();
 }
@@ -17030,6 +17307,7 @@ function calendarIsSduScheduleEvent(event, moduleName = null) {
 
 function applyCanonicalSduMatches(events, canonicalMatches, moduleName = null) {
   const matches = canonicalMatches && typeof canonicalMatches === "object" ? canonicalMatches : {};
+  const lectures = MODULE_LECTURES[moduleName] || [];
   return (Array.isArray(events) ? events : []).map((event) => {
     if (!calendarIsSduScheduleEvent(event) || (moduleName && event.planModuleId && event.planModuleId !== moduleName)) return event;
     const base = { ...event };
@@ -17037,45 +17315,19 @@ function applyCanonicalSduMatches(events, canonicalMatches, moduleName = null) {
     // The lecture viewer uses the global admin mapping when present, otherwise the automatic SDU match.
     delete base.manualLectureIds;
     delete base.manualLectureMatchUpdatedAt;
-    if (!event?.id || !Object.prototype.hasOwnProperty.call(matches, event.id)) return base;
-    const lectureIds = Array.isArray(matches[event.id]) ? [...new Set(matches[event.id].filter(Boolean))] : [];
+    const lectureIds = calendarResolveSduLectureIds(base, matches, moduleName, lectures);
+    const canonical = Boolean(event?.id && Object.prototype.hasOwnProperty.call(matches, event.id));
     return {
       ...base,
-      manualLectureIds: lectureIds,
-      canonicalLectureIds: lectureIds,
-      canonicalLectureMatch: true,
+      lectureId: lectureIds[0] || null,
+      lectureIds,
+      ...(canonical ? { manualLectureIds: lectureIds, canonicalLectureIds: lectureIds, canonicalLectureMatch: true } : {}),
     };
   });
 }
 
 function calendarLectureScheduleStatus(moduleName, lectureId, events, nowMs = Date.now()) {
-  const scheduleEvents = (events || [])
-    .filter((event) => {
-      if (!calendarIsSduScheduleEvent(event)) return false;
-      if (event.cancelled || String(event.status || "").toLowerCase() === "cancelled") return false;
-      if (moduleName && event.planModuleId && event.planModuleId !== moduleName) return false;
-      return calendarLectureIds(event).includes(lectureId);
-    })
-    .sort((a, b) => `${a.date || ""} ${a.time || ""} ${a.id || ""}`.localeCompare(`${b.date || ""} ${b.time || ""} ${b.id || ""}`));
-  const heldEvents = scheduleEvents.filter((event) => {
-    if (event.deliveryStatus === "held") return true;
-    const endedAt = calendarEventEndTimestamp(event);
-    return Number.isFinite(Number(endedAt)) && Number(endedAt) <= nowMs;
-  });
-  const heldIds = new Set(heldEvents.map((event) => event.id));
-  const upcomingEvents = scheduleEvents.filter((event) => !heldIds.has(event.id));
-  const firstEvent = scheduleEvents[0] || null;
-  const lastEvent = scheduleEvents[scheduleEvents.length - 1] || null;
-  const nextEvent = upcomingEvents[0] || null;
-  return {
-    events: scheduleEvents,
-    firstEvent,
-    lastEvent,
-    nextEvent,
-    displayEvent: nextEvent || lastEvent || firstEvent,
-    held: scheduleEvents.length > 0 && heldEvents.length === scheduleEvents.length,
-    started: heldEvents.length > 0,
-  };
+  return calendarBuildLectureScheduleStatus(moduleName, lectureId, events, nowMs);
 }
 
 function lectureTimelineTone(schedule, selfStudyStatus) {
@@ -17391,6 +17643,7 @@ function CalendarEventEditor({
   const [advancedOpen, setAdvancedOpen] = useState(Boolean(event.location || event.url || event.description || event.reminderMinutes || event.attachmentUrl));
   const duration = calendarDurationMinutes(event);
   const conflicts = event.time ? allEvents.filter((item) => calendarEventsConflict(event, item)) : [];
+  const importedHeld = calendarIsSduScheduleEvent(event) && calendarSduEventHasEnded(event);
 
   function updateStartTime(value) {
     const start = timeToMinutes(value);
@@ -17439,7 +17692,7 @@ function CalendarEventEditor({
           <div className="calendar-quick-editor-row calendar-quick-recurrence-row"><Icon name="reset" size={16} /><div className="calendar-quick-two-cols"><label><span>{copy.recurrence}</span><select className="calendar-quick-control" value={event.recurrence || "none"} onChange={(e) => onChange({ ...event, recurrence: e.target.value, recurrenceUntil: e.target.value === "none" ? "" : event.recurrenceUntil })}><option value="none">{copy.none}</option><option value="daily">{copy.daily}</option><option value="weekdays">{copy.weekdays}</option><option value="weekly">{copy.weekly}</option><option value="monthly">{copy.monthly}</option></select></label>{event.recurrence && event.recurrence !== "none" && <label><span>{copy.until}</span><input type="date" className="calendar-quick-control" min={event.date || undefined} value={event.recurrenceUntil || ""} onChange={(e) => onChange({ ...event, recurrenceUntil: e.target.value })} /></label>}</div></div>
 
           {conflicts.length > 0 && !event.conflictDismissedAt && <div className="calendar-conflict-callout"><Icon name="clock" size={14} /><span>{copy.conflict}</span><button type="button" onClick={suggestFreeTime}>{copy.suggest}</button></div>}
-          {event.importedSchedule && <div className="calendar-delivery-state"><span data-state={event.deliveryStatus || "planned"} />{event.deliveryStatus === "held" ? copy.held : copy.planned}</div>}
+          {event.importedSchedule && <div className="calendar-delivery-state"><span data-state={importedHeld ? "held" : "planned"} />{importedHeld ? copy.held : copy.planned}</div>}
 
           <button type="button" className="calendar-quick-more" onClick={() => setAdvancedOpen((value) => !value)} aria-expanded={advancedOpen}><Icon name={advancedOpen ? "collapse" : "plus"} size={14} />{advancedOpen ? copy.less : copy.more}</button>
           {advancedOpen && <div className="calendar-quick-advanced">
@@ -18301,8 +18554,13 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   const [syncState, setSyncState] = useState({ status: typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "idle", detail: "" });
   const privateMergedEvents = mergeCalendarEventMeta(events, eventMeta);
   const globalCalendarData = useGlobalCalendarData(module, userId, globalCalendarRefreshToken);
+  const canonicalSduData = useCanonicalSduMatchData(module, userId);
   const currentGlobalSduImport = (globalCalendarData.imports || []).find((item) => item.source_type === "sdu" && (!item.module_name || item.module_name === module)) || null;
-  const mergedEvents = calendarMergePrivateAndGlobal(privateMergedEvents, globalCalendarData.events);
+  const mergedEvents = applyCanonicalSduMatches(
+    calendarMergePrivateAndGlobal(privateMergedEvents, globalCalendarData.events),
+    canonicalSduData.matches,
+    module
+  );
   const privateImportGroups = calendarBuildPrivateImportGroups(privateMergedEvents, module);
   const visibleEvents = calendarFilterEvents(mergedEvents, calendarPreferences, module, search);
   const today = new Date();
@@ -18370,16 +18628,6 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [module]);
-
-  useEffect(() => {
-    const held = mergedEvents.filter((event) => !calendarEventIsCanonical(event) && event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
-    if (!held.length) return;
-    setEventMeta((previous) => {
-      const next = { ...previous };
-      held.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), deliveryStatus: "held" }; });
-      return next;
-    });
-  }, [events, eventMeta]);
 
   useEffect(() => {
     function handleKeyDown(event) {
@@ -18672,6 +18920,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       delete data.globalCalendar;
       delete data.calendarScope;
       delete data.globalImportId;
+      if (sourceType === "sdu") delete data.deliveryStatus;
       return { import_id: importRow.id, event_id: event.id, source_id: event.sourceId || event.id, event_data: data, updated_at: new Date().toISOString() };
     });
     if (rows.length) {
@@ -18724,6 +18973,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       setEventMeta((previous) => { const next = { ...previous }; localIds.forEach((id) => delete next[id]); return next; });
     }
     setGlobalCalendarRefreshToken((value) => value + 1);
+    window.dispatchEvent(new CustomEvent(GLOBAL_CONTENT_REFRESH_EVENT, { detail: { reason: "global-calendar-updated", module, at: Date.now() } }));
   }
 
   async function deleteGlobalCalendarImport(importRow) {
@@ -18733,6 +18983,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       const { error } = await supabase.from("global_calendar_imports").delete().eq("id", importRow.id);
       if (error) throw error;
       setGlobalCalendarRefreshToken((value) => value + 1);
+      window.dispatchEvent(new CustomEvent(GLOBAL_CONTENT_REFRESH_EVENT, { detail: { reason: "global-calendar-deleted", module, at: Date.now() } }));
     } catch (error) {
       window.alert(error?.message || "Den globale kalenderimport kunne ikke slettes.");
     } finally { setCalendarImportBusy(false); }
@@ -22148,7 +22399,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2.3</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2.4</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
         <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
@@ -22969,7 +23220,7 @@ function PlanProgressPage({ c, language, moduleName, plan, lectures, events, lec
   }, [onBack]);
 
   const doneIds = new Set(plan?.doneLectureIds || []);
-  const now = Date.now();
+  const now = useCalendarNow();
   const studyEventByLecture = {};
   events.forEach((event) => {
     if (event.source !== "study-plan" || !studyPlanIsLectureActivity(event)) return;
@@ -23037,6 +23288,7 @@ function Dashboard({
   c,
   t,
   user,
+  userId = null,
   onNavigate,
   onOpenCalendar,
   onOpenWorkspace,
@@ -23064,8 +23316,6 @@ function Dashboard({
   const [dashboardDayClose, setDashboardDayClose] = useStoredState(STORAGE.dashboardDayClose, {});
   const [dashboardEditorOpen, setDashboardEditorOpen] = useState(false);
   const [editingPlanEvent, setEditingPlanEvent] = useState(null);
-  const [calendarView, setCalendarView] = useState("day");
-  const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [bottomTab, setBottomTab] = useState("activity");
   const [progressDetailsOpen, setProgressDetailsOpen] = useState(false);
   const [lectureCounterMode, setLectureCounterMode] = useState(() => dashboardPreferences?.lectureCounters?.active || "held");
@@ -23077,6 +23327,13 @@ function Dashboard({
   const [calendarSearch, setCalendarSearch] = useState("");
   const homeWorkspaceRef = useRef(null);
   const [homeWorkspaceHeight, setHomeWorkspaceHeight] = useState(null);
+  const calendarView = ["day", "week", "month"].includes(calendarPreferences?.lastView) ? calendarPreferences.lastView : "day";
+  const preferredCalendarDate = calendarPreferences?.lastDate ? new Date(`${calendarPreferences.lastDate}T12:00:00`) : new Date();
+  const calendarDate = Number.isNaN(preferredCalendarDate.getTime()) ? new Date() : preferredCalendarDate;
+  const currentModule = user?.module || "";
+  const dashboardGlobalCalendarData = useGlobalCalendarData(currentModule, userId, 0);
+  const dashboardCanonicalSduData = useCanonicalSduMatchData(currentModule, userId);
+  const calendarNowMs = useCalendarNow();
 
   useEffect(() => {
     const workspace = homeWorkspaceRef.current;
@@ -23140,14 +23397,37 @@ function Dashboard({
 
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
   const direction = language === "ar" ? "rtl" : "ltr";
-  const currentModule = user?.module || "";
   const activePlan = studyPlans[currentModule];
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const selectedKey = dateKey(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate());
-  const mergedCalendarEvents = mergeCalendarEventMeta(calendarEvents, calendarEventMeta);
+  const mergedCalendarEvents = applyCanonicalSduMatches(
+    calendarMergePrivateAndGlobal(
+      mergeCalendarEventMeta(calendarEvents, calendarEventMeta),
+      dashboardGlobalCalendarData.events
+    ),
+    dashboardCanonicalSduData.matches,
+    currentModule
+  );
   const visibleDashboardEvents = calendarFilterEvents(mergedCalendarEvents, calendarPreferences, currentModule, calendarSearch);
+
+  function setCalendarView(nextView) {
+    const safeView = ["day", "week", "month"].includes(nextView) ? nextView : "day";
+    setCalendarPreferences((previous) => previous?.lastView === safeView
+      ? previous
+      : { ...CALENDAR_DEFAULT_PREFERENCES, ...(previous || {}), lastView: safeView });
+  }
+
+  function setCalendarDate(nextDate) {
+    const resolved = typeof nextDate === "function" ? nextDate(calendarDate) : nextDate;
+    const parsed = resolved instanceof Date ? resolved : new Date(resolved);
+    if (Number.isNaN(parsed.getTime())) return;
+    const nextKey = dateKey(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    setCalendarPreferences((previous) => previous?.lastDate === nextKey
+      ? previous
+      : { ...CALENDAR_DEFAULT_PREFERENCES, ...(previous || {}), lastDate: nextKey });
+  }
 
   const copy = ({
     da: {
@@ -23385,7 +23665,7 @@ function Dashboard({
   const readingLectureCount = planLectures.filter((lecture) =>
     doneLectureIds.includes(lecture.id) || lectureSelfStudyIsReviewed(lectureProgress[`${currentModule}:${lecture.id}`])
   ).length;
-  const heldLectureIds = new Set(planLectures.filter((lecture) => calendarLectureScheduleStatus(currentModule, lecture.id, mergedCalendarEvents).held).map((lecture) => lecture.id));
+  const heldLectureIds = new Set(planLectures.filter((lecture) => calendarLectureScheduleStatus(currentModule, lecture.id, mergedCalendarEvents, calendarNowMs).held).map((lecture) => lecture.id));
   const heldLectureCount = heldLectureIds.size;
   const lectureDeckStatuses = planLectures.map((lecture) => ({
     lecture,
@@ -23583,17 +23863,6 @@ function Dashboard({
   const tomorrow = addDays(today, 1);
   const tomorrowKey = dateKey(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
   const tomorrowPlanCount = mergedCalendarEvents.filter((event) => event.planModuleId === currentModule && event.source === "study-plan" && event.date === tomorrowKey && event.type !== "exam" && !event.completedAt).length;
-
-  useEffect(() => {
-    const held = mergedCalendarEvents.filter((event) => event.importedSchedule && event.lectureId && event.deliveryStatus !== "held" && calendarEventEndTimestamp(event) <= Date.now());
-    if (!held.length) return;
-    setCalendarEventMeta((previous) => {
-      const next = { ...previous };
-      held.forEach((event) => { next[event.id] = { ...(next[event.id] || {}), deliveryStatus: "held" }; });
-      return next;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calendarEvents, calendarEventMeta, currentModule]);
 
   useEffect(() => {
     if (!currentModule || !activePlan) return;
@@ -24022,6 +24291,9 @@ function Dashboard({
     }
     const event = calendarContextMenu.event;
     if (!event) return [];
+    if (calendarEventIsCanonical(event)) return [
+      event.lectureId && { id: "lecture", label: labels.openLecture, icon: "book", action: () => dashboardOpenLecture(event) },
+    ].filter(Boolean);
     const tomorrow2 = addDays(today, 1);
     const tomorrowKey2 = dateKey(tomorrow2.getFullYear(), tomorrow2.getMonth(), tomorrow2.getDate());
     if (calendarContextMenu.kind === "unscheduled") return [
@@ -38383,10 +38655,15 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [followUpMessage, setFollowUpMessage] = useState("");
   const [sduMatchDialogOpen, setSduMatchDialogOpen] = useState(false);
   const [sduMatchQuery, setSduMatchQuery] = useState("");
-  const [canonicalSduMatches, setCanonicalSduMatches] = useState({});
-  const [canonicalSduMatchStatus, setCanonicalSduMatchStatus] = useState("idle");
   const globalContentRefreshKey = useGlobalContentRefreshKey();
   const globalLectureCalendarData = useGlobalCalendarData(isLectureLibrary ? moduleName : null, userId, 0);
+  const lectureScheduleNowMs = useCalendarNow();
+  const {
+    matches: canonicalSduMatches,
+    setMatches: setCanonicalSduMatches,
+    status: canonicalSduMatchStatus,
+    setStatus: setCanonicalSduMatchStatus,
+  } = useCanonicalSduMatchData(isLectureLibrary ? moduleName : null, userId);
   const [lectureMaterials, setLectureMaterials] = useState([]);
   const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
   const [materialPreviewUrl, setMaterialPreviewUrl] = useState("");
@@ -40483,34 +40760,6 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     return () => window.clearTimeout(lectureNoteSaveTimerRef.current);
   }, [lectureNoteDraft, noteKey, userId, moduleName, isLectureLibrary]);
 
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!isLectureLibrary || !userId || !moduleName) {
-      setCanonicalSduMatches({});
-      setCanonicalSduMatchStatus("idle");
-      return undefined;
-    }
-    setCanonicalSduMatchStatus("loading");
-    supabase
-      .from("lecture_calendar_canonical_matches")
-      .select("event_id,lecture_ids")
-      .eq("module_name", moduleName)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.warn("Kunne ikke hente globale SDU-match:", error);
-          setCanonicalSduMatches({});
-          setCanonicalSduMatchStatus("unavailable");
-          return;
-        }
-        const next = Object.fromEntries((data || []).map((row) => [row.event_id, Array.isArray(row.lecture_ids) ? row.lecture_ids.filter(Boolean) : []]));
-        setCanonicalSduMatches(next);
-        setCanonicalSduMatchStatus("ready");
-      });
-    return () => { cancelled = true; };
-  }, [isLectureLibrary, userId, moduleName, globalContentRefreshKey]);
-
   useEffect(() => {
     if (!isLectureLibrary || !selectedLecture || !userId || !moduleName) {
       sharedNoteLoadTokenRef.current += 1;
@@ -40562,7 +40811,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     const selfStudyStatus = lectureSelfStudyStatus(progressState);
     const attendanceStatus = lectureAttendanceStatus(progressState);
     const deckStudy = lectureDeckStudyStatus(moduleName, lecture.id, importedQuestions, spacedData);
-    const schedule = calendarLectureScheduleStatus(moduleName, lecture.id, lectureScheduleEventIndex.get(lecture.id) || []);
+    const schedule = calendarLectureScheduleStatus(moduleName, lecture.id, lectureScheduleEventIndex.get(lecture.id) || [], lectureScheduleNowMs);
     const scheduleView = lectureScheduleDefinition(schedule);
     const timelineTone = lectureTimelineTone(schedule, selfStudyStatus);
     const materialCount = lectureMaterialCounts.get(lecture.id) || 0;
@@ -41167,6 +41416,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         return { ...current, [eventId]: metadata };
       });
       setCanonicalSduMatchStatus("ready");
+      window.dispatchEvent(new CustomEvent(GLOBAL_CONTENT_REFRESH_EVENT, { detail: { reason: "sdu-lecture-match", at: Date.now() } }));
     } catch (error) {
       console.error("Kunne ikke gemme globalt SDU-match:", error);
       setCanonicalSduMatches(previous);
@@ -41198,6 +41448,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         return { ...current, [eventId]: metadata };
       });
       setCanonicalSduMatchStatus("ready");
+      window.dispatchEvent(new CustomEvent(GLOBAL_CONTENT_REFRESH_EVENT, { detail: { reason: "sdu-lecture-match-cleared", at: Date.now() } }));
     } catch (error) {
       console.error("Kunne ikke fjerne globalt SDU-match:", error);
       setCanonicalSduMatches(previous);
@@ -41221,7 +41472,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   }
 
   function sduEventIsHeld(event) {
-    return event?.deliveryStatus === "held" || Number(calendarEventEndTimestamp(event)) <= Date.now();
+    return calendarSduEventHasEnded(event);
   }
 
   function sduEventMatchLabel(event) {
@@ -45943,6 +46194,7 @@ useEffect(() => {
                 c={c}
                 t={t}
                 user={user}
+                userId={session?.user?.id}
                 language={language}
                 spacedData={spacedData}
                 onResetAllProgress={setSpacedData}
