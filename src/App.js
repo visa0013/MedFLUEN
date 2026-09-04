@@ -1,15 +1,16 @@
 "use client";
  
-// Kræver: npm install @supabase/supabase-js
+// Kræver: npm install @supabase/supabase-js @nutrient-sdk/viewer
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
-import { createPptxViewer, vermilionLightTheme } from "pptx-vanilla-viewer";
-import "pptx-vanilla-viewer/styles.css";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
   process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY;
+const NUTRIENT_LICENSE_KEY = String(
+  process.env.REACT_APP_NUTRIENT_LICENSE_KEY || ""
+).trim();
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error(
@@ -1971,6 +1972,79 @@ function calendarWeekEventStateLabels({ held = false } = {}) {
   return held ? ["Afholdt"] : [];
 }
 /* SEGMENT_6_8_2_5_CALENDAR_LABEL_HELPERS_END */
+
+/* SEGMENT_6_8_2_6_PPTX_PDF_HELPERS_START */
+const lecturePptxPdfBufferCache = new Map();
+let lecturePptxConverterPromise = null;
+const LECTURE_PPTX_PDF_CACHE_LIMIT = 5;
+const LECTURE_PPTX_PDF_CACHE_ENTRY_MAX_BYTES = 64 * 1024 * 1024;
+const LECTURE_PPTX_SOURCE_MAX_BYTES = 250 * 1024 * 1024;
+
+function lectureMaterialUsesPdfWorkspace(previewKind) {
+  return previewKind === "pdf" || previewKind === "pptx";
+}
+
+async function loadLecturePptxConverter() {
+  if (!lecturePptxConverterPromise) {
+    lecturePptxConverterPromise = import("@nutrient-sdk/viewer")
+      .then((module) => module.default || module)
+      .catch((error) => {
+        lecturePptxConverterPromise = null;
+        throw error;
+      });
+  }
+  return lecturePptxConverterPromise;
+}
+
+function lecturePptxPdfCacheKey(material) {
+  if (!material?.id) return "";
+  return [
+    material.id,
+    material.storage_path || "",
+    Number(material.size_bytes) || 0,
+    material.updated_at || material.created_at || "",
+  ].join("::");
+}
+
+function lecturePptxPdfCacheGet(key) {
+  if (!key || !lecturePptxPdfBufferCache.has(key)) return null;
+  const value = lecturePptxPdfBufferCache.get(key);
+  lecturePptxPdfBufferCache.delete(key);
+  lecturePptxPdfBufferCache.set(key, value);
+  return value;
+}
+
+function lecturePptxPdfCacheSet(key, buffer) {
+  if (!key || !(buffer instanceof ArrayBuffer) || !buffer.byteLength || buffer.byteLength > LECTURE_PPTX_PDF_CACHE_ENTRY_MAX_BYTES) return;
+  lecturePptxPdfBufferCache.delete(key);
+  lecturePptxPdfBufferCache.set(key, buffer);
+  while (lecturePptxPdfBufferCache.size > LECTURE_PPTX_PDF_CACHE_LIMIT) {
+    const oldest = lecturePptxPdfBufferCache.keys().next().value;
+    lecturePptxPdfBufferCache.delete(oldest);
+  }
+}
+
+function lecturePptxPdfBufferIsValid(buffer) {
+  if (!(buffer instanceof ArrayBuffer) || buffer.byteLength < 5) return false;
+  const bytes = new Uint8Array(buffer, 0, 5);
+  return bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2d;
+}
+
+async function lectureConvertPptxToPdf({ sourceUrl, converter, licenseKey = "", signal, fetchImpl = fetch }) {
+  if (!sourceUrl) throw new Error("PowerPoint-filen mangler en gyldig adresse.");
+  if (!converter?.convertToPDF) throw new Error("PowerPoint-konverteringen er ikke installeret korrekt.");
+  const response = await fetchImpl(sourceUrl, { signal, cache: "no-store" });
+  if (!response?.ok) throw new Error(`PowerPoint-filen kunne ikke hentes (${Number(response?.status) || "ukendt status"}).`);
+  const sourceBuffer = await response.arrayBuffer();
+  if (!(sourceBuffer instanceof ArrayBuffer) || !sourceBuffer.byteLength) throw new Error("PowerPoint-filen er tom.");
+  if (sourceBuffer.byteLength > LECTURE_PPTX_SOURCE_MAX_BYTES) throw new Error("PowerPoint-filen er for stor til sikker konvertering i browseren.");
+  const configuration = { document: sourceBuffer, useCDN: true, signal };
+  if (String(licenseKey || "").trim()) configuration.licenseKey = String(licenseKey).trim();
+  const pdfBuffer = await converter.convertToPDF(configuration);
+  if (!lecturePptxPdfBufferIsValid(pdfBuffer)) throw new Error("PowerPoint-konverteringen returnerede ikke en gyldig PDF-fil.");
+  return pdfBuffer;
+}
+/* SEGMENT_6_8_2_6_PPTX_PDF_HELPERS_END */
 
 function calendarGlobalEventFromRow(row) {
   if (!row?.event_id) return null;
@@ -22419,7 +22493,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
-      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2.5</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
+      <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2.6</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
         <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
@@ -37281,294 +37355,6 @@ function LecturePdfViewer({
   );
 }
 
-function lecturePptxCollectText(value, depth = 0, seen = new Set()) {
-  if (value == null || depth > 8) return [];
-  if (typeof value === "string") {
-    const clean = value.replace(/\s+/g, " ").trim();
-    if (!clean || clean.length > 5000 || /^data:|^blob:|^https?:\/\//i.test(clean)) return [];
-    return [clean];
-  }
-  if (typeof value !== "object" || seen.has(value)) return [];
-  seen.add(value);
-  const output = [];
-  for (const [key, child] of Object.entries(value)) {
-    if (/^(raw|xml|data|src|imageData|blob|relationships)$/i.test(key)) continue;
-    output.push(...lecturePptxCollectText(child, depth + 1, seen));
-    if (output.join(" ").length > 12000) break;
-  }
-  return output;
-}
-
-function lecturePptxSlideText(slide) {
-  return [...new Set(lecturePptxCollectText(slide))].join(" ").replace(/\s+/g, " ").trim();
-}
-
-function lecturePptxSearch(slides, query) {
-  const needle = String(query || "").trim().toLocaleLowerCase();
-  if (!needle) return [];
-  return (Array.isArray(slides) ? slides : []).map((slide, index) => {
-    const text = lecturePptxSlideText(slide);
-    const lower = text.toLocaleLowerCase();
-    const hit = lower.indexOf(needle);
-    if (hit < 0) return null;
-    const start = Math.max(0, hit - 55);
-    const end = Math.min(text.length, hit + needle.length + 95);
-    return { index, snippet: `${start ? "…" : ""}${text.slice(start, end)}${end < text.length ? "…" : ""}` };
-  }).filter(Boolean);
-}
-
-function isEditableTarget(target) {
-  const node = target && target.nodeType === 1 ? target : target?.parentElement;
-  if (!node) return false;
-  if (node.isContentEditable) return true;
-  return Boolean(node.closest?.("input, textarea, select, [contenteditable=\"true\"], [role=\"textbox\"]"));
-}
-
-function LecturePptxViewer({ url, materialId, fileName, savedState = {}, onStateChange, language = "da" }) {
-  const hostRef = useRef(null);
-  const shellRef = useRef(null);
-  const viewerRef = useRef(null);
-  const stateChangeRef = useRef(onStateChange);
-  const [status, setStatus] = useState("loading");
-  const [error, setError] = useState("");
-  const [slideIndex, setSlideIndex] = useState(Math.max(0, Number(savedState.slideIndex) || 0));
-  const [slideCount, setSlideCount] = useState(0);
-  const [zoom, setZoom] = useState(Number(savedState.zoom) > 0 ? Number(savedState.zoom) : 1);
-  const [slides, setSlides] = useState([]);
-  const [panel, setPanel] = useState(null);
-  const [query, setQuery] = useState("");
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const restoreRevisionRef = useRef(0);
-  const pptxFitModeRef = useRef(true);
-  const pptxFitFrameRef = useRef(0);
-  const pptxTouchRef = useRef(null);
-
-  const labels = ({
-    da: { loading: "Indlæser PowerPoint…", error: "PowerPoint-filen kunne ikke vises.", previous: "Forrige slide", next: "Næste slide", overview: "Slideoversigt", search: "Søg i PowerPoint", placeholder: "Søg i slides…", noResults: "Ingen slides matcher søgningen.", fit: "Tilpas slide", fullscreen: "Fuld skærm", close: "Luk", slide: "Slide" },
-    en: { loading: "Loading PowerPoint…", error: "The PowerPoint file could not be displayed.", previous: "Previous slide", next: "Next slide", overview: "Slide overview", search: "Search PowerPoint", placeholder: "Search slides…", noResults: "No slides match your search.", fit: "Fit slide", fullscreen: "Fullscreen", close: "Close", slide: "Slide" },
-    ar: { loading: "جارٍ تحميل PowerPoint…", error: "تعذر عرض ملف PowerPoint.", previous: "الشريحة السابقة", next: "الشريحة التالية", overview: "نظرة عامة على الشرائح", search: "بحث في PowerPoint", placeholder: "ابحث في الشرائح…", noResults: "لا توجد شرائح مطابقة.", fit: "ملاءمة الشريحة", fullscreen: "ملء الشاشة", close: "إغلاق", slide: "شريحة" },
-  })[language] || {};
-
-  useEffect(() => { stateChangeRef.current = onStateChange; }, [onStateChange]);
-
-  useEffect(() => {
-    if (!url || !hostRef.current) return undefined;
-    let disposed = false;
-    let viewer = null;
-    hostRef.current.replaceChildren();
-    setStatus("loading");
-    setError("");
-    setSlides([]);
-    setSlideCount(0);
-    const initialSlide = Math.max(0, Number(savedState.slideIndex) || 0);
-    try {
-      viewer = createPptxViewer(hostRef.current, {
-        source: url,
-        fileName: fileName || "presentation.pptx",
-        initialSlide,
-        editable: false,
-        showToolbar: false,
-        showThumbnails: false,
-        showFormatToolbar: false,
-        locale: "en",
-        theme: vermilionLightTheme,
-        onLoad: ({ slideCount: total } = {}) => {
-          if (disposed) return;
-          const count = Math.max(0, Number(total) || Number(viewer?.getSlideCount?.()) || 0);
-          const allSlides = Array.isArray(viewer?.getSlides?.()) ? viewer.getSlides() : [];
-          setSlideCount(count || allSlides.length);
-          setSlides(allSlides);
-          setStatus("ready");
-          // Always start fitted to the current viewport. A stored numeric zoom is
-          // viewport-specific and can clip a deck when the notes/sidebar width differs
-          // across devices or sessions. Manual zoom is still persisted after load.
-          pptxFitModeRef.current = true;
-          window.cancelAnimationFrame(pptxFitFrameRef.current);
-          pptxFitFrameRef.current = window.requestAnimationFrame(() => {
-            if (disposed) return;
-            viewer?.zoomToFit?.();
-            const actual = Number(viewer?.getZoom?.());
-            if (Number.isFinite(actual) && actual > 0) setZoom(actual);
-          });
-        },
-        onSlideChange: (index) => {
-          if (disposed) return;
-          const safe = Math.max(0, Number(index) || 0);
-          setSlideIndex(safe);
-          stateChangeRef.current?.({ slideIndex: safe });
-        },
-        onError: (message) => {
-          if (disposed) return;
-          setError(String(message || labels.error));
-          setStatus("error");
-        },
-      });
-      viewerRef.current = viewer;
-    } catch (caught) {
-      setError(String(caught?.message || labels.error));
-      setStatus("error");
-    }
-    return () => {
-      disposed = true;
-      try { viewer?.destroy?.(); } catch {}
-      if (viewerRef.current === viewer) viewerRef.current = null;
-      if (hostRef.current) hostRef.current.replaceChildren();
-    };
-    // The viewer is recreated only when the source material changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, materialId]);
-
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!viewer || status !== "ready") return;
-    const target = Math.max(0, Number(savedState.slideIndex) || 0);
-    const revision = Number(savedState.remoteRevision) || 0;
-    if (revision <= restoreRevisionRef.current || target === slideIndex) return;
-    restoreRevisionRef.current = revision;
-    viewer.goToSlide?.(target);
-  }, [savedState.slideIndex, savedState.remoteRevision, status, slideIndex]);
-
-  useEffect(() => {
-    const host = hostRef.current;
-    if (!host || status !== "ready") return undefined;
-    const refit = () => {
-      if (!pptxFitModeRef.current || !viewerRef.current) return;
-      window.cancelAnimationFrame(pptxFitFrameRef.current);
-      pptxFitFrameRef.current = window.requestAnimationFrame(() => {
-        if (!pptxFitModeRef.current || !viewerRef.current) return;
-        viewerRef.current?.zoomToFit?.();
-        const actual = Number(viewerRef.current?.getZoom?.());
-        if (Number.isFinite(actual) && actual > 0) setZoom(actual);
-      });
-    };
-    refit();
-    if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", refit);
-      return () => {
-        window.removeEventListener("resize", refit);
-        window.cancelAnimationFrame(pptxFitFrameRef.current);
-      };
-    }
-    const observer = new ResizeObserver(() => { refit(); });
-    observer.observe(host);
-    return () => {
-      observer.disconnect();
-      window.cancelAnimationFrame(pptxFitFrameRef.current);
-    };
-  }, [status, materialId]);
-
-  useEffect(() => {
-    const onFullscreenChange = () => setIsFullscreen(document.fullscreenElement === shellRef.current);
-    document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
-  }, []);
-
-  useEffect(() => {
-    const shell = shellRef.current;
-    if (!shell) return undefined;
-    const onKeyDown = (event) => {
-      if (isEditableTarget(event.target) || event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.key === "ArrowLeft" || event.key === "PageUp") {
-        event.preventDefault();
-        viewerRef.current?.prev?.();
-      } else if (event.key === "ArrowRight" || event.key === "PageDown") {
-        event.preventDefault();
-        viewerRef.current?.next?.();
-      }
-    };
-    shell.addEventListener("keydown", onKeyDown);
-    return () => shell.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  const syncZoom = () => {
-    const actual = Number(viewerRef.current?.getZoom?.());
-    if (!Number.isFinite(actual) || actual <= 0) return;
-    setZoom(actual);
-    stateChangeRef.current?.({ zoom: actual });
-  };
-  const move = (direction) => {
-    const viewer = viewerRef.current;
-    if (!viewer) return;
-    if (direction < 0) viewer.prev?.(); else viewer.next?.();
-  };
-  const goTo = (index) => {
-    const safe = Math.max(0, Math.min(Math.max(0, slideCount - 1), Number(index) || 0));
-    viewerRef.current?.goToSlide?.(safe);
-    setPanel(null);
-  };
-  const changeZoom = (direction) => {
-    const viewer = viewerRef.current;
-    if (!viewer) return;
-    pptxFitModeRef.current = false;
-    if (direction < 0) viewer.zoomOut?.(); else viewer.zoomIn?.();
-    window.setTimeout(syncZoom, 0);
-  };
-  const fit = () => {
-    pptxFitModeRef.current = true;
-    viewerRef.current?.zoomToFit?.();
-    window.setTimeout(syncZoom, 0);
-  };
-  const toggleFullscreen = async () => {
-    try {
-      if (document.fullscreenElement === shellRef.current) await document.exitFullscreen?.();
-      else await shellRef.current?.requestFullscreen?.();
-    } catch {}
-  };
-  const handleStageTouchStart = (event) => {
-    const touch = event.touches?.[0];
-    if (!touch || event.touches?.length !== 1) return;
-    pptxTouchRef.current = { x: touch.clientX, y: touch.clientY, at: Date.now() };
-  };
-  const handleStageTouchEnd = (event) => {
-    const start = pptxTouchRef.current;
-    const touch = event.changedTouches?.[0];
-    pptxTouchRef.current = null;
-    if (!start || !touch) return;
-    const dx = touch.clientX - start.x;
-    const dy = touch.clientY - start.y;
-    const elapsed = Date.now() - start.at;
-    if (elapsed > 700 || Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
-    move(dx > 0 ? -1 : 1);
-  };
-
-  const results = lecturePptxSearch(slides, query);
-
-  return (
-    <section ref={shellRef} className="lecture-pptx-viewer" data-status={status} tabIndex={0}>
-      <div className="lecture-pptx-toolbar" role="toolbar" aria-label="PowerPoint">
-        <div className="lecture-pptx-toolbar-group">
-          <button type="button" title={labels.previous} aria-label={labels.previous} disabled={status !== "ready" || slideIndex <= 0} onClick={() => move(-1)}><Icon name="left" size={14} /></button>
-          <div className="lecture-pptx-counter"><strong>{Math.min(slideCount || 1, slideIndex + 1)}</strong><span>/ {slideCount || "—"}</span></div>
-          <button type="button" title={labels.next} aria-label={labels.next} disabled={status !== "ready" || slideIndex >= slideCount - 1} onClick={() => move(1)}><Icon name="right" size={14} /></button>
-        </div>
-        <div className="lecture-pptx-toolbar-group">
-          <button type="button" title={labels.overview} aria-label={labels.overview} data-active={panel === "overview" ? "true" : "false"} disabled={status !== "ready"} onClick={() => setPanel((current) => current === "overview" ? null : "overview")}><Icon name="thumbnails" size={14} /></button>
-          <button type="button" title={labels.search} aria-label={labels.search} data-active={panel === "search" ? "true" : "false"} disabled={status !== "ready"} onClick={() => setPanel((current) => current === "search" ? null : "search")}><Icon name="search" size={14} /></button>
-          <button type="button" title="Zoom ud" aria-label="Zoom ud" disabled={status !== "ready"} onClick={() => changeZoom(-1)}><Icon name="zoomOut" size={14} /></button>
-          <span className="lecture-pptx-zoom">{Math.round((Number(zoom) || 1) * 100)}%</span>
-          <button type="button" title="Zoom ind" aria-label="Zoom ind" disabled={status !== "ready"} onClick={() => changeZoom(1)}><Icon name="zoomIn" size={14} /></button>
-          <button type="button" title={labels.fit} aria-label={labels.fit} disabled={status !== "ready"} onClick={fit}><Icon name="fit" size={14} /></button>
-          <button type="button" title={labels.fullscreen} aria-label={labels.fullscreen} data-active={isFullscreen ? "true" : "false"} disabled={status !== "ready"} onClick={toggleFullscreen}><Icon name={isFullscreen ? "collapse" : "expand"} size={14} /></button>
-        </div>
-      </div>
-      <div className="lecture-pptx-stage-wrap" onTouchStart={handleStageTouchStart} onTouchEnd={handleStageTouchEnd}>
-        <div ref={hostRef} className="lecture-pptx-stage" />
-        {status === "loading" && <div className="lecture-pptx-state"><span className="lecture-pptx-spinner" /><strong>{labels.loading}</strong></div>}
-        {status === "error" && <div className="lecture-pptx-state"><Icon name="file" size={24} /><strong>{labels.error}</strong>{error && <small>{error}</small>}</div>}
-        {panel === "search" && status === "ready" && (
-          <div className="lecture-pptx-popover">
-            <div className="lecture-pptx-popover-head"><label><Icon name="search" size={13} /><input autoFocus value={query} placeholder={labels.placeholder} onChange={(event) => setQuery(event.target.value)} /></label><button type="button" aria-label={labels.close} title={labels.close} onClick={() => setPanel(null)}><Icon name="close" size={12} /></button></div>
-            <div className="lecture-pptx-results">{query && !results.length ? <div className="lecture-pptx-state"><small>{labels.noResults}</small></div> : results.map((result) => <button type="button" key={result.index} className="lecture-pptx-result" data-current={result.index === slideIndex ? "true" : "false"} onClick={() => goTo(result.index)}><b>{labels.slide} {result.index + 1}</b><span>{result.snippet}</span></button>)}</div>
-          </div>
-        )}
-        {panel === "overview" && status === "ready" && (
-          <div className="lecture-pptx-popover"><div className="lecture-pptx-popover-head"><strong style={{ flex: 1, fontSize: 8 }}>{labels.overview}</strong><button type="button" aria-label={labels.close} title={labels.close} onClick={() => setPanel(null)}><Icon name="close" size={12} /></button></div><div className="lecture-pptx-slide-grid">{Array.from({ length: slideCount }, (_, index) => <button type="button" key={index} data-current={index === slideIndex ? "true" : "false"} onClick={() => goTo(index)}>{index + 1}</button>)}</div></div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 function ExamSourcePagePreview({ url, pageNumber = 1, fileName = "Original eksamen", copy, onOpen }) {
   const canvasRef = useRef(null);
   const surfaceRef = useRef(null);
@@ -38660,12 +38446,6 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const lecturePdfScopeRef = useRef(null);
   const lecturePdfStateSaveTimerRef = useRef(null);
   const lecturePdfPendingStateRef = useRef({});
-  const [lecturePptxRemoteState, setLecturePptxRemoteState] = useState({});
-  const [lecturePptxRemoteRevision, setLecturePptxRemoteRevision] = useState(0);
-  const [lecturePptxWorkspaceStatus, setLecturePptxWorkspaceStatus] = useState("idle");
-  const lecturePptxScopeRef = useRef(null);
-  const lecturePptxStateSaveTimerRef = useRef(null);
-  const lecturePptxPendingStateRef = useRef({});
   const lectureSearchRef = useRef(null);
   const [studyPlans, setStudyPlans] = useStoredState(STORAGE.studyPlans, {});
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
@@ -38688,6 +38468,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
   const [materialPreviewUrl, setMaterialPreviewUrl] = useState("");
   const [materialPreviewState, setMaterialPreviewState] = useState("idle");
+  const [lecturePptxPdfPreview, setLecturePptxPdfPreview] = useState({ materialId: null, cacheKey: "", state: "idle", url: "", error: "" });
+  const [lecturePptxPdfRetryToken, setLecturePptxPdfRetryToken] = useState(0);
   const [materialDialog, setMaterialDialog] = useState(null);
   const [materialSaving, setMaterialSaving] = useState(false);
   const [examSetStatus, setExamSetStatus] = useState({ state: "idle", message: "" });
@@ -39155,6 +38937,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       materialVisibilityGlobalHint: "Canonical materiale for forelæsningen. Alle brugere på modulet kan åbne det.",
       materialVisibilityPrivateHint: "Personligt materiale, som kun du kan se.",
       materialLoading: "Henter materialer…",
+      materialPptxConverting: "Gør PowerPoint klar som PDF…",
+      materialPptxConversionError: "PowerPoint-filen kunne ikke gøres klar i PDF-vieweren.",
+      materialPptxRetry: "Prøv igen",
       materialSetupMissing: "Materialelageret er ikke klargjort. Kør Segment 5.4 SQL-filen i Supabase.",
       materialUploadTitle: "Tilføj materiale",
       materialEditTitle: "Redigér materiale",
@@ -39594,6 +39379,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       materialVisibilityGlobalHint: "Canonical lecture material. Every user in the module can open it.",
       materialVisibilityPrivateHint: "Personal material visible only to you.",
       materialLoading: "Loading materials…",
+      materialPptxConverting: "Preparing PowerPoint as a PDF…",
+      materialPptxConversionError: "The PowerPoint file could not be prepared in the PDF viewer.",
+      materialPptxRetry: "Try again",
       materialSetupMissing: "The material store is not configured. Run the Segment 5.4 SQL file in Supabase.",
       materialUploadTitle: "Add material",
       materialEditTitle: "Edit material",
@@ -40050,6 +39838,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       materialDelete: "حذف",
       materialDownload: "تنزيل",
       materialOpen: "فتح",
+      materialPptxConverting: "جارٍ تجهيز PowerPoint كملف PDF…",
+      materialPptxConversionError: "تعذر تجهيز ملف PowerPoint في عارض PDF.",
+      materialPptxRetry: "حاول مجددًا",
       materialNoPreview: "لا يمكن معاينة هذا النوع من الملفات داخل التطبيق.",
       materialOpenExternally: "افتح الملف أو نزّله لعرض محتواه.",
       materialUploadError: "تعذر حفظ المادة.",
@@ -40134,7 +39925,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
       : null;
 
   useEffect(() => {
-    if (!isLectureLibrary || !activeLectureMaterial?.id || lectureMaterialPreviewKind(activeLectureMaterial) !== "pdf") {
+    if (!isLectureLibrary || !activeLectureMaterial?.id || !lectureMaterialUsesPdfWorkspace(lectureMaterialPreviewKind(activeLectureMaterial))) {
       lecturePdfScopeRef.current = null;
       setLecturePdfAnnotations([]);
       setLecturePdfRemoteState({});
@@ -40213,59 +40004,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     });
 
     return () => { cancelled = true; };
-  }, [isLectureLibrary, userId, moduleName, selectedLecture?.id, activeLectureMaterial?.id]);
-
-  useEffect(() => {
-    if (!isLectureLibrary || !activeLectureMaterial?.id || lectureMaterialPreviewKind(activeLectureMaterial) !== "pptx") {
-      lecturePptxScopeRef.current = null;
-      setLecturePptxRemoteState({});
-      setLecturePptxWorkspaceStatus("idle");
-      return undefined;
-    }
-    const materialId = activeLectureMaterial.id;
-    const lectureId = selectedLecture?.id || activeLectureMaterial.lecture_id;
-    const scope = { userId, materialId, moduleName, lectureId };
-    lecturePptxScopeRef.current = scope;
-    const localUserKey = userId || "anonymous";
-    const localState = workspaceState.lecturePptxUserCache?.[localUserKey]?.[materialId] || {};
-    setLecturePptxRemoteState({ ...localState, materialId, remoteRevision: Date.now() });
-    if (!userId) {
-      setLecturePptxWorkspaceStatus("local");
-      return undefined;
-    }
-    let cancelled = false;
-    setLecturePptxWorkspaceStatus("loading");
-    supabase
-      .from("lecture_pptx_user_state")
-      .select("slide_index,zoom,updated_at")
-      .eq("user_id", userId)
-      .eq("material_id", materialId)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (cancelled || lecturePptxScopeRef.current?.materialId !== materialId) return;
-        if (error) {
-          setLecturePptxWorkspaceStatus("local");
-          return;
-        }
-        const remote = data ? {
-          slideIndex: Math.max(0, Number(data.slide_index) || 0),
-          zoom: Math.max(.35, Math.min(4, Number(data.zoom) || 1)),
-        } : {};
-        const merged = { ...localState, ...remote, materialId, remoteRevision: Date.now() };
-        setLecturePptxRemoteRevision((value) => value + 1);
-        setLecturePptxRemoteState(merged);
-        setWorkspaceState((current) => ({
-          ...current,
-          lecturePptxUserCache: { ...(current.lecturePptxUserCache || {}), [localUserKey]: { ...(current.lecturePptxUserCache?.[localUserKey] || {}), [materialId]: { ...merged, updatedAt: Date.now() } } },
-        }));
-        setLecturePptxWorkspaceStatus("ready");
-      });
-    return () => { cancelled = true; };
-  }, [isLectureLibrary, userId, moduleName, selectedLecture?.id, activeLectureMaterial?.id]);
+  }, [isLectureLibrary, userId, moduleName, selectedLecture?.id, activeLectureMaterial?.id, activeLectureMaterial?.file_name, activeLectureMaterial?.mime_type]);
 
   useEffect(() => () => {
     window.clearTimeout(lecturePdfStateSaveTimerRef.current);
-    window.clearTimeout(lecturePptxStateSaveTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -40353,7 +40095,85 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
         setMaterialPreviewState("ready");
       });
     return () => { cancelled = true; };
-  }, [isLectureLibrary, activeLectureMaterial?.id, activeLectureMaterial?.storage_path]);
+  }, [isLectureLibrary, activeLectureMaterial?.id, activeLectureMaterial?.storage_path, activeLectureMaterial?.updated_at]);
+
+  useEffect(() => {
+    const materialId = activeLectureMaterial?.id || null;
+    const isPowerPoint = lectureMaterialPreviewKind(activeLectureMaterial) === "pptx";
+    if (!isLectureLibrary || !materialId || !isPowerPoint) {
+      setLecturePptxPdfPreview({ materialId: null, cacheKey: "", state: "idle", url: "", error: "" });
+      return undefined;
+    }
+    if (materialPreviewState !== "ready" || !materialPreviewUrl) {
+      setLecturePptxPdfPreview({
+        materialId,
+        cacheKey: lecturePptxPdfCacheKey(activeLectureMaterial),
+        state: materialPreviewState === "error" ? "error" : "loading",
+        url: "",
+        error: materialPreviewState === "error" ? copy.materialPptxConversionError : "",
+      });
+      return undefined;
+    }
+
+    const cacheKey = lecturePptxPdfCacheKey(activeLectureMaterial);
+    const controller = new AbortController();
+    let cancelled = false;
+    let timedOut = false;
+    let objectUrl = "";
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 120000);
+    setLecturePptxPdfPreview({ materialId, cacheKey, state: "loading", url: "", error: "" });
+
+    (async () => {
+      try {
+        let pdfBuffer = lecturePptxPdfCacheGet(cacheKey);
+        if (!pdfBuffer) {
+          const converter = await loadLecturePptxConverter();
+          pdfBuffer = await lectureConvertPptxToPdf({
+            sourceUrl: materialPreviewUrl,
+            converter,
+            licenseKey: NUTRIENT_LICENSE_KEY,
+            signal: controller.signal,
+          });
+          lecturePptxPdfCacheSet(cacheKey, pdfBuffer);
+        }
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(new Blob([pdfBuffer], { type: "application/pdf" }));
+        setLecturePptxPdfPreview({ materialId, cacheKey, state: "ready", url: objectUrl, error: "" });
+      } catch (error) {
+        if (cancelled || (error?.name === "AbortError" && !timedOut)) return;
+        setLecturePptxPdfPreview({
+          materialId,
+          cacheKey,
+          state: "error",
+          url: "",
+          error: timedOut ? copy.materialPptxConversionError : String(error?.message || copy.materialPptxConversionError),
+        });
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [
+    isLectureLibrary,
+    activeLectureMaterial?.id,
+    activeLectureMaterial?.storage_path,
+    activeLectureMaterial?.file_name,
+    activeLectureMaterial?.mime_type,
+    activeLectureMaterial?.size_bytes,
+    activeLectureMaterial?.updated_at,
+    materialPreviewState,
+    materialPreviewUrl,
+    lecturePptxPdfRetryToken,
+  ]);
 
   useEffect(() => {
     if (isLectureLibrary) return undefined;
@@ -41937,58 +41757,6 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setLecturePdfWorkspaceStatus(error ? "local" : "ready");
   }
 
-  function scheduleLecturePptxUserState(materialId, patch) {
-    if (!isLectureLibrary || !materialId || activeLectureMaterial?.id !== materialId || !patch || typeof patch !== "object") return;
-    if (lecturePptxWorkspaceStatus === "loading") return;
-    const localUserKey = userId || "anonymous";
-    const nextLocal = { ...(lecturePptxRemoteState || {}), ...patch, materialId };
-    setLecturePptxRemoteState(nextLocal);
-    setWorkspaceState((current) => ({
-      ...current,
-      lecturePptxUserCache: { ...(current.lecturePptxUserCache || {}), [localUserKey]: { ...(current.lecturePptxUserCache?.[localUserKey] || {}), [materialId]: { ...(current.lecturePptxUserCache?.[localUserKey]?.[materialId] || {}), ...patch, updatedAt: Date.now() } } },
-      lectureViewerHistory: selectedLecture?.id ? {
-        ...(current.lectureViewerHistory || {}),
-        [moduleName || "module"]: {
-          ...(current.lectureViewerHistory?.[moduleName || "module"] || {}),
-          lectureId: selectedLecture.id,
-          materialId,
-          slideIndex: Math.max(0, Number(patch.slideIndex ?? current.lecturePptxUserCache?.[localUserKey]?.[materialId]?.slideIndex) || 0),
-          updatedAt: Date.now(),
-        },
-      } : current.lectureViewerHistory,
-    }));
-    lecturePptxPendingStateRef.current = { ...(lecturePptxPendingStateRef.current || {}), ...patch };
-    if (!userId || !selectedLecture?.id) {
-      setLecturePptxWorkspaceStatus("local");
-      return;
-    }
-    setLecturePptxWorkspaceStatus((current) => current === "loading" ? current : "saving");
-    window.clearTimeout(lecturePptxStateSaveTimerRef.current);
-    const scope = { userId, materialId, moduleName, lectureId: selectedLecture.id };
-    lecturePptxStateSaveTimerRef.current = window.setTimeout(async () => {
-      if (lecturePptxScopeRef.current?.materialId !== materialId) return;
-      const pending = lecturePptxPendingStateRef.current || {};
-      lecturePptxPendingStateRef.current = {};
-      const currentState = { ...(lecturePptxRemoteState || {}), ...pending };
-      const payload = {
-        user_id: scope.userId,
-        material_id: scope.materialId,
-        module_name: scope.moduleName,
-        lecture_id: scope.lectureId,
-        slide_index: Math.max(0, Number(currentState.slideIndex) || 0),
-        zoom: Math.max(.35, Math.min(4, Number(currentState.zoom) || 1)),
-        updated_at: new Date().toISOString(),
-      };
-      const { error } = await supabase.from("lecture_pptx_user_state").upsert(payload, { onConflict: "user_id,material_id" });
-      if (lecturePptxScopeRef.current?.materialId !== materialId) return;
-      setLecturePptxWorkspaceStatus(error ? "local" : "ready");
-    }, 720);
-  }
-
-  function updateLecturePptxViewerState(materialId, patch) {
-    scheduleLecturePptxUserState(materialId, patch);
-  }
-
   function updateLectureViewerState(materialId, patch) {
     if (!materialId || !patch || typeof patch !== "object") return;
     scheduleLecturePdfUserState(materialId, patch);
@@ -43556,15 +43324,31 @@ async function openExamSetPdfEditor() {
                     onUpdateAnnotation={updateLecturePdfAnnotation}
                     onDeleteAnnotation={deleteLecturePdfAnnotation}
                   />
-                ) : activeDocument?.previewKind === "pptx" && activeDocument.url ? (
-                  <LecturePptxViewer
-                    url={activeDocument.url}
-                    materialId={activeLectureMaterial.id}
-                    fileName={activeDocument.name}
-                    savedState={{ ...(workspaceState.lecturePptxUserCache?.[userId || "anonymous"]?.[activeLectureMaterial.id] || {}), ...(lecturePptxRemoteState.materialId === activeLectureMaterial.id ? lecturePptxRemoteState : {}), remoteRevision: lecturePptxRemoteRevision }}
-                    onStateChange={(patch) => updateLecturePptxViewerState(activeLectureMaterial.id, patch)}
-                    language={language}
-                  />
+                ) : activeDocument?.previewKind === "pptx" ? (
+                  lecturePptxPdfPreview.materialId !== activeLectureMaterial.id || lecturePptxPdfPreview.state === "idle" || lecturePptxPdfPreview.state === "loading" ? (
+                    <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialPptxConverting}</strong></div>
+                  ) : lecturePptxPdfPreview.state === "error" ? (
+                    <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialPptxConversionError}</strong><small>{lecturePptxPdfPreview.error}</small><div className="lecture-material-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => setLecturePptxPdfRetryToken((value) => value + 1)}>{copy.materialPptxRetry}</button><button type="button" className="ui-button ui-button--secondary" onClick={() => downloadLectureMaterial()}>{copy.materialDownload}</button><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureMaterial()}>{copy.materialOpen}</button></div></div>
+                  ) : lecturePptxPdfPreview.state === "ready" && lecturePptxPdfPreview.url ? (
+                    <LecturePdfViewer
+                      url={lecturePptxPdfPreview.url}
+                      materialId={activeLectureMaterial.id}
+                      fileName={activeDocument.name}
+                      savedState={{ ...(workspaceState.documentViewer?.[activeLectureMaterial.id] || {}), ...(lecturePdfRemoteState.materialId === activeLectureMaterial.id ? lecturePdfRemoteState : {}), remoteRevision: lecturePdfRemoteRevision }}
+                      onStateChange={(patch) => updateLectureViewerState(activeLectureMaterial.id, patch)}
+                      copy={copy}
+                      continuous={true}
+                      workspace={true}
+                      language={language}
+                      annotations={lecturePdfAnnotations}
+                      annotationStatus={lecturePdfWorkspaceStatus}
+                      onCreateAnnotation={createLecturePdfAnnotation}
+                      onUpdateAnnotation={updateLecturePdfAnnotation}
+                      onDeleteAnnotation={deleteLecturePdfAnnotation}
+                    />
+                  ) : (
+                    <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialPptxConversionError}</strong></div>
+                  )
                 ) : (
                   <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialNoPreview}</strong><small>{copy.materialOpenExternally}</small><div className="lecture-material-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => downloadLectureMaterial()}>{copy.materialDownload}</button><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureMaterial()}>{copy.materialOpen}</button></div></div>
                 )
