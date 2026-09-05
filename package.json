@@ -6,16 +6,17 @@
     "node": "24.x"
   },
   "dependencies": {
-    "@nutrient-sdk/viewer": "1.21.0",
     "@supabase/supabase-js": "2.110.8",
     "ajv": "8.20.0",
     "ajv-formats": "2.1.1",
     "ajv-keywords": "5.1.0",
     "eslint-config-react-app": "7.0.1",
     "eslint-plugin-react-hooks": "4.6.2",
+    "pdfjs-dist": "4.10.38",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-scripts": "5.0.1",
+    "ts-fsrs": "5.4.1",
     "three": "0.185.1"
   },
   "scripts": {
