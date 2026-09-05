@@ -1,7 +1,7 @@
 "use client";
  
 // Kræver: npm install @supabase/supabase-js ts-fsrs pdfjs-dist
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -66,6 +66,8 @@ const STORAGE = {
   flashcardPreferences: "medlearn-flashcard-preferences-v1",
   flashcardSyncQueue: "medlearn-flashcard-sync-queue-v1",
   flashcardReviewHistory: "medlearn-flashcard-review-history-v1",
+  flashcardPersonalCards: "medlearn-flashcard-personal-cards-v1",
+  flashcardPersonalQueue: "medlearn-flashcard-personal-queue-v1",
 };
 
 /* SEGMENT_6_9_HELPERS_START */
@@ -492,6 +494,227 @@ function flashcardReviewSyncPayload(event) {
   };
 }
 /* SEGMENT_7_0_FLASHCARD_HELPERS_END */
+
+/* SEGMENT_7_1_FLASHCARD_HELPERS_START */
+function flashcard71Localized(value, fallback = "") {
+  if (value && typeof value === "object" && !Array.isArray(value)) return { ...value };
+  const text = String(value ?? fallback);
+  return { da: text, en: text, ar: text };
+}
+
+function flashcard71Text(value, language = "da") {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object") return "";
+  return String(value[language] ?? value.da ?? value.en ?? value.ar ?? "");
+}
+
+function flashcard71RecordTime(record) {
+  const value = record?.updatedAt ?? record?.updated_at ?? record?.createdAt ?? record?.created_at;
+  const time = value == null ? 0 : new Date(value).getTime();
+  return Number.isFinite(time) ? time : 0;
+}
+
+function flashcardPersonalStorageKey(userId) {
+  return `${STORAGE.flashcardPersonalCards}:${String(userId || "signed-out")}`;
+}
+
+function flashcardPersonalQueueKey(userId) {
+  return `${STORAGE.flashcardPersonalQueue}:${String(userId || "signed-out")}`;
+}
+
+function flashcardReviewHistoryKey(userId) {
+  return `${STORAGE.flashcardReviewHistory}:${String(userId || "signed-out")}`;
+}
+
+function flashcardReviewQueueKey(userId) {
+  return `${STORAGE.flashcardSyncQueue}:${String(userId || "signed-out")}`;
+}
+
+function flashcardAccountStorageKey(baseKey, userId) {
+  return `${baseKey}:${String(userId || "signed-out")}`;
+}
+
+function flashcard71QuestionType(question) {
+  if (question?.cardType) return String(question.cardType);
+  if (question?.imageOcclusion) return "image-occlusion";
+  return Array.isArray(question?.options) && question.options.length >= 2 ? "mcq" : "basic";
+}
+
+function flashcardPersonalUpsert(records, incoming) {
+  if (!incoming?.cardId) return Array.isArray(records) ? records : [];
+  const current = Array.isArray(records) ? records : [];
+  const index = current.findIndex((record) => String(record?.cardId) === String(incoming.cardId));
+  if (index < 0) return [...current, incoming];
+  if (flashcard71RecordTime(current[index]) > flashcard71RecordTime(incoming)) return current;
+  const next = [...current];
+  next[index] = incoming;
+  return next;
+}
+
+function flashcard71RecordToQuestion(record, canonical = null) {
+  const sourceId = record?.sourceQuestionId || record?.source_question_id || null;
+  const id = canonical?.id || sourceId || record?.cardId;
+  const front = record?.front != null ? flashcard71Localized(record.front) : flashcard71Localized(canonical?.question);
+  const backSource = record?.back != null ? record.back : record?.explanation != null ? record.explanation : canonical?.explanation;
+  const back = flashcard71Localized(backSource);
+  const cardType = String(record?.cardType || record?.card_type || canonical?.cardType || (canonical?.imageOcclusion ? "image-occlusion" : "mcq"));
+  const rawOptions = Array.isArray(record?.options) && record.options.length
+    ? record.options
+    : Array.isArray(canonical?.options) && canonical.options.length
+      ? canonical.options
+      : ["Vis svar", "Spring over"];
+  const category = record?.category != null
+    ? flashcard71Localized(record.category)
+    : flashcard71Localized(canonical?.category || "Personligt kort");
+  return {
+    ...(canonical || {}),
+    id,
+    moduleId: record?.moduleId || record?.module_id || canonical?.moduleId || null,
+    lectureId: record?.lectureId ?? record?.lecture_id ?? canonical?.lectureId ?? null,
+    category,
+    question: front,
+    options: rawOptions.map((option) => flashcard71Localized(option)),
+    correct: Math.max(0, Math.min(rawOptions.length - 1, Number(record?.correct ?? canonical?.correct ?? 0) || 0)),
+    explanation: record?.explanation != null ? flashcard71Localized(record.explanation) : back,
+    cardType,
+    front,
+    back,
+    tags: Array.isArray(record?.tags) ? record.tags.filter(Boolean).map(String) : Array.isArray(canonical?.tags) ? canonical.tags : [],
+    private: true,
+    personalCardId: record?.cardId,
+    personalOverride: Boolean(canonical || sourceId),
+    sourceQuestionId: sourceId,
+    createdAt: record?.createdAt || record?.created_at || canonical?.createdAt,
+    updatedAt: record?.updatedAt || record?.updated_at,
+    ...(record?.imageOcclusion || canonical?.imageOcclusion ? { imageOcclusion: record?.imageOcclusion || canonical?.imageOcclusion } : {}),
+  };
+}
+
+function flashcardMergePersonalCards(canonicalQuestions, personalRecords) {
+  const canonical = Array.isArray(canonicalQuestions) ? canonicalQuestions : [];
+  const records = (Array.isArray(personalRecords) ? personalRecords : []).reduce((latest, record) => {
+    if (!record?.cardId) return latest;
+    const previous = latest.get(String(record.cardId));
+    if (!previous || flashcard71RecordTime(record) >= flashcard71RecordTime(previous)) latest.set(String(record.cardId), record);
+    return latest;
+  }, new Map());
+  const overrides = new Map();
+  records.forEach((record) => {
+    const sourceId = record?.sourceQuestionId || record?.source_question_id;
+    if (!sourceId) return;
+    const previous = overrides.get(String(sourceId));
+    if (!previous || flashcard71RecordTime(record) >= flashcard71RecordTime(previous)) overrides.set(String(sourceId), record);
+  });
+  const merged = [];
+  canonical.forEach((question) => {
+    const override = overrides.get(String(question?.id));
+    if (override?.deletedAt || override?.deleted_at) return;
+    merged.push(override ? flashcard71RecordToQuestion(override, question) : question);
+  });
+  [...records.values()]
+    .filter((record) => !(record?.sourceQuestionId || record?.source_question_id) && !(record?.deletedAt || record?.deleted_at))
+    .sort((a, b) => flashcard71RecordTime(a) - flashcard71RecordTime(b) || String(a.cardId).localeCompare(String(b.cardId)))
+    .forEach((record) => merged.push(flashcard71RecordToQuestion(record)));
+  return merged;
+}
+
+function flashcardValidateDraft(draft, language = "da") {
+  const errors = {};
+  const cardType = String(draft?.cardType || "basic");
+  const front = flashcard71Text(draft?.front ?? draft?.question, language).trim();
+  const back = flashcard71Text(draft?.back ?? draft?.explanation, language).trim();
+  if (!front) errors.front = "Skriv en forside.";
+  if ((cardType === "basic" || cardType === "cloze") && !back) errors.back = "Skriv et svar.";
+  if (cardType === "cloze" && !/\{\{c\d+::.+?\}\}/s.test(front)) errors.front = "Markér mindst én cloze med {{c1::svar}}.";
+  if (cardType === "mcq") {
+    const options = (Array.isArray(draft?.options) ? draft.options : []).map((option) => flashcard71Text(option, language).trim());
+    if (options.length < 2 || options.some((option) => !option)) errors.options = "Tilføj mindst to udfyldte svarmuligheder.";
+    const correct = Number(draft?.correct);
+    if (!Number.isInteger(correct) || correct < 0 || correct >= options.length) errors.correct = "Vælg det korrekte svar.";
+  }
+  if (cardType === "image-occlusion" && !draft?.imageOcclusion) errors.imageOcclusion = "Tilføj mindst én billedmarkering.";
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
+function flashcard71DateKey(value) {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function flashcard71ActiveEvents(events) {
+  const list = Array.isArray(events) ? events : [];
+  const reversed = new Set(list.map((event) => event?.reversesReviewId || event?.reverses_review_id).filter(Boolean).map(String));
+  return list.filter((event) => event && !(event.reversesReviewId || event.reverses_review_id) && !reversed.has(String(event.id || event.eventId || "")));
+}
+
+function flashcardActivityBuckets(events, endDate = new Date(), days = 7) {
+  const count = Math.max(1, Math.round(Number(days) || 7));
+  const end = endDate instanceof Date ? new Date(endDate) : new Date(endDate);
+  end.setHours(12, 0, 0, 0);
+  const totals = new Map();
+  flashcard71ActiveEvents(events).forEach((event) => {
+    const key = flashcard71DateKey(event.reviewedAt ?? event.reviewed_at);
+    if (!key) return;
+    const current = totals.get(key) || { count: 0, seconds: 0 };
+    current.count += 1;
+    current.seconds += Math.max(0, Math.round(Number(event.seconds ?? event.duration_seconds) || 0));
+    totals.set(key, current);
+  });
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(end);
+    date.setDate(end.getDate() - count + index + 1);
+    const key = flashcard71DateKey(date);
+    const total = totals.get(key) || { count: 0, seconds: 0 };
+    return { date: key, count: total.count, seconds: total.seconds, minutes: Math.round((total.seconds / 60) * 10) / 10, weekday: date.getDay() };
+  });
+}
+
+function flashcard71CardState(card, nowMs) {
+  if (!card) return "new";
+  const fsrsState = card?.fsrs?.card?.state;
+  const rawState = fsrsState == null ? String(card?.sm2?.state || card?.state || "").toLowerCase() : ({ 0: "new", 1: "learning", 2: "review", 3: "relearning" })[Number(fsrsState)] || "new";
+  if (rawState === "suspended" || card?.buried === true || card?.suspendedAt || card?.suspended_at) return "hidden";
+  if (rawState === "new") return "new";
+  const rawDue = card?.fsrs?.card?.due ?? card?.sm2?.due ?? card?.due_at ?? card?.dueAt ?? card?.dueDate ?? card?.due;
+  const due = rawDue == null ? null : new Date(rawDue).getTime();
+  if (Number.isFinite(due) && due <= nowMs) return "due";
+  if ((rawState === "learning" || rawState === "relearning") && Number.isFinite(due)) return "learning";
+  return "future";
+}
+
+function flashcardDeckInsights(questions, spacedData, events, nowMs = Date.now()) {
+  const ids = new Set((Array.isArray(questions) ? questions : []).map((question) => String(question?.id)));
+  const queue = { newCount: 0, learningCount: 0, dueCount: 0, totalActive: 0 };
+  let difficultCount = 0;
+  let matureCount = 0;
+  ids.forEach((id) => {
+    const card = spacedData?.[id];
+    const state = flashcard71CardState(card, nowMs);
+    if (state === "hidden") return;
+    queue.totalActive += 1;
+    if (state === "new") queue.newCount += 1;
+    else if (state === "learning") queue.learningCount += 1;
+    else if (state === "due") queue.dueCount += 1;
+    else if (state === "future") {
+      const intervalDays = Number(card?.fsrs?.card?.stability ?? card?.stability ?? card?.sm2?.interval ?? card?.interval ?? card?.intervalDays) || 0;
+      if (intervalDays >= 21) matureCount += 1;
+    }
+    const lapses = Number(card?.fsrs?.card?.lapses ?? card?.sm2?.lapses ?? card?.lapses) || 0;
+    if (lapses >= 2) difficultCount += 1;
+  });
+  const validEvents = flashcard71ActiveEvents(events).filter((event) => ids.has(String(event.questionId ?? event.question_id)) && Number(event.rating) >= 1);
+  const retained = validEvents.filter((event) => Number(event.rating) >= 2).length;
+  return {
+    queue,
+    retentionPercent: validEvents.length ? Math.round((retained / validEvents.length) * 100) : null,
+    difficultCount,
+    matureCount,
+    reviewCount: validEvents.length,
+    activeSeconds: validEvents.reduce((sum, event) => sum + Math.max(0, Number(event.seconds ?? event.duration_seconds) || 0), 0),
+  };
+}
+/* SEGMENT_7_1_FLASHCARD_HELPERS_END */
 
 const LANGUAGES = [
   { code: "da", label: "Dansk", native: "Dansk", dir: "ltr" },
@@ -3320,18 +3543,121 @@ function useStoredState(key, fallback) {
   return [value, setValue];
 }
 
-function flashcardEnqueueReviewForSync(event) {
+function usePersonalFlashcards71(userId) {
+  const storageKey = flashcardPersonalStorageKey(userId);
+  const queueKey = flashcardPersonalQueueKey(userId);
+  const [snapshot, setSnapshot] = useState(() => ({ key: storageKey, records: userId ? loadStorage(storageKey, []) : [] }));
+  const records = snapshot.key === storageKey ? snapshot.records : [];
+  const setRecords = useCallback((nextValue) => {
+    setSnapshot((current) => {
+      const currentRecords = current.key === storageKey ? current.records : [];
+      return { key: storageKey, records: typeof nextValue === "function" ? nextValue(currentRecords) : nextValue };
+    });
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!userId) {
+      setSnapshot({ key: storageKey, records: [] });
+      return undefined;
+    }
+    const hydrate = () => {
+      const stored = loadStorage(storageKey, []);
+      const queued = loadStorage(queueKey, []).filter((record) => !record?.ownerUserId || record.ownerUserId === userId);
+      setSnapshot({ key: storageKey, records: [...stored, ...queued].reduce((current, record) => flashcardPersonalUpsert(current, record), []) });
+    };
+    hydrate();
+    function handleExternalUpdate(event) {
+      if (event.detail?.key === storageKey || event.detail?.key === queueKey) hydrate();
+    }
+    window.addEventListener("medlearn-storage-update", handleExternalUpdate);
+    return () => window.removeEventListener("medlearn-storage-update", handleExternalUpdate);
+  }, [userId, storageKey, queueKey]);
+
+  return [records, setRecords];
+}
+
+function loadScopedStorage71(baseKey, userId, fallback) {
+  if (!userId) return fallback;
+  const scopedKey = flashcardAccountStorageKey(baseKey, userId);
   try {
-    const queue = flashcardQueueReviewEvent(loadStorage(STORAGE.flashcardSyncQueue, []), event);
-    localStorage.setItem(STORAGE.flashcardSyncQueue, JSON.stringify(queue));
-    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.flashcardSyncQueue } }));
+    const scoped = localStorage.getItem(scopedKey);
+    if (scoped != null) return JSON.parse(scoped);
+    const migrationOwnerKey = `${baseKey}:scoped-migration-owner-v1`;
+    const migrationOwner = localStorage.getItem(migrationOwnerKey);
+    const legacy = localStorage.getItem(baseKey);
+    // Eksisterende installationer beholder deres fremskridt én gang. Derefter er
+    // alle nye logins strengt adskilt og kan aldrig overtage legacy-dataene.
+    if (!migrationOwner && legacy != null) {
+      localStorage.setItem(scopedKey, legacy);
+      localStorage.setItem(migrationOwnerKey, userId);
+      return JSON.parse(legacy);
+    }
+    if (!migrationOwner) localStorage.setItem(migrationOwnerKey, userId);
+  } catch {
+    return fallback;
+  }
+  return fallback;
+}
+
+function useScopedStoredState71(baseKey, userId, fallback) {
+  const scopedKey = flashcardAccountStorageKey(baseKey, userId);
+  const [snapshot, setSnapshot] = useState(() => ({ key: scopedKey, value: loadScopedStorage71(baseKey, userId, fallback) }));
+  const value = snapshot.key === scopedKey ? snapshot.value : fallback;
+  const valueRef = useRef({ key: scopedKey, value });
+  valueRef.current = { key: scopedKey, value };
+  const setValue = useCallback((nextValue) => {
+    if (!userId) return;
+    const currentValue = valueRef.current.key === scopedKey ? valueRef.current.value : loadScopedStorage71(baseKey, userId, fallback);
+    const resolved = typeof nextValue === "function" ? nextValue(currentValue) : nextValue;
+    valueRef.current = { key: scopedKey, value: resolved };
+    localStorage.setItem(scopedKey, JSON.stringify(resolved));
+    setSnapshot({ key: scopedKey, value: resolved });
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: scopedKey } }));
+  }, [baseKey, userId, scopedKey]);
+
+  useEffect(() => {
+    const hydrate = () => setSnapshot({ key: scopedKey, value: loadScopedStorage71(baseKey, userId, fallback) });
+    hydrate();
+    function handleExternalUpdate(event) {
+      if (event.detail?.key === scopedKey) hydrate();
+    }
+    window.addEventListener("medlearn-storage-update", handleExternalUpdate);
+    return () => window.removeEventListener("medlearn-storage-update", handleExternalUpdate);
+  }, [baseKey, userId, scopedKey]);
+
+  return [value, setValue, scopedKey];
+}
+
+function useScopedStorageValue71(key, fallback) {
+  const [snapshot, setSnapshot] = useState(() => ({ key, value: loadStorage(key, fallback) }));
+  const value = snapshot.key === key ? snapshot.value : fallback;
+  useEffect(() => {
+    const hydrate = () => setSnapshot({ key, value: loadStorage(key, fallback) });
+    hydrate();
+    function handleExternalUpdate(event) {
+      if (event.detail?.key === key) hydrate();
+    }
+    window.addEventListener("medlearn-storage-update", handleExternalUpdate);
+    return () => window.removeEventListener("medlearn-storage-update", handleExternalUpdate);
+  }, [key]);
+  return value;
+}
+
+function flashcardEnqueueReviewForSync(event, userId) {
+  if (!userId) return;
+  try {
+    const queueKey = flashcardReviewQueueKey(userId);
+    const ownedEvent = { ...event, ownerUserId: userId };
+    const queue = flashcardQueueReviewEvent(loadScopedStorage71(STORAGE.flashcardSyncQueue, userId, []).filter((item) => !item?.ownerUserId || item.ownerUserId === userId), ownedEvent);
+    localStorage.setItem(queueKey, JSON.stringify(queue));
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: queueKey } }));
   } catch {
     // Den lokale repetition må aldrig fejle, fordi cloud-køen er utilgængelig.
   }
 }
 
 function FlashcardReviewSync70({ userId }) {
-  const [, setHistory] = useStoredState(STORAGE.flashcardReviewHistory, []);
+  const historyKey = flashcardReviewHistoryKey(userId);
   const syncingRef = useRef(false);
   useEffect(() => {
     if (!userId) return undefined;
@@ -3340,18 +3666,23 @@ function FlashcardReviewSync70({ userId }) {
       if (disposed || syncingRef.current || (typeof navigator !== "undefined" && navigator.onLine === false)) return;
       syncingRef.current = true;
       try {
-        const queue = loadStorage(STORAGE.flashcardSyncQueue, []);
+        const queueKey = flashcardReviewQueueKey(userId);
+        const queue = loadScopedStorage71(STORAGE.flashcardSyncQueue, userId, []).filter((event) => !event?.ownerUserId || event.ownerUserId === userId);
         if (queue.length) {
           const rows = queue.map((event) => ({ user_id: userId, ...flashcardReviewSyncPayload(event) }));
           const { error } = await supabase.from("flashcard_review_events").upsert(rows, { onConflict: "user_id,event_id" });
           if (error) throw error;
           const remaining = flashcardAcknowledgeReviewEvents(queue, queue.map((event) => event.eventId));
-          localStorage.setItem(STORAGE.flashcardSyncQueue, JSON.stringify(remaining));
-          window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.flashcardSyncQueue } }));
+          localStorage.setItem(queueKey, JSON.stringify(remaining));
+          window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: queueKey } }));
         }
         const { data, error } = await supabase.from("flashcard_review_events").select("event_id,question_id,reviewed_at,rating,duration_seconds,reverses_review_id,metadata").eq("user_id", userId).order("reviewed_at", { ascending: true }).limit(5000);
         if (error) throw error;
-        if (!disposed) setHistory((data || []).map((row) => ({ id: row.event_id, eventId: row.event_id, questionId: row.question_id, reviewedAt: row.reviewed_at, rating: row.rating, seconds: row.duration_seconds, reversesReviewId: row.reverses_review_id, metadata: row.metadata || {} })));
+        if (!disposed) {
+          const history = (data || []).map((row) => ({ id: row.event_id, eventId: row.event_id, questionId: row.question_id, reviewedAt: row.reviewed_at, rating: row.rating, seconds: row.duration_seconds, reversesReviewId: row.reverses_review_id, metadata: row.metadata || {} }));
+          localStorage.setItem(historyKey, JSON.stringify(history));
+          window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: historyKey } }));
+        }
       } catch {
         // Offline eller endnu ikke migreret: behold køen og prøv igen senere.
       } finally {
@@ -3364,7 +3695,142 @@ function FlashcardReviewSync70({ userId }) {
     window.addEventListener("medlearn-storage-update", wake);
     const timer = window.setInterval(sync, 45000);
     return () => { disposed = true; window.removeEventListener("online", wake); window.removeEventListener("medlearn-storage-update", wake); window.clearInterval(timer); };
-  }, [userId, setHistory]);
+  }, [userId, historyKey]);
+  return null;
+}
+
+function flashcardQueuePersonalRecord(record, userId) {
+  if (!record?.cardId || !userId) throw new Error("Du skal være logget ind for at gemme personlige kort.");
+  const queueKey = flashcardPersonalQueueKey(userId);
+  const ownedRecord = { ...record, ownerUserId: userId };
+  const queue = flashcardPersonalUpsert(
+    loadStorage(queueKey, []).filter((item) => !item?.ownerUserId || item.ownerUserId === userId),
+    ownedRecord
+  );
+  localStorage.setItem(queueKey, JSON.stringify(queue));
+  window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: queueKey } }));
+  return ownedRecord;
+}
+
+function flashcardPersonalRecordToRow(record, userId) {
+  return {
+    user_id: userId,
+    card_id: String(record.cardId),
+    source_question_id: record.sourceQuestionId || null,
+    module_id: record.moduleId || null,
+    lecture_id: record.lectureId || null,
+    card_type: record.cardType || "basic",
+    content: {
+      front: record.front || {},
+      back: record.back || {},
+      category: record.category || {},
+      options: Array.isArray(record.options) ? record.options : [],
+      correct: Number(record.correct) || 0,
+      explanation: record.explanation || record.back || {},
+      tags: Array.isArray(record.tags) ? record.tags : [],
+      imageOcclusion: record.imageOcclusion || null,
+    },
+    deleted_at: record.deletedAt || null,
+    created_at: record.createdAt || new Date().toISOString(),
+    updated_at: record.updatedAt || new Date().toISOString(),
+  };
+}
+
+function flashcardPersonalRowToRecord(row) {
+  const content = row?.content && typeof row.content === "object" ? row.content : {};
+  return {
+    cardId: row.card_id,
+    sourceQuestionId: row.source_question_id || null,
+    moduleId: row.module_id || null,
+    lectureId: row.lecture_id || null,
+    cardType: row.card_type || "basic",
+    front: content.front || {},
+    back: content.back || {},
+    category: content.category || {},
+    options: Array.isArray(content.options) ? content.options : [],
+    correct: Number(content.correct) || 0,
+    explanation: content.explanation || content.back || {},
+    tags: Array.isArray(content.tags) ? content.tags : [],
+    ...(content.imageOcclusion ? { imageOcclusion: content.imageOcclusion } : {}),
+    deletedAt: row.deleted_at || null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function FlashcardPersonalSync71({ userId, setRecords }) {
+  const syncingRef = useRef(false);
+  useEffect(() => {
+    if (!userId || !setRecords) return undefined;
+    let disposed = false;
+    async function sync() {
+      if (syncingRef.current || !navigator.onLine) return;
+      syncingRef.current = true;
+      try {
+        const { data, error } = await supabase
+          .from("flashcard_personal_cards")
+          .select("card_id,source_question_id,module_id,lecture_id,card_type,content,deleted_at,created_at,updated_at")
+          .eq("user_id", userId)
+          .order("updated_at", { ascending: true });
+        if (error) throw error;
+        const remoteRecords = (data || []).map(flashcardPersonalRowToRecord);
+        const remoteById = new Map(remoteRecords.map((record) => [String(record.cardId), record]));
+        const queueKey = flashcardPersonalQueueKey(userId);
+        const storageKey = flashcardPersonalStorageKey(userId);
+        const queued = loadStorage(queueKey, []).filter((record) => !record?.ownerUserId || record.ownerUserId === userId);
+        const toSend = queued.filter((record) => {
+          const remote = remoteById.get(String(record?.cardId));
+          return !remote || flashcard71RecordTime(record) >= flashcard71RecordTime(remote);
+        });
+        if (toSend.length) {
+          for (const record of toSend) {
+            const row = flashcardPersonalRecordToRow(record, userId);
+            const { error: upsertError } = await supabase.rpc("upsert_flashcard_personal_card", {
+              p_card_id: row.card_id,
+              p_source_question_id: row.source_question_id,
+              p_module_id: row.module_id,
+              p_lecture_id: row.lecture_id,
+              p_card_type: row.card_type,
+              p_content: row.content,
+              p_deleted_at: row.deleted_at,
+              p_created_at: row.created_at,
+              p_updated_at: row.updated_at,
+            });
+            if (upsertError) throw upsertError;
+          }
+        }
+        if (queued.length) {
+          const acknowledged = new Map(queued.map((record) => [String(record.cardId), Math.max(flashcard71RecordTime(record), flashcard71RecordTime(remoteById.get(String(record.cardId))))]));
+          const remaining = loadStorage(queueKey, []).filter((record) => {
+            const acknowledgedAt = acknowledged.get(String(record?.cardId));
+            return acknowledgedAt == null || flashcard71RecordTime(record) > acknowledgedAt;
+          });
+          localStorage.setItem(queueKey, JSON.stringify(remaining));
+        }
+        if (!disposed) {
+          const merged = [...remoteRecords, ...queued].reduce((records, record) => flashcardPersonalUpsert(records, record), []);
+          localStorage.setItem(storageKey, JSON.stringify(merged));
+          setRecords(merged);
+          window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: storageKey } }));
+        }
+      } catch {
+        // Offline eller endnu ikke migreret: lokale kort forbliver fuldt anvendelige.
+      } finally {
+        syncingRef.current = false;
+      }
+    }
+    const wake = () => sync();
+    sync();
+    window.addEventListener("online", wake);
+    window.addEventListener("medlearn-storage-update", wake);
+    const timer = window.setInterval(sync, 45000);
+    return () => {
+      disposed = true;
+      window.removeEventListener("online", wake);
+      window.removeEventListener("medlearn-storage-update", wake);
+      window.clearInterval(timer);
+    };
+  }, [userId, setRecords]);
   return null;
 }
 
@@ -4207,6 +4673,7 @@ function SM2AnswerFooter({
   questionId,
   spacedData,
   setSpacedData,
+  storageKey = STORAGE.spacedRepetition,
   wrongChoiceSelected,
   onRated,
 }) {
@@ -4280,8 +4747,8 @@ function SM2AnswerFooter({
         ? await fsrsApplyOfficial(storedCard, rating, questionId, nowMsRef.current)
         : scheduleCardSM2(storedCard, rating, questionId, SM2_DEFAULT_DECK_SETTINGS, nowMsRef.current);
       const persisted = { ...(spacedData || {}), [questionId]: updated };
-      localStorage.setItem(STORAGE.spacedRepetition, JSON.stringify(persisted));
-      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.spacedRepetition } }));
+      localStorage.setItem(storageKey, JSON.stringify(persisted));
+      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: storageKey } }));
       setSpacedData(persisted);
       onRated(updated, rating, { previousCard: storedCard, reviewedAt, eventId });
     } catch (saveError) {
@@ -20520,8 +20987,382 @@ function StudyDesk70({ c, language, user, spacedData, importedQuestions, onStart
   );
 }
 
+function flashcard71Copy(language) {
+  return ({
+    da: {
+      decks: "Flashkort", deckSubtitle: "Vælg et dæk og fortsæt, når du er klar.", deck: "Dæk", new: "Nye", learning: "I gang", due: "Klar",
+      cards: "kort", back: "Alle dæk", start: "Start træning", browse: "Gennemse", create: "Nyt kort", customize: "Tilpas session",
+      progress: "Fordeling", retention: "Retention", difficult: "Vanskelige kort", mature: "Modne kort", noData: "Ingen data endnu",
+      activity: "Aktivitet", activityYear: "Seneste 12 måneder", reviewed: "gennemgåede kort", minutes: "aktive minutter",
+      threeDays: "3 dage", sevenDays: "7 dage", cardsMetric: "Kort", minutesMetric: "Minutter", noActivity: "Ingen aktivitet",
+      searchDecks: "Søg i dæk", searchCards: "Søg i kort", status: "Status", allStatuses: "Alle statusser", planned: "Planlagt",
+      edit: "Redigér", close: "Luk", preview: "Forhåndsvisning", front: "Forside", backField: "Bagside", type: "Korttype",
+      basic: "Basic", mcq: "MCQ", cloze: "Cloze", image: "Billedkort", topic: "Emne", lecture: "Forelæsning", tags: "Tags",
+      save: "Gem kort", saveNext: "Gem og opret næste", cancel: "Annuller", addOption: "Tilføj svar", correct: "Korrekt",
+      unsaved: "Du har ændringer, som ikke er gemt. Vil du lukke uden at gemme?", saved: "Kortet er gemt.",
+      emptyDeck: "Der er ingen kort i dette dæk.", selectCard: "Vælg et kort for at se det.", source: "Kilde",
+    },
+    en: {
+      decks: "Flashcards", deckSubtitle: "Choose a deck and continue when you are ready.", deck: "Deck", new: "New", learning: "Learning", due: "Ready",
+      cards: "cards", back: "All decks", start: "Start studying", browse: "Browse", create: "New card", customize: "Customise session",
+      progress: "Distribution", retention: "Retention", difficult: "Difficult cards", mature: "Mature cards", noData: "No data yet",
+      activity: "Activity", activityYear: "Last 12 months", reviewed: "reviewed cards", minutes: "active minutes",
+      threeDays: "3 days", sevenDays: "7 days", cardsMetric: "Cards", minutesMetric: "Minutes", noActivity: "No activity",
+      searchDecks: "Search decks", searchCards: "Search cards", status: "Status", allStatuses: "All statuses", planned: "Scheduled",
+      edit: "Edit", close: "Close", preview: "Preview", front: "Front", backField: "Back", type: "Card type",
+      basic: "Basic", mcq: "MCQ", cloze: "Cloze", image: "Image card", topic: "Topic", lecture: "Lecture", tags: "Tags",
+      save: "Save card", saveNext: "Save and create next", cancel: "Cancel", addOption: "Add answer", correct: "Correct",
+      unsaved: "You have unsaved changes. Close without saving?", saved: "Card saved.",
+      emptyDeck: "There are no cards in this deck.", selectCard: "Select a card to view it.", source: "Source",
+    },
+    ar: {
+      decks: "البطاقات", deckSubtitle: "اختر مجموعة وتابع عندما تكون مستعدًا.", deck: "المجموعة", new: "جديدة", learning: "قيد التعلم", due: "جاهزة",
+      cards: "بطاقات", back: "كل المجموعات", start: "ابدأ الدراسة", browse: "تصفح", create: "بطاقة جديدة", customize: "تخصيص الجلسة",
+      progress: "التوزيع", retention: "الاحتفاظ", difficult: "بطاقات صعبة", mature: "بطاقات ناضجة", noData: "لا توجد بيانات بعد",
+      activity: "النشاط", activityYear: "آخر 12 شهرًا", reviewed: "بطاقات تمت مراجعتها", minutes: "دقائق نشطة",
+      threeDays: "3 أيام", sevenDays: "7 أيام", cardsMetric: "بطاقات", minutesMetric: "دقائق", noActivity: "لا يوجد نشاط",
+      searchDecks: "البحث في المجموعات", searchCards: "البحث في البطاقات", status: "الحالة", allStatuses: "كل الحالات", planned: "مجدولة",
+      edit: "تحرير", close: "إغلاق", preview: "معاينة", front: "الوجه", backField: "الخلف", type: "نوع البطاقة",
+      basic: "أساسي", mcq: "اختيار متعدد", cloze: "حذف", image: "بطاقة صورة", topic: "الموضوع", lecture: "المحاضرة", tags: "وسوم",
+      save: "حفظ البطاقة", saveNext: "حفظ وإنشاء التالية", cancel: "إلغاء", addOption: "إضافة إجابة", correct: "صحيح",
+      unsaved: "لديك تغييرات غير محفوظة. هل تريد الإغلاق دون حفظ؟", saved: "تم حفظ البطاقة.",
+      emptyDeck: "لا توجد بطاقات في هذه المجموعة.", selectCard: "اختر بطاقة لعرضها.", source: "المصدر",
+    },
+  })[language] || ({})[language] || null;
+}
+
+function flashcardCreatePersonalId71() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return `personal-${crypto.randomUUID()}`;
+  return `personal-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function flashcardDraftFromQuestion71(question, context = {}, language = "da") {
+  const now = new Date().toISOString();
+  if (!question) return {
+    cardId: flashcardCreatePersonalId71(), sourceQuestionId: null, moduleId: context.moduleId || null, lectureId: context.lectureId || null,
+    cardType: "basic", front: { da: "", en: "", ar: "" }, back: { da: "", en: "", ar: "" }, category: { da: "Personligt kort", en: "Personal card", ar: "بطاقة شخصية" },
+    options: [{ da: "", en: "", ar: "" }, { da: "", en: "", ar: "" }], correct: 0, explanation: { da: "", en: "", ar: "" }, tags: [], createdAt: now, updatedAt: now,
+  };
+  const isPersonal = Boolean(question.personalCardId);
+  return {
+    cardId: question.personalCardId || `override-${question.id}`,
+    sourceQuestionId: isPersonal ? (question.sourceQuestionId || null) : question.id,
+    moduleId: question.moduleId || context.moduleId || null,
+    lectureId: question.lectureId ?? context.lectureId ?? null,
+    cardType: question.cardType || (question.imageOcclusion ? "image-occlusion" : "mcq"),
+    front: flashcard71Localized(question.front || question.question),
+    back: flashcard71Localized(question.back || question.explanation),
+    category: flashcard71Localized(question.category || "Personligt kort"),
+    options: (question.options || []).map((option) => flashcard71Localized(option)),
+    correct: Number(question.correct) || 0,
+    explanation: flashcard71Localized(question.explanation || question.back),
+    tags: Array.isArray(question.tags) ? [...question.tags] : [],
+    ...(question.imageOcclusion ? { imageOcclusion: question.imageOcclusion } : {}),
+    createdAt: question.createdAt || now,
+    updatedAt: now,
+    _language: language,
+  };
+}
+
+function Flashcard71Styles() {
+  return <style>{`
+    .flashcard71-shell{width:min(1160px,100%);margin:0 auto;color:var(--ui-text)}
+    .flashcard71-top{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}.flashcard71-top h1{margin:0;font-size:clamp(25px,3vw,34px);letter-spacing:-.04em}.flashcard71-top p{margin:5px 0 0;color:var(--ui-secondary);font-size:12.5px}.flashcard71-top-actions{display:flex;align-items:center;gap:8px}
+    .flashcard71-search{width:min(260px,40vw);height:39px;display:flex;align-items:center;gap:8px;padding:0 11px;border:1px solid var(--ui-border);border-radius:11px;background:var(--ui-panel)}.flashcard71-search input{width:100%;border:0;outline:0;background:transparent;color:var(--ui-text);font:inherit;font-size:12px}
+    .flashcard71-primary{min-height:39px;padding:0 15px;border:0!important;border-radius:10px!important;background:var(--ui-blue)!important;color:#fff!important;font:inherit;font-size:11.5px;font-weight:800;cursor:pointer}.flashcard71-primary:disabled{opacity:.45;cursor:default}
+    .flashcard71-icon{width:36px;height:36px;display:inline-grid;place-items:center;padding:0;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-panel);color:var(--ui-secondary);cursor:pointer}
+    .flashcard71-decks{overflow:hidden;border:1px solid var(--ui-border);border-radius:17px;background:var(--ui-panel);box-shadow:0 14px 44px rgba(30,52,82,.055)}.flashcard71-deck-head,.flashcard71-deck-row{display:grid;grid-template-columns:minmax(220px,1fr) repeat(3,80px);align-items:center}.flashcard71-deck-head{height:43px;padding:0 9px;border-bottom:1px solid var(--ui-border);color:var(--ui-muted);font-size:9.5px;font-weight:850;letter-spacing:.075em;text-transform:uppercase}.flashcard71-deck-head span:first-child{padding-inline-start:13px}.flashcard71-deck-head span:not(:first-child){text-align:center}.flashcard71-deck-row{min-height:48px;padding:0 9px;border-bottom:1px solid color-mix(in srgb,var(--ui-border) 72%,transparent)}.flashcard71-deck-row:last-child{border-bottom:0}.flashcard71-deck-cell{min-width:0;height:47px;display:flex;align-items:center;padding-inline-start:calc(9px + var(--deck-depth)*18px)}.flashcard71-deck-open{min-width:0;height:47px;display:flex;align-items:center;gap:8px;padding:0 9px;border:0;background:transparent;color:var(--ui-text);text-align:start;cursor:pointer;flex:1}.flashcard71-deck-open strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}.flashcard71-deck-code{color:var(--ui-blue);font-size:10.5px;font-weight:850}.flashcard71-expand{width:20px;height:20px;display:grid;place-items:center;border:0;background:transparent;border-radius:6px;color:var(--ui-muted);cursor:pointer;flex:0 0 auto}.flashcard71-expand:hover{background:var(--ui-soft)}.flashcard71-deck-count{text-align:center;color:var(--ui-secondary);font-size:12px;font-weight:760;font-variant-numeric:tabular-nums}.flashcard71-deck-count:last-child{color:var(--ui-blue)}
+    .flashcard71-back{display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:transparent;color:var(--ui-secondary);font:inherit;font-size:11.5px;font-weight:750;cursor:pointer}.flashcard71-overview-title{text-align:center;margin:28px 0 22px}.flashcard71-overview-title h1{margin:0;color:var(--ui-text);font-size:clamp(27px,4vw,40px);letter-spacing:-.045em}.flashcard71-overview-title p{margin:7px 0 0;color:var(--ui-muted);font-size:12px}
+    .flashcard71-summary{padding:clamp(20px,3vw,30px);border:1px solid var(--ui-border);border-radius:22px;background:var(--ui-panel);box-shadow:0 18px 65px rgba(34,55,86,.07)}.flashcard71-queue{display:grid;gap:10px}.flashcard71-queue-row{display:grid;grid-template-columns:70px minmax(0,1fr) 45px;gap:12px;align-items:center;color:var(--ui-secondary);font-size:11px;font-weight:760}.flashcard71-track{height:9px;overflow:hidden;border-radius:99px;background:var(--ui-soft);border:1px solid var(--ui-border)}.flashcard71-track i{display:block;height:100%;border-radius:inherit;background:var(--bar-color)}.flashcard71-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:22px}.flashcard71-fact{padding:15px;border-radius:15px;background:var(--ui-soft);text-align:center}.flashcard71-fact span{display:block;color:var(--ui-muted);font-size:10.5px;font-weight:760}.flashcard71-fact strong{display:block;margin-top:7px;color:var(--ui-text);font-size:23px;letter-spacing:-.035em}.flashcard71-overview-actions{display:flex;justify-content:center;gap:9px;margin-top:18px;flex-wrap:wrap}.flashcard71-secondary{min-height:41px;padding:0 15px;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-panel);color:var(--ui-text);font:inherit;font-size:11.5px;font-weight:760;cursor:pointer}.flashcard71-customize{max-width:650px;margin:12px auto 0;padding:15px;border:1px solid var(--ui-border);border-radius:14px;background:var(--ui-panel);display:grid;gap:12px}.flashcard71-customize-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.flashcard71-customize-row span{color:var(--ui-muted);font-size:10px;font-weight:820;text-transform:uppercase}.flashcard71-chipset{display:flex;gap:5px;flex-wrap:wrap}.flashcard71-chipset button,.flashcard71-type-row button{min-height:30px;padding:0 9px;border:1px solid var(--ui-border);border-radius:8px;background:var(--ui-panel);color:var(--ui-secondary);font:inherit;font-size:10px;font-weight:730;cursor:pointer}.flashcard71-chipset button[data-active="true"],.flashcard71-type-row button[data-active="true"]{border-color:var(--ui-blue-border);background:var(--ui-blue-soft);color:var(--ui-blue)}
+    .flashcard71-activity-card{margin-top:16px;padding:20px;border:1px solid var(--ui-border);border-radius:20px;background:var(--ui-panel);box-shadow:0 12px 42px rgba(30,52,82,.045)}.flashcard71-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.flashcard71-section-head h2{margin:0;color:var(--ui-text);font-size:15px}.flashcard71-section-head small{color:var(--ui-muted);font-size:10px}.flashcard71-heatmap-wrap{position:relative;overflow-x:auto;padding:23px 1px 7px}.flashcard71-months{position:absolute;top:0;left:28px;right:0;display:grid;grid-template-columns:repeat(52,11px);gap:3px;color:var(--ui-muted);font-size:8.5px;white-space:nowrap}.flashcard71-weekdays{position:absolute;top:22px;left:0;display:grid;grid-template-rows:repeat(7,11px);gap:3px;color:var(--ui-muted);font-size:8px}.flashcard71-heatmap{margin-left:28px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);grid-auto-columns:11px;gap:3px;width:max-content}.flashcard71-heat-cell{width:11px;height:11px;padding:0;border:0;border-radius:3px;background:var(--ui-soft);cursor:pointer}.flashcard71-heat-cell[data-level="1"]{background:color-mix(in srgb,var(--ui-blue) 22%,var(--ui-soft))}.flashcard71-heat-cell[data-level="2"]{background:color-mix(in srgb,var(--ui-blue) 45%,var(--ui-soft))}.flashcard71-heat-cell[data-level="3"]{background:color-mix(in srgb,var(--ui-blue) 68%,var(--ui-soft))}.flashcard71-heat-cell[data-level="4"]{background:var(--ui-blue)}.flashcard71-heat-cell:focus-visible{outline:2px solid var(--ui-blue);outline-offset:2px}.flashcard71-tooltip{position:fixed;z-index:1300;pointer-events:none;padding:8px 10px;border:1px solid var(--ui-border);border-radius:9px;background:var(--ui-text);color:var(--ui-panel);box-shadow:0 12px 35px rgba(0,0,0,.18);font-size:9.5px;font-weight:700;line-height:1.5;transform:translate(-50%,-110%);white-space:nowrap}
+    .flashcard71-chart-card{margin-top:13px;padding:16px;border-radius:15px;background:var(--ui-soft)}.flashcard71-chart-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.flashcard71-segment{display:flex;padding:3px;border:1px solid var(--ui-border);border-radius:9px;background:var(--ui-panel)}.flashcard71-segment button{min-height:27px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--ui-muted);font:inherit;font-size:9.5px;font-weight:780;cursor:pointer}.flashcard71-segment button[data-active="true"]{background:var(--ui-blue-soft);color:var(--ui-blue)}.flashcard71-bars{height:96px;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(24px,1fr);gap:8px;align-items:end}.flashcard71-bar{height:100%;display:grid;grid-template-rows:1fr auto;gap:6px;align-items:end;text-align:center}.flashcard71-bar i{display:block;width:min(34px,70%);min-height:2px;margin:auto;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,var(--ui-blue),color-mix(in srgb,var(--ui-blue) 52%,transparent))}.flashcard71-bar span{color:var(--ui-muted);font-size:8.5px}.flashcard71-chart-empty{height:96px;display:grid;place-items:center;color:var(--ui-muted);font-size:10.5px}
+    .flashcard71-browser,.flashcard71-editor{width:min(1180px,100%);margin:0 auto;border:1px solid var(--ui-border);border-radius:20px;background:var(--ui-panel);box-shadow:0 18px 65px rgba(34,55,86,.07);overflow:hidden}.flashcard71-browser>header,.flashcard71-editor-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-bottom:1px solid var(--ui-border)}.flashcard71-browser header h2,.flashcard71-editor-head h2{margin:3px 0 0;color:var(--ui-text);font-size:17px}.flashcard71-browser header small,.flashcard71-editor-head small{color:var(--ui-muted);font-size:9px;font-weight:820;text-transform:uppercase;letter-spacing:.07em}.flashcard71-browser-tools{display:flex;align-items:center;gap:7px}.flashcard71-browser-tools label{height:35px;display:flex;align-items:center;gap:7px;padding:0 9px;border:1px solid var(--ui-border);border-radius:9px;background:var(--ui-soft)}.flashcard71-browser-tools input{width:180px;border:0;outline:0;background:transparent;color:var(--ui-text);font:inherit;font-size:10.5px}.flashcard71-browser-tools select{height:35px;border:1px solid var(--ui-border);border-radius:9px;background:var(--ui-soft);color:var(--ui-secondary);font:inherit;font-size:10.5px}.flashcard71-browser-grid{min-height:560px;display:grid;grid-template-columns:330px minmax(0,1fr)}.flashcard71-card-list{overflow:auto;border-inline-end:1px solid var(--ui-border);background:color-mix(in srgb,var(--ui-soft) 45%,var(--ui-panel));padding:7px}.flashcard71-card-list>button{width:100%;display:block;padding:11px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--ui-text);text-align:start;cursor:pointer}.flashcard71-card-list>button[data-active="true"]{border-color:var(--ui-blue-border);background:var(--ui-blue-soft)}.flashcard71-card-list strong{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:11.5px;line-height:1.4}.flashcard71-card-list small{display:block;margin-top:5px;color:var(--ui-muted);font-size:9px}.flashcard71-card-detail{min-width:0;padding:clamp(22px,4vw,50px);overflow:auto}.flashcard71-detail-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:34px}.flashcard71-detail-actions span{color:var(--ui-muted);font-size:9px;font-weight:820;text-transform:uppercase}.flashcard71-detail-actions button{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--ui-blue);font:inherit;font-size:10.5px;font-weight:780;cursor:pointer}.flashcard71-card-detail h3{margin:0;color:var(--ui-text);font-size:clamp(20px,3vw,28px);line-height:1.5}.flashcard71-answer-line{height:1px;margin:25px 0;background:var(--ui-border)}.flashcard71-card-detail p{white-space:pre-wrap;color:var(--ui-text);font-size:16px;line-height:1.65}.flashcard71-explanation{display:block;margin-top:18px;color:var(--ui-secondary);font-size:12px;line-height:1.6}.flashcard71-empty{min-height:180px;display:grid;place-items:center;color:var(--ui-muted);font-size:11px}
+    .flashcard71-type-row{display:flex;gap:6px;padding:13px 18px;border-bottom:1px solid var(--ui-border)}.flashcard71-type-row button:disabled{opacity:.38;cursor:default}.flashcard71-editor-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);min-height:520px}.flashcard71-fields{padding:18px;display:grid;align-content:start;gap:14px;border-inline-end:1px solid var(--ui-border)}.flashcard71-fields label>span,.flashcard71-options-editor>span{display:block;margin-bottom:6px;color:var(--ui-muted);font-size:9px;font-weight:830;letter-spacing:.065em;text-transform:uppercase}.flashcard71-fields textarea,.flashcard71-fields input,.flashcard71-fields select,.flashcard71-option-edit input[type="text"]{width:100%;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-soft);color:var(--ui-text);font:inherit;font-size:12px;outline:0}.flashcard71-fields textarea{min-height:88px;padding:11px;resize:vertical;line-height:1.55}.flashcard71-fields input,.flashcard71-fields select{height:38px;padding:0 10px}.flashcard71-fields textarea:focus,.flashcard71-fields input:focus,.flashcard71-fields select:focus{border-color:var(--ui-blue-border);box-shadow:0 0 0 3px var(--ui-blue-soft)}.flashcard71-error{display:block;margin-top:5px;color:#dc4c5a;font-size:9.5px}.flashcard71-options-editor{display:grid;gap:8px}.flashcard71-option-edit{display:grid;grid-template-columns:20px minmax(0,1fr) 34px;gap:7px;align-items:center}.flashcard71-option-edit input[type="radio"]{accent-color:var(--ui-blue)}.flashcard71-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.flashcard71-text-action{width:max-content;padding:3px;border:0;background:transparent;color:var(--ui-blue);font:inherit;font-size:10.5px;font-weight:780;cursor:pointer}.flashcard71-image-note{display:flex;align-items:center;gap:8px;padding:11px;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-soft);color:var(--ui-secondary);font-size:10.5px}.flashcard71-live-preview{padding:clamp(22px,4vw,42px);background:color-mix(in srgb,var(--ui-soft) 35%,var(--ui-panel));overflow:auto}.flashcard71-live-preview>small{display:block;margin-bottom:32px;color:var(--ui-muted);font-size:9px;font-weight:830;text-transform:uppercase}.flashcard71-live-preview h3{margin:0;color:var(--ui-text);font-size:21px;line-height:1.5}.flashcard71-live-preview>div:not(.flashcard71-image-note){height:1px;margin:24px 0;background:var(--ui-border)}.flashcard71-live-preview p{white-space:pre-wrap;color:var(--ui-text);font-size:14px;line-height:1.65}.flashcard71-editor-actions{display:flex;justify-content:flex-end;gap:8px;padding:13px 18px;border-top:1px solid var(--ui-border)}.flashcard71-editor-actions>button:not(.flashcard71-primary){min-height:39px;padding:0 13px;border:1px solid var(--ui-border);border-radius:10px;background:var(--ui-panel);color:var(--ui-secondary);font:inherit;font-size:10.5px;font-weight:760;cursor:pointer}.flashcard71-save-notice{padding:8px 18px;background:var(--ui-green-soft,#eaf8ef);color:var(--ui-green,#16834a);font-size:10.5px;font-weight:750}
+    .flashcard71-reviewer{width:min(1000px,100%);min-height:min(690px,calc(100vh - 220px));margin:0 auto;display:flex;flex-direction:column;color:var(--ui-text)}.flashcard71-review-head{display:flex;align-items:center;gap:12px;color:var(--ui-muted);font-size:10.5px}.flashcard71-review-head strong{color:var(--ui-text);font-size:11px}.flashcard71-review-progress{flex:1;height:4px;overflow:hidden;border-radius:99px;background:var(--ui-soft)}.flashcard71-review-progress i{display:block;height:100%;border-radius:inherit;background:var(--ui-blue)}.flashcard71-review-actions{display:flex;gap:4px}.flashcard71-review-actions button{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:9px;background:transparent;color:var(--ui-muted);cursor:pointer}.flashcard71-review-actions button:hover{background:var(--ui-soft);color:var(--ui-text)}.flashcard71-card-stage{flex:1;display:grid;place-items:center;padding:32px 0}.flashcard71-card-face{width:min(850px,100%);padding:clamp(26px,5vw,58px);border:1px solid var(--ui-border);border-radius:22px;background:var(--ui-panel);box-shadow:0 22px 72px rgba(28,48,78,.075);text-align:start}.flashcard71-card-face h1{margin:0;color:var(--ui-text);font-size:clamp(22px,3.5vw,34px);line-height:1.55;letter-spacing:-.022em}.flashcard71-card-answer{margin-top:30px;padding-top:27px;border-top:1px solid var(--ui-border)}.flashcard71-card-answer strong{display:block;color:var(--ui-text);font-size:clamp(18px,2.5vw,25px);line-height:1.55}.flashcard71-card-answer p{margin:16px 0 0;white-space:pre-wrap;color:var(--ui-secondary);font-size:14px;line-height:1.7}.flashcard71-reveal{display:block;min-height:44px;margin:0 auto 8px;padding:0 22px;border:0;border-radius:11px;background:var(--ui-blue);color:#fff;font:inherit;font-size:12px;font-weight:820;cursor:pointer}.flashcard71-shortcuts{text-align:center;color:var(--ui-muted);font-size:9px}.flashcard71-rating-wrap{width:min(850px,100%);margin:0 auto}.flashcard71-rating-wrap .fsrs-answer-heading{display:none}.flashcard71-rating-wrap .fsrs-answer-footer{border:0;background:transparent;padding:0}.flashcard71-rating-wrap .fsrs-rating-grid button small{display:none}
+    @media(max-width:800px){.flashcard71-deck-head,.flashcard71-deck-row{grid-template-columns:minmax(150px,1fr) repeat(3,54px)}.flashcard71-browser-grid,.flashcard71-editor-grid{grid-template-columns:1fr}.flashcard71-card-list{max-height:260px;border-inline-end:0;border-bottom:1px solid var(--ui-border)}.flashcard71-fields{border-inline-end:0;border-bottom:1px solid var(--ui-border)}.flashcard71-browser>header{align-items:flex-start}.flashcard71-browser-tools{flex-wrap:wrap;justify-content:flex-end}.flashcard71-browser-tools label{order:4;width:100%}.flashcard71-browser-tools input{width:100%}.flashcard71-facts{grid-template-columns:1fr}.flashcard71-summary{padding:17px}}
+    @media(max-width:540px){.flashcard71-top{align-items:stretch;flex-direction:column}.flashcard71-top-actions{width:100%}.flashcard71-search{width:100%}.flashcard71-deck-head,.flashcard71-deck-row{grid-template-columns:minmax(115px,1fr) repeat(3,42px)}.flashcard71-deck-head{font-size:8px}.flashcard71-deck-open strong{font-size:11px}.flashcard71-queue-row{grid-template-columns:55px minmax(0,1fr) 36px}.flashcard71-meta-grid{grid-template-columns:1fr}.flashcard71-editor-actions{flex-wrap:wrap}.flashcard71-reviewer{min-height:calc(100vh - 180px)}.flashcard71-card-stage{padding:18px 0}.flashcard71-card-face{padding:24px 18px}.flashcard71-months{grid-template-columns:repeat(52,9px)}.flashcard71-heatmap{grid-auto-columns:9px}.flashcard71-heat-cell{width:9px;height:9px}}
+    @media(prefers-reduced-motion:reduce){.flashcard71-shell *,.flashcard71-reviewer *,.flashcard71-editor *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  `}</style>;
+}
+
+function FlashcardEditor71({ c, language, question = null, context = {}, lectures = [], onSave, onCancel, createMode = false }) {
+  const copy = flashcard71Copy(language) || flashcard71Copy("da");
+  const makeDraft = () => flashcardDraftFromQuestion71(question, context, language);
+  const [draft, setDraft] = useState(makeDraft);
+  const [initial, setInitial] = useState(makeDraft);
+  const [errors, setErrors] = useState({});
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    const next = flashcardDraftFromQuestion71(question, context, language);
+    setDraft(next); setInitial(next); setErrors({}); setNotice("");
+  }, [question?.id, context.moduleId, context.lectureId]);
+
+  const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
+  const setLocalized = (field, value) => setDraft((current) => ({ ...current, [field]: updateLocalizedField(current[field], language, value) }));
+  const updateOption = (index, value) => setDraft((current) => ({ ...current, options: current.options.map((option, optionIndex) => optionIndex === index ? updateLocalizedField(option, language, value) : option) }));
+
+  function requestCancel() {
+    if (dirty && !window.confirm(copy.unsaved)) return;
+    onCancel?.();
+  }
+
+  function save(createNext = false) {
+    const record = { ...draft, updatedAt: new Date().toISOString() };
+    const validation = flashcardValidateDraft(record, language);
+    setErrors(validation.errors);
+    if (!validation.valid) return;
+    const result = onSave?.(record, { createNext });
+    if (result?.ok === false) {
+      setErrors((current) => ({ ...current, save: result.error || "Kortet kunne ikke gemmes lokalt." }));
+      return;
+    }
+    if (createNext) {
+      const next = flashcardDraftFromQuestion71(null, context, language);
+      setDraft(next); setInitial(next); setErrors({}); setNotice(copy.saved);
+    }
+  }
+
+  const frontText = flashcard71Text(draft.front, language);
+  const backText = flashcard71Text(draft.back, language);
+  const correctText = flashcard71Text(draft.options?.[draft.correct], language);
+  const previewBack = draft.cardType === "mcq" ? [correctText, flashcard71Text(draft.explanation, language)].filter(Boolean).join("\n\n") : backText;
+
+  return (
+    <><Flashcard71Styles />
+    <section className="flashcard71-editor" data-flashcard-editor71="true" aria-label={createMode ? copy.create : copy.edit}>
+      <header className="flashcard71-editor-head">
+        <div><small>{copy.type}</small><h2>{createMode ? copy.create : copy.edit}</h2></div>
+        <button type="button" className="flashcard71-icon" onClick={requestCancel} aria-label={copy.close}><Icon name="close" size={17} /></button>
+      </header>
+      <div className="flashcard71-type-row" role="group" aria-label={copy.type}>
+        {[["basic", copy.basic], ["mcq", copy.mcq], ["cloze", copy.cloze], ["image-occlusion", copy.image]].map(([value, label]) => (
+          <button key={value} type="button" data-active={draft.cardType === value ? "true" : "false"} disabled={value === "image-occlusion" && !draft.imageOcclusion} onClick={() => setDraft((current) => ({ ...current, cardType: value }))}>{label}</button>
+        ))}
+      </div>
+      <div className="flashcard71-editor-grid">
+        <div className="flashcard71-fields">
+          <label><span>{copy.front}</span><textarea autoFocus value={frontText} onChange={(event) => setLocalized("front", event.target.value)} aria-invalid={errors.front ? "true" : "false"} />{errors.front ? <small className="flashcard71-error">{errors.front}</small> : null}</label>
+          {draft.cardType !== "mcq" && draft.cardType !== "image-occlusion" ? <label><span>{copy.backField}</span><textarea value={backText} onChange={(event) => setLocalized("back", event.target.value)} aria-invalid={errors.back ? "true" : "false"} />{errors.back ? <small className="flashcard71-error">{errors.back}</small> : null}</label> : null}
+          {draft.cardType === "cloze" ? <button type="button" className="flashcard71-text-action" onClick={() => setLocalized("front", `${frontText}${frontText ? " " : ""}{{c1::svar}}`)}>+ {copy.cloze}</button> : null}
+          {draft.cardType === "mcq" ? <div className="flashcard71-options-editor">
+            <span>{copy.backField}</span>
+            {(draft.options || []).map((option, index) => <div key={index} className="flashcard71-option-edit"><input type="radio" name="correct-answer" checked={draft.correct === index} onChange={() => setDraft((current) => ({ ...current, correct: index }))} aria-label={`${copy.correct} ${index + 1}`} /><input value={flashcard71Text(option, language)} onChange={(event) => updateOption(index, event.target.value)} placeholder={`${copy.backField} ${index + 1}`} />{draft.options.length > 2 ? <button type="button" className="flashcard71-icon" onClick={() => setDraft((current) => ({ ...current, options: current.options.filter((_, optionIndex) => optionIndex !== index), correct: current.correct === index ? 0 : Math.max(0, current.correct - (current.correct > index ? 1 : 0)) }))}><Icon name="close" size={13} /></button> : null}</div>)}
+            {errors.options ? <small className="flashcard71-error">{errors.options}</small> : null}
+            <button type="button" className="flashcard71-text-action" onClick={() => setDraft((current) => ({ ...current, options: [...current.options, { da: "", en: "", ar: "" }] }))}>+ {copy.addOption}</button>
+            <label><span>Forklaring</span><textarea value={flashcard71Text(draft.explanation, language)} onChange={(event) => setLocalized("explanation", event.target.value)} /></label>
+          </div> : null}
+          {draft.cardType === "image-occlusion" ? <div className="flashcard71-image-note"><Icon name="image" size={17} /><span>{draft.imageOcclusion ? `${draft.imageOcclusion.sourceName || copy.image} · side ${draft.imageOcclusion.page || 1}` : errors.imageOcclusion || copy.noData}</span></div> : null}
+          <div className="flashcard71-meta-grid">
+            <label><span>{copy.lecture}</span><select value={draft.lectureId || ""} onChange={(event) => setDraft((current) => ({ ...current, lectureId: event.target.value || null }))}><option value="">—</option>{lectures.map((lecture) => <option key={lecture.id} value={lecture.id}>{lecture.id} · {lecture.title}</option>)}</select></label>
+            <label><span>{copy.topic}</span><input value={flashcard71Text(draft.category, language)} onChange={(event) => setLocalized("category", event.target.value)} /></label>
+          </div>
+          <label><span>{copy.tags}</span><input value={(draft.tags || []).join(", ")} onChange={(event) => setDraft((current) => ({ ...current, tags: event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean) }))} placeholder="epilepsi, EEG" /></label>
+        </div>
+        <aside className="flashcard71-live-preview" aria-label={copy.preview}>
+          <small>{copy.preview}</small>
+          {draft.imageOcclusion ? <FlashcardOcclusion70 data={draft.imageOcclusion} reveal={false} c={c} /> : null}
+          <h3>{frontText || copy.front}</h3>
+          <div />
+          <p>{previewBack || copy.backField}</p>
+        </aside>
+      </div>
+      {errors.save ? <div className="flashcard71-save-notice flashcard71-error" role="alert">{errors.save}</div> : notice ? <div className="flashcard71-save-notice" role="status">{notice}</div> : null}
+      <footer className="flashcard71-editor-actions">
+        <button type="button" onClick={requestCancel}>{copy.cancel}</button>
+        {createMode ? <button type="button" data-action="save-next" onClick={() => save(true)}>{copy.saveNext}</button> : null}
+        <button type="button" className="flashcard71-primary" data-action="save-card" onClick={() => save(false)}>{copy.save}</button>
+      </footer>
+    </section></>
+  );
+}
+
+function FlashcardBrowser71({ c, language, questions, spacedData, lectures, selectedDate = "", query, onQuery, status, onStatus, selectedId, onSelectedId, onClose, onEdit, onCreate, onOpenLectureMenu }) {
+  const copy = flashcard71Copy(language) || flashcard71Copy("da");
+  const visible = (questions || []).filter((question) => {
+    const text = [translate(question.question, language), translate(question.explanation, language), translate(question.category, language), ...(question.tags || [])].join(" ").toLocaleLowerCase();
+    return (!query.trim() || text.includes(query.trim().toLocaleLowerCase())) && (status === "all" || flashcardCardStatus(spacedData?.[question.id]) === status);
+  });
+  useEffect(() => { if (!visible.some((question) => question.id === selectedId)) onSelectedId?.(visible[0]?.id || null); }, [query, status, questions?.length, selectedId]);
+  const selected = visible.find((question) => question.id === selectedId) || visible[0] || null;
+  const lecture = selected ? lectures.find((item) => item.id === selected.lectureId) : null;
+  return (
+    <section className="flashcard71-browser" data-flashcard-browser71="true">
+      <header><div><small>{selectedDate || copy.deck}</small><h2>{copy.browse}</h2></div><div className="flashcard71-browser-tools"><label><Icon name="search" size={14} /><input value={query} onChange={(event) => onQuery?.(event.target.value)} placeholder={copy.searchCards} /></label><select value={status} onChange={(event) => onStatus?.(event.target.value)} aria-label={copy.status}><option value="all">{copy.allStatuses}</option><option value="new">{copy.new}</option><option value="learning">{copy.learning}</option><option value="due">{copy.due}</option><option value="future">{copy.planned}</option></select><button type="button" data-action="create-card" className="flashcard71-primary" onClick={onCreate}>+ {copy.create}</button><button type="button" className="flashcard71-icon" onClick={onClose} aria-label={copy.close}><Icon name="close" size={17} /></button></div></header>
+      <div className="flashcard71-browser-grid">
+        <div className="flashcard71-card-list">{visible.length ? visible.map((question) => <button key={question.id} type="button" data-card-id={question.id} data-active={selected?.id === question.id ? "true" : "false"} onClick={() => onSelectedId?.(question.id)}><strong>{translate(question.question, language) || "—"}</strong><small>{question.lectureId || copy.source} · {translate(question.category, language)}</small></button>) : <div className="flashcard71-empty">{copy.emptyDeck}</div>}</div>
+        <article className="flashcard71-card-detail">{selected ? <><div className="flashcard71-detail-actions"><span>{selected.cardType || (selected.imageOcclusion ? copy.image : copy.mcq)}</span><button type="button" data-action="edit-card" onClick={() => onEdit(selected)}><Icon name="edit" size={14} />{copy.edit}</button></div>{selected.imageOcclusion ? <FlashcardOcclusion70 data={selected.imageOcclusion} reveal c={c} /> : null}<h3>{translate(selected.question, language)}</h3><div className="flashcard71-answer-line" /><p>{selected.cardType === "mcq" ? translate(selected.options?.[selected.correct], language) : translate(selected.back || selected.explanation, language)}</p>{translate(selected.explanation, language) && selected.cardType === "mcq" ? <small className="flashcard71-explanation">{translate(selected.explanation, language)}</small> : null}{lecture && onOpenLectureMenu ? <button type="button" className="flashcard71-text-action" onClick={() => onOpenLectureMenu(lecture, selected.moduleId)}>Åbn {lecture.id}</button> : null}</> : <div className="flashcard71-empty">{copy.selectCard}</div>}</article>
+      </div>
+    </section>
+  );
+}
+
+function FlashcardActivityHeatmap71({ language, events, onSelectDate }) {
+  const copy = flashcard71Copy(language) || flashcard71Copy("da");
+  const cells = flashcardHeatmapCells(events, new Date(), 52);
+  const max = Math.max(1, ...cells.map((cell) => cell.count));
+  const [tooltip, setTooltip] = useState(null);
+  const monthLabels = [];
+  for (let week = 0; week < 52; week += 1) {
+    const cell = cells[week * 7];
+    const date = new Date(`${cell?.date || ""}T12:00:00`);
+    const previous = week > 0 ? new Date(`${cells[(week - 1) * 7]?.date || ""}T12:00:00`) : null;
+    monthLabels.push(!Number.isNaN(date.getTime()) && (!previous || date.getMonth() !== previous.getMonth()) ? date.toLocaleDateString(language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK", { month: "short" }) : "");
+  }
+  function showTooltip(event, cell) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltip({ cell, x: rect.left + rect.width / 2, y: rect.top });
+  }
+  return (
+    <div className="flashcard71-heatmap-wrap" data-flashcard-heatmap71="true">
+      <div className="flashcard71-months" aria-hidden="true">{monthLabels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
+      <div className="flashcard71-weekdays" aria-hidden="true"><span>M</span><span /><span>O</span><span /><span>F</span><span /><span>S</span></div>
+      <div className="flashcard71-heatmap" role="grid" aria-label={copy.activityYear}>
+        {cells.map((cell) => {
+          const ratio = cell.count / max;
+          const level = cell.count === 0 ? 0 : ratio <= .25 ? 1 : ratio <= .5 ? 2 : ratio <= .75 ? 3 : 4;
+          const label = `${cell.date}: ${cell.count} ${copy.reviewed}, ${Math.round((cell.seconds / 60) * 10) / 10} ${copy.minutes}`;
+          return <button key={cell.date} type="button" role="gridcell" className="flashcard71-heat-cell" data-level={level} aria-label={label} onMouseEnter={(event) => showTooltip(event, cell)} onMouseMove={(event) => showTooltip(event, cell)} onMouseLeave={() => setTooltip(null)} onFocus={(event) => showTooltip(event, cell)} onBlur={() => setTooltip(null)} onClick={() => onSelectDate?.(cell.date)} />;
+        })}
+      </div>
+      {tooltip ? <div role="tooltip" className="flashcard71-tooltip" style={{ left: tooltip.x, top: tooltip.y }}><strong>{new Date(`${tooltip.cell.date}T12:00:00`).toLocaleDateString(language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK", { day: "numeric", month: "long", year: "numeric" })}</strong><br />{tooltip.cell.count} {copy.reviewed} · {Math.round((tooltip.cell.seconds / 60) * 10) / 10} {copy.minutes}</div> : null}
+    </div>
+  );
+}
+
+function FlashcardActivityChart71({ language, events }) {
+  const copy = flashcard71Copy(language) || flashcard71Copy("da");
+  const [range, setRange] = useState(7);
+  const [metric, setMetric] = useState("cards");
+  const buckets = flashcardActivityBuckets(events, new Date(), range);
+  const values = buckets.map((bucket) => metric === "cards" ? bucket.count : bucket.minutes);
+  const max = Math.max(0, ...values);
+  return (
+    <div className="flashcard71-chart-card">
+      <div className="flashcard71-chart-tools">
+        <div className="flashcard71-segment" aria-label="Periode"><button type="button" data-range="3" data-active={range === 3 ? "true" : "false"} onClick={() => setRange(3)}>{copy.threeDays}</button><button type="button" data-range="7" data-active={range === 7 ? "true" : "false"} onClick={() => setRange(7)}>{copy.sevenDays}</button></div>
+        <div className="flashcard71-segment" aria-label="Måling"><button type="button" data-metric="cards" data-active={metric === "cards" ? "true" : "false"} onClick={() => setMetric("cards")}>{copy.cardsMetric}</button><button type="button" data-metric="minutes" data-active={metric === "minutes" ? "true" : "false"} onClick={() => setMetric("minutes")}>{copy.minutesMetric}</button></div>
+      </div>
+      {max > 0 ? <div className="flashcard71-bars" role="img" aria-label={`${copy.activity}: ${range} ${copy.cards}`}>
+        {buckets.map((bucket, index) => { const value = values[index]; const date = new Date(`${bucket.date}T12:00:00`); return <div key={bucket.date} className="flashcard71-bar" title={`${bucket.date} · ${value} ${metric === "cards" ? copy.cardsMetric.toLocaleLowerCase() : copy.minutesMetric.toLocaleLowerCase()}`}><i style={{ height: `${Math.max(value ? 6 : 2, (value / max) * 100)}%` }} /><span>{date.toLocaleDateString(language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK", { weekday: "short" })}</span></div>; })}
+      </div> : <div className="flashcard71-chart-empty">{copy.noActivity}</div>}
+    </div>
+  );
+}
+
+function FlashcardDeckOverview71({ language, node, questions, spacedData, events, sessionQuestions, preferences, onPreference, onStart, onBrowse, onCreate, onBack }) {
+  const copy = flashcard71Copy(language) || flashcard71Copy("da");
+  const [customize, setCustomize] = useState(false);
+  const insights = flashcardDeckInsights(questions, spacedData, events, Date.now());
+  const total = Math.max(1, insights.queue.totalActive);
+  const queueRows = [
+    [copy.due, insights.queue.dueCount, "#22a06b"],
+    [copy.learning, insights.queue.learningCount, "#f05a67"],
+    [copy.new, insights.queue.newCount, "#1685f8"],
+  ];
+  return (
+    <div data-flashcard-deck-overview="true">
+      <button type="button" className="flashcard71-back" onClick={onBack}><Icon name="left" size={15} />{copy.back}</button>
+      <div className="flashcard71-overview-title"><h1>{node.code ? `${node.code} · ` : ""}{node.label}</h1><p>{insights.queue.totalActive} {copy.cards}</p></div>
+      <section className="flashcard71-summary">
+        <div className="flashcard71-section-head"><h2>{copy.progress}</h2><small>{insights.reviewCount} {copy.reviewed}</small></div>
+        <div className="flashcard71-queue">{queueRows.map(([label, value, color]) => <div key={label} className="flashcard71-queue-row"><span>{label}</span><div className="flashcard71-track"><i style={{ width: `${Math.round((value / total) * 100)}%`, "--bar-color": color }} /></div><strong>{value}</strong></div>)}</div>
+        <div className="flashcard71-facts">
+          <div className="flashcard71-fact"><span>{copy.retention}</span><strong>{insights.retentionPercent == null ? "—" : `${insights.retentionPercent}%`}</strong></div>
+          <div className="flashcard71-fact"><span>{copy.difficult}</span><strong>{insights.difficultCount}</strong></div>
+          <div className="flashcard71-fact"><span>{copy.mature}</span><strong>{insights.matureCount}</strong></div>
+        </div>
+      </section>
+      <div className="flashcard71-overview-actions"><button type="button" className="flashcard71-secondary" onClick={() => onBrowse("")}>{copy.browse}</button><button type="button" className="flashcard71-secondary" data-action="create-card" onClick={onCreate}>+ {copy.create}</button><button type="button" className="flashcard71-primary" disabled={!sessionQuestions.length} onClick={onStart}>{sessionQuestions.length ? `${copy.start} · ${sessionQuestions.length}` : copy.emptyDeck}</button><button type="button" className="flashcard71-secondary" aria-expanded={customize} onClick={() => setCustomize((value) => !value)}>{copy.customize}</button></div>
+      {customize ? <div className="flashcard71-customize">
+        <div className="flashcard71-customize-row"><span>Kort</span><div className="flashcard71-chipset">{[["mixed", "Klar + nye"], ["due", "Kun klar"], ["new", "Kun nye"], ["all", "Alle"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.pool === value ? "true" : "false"} onClick={() => onPreference({ pool: value })}>{label}</button>)}</div></div>
+        <div className="flashcard71-customize-row"><span>Antal</span><div className="flashcard71-chipset">{[10, 20, 40, "all"].map((value) => <button key={value} type="button" data-active={preferences.limit === value ? "true" : "false"} onClick={() => onPreference({ limit: value })}>{value === "all" ? "Alle" : value}</button>)}</div></div>
+        <div className="flashcard71-customize-row"><span>Visning</span><div className="flashcard71-chipset">{[["flashcard", "Flashkort"], ["recall", "Active recall"], ["exam", "Eksamen"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.studyMode === value ? "true" : "false"} onClick={() => onPreference({ studyMode: value })}>{label}</button>)}</div></div>
+        <div className="flashcard71-customize-row"><span>Rækkefølge</span><div className="flashcard71-chipset">{[["scheduler", "Scheduler"], ["mixed", "Blandet"], ["deck", "Dækrækkefølge"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.order === value ? "true" : "false"} onClick={() => onPreference({ order: value })}>{label}</button>)}</div></div>
+      </div> : null}
+      <section className="flashcard71-activity-card"><div className="flashcard71-section-head"><h2>{copy.activity}</h2><small>{copy.activityYear}</small></div><FlashcardActivityHeatmap71 language={language} events={events} onSelectDate={onBrowse} /><FlashcardActivityChart71 language={language} events={events} /></section>
+    </div>
+  );
+}
+
+function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuestions, onStart, onOpenLectureMenu, initialPool = "mixed", onSavePersonalCard }) {
+  const copy = flashcard71Copy(language) || flashcard71Copy("da");
+  const lectures = MODULE_LECTURES[user.module] || [];
+  const moduleQuestions = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === user.module);
+  const storedPreferences = loadStorage(STORAGE.flashcardPreferences, FLASHCARD70_DEFAULT_PREFERENCES) || FLASHCARD70_DEFAULT_PREFERENCES;
+  const [preferences, setPreferences] = useState(() => ({ ...FLASHCARD70_DEFAULT_PREFERENCES, ...storedPreferences, ...(initialPool === "due" ? { pool: "due" } : {}) }));
+  const [selectedId, setSelectedId] = useState(`module:${user.module}`);
+  const [expanded, setExpanded] = useState(() => new Set([`module:${user.module}`]));
+  const [view, setView] = useState("decks");
+  const [deckSearch, setDeckSearch] = useState("");
+  const [browserDate, setBrowserDate] = useState("");
+  const [browserQuery, setBrowserQuery] = useState("");
+  const [browserStatus, setBrowserStatus] = useState("all");
+  const [browserSelectedId, setBrowserSelectedId] = useState(null);
+  const [editorQuestion, setEditorQuestion] = useState(undefined);
+  const [editorOrigin, setEditorOrigin] = useState("overview");
+  const cloudReviewEvents = useScopedStorageValue71(flashcardReviewHistoryKey(authUserId), []);
+  const tree = flashcardBuildDeckTree(user.module, lectures, moduleQuestions, spacedData, Date.now());
+
+  function findNode(node, id) { if (node.id === id) return node; for (const child of node.children || []) { const found = findNode(child, id); if (found) return found; } return null; }
+  const selectedNode = findNode(tree, selectedId) || tree;
+  const selectedQuestions = selectedNode.questions || [];
+  const sessionCandidates = preferences.studyMode === "exam"
+    ? selectedQuestions.filter((question) => flashcard71QuestionType(question) === "mcq")
+    : selectedQuestions;
+  const sessionQuestions = flashcardSelectSessionQuestions(sessionCandidates, spacedData, preferences, Date.now());
+  const localEvents = flashcardReviewEvents(spacedData);
+  const identity = (event) => event?.reversesReviewId ? `undo:${event.reversesReviewId}` : `${String(event?.questionId || "")}:${flashcardFiniteTime(event?.reviewedAt) ?? ""}:${Number(event?.rating) || ""}`;
+  const eventIndex = new Map([...localEvents, ...(Array.isArray(cloudReviewEvents) ? cloudReviewEvents : [])].map((event) => [identity(event), event]));
+  const questionIds = new Set(selectedQuestions.map((question) => String(question.id)));
+  const selectedEvents = [...eventIndex.values()].filter((event) => questionIds.has(String(event.questionId)));
+  const browserIds = browserDate ? new Set(flashcard71ActiveEvents(selectedEvents).filter((event) => flashcardLocalDateKey(event.reviewedAt) === browserDate).map((event) => String(event.questionId))) : null;
+  const browserQuestions = browserIds ? selectedQuestions.filter((question) => browserIds.has(String(question.id))) : selectedQuestions;
+
+  useEffect(() => { setSelectedId(`module:${user.module}`); setExpanded(new Set([`module:${user.module}`])); setView("decks"); }, [user.module]);
+  useEffect(() => {
+    if (view !== "browser" || !browserSelectedId) return;
+    window.requestAnimationFrame(() => {
+      const target = [...document.querySelectorAll("[data-card-id]")].find((element) => String(element.dataset.cardId) === String(browserSelectedId));
+      target?.focus();
+    });
+  }, [view, browserSelectedId]);
+  function persistPreferences(patch) { const next = { ...preferences, ...patch }; setPreferences(next); try { localStorage.setItem(STORAGE.flashcardPreferences, JSON.stringify(next)); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.flashcardPreferences } })); } catch {} }
+  function startSession() { if (!sessionQuestions.length) return; onStart({ moduleId: user.module, groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter, lectureFilter: selectedNode.lectureFilter, mode: preferences.pool === "due" ? "due" : "all", studyMode: preferences.studyMode, pool: preferences.pool, limit: preferences.limit, order: preferences.order, sessionQuestionIds: sessionQuestions.map((question) => question.id) }); }
+  function openNode(node) { setSelectedId(node.id); setBrowserDate(""); setView("overview"); }
+  function toggleNode(event, id) { event?.stopPropagation?.(); setExpanded((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
+  function matches(node) { const query = deckSearch.trim().toLocaleLowerCase(); return !query || [node.label, node.code, ...(node.children || []).map((child) => `${child.code || ""} ${child.label || ""}`)].join(" ").toLocaleLowerCase().includes(query); }
+  function renderNode(node, depth = 0) {
+    if (node.type !== "module" && !matches(node)) return null;
+    const hasChildren = Boolean(node.children?.length); const open = expanded.has(node.id) || Boolean(deckSearch.trim());
+    return <React.Fragment key={node.id}><div className="flashcard71-deck-row"><div className="flashcard71-deck-cell" style={{ "--deck-depth": depth }}>{hasChildren ? <button type="button" className="flashcard71-expand" aria-label={open ? "Fold dæk sammen" : "Fold dæk ud"} aria-expanded={open} onClick={(event) => toggleNode(event, node.id)}><Icon name={open ? "down" : "right"} size={13} /></button> : <span className="flashcard71-expand" aria-hidden="true" />}<button type="button" className="flashcard71-deck-open" onClick={() => openNode(node)}>{node.code ? <span className="flashcard71-deck-code">{node.code}</span> : null}<strong>{node.label}</strong></button></div><span className="flashcard71-deck-count">{node.stats.newCount}</span><span className="flashcard71-deck-count">{node.stats.learningCount}</span><span className="flashcard71-deck-count">{node.stats.dueCount}</span></div>{hasChildren && open ? node.children.map((child) => renderNode(child, depth + 1)) : null}</React.Fragment>;
+  }
+  function openEditor(question, origin) {
+    setEditorOrigin(origin);
+    setEditorQuestion(question || null);
+    if (question?.id) setBrowserSelectedId(question.id);
+    setView("editor");
+  }
+  function saveRecord(record, options = {}) {
+    const result = onSavePersonalCard?.(record) || { ok: true, record };
+    if (result?.ok === false) return result;
+    if (!options.createNext) {
+      setEditorQuestion(undefined);
+      setView(editorOrigin);
+    }
+    return result;
+  }
+
+  return <div className="flashcard71-shell"><Flashcard71Styles />
+    {view === "decks" ? <><header className="flashcard71-top"><div><h1>{copy.decks}</h1><p>{copy.deckSubtitle}</p></div><div className="flashcard71-top-actions"><label className="flashcard71-search"><Icon name="search" size={14} /><input value={deckSearch} onChange={(event) => setDeckSearch(event.target.value)} placeholder={copy.searchDecks} /></label><button type="button" data-action="create-card" className="flashcard71-primary" onClick={() => { setSelectedId(tree.id); openEditor(null, "decks"); }}>+ {copy.create}</button></div></header><section className="flashcard71-decks"><div className="flashcard71-deck-head"><span>{copy.deck}</span><span>{copy.new}</span><span>{copy.learning}</span><span>{copy.due}</span></div>{renderNode(tree)}</section></> : null}
+    {view === "overview" ? <FlashcardDeckOverview71 language={language} node={selectedNode} questions={selectedQuestions} spacedData={spacedData} events={selectedEvents} sessionQuestions={sessionQuestions} preferences={preferences} onPreference={persistPreferences} onStart={startSession} onBrowse={(date) => { setBrowserDate(date || ""); setView("browser"); }} onCreate={() => openEditor(null, "overview")} onBack={() => setView("decks")} /> : null}
+    {view === "browser" ? <><button type="button" className="flashcard71-back" style={{ marginBottom: 12 }} onClick={() => setView("overview")}><Icon name="left" size={15} />{selectedNode.label}</button><FlashcardBrowser71 c={c} language={language} questions={browserQuestions} spacedData={spacedData} lectures={lectures} selectedDate={browserDate} query={browserQuery} onQuery={setBrowserQuery} status={browserStatus} onStatus={setBrowserStatus} selectedId={browserSelectedId} onSelectedId={setBrowserSelectedId} onClose={() => setView("overview")} onEdit={(question) => openEditor(question, "browser")} onCreate={() => openEditor(null, "browser")} onOpenLectureMenu={onOpenLectureMenu} /></> : null}
+    {view === "editor" ? <FlashcardEditor71 c={c} language={language} question={editorQuestion || null} context={{ moduleId: user.module, lectureId: selectedNode.lectureFilter || null }} lectures={lectures} createMode={!editorQuestion} onSave={saveRecord} onCancel={() => setView(editorOrigin)} /> : null}
+  </div>;
+}
+
 function SessionSetup(props) {
-  return <StudyDesk70 {...props} />;
+  return <StudyDesk71 {...props} />;
 }
 
 function FlashcardCompletion70({ c, language, reviews, startedAt, onDone, onContinue, onUndo }) {
@@ -20568,12 +21409,63 @@ function FlashcardOcclusion70({ data, reveal, c }) {
   );
 }
 
+function FsrsRatingControls(props) {
+  return <SM2AnswerFooter {...props} />;
+}
+
+function flashcardClozeDisplay71(text, revealed) {
+  return String(text || "").replace(/\{\{c\d+::(.*?)(?:::[^}]*)?\}\}/g, (_, answer) => revealed ? answer : "[…]");
+}
+
+function FlashcardFlagDialog71({ c, t, language, reason, onReason, submitting, onClose, onSubmit }) {
+  return (
+    <Modal c={c} onClose={onClose}>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{ color: c.text, fontWeight: 750, fontSize: 15 }}>{t.flagQuestionTitle}</div>
+        <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
+      </header>
+      <p style={{ color: c.secondary, fontSize: 12, lineHeight: 1.55, marginBottom: 14 }}>{t.flagQuestionDescription}</p>
+      <textarea
+        value={reason}
+        onChange={(event) => onReason(event.target.value)}
+        placeholder={t.flagQuestionPlaceholder}
+        autoFocus
+        style={{ width: "100%", minHeight: 100, padding: 12, borderRadius: 12, border: `1px solid ${c.border}`, background: c.soft, color: c.text, fontSize: 13, fontFamily: "inherit", resize: "vertical", marginBottom: 14 }}
+      />
+      <div style={{ display: "flex", gap: 10 }}>
+        <button type="button" disabled={submitting} onClick={onClose} style={{ flex: 1, height: 42, border: `1px solid ${c.borderStrong}`, borderRadius: 10, background: "transparent", color: c.secondary, fontSize: 13, fontWeight: 700, cursor: submitting ? "default" : "pointer" }}>{t.flagQuestionCancel}</button>
+        <PrimaryButton onClick={onSubmit} disabled={reason.trim().length < 3 || submitting} style={{ flex: 1, opacity: reason.trim().length < 3 || submitting ? 0.6 : 1 }}>
+          {submitting ? (language === "en" ? "Sending..." : language === "ar" ? "جارٍ الإرسال..." : "Sender...") : t.flagQuestionSubmit}
+        </PrimaryButton>
+      </div>
+    </Modal>
+  );
+}
+
+function FlashcardReviewer71({ c, language, question, position, total, revealed, spacedData, setSpacedData, spacedStorageKey, deckSettings, onReveal, onRated, onEditCard, onFlag, onBury, onOpenLectureList, undoAvailable, onUndo }) {
+  const cardType = question.cardType || (question.imageOcclusion ? "image-occlusion" : Array.isArray(question.options) && question.options.length >= 2 ? "mcq" : "basic");
+  const frontRaw = translate(question.front || question.question, language);
+  const front = cardType === "cloze" ? flashcardClozeDisplay71(frontRaw, revealed) : frontRaw;
+  const correctAnswer = cardType === "mcq" ? translate(question.options?.[question.correct], language) : translate(question.back || question.explanation, language);
+  const explanation = cardType === "mcq" ? translate(question.explanation, language) : "";
+  return <><Flashcard71Styles /><section className="flashcard71-reviewer" data-flashcard-reviewer71="true">
+    <header className="flashcard71-review-head"><strong>{question.lectureId || translate(question.category, language)}</strong><span>{position}/{total}</span><div className="flashcard71-review-progress"><i style={{ width: `${Math.min(100, (position / Math.max(1, total)) * 100)}%` }} /></div><div className="flashcard71-review-actions"><button type="button" title="Redigér (E)" onClick={onEditCard}><Icon name="edit" size={15} /></button><button type="button" title="Markér fejl (F)" onClick={onFlag}><Icon name="flag" size={15} /></button><button type="button" title="Begrav kort (B)" onClick={onBury}><Icon name="close" size={14} /></button>{onOpenLectureList ? <button type="button" title="Åbn forelæsning" onClick={onOpenLectureList}><Icon name="notebook" size={15} /></button> : null}{undoAvailable ? <button type="button" title="Fortryd (Z)" onClick={onUndo}><Icon name="reset" size={15} /></button> : null}</div></header>
+    <div className="flashcard71-card-stage"><article className="flashcard71-card-face">
+      {question.imageOcclusion ? <FlashcardOcclusion70 data={question.imageOcclusion} reveal={revealed} c={c} /> : null}
+      <h1>{front}</h1>
+      {revealed ? <div className="flashcard71-card-answer fade-up"><strong>{correctAnswer || "—"}</strong>{explanation ? <p>{explanation}</p> : null}</div> : null}
+    </article></div>
+    {!revealed ? <div><button type="button" className="flashcard71-reveal" data-action="reveal-answer" onClick={onReveal}>Vis svar</button><div className="flashcard71-shortcuts">Mellemrum</div></div> : <div className="flashcard71-rating-wrap"><FsrsRatingControls c={c} questionId={question.id} spacedData={spacedData} setSpacedData={setSpacedData} storageKey={spacedStorageKey} wrongChoiceSelected={false} deckSettings={deckSettings} onRated={onRated} /></div>}
+  </section></>;
+}
+
 function MCQ({
   c,
   t,
   language,
   questionSize,
   user,
+  authUserId,
   questionPool,
   sessionScope,
   spacedData,
@@ -20584,6 +21476,7 @@ function MCQ({
   deckSettings,
   onResetProgress,
   onExitToOverview,
+  onSavePersonalCard,
 }) {
   const [cardMenuOpen, setCardMenuOpen] = useState(false);
   const [cardMenuNotice, setCardMenuNotice] = useState(null);
@@ -20610,6 +21503,7 @@ function MCQ({
     : []
   );
   const pool = initialPoolRef.current;
+  const spacedStorageKey = flashcardAccountStorageKey(STORAGE.spacedRepetition, authUserId);
   const [history, setHistory] = useStoredState(STORAGE.quizHistory, []);
   const [savedSession, setSavedSession] = useState(false);
 
@@ -20629,6 +21523,9 @@ function MCQ({
   const isRecallMode = sessionScope?.studyMode === "recall";
   const [feedback, setFeedback] = useState(() => sessionScope?.studyMode !== "exam");
   const [recallRevealed, setRecallRevealed] = useState(false);
+  const [flashcardRevealed, setFlashcardRevealed] = useState(false);
+  const [reviewEditorOpen, setReviewEditorOpen] = useState(false);
+  const [sessionQuestionOverrides, setSessionQuestionOverrides] = useState({});
   const [finished, setFinished] = useState(false);
   const [reviewMode, setReviewMode] = useState(false);
   const [sessionStartedAt, setSessionStartedAt] = useState(() => Date.now());
@@ -20652,10 +21549,12 @@ function MCQ({
     localStorage.setItem(STORAGE.resumeSession, JSON.stringify({ resumeKey, index, answers, updatedAt: Date.now() }));
   }, [resumeKey, index, answers, finished]);
 
-  const question = pool[index] || null;
+  const baseQuestion = pool[index] || null;
+  const question = baseQuestion ? (sessionQuestionOverrides[baseQuestion.id] || baseQuestion) : null;
   const selectedAnswer = question ? answers[question.id] : undefined;
   useEffect(() => { cardShownAtRef.current = Date.now(); }, [question?.id, sessionCardPosition]);
   useEffect(() => { setRecallRevealed(false); }, [question?.id, sessionCardPosition]);
+  useEffect(() => { setFlashcardRevealed(false); }, [question?.id, sessionCardPosition]);
   const total = pool.length;
   const cardsLeftToday = pool.filter((item) => sm2IsInTodayQueue(spacedData[item.id])).length;
   const cardsCompletedToday = Math.max(0, total - cardsLeftToday);
@@ -20768,8 +21667,8 @@ function MCQ({
         next[item.id] = scheduleCardSM2(next[item.id] || null, rating, item.id, SM2_DEFAULT_DECK_SETTINGS, Date.now());
       }
     }
-    localStorage.setItem(STORAGE.spacedRepetition, JSON.stringify(next));
-    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.spacedRepetition } }));
+    localStorage.setItem(spacedStorageKey, JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: spacedStorageKey } }));
     setSpacedData(next);
   }
 
@@ -20839,7 +21738,7 @@ function MCQ({
         savedSession,
       },
     }));
-    flashcardEnqueueReviewForSync({ ...reviewEntry, eventId: reviewEntry.id, metadata: { moduleId: user?.module || "", lectureId: question?.lectureId || null } });
+    flashcardEnqueueReviewForSync({ ...reviewEntry, eventId: reviewEntry.id, metadata: { moduleId: user?.module || "", lectureId: question?.lectureId || null } }, authUserId);
     setSessionReviews((previous) => [...previous, reviewEntry]);
     const nextSpacedData = { ...spacedData, [question.id]: updatedCard };
     const nextAnswers = { ...answers };
@@ -20882,8 +21781,8 @@ function MCQ({
     const restored = flashcardRestoreUndoSnapshot(undoSnapshot, spacedData);
     const state = restored.sessionState || {};
     try {
-      localStorage.setItem(STORAGE.spacedRepetition, JSON.stringify(restored.spacedData));
-      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.spacedRepetition } }));
+      localStorage.setItem(spacedStorageKey, JSON.stringify(restored.spacedData));
+      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: spacedStorageKey } }));
     } catch {
       // React-tilstanden gendannes stadig, selv hvis browserlageret er utilgængeligt.
     }
@@ -20897,7 +21796,7 @@ function MCQ({
     setSavedSession(Boolean(state.savedSession));
     if (state.reviewEventId) {
       const reversalId = flashcardReviewEventId(question?.id || undoSnapshot.questionId, Date.now());
-      flashcardEnqueueReviewForSync({ eventId: reversalId, id: reversalId, questionId: question?.id || undoSnapshot.questionId, reviewedAt: Date.now(), rating: SM2_RATING.GOOD, seconds: 0, reversesReviewId: state.reviewEventId, metadata: { undo: true } });
+      flashcardEnqueueReviewForSync({ eventId: reversalId, id: reversalId, questionId: question?.id || undoSnapshot.questionId, reviewedAt: Date.now(), rating: SM2_RATING.GOOD, seconds: 0, reversesReviewId: state.reviewEventId, metadata: { undo: true } }, authUserId);
     }
     setFinished(false);
     setWaitingForDue(false);
@@ -20965,8 +21864,22 @@ function MCQ({
     setWaitingForDue(false);
   }
 
+  function onEditCard() {
+    if (question) setReviewEditorOpen(true);
+  }
+
+  function saveEditedReviewCard(record) {
+    const result = onSavePersonalCard?.(record);
+    if (result?.ok === false) return result;
+    const updated = flashcard71RecordToQuestion(record, question);
+    setSessionQuestionOverrides((current) => ({ ...current, [question.id]: updated }));
+    setReviewEditorOpen(false);
+    return result || { ok: true, record };
+  }
+
   useEffect(() => {
     function handleReviewerShortcut(event) {
+      if (reviewEditorOpen || flagModalOpen) return;
       const target = event.target;
       if (target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName) || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key.toLowerCase() === "z" && undoSnapshot) {
@@ -20978,6 +21891,12 @@ function MCQ({
       } else if (event.key.toLowerCase() === "f" && question && !finished) {
         event.preventDefault();
         setFlagModalOpen(true);
+      } else if (event.key.toLowerCase() === "e" && question && !finished) {
+        event.preventDefault();
+        onEditCard();
+      } else if (event.key === " " && question && !finished && !isExamMode && !isRecallMode && !flashcardRevealed) {
+        event.preventDefault();
+        setFlashcardRevealed(true);
       } else if (event.key === "Escape") {
         if (flagModalOpen) setFlagModalOpen(false);
         else if (cardMenuOpen) setCardMenuOpen(false);
@@ -20985,7 +21904,7 @@ function MCQ({
     }
     window.addEventListener("keydown", handleReviewerShortcut);
     return () => window.removeEventListener("keydown", handleReviewerShortcut);
-  }, [undoSnapshot, question?.id, finished, flagModalOpen, cardMenuOpen]);
+  }, [undoSnapshot, question?.id, finished, reviewEditorOpen, flagModalOpen, cardMenuOpen, flashcardRevealed, isExamMode, isRecallMode]);
 
   function restart() {
     if (onExitToOverview) {
@@ -21430,6 +22349,62 @@ async function submitFlag() {
     setFlagSubmitting(false);
   }
 }
+
+  if (reviewEditorOpen && question) {
+    return (
+      <>
+        <Flashcard71Styles />
+        <FlashcardEditor71
+          c={c}
+          language={language}
+          question={question}
+          context={{ moduleId: question.moduleId || user?.module || "", lectureId: question.lectureId || "" }}
+          lectures={MODULE_LECTURES[question.moduleId || user?.module] || []}
+          onSave={saveEditedReviewCard}
+          onCancel={() => setReviewEditorOpen(false)}
+        />
+      </>
+    );
+  }
+
+  if (!isExamMode && !isRecallMode) {
+    return (
+      <>
+        <FlashcardReviewer71
+          c={c}
+          language={language}
+          question={question}
+          position={sessionCardPosition}
+          total={sessionCardTotal}
+          revealed={flashcardRevealed}
+          spacedData={spacedData}
+          setSpacedData={setSpacedData}
+          spacedStorageKey={spacedStorageKey}
+          deckSettings={deckSettings}
+          onReveal={() => setFlashcardRevealed(true)}
+          onRated={advanceAfterRating}
+          onEditCard={onEditCard}
+          onFlag={() => setFlagModalOpen(true)}
+          onBury={buryCurrentCard}
+          onOpenLectureList={onOpenLectureList}
+          undoAvailable={Boolean(undoSnapshot)}
+          onUndo={undoLatestReview}
+        />
+        {flagModalOpen ? (
+          <FlashcardFlagDialog71
+            c={c}
+            t={t}
+            language={language}
+            reason={flagReason}
+            onReason={setFlagReason}
+            submitting={flagSubmitting}
+            onClose={() => { if (!flagSubmitting) setFlagModalOpen(false); }}
+            onSubmit={submitFlag}
+          />
+        ) : null}
+      </>
+    );
+  }
 
   return (
     <section
@@ -22057,6 +23032,7 @@ async function submitFlag() {
             questionId={question.id}
             spacedData={spacedData}
             setSpacedData={setSpacedData}
+            storageKey={spacedStorageKey}
             wrongChoiceSelected={!isRecallMode && selectedAnswer !== question.correct}
             deckSettings={deckSettings}
             onRated={advanceAfterRating}
@@ -46681,17 +47657,39 @@ useEffect(() => {
     );
   }
 }, [adminError]);
-  const [spacedData, setSpacedData] = useStoredState(STORAGE.spacedRepetition, {});
+  const accountStorageUserId = session?.user?.id || null;
+  const [spacedData, setSpacedData] = useScopedStoredState71(STORAGE.spacedRepetition, accountStorageUserId, {});
   const [shellCalendarEvents, setShellCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [shellCalendarMeta, setShellCalendarMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [deckSettingsById] = useStoredState(STORAGE.deckSettings, { default: SM2_DEFAULT_DECK_SETTINGS });
   const deckSettingsFor = (deckId) => deckSettingsById[deckId] || deckSettingsById.default || SM2_DEFAULT_DECK_SETTINGS;
   const [importedQuestions, setImportedQuestions] = useStoredState(STORAGE.importedQuestions, []);
+  const personalFlashcardUserId = accountStorageUserId;
+  const [personalFlashcards, setPersonalFlashcards] = usePersonalFlashcards71(personalFlashcardUserId);
+  const effectiveQuestions = flashcardMergePersonalCards(importedQuestions, personalFlashcards);
+
+  function savePersonalFlashcard(record) {
+    if (!personalFlashcardUserId) return { ok: false, error: "Du skal være logget ind for at gemme personlige kort." };
+    const saved = { ...record, ownerUserId: personalFlashcardUserId, updatedAt: record?.updatedAt || new Date().toISOString() };
+    const storageKey = flashcardPersonalStorageKey(personalFlashcardUserId);
+    try {
+      // Køen skrives først. Hvis browserlageret bliver fyldt midt i operationen, kan
+      // kortet derfor stadig gendannes og synkroniseres ved næste opstart.
+      flashcardQueuePersonalRecord(saved, personalFlashcardUserId);
+      const next = flashcardPersonalUpsert(loadStorage(storageKey, []), saved);
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      setPersonalFlashcards(next);
+      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: storageKey } }));
+      return { ok: true, record: saved };
+    } catch (error) {
+      return { ok: false, error: error?.message || "Kortet kunne ikke gemmes sikkert på denne enhed." };
+    }
+  }
 
 
   useEffect(() => {
     if (!user?.module) return;
-    const bundle = buildFsrsCalendarReviewBundle({ spacedData, questions: importedQuestions, moduleName: user.module, fromDate: new Date() });
+    const bundle = buildFsrsCalendarReviewBundle({ spacedData, questions: effectiveQuestions, moduleName: user.module, fromDate: new Date() });
     const existingById = new Map(shellCalendarEvents.map((event) => [event.id, event]));
     const nonFsrs = shellCalendarEvents.filter((event) => !String(event.id).startsWith("fsrs-review-"));
     const mergedFsrs = bundle.events.map((generated) => {
@@ -46708,8 +47706,8 @@ useEffect(() => {
     });
     if (JSON.stringify(nextEvents) !== JSON.stringify(shellCalendarEvents)) setShellCalendarEvents(nextEvents);
     if (JSON.stringify(nextMeta) !== JSON.stringify(shellCalendarMeta)) setShellCalendarMeta(nextMeta);
-  }, [spacedData, importedQuestions, user?.module]);
-  const [buriedCards, setBuriedCards] = useStoredState(STORAGE.buriedCards, {});
+  }, [spacedData, importedQuestions, personalFlashcards, user?.module]);
+  const [buriedCards, setBuriedCards] = useScopedStoredState71(STORAGE.buriedCards, accountStorageUserId, {});
   const [sessionScope, setSessionScope] = useState(null);
   const [trainingStartPool, setTrainingStartPool] = useState("mixed");
   const [lectureMenu, setLectureMenu] = useState(null);
@@ -46876,7 +47874,7 @@ useEffect(() => {
     );
   }
 
-  const sidebarFullBank = getFullQuestionBank(importedQuestions);
+  const sidebarFullBank = getFullQuestionBank(effectiveQuestions);
   const sidebarModuleQuestions = user?.module
     ? sidebarFullBank.filter((q) => q.moduleId === user.module)
     : sidebarFullBank;
@@ -46934,6 +47932,7 @@ useEffect(() => {
       <GlobalStyles c={c} />
       <CalendarReminderManager events={shellMergedEvents} />
       <FlashcardReviewSync70 userId={session?.user?.id || null} />
+      <FlashcardPersonalSync71 userId={session?.user?.id || null} setRecords={setPersonalFlashcards} />
       {theme === "light" && <div className="app-blue-hue" aria-hidden="true" />}
       {theme === "dark" && <div className="app-blue-hue-dark" aria-hidden="true" />}
 
@@ -47131,7 +48130,7 @@ useEffect(() => {
                 language={language}
                 spacedData={spacedData}
                 onResetAllProgress={setSpacedData}
-                importedQuestions={importedQuestions}
+                importedQuestions={effectiveQuestions}
                 onStartFsrsReview={(event) => {
                   const questionIds = event.questionIds || shellCalendarMeta[event.id]?.questionIds || [];
                   setSessionScope({ moduleId: user.module, groupFilter: null, lectureFilter: event.lectureId || null, mode: "due", contentType: null, questionIds });
@@ -47185,7 +48184,8 @@ onNavigate={navigateFromShell}
                     language={language}
                     questionSize={preferences.questionSize}
                     user={user}
-                    questionPool={buildQuestionPool(sessionScope, spacedData, importedQuestions, buriedCards)}
+                    authUserId={session?.user?.id || null}
+                    questionPool={buildQuestionPool(sessionScope, spacedData, effectiveQuestions, buriedCards)}
                     sessionScope={sessionScope}
                     buriedCards={buriedCards}
                     setBuriedCards={setBuriedCards}
@@ -47206,6 +48206,7 @@ onNavigate={navigateFromShell}
                     })}
                     spacedData={spacedData}
                     setSpacedData={setSpacedData}
+                    onSavePersonalCard={savePersonalFlashcard}
                     onExitToOverview={() => {
                       setSessionScope(null);
                       setRoute("mcq");
@@ -47217,9 +48218,11 @@ onNavigate={navigateFromShell}
                     t={t}
                     language={language}
                     user={user}
+                    authUserId={session?.user?.id || null}
                     spacedData={spacedData}
                     onResetAllProgress={setSpacedData}
-                    importedQuestions={importedQuestions}
+                    importedQuestions={effectiveQuestions}
+                    onSavePersonalCard={savePersonalFlashcard}
                     onStart={(scope) => setSessionScope(scope)}
                     initialPool={trainingStartPool}
                     onCancel={() => setRoute("home")}
