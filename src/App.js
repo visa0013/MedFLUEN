@@ -4,6 +4,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
+import { CardEditor72, RichContent72, Assistant72, HelpCenter72, ExperienceStyles72, AreaTabs72, useReviewClock72 } from "./Experience72";
+import { shouldWakeSync72 } from "./experience72-model";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -194,7 +196,7 @@ function flashcardDeckStats(questions, spacedData, nowMs = Date.now()) {
     if (status === "hidden") return;
     stats.totalActive += 1;
     if (status === "new") stats.newCount += 1;
-    else if (status === "learning") stats.learningCount += 1;
+    else if (["learning", "relearning"].includes(flashcardStoredState(spacedData?.[question.id]))) stats.learningCount += 1;
     else if (status === "due") stats.dueCount += 1;
   });
   return stats;
@@ -279,6 +281,8 @@ function flashcardSelectSessionQuestions(questions, spacedData, preferences, now
     .map((question, deckIndex) => ({ question, deckIndex, status: flashcardCardStatus(spacedData?.[question?.id], nowMs) }))
     .filter((row) => row.status !== "hidden");
   const allowed = rows.filter((row) => {
+    if (settings.pool === "learning") return ["learning", "relearning"].includes(flashcardStoredState(spacedData?.[row.question.id]));
+    if (settings.pool === "review") return row.status === "due" && !["learning", "relearning"].includes(flashcardStoredState(spacedData?.[row.question.id]));
     if (settings.pool === "due") return row.status === "due";
     if (settings.pool === "new") return row.status === "new";
     if (settings.pool === "all") return true;
@@ -582,6 +586,7 @@ function flashcard71RecordToQuestion(record, canonical = null) {
     tags: Array.isArray(record?.tags) ? record.tags.filter(Boolean).map(String) : Array.isArray(canonical?.tags) ? canonical.tags : [],
     private: true,
     personalCardId: record?.cardId,
+    richContent: record?.richContent || canonical?.richContent || {},
     personalOverride: Boolean(canonical || sourceId),
     sourceQuestionId: sourceId,
     createdAt: record?.createdAt || record?.created_at || canonical?.createdAt,
@@ -3672,7 +3677,7 @@ function FlashcardReviewSync70({ userId }) {
           const rows = queue.map((event) => ({ user_id: userId, ...flashcardReviewSyncPayload(event) }));
           const { error } = await supabase.from("flashcard_review_events").upsert(rows, { onConflict: "user_id,event_id" });
           if (error) throw error;
-          const remaining = flashcardAcknowledgeReviewEvents(queue, queue.map((event) => event.eventId));
+          const remaining = flashcardAcknowledgeReviewEvents(loadStorage(queueKey, []), queue.map((event) => event.eventId));
           localStorage.setItem(queueKey, JSON.stringify(remaining));
           window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: queueKey } }));
         }
@@ -3680,6 +3685,7 @@ function FlashcardReviewSync70({ userId }) {
         if (error) throw error;
         if (!disposed) {
           const history = (data || []).map((row) => ({ id: row.event_id, eventId: row.event_id, questionId: row.question_id, reviewedAt: row.reviewed_at, rating: row.rating, seconds: row.duration_seconds, reversesReviewId: row.reverses_review_id, metadata: row.metadata || {} }));
+          if (localStorage.getItem(historyKey) === JSON.stringify(history)) return;
           localStorage.setItem(historyKey, JSON.stringify(history));
           window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: historyKey } }));
         }
@@ -3689,7 +3695,7 @@ function FlashcardReviewSync70({ userId }) {
         syncingRef.current = false;
       }
     }
-    const wake = () => sync();
+    const wake = (event) => { if (shouldWakeSync72(event, flashcardReviewQueueKey(userId))) sync(); };
     sync();
     window.addEventListener("online", wake);
     window.addEventListener("medlearn-storage-update", wake);
@@ -3721,6 +3727,7 @@ function flashcardPersonalRecordToRow(record, userId) {
     lecture_id: record.lectureId || null,
     card_type: record.cardType || "basic",
     content: {
+      richContent: record.richContent || {},
       front: record.front || {},
       back: record.back || {},
       category: record.category || {},
@@ -3744,6 +3751,7 @@ function flashcardPersonalRowToRecord(row) {
     moduleId: row.module_id || null,
     lectureId: row.lecture_id || null,
     cardType: row.card_type || "basic",
+    richContent: content.richContent || {},
     front: content.front || {},
     back: content.back || {},
     category: content.category || {},
@@ -3764,7 +3772,7 @@ function FlashcardPersonalSync71({ userId, setRecords }) {
     if (!userId || !setRecords) return undefined;
     let disposed = false;
     async function sync() {
-      if (syncingRef.current || !navigator.onLine) return;
+      if (disposed || syncingRef.current || !navigator.onLine) return;
       syncingRef.current = true;
       try {
         const { data, error } = await supabase
@@ -3808,7 +3816,8 @@ function FlashcardPersonalSync71({ userId, setRecords }) {
           localStorage.setItem(queueKey, JSON.stringify(remaining));
         }
         if (!disposed) {
-          const merged = [...remoteRecords, ...queued].reduce((records, record) => flashcardPersonalUpsert(records, record), []);
+          const merged = [...remoteRecords, ...queued, ...loadStorage(queueKey, [])].reduce((records, record) => flashcardPersonalUpsert(records, record), []);
+          if (localStorage.getItem(storageKey) === JSON.stringify(merged)) return;
           localStorage.setItem(storageKey, JSON.stringify(merged));
           setRecords(merged);
           window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: storageKey } }));
@@ -3819,7 +3828,7 @@ function FlashcardPersonalSync71({ userId, setRecords }) {
         syncingRef.current = false;
       }
     }
-    const wake = () => sync();
+    const wake = (event) => { if (shouldWakeSync72(event, flashcardPersonalQueueKey(userId))) sync(); };
     sync();
     window.addEventListener("online", wake);
     window.addEventListener("medlearn-storage-update", wake);
@@ -4020,6 +4029,10 @@ export function normalizeImportedQuestion(rawQuestion) {
     options: (rawQuestion.options || []).map(localized),
     correct: Number(rawQuestion.correct ?? 0),
     explanation: localized(rawQuestion.explanation || ""),
+    ...(rawQuestion.richContent ? { richContent: rawQuestion.richContent } : {}),
+    ...(rawQuestion.cardType ? { cardType: rawQuestion.cardType } : {}),
+    ...(rawQuestion.front ? { front: localized(rawQuestion.front) } : {}),
+    ...(rawQuestion.back ? { back: localized(rawQuestion.back) } : {}),
     ...(rawQuestion.private === true ? { private: true } : {}),
     ...(rawQuestion.createdAt ? { createdAt: rawQuestion.createdAt } : {}),
     ...(rawQuestion.imageOcclusion ? { imageOcclusion: rawQuestion.imageOcclusion } : {}),
@@ -5192,7 +5205,9 @@ async function callDrByteAI({ userQuestion, matches, language, conversationHisto
   }
 }
 
-function DrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion }) {
+function DrByteChat(props) { return <Assistant72 {...props} supabase={supabase} loadPdfJs={loadLecturePdfJs} />; }
+
+function LegacyDrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion }) {
   const [messages, setMessages] = useStoredState("medlearn-drbyte-chat", []);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -21050,6 +21065,7 @@ function flashcardDraftFromQuestion71(question, context = {}, language = "da") {
     moduleId: question.moduleId || context.moduleId || null,
     lectureId: question.lectureId ?? context.lectureId ?? null,
     cardType: question.cardType || (question.imageOcclusion ? "image-occlusion" : "mcq"),
+    richContent: question.richContent || {},
     front: flashcard71Localized(question.front || question.question),
     back: flashcard71Localized(question.back || question.explanation),
     category: flashcard71Localized(question.category || "Personligt kort"),
@@ -21085,7 +21101,9 @@ function Flashcard71Styles() {
   `}</style>;
 }
 
-function FlashcardEditor71({ c, language, question = null, context = {}, lectures = [], onSave, onCancel, createMode = false }) {
+function FlashcardEditor71(props) { return <CardEditor72 {...props} makeDraft={flashcardDraftFromQuestion71} validate={flashcardValidateDraft} />; }
+
+function LegacyFlashcardEditor71({ c, language, question = null, context = {}, lectures = [], onSave, onCancel, createMode = false }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
   const makeDraft = () => flashcardDraftFromQuestion71(question, context, language);
   const [draft, setDraft] = useState(makeDraft);
@@ -21275,7 +21293,7 @@ function FlashcardDeckOverview71({ language, node, questions, spacedData, events
       </section>
       <div className="flashcard71-overview-actions"><button type="button" className="flashcard71-secondary" onClick={() => onBrowse("")}>{copy.browse}</button><button type="button" className="flashcard71-secondary" data-action="create-card" onClick={onCreate}>+ {copy.create}</button><button type="button" className="flashcard71-primary" disabled={!sessionQuestions.length} onClick={onStart}>{sessionQuestions.length ? `${copy.start} · ${sessionQuestions.length}` : copy.emptyDeck}</button><button type="button" className="flashcard71-secondary" aria-expanded={customize} onClick={() => setCustomize((value) => !value)}>{copy.customize}</button></div>
       {customize ? <div className="flashcard71-customize">
-        <div className="flashcard71-customize-row"><span>Kort</span><div className="flashcard71-chipset">{[["mixed", "Klar + nye"], ["due", "Kun klar"], ["new", "Kun nye"], ["all", "Alle"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.pool === value ? "true" : "false"} onClick={() => onPreference({ pool: value })}>{label}</button>)}</div></div>
+        <div className="flashcard71-customize-row"><span>Kort</span><div className="flashcard71-chipset">{[["mixed", "Klar + nye"], ["review", "Repetition"], ["learning", "I læring"], ["new", "Nye"], ["all", "Alle"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.pool === value ? "true" : "false"} onClick={() => onPreference({ pool: value })}>{label}</button>)}</div></div>
         <div className="flashcard71-customize-row"><span>Antal</span><div className="flashcard71-chipset">{[10, 20, 40, "all"].map((value) => <button key={value} type="button" data-active={preferences.limit === value ? "true" : "false"} onClick={() => onPreference({ limit: value })}>{value === "all" ? "Alle" : value}</button>)}</div></div>
         <div className="flashcard71-customize-row"><span>Visning</span><div className="flashcard71-chipset">{[["flashcard", "Flashkort"], ["recall", "Active recall"], ["exam", "Eksamen"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.studyMode === value ? "true" : "false"} onClick={() => onPreference({ studyMode: value })}>{label}</button>)}</div></div>
         <div className="flashcard71-customize-row"><span>Rækkefølge</span><div className="flashcard71-chipset">{[["scheduler", "Scheduler"], ["mixed", "Blandet"], ["deck", "Dækrækkefølge"]].map(([value, label]) => <button key={value} type="button" data-active={preferences.order === value ? "true" : "false"} onClick={() => onPreference({ order: value })}>{label}</button>)}</div></div>
@@ -21316,6 +21334,8 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   const eventIndex = new Map([...localEvents, ...(Array.isArray(cloudReviewEvents) ? cloudReviewEvents : [])].map((event) => [identity(event), event]));
   const questionIds = new Set(selectedQuestions.map((question) => String(question.id)));
   const selectedEvents = [...eventIndex.values()].filter((event) => questionIds.has(String(event.questionId)));
+  const moduleQuestionIds72 = new Set(moduleQuestions.map(question => String(question.id)));
+  const moduleEvents72 = [...eventIndex.values()].filter(event => moduleQuestionIds72.has(String(event.questionId)));
   const browserIds = browserDate ? new Set(flashcard71ActiveEvents(selectedEvents).filter((event) => flashcardLocalDateKey(event.reviewedAt) === browserDate).map((event) => String(event.questionId))) : null;
   const browserQuestions = browserIds ? selectedQuestions.filter((question) => browserIds.has(String(question.id))) : selectedQuestions;
 
@@ -21335,7 +21355,7 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   function renderNode(node, depth = 0) {
     if (node.type !== "module" && !matches(node)) return null;
     const hasChildren = Boolean(node.children?.length); const open = expanded.has(node.id) || Boolean(deckSearch.trim());
-    return <React.Fragment key={node.id}><div className="flashcard71-deck-row"><div className="flashcard71-deck-cell" style={{ "--deck-depth": depth }}>{hasChildren ? <button type="button" className="flashcard71-expand" aria-label={open ? "Fold dæk sammen" : "Fold dæk ud"} aria-expanded={open} onClick={(event) => toggleNode(event, node.id)}><Icon name={open ? "down" : "right"} size={13} /></button> : <span className="flashcard71-expand" aria-hidden="true" />}<button type="button" className="flashcard71-deck-open" onClick={() => openNode(node)}>{node.code ? <span className="flashcard71-deck-code">{node.code}</span> : null}<strong>{node.label}</strong></button></div><span className="flashcard71-deck-count">{node.stats.newCount}</span><span className="flashcard71-deck-count">{node.stats.learningCount}</span><span className="flashcard71-deck-count">{node.stats.dueCount}</span></div>{hasChildren && open ? node.children.map((child) => renderNode(child, depth + 1)) : null}</React.Fragment>;
+    return <React.Fragment key={node.id}><div className="flashcard71-deck-row"><div className="flashcard71-deck-cell" style={{ "--deck-depth": depth }}>{hasChildren ? <button type="button" className="flashcard71-expand" aria-label={open ? "Fold dæk sammen" : "Fold dæk ud"} aria-expanded={open} onClick={(event) => toggleNode(event, node.id)}><Icon name={open ? "down" : "right"} size={13} /></button> : <span className="flashcard71-expand" aria-hidden="true" />}<button type="button" className="flashcard71-deck-open" onClick={() => openNode(node)}>{node.code ? <span className="flashcard71-deck-code">{node.code}</span> : null}<strong>{node.label}</strong></button></div>{[["new",node.stats.newCount,copy.new],["learning",node.stats.learningCount,copy.learning],["review",node.stats.dueCount,copy.due]].map(([pool,count,label])=><button key={pool} type="button" className="flashcard71-deck-count" aria-label={`${node.label} · ${label}: ${count}`} style={{border:0,background:"transparent",cursor:"pointer",minHeight:42}} onClick={()=>{persistPreferences({pool});openNode(node);}}>{count}</button>)}</div>{hasChildren && open ? node.children.map((child) => renderNode(child, depth + 1)) : null}</React.Fragment>;
   }
   function openEditor(question, origin) {
     setEditorOrigin(origin);
@@ -21355,6 +21375,7 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
 
   return <div className="flashcard71-shell"><Flashcard71Styles />
     {view === "decks" ? <><header className="flashcard71-top"><div><h1>{copy.decks}</h1><p>{copy.deckSubtitle}</p></div><div className="flashcard71-top-actions"><label className="flashcard71-search"><Icon name="search" size={14} /><input value={deckSearch} onChange={(event) => setDeckSearch(event.target.value)} placeholder={copy.searchDecks} /></label><button type="button" data-action="create-card" className="flashcard71-primary" onClick={() => { setSelectedId(tree.id); openEditor(null, "decks"); }}>+ {copy.create}</button></div></header><section className="flashcard71-decks"><div className="flashcard71-deck-head"><span>{copy.deck}</span><span>{copy.new}</span><span>{copy.learning}</span><span>{copy.due}</span></div>{renderNode(tree)}</section></> : null}
+    {view === "decks" ? <section className="flashcard71-activity-card mf72-root-activity"><div className="flashcard71-section-head"><h2>{copy.activity}</h2><small>{copy.activityYear}</small></div><FlashcardActivityHeatmap71 language={language} events={moduleEvents72} onSelectDate={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /><details><summary>{language === "en" ? "Last 3 / 7 days" : "Seneste 3 / 7 dage"}</summary><FlashcardActivityChart71 language={language} events={moduleEvents72} /></details></section> : null}
     {view === "overview" ? <FlashcardDeckOverview71 language={language} node={selectedNode} questions={selectedQuestions} spacedData={spacedData} events={selectedEvents} sessionQuestions={sessionQuestions} preferences={preferences} onPreference={persistPreferences} onStart={startSession} onBrowse={(date) => { setBrowserDate(date || ""); setView("browser"); }} onCreate={() => openEditor(null, "overview")} onBack={() => setView("decks")} /> : null}
     {view === "browser" ? <><button type="button" className="flashcard71-back" style={{ marginBottom: 12 }} onClick={() => setView("overview")}><Icon name="left" size={15} />{selectedNode.label}</button><FlashcardBrowser71 c={c} language={language} questions={browserQuestions} spacedData={spacedData} lectures={lectures} selectedDate={browserDate} query={browserQuery} onQuery={setBrowserQuery} status={browserStatus} onStatus={setBrowserStatus} selectedId={browserSelectedId} onSelectedId={setBrowserSelectedId} onClose={() => setView("overview")} onEdit={(question) => openEditor(question, "browser")} onCreate={() => openEditor(null, "browser")} onOpenLectureMenu={onOpenLectureMenu} /></> : null}
     {view === "editor" ? <FlashcardEditor71 c={c} language={language} question={editorQuestion || null} context={{ moduleId: user.module, lectureId: selectedNode.lectureFilter || null }} lectures={lectures} createMode={!editorQuestion} onSave={saveRecord} onCancel={() => setView(editorOrigin)} /> : null}
@@ -21365,8 +21386,9 @@ function SessionSetup(props) {
   return <StudyDesk71 {...props} />;
 }
 
-function FlashcardCompletion70({ c, language, reviews, startedAt, onDone, onContinue, onUndo }) {
-  const summary = flashcardSessionSummary(reviews, startedAt, Date.now());
+function FlashcardCompletion70({ c, language, reviews, startedAt, endedAt, onDone, onContinue, onUndo }) {
+  const [completedAt] = useState(() => endedAt || Date.now());
+  const summary = flashcardSessionSummary(reviews, startedAt, endedAt || completedAt);
   const text = ({
     da: { title: "Session afsluttet", reviewed: "Gennemgået", time: "Tid i alt", seconds: "sek", done: "Færdig", continue: "Fortsæt med resten", undo: "Fortryd sidste", again: "Igen", hard: "Svær", good: "God", easy: "Nem" },
     en: { title: "Session complete", reviewed: "Reviewed", time: "Total time", seconds: "sec", done: "Done", continue: "Continue", undo: "Undo last", again: "Again", hard: "Hard", good: "Good", easy: "Easy" },
@@ -21452,8 +21474,8 @@ function FlashcardReviewer71({ c, language, question, position, total, revealed,
     <header className="flashcard71-review-head"><strong>{question.lectureId || translate(question.category, language)}</strong><span>{position}/{total}</span><div className="flashcard71-review-progress"><i style={{ width: `${Math.min(100, (position / Math.max(1, total)) * 100)}%` }} /></div><div className="flashcard71-review-actions"><button type="button" title="Redigér (E)" onClick={onEditCard}><Icon name="edit" size={15} /></button><button type="button" title="Markér fejl (F)" onClick={onFlag}><Icon name="flag" size={15} /></button><button type="button" title="Begrav kort (B)" onClick={onBury}><Icon name="close" size={14} /></button>{onOpenLectureList ? <button type="button" title="Åbn forelæsning" onClick={onOpenLectureList}><Icon name="notebook" size={15} /></button> : null}{undoAvailable ? <button type="button" title="Fortryd (Z)" onClick={onUndo}><Icon name="reset" size={15} /></button> : null}</div></header>
     <div className="flashcard71-card-stage"><article className="flashcard71-card-face">
       {question.imageOcclusion ? <FlashcardOcclusion70 data={question.imageOcclusion} reveal={revealed} c={c} /> : null}
-      <h1>{front}</h1>
-      {revealed ? <div className="flashcard71-card-answer fade-up"><strong>{correctAnswer || "—"}</strong>{explanation ? <p>{explanation}</p> : null}</div> : null}
+      <div className="mf72-question"><RichContent72 html={question.richContent?.front?.[language]} text={front} cloze={cardType === "cloze"} revealed={revealed} /></div>
+      {revealed ? <div className="flashcard71-card-answer fade-up"><RichContent72 html={cardType === "mcq" ? null : question.richContent?.back?.[language]} text={correctAnswer || "—"} />{explanation ? <RichContent72 html={question.richContent?.explanation?.[language]} text={explanation} /> : null}</div> : null}
     </article></div>
     {!revealed ? <div><button type="button" className="flashcard71-reveal" data-action="reveal-answer" onClick={onReveal}>Vis svar</button><div className="flashcard71-shortcuts">Mellemrum</div></div> : <div className="flashcard71-rating-wrap"><FsrsRatingControls c={c} questionId={question.id} spacedData={spacedData} setSpacedData={setSpacedData} storageKey={spacedStorageKey} wrongChoiceSelected={false} deckSettings={deckSettings} onRated={onRated} /></div>}
   </section></>;
@@ -21526,7 +21548,14 @@ function MCQ({
   const [flashcardRevealed, setFlashcardRevealed] = useState(false);
   const [reviewEditorOpen, setReviewEditorOpen] = useState(false);
   const [sessionQuestionOverrides, setSessionQuestionOverrides] = useState({});
-  const [finished, setFinished] = useState(false);
+  const [finished, setFinishedState] = useState(false);
+  const [sessionEndedAt, setSessionEndedAt] = useState(null);
+  const reviewClock72 = useReviewClock72(!finished && !reviewEditorOpen);
+  function setFinished(value) {
+    if (value) { reviewClock72.pause(); setSessionEndedAt(sessionStartedAt + reviewClock72.read()); }
+    else { setSessionEndedAt(null); reviewClock72.resume(); }
+    setFinishedState(value);
+  }
   const [reviewMode, setReviewMode] = useState(false);
   const [sessionStartedAt, setSessionStartedAt] = useState(() => Date.now());
   const [waitingForDue, setWaitingForDue] = useState(false);
@@ -21535,14 +21564,15 @@ function MCQ({
   const [sessionCardPosition, setSessionCardPosition] = useState(() => Math.min((savedResume?.index || 0) + 1, pool.length || 1));
   const [sessionReviews, setSessionReviews] = useState([]);
   const [undoSnapshot, setUndoSnapshot] = useState(null);
-  const cardShownAtRef = useRef(Date.now());
+  const cardShownAtRef = useRef(0);
   const examFsrsCommittedRef = useRef(false);
   const [, setDuePulse] = useState(0);
 
   useEffect(() => {
+    if (finished) return undefined;
     const timer = window.setInterval(() => setDuePulse((value) => value + 1), 15000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [finished]);
 
   useEffect(() => {
     if (finished) return;
@@ -21552,7 +21582,7 @@ function MCQ({
   const baseQuestion = pool[index] || null;
   const question = baseQuestion ? (sessionQuestionOverrides[baseQuestion.id] || baseQuestion) : null;
   const selectedAnswer = question ? answers[question.id] : undefined;
-  useEffect(() => { cardShownAtRef.current = Date.now(); }, [question?.id, sessionCardPosition]);
+  useEffect(() => { cardShownAtRef.current = reviewClock72.read(); }, [question?.id, sessionCardPosition]);
   useEffect(() => { setRecallRevealed(false); }, [question?.id, sessionCardPosition]);
   useEffect(() => { setFlashcardRevealed(false); }, [question?.id, sessionCardPosition]);
   const total = pool.length;
@@ -21649,7 +21679,7 @@ function MCQ({
   const hardestReview = [...sessionReviews].sort((a, b) => (a.rating - b.rating) || (b.seconds - a.seconds))[0] || null;
   const hardestQuestionText = hardestReview?.questionText || null;
   const totalReviewSeconds = sessionReviews.reduce((sum, item) => sum + item.seconds, 0);
-  const actualElapsedSeconds = Math.max(1, Math.round((Date.now() - sessionStartedAt) / 1000));
+  const actualElapsedSeconds = Math.max(1, Math.round(((sessionEndedAt == null ? sessionStartedAt + reviewClock72.read() : sessionEndedAt) - sessionStartedAt) / 1000));
   const averageReviewSeconds = sessionReviews.length ? Math.round(totalReviewSeconds / sessionReviews.length) : 0;
   const formatSessionTime = (seconds) => seconds >= 60 ? `${Math.floor(seconds / 60)} min ${seconds % 60} sek` : `${seconds} sek`;
   const ratingCounts = SM2_RATING_ORDER.reduce((counts, item) => ({ ...counts, [item.key]: sessionReviews.filter((review) => review.rating === item.key).length }), {});
@@ -21672,7 +21702,10 @@ function MCQ({
     setSpacedData(next);
   }
 
-  function finishSession() {
+  function finishSession(finalReviews = sessionReviews) {
+    if (!Array.isArray(finalReviews)) finalReviews = sessionReviews;
+    const finalSeconds = finalReviews.reduce((sum, item) => sum + item.seconds, 0);
+    const finalHardestReview72 = [...finalReviews].sort((a, b) => (a.rating - b.rating) || (b.seconds - a.seconds))[0] || null;
     if (!savedSession) {
       if (isExamMode) commitExamModeToSpacedRepetition();
       const session = {
@@ -21686,11 +21719,11 @@ function MCQ({
         correct,
         incorrect,
         score,
-        durationSeconds: Math.max(1, Math.round((Date.now() - sessionStartedAt) / 1000)),
-        reviewSeconds: totalReviewSeconds,
-        averageReviewSeconds,
-        hardestQuestionId: hardestReview?.questionId || null,
-        ratingCounts,
+        durationSeconds: Math.max(1, Math.round(reviewClock72.read() / 1000)),
+        reviewSeconds: finalSeconds,
+        averageReviewSeconds: finalReviews.length ? Math.round(finalSeconds / finalReviews.length) : 0,
+        hardestQuestionId: finalHardestReview72?.questionId || null,
+        ratingCounts: Object.fromEntries(SM2_RATING_ORDER.map(item => [item.key, finalReviews.filter(r => r.rating === item.key).length])),
         wrongQuestionIds: pool
           .filter((item) => answers[item.id] !== undefined && answers[item.id] !== item.correct)
           .map((item) => item.id),
@@ -21721,12 +21754,12 @@ function MCQ({
       questionId: question.id,
       questionText: translate(question.question, language),
       rating: rating ?? SM2_RATING.GOOD,
-      seconds: Math.max(1, Math.round((Date.now() - cardShownAtRef.current) / 1000)),
+      seconds: Math.max(1, Math.round((reviewClock72.read() - cardShownAtRef.current) / 1000)),
       reviewedAt: meta.reviewedAt || Date.now(),
     };
     setUndoSnapshot(flashcardCreateUndoSnapshot({
       questionId: question.id,
-      card: meta.previousCard ?? spacedData?.[question.id] ?? null,
+      card: Object.prototype.hasOwnProperty.call(meta, "previousCard") ? meta.previousCard : (spacedData?.[question.id] ?? null),
       sessionState: {
         index,
         position: sessionCardPosition,
@@ -21770,7 +21803,7 @@ function MCQ({
       // No other due or unseen card remains in this pool. Without this branch the
       // session viewer would silently stall on the last answered card, and the
       // stats/summary screen would never appear (this was the reported bug).
-      finishSession();
+      finishSession([...sessionReviews, reviewEntry]);
     }
     // The parent rebuilds the pool immediately. This just-scheduled card is excluded
     // until its saved day-based due timestamp, so it cannot reappear in this session.
@@ -21801,7 +21834,8 @@ function MCQ({
     setFinished(false);
     setWaitingForDue(false);
     setUndoSnapshot(null);
-    cardShownAtRef.current = Date.now();
+    setFlashcardRevealed(false);
+    cardShownAtRef.current = reviewClock72.read();
   }
 
   function chooseAnswer(optionIndex) {
@@ -21812,7 +21846,7 @@ function MCQ({
         questionId: question.id,
         questionText: translate(question.question, language),
         rating: optionIndex === question.correct ? SM2_RATING.GOOD : SM2_RATING.AGAIN,
-        seconds: Math.max(1, Math.round((Date.now() - cardShownAtRef.current) / 1000)),
+        seconds: Math.max(1, Math.round((reviewClock72.read() - cardShownAtRef.current) / 1000)),
       }]);
     }
     setAnswers((previous) => ({
@@ -21917,6 +21951,8 @@ function MCQ({
     setFinished(false);
     setReviewMode(false);
     setSessionStartedAt(Date.now());
+    reviewClock72.reset();
+    cardShownAtRef.current = 0;
     setSessionReviews([]);
     setSessionCardTotal(pool.length || 1);
     setSessionCardPosition(1);
@@ -22091,7 +22127,7 @@ if (!question && !finished) {
           c={c}
           language={language}
           reviews={sessionReviews}
-          startedAt={sessionStartedAt}
+          startedAt={sessionStartedAt} endedAt={sessionEndedAt}
           onDone={restart}
           onContinue={null}
           onUndo={undoSnapshot ? undoLatestReview : null}
@@ -40504,7 +40540,7 @@ function lectureViewportKind(width) {
   return "desktop";
 }
 
-function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
+function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0, onClose, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
@@ -40596,7 +40632,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
   const [examSetPdfSource, setExamSetPdfSource] = useState("questions");
   const [examSetShowAnswers, setExamSetShowAnswers] = useState(false);
   const [examSetOriginalPage, setExamSetOriginalPage] = useState(null);
-  const [examSetMode, setExamSetMode] = useState("pdf");
+  const [examSetMode, setExamSetMode] = useState(historyRequest72 ? "history" : "pdf");
+  useEffect(() => { setExamSetMode(historyRequest72 ? "history" : "pdf"); }, [historyRequest72]);
   const [examSetQuestions, setExamSetQuestions] = useState([]);
   const [examSetQuestionDocumentId, setExamSetQuestionDocumentId] = useState(null);
   const [examSetParseState, setExamSetParseState] = useState("idle");
@@ -42372,7 +42409,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, onClose, userId = nu
     setExamSetPractice(examSetPracticeEmpty());
     setExamSetPracticeSaveState("idle");
     setExamSetPracticeLoadState(selectedExamDocument?.id ? "loading" : "idle");
-    setExamSetMode("pdf");
+    setExamSetMode(historyRequest72 ? "history" : "pdf");
     setExamSetPdfSource("questions");
     setExamSetShowAnswers(false);
     setExamSetOriginalPage(null);
@@ -45909,7 +45946,9 @@ examSetMode === "history" ? (
   );
 }
 
-function MedfluenAreaTabs({ c, language, area, activeTab, dueCount = 0, onSelect }) {
+function MedfluenAreaTabs(props) { return <AreaTabs72 {...props} Icon={Icon} />; }
+
+function LegacyMedfluenAreaTabs({ c, language, area, activeTab, dueCount = 0, onSelect }) {
   const copy = ({
     da: { start: "Start", review: "Repetition", exams: "Eksamenssæt", history: "Historik", lectures: "Forelæsninger", notes: "Noter", calendar: "Kalender", studyPlan: "Studieplan" },
     en: { start: "Start", review: "Review", exams: "Exam sets", history: "History", lectures: "Lectures", notes: "Notes", calendar: "Calendar", studyPlan: "Study plan" },
@@ -45944,6 +45983,42 @@ function MobileBottomNav({ c, t, language, route, activeWorkspace, onNavigate, o
     {primary.map((item) => { const active = activeArea === item.id; return <button key={item.id} type="button" data-active={active ? "true" : "false"} onClick={item.action} style={{ color: active ? c.blue : c.secondary }}><span><Icon name={item.icon} size={18} />{item.badge > 0 && <em>{item.badge > 9 ? "9+" : item.badge}</em>}</span><small>{item.label}</small></button>; })}
   </nav>;
 }
+
+  function SidebarNavButton72({ c, icon, title, active, onClick, badge = 0, isRoute = false }) {
+    return (
+      <button
+        type="button"
+        title={title}
+        aria-label={title}
+        aria-current={isRoute && active ? "page" : undefined}
+        aria-pressed={!isRoute ? Boolean(active) : undefined}
+        data-active={active ? "true" : "false"}
+        onClick={onClick}
+        className="sidebar-nav-btn"
+        style={{
+          position: "relative",
+          width: 42,
+          height: 42,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          padding: 0,
+          border: `1px solid ${active ? c.blueBorder : "transparent"}`,
+          borderRadius: 10,
+          background: active ? c.blueSoft : "transparent",
+          color: active ? c.blue : c.secondary,
+        }}
+      >
+        <span className="sidebar-nav-icon" style={{ width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 8 }}>
+          <Icon name={icon} size={18} stroke={active ? 2.3 : 2.05} />
+        </span>
+        {active && <span aria-hidden="true" className="sidebar-active-dot" style={{ position: "absolute", insetInlineStart: -10, top: "50%", width: 2, height: 20, borderRadius: 99, background: c.blue, transform: "translateY(-50%)" }} />}
+        {badge > 0 && <span className="sidebar-badge" aria-label={`${badge}`}>{badge > 99 ? "99+" : badge}</span>}
+        <span aria-hidden="true" className="sidebar-tooltip">{title}</span>
+      </button>
+    );
+  }
 
 function Sidebar({
   c,
@@ -45999,41 +46074,6 @@ function Sidebar({
     if (activeWorkspace !== type) onWorkspace(type);
   }
 
-  function NavButton({ icon, title, active, onClick, badge = 0, isRoute = false }) {
-    return (
-      <button
-        type="button"
-        title={title}
-        aria-label={title}
-        aria-current={isRoute && active ? "page" : undefined}
-        aria-pressed={!isRoute ? Boolean(active) : undefined}
-        data-active={active ? "true" : "false"}
-        onClick={onClick}
-        className="sidebar-nav-btn"
-        style={{
-          position: "relative",
-          width: 42,
-          height: 42,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          padding: 0,
-          border: `1px solid ${active ? c.blueBorder : "transparent"}`,
-          borderRadius: 10,
-          background: active ? c.blueSoft : "transparent",
-          color: active ? c.blue : c.secondary,
-        }}
-      >
-        <span className="sidebar-nav-icon" style={{ width: 28, height: 28, display: "grid", placeItems: "center", borderRadius: 8 }}>
-          <Icon name={icon} size={18} stroke={active ? 2.3 : 2.05} />
-        </span>
-        {active && <span aria-hidden="true" className="sidebar-active-dot" style={{ position: "absolute", insetInlineStart: -10, top: "50%", width: 2, height: 20, borderRadius: 99, background: c.blue, transform: "translateY(-50%)" }} />}
-        {badge > 0 && <span className="sidebar-badge" aria-label={`${badge}`}>{badge > 99 ? "99+" : badge}</span>}
-        <span aria-hidden="true" className="sidebar-tooltip">{title}</span>
-      </button>
-    );
-  }
 
   const activeArea = medfluenPrimaryArea(route, activeWorkspace);
   const primaryAreas = [
@@ -46058,13 +46098,13 @@ function Sidebar({
       <button type="button" title="MedFLUEN" aria-label={language === "en" ? "Go to home" : language === "ar" ? "الانتقال إلى الصفحة الرئيسية" : "Gå til Hjem"} onClick={() => navigate("home")} className="sidebar-logo" style={{ width: 40, height: 40, display: "grid", placeItems: "center", flexShrink: 0, marginBottom: 13, padding: 0, border: 0, borderRadius: 11, background: c.blueGradient, color: "#fff", boxShadow: "0 7px 16px rgba(22,101,234,.20)" }}><Icon name="logo" size={20} stroke={2.2} /></button>
 
       <nav className="sidebar-nav-group" aria-label="Primær studienavigation">
-        {primaryAreas.map((item) => <NavButton key={item.id} icon={item.icon} title={item.label} active={activeArea === item.id} badge={item.badge} isRoute onClick={item.action} />)}
+        {primaryAreas.map((item) => <SidebarNavButton72 c={c} key={item.id} icon={item.icon} title={item.label} active={activeArea === item.id} badge={item.badge} isRoute onClick={item.action} />)}
       </nav>
 
       <div className="sidebar-divider" aria-hidden="true" />
 
       <nav className="sidebar-nav-group" aria-label="Assistent">
-        <NavButton icon="assistant" title={t.drByte} active={drByteOpen} onClick={() => { setProfileOpen(false); setDrByteOpen((value) => !value); }} />
+        <SidebarNavButton72 c={c} icon="assistant" title={t.drByte} active={drByteOpen} onClick={() => { setProfileOpen(false); setDrByteOpen((value) => !value); }} />
       </nav>
 
       <div style={{ position: "relative", marginTop: "auto", paddingTop: 10 }}>
@@ -46893,7 +46933,9 @@ function MascotAssistant({ c, user, language, tutorialActive, spacedData, import
 }
 
 
-function TutorialOverlay({ c, t, language, route, setRoute, onFinish }) {
+function TutorialOverlay(props) { return <HelpCenter72 {...props} />; }
+
+function LegacyTutorialOverlay({ c, t, language, route, setRoute, onFinish }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [visible, setVisible] = useState(true);
 
@@ -47603,6 +47645,7 @@ useCloudSync(session?.user?.id);
   const [leaving, setLeaving] = useState(false);
   const [route, setRoute] = useStoredState(STORAGE.navigationRoute, "home");
   const [activeWorkspace, setActiveWorkspace] = useState(null);
+  const [examHistoryRequest72, setExamHistoryRequest72] = useState(0);
   const [calendarClosing, setCalendarClosing] = useState(false);
 
   function closeWorkspace() {
@@ -47830,7 +47873,7 @@ useEffect(() => {
   if (session === undefined) {
     return (
       <>
-        <GlobalStyles c={c} />
+        <GlobalStyles c={c} /><ExperienceStyles72 />
         <Loader c={c} t={t} leaving={false} theme={theme} moduleId={user?.module} />
       </>
     );
@@ -47839,7 +47882,7 @@ useEffect(() => {
   if (!session) {
     return (
       <>
-        <GlobalStyles c={c} />
+        <GlobalStyles c={c} /><ExperienceStyles72 />
         <AuthScreen c={c} t={t} language={language} theme={theme} />
       </>
     );
@@ -47848,7 +47891,7 @@ useEffect(() => {
   if (stage === "loading") {
     return (
       <>
-        <GlobalStyles c={c} />
+        <GlobalStyles c={c} /><ExperienceStyles72 />
         <Loader c={c} t={t} leaving={leaving} theme={theme} moduleId={user?.module} />
       </>
     );
@@ -47857,7 +47900,7 @@ useEffect(() => {
   if (stage === "onboarding" || !user) {
     return (
       <>
-        <GlobalStyles c={c} />
+        <GlobalStyles c={c} /><ExperienceStyles72 />
         <Onboarding
           c={c}
           t={t}
@@ -47899,7 +47942,8 @@ useEffect(() => {
     setDrByteOpen(false);
     if (tabId === "training-start") { setActiveWorkspace(null); setTrainingStartPool("mixed"); setSessionScope(null); setRoute("mcq"); return; }
     if (tabId === "training-review") { setActiveWorkspace(null); setTrainingStartPool("due"); setSessionScope(null); setRoute("mcq"); return; }
-    if (tabId === "training-exams") { setSessionScope(null); setActiveWorkspace("examSets"); return; }
+    if (tabId === "training-exam-history") { setSessionScope(null); setExamHistoryRequest72(v => v + 1); setActiveWorkspace("examSets"); return; }
+    if (tabId === "training-exams") { setSessionScope(null); setExamHistoryRequest72(0); setActiveWorkspace("examSets"); return; }
     if (tabId === "training-history") { setActiveWorkspace(null); setSessionScope(null); setRoute("training-history"); return; }
     if (tabId === "curriculum-lectures") { setActiveWorkspace("lectures"); return; }
     if (tabId === "curriculum-notes") { setActiveWorkspace("notes"); return; }
@@ -47929,7 +47973,7 @@ useEffect(() => {
         position: "relative",
       }}
     >
-      <GlobalStyles c={c} />
+      <GlobalStyles c={c} /><ExperienceStyles72 />
       <CalendarReminderManager events={shellMergedEvents} />
       <FlashcardReviewSync70 userId={session?.user?.id || null} />
       <FlashcardPersonalSync71 userId={session?.user?.id || null} setRecords={setPersonalFlashcards} />
@@ -48084,7 +48128,7 @@ useEffect(() => {
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={effectiveAdmin} importedQuestions={importedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" historyRequest72={examHistoryRequest72} onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={effectiveAdmin} importedQuestions={importedQuestions} />
           )}
         </WorkspaceShell>
       )}
@@ -48253,7 +48297,7 @@ onNavigate={navigateFromShell}
             }}
           >
             {drByteOpen && (
-              <DrByteChat
+              <DrByteChat key={session?.user?.id || "guest"} userId={session?.user?.id} moduleName={user?.module}
                 c={c}
                 t={t}
                 language={language}
