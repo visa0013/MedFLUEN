@@ -1,6 +1,47 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createActiveClock72, sanitizeRich72, richText72, textHtml72, validMasks72, searchPages72 } from './experience72-model';
+import { createActiveClock72, sanitizeRich72, richText72, textHtml72, validMasks72, searchPages72, activityGeometry73, readingIndex73 } from './experience72-model';
 import './experience72.css';
+
+export function ActivityChart73({language,events,getBuckets}) {
+  const en=language==='en', locale=en?'en-GB':language==='ar'?'ar':'da-DK';
+  const tr=(da,english,arabic)=>language==='ar'?arabic:en?english:da;
+  const [range,setRange]=useState(7),[metric,setMetric]=useState('cards'),[selected,setSelected]=useState(null);
+  const buckets=getBuckets(events,new Date(),range);
+  const chart=activityGeometry73(buckets.map(b=>metric==='cards'?b.count:b.minutes));
+  const unit=metric==='cards'?tr('kort','cards','بطاقات'):tr('minutter','minutes','دقائق');
+  const fmt=v=>new Intl.NumberFormat(locale,{maximumFractionDigits:1}).format(v);
+  const date=b=>new Date(`${b.date}T12:00:00`).toLocaleDateString(locale,{weekday:'short',day:'numeric',month:'short'});
+  const current=buckets.find(b=>b.date===selected);
+  const total=buckets.reduce((s,b)=>s+(metric==='cards'?b.count:b.minutes),0);
+  return <section className="mf73-activity" dir={language==='ar'?'rtl':undefined} aria-label={tr('Seneste aktivitet','Recent activity','النشاط الأخير')}>
+    <header><div><strong>{fmt(total)} <span>{unit}</span></strong><small>{tr('I den valgte periode','In the selected period','خلال الفترة المحددة')}</small></div>
+      <div className="mf73-chart-controls"><div role="group" aria-label={tr('Periode','Period','الفترة')}>{[3,7].map(n=><button key={n} type="button" aria-pressed={range===n} onClick={()=>{setRange(n);setSelected(null);}}>{n} {tr('dage','days','أيام')}</button>)}</div>
+      <div role="group" aria-label={tr('Måling','Measure','المقياس')}>{['cards','minutes'].map(m=><button key={m} type="button" aria-pressed={metric===m} onClick={()=>setMetric(m)}>{m==='cards'?tr('Kort','Cards','بطاقات'):tr('Minutter','Minutes','دقائق')}</button>)}</div></div>
+    </header>
+    <div className="mf73-plot">
+      <div className="mf73-axis" aria-hidden="true"><span>{fmt(chart.ceiling)}</span><span>{fmt(chart.ceiling/2)}</span><span>0</span></div>
+      <div className="mf73-columns" style={{gridTemplateColumns:`repeat(${range},minmax(0,1fr))`}}>
+        {buckets.map((b,i)=><button type="button" className="mf73-column" key={b.date} aria-pressed={selected===b.date} aria-label={`${date(b)} · ${b.count} ${tr('kort','cards','بطاقات')} · ${fmt(b.minutes)} ${tr('minutter','minutes','دقائق')}`} onClick={()=>setSelected(b.date)} onFocus={()=>setSelected(b.date)} onMouseEnter={()=>setSelected(b.date)}>
+          <span className="mf73-bar-space"><span className="mf73-bar" style={{height:`${chart.bars[i].height/180*100}%`}}/><span className="mf73-value">{fmt(chart.bars[i].value)}</span></span>
+          <span className="mf73-date">{new Date(`${b.date}T12:00:00`).toLocaleDateString(locale,{weekday:'short'})}<small>{new Date(`${b.date}T12:00:00`).toLocaleDateString(locale,{day:'numeric',month:'numeric'})}</small></span>
+        </button>)}
+      </div>
+    </div>
+    <footer aria-live="polite">{current?<><strong>{date(current)}</strong><span>{current.count} {tr('kort','cards','بطاقات')} · {fmt(current.minutes)} {tr('aktive minutter','active minutes','دقائق نشطة')}</span></>:total===0?tr('Ingen aktivitet i denne periode.','No activity in this period.','لا يوجد نشاط في هذه الفترة.'):tr('Vælg en dag for at se kort og aktiv tid.','Select a day to see cards and active time.','اختر يومًا لعرض البطاقات والوقت النشط.')}</footer>
+  </section>;
+}
+
+export function ReadingIndex73({annotations,onSelect,onClose,language}) {
+  const en=language==='en';const [query,setQuery]=useState('');const [filter,setFilter]=useState('all');
+  const labels=en?{sticky:'Note',bookmark:'Bookmark',highlight:'Highlight',underline:'Underline',strike:'Strikethrough',pen:'Drawing'}:{sticky:'Note',bookmark:'Bogmærke',highlight:'Markering',underline:'Understregning',strike:'Overstregning',pen:'Tegning'};
+  const rows=readingIndex73(annotations,query).filter(a=>filter==='all'||a.type===filter);
+  return <aside className="mf73-reading-index" aria-label={en?'Reading overview':'Læseoverblik'}>
+    <header><div><strong>{en?'Your reading':'Dit læseoverblik'}</strong><small>{en?'Notes and saved passages':'Noter og gemte passager'}</small></div><button type="button" aria-label={en?'Close reading overview':'Luk læseoverblik'} onClick={onClose}>×</button></header>
+    <input autoFocus type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={en?'Search your notes…':'Søg i dine noter…'} aria-label={en?'Search annotations':'Søg i markeringer'}/>
+    <div className="mf73-reading-filters">{[['all',en?'All':'Alle'],['sticky',en?'Notes':'Noter'],['bookmark',en?'Bookmarks':'Bogmærker']].map(([id,label])=><button type="button" key={id} aria-pressed={filter===id} onClick={()=>setFilter(id)}>{label}</button>)}</div>
+    <div className="mf73-reading-list">{rows.map(a=><button type="button" key={a.id} onClick={()=>onSelect(a)}><small><i style={{background:a.color||'#628af2'}}/>{labels[a.type]||a.type} <span>{en?'Page':'Side'} {a.page}</span></small><p>{a.excerpt||(a.type==='bookmark'?(en?'Return to this page':'Vend tilbage til denne side'):(en?'Open the marked passage':'Åbn den markerede passage'))}</p></button>)}{!rows.length&&<p className="mf73-reading-empty">{query||filter!=='all'?(en?'No matching annotations.':'Ingen matchende markeringer.'):(en?'Your highlights, notes and bookmarks will appear here.':'Dine markeringer, noter og bogmærker samles her, når du opretter dem i PDF’en.')}</p>}</div>
+  </aside>;
+}
 
 export function useReviewClock72(active) {
   const clock = useRef(null);
@@ -225,7 +266,7 @@ export function HelpCenter72({onFinish}) {
 
 export function ExperienceStyles72(){return <style>{`
 /* Shared rhythm; precise surfaces rather than changing every generic div. */
-.home-v2-workspace.home-v2-workspace{gap:22px!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important;grid-template-columns:minmax(0,1fr) 260px!important;align-items:start!important}
+.home-v2-workspace.home-v2-workspace{gap:22px!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important;grid-template-columns:minmax(0,1fr) 260px!important;align-items:start!important;height:auto!important;min-height:0!important}
 .home-v2-calendar-area.home-v2-calendar-area{background:var(--ui-panel);border:1px solid var(--ui-border)!important;border-radius:22px!important;overflow:hidden!important;padding:0!important;height:auto!important;min-width:0;box-shadow:0 10px 40px rgba(25,45,75,.05)!important}
 .home-v2-rail.home-v2-rail{border:0!important;padding:0!important;background:transparent!important;gap:18px!important;display:grid!important;align-content:start!important}
 .home-v2-rail>section,.home-v2-rail>div{border-radius:20px!important;box-shadow:0 6px 28px rgba(25,45,75,.04)!important}
@@ -233,7 +274,11 @@ export function ExperienceStyles72(){return <style>{`
 .home-v2-calendar-area .home-v2-panel-header{padding:20px 22px!important;gap:18px!important;min-height:92px!important}
 .home-v2-calendar-area>.calendar-control-strip{padding:14px 18px!important;gap:10px!important;flex-wrap:wrap!important}
 .home-v2-rail .home-v2-rail-card{padding:22px!important}
-.home-v2-calendar-area .home-v2-calendar-canvas{min-height:440px!important}
+.home-v2-calendar-area .home-v2-calendar-canvas{height:clamp(420px,62vh,740px)!important;min-height:0!important;flex:0 0 auto!important;overflow:auto!important}
+.home-v2-calendar-canvas>.calendar-week-scroll,.home-v2-calendar-canvas>.calendar-month-root{height:100%!important;min-height:0!important}
+.home-v2-bottom{position:relative!important;clear:both;isolation:isolate}
+.lecture-pdf-workspace-body{position:relative;min-height:0}
+.lecture-pdf-surface{overscroll-behavior:contain;scrollbar-gutter:stable}
 .calendar-workspace .calendar-topbar{gap:16px!important;padding:18px 22px!important}
 .calendar-workspace .calendar-layer-controls,.home-v2-calendar-area .calendar-layer-controls{padding:12px 18px!important;gap:9px!important}
 .calendar-workspace .calendar-main-layout{gap:22px!important}
