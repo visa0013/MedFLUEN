@@ -61,3 +61,39 @@ export function searchPages72(pages, query, limit=5) {
   if(!tokens.length) return [];
   return pages.map(p=>{const body=p.text.toLocaleLowerCase();return {...p,score:tokens.reduce((s,t)=>s+(body.includes(t)?1:0),0)};}).filter(p=>p.score>0).sort((a,b)=>b.score-a.score||a.page-b.page).slice(0,limit);
 }
+
+export function activityGeometry73(values, height=180) {
+  const clean=values.map(v=>Number.isFinite(v)&&v>0?v:0);
+  const peak=Math.max(1,...clean);
+  const magnitude=10**Math.floor(Math.log10(peak));
+  const ceiling=Math.ceil(peak/magnitude)*magnitude;
+  return {ceiling,bars:clean.map(value=>({value,height:value/ceiling*height,y:height-value/ceiling*height}))};
+}
+
+export function retryableLoader73(factory) {
+  let pending;
+  return ()=>pending||(pending=Promise.resolve().then(factory).catch(error=>{pending=null;throw error;}));
+}
+
+export async function pdfMetrics73(pdf, cancelled) {
+  let fallback={width:595,height:842}, firstUnavailable=false;
+  try {const page=await pdf.getPage(1);const v=page.getViewport({scale:1});fallback={width:v.width,height:v.height};} catch {firstUnavailable=true;}
+  if(cancelled()) return [];
+  const metrics=Array.from({length:pdf.numPages},()=>({...fallback}));
+  if(firstUnavailable) metrics[0].unavailable=true;
+  for(let start=2;start<=pdf.numPages&&!cancelled();start+=8){
+    await Promise.all(Array.from({length:Math.min(8,pdf.numPages-start+1)},async(_,i)=>{
+      try {const page=await pdf.getPage(start+i);const v=page.getViewport({scale:1});metrics[start+i-1]={width:v.width,height:v.height};} catch { metrics[start+i-1].unavailable=true; }
+    }));
+  }
+  return metrics;
+}
+
+export function readingIndex73(annotations, query='') {
+  const term=String(query).trim().toLocaleLowerCase();
+  return (Array.isArray(annotations)?annotations:[])
+    .filter(a=>a&&!a.deletedAt&&!a.deleted_at&&Number(a.page)>0)
+    .map(a=>({...a,excerpt:String(a.payload?.text||a.payload?.selectedText||a.payload?.quote||'')}))
+    .filter(a=>!term||`${a.excerpt} ${a.page} ${a.type}`.toLocaleLowerCase().includes(term))
+    .sort((a,b)=>Number(a.page)-Number(b.page));
+}
