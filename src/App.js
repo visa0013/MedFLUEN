@@ -4,8 +4,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
-import { CardEditor72, RichContent72, Assistant72, HelpCenter72, ExperienceStyles72, AreaTabs72, useReviewClock72 } from "./Experience72";
-import { shouldWakeSync72 } from "./experience72-model";
+import { CardEditor72, RichContent72, Assistant72, HelpCenter72, ExperienceStyles72, AreaTabs72, useReviewClock72, ActivityChart73, ReadingIndex73 } from "./Experience72";
+import { shouldWakeSync72, retryableLoader73, pdfMetrics73 } from "./experience72-model";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -21249,23 +21249,7 @@ function FlashcardActivityHeatmap71({ language, events, onSelectDate }) {
 }
 
 function FlashcardActivityChart71({ language, events }) {
-  const copy = flashcard71Copy(language) || flashcard71Copy("da");
-  const [range, setRange] = useState(7);
-  const [metric, setMetric] = useState("cards");
-  const buckets = flashcardActivityBuckets(events, new Date(), range);
-  const values = buckets.map((bucket) => metric === "cards" ? bucket.count : bucket.minutes);
-  const max = Math.max(0, ...values);
-  return (
-    <div className="flashcard71-chart-card">
-      <div className="flashcard71-chart-tools">
-        <div className="flashcard71-segment" aria-label="Periode"><button type="button" data-range="3" data-active={range === 3 ? "true" : "false"} onClick={() => setRange(3)}>{copy.threeDays}</button><button type="button" data-range="7" data-active={range === 7 ? "true" : "false"} onClick={() => setRange(7)}>{copy.sevenDays}</button></div>
-        <div className="flashcard71-segment" aria-label="Måling"><button type="button" data-metric="cards" data-active={metric === "cards" ? "true" : "false"} onClick={() => setMetric("cards")}>{copy.cardsMetric}</button><button type="button" data-metric="minutes" data-active={metric === "minutes" ? "true" : "false"} onClick={() => setMetric("minutes")}>{copy.minutesMetric}</button></div>
-      </div>
-      {max > 0 ? <div className="flashcard71-bars" role="img" aria-label={`${copy.activity}: ${range} ${copy.cards}`}>
-        {buckets.map((bucket, index) => { const value = values[index]; const date = new Date(`${bucket.date}T12:00:00`); return <div key={bucket.date} className="flashcard71-bar" title={`${bucket.date} · ${value} ${metric === "cards" ? copy.cardsMetric.toLocaleLowerCase() : copy.minutesMetric.toLocaleLowerCase()}`}><i style={{ height: `${Math.max(value ? 6 : 2, (value / max) * 100)}%` }} /><span>{date.toLocaleDateString(language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK", { weekday: "short" })}</span></div>; })}
-      </div> : <div className="flashcard71-chart-empty">{copy.noActivity}</div>}
-    </div>
-  );
+  return <ActivityChart73 language={language} events={events} getBuckets={flashcardActivityBuckets} />;
 }
 
 function FlashcardDeckOverview71({ language, node, questions, spacedData, events, sessionQuestions, preferences, onPreference, onStart, onBrowse, onCreate, onBack }) {
@@ -38699,17 +38683,12 @@ function sharedLectureNoteInitials(name) {
    lazy and is emitted as a build asset instead of being fetched from a CDN.
    ========================================================================== */
 const LECTURE_PDFJS_VERSION = "4.10.38";
-const LECTURE_PDFJS_WORKER_URL = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-let lecturePdfJsPromise = null;
-
-function loadLecturePdfJs() {
-  if (lecturePdfJsPromise) return lecturePdfJsPromise;
-  lecturePdfJsPromise = import("pdfjs-dist").then((module) => {
-    module.GlobalWorkerOptions.workerSrc = LECTURE_PDFJS_WORKER_URL;
-    return module;
-  });
-  return lecturePdfJsPromise;
-}
+const LECTURE_PDFJS_WORKER_URL = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).toString();
+const loadLecturePdfJs = retryableLoader73(async () => {
+  const module = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  module.GlobalWorkerOptions.workerSrc = LECTURE_PDFJS_WORKER_URL;
+  return module;
+});
 
 function lecturePdfClamp(value, min, max) {
   return Math.min(max, Math.max(min, Number(value) || min));
@@ -39180,6 +39159,9 @@ function LecturePdfViewer({
   const restoreScrollRef = useRef({ scrollTop: Math.max(0, Number(savedState?.scrollTop) || 0), page: Math.max(1, Number(savedState?.page) || 1), pageOffset: lecturePdfClamp(savedState?.pageOffset || 0, 0, 1) });
   const labels = lecturePdfWorkspaceLabels(language);
   const [loadState, setLoadState] = useState("loading");
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadError, setLoadError] = useState("");
+  const [readingOpen, setReadingOpen] = useState(false);
   const [renderState, setRenderState] = useState("idle");
   const [pdfRevision, setPdfRevision] = useState(0);
   const [pageNumber, setPageNumber] = useState(Math.max(1, Number(savedState?.page) || 1));
@@ -39240,7 +39222,7 @@ function LecturePdfViewer({
 
   useEffect(() => {
     let cancelled = false;
-    setLoadState("loading"); setRenderState("idle"); setNumPages(0); setPageMetrics([]); pdfRef.current = null;
+    setLoadState("loading"); setLoadError(""); setRenderState("idle"); setNumPages(0); setPageMetrics([]); pdfRef.current = null;
     loadLecturePdfJs().then((pdfjs) => {
       if (cancelled) return null;
       const loadingTask = pdfjs.getDocument({ url }); loadingTaskRef.current = loadingTask; return loadingTask.promise;
@@ -39251,24 +39233,25 @@ function LecturePdfViewer({
       const restoredPage = lecturePdfClamp(savedState?.page || pageNumber, 1, total);
       setNumPages(total); setPageNumber(restoredPage); setPageDraft(String(restoredPage)); setRenderPages(lecturePdfPageWindow(restoredPage, total, workspace ? 3 : 2));
       if (continuous) {
-        const metrics = new Array(total); const batchSize = 10;
-        for (let start = 1; start <= total && !cancelled; start += batchSize) {
-          const batch = [];
-          for (let pageIndex = start; pageIndex <= Math.min(total, start + batchSize - 1); pageIndex += 1) batch.push(pdf.getPage(pageIndex).then((page) => { const viewport = page.getViewport({ scale: 1 }); metrics[pageIndex - 1] = { width: viewport.width, height: viewport.height }; }));
-          await Promise.all(batch);
-        }
+        const metrics = await pdfMetrics73(pdf, () => cancelled);
         if (cancelled) return;
-        setPageMetrics(metrics.map((metric) => metric || { width: 595, height: 842 }));
+        setPageMetrics(metrics);
       }
       setLoadState("ready"); setPdfRevision((value) => value + 1);
-    }).catch(() => { if (!cancelled) setLoadState("fallback"); });
+    }).catch((error) => {
+      if (cancelled) return;
+      // Do not display exception messages: signed/private document URLs may be embedded.
+      const name = String(error?.name || "");
+      setLoadError(name === "PasswordException" ? "password" : name === "InvalidPDFException" ? "invalid" : name === "MissingPDFException" || error?.status === 404 ? "missing" : "unavailable");
+      setLoadState("fallback");
+    });
     return () => {
       cancelled = true; window.clearTimeout(scrollSaveTimerRef.current); if (scrollFrameRef.current) window.cancelAnimationFrame(scrollFrameRef.current);
       try { renderTaskRef.current?.cancel?.(); } catch {} renderTaskRef.current = null;
       try { loadingTaskRef.current?.destroy?.(); } catch {} loadingTaskRef.current = null;
       try { pdfRef.current?.destroy?.(); } catch {} pdfRef.current = null; pageRefs.current.clear();
     };
-  }, [url, materialId, continuous]);
+  }, [url, materialId, continuous, loadAttempt]);
 
   useEffect(() => {
     if (!workspace || !pdfRef.current || loadState !== "ready") return undefined;
@@ -39407,7 +39390,8 @@ function LecturePdfViewer({
   }
 
   function handleKeys(event) {
-    if (workspace && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") { event.preventDefault(); setSearchOpen(true); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); return; }
+    if (workspace && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") { event.preventDefault(); setSearchOpen(true); setThumbnailOpen(false); setReadingOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); return; }
+    if (event.key === "Escape" && (readingOpen || searchOpen || thumbnailOpen)) { event.preventDefault(); setReadingOpen(false); setSearchOpen(false); setThumbnailOpen(false); rootRef.current?.focus(); return; }
     if (event.target?.matches?.("input,textarea,select")) return;
     if (workspace && annotationViewMode === "annotations" && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey) { event.preventDefault(); undoAnnotation(); return; }
     if (workspace && annotationViewMode === "annotations" && ((event.ctrlKey || event.metaKey) && (event.key.toLowerCase() === "y" || (event.key.toLowerCase() === "z" && event.shiftKey)))) { event.preventDefault(); redoAnnotation(); return; }
@@ -39433,7 +39417,7 @@ function LecturePdfViewer({
     if (next === "original") setActiveTool("select");
   }
 
-  if (loadState === "fallback") return <div className="lecture-pdf-viewer lecture-pdf-viewer--fallback"><div className="lecture-pdf-fallback-note">{copy.pdfViewerFallback}</div><iframe title={fileName} src={url} /></div>;
+  if (loadState === "fallback") return <div className="lecture-pdf-viewer lecture-pdf-viewer--fallback"><div className="mf73-pdf-error" role="status"><div><strong>{language === "en" ? "The document could not be opened in the editor" : "Dokumentet kunne ikke åbnes i redigeringsvisningen"}</strong><p>{loadError === "password" ? (language === "en" ? "This PDF requires a password. Open it in your PDF application." : "Denne PDF kræver en adgangskode. Åbn den i dit PDF-program.") : loadError === "invalid" ? (language === "en" ? "The file is not a readable PDF." : "Filen kunne ikke læses som PDF.") : loadError === "missing" ? (language === "en" ? "The document link is no longer available. Reopen the material." : "Dokumentlinket er ikke længere tilgængeligt. Åbn materialet igen.") : (language === "en" ? "The reader or document could not be loaded. Check your connection and try again." : "Læseren eller dokumentet kunne ikke indlæses. Kontrollér forbindelsen og prøv igen.")}</p><p>{language === "en" ? "Saved annotations are preserved; editing resumes when the reader loads." : "Gemte markeringer bevares. Redigering bliver tilgængelig, når læseren er indlæst."}</p></div><button type="button" onClick={() => setLoadAttempt(value => value + 1)}>{language === "en" ? "Try again" : "Prøv igen"}</button></div><iframe title={fileName} src={url} /></div>;
 
   return (
     <div ref={rootRef} className={`lecture-pdf-viewer ${continuous ? "lecture-pdf-viewer--continuous" : ""} ${workspace ? "lecture-pdf-viewer--workspace" : ""}`} data-fullscreen={fullscreen ? "true" : "false"} data-view-mode={annotationViewMode} tabIndex={0} onKeyDown={handleKeys}>
@@ -39456,8 +39440,9 @@ function LecturePdfViewer({
           <button type="button" className="lecture-pdf-icon-control" data-active={zoomMode === "fit-width" ? "true" : "false"} title={copy.pdfFitWidth} disabled={loadState !== "ready"} onClick={() => setZoomMode("fit-width")}><Icon name="fit" size={14} /></button>
           {workspace && <>
             <span className="lecture-pdf-toolbar-divider" />
-            <button type="button" className="lecture-pdf-icon-control" data-active={thumbnailOpen ? "true" : "false"} title={labels.thumbnails} onClick={() => { setThumbnailOpen((value) => !value); setSearchOpen(false); }}><Icon name="thumbnails" size={14} /></button>
-            <button type="button" className="lecture-pdf-icon-control" data-active={searchOpen ? "true" : "false"} title={`${labels.search} · Ctrl/Cmd+F`} onClick={() => { setSearchOpen((value) => !value); setThumbnailOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); }}><Icon name="search" size={14} /></button>
+            <button type="button" className="lecture-pdf-icon-control" aria-label={language === "en" ? "Reading overview" : "Læseoverblik"} title={language === "en" ? "Reading overview" : "Læseoverblik"} aria-expanded={readingOpen} onClick={() => { setReadingOpen(value => !value); setThumbnailOpen(false); setSearchOpen(false); }}><Icon name="notebook" size={14} /></button>
+            <button type="button" className="lecture-pdf-icon-control" data-active={thumbnailOpen ? "true" : "false"} title={labels.thumbnails} onClick={() => { setThumbnailOpen((value) => !value); setSearchOpen(false); setReadingOpen(false); }}><Icon name="thumbnails" size={14} /></button>
+            <button type="button" className="lecture-pdf-icon-control" data-active={searchOpen ? "true" : "false"} title={`${labels.search} · Ctrl/Cmd+F`} onClick={() => { setSearchOpen((value) => !value); setThumbnailOpen(false); setReadingOpen(false); window.setTimeout(() => searchInputRef.current?.focus(), 0); }}><Icon name="search" size={14} /></button>
             <button type="button" className="lecture-pdf-icon-control" data-active={Boolean(currentBookmark) ? "true" : "false"} title={currentBookmark ? labels.bookmarked : labels.bookmark} onClick={toggleBookmark}><Icon name="bookmark" size={14} /></button>
             <button type="button" className="lecture-pdf-icon-control" title={copyState === "copied" ? labels.copied : copyState === "error" ? labels.pageTextUnavailable : labels.copyPage} onClick={copyCurrentPageText}><Icon name={copyState === "copied" ? "check" : "copy"} size={14} /></button>
             {onCreateImageCards && <button type="button" className="lecture-pdf-icon-control" title={language === "en" ? "Create image cards from this page" : "Opret billedkort fra denne side"} disabled={loadState !== "ready"} onClick={openImageOcclusion}><Icon name="cards" size={14} /></button>}
@@ -39478,6 +39463,7 @@ function LecturePdfViewer({
       </div>}
 
       <div className="lecture-pdf-workspace-body">
+        {workspace && readingOpen && !drawerOpen && <ReadingIndex73 annotations={annotations} language={language} onClose={() => setReadingOpen(false)} onSelect={(annotation) => { changeViewMode("annotations"); changePage(Number(annotation.page)); setReadingOpen(false); }} />}
         {drawerOpen && <aside className="lecture-pdf-side-rail lecture-pdf-side-rail--overlay" data-mode={searchOpen ? "search" : "thumbnails"}>
           <div className="lecture-pdf-drawer-title"><strong>{searchOpen ? labels.search : labels.thumbnails}</strong><button type="button" onClick={() => { setSearchOpen(false); setThumbnailOpen(false); }} title={copy.close}><Icon name="close" size={13} /></button></div>
           {searchOpen ? <>
@@ -39489,7 +39475,7 @@ function LecturePdfViewer({
           {loadState === "loading" ? <div className="lecture-pdf-state"><span className="lecture-pdf-spinner" /><strong>{copy.pdfLoading}</strong></div> : continuous ? <div className="lecture-pdf-pages">{pageMetrics.map((metric, index) => {
             const page = index + 1; const fitWidth = lecturePdfClamp(Math.max(260, (surfaceWidth || metric.width) - 40) / Math.max(1, metric.width), .35, 3.5); const fitPage = lecturePdfClamp(Math.min(fitWidth, Math.max(260, (surfaceHeight || metric.height) - 26) / Math.max(1, metric.height)), .35, 3.5); const scale = zoomMode === "fit-width" ? fitWidth : zoomMode === "fit-page" ? fitPage : lecturePdfClamp(customScale, .5, 3.5); const displayWidth = Math.max(1, Math.round(metric.width * scale)); const displayHeight = Math.max(1, Math.round(metric.height * scale));
             return <section key={page} ref={(node) => { if (node) pageRefs.current.set(page, node); else pageRefs.current.delete(page); }} className="lecture-pdf-continuous-page lecture-pdf-continuous-page--pro" data-pdf-page={page} data-current={page === pageNumber ? "true" : "false"} style={{ width: displayWidth, height: displayHeight }} aria-label={`${copy.pdfPage} ${page}`}>
-              <LecturePdfContinuousPage pdf={pdfRef.current} pageNumber={page} baseWidth={metric.width} baseHeight={metric.height} scale={scale} active={renderPages.has(page)} fileName={fileName} copy={copy} workspace={workspace} showAnnotations={showAnnotations} annotations={annotations.filter((annotation) => Number(annotation.page) === page)} searchBoxes={searchBoxesByPage.get(page) || []} activeTool={activeTool} activeColor={activeColor} labels={labels} onCreateAnnotation={(annotation) => createAnnotation({ ...annotation, color: annotation.color || activeColor })} onUpdateAnnotation={(next, previous) => updateAnnotation(next, previous)} onDeleteAnnotation={(annotation) => deleteAnnotation(annotation)} />
+              {metric.unavailable ? <div className="lecture-pdf-state" role="status">{language === "en" ? `Page ${page} could not be read. Reopen the document to try again.` : `Side ${page} kunne ikke læses. Åbn dokumentet igen for at prøve på ny.`}</div> : <LecturePdfContinuousPage pdf={pdfRef.current} pageNumber={page} baseWidth={metric.width} baseHeight={metric.height} scale={scale} active={renderPages.has(page)} fileName={fileName} copy={copy} workspace={workspace} showAnnotations={showAnnotations} annotations={annotations.filter((annotation) => Number(annotation.page) === page)} searchBoxes={searchBoxesByPage.get(page) || []} activeTool={activeTool} activeColor={activeColor} labels={labels} onCreateAnnotation={(annotation) => createAnnotation({ ...annotation, color: annotation.color || activeColor })} onUpdateAnnotation={(next, previous) => updateAnnotation(next, previous)} onDeleteAnnotation={(annotation) => deleteAnnotation(annotation)} />}
               <span className="lecture-pdf-page-number">{page}</span>
             </section>;
           })}</div> : <div className="lecture-pdf-page-stage" data-rendering={renderState === "rendering" ? "true" : "false"}><canvas ref={canvasRef} aria-label={`${fileName} · ${copy.pdfPage} ${pageNumber}`} />{renderState === "rendering" && <span className="lecture-pdf-page-loading"><span className="lecture-pdf-spinner" /></span>}{renderState === "error" && <span className="lecture-pdf-page-error"><Icon name="flag" size={18} /><strong>{copy.pdfRenderError}</strong></span>}</div>}
