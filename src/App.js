@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 import { CardEditor72, RichContent72, Assistant72, HelpCenter72, ExperienceStyles72, AreaTabs72, useReviewClock72, ActivityChart73, ReadingIndex73 } from "./Experience72";
 import { shouldWakeSync72, retryableLoader73, pdfMetrics73 } from "./experience72-model";
+import { SlideNotes74, useSlideJournal74 } from "./Reader74";
+import { pdfFailure74 } from "./reader74-model";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -38687,6 +38689,18 @@ const LECTURE_PDFJS_WORKER_URL = new URL("pdfjs-dist/legacy/build/pdf.worker.min
 const loadLecturePdfJs = retryableLoader73(async () => {
   const module = await import("pdfjs-dist/legacy/build/pdf.mjs");
   module.GlobalWorkerOptions.workerSrc = LECTURE_PDFJS_WORKER_URL;
+  // The packaged worker is fetched as text and given an explicit JavaScript MIME.
+  // PDF.js keeps ownership of each worker's handshake and destruction; no shared
+  // workerPort survives a document switch. This also validates failed asset loads.
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch(LECTURE_PDFJS_WORKER_URL, { signal: controller.signal });
+    if (!response.ok) throw new Error("PDF worker asset unavailable");
+    const source = await response.text();
+    if (!source.includes("WorkerMessageHandler") || /^\s*</.test(source)) throw new Error("PDF worker asset invalid");
+    module.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+  } finally { window.clearTimeout(timeout); }
   return module;
 });
 
@@ -38970,7 +38984,6 @@ function LecturePdfInkLayer({
   function saveEditedNote() {
     if (!editingNote?.annotation) return;
     const text = String(editingNote.text || "").trim();
-    if (!text) { onDelete?.(editingNote.annotation); setEditingNote(null); return; }
     onUpdate?.({ ...editingNote.annotation, payload: { ...(editingNote.annotation.payload || {}), text, normalized: true } }, editingNote.annotation);
     setEditingNote(null);
   }
@@ -39141,6 +39154,10 @@ function LecturePdfViewer({
   onDeleteAnnotation,
   onCreateImageCards = null,
   occlusionContext = null,
+  pageRequest = null,
+  onDocumentPosition = null,
+  onRetryAccess = null,
+  onRetryAnnotations = null,
 }) {
   const canvasRef = useRef(null);
   const surfaceRef = useRef(null);
@@ -39188,6 +39205,14 @@ function LecturePdfViewer({
   const [occlusionEditor, setOcclusionEditor] = useState(null);
 
   useEffect(() => { stateChangeRef.current = onStateChange; }, [onStateChange]);
+  const positionCallback74 = useRef(onDocumentPosition);
+  positionCallback74.current = onDocumentPosition;
+  useEffect(() => { positionCallback74.current?.({ materialId, page: pageNumber, numPages }); }, [materialId, pageNumber, numPages]);
+  useEffect(() => {
+    if (pageRequest?.materialId === materialId && loadState === "ready") changePage(pageRequest.page);
+  // A request is consumed once, after the reader is ready.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageRequest?.requestId, materialId, loadState]);
 
   useEffect(() => {
     const page = Math.max(1, Number(savedState?.page) || 1);
@@ -39223,8 +39248,10 @@ function LecturePdfViewer({
   useEffect(() => {
     let cancelled = false;
     setLoadState("loading"); setLoadError(""); setRenderState("idle"); setNumPages(0); setPageMetrics([]); pdfRef.current = null;
+    let stage74 = "runtime";
     loadLecturePdfJs().then((pdfjs) => {
       if (cancelled) return null;
+      stage74 = "document";
       const loadingTask = pdfjs.getDocument({ url }); loadingTaskRef.current = loadingTask; return loadingTask.promise;
     }).then(async (pdf) => {
       if (!pdf || cancelled) { pdf?.destroy?.(); return; }
@@ -39241,8 +39268,7 @@ function LecturePdfViewer({
     }).catch((error) => {
       if (cancelled) return;
       // Do not display exception messages: signed/private document URLs may be embedded.
-      const name = String(error?.name || "");
-      setLoadError(name === "PasswordException" ? "password" : name === "InvalidPDFException" ? "invalid" : name === "MissingPDFException" || error?.status === 404 ? "missing" : "unavailable");
+      setLoadError(pdfFailure74(error, stage74).code);
       setLoadState("fallback");
     });
     return () => {
@@ -39417,7 +39443,20 @@ function LecturePdfViewer({
     if (next === "original") setActiveTool("select");
   }
 
-  if (loadState === "fallback") return <div className="lecture-pdf-viewer lecture-pdf-viewer--fallback"><div className="mf73-pdf-error" role="status"><div><strong>{language === "en" ? "The document could not be opened in the editor" : "Dokumentet kunne ikke åbnes i redigeringsvisningen"}</strong><p>{loadError === "password" ? (language === "en" ? "This PDF requires a password. Open it in your PDF application." : "Denne PDF kræver en adgangskode. Åbn den i dit PDF-program.") : loadError === "invalid" ? (language === "en" ? "The file is not a readable PDF." : "Filen kunne ikke læses som PDF.") : loadError === "missing" ? (language === "en" ? "The document link is no longer available. Reopen the material." : "Dokumentlinket er ikke længere tilgængeligt. Åbn materialet igen.") : (language === "en" ? "The reader or document could not be loaded. Check your connection and try again." : "Læseren eller dokumentet kunne ikke indlæses. Kontrollér forbindelsen og prøv igen.")}</p><p>{language === "en" ? "Saved annotations are preserved; editing resumes when the reader loads." : "Gemte markeringer bevares. Redigering bliver tilgængelig, når læseren er indlæst."}</p></div><button type="button" onClick={() => setLoadAttempt(value => value + 1)}>{language === "en" ? "Try again" : "Prøv igen"}</button></div><iframe title={fileName} src={url} /></div>;
+  if (loadState === "fallback") return <div className="lecture-pdf-viewer lecture-pdf-viewer--fallback"><div className="mf73-pdf-error" role="status"><div>
+    <strong>{language === "en" ? "The document could not be opened in the editor" : "Dokumentet kunne ikke åbnes i redigeringsvisningen"}</strong>
+    <p>{({
+      runtime: language === "en" ? "The reader's program files could not load. Reload the app to get the latest version." : "Læserens programfiler kunne ikke indlæses. Genindlæs appen for at hente den seneste version.",
+      worker: language === "en" ? "The PDF background process could not start." : "PDF-læserens baggrundsproces kunne ikke starte.",
+      access: language === "en" ? "The document link has expired or access was denied. Try again to renew it." : "Dokumentlinket er udløbet, eller adgangen blev afvist. Prøv igen for at forny det.",
+      password: language === "en" ? "This PDF requires a password. Open it in your PDF application." : "Denne PDF kræver en adgangskode. Åbn den i dit PDF-program.",
+      invalid: language === "en" ? "The file is not a readable PDF." : "Filen kunne ikke læses som PDF.",
+      missing: language === "en" ? "The document could not be found." : "Dokumentet kunne ikke findes.",
+      network: language === "en" ? "The browser could not retrieve the PDF. Check the connection and document access." : "Browseren kunne ikke hente PDF-filen. Kontrollér forbindelsen og adgangen til dokumentet.",
+    })[loadError] || (language === "en" ? "The document could not be processed by the reader." : "Dokumentet kunne ikke behandles af læseren.")}</p>
+    <p>{language === "en" ? "Saved annotations are preserved. The system viewer below is a fallback." : "Gemte markeringer bevares. Systemets PDF-viser nedenfor er en reserve."}</p>
+    <small className="mf74-pdf-code">PDF-74 / {loadError || "document"}</small>
+    </div><div className="mf74-pdf-retry"><button type="button" onClick={() => { if (onRetryAccess) onRetryAccess(); else setLoadAttempt(value => value + 1); }}>{language === "en" ? "Try again" : "Prøv igen"}</button><button type="button" onClick={() => window.location.reload()}>{language === "en" ? "Reload app" : "Genindlæs app"}</button></div></div><iframe title={fileName} src={url} /></div>;
 
   return (
     <div ref={rootRef} className={`lecture-pdf-viewer ${continuous ? "lecture-pdf-viewer--continuous" : ""} ${workspace ? "lecture-pdf-viewer--workspace" : ""}`} data-fullscreen={fullscreen ? "true" : "false"} data-view-mode={annotationViewMode} tabIndex={0} onKeyDown={handleKeys}>
@@ -39463,7 +39502,7 @@ function LecturePdfViewer({
       </div>}
 
       <div className="lecture-pdf-workspace-body">
-        {workspace && readingOpen && !drawerOpen && <ReadingIndex73 annotations={annotations} language={language} onClose={() => setReadingOpen(false)} onSelect={(annotation) => { changeViewMode("annotations"); changePage(Number(annotation.page)); setReadingOpen(false); }} />}
+        {workspace && readingOpen && !drawerOpen && <SlideNotes74 annotations={annotations} materialId={materialId} fileName={fileName} page={pageNumber} numPages={numPages} status={annotationStatus} onSave={onUpdateAnnotation} onDelete={onDeleteAnnotation} onRetry={onRetryAnnotations} onPage={changePage} onClose={() => setReadingOpen(false)} language={language} />}
         {drawerOpen && <aside className="lecture-pdf-side-rail lecture-pdf-side-rail--overlay" data-mode={searchOpen ? "search" : "thumbnails"}>
           <div className="lecture-pdf-drawer-title"><strong>{searchOpen ? labels.search : labels.thumbnails}</strong><button type="button" onClick={() => { setSearchOpen(false); setThumbnailOpen(false); }} title={copy.close}><Icon name="close" size={13} /></button></div>
           {searchOpen ? <>
@@ -40574,8 +40613,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   const lectureCompactViewport = lectureViewport !== "desktop";
   const lecturePhoneViewport = lectureViewport === "phone";
   const [lectureMaterialsOpen, setLectureMaterialsOpen] = useState(false);
-  const [lecturePdfAnnotations, setLecturePdfAnnotations] = useState([]);
-  const lecturePdfAnnotationsRef = useRef([]);
+  const [slidePageRequest74, setSlidePageRequest74] = useState(null);
+  const [slideDocument74, setSlideDocument74] = useState({ materialId: null, page: 1, numPages: 0 });
   const [lecturePdfRemoteState, setLecturePdfRemoteState] = useState({});
   const [lecturePdfRemoteRevision, setLecturePdfRemoteRevision] = useState(0);
   const [lecturePdfWorkspaceStatus, setLecturePdfWorkspaceStatus] = useState("idle");
@@ -40603,6 +40642,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   const [lectureMaterials, setLectureMaterials] = useState([]);
   const [materialStatus, setMaterialStatus] = useState({ state: "idle", message: "" });
   const [materialPreviewUrl, setMaterialPreviewUrl] = useState("");
+  const [materialAccessAttempt74, setMaterialAccessAttempt74] = useState(0);
   const [materialPreviewState, setMaterialPreviewState] = useState("idle");
   const [lecturePptxPdfPreview, setLecturePptxPdfPreview] = useState({ materialId: null, cacheKey: "", state: "idle", url: "", error: "" });
   const [lecturePptxPdfRetryToken, setLecturePptxPdfRetryToken] = useState(0);
@@ -42061,10 +42101,24 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
       ? { ...selectedExamDocument, url: examSetPreviewUrl }
       : null;
 
+  const slideMaterialId74 = isLectureLibrary && lectureMaterialUsesPdfWorkspace(lectureMaterialPreviewKind(activeLectureMaterial)) ? activeLectureMaterial?.id : null;
+  const slideJournal74 = useSlideJournal74({
+    client: supabase, userId, materialId: slideMaterialId74, moduleName, lectureId: selectedLecture?.id || activeLectureMaterial?.lecture_id,
+    initial: workspaceState.lecturePdfAnnotationCache?.[userId || "anonymous"]?.[slideMaterialId74] || [],
+    onSnapshot: (rows) => setWorkspaceState(current => ({ ...current,
+      lecturePdfAnnotationCache: { ...(current.lecturePdfAnnotationCache || {}), [userId || "anonymous"]: { ...(current.lecturePdfAnnotationCache?.[userId || "anonymous"] || {}), [slideMaterialId74]: rows } },
+    })),
+  });
+  const lecturePdfAnnotations = slideJournal74.rows;
+  function requestSlidePage74(page) {
+    const next = Math.max(1, Math.floor(Number(page) || 1));
+    setSlideDocument74(current => ({ materialId: slideMaterialId74, numPages: current.materialId === slideMaterialId74 ? current.numPages : 0, page: next }));
+    setSlidePageRequest74({ materialId: slideMaterialId74, page: next, requestId: Date.now() });
+  }
+
   useEffect(() => {
     if (!isLectureLibrary || !activeLectureMaterial?.id || !lectureMaterialUsesPdfWorkspace(lectureMaterialPreviewKind(activeLectureMaterial))) {
       lecturePdfScopeRef.current = null;
-      setLecturePdfAnnotations([]);
       setLecturePdfRemoteState({});
       setLecturePdfWorkspaceStatus("idle");
       return undefined;
@@ -42076,10 +42130,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
     lecturePdfScopeRef.current = scope;
     const localUserKey = userId || "anonymous";
     const localState = workspaceState.lecturePdfUserCache?.[localUserKey]?.[materialId] || workspaceState.documentViewer?.[materialId] || {};
-    const localAnnotations = Array.isArray(workspaceState.lecturePdfAnnotationCache?.[localUserKey]?.[materialId]) ? workspaceState.lecturePdfAnnotationCache[localUserKey][materialId] : [];
     setLecturePdfRemoteState({ ...localState, materialId, remoteRevision: Date.now() });
-    lecturePdfAnnotationsRef.current = localAnnotations;
-    setLecturePdfAnnotations(localAnnotations);
 
     if (!userId) {
       setLecturePdfWorkspaceStatus("local");
@@ -42088,34 +42139,17 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
 
     let cancelled = false;
     setLecturePdfWorkspaceStatus("loading");
-    Promise.all([
-      supabase
-        .from("lecture_pdf_annotations")
-        .select("id,page_number,annotation_type,color,payload,created_at,updated_at")
-        .eq("user_id", userId)
-        .eq("material_id", materialId)
-        .order("created_at", { ascending: true }),
-      supabase
+    Promise.resolve(supabase
         .from("lecture_pdf_user_state")
         .select("page,page_offset,zoom_mode,scale,thumbnails_open,search_open,search_query,active_tool,active_color,view_mode,updated_at")
         .eq("user_id", userId)
         .eq("material_id", materialId)
-        .maybeSingle(),
-    ]).then(([annotationsResult, stateResult]) => {
-      if (cancelled || lecturePdfScopeRef.current?.materialId !== materialId) return;
-      if (annotationsResult.error || stateResult.error) {
+        .maybeSingle()).then((stateResult) => {
+      if (cancelled || lecturePdfScopeRef.current?.materialId !== materialId || lecturePdfScopeRef.current?.userId !== userId) return;
+      if (stateResult.error) {
         setLecturePdfWorkspaceStatus("local");
         return;
       }
-      const remoteAnnotations = (annotationsResult.data || []).map((row) => ({
-        id: row.id,
-        page: Number(row.page_number) || 1,
-        type: row.annotation_type,
-        color: row.color || "#f7d85c",
-        payload: row.payload && typeof row.payload === "object" ? row.payload : {},
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      }));
       const remote = stateResult.data ? {
         page: Number(stateResult.data.page) || 1,
         pageOffset: Number(stateResult.data.page_offset) || 0,
@@ -42128,17 +42162,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
         activeColor: stateResult.data.active_color || "#f7d85c",
         viewMode: stateResult.data.view_mode === "annotations" ? "annotations" : "original",
       } : {};
-      lecturePdfAnnotationsRef.current = remoteAnnotations;
-      setLecturePdfAnnotations(remoteAnnotations);
       setLecturePdfRemoteRevision((value) => value + 1);
       setLecturePdfRemoteState({ ...localState, ...remote, materialId, remoteRevision: Date.now() });
       setWorkspaceState((current) => ({
         ...current,
-        lecturePdfAnnotationCache: { ...(current.lecturePdfAnnotationCache || {}), [localUserKey]: { ...(current.lecturePdfAnnotationCache?.[localUserKey] || {}), [materialId]: remoteAnnotations } },
         lecturePdfUserCache: { ...(current.lecturePdfUserCache || {}), [localUserKey]: { ...(current.lecturePdfUserCache?.[localUserKey] || {}), [materialId]: { ...localState, ...remote, updatedAt: Date.now() } } },
       }));
       setLecturePdfWorkspaceStatus("ready");
-    });
+    }).catch(() => { if (!cancelled) setLecturePdfWorkspaceStatus("local"); });
 
     return () => { cancelled = true; };
   }, [isLectureLibrary, userId, moduleName, selectedLecture?.id, activeLectureMaterial?.id, activeLectureMaterial?.file_name, activeLectureMaterial?.mime_type]);
@@ -42230,9 +42261,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
         }
         setMaterialPreviewUrl(data.signedUrl);
         setMaterialPreviewState("ready");
-      });
+      }).catch(() => { if (!cancelled) setMaterialPreviewState("error"); });
     return () => { cancelled = true; };
-  }, [isLectureLibrary, activeLectureMaterial?.id, activeLectureMaterial?.storage_path, activeLectureMaterial?.updated_at]);
+  }, [isLectureLibrary, activeLectureMaterial?.id, activeLectureMaterial?.storage_path, activeLectureMaterial?.updated_at, materialAccessAttempt74]);
 
   useEffect(() => {
     const materialId = activeLectureMaterial?.id || null;
@@ -43823,74 +43854,14 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
     }, 720);
   }
 
-  function setLecturePdfAnnotationsForCurrentMaterial(nextAnnotations) {
-    const materialId = activeLectureMaterial?.id;
-    if (!materialId) return;
-    const localUserKey = userId || "anonymous";
-    const next = Array.isArray(nextAnnotations) ? nextAnnotations : [];
-    lecturePdfAnnotationsRef.current = next;
-    setLecturePdfAnnotations(next);
-    setWorkspaceState((current) => ({
-      ...current,
-      lecturePdfAnnotationCache: { ...(current.lecturePdfAnnotationCache || {}), [localUserKey]: { ...(current.lecturePdfAnnotationCache?.[localUserKey] || {}), [materialId]: next } },
-    }));
+  function createLecturePdfAnnotation(annotation) {
+    if (annotation?.id && slideMaterialId74) slideJournal74.put(annotation);
   }
-
-  async function createLecturePdfAnnotation(annotation) {
-    if (!annotation?.id || !activeLectureMaterial?.id || !selectedLecture?.id) return;
-    const materialId = activeLectureMaterial.id;
-    const next = { ...annotation, page: Math.max(1, Number(annotation.page) || 1), payload: { ...(annotation.payload || {}), normalized: true } };
-    setLecturePdfAnnotationsForCurrentMaterial([...lecturePdfAnnotationsRef.current.filter((item) => item.id !== next.id), next]);
-    if (!userId) { setLecturePdfWorkspaceStatus("local"); return; }
-    setLecturePdfWorkspaceStatus("saving");
-    const { error } = await supabase.from("lecture_pdf_annotations").upsert({
-      id: next.id,
-      user_id: userId,
-      module_name: moduleName,
-      lecture_id: selectedLecture.id,
-      material_id: materialId,
-      page_number: next.page,
-      annotation_type: next.type,
-      color: next.color || "#f7d85c",
-      payload: next.payload,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "id" });
-    if (lecturePdfScopeRef.current?.materialId !== materialId) return;
-    if (error) {
-      setLecturePdfAnnotationsForCurrentMaterial(lecturePdfAnnotationsRef.current.filter((item) => item.id !== next.id));
-      setLecturePdfWorkspaceStatus("local");
-    } else setLecturePdfWorkspaceStatus("ready");
+  function updateLecturePdfAnnotation(annotation, previous) {
+    if (annotation?.id && slideMaterialId74) slideJournal74.put(annotation, previous);
   }
-
-  async function updateLecturePdfAnnotation(next, previous = null) {
-    if (!next?.id || !activeLectureMaterial?.id) return;
-    const materialId = activeLectureMaterial.id;
-    const normalized = { ...next, page: Math.max(1, Number(next.page) || 1), payload: { ...(next.payload || {}), normalized: true } };
-    setLecturePdfAnnotationsForCurrentMaterial(lecturePdfAnnotationsRef.current.map((item) => item.id === normalized.id ? normalized : item));
-    if (!userId) { setLecturePdfWorkspaceStatus("local"); return; }
-    setLecturePdfWorkspaceStatus("saving");
-    const { error } = await supabase.from("lecture_pdf_annotations").update({
-      page_number: normalized.page,
-      annotation_type: normalized.type,
-      color: normalized.color || "#f7d85c",
-      payload: normalized.payload,
-      updated_at: new Date().toISOString(),
-    }).eq("id", normalized.id).eq("user_id", userId).eq("material_id", materialId);
-    if (lecturePdfScopeRef.current?.materialId !== materialId) return;
-    if (error && previous) setLecturePdfAnnotationsForCurrentMaterial(lecturePdfAnnotationsRef.current.map((item) => item.id === previous.id ? previous : item));
-    setLecturePdfWorkspaceStatus(error ? "local" : "ready");
-  }
-
-  async function deleteLecturePdfAnnotation(annotation) {
-    if (!annotation?.id || !activeLectureMaterial?.id) return;
-    const materialId = activeLectureMaterial.id;
-    setLecturePdfAnnotationsForCurrentMaterial(lecturePdfAnnotationsRef.current.filter((item) => item.id !== annotation.id));
-    if (!userId) { setLecturePdfWorkspaceStatus("local"); return; }
-    setLecturePdfWorkspaceStatus("saving");
-    const { error } = await supabase.from("lecture_pdf_annotations").delete().eq("id", annotation.id).eq("user_id", userId).eq("material_id", materialId);
-    if (lecturePdfScopeRef.current?.materialId !== materialId) return;
-    if (error) setLecturePdfAnnotationsForCurrentMaterial([...lecturePdfAnnotationsRef.current.filter((item) => item.id !== annotation.id), annotation]);
-    setLecturePdfWorkspaceStatus(error ? "local" : "ready");
+  function deleteLecturePdfAnnotation(annotation) {
+    if (annotation?.id && slideMaterialId74) slideJournal74.remove(annotation);
   }
 
   function updateLectureViewerState(materialId, patch) {
@@ -45455,7 +45426,11 @@ async function openExamSetPdfEditor() {
                     workspace={true}
                     language={language}
                     annotations={lecturePdfAnnotations}
-                    annotationStatus={lecturePdfWorkspaceStatus}
+                    annotationStatus={slideJournal74.status}
+                    pageRequest={slidePageRequest74}
+                    onDocumentPosition={setSlideDocument74}
+                    onRetryAccess={() => setMaterialAccessAttempt74(n => n + 1)}
+                    onRetryAnnotations={slideJournal74.retry}
                     onCreateAnnotation={createLecturePdfAnnotation}
                     onUpdateAnnotation={updateLecturePdfAnnotation}
                     onDeleteAnnotation={deleteLecturePdfAnnotation}
@@ -45479,7 +45454,10 @@ async function openExamSetPdfEditor() {
                       workspace={true}
                       language={language}
                       annotations={lecturePdfAnnotations}
-                      annotationStatus={lecturePdfWorkspaceStatus}
+                      annotationStatus={slideJournal74.status}
+                      pageRequest={slidePageRequest74}
+                      onDocumentPosition={setSlideDocument74}
+                      onRetryAnnotations={slideJournal74.retry}
                       onCreateAnnotation={createLecturePdfAnnotation}
                       onUpdateAnnotation={updateLecturePdfAnnotation}
                       onDeleteAnnotation={deleteLecturePdfAnnotation}
@@ -45682,6 +45660,19 @@ examSetMode === "history" ? (
                 {lectureNoteLoadState === "loading" ? (
                   <div className="lecture-note-loading"><span className="lecture-pdf-spinner" /><strong>{copy.noteLoading}</strong></div>
                 ) : lectureNoteDraft.viewMode === "structured" ? (
+                  <>
+                  {slideMaterialId74 && <SlideNotes74
+                    key={slideMaterialId74} annotations={lecturePdfAnnotations} materialId={slideMaterialId74}
+                    fileName={activeLectureMaterial?.file_name || "PDF"}
+                    page={slideDocument74.materialId === slideMaterialId74 ? slideDocument74.page : 1}
+                    numPages={slideDocument74.materialId === slideMaterialId74 ? slideDocument74.numPages : 0}
+                    status={slideJournal74.status} language={language}
+                    onSave={updateLecturePdfAnnotation} onDelete={deleteLecturePdfAnnotation}
+                    onPage={requestSlidePage74} onRetry={slideJournal74.retry}
+                  />}
+                  {slideMaterialId74 && <p className="mf74-private-hint">{language === "en" ? "Slide notes are private. General lecture notes are kept separately below." : "Slidenoter er private. Dine generelle forelæsningsnoter er bevaret nedenfor."}</p>}
+                  <details className="mf74-general" open={!slideMaterialId74}>
+                  <summary>{language === "en" ? "General lecture notes" : "Generelle forelæsningsnoter"}</summary>
                   <div className="lecture-note-structured">
                     <section className="lecture-note-section">
                       <header><span><Icon name="check" size={11} /></span><strong>{copy.noteKeyPoints}</strong></header>
@@ -45696,6 +45687,8 @@ examSetMode === "history" ? (
                       <textarea value={lectureNoteDraft.openQuestions} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ openQuestions: event.target.value })} placeholder={copy.noteOpenQuestionsPlaceholder} />
                     </section>
                   </div>
+                  </details>
+                  </>
                 ) : (
                   <div className="lecture-note-free"><textarea value={lectureNoteDraft.freeText} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ freeText: event.target.value })} placeholder={copy.notesPlaceholder} /></div>
                 )}
