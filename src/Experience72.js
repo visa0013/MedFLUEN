@@ -61,10 +61,19 @@ export function RichContent72({ html, text, cloze=false, revealed=false }) {
 
 export function AreaTabs72({area,activeTab,onSelect,language,Icon}) {
   const en=language==='en';
+  const nav=useRef(null),[indicator,setIndicator]=useState(null);
+  const normalized=activeTab==='training-exam-history'?'training-exams':['training-review','training-history'].includes(activeTab)?'training-start':activeTab;
+  useEffect(()=>{
+    let active=true;
+    function measure(){const target=nav.current?.querySelector('[data-active="true"]');if(active)setIndicator(target?{left:target.offsetLeft,top:target.offsetTop,width:target.offsetWidth,height:target.offsetHeight}:null);}
+    measure();const observer=typeof ResizeObserver==='function'?new ResizeObserver(measure):null;
+    if(nav.current)observer?.observe(nav.current);
+    window.addEventListener('resize',measure);document.fonts?.ready.then(()=>{if(active)measure();});
+    return()=>{active=false;observer?.disconnect();window.removeEventListener('resize',measure);};
+  },[area,normalized,language]);
   const tabs=area==='training' ? [['training-start',en?'Flashcards':'Flashkort','training','training-history'],['training-exams',en?'Exam sets':'Eksamenssæt','file','training-exam-history']] : area==='curriculum' ? [['curriculum-lectures',en?'Lectures':'Forelæsninger','curriculum'],['curriculum-notes',en?'Notes':'Noter','notebook']] : area==='planning' ? [['planning-calendar',en?'Calendar':'Kalender','calendar'],['planning-study-plan',en?'Study plan':'Studieplan','planning']] : [];
   if(!tabs.length) return null;
-  const normalized=['training-review','training-history'].includes(activeTab)?'training-start':activeTab;
-  return <nav className="medfluen-area-tabs mf72-tabs" aria-label={en?'Workspace navigation':'Områdenavigation'}>{tabs.map(([id,label,icon,history])=><div className="mf72-tab-pair" key={id} data-active={id===normalized}><button type="button" aria-current={id===normalized?'page':undefined} onClick={()=>onSelect(id)}><Icon name={icon} size={16}/>{label}</button>{history && <button type="button" className="mf72-history" aria-label={`${label} · ${en?'History':'Historik'}`} title={`${label} · ${en?'History':'Historik'}`} onClick={()=>onSelect(history)}><Icon name="clock" size={15}/></button>}</div>)}</nav>;
+  return <nav ref={nav} className="medfluen-area-tabs mf72-tabs mf75-fluid-tabs" aria-label={en?'Workspace navigation':'Områdenavigation'}>{indicator&&<span data-fluid-indicator75 className="mf75-fluid-indicator" aria-hidden="true" style={{width:indicator.width,height:indicator.height,transform:`translate(${indicator.left}px,${indicator.top}px)`}}/>}{tabs.map(([id,label,icon,history])=><div className="mf72-tab-pair" key={id} data-active={id===normalized}><button type="button" aria-current={id===normalized?'page':undefined} onClick={()=>onSelect(id)}><Icon name={icon} size={16}/>{label}</button>{history && <button type="button" className="mf72-history" aria-label={`${label} · ${en?'History':'Historik'}`} title={`${label} · ${en?'History':'Historik'}`} onClick={()=>onSelect(history)}><Icon name="clock" size={15}/></button>}</div>)}</nav>;
 }
 
 async function imageFile72(file) {
@@ -78,7 +87,7 @@ async function imageFile72(file) {
   return canvas.toDataURL('image/jpeg',.88);
 }
 
-function RichEditor72({id,label,html,onChange,cloze}) {
+function RichEditor72({id,label,html,onChange,cloze,disabled=false}) {
   const editor=useRef(null), selection=useRef(null), file=useRef(null);
   const [source,setSource]=useState(false),[error,setError]=useState('');
   useEffect(()=>{if(editor.current) editor.current.innerHTML=sanitizeRich72(html);},[id,source]); // DOM owns selection and undo, not each React render.
@@ -99,58 +108,104 @@ function RichEditor72({id,label,html,onChange,cloze}) {
       {cloze&&<button type="button" title="Skjul markeret tekst" onClick={()=>{restore();const text=window.getSelection()?.toString();if(text)command('insertText',`{{c1::${text}}}`);}}>[…]</button>}
     </div>}
     <input ref={file} hidden type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={e=>{addImage(e.target.files[0]);e.target.value='';}}/>
-    {source?<textarea className="mf72-source" aria-labelledby={`${id}-label`} value={html} onChange={e=>onChange(e.target.value)}/>:<div ref={editor} role="textbox" aria-multiline="true" aria-labelledby={`${id}-label`} contentEditable suppressContentEditableWarning className="mf72-rich mf72-editable" onInput={emit} onKeyUp={remember} onMouseUp={remember} onBlur={remember} onPaste={e=>{e.preventDefault();const image=[...e.clipboardData.files].find(f=>f.type.startsWith('image/'));if(image){addImage(image);return;}const h=e.clipboardData.getData('text/html');command('insertHTML',h?sanitizeRich72(h):textHtml72(e.clipboardData.getData('text/plain')));}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();if(e.dataTransfer.files[0])addImage(e.dataTransfer.files[0]);}}/>}
+    {source?<textarea className="mf72-source" aria-labelledby={`${id}-label`} value={html} onChange={e=>onChange(e.target.value)}/>:<div ref={editor} role="textbox" aria-multiline="true" aria-labelledby={`${id}-label`} contentEditable={!disabled} aria-readonly={disabled} suppressContentEditableWarning className="mf72-rich mf72-editable" onInput={emit} onKeyUp={remember} onMouseUp={remember} onBlur={remember} onPaste={e=>{e.preventDefault();const image=[...e.clipboardData.files].find(f=>f.type.startsWith('image/'));if(image){addImage(image);return;}const h=e.clipboardData.getData('text/html');command('insertHTML',h?sanitizeRich72(h):textHtml72(e.clipboardData.getData('text/plain')));}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();if(e.dataTransfer.files[0])addImage(e.dataTransfer.files[0]);}}/>}
     {error&&<p className="mf72-error" role="alert">{error}</p>}
   </section>;
 }
 
-function MaskEditor72({value,onChange}) {
+function MaskEditor72({value,onChange,disabled=false}) {
   const surface=useRef(null),gesture=useRef(null),input=useRef(null);const [selected,setSelected]=useState(null),[error,setError]=useState('');
   const data=value||{}, masks=data.masks||[];
   const point=e=>{const r=surface.current.getBoundingClientRect();return {x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};};
-  function commit(next){const ids=new Set(next.map(m=>m.id));onChange({...data,masks:next,hiddenMaskIds:data.mode==='one'?[ids.has(data.hiddenMaskIds?.[0])?data.hiddenMaskIds[0]:next[0]?.id].filter(Boolean):next.map(m=>m.id)});}
-  function down(e){if(e.button!==0)return;e.preventDefault();surface.current.focus();surface.current.setPointerCapture(e.pointerId);const p=point(e);const id=e.target.closest('[data-mask]')?.dataset.mask;const mask=masks.find(m=>m.id===id);setSelected(id||null);gesture.current={p,id,mask,resize:e.target.dataset.resize==='true',original:masks};if(!mask){const newMask={id:`mask-${Date.now()}`,x:p.x,y:p.y,width:0,height:0};gesture.current.id=newMask.id;gesture.current.draw=true;setSelected(newMask.id);commit([...masks,newMask]);}}
-  function move(e){const g=gesture.current;if(!g)return;const p=point(e);let next;
+  function commit(next){if(disabled)return;const ids=new Set(next.map(m=>m.id));onChange({...data,masks:next,hiddenMaskIds:data.mode==='one'?[ids.has(data.hiddenMaskIds?.[0])?data.hiddenMaskIds[0]:next[0]?.id].filter(Boolean):next.map(m=>m.id)});}
+  function down(e){if(disabled||e.button!==0)return;e.preventDefault();surface.current.focus();surface.current.setPointerCapture(e.pointerId);const p=point(e);const id=e.target.closest('[data-mask]')?.dataset.mask;const mask=masks.find(m=>m.id===id);setSelected(id||null);gesture.current={p,id,mask,resize:e.target.dataset.resize==='true',original:masks};if(!mask){const newMask={id:`mask-${Date.now()}`,x:p.x,y:p.y,width:0,height:0};gesture.current.id=newMask.id;gesture.current.draw=true;setSelected(newMask.id);commit([...masks,newMask]);}}
+  function move(e){if(disabled)return;const g=gesture.current;if(!g)return;const p=point(e);let next;
     if(g.draw)next={id:g.id,x:Math.min(g.p.x,p.x),y:Math.min(g.p.y,p.y),width:Math.abs(g.p.x-p.x),height:Math.abs(g.p.y-p.y)};
     else if(g.resize) next={...g.mask,width:Math.max(.01,Math.min(1-g.mask.x,p.x-g.mask.x)),height:Math.max(.01,Math.min(1-g.mask.y,p.y-g.mask.y))};
     else next={...g.mask,x:Math.max(0,Math.min(1-g.mask.width,g.mask.x+p.x-g.p.x)),y:Math.max(0,Math.min(1-g.mask.height,g.mask.y+p.y-g.p.y))};
     commit([...(g.draw?g.original:g.original.filter(m=>m.id!==g.id)),next]);
   }
-  function end(){gesture.current=null;commit(validMasks72(masks));}
+  function end(){if(disabled){gesture.current=null;return;}gesture.current=null;commit(validMasks72(masks));}
   async function upload(f){try{setError('');const imageDataUrl=await imageFile72(f);onChange({imageDataUrl,masks:[],hiddenMaskIds:[],mode:'all',sourceName:f.name});setSelected(null);}catch(e){setError(e.message);}}
   return <section className="mf72-mask-editor"><div className="mf72-row"><button type="button" onClick={()=>input.current.click()}>{data.imageDataUrl?'Skift billede':'Vælg billede'}</button><button type="button" disabled={!selected} onClick={()=>{commit(masks.filter(m=>m.id!==selected));setSelected(null);}}>Slet markering</button><select aria-label="Skjul markeringer" value={data.mode||'all'} onChange={e=>onChange({...data,mode:e.target.value,hiddenMaskIds:e.target.value==='all'?masks.map(m=>m.id):[selected||masks[0]?.id].filter(Boolean)})}><option value="all">Skjul alle</option><option value="one">Skjul én</option></select>{data.mode==='one'&&<select aria-label="Aktiv markering" value={data.hiddenMaskIds?.[0]||''} onChange={e=>onChange({...data,hiddenMaskIds:[e.target.value]})}>{masks.map((m,i)=><option value={m.id} key={m.id}>Markering {i+1}</option>)}</select>}</div>
     <input ref={input} hidden type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={e=>{upload(e.target.files[0]);e.target.value='';}}/>
     <p className="mf72-muted">Træk for at skjule et område. Flyt en markering, eller træk i dens hjørne for at ændre størrelse.</p>
-    {data.imageDataUrl&&<div ref={surface} className="mf72-mask-surface" tabIndex={0} role="group" aria-label="Billedmarkeringer" onPointerDown={down} onPointerMove={move} onPointerUp={end} onPointerCancel={end} onKeyDown={e=>{if(['Delete','Backspace'].includes(e.key)&&selected){e.preventDefault();commit(masks.filter(m=>m.id!==selected));}}}><img src={data.imageDataUrl} alt="Billede til maskering" draggable="false"/>{masks.map((m,i)=><div key={m.id} data-mask={m.id} data-selected={selected===m.id} className="mf72-mask" style={{left:`${m.x*100}%`,top:`${m.y*100}%`,width:`${m.width*100}%`,height:`${m.height*100}%`}}><span>{i+1}</span><i data-resize="true"/></div>)}</div>}
+    {data.imageDataUrl&&<div ref={surface} className="mf72-mask-surface" tabIndex={0} role="group" aria-disabled={disabled} aria-label="Billedmarkeringer" onPointerDown={down} onPointerMove={move} onPointerUp={end} onPointerCancel={end} onKeyDown={e=>{if(disabled)return;if(['Delete','Backspace'].includes(e.key)&&selected){e.preventDefault();commit(masks.filter(m=>m.id!==selected));}}}><img src={data.imageDataUrl} alt="Billede til maskering" draggable="false"/>{masks.map((m,i)=><div key={m.id} data-mask={m.id} data-selected={selected===m.id} className="mf72-mask" style={{left:`${m.x*100}%`,top:`${m.y*100}%`,width:`${m.width*100}%`,height:`${m.height*100}%`}}><span>{i+1}</span><i data-resize="true"/></div>)}</div>}
     {error&&<p className="mf72-error">{error}</p>}
   </section>;
 }
 
-export function CardEditor72({language='da',question=null,context={},lectures=[],onSave,onCancel,createMode=false,makeDraft,validate}) {
-  const [draft,setDraft]=useState(()=>makeDraft(question,context,language)),[initial,setInitial]=useState(()=>makeDraft(question,context,language)),[errors,setErrors]=useState({}),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[preview,setPreview]=useState(false),[reveal,setReveal]=useState(false),[generation,setGeneration]=useState(0);
-  const lock=useRef(false),root=useRef(null);
+export function CardEditor72({language='da',question=null,context={},lectures=[],onSave,onCancel,createMode=false,makeDraft,validate,onLastEditChange}) {
+  const [draft,setDraft]=useState(()=>makeDraft(question,context,language)),[initial,setInitial]=useState(()=>draft),[errors,setErrors]=useState({}),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[preview,setPreview]=useState(false),[reveal,setReveal]=useState(false),[generation,setGeneration]=useState(0);
+  const lock=useRef(false),root=useRef(null),pendingDraft=useRef(null);
+  const [pins,setPins]=useState({category:false,tags:false}),[lastAdded,setLastAdded]=useState(null),[editingLast,setEditingLast]=useState(false);
+  const adding=createMode&&!editingLast;
+  useEffect(()=>{onLastEditChange?.(editingLast);return()=>onLastEditChange?.(false);},[editingLast,onLastEditChange]);
   const text=v=>typeof v==='string'?v:(v?.[language]??v?.da??v?.en??'');
   const local=(v,value)=>({...((v&&typeof v==='object')?v:{}),[language]:value});
   const dirty=JSON.stringify(draft)!==JSON.stringify(initial);
-  useEffect(()=>{const d=makeDraft(question,context,language);setDraft(d);setInitial(d);setErrors({});setGeneration(v=>v+1);},[question?.id,context.moduleId,context.lectureId,language]);
+  useEffect(()=>{const d=makeDraft(question,context,language);setDraft(d);setInitial(d);setErrors({});setLastAdded(null);setEditingLast(false);pendingDraft.current=null;setGeneration(v=>v+1);},[question?.id,context.moduleId,context.lectureId,language]);
+  useEffect(()=>{root.current?.querySelector('[role="textbox"]')?.focus();},[generation]);
   useEffect(()=>{const warn=e=>{if(dirty){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[dirty]);
-  function close(){if(!busy&&(!dirty||window.confirm('Du har ændringer, som ikke er gemt. Luk uden at gemme?')))onCancel?.();}
-  function rich(field,html){setDraft(d=>({...d,[field]:local(d[field],richText72(html)),richContent:{...d.richContent,[field]:{...d.richContent?.[field],[language]:html}}}));}
+  function returnToDraft(){
+    const pending=pendingDraft.current;if(!pending)return;
+    setDraft(pending.draft);setInitial(pending.initial);pendingDraft.current=null;setEditingLast(false);setErrors({});setReveal(false);setGeneration(v=>v+1);
+  }
+  function close(){if(busy||lock.current)return;if(dirty&&!window.confirm('Du har ændringer, som ikke er gemt. Luk uden at gemme?'))return;if(editingLast)returnToDraft();else onCancel?.();}
+  function reopenLast(){
+    if(!lastAdded||lock.current||editingLast)return;
+    pendingDraft.current={draft,initial};setDraft(lastAdded);setInitial(lastAdded);setEditingLast(true);setErrors({});setNotice('');setReveal(false);setGeneration(v=>v+1);
+  }
+  function rich(field,html){if(lock.current)return;setDraft(d=>({...d,[field]:local(d[field],richText72(html)),richContent:{...d.richContent,[field]:{...d.richContent?.[field],[language]:html}}}));}
   const fieldHtml=field=>draft.richContent?.[field]?.[language]??textHtml72(text(draft[field]));
-  async function save(createNext=false){if(lock.current)return;const content={};Object.entries(draft.richContent||{}).forEach(([f,langs])=>{content[f]=Object.fromEntries(Object.entries(langs).map(([lang,h])=>[lang,sanitizeRich72(h)]));});const record={...draft,richContent:content,updatedAt:new Date().toISOString()};const result=validate(record,language);if(record.cardType==='image-occlusion'&&(!record.imageOcclusion?.imageDataUrl||!validMasks72(record.imageOcclusion.masks).length))result.errors.imageOcclusion='Vælg et billede og tegn mindst én markering.';setErrors(result.errors);if(Object.keys(result.errors).length){root.current?.querySelector('[role="textbox"]')?.focus();return;}lock.current=true;setBusy(true);try{if(!onSave)throw Error('Gem er ikke tilsluttet.');const saved=await onSave(record,{createNext});if(saved?.ok===false)throw Error(saved.error||'Kortet kunne ikke gemmes.');setDraft(record);setInitial(record);if(createNext){const next=makeDraft(null,{...context,lectureId:record.lectureId},language);next.cardType=record.cardType==='image-occlusion'?'basic':record.cardType;setDraft(next);setInitial(next);setGeneration(v=>v+1);setNotice('Kortet er gemt. Klar til det næste.');}}catch(e){setErrors({save:e.message});}finally{lock.current=false;setBusy(false);}}
+  async function save(createNext=false) {
+    if(lock.current)return;
+    const content={};
+    Object.entries(draft.richContent||{}).forEach(([f,langs])=>{
+      content[f]=Object.fromEntries(Object.entries(langs).map(([lang,h])=>[lang,sanitizeRich72(h)]));
+    });
+    const record={...draft,richContent:content,updatedAt:new Date().toISOString()};
+    const result=validate(record,language);
+    if(record.cardType==='image-occlusion'&&(!record.imageOcclusion?.imageDataUrl||!validMasks72(record.imageOcclusion.masks).length))result.errors.imageOcclusion='Vælg et billede og tegn mindst én markering.';
+    setErrors(result.errors);
+    if(Object.keys(result.errors).length){root.current?.querySelector('[role="textbox"]')?.focus();return;}
+    lock.current=true;setBusy(true);
+    try {
+      if(!onSave)throw Error('Gem er ikke tilsluttet.');
+      const saved=await onSave(record,{createNext,keepOpen:editingLast,preservePlacement:editingLast,contentChanged:adding||dirty});
+      if(saved?.ok===false)throw Error(saved.error||'Kortet kunne ikke gemmes.');
+      setDraft(record);setInitial(record);
+      if(editingLast){setLastAdded(record);returnToDraft();setNotice('Rettelsen er gemt. Din næste kladde er bevaret.');}
+      else if(createNext){
+        setLastAdded(record);
+        const next=makeDraft(null,{...context,lectureId:record.lectureId},language);
+        next.cardType=record.cardType;
+        if(pins.category)next.category=record.category;
+        if(pins.tags)next.tags=[...record.tags];
+        next.imageOcclusion=undefined;
+        setDraft(next);setInitial(next);setReveal(false);setGeneration(v=>v+1);
+        setNotice('Kortet er tilføjet. Klar til det næste.');
+      }
+    }catch(e){setErrors({save:e.message});}finally{lock.current=false;setBusy(false);}
+  }
   const front=text(draft.front).replace(/\{\{c\d+::(.*?)(?:::[^}]*)?\}\}/g,(_,a)=>reveal?a:'[…]');
-  return <section ref={root} className="mf72 mf72-editor" data-flashcard-editor71="true" aria-label={createMode?'Nyt kort':'Redigér kort'} onKeyDown={e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();save();}if(e.key==='Escape')close();}}>
-    <header className="mf72-editor-head"><div><small>DIT LÆRINGSRUM</small><h2>{createMode?'Nyt kort':'Redigér kort'}</h2></div><div className="mf72-row"><button type="button" aria-pressed={preview} onClick={()=>setPreview(!preview)}>Forhåndsvisning</button><button type="button" aria-label="Luk editor" onClick={close}>×</button></div></header>
+  return <section ref={root} className="mf72 mf72-editor" data-flashcard-editor71="true" aria-label={adding?'Nyt kort':'Redigér kort'} onKeyDown={e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();if(!e.repeat&&!e.nativeEvent?.isComposing)save(adding);}if(e.key==='Escape')close();}}>
+    <header className="mf72-editor-head"><div><small>DIT LÆRINGSRUM</small><h2>{adding?'Nyt kort':'Redigér kort'}</h2></div><div className="mf72-row"><button type="button" aria-pressed={preview} onClick={()=>setPreview(!preview)}>Forhåndsvisning</button><button type="button" aria-label="Luk editor" onClick={close}>×</button></div></header>
+    <fieldset className="mf75-editor-controls" disabled={busy}>
     <div className="mf72-editor-meta"><label>Korttype<select value={draft.cardType} onChange={e=>setDraft({...draft,cardType:e.target.value})}><option value="basic">Forside / bagside</option><option value="cloze">Cloze · udfyld det skjulte</option><option value="image-occlusion">Billedkort · maskering</option><option value="mcq">Multiple choice</option></select></label><label>Forelæsning<select value={draft.lectureId||''} onChange={e=>setDraft({...draft,lectureId:e.target.value||null})}><option value="">Uden forelæsning</option>{lectures.map(l=><option key={l.id} value={l.id}>{l.id} · {text(l.title)||l.title}</option>)}</select></label></div>
     <div className={`mf72-editor-body ${preview?'with-preview':''}`}><div className="mf72-fields">
-      {draft.cardType==='image-occlusion'&&<MaskEditor72 value={draft.imageOcclusion} onChange={imageOcclusion=>setDraft(d=>({...d,imageOcclusion}))}/>}
-      <RichEditor72 key={`front-${generation}`} id={`front-${generation}`} label="Forside" cloze={draft.cardType==='cloze'} html={fieldHtml('front')} onChange={h=>rich('front',h)}/>
+      {draft.cardType==='image-occlusion'&&<MaskEditor72 disabled={busy} value={draft.imageOcclusion} onChange={imageOcclusion=>{if(!lock.current)setDraft(d=>({...d,imageOcclusion}));}}/>}
+      <RichEditor72 disabled={busy} key={`front-${generation}`} id={`front-${generation}`} label="Forside" cloze={draft.cardType==='cloze'} html={fieldHtml('front')} onChange={h=>rich('front',h)}/>
       {draft.cardType==='cloze'&&<p className="mf72-muted">Markér et ord og tryk […]. Syntaks: {'{{c1::svar}}'}. Alle skjulte felter vises samlet på dette kort.</p>}
-      {draft.cardType==='mcq'?<><div className="mf72-options">{draft.options.map((o,i)=><label key={i}><input type="radio" name="correct72" aria-label={`Svar ${i+1} er korrekt`} checked={draft.correct===i} onChange={()=>setDraft({...draft,correct:i})}/><input aria-label={`Svar ${i+1}`} value={text(o)} onChange={e=>setDraft({...draft,options:draft.options.map((x,j)=>i===j?local(x,e.target.value):x)})}/><button type="button" disabled={draft.options.length<=2} aria-label={`Fjern svar ${i+1}`} onClick={()=>setDraft({...draft,correct:Math.max(0,draft.correct-(i<=draft.correct?1:0)),options:draft.options.filter((_,j)=>j!==i)})}>×</button></label>)}</div><button type="button" onClick={()=>setDraft({...draft,options:[...draft.options,{[language]:''}]})}>+ Svarmulighed</button><RichEditor72 key={`explanation-${generation}`} id={`explanation-${generation}`} label="Forklaring" html={fieldHtml('explanation')} onChange={h=>rich('explanation',h)}/></>:<RichEditor72 key={`back-${generation}`} id={`back-${generation}`} label="Bagside" html={fieldHtml('back')} onChange={h=>rich('back',h)}/>}
-      <div className="mf72-editor-meta"><label>Emne<input value={text(draft.category)} onChange={e=>setDraft({...draft,category:local(draft.category,e.target.value)})}/></label><label>Tags · adskil med komma<input value={draft.tags.join(', ')} onChange={e=>setDraft({...draft,tags:e.target.value.split(',').map(t=>t.trim())})}/></label></div>
+      {draft.cardType==='mcq'?<><div className="mf72-options">{draft.options.map((o,i)=><label key={i}><input type="radio" name="correct72" aria-label={`Svar ${i+1} er korrekt`} checked={draft.correct===i} onChange={()=>setDraft({...draft,correct:i})}/><input aria-label={`Svar ${i+1}`} value={text(o)} onChange={e=>setDraft({...draft,options:draft.options.map((x,j)=>i===j?local(x,e.target.value):x)})}/><button type="button" disabled={draft.options.length<=2} aria-label={`Fjern svar ${i+1}`} onClick={()=>setDraft({...draft,correct:Math.max(0,draft.correct-(i<=draft.correct?1:0)),options:draft.options.filter((_,j)=>j!==i)})}>×</button></label>)}</div><button type="button" onClick={()=>setDraft({...draft,options:[...draft.options,{[language]:''}]})}>+ Svarmulighed</button><RichEditor72 disabled={busy} key={`explanation-${generation}`} id={`explanation-${generation}`} label="Forklaring" html={fieldHtml('explanation')} onChange={h=>rich('explanation',h)}/></>:<RichEditor72 disabled={busy} key={`back-${generation}`} id={`back-${generation}`} label="Bagside" html={fieldHtml('back')} onChange={h=>rich('back',h)}/>}
+      <details className="mf75-editor-advanced"><summary>Emne og tags</summary><div className="mf72-editor-meta">
+        <div><label>Emne<input aria-label="Emne" value={text(draft.category)} onChange={e=>setDraft({...draft,category:local(draft.category,e.target.value)})}/></label>{adding&&<button type="button" className="mf75-editor-pin" aria-label="Fasthold emne" aria-pressed={pins.category} onClick={()=>setPins(p=>({...p,category:!p.category}))}>Fasthold til næste</button>}</div>
+        <div><label>Tags · adskil med komma<input aria-label="Tags" value={draft.tags.join(', ')} onChange={e=>setDraft({...draft,tags:e.target.value.split(',').map(t=>t.trim())})}/></label>{adding&&<button type="button" className="mf75-editor-pin" aria-label="Fasthold tags" aria-pressed={pins.tags} onClick={()=>setPins(p=>({...p,tags:!p.tags}))}>Fasthold til næste</button>}</div>
+      </div></details>
     </div>{preview&&<aside className="mf72-preview"><small>FORHÅNDSVISNING</small>{draft.imageOcclusion?.imageDataUrl&&<div className="mf72-mask-surface"><img alt="Billedkort" src={draft.imageOcclusion.imageDataUrl}/>{!reveal&&(draft.imageOcclusion.masks||[]).filter(m=>draft.imageOcclusion.hiddenMaskIds?.includes(m.id)).map(m=><div className="mf72-mask" key={m.id} style={{left:`${m.x*100}%`,top:`${m.y*100}%`,width:`${m.width*100}%`,height:`${m.height*100}%`}}/>)}</div>}<RichContent72 html={fieldHtml('front')} text={front} cloze={draft.cardType==='cloze'} revealed={reveal}/>{reveal&&<><hr/><RichContent72 html={draft.cardType==='mcq'?null:fieldHtml('back')} text={text(draft.options[draft.correct])}/>{draft.cardType==='mcq'&&<RichContent72 html={fieldHtml('explanation')}/>}</>}<button type="button" onClick={()=>setReveal(!reveal)}>{reveal?'Vis forside':'Vis svar'}</button></aside>}</div>
-    {Object.keys(errors).length>0&&<div className="mf72-error" role="alert">{Object.values(errors).join(' ')}</div>}{notice&&<p role="status" className="mf72-notice">{notice}</p>}
-    <footer className="mf72-editor-foot"><small>{dirty?'Ikke gemt':'Personligt kort'} · ⌘/Ctrl + Enter</small><button type="button" onClick={close} disabled={busy}>Annuller</button>{createMode&&<button type="button" disabled={busy} onClick={()=>save(true)}>Gem og opret næste</button>}<button type="button" disabled={busy} className="mf72-primary" onClick={()=>save(false)}>{busy?'Gemmer…':'Gem kort'}</button></footer>
+    </fieldset>
+    {Object.keys(errors).length>0&&<div className="mf72-error" role="alert">{Object.values(errors).join(' ')}</div>}<div className="mf75-editor-feedback"><span role="status">{notice}</span>{adding&&lastAdded&&<button type="button" disabled={busy} onClick={reopenLast}>Senest tilføjet</button>}</div>
+    <footer className="mf72-editor-foot"><small>{dirty?'Ikke gemt':'Personligt kort'} · ⌘/Ctrl + Enter</small><button type="button" onClick={close} disabled={busy}>{editingLast?'Tilbage til kladde':'Luk'}</button>{adding&&<button type="button" disabled={busy} onClick={()=>save(false)}>Gem og luk</button>}<button type="button" disabled={busy} className="mf72-primary" onClick={()=>save(adding)}>{busy?'Gemmer…':adding?'Tilføj':'Gem kort'}</button></footer>
   </section>;
 }
 
