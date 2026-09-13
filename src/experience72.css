@@ -34,3 +34,15 @@
 .mf73-reading-list small{display:flex;align-items:center;gap:7px;color:var(--ui-muted,#7d8799);font-size:11px}.mf73-reading-list small span{margin-inline-start:auto}.mf73-reading-list i{width:7px;height:7px;border-radius:50%}.mf73-reading-list p{font-size:13px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}.mf73-reading-empty{color:var(--ui-muted,#7d8799);font-size:13px;line-height:1.7}
 .mf73-pdf-error{padding:18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--ui-panel,#fff)}.mf73-pdf-error p{margin:4px 0;font-size:13px}.mf73-pdf-error button{padding:9px 16px;border-radius:9px;border:1px solid var(--ui-border,#ddd);background:var(--ui-panel,#fff);color:inherit;cursor:pointer}
 @media(max-width:600px){.mf73-activity{padding:17px}.mf73-chart-controls{gap:6px}.mf73-chart-controls button{padding:7px 10px}.mf73-columns{gap:5px}.mf73-activity header{gap:14px}.mf73-date{font-size:10px}.mf73-axis{width:20px}}
+
+/* Fast authoring: optional metadata, quiet save feedback, no moving footer. */
+.mf75-editor-advanced{border-top:1px solid var(--ui-border);padding-top:12px}
+.mf75-editor-advanced>summary{width:max-content;cursor:pointer;color:var(--ui-secondary);font-size:12px;padding:6px 0}
+.mf75-editor-advanced .mf72-editor-meta{padding:12px 0 0;border:0}
+.mf75-editor-advanced .mf72-editor-meta>div{min-width:0}
+.mf72 .mf75-editor-pin{margin-top:6px;min-height:30px;padding:4px 9px;font-size:11px;color:var(--ui-secondary);border:1px solid transparent;background:transparent}
+.mf72 .mf75-editor-pin[aria-pressed="true"]{color:var(--ui-blue);border-color:var(--ui-blue-border);background:var(--ui-blue-soft)}
+.mf75-editor-feedback{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 20px;box-sizing:border-box;color:var(--ui-secondary);font-size:12px}
+.mf75-editor-feedback>span{min-width:0;overflow-wrap:anywhere}
+.mf72 .mf75-editor-feedback>button{flex-shrink:0;font-size:11px;color:var(--ui-blue);background:transparent;border-color:var(--ui-border)}
+.flashcard71-shell .lecture-material-field[hidden]{display:none!important}
