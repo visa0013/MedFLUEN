@@ -1,13 +1,19 @@
 "use client";
  
 // Kræver: npm install @supabase/supabase-js ts-fsrs pdfjs-dist
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 import { CardEditor72, RichContent72, Assistant72, HelpCenter72, ExperienceStyles72, AreaTabs72, useReviewClock72, ActivityChart73, ReadingIndex73 } from "./Experience72";
 import { shouldWakeSync72, retryableLoader73, pdfMetrics73 } from "./experience72-model";
 import { SlideNotes74, useSlideJournal74 } from "./Reader74";
 import { pdfFailure74 } from "./reader74-model";
+import { examAnswerMode75, examAnswerPath75, examMatchesAnswerFilter75, examUploadError75, examDuplicate75 } from "./exam75-model";
+import { deckTree75 } from "./decks75-model";
+import { DeckDialog75, usePrivateDecks75 } from "./Decks75";
+import { Access75, useAccessSession75, useAccountProfile75, readAccountProfile75 } from "./Access75";
+import { AppearanceSettings75, Celebration75, Dock75, useAppearance75, useCompletion75 } from "./Appearance75";
+import { palette75 } from "./appearance75-model";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -6021,6 +6027,7 @@ function GlobalStyles({ c }) {
          mørkt tema uden separate CSS-overrides.
          -------------------------------------------------------------- */
 :root {
+  --ui-on-accent: ${c.onAccent || "#fff"};
   --ui-page:
     ${c.page};
 
@@ -12368,10 +12375,10 @@ select.ui-control {
 @media (max-width: 760px) {
   :root { --app-sidebar-width: 0px; }
   .app-sidebar { display: none !important; }
-  .workspace-shell { inset-inline-start: 0 !important; inset-inline-end: 0 !important; bottom: 64px !important; }
+  .mf75-app-frame .workspace-shell { inset-inline-start: var(--dock-left75) !important; inset-inline-end: var(--dock-right75) !important; bottom: var(--dock-bottom75) !important; }
   .app-main-area { padding-bottom: 64px; }
   .content-padding { padding: 18px 14px 82px !important; }
-  .drbyte-panel-open { position: fixed !important; top: 0 !important; bottom: 64px !important; inset-inline: 0 !important; z-index: 1100 !important; width: 100vw !important; }
+  .drbyte-panel-open { position: fixed !important; top: var(--dock-top75, 0px) !important; bottom: var(--dock-bottom75, 86px) !important; inset-inline: 0 !important; z-index: 1100 !important; width: 100vw !important; }
 
   .mobile-bottom-nav {
     position: fixed;
@@ -15105,9 +15112,7 @@ select.ui-control {
   .lecture-viewer-v2[data-notes="false"] .lecture-notes-panel { display: none; }
   .lecture-viewer-v2 .lecture-detail-header { grid-template-columns: minmax(150px,1fr) auto; }
   .lecture-viewer-v2 .lecture-detail-meta > span:not(.lecture-detail-schedule-state),
-  .lecture-viewer-v2 .lecture-detail-meta > a,
-  .lecture-viewer-v2 .lecture-sdu-session-summary,
-  .lecture-viewer-v2 .lecture-sdu-match-trigger { display: none; }
+  .lecture-viewer-v2 .lecture-detail-meta > a { display: none; }
   .lecture-material-menu-trigger > span { display: none; }
   .lecture-material-actions-menu > summary span { display: none; }
 }
@@ -16309,11 +16314,6 @@ function LoadingState({
       style={style}
     >
       <div className="ui-loading-content">
-        <span
-          aria-hidden="true"
-          className="ui-loading-spinner"
-        />
-
         <span>{label}</span>
       </div>
     </div>
@@ -16403,41 +16403,13 @@ function DashboardSectionHeader({
   );
 }
 
-function Loader({ c, t, leaving, theme }) {
-  const [fact] = useState(
-    "Regelmæssig aktiv genkaldelse styrker langtidshukommelsen."
-  );
-
-  return (
-    <div
-      className={theme === "dark" ? "onboarding-blue-stage-dark" : "onboarding-blue-stage-light"}
-      style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: c.page, opacity: leaving ? 0 : 1, transition: "opacity 250ms ease" }}
-    >
-      <section style={{ width: "min(410px, calc(100vw - 40px))", padding: 28, borderRadius: 20, background: c.panel, border: `1px solid ${c.border}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-          <span style={{ display: "grid", placeItems: "center", width: 34, height: 34, borderRadius: 10, background: c.blueSoft, color: c.blue, border: `1px solid ${c.blueBorder}` }}><Icon name="logo" size={17} /></span>
-          <div><div style={{ color: c.text, fontSize: 13, fontWeight: 800 }}>MedLearn</div><div style={{ marginTop: 2, color: c.secondary, fontSize: 11 }}>{t.preparing}</div></div>
-        </div>
-
-        <div style={{ display: "grid", placeItems: "center", margin: "2px 0 20px" }}>
-          <svg width="128" height="142" viewBox="0 0 128 142" role="img" aria-label="Anatomisk hjerte fyldes med blod">
-            <defs>
-              <clipPath id="heart-organ-clip"><path d="M61 131c-17-13-38-31-43-52C11 52 25 31 45 34c8 1 13 7 16 13V19c0-10 8-17 17-17 9 0 16 7 16 17v27c7-11 19-15 29-10 14 7 16 26 7 43-8 17-30 37-48 52Z" /></clipPath>
-              <linearGradient id="heart-blood" x1="0" x2="0" y1="1" y2="0"><stop stopColor="#a91f39"/><stop offset="1" stopColor="#ef6474"/></linearGradient>
-            </defs>
-            <path d="M61 131c-17-13-38-31-43-52C11 52 25 31 45 34c8 1 13 7 16 13V19c0-10 8-17 17-17 9 0 16 7 16 17v27c7-11 19-15 29-10 14 7 16 26 7 43-8 17-30 37-48 52Z" fill={c.soft} stroke={c.borderStrong} strokeWidth="2" />
-            <g clipPath="url(#heart-organ-clip)"><rect x="10" y="138" width="112" height="130" fill="url(#heart-blood)" style={{ animation: "heartBloodFill 1800ms ease-in-out infinite" }} /></g>
-            <path d="M61 131c-17-13-38-31-43-52C11 52 25 31 45 34c8 1 13 7 16 13V19c0-10 8-17 17-17 9 0 16 7 16 17v27c7-11 19-15 29-10 14 7 16 26 7 43-8 17-30 37-48 52Z" fill="none" stroke={c.borderStrong} strokeWidth="2" />
-            <path d="M61 47c-5 15-3 31 3 42m14-43c-3 14-1 29 6 40m-45-9c12 1 22 7 30 16m14-7c9-7 18-9 27-6" fill="none" stroke="rgba(255,255,255,.48)" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </div>
-        <div style={{ padding: "12px 13px", borderRadius: 12, background: c.soft, border: `1px solid ${c.border}` }}>
-          <div style={{ color: c.blue, fontSize: 10, fontWeight: 850, letterSpacing: ".08em", textTransform: "uppercase" }}>Vidste du?</div>
-          <p style={{ margin: "5px 0 0", color: c.secondary, fontSize: 12, lineHeight: 1.5 }}>{fact}</p>
-        </div>
-      </section>
+function Loader({ c, t }) {
+  return <div style={{ minHeight: "100dvh", display: "grid", placeItems: "center", background: c.page, color: c.text }}>
+    <div role="status" aria-live="polite" style={{ textAlign: "center", padding: 24 }}>
+      <strong style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-.04em" }}>medFLUEN</strong>
+      <p style={{ color: c.secondary, fontSize: 14, margin: "12px 0 0" }}>{t.preparing}</p>
     </div>
-  );
+  </div>;
 }
 
 function Onboarding({ c, t, language, theme, onComplete }) {
@@ -21292,7 +21264,7 @@ function FlashcardDeckOverview71({ language, node, questions, spacedData, events
 function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuestions, onStart, onOpenLectureMenu, initialPool = "mixed", onSavePersonalCard }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
   const lectures = MODULE_LECTURES[user.module] || [];
-  const moduleQuestions = getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === user.module);
+  const moduleQuestions = useMemo(() => getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === user.module), [importedQuestions, user.module]);
   const storedPreferences = loadStorage(STORAGE.flashcardPreferences, FLASHCARD70_DEFAULT_PREFERENCES) || FLASHCARD70_DEFAULT_PREFERENCES;
   const [preferences, setPreferences] = useState(() => ({ ...FLASHCARD70_DEFAULT_PREFERENCES, ...storedPreferences, ...(initialPool === "due" ? { pool: "due" } : {}) }));
   const [selectedId, setSelectedId] = useState(`module:${user.module}`);
@@ -21305,8 +21277,18 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   const [browserSelectedId, setBrowserSelectedId] = useState(null);
   const [editorQuestion, setEditorQuestion] = useState(undefined);
   const [editorOrigin, setEditorOrigin] = useState("overview");
+  const [editorDeck75, setEditorDeck75] = useState("");
+  const [editorLast75, setEditorLast75] = useState(false);
+  const [deckDialog75, setDeckDialog75] = useState(null);
+  const deckDialogBusy75 = useRef(false);
   const cloudReviewEvents = useScopedStorageValue71(flashcardReviewHistoryKey(authUserId), []);
-  const tree = flashcardBuildDeckTree(user.module, lectures, moduleQuestions, spacedData, Date.now());
+  const statsMinute75 = Math.floor(Date.now() / 60000) * 60000;
+  const baseTree75 = useMemo(() => flashcardBuildDeckTree(user.module, lectures, moduleQuestions, spacedData, statsMinute75), [user.module, lectures, moduleQuestions, spacedData, statsMinute75]);
+  const baseIds75 = [];
+  function collectBase75(node) { baseIds75.push(node.id); (node.children || []).forEach(collectBase75); }
+  collectBase75(baseTree75);
+  const privateDecks75 = usePrivateDecks75(authUserId, user.module, baseIds75, supabase);
+  const tree = useMemo(() => deckTree75(baseTree75, privateDecks75.state, questions => flashcardDeckStats(questions, spacedData, statsMinute75)), [baseTree75, privateDecks75.state, spacedData, statsMinute75]);
 
   function findNode(node, id) { if (node.id === id) return node; for (const child of node.children || []) { const found = findNode(child, id); if (found) return found; } return null; }
   const selectedNode = findNode(tree, selectedId) || tree;
@@ -21337,22 +21319,31 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   function startSession() { if (!sessionQuestions.length) return; onStart({ moduleId: user.module, groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter, lectureFilter: selectedNode.lectureFilter, mode: preferences.pool === "due" ? "due" : "all", studyMode: preferences.studyMode, pool: preferences.pool, limit: preferences.limit, order: preferences.order, sessionQuestionIds: sessionQuestions.map((question) => question.id) }); }
   function openNode(node) { setSelectedId(node.id); setBrowserDate(""); setView("overview"); }
   function toggleNode(event, id) { event?.stopPropagation?.(); setExpanded((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
-  function matches(node) { const query = deckSearch.trim().toLocaleLowerCase(); return !query || [node.label, node.code, ...(node.children || []).map((child) => `${child.code || ""} ${child.label || ""}`)].join(" ").toLocaleLowerCase().includes(query); }
+  function matches(node) { const query = deckSearch.trim().toLocaleLowerCase(); return !query || `${node.label} ${node.code || ""}`.toLocaleLowerCase().includes(query) || (node.children || []).some(matches); }
   function renderNode(node, depth = 0) {
     if (node.type !== "module" && !matches(node)) return null;
     const hasChildren = Boolean(node.children?.length); const open = expanded.has(node.id) || Boolean(deckSearch.trim());
     return <React.Fragment key={node.id}><div className="flashcard71-deck-row"><div className="flashcard71-deck-cell" style={{ "--deck-depth": depth }}>{hasChildren ? <button type="button" className="flashcard71-expand" aria-label={open ? "Fold dæk sammen" : "Fold dæk ud"} aria-expanded={open} onClick={(event) => toggleNode(event, node.id)}><Icon name={open ? "down" : "right"} size={13} /></button> : <span className="flashcard71-expand" aria-hidden="true" />}<button type="button" className="flashcard71-deck-open" onClick={() => openNode(node)}>{node.code ? <span className="flashcard71-deck-code">{node.code}</span> : null}<strong>{node.label}</strong></button></div>{[["new",node.stats.newCount,copy.new],["learning",node.stats.learningCount,copy.learning],["review",node.stats.dueCount,copy.due]].map(([pool,count,label])=><button key={pool} type="button" className="flashcard71-deck-count" aria-label={`${node.label} · ${label}: ${count}`} style={{border:0,background:"transparent",cursor:"pointer",minHeight:42}} onClick={()=>{persistPreferences({pool});openNode(node);}}>{count}</button>)}</div>{hasChildren && open ? node.children.map((child) => renderNode(child, depth + 1)) : null}</React.Fragment>;
   }
-  function openEditor(question, origin) {
+  function openEditor(question, origin, node = selectedNode) {
+    setSelectedId(node.id);
     setEditorOrigin(origin);
     setEditorQuestion(question || null);
+    setEditorDeck75(question?.id ? privateDecks75.state.placements[String(question.id)] || "" : node.type === "personal" ? node.id : "");
     if (question?.id) setBrowserSelectedId(question.id);
     setView("editor");
   }
-  function saveRecord(record, options = {}) {
-    const result = onSavePersonalCard?.(record) || { ok: true, record };
+  async function saveRecord(record, options = {}) {
+    if (!onSavePersonalCard) return { ok: false, error: "Kortlagring er ikke tilsluttet." };
+    const result = options.contentChanged === false && record.sourceQuestionId
+      ? { ok: true }
+      : await onSavePersonalCard(record);
     if (result?.ok === false) return result;
-    if (!options.createNext) {
+    const studyCardId75 = String(record.sourceQuestionId || record.cardId);
+    if (!options.preservePlacement && (privateDecks75.state.placements[studyCardId75] || "") !== editorDeck75) {
+      await privateDecks75.change({ type: "assign", cardIds: [studyCardId75], target: editorDeck75 || null });
+    }
+    if (!options.createNext && !options.keepOpen) {
       setEditorQuestion(undefined);
       setView(editorOrigin);
     }
@@ -21360,11 +21351,26 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   }
 
   return <div className="flashcard71-shell"><Flashcard71Styles />
-    {view === "decks" ? <><header className="flashcard71-top"><div><h1>{copy.decks}</h1><p>{copy.deckSubtitle}</p></div><div className="flashcard71-top-actions"><label className="flashcard71-search"><Icon name="search" size={14} /><input value={deckSearch} onChange={(event) => setDeckSearch(event.target.value)} placeholder={copy.searchDecks} /></label><button type="button" data-action="create-card" className="flashcard71-primary" onClick={() => { setSelectedId(tree.id); openEditor(null, "decks"); }}>+ {copy.create}</button></div></header><section className="flashcard71-decks"><div className="flashcard71-deck-head"><span>{copy.deck}</span><span>{copy.new}</span><span>{copy.learning}</span><span>{copy.due}</span></div>{renderNode(tree)}</section></> : null}
+    {view !== "editor" && <div className="mf75-deck-tools">
+      <button type="button" disabled={!authUserId} onClick={() => setDeckDialog75({ mode: "create", node: view === "decks" ? tree : selectedNode })}>+ {language === "en" ? "New deck" : "Nyt dæk"}</button>
+      {view !== "decks" && <details><summary>{language === "en" ? "Manage deck" : "Administrér dæk"}</summary><div>
+        <button type="button" onClick={() => setDeckDialog75({ mode: "create", node: selectedNode })}>{language === "en" ? "New subdeck" : "Nyt underdæk"}</button>
+        {selectedNode.type === "personal" && ["rename", "move", "delete"].map(mode => <button key={mode} type="button" onClick={() => setDeckDialog75({ mode, node: selectedNode })}>{({ rename: "Omdøb", move: "Flyt", delete: "Slet" })[mode]}</button>)}
+        <button type="button" disabled={!selectedQuestions.length} onClick={() => setDeckDialog75({ mode: "assign", node: selectedNode, cardIds: view === "browser" && browserSelectedId ? [browserSelectedId] : selectedQuestions.map(question => question.id) })}>{view === "browser" && browserSelectedId ? "Flyt valgt kort" : `Flyt ${selectedQuestions.length} kort`}</button>
+      </div></details>}
+      {privateDecks75.pending > 0 && <small>{privateDecks75.pending} {language === "en" ? "changes saved locally" : "ændringer gemt lokalt"}</small>}
+      {privateDecks75.conflict && <small role="alert">{language === "en" ? "A deck changed on another device." : "Et dæk er ændret på en anden enhed."} <button type="button" onClick={async () => {
+        if (!window.confirm(language === "en" ? "Cancel this conflicting deck change? Your other queued changes and all cards stay intact." : "Annullér denne dækændring, som er i konflikt? Dine andre ventende ændringer og alle kort bevares.")) return;
+        try { await privateDecks75.discardConflict(privateDecks75.conflict.id); } catch (error) { window.alert(error.message); }
+      }}>{language === "en" ? "Cancel conflicting change" : "Annullér ændringen i konflikt"}</button></small>}
+      {privateDecks75.error && <small role="status" title={privateDecks75.error}>{language === "en" ? "Deck sync unavailable. Local changes are preserved." : "Dæksynk er ikke tilgængelig. Lokale ændringer bevares."} <button type="button" onClick={privateDecks75.retry}>{language === "en" ? "Retry" : "Prøv igen"}</button></small>}
+    </div>}
+    {deckDialog75 && <Modal c={c} onClose={() => { if (!deckDialogBusy75.current) setDeckDialog75(null); }}><DeckDialog75 key={`${deckDialog75.mode}:${deckDialog75.node.id}`} tree={tree} selected={deckDialog75.node} mode={deckDialog75.mode} cardIds={deckDialog75.cardIds} language={language} onApply={privateDecks75.change} onBusyChange={busy => { deckDialogBusy75.current = busy; }} onClose={() => setDeckDialog75(null)} /></Modal>}
+    {view === "decks" ? <><header className="flashcard71-top"><div><h1>{copy.decks}</h1><p>{copy.deckSubtitle}</p></div><div className="flashcard71-top-actions"><label className="flashcard71-search"><Icon name="search" size={14} /><input value={deckSearch} onChange={(event) => setDeckSearch(event.target.value)} placeholder={copy.searchDecks} /></label><button type="button" data-action="create-card" className="flashcard71-primary" onClick={() => { openEditor(null, "decks", tree); }}>+ {copy.create}</button></div></header><section className="flashcard71-decks"><div className="flashcard71-deck-head"><span>{copy.deck}</span><span>{copy.new}</span><span>{copy.learning}</span><span>{copy.due}</span></div>{renderNode(tree)}</section></> : null}
     {view === "decks" ? <section className="flashcard71-activity-card mf72-root-activity"><div className="flashcard71-section-head"><h2>{copy.activity}</h2><small>{copy.activityYear}</small></div><FlashcardActivityHeatmap71 language={language} events={moduleEvents72} onSelectDate={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /><details><summary>{language === "en" ? "Last 3 / 7 days" : "Seneste 3 / 7 dage"}</summary><FlashcardActivityChart71 language={language} events={moduleEvents72} /></details></section> : null}
     {view === "overview" ? <FlashcardDeckOverview71 language={language} node={selectedNode} questions={selectedQuestions} spacedData={spacedData} events={selectedEvents} sessionQuestions={sessionQuestions} preferences={preferences} onPreference={persistPreferences} onStart={startSession} onBrowse={(date) => { setBrowserDate(date || ""); setView("browser"); }} onCreate={() => openEditor(null, "overview")} onBack={() => setView("decks")} /> : null}
     {view === "browser" ? <><button type="button" className="flashcard71-back" style={{ marginBottom: 12 }} onClick={() => setView("overview")}><Icon name="left" size={15} />{selectedNode.label}</button><FlashcardBrowser71 c={c} language={language} questions={browserQuestions} spacedData={spacedData} lectures={lectures} selectedDate={browserDate} query={browserQuery} onQuery={setBrowserQuery} status={browserStatus} onStatus={setBrowserStatus} selectedId={browserSelectedId} onSelectedId={setBrowserSelectedId} onClose={() => setView("overview")} onEdit={(question) => openEditor(question, "browser")} onCreate={() => openEditor(null, "browser")} onOpenLectureMenu={onOpenLectureMenu} /></> : null}
-    {view === "editor" ? <FlashcardEditor71 c={c} language={language} question={editorQuestion || null} context={{ moduleId: user.module, lectureId: selectedNode.lectureFilter || null }} lectures={lectures} createMode={!editorQuestion} onSave={saveRecord} onCancel={() => setView(editorOrigin)} /> : null}
+    {view === "editor" ? <><label hidden={editorLast75} className="lecture-material-field" style={{ marginBottom: 12, maxWidth: 400 }}>{language === "en" ? "Deck" : "Dæk"}<select value={editorDeck75} onChange={event => setEditorDeck75(event.target.value)}><option value="">{language === "en" ? "Original lecture" : "Oprindelig forelæsning"}</option>{privateDecks75.state.decks.map(deck => <option key={deck.id} value={deck.id}>{deck.name}</option>)}</select></label><FlashcardEditor71 c={c} language={language} question={editorQuestion || null} context={{ moduleId: user.module, lectureId: selectedNode.lectureFilter || null }} lectures={lectures} createMode={!editorQuestion} onSave={saveRecord} onLastEditChange={setEditorLast75} onCancel={() => setView(editorOrigin)} /></> : null}
   </div>;
 }
 
@@ -21373,6 +21379,7 @@ function SessionSetup(props) {
 }
 
 function FlashcardCompletion70({ c, language, reviews, startedAt, endedAt, onDone, onContinue, onUndo }) {
+  const finish = useCompletion75(onDone);
   const [completedAt] = useState(() => endedAt || Date.now());
   const summary = flashcardSessionSummary(reviews, startedAt, endedAt || completedAt);
   const text = ({
@@ -21400,7 +21407,7 @@ function FlashcardCompletion70({ c, language, reviews, startedAt, endedAt, onDon
       </div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 9, marginTop: 24, flexWrap: "wrap" }}>
         {onUndo ? <button type="button" data-review-undo="true" onClick={onUndo} style={{ minHeight: 39, padding: "0 12px", border: 0, background: "transparent", color: c.secondary, font: "inherit", fontSize: 11.5, fontWeight: 750, cursor: "pointer" }}>{labels.undo}</button> : <span />}
-        <div style={{ display: "flex", gap: 8 }}>{onContinue ? <button type="button" onClick={onContinue} style={{ minHeight: 40, padding: "0 14px", border: `1px solid ${c.border}`, borderRadius: 10, background: c.panel, color: c.text, font: "inherit", fontWeight: 750, cursor: "pointer" }}>{labels.continue}</button> : null}<PrimaryButton onClick={onDone}>{labels.done}</PrimaryButton></div>
+        <div style={{ display: "flex", gap: 8 }}>{onContinue ? <button type="button" onClick={onContinue} style={{ minHeight: 40, padding: "0 14px", border: `1px solid ${c.border}`, borderRadius: 10, background: c.panel, color: c.text, font: "inherit", fontWeight: 750, cursor: "pointer" }}>{labels.continue}</button> : null}<PrimaryButton onClick={finish}>{labels.done}</PrimaryButton></div>
       </div>
     </section>
   );
@@ -36097,13 +36104,13 @@ setStatus({
 function SettingsModal({
   c,
   t,
-  theme,
-  setTheme,
+  appearance,
+  language,
   preferences,
   setPreferences,
   onClose,
 }) {
-  const [aiSettings, setAiSettings] = useStoredState(STORAGE.aiSettings, { serverAiEnabled: true });
+  // The current Assistant72 searches local sources; no AI activation is available.
 
   return (
     <Modal c={c} onClose={onClose} size="large">
@@ -36125,78 +36132,12 @@ function SettingsModal({
       </header>
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
 
-      <div
-        style={{
-          color: c.muted,
-          fontSize: 11,
-          fontWeight: 750,
-          letterSpacing: ".09em",
-          textTransform: "uppercase",
-          marginBottom: 9,
-        }}
-      >
-        {t.drByteAiSectionTitle}
-      </div>
-
-      <div
-        style={{
-          borderRadius: 15,
-          border: `1px solid ${c.border}`,
-          padding: 14,
-          marginBottom: 20,
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div>
-            <div style={{ color: c.text, fontSize: 12.5, fontWeight: 700 }}>{t.drByteAiToggleLabel}</div>
-            <div style={{ color: c.secondary, fontSize: 11, marginTop: 2 }}>{t.drByteAiToggleDescription}</div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setAiSettings((prev) => ({ ...prev, serverAiEnabled: prev.serverAiEnabled === false }))}
-            style={{
-              width: 44,
-              height: 26,
-              borderRadius: 99,
-              border: "none",
-              flexShrink: 0,
-              background: aiSettings.serverAiEnabled !== false ? c.blue : c.border,
-              position: "relative",
-              cursor: "pointer",
-              transition: "background 160ms ease",
-            }}
-          >
-            <span
-              style={{
-                position: "absolute",
-                top: 3,
-                insetInlineStart: aiSettings.serverAiEnabled !== false ? 22 : 3,
-                width: 20,
-                height: 20,
-                borderRadius: "50%",
-                background: "#fff",
-                transition: "inset-inline-start 160ms ease",
-                boxShadow: "0 1px 3px rgba(0,0,0,.25)",
-              }}
-            />
-          </button>
-        </div>
-        <div
-          style={{
-            borderRadius: 11,
-            padding: "10px 12px",
-            background: c.soft,
-            color: c.secondary,
-            fontSize: 11,
-            lineHeight: 1.55,
-          }}
-        >
-          <strong style={{ color: c.text }}>Gemini 3.7 Flash</strong> · {t.drByteAiKeyHint}
-        </div>
-      </div>
+      <section aria-label="Dr. Byte" style={{border: `1px solid ${c.border}`,borderRadius:12,padding:16,marginBottom:20}}>
+        <strong style={{color:c.text,fontSize:14}}>Dr. Byte</strong>
+        <p role="status" style={{color:c.secondary,fontSize:13,lineHeight:1.6,marginBottom:0}}>
+          {language === "en" ? "Local PDF source search is available. AI answers are not connected yet." : language === "ar" ? "البحث المحلي في مصادر PDF متاح. إجابات الذكاء الاصطناعي غير متصلة بعد." : "Lokal søgning i PDF-kilder er tilgængelig. AI-svar er endnu ikke tilsluttet."}
+        </p>
+      </section>
 
       <div
         style={{
@@ -36211,48 +36152,7 @@ function SettingsModal({
         {t.appearance}
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 5,
-          padding: 5,
-          borderRadius: 15,
-          background: c.soft,
-          marginBottom: 20,
-        }}
-      >
-        {[
-          ["light", t.light, "sun"],
-          ["dark", t.dark, "moon"],
-        ].map(([value, label, icon]) => {
-          const selected = theme === value;
-
-          return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setTheme(value)}
-              style={{
-                height: 39,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 7,
-                border: 0,
-                borderRadius: 11,
-                background: selected ? c.panel : "transparent",
-                color: selected ? c.text : c.secondary,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              <Icon name={icon} size={15} />
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      <AppearanceSettings75 value={appearance.value} onChange={appearance.set} error={appearance.error} language={language} />
 
       <section
         style={{
@@ -40332,10 +40232,10 @@ function WorkspaceShell({ c, label, drByteOpen = false, closing = false, toolbar
       aria-label={label}
       style={{
         position: "fixed",
-        top: 0,
-        bottom: 0,
-        insetInlineStart: "var(--app-sidebar-width)",
-        insetInlineEnd: drByteOpen ? 380 : 0,
+        top: "var(--dock-top75, 0px)",
+        bottom: "var(--dock-bottom75, 0px)",
+        left: "var(--dock-left75, 0px)",
+        right: drByteOpen ? "calc(var(--dock-right75, 0px) + 380px)" : "var(--dock-right75, 0px)",
         zIndex: 998,
         minWidth: 0,
         display: "flex",
@@ -40630,6 +40530,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   const [followUpMessage, setFollowUpMessage] = useState("");
   const [sduMatchDialogOpen, setSduMatchDialogOpen] = useState(false);
   const [sduMatchQuery, setSduMatchQuery] = useState("");
+  const sduMatchSaveLock75 = useRef(false);
+  const sduMatchScope75 = useRef("");
+  sduMatchScope75.current = `${moduleName}:${userId}`;
   const globalContentRefreshKey = useGlobalContentRefreshKey();
   const globalLectureCalendarData = useGlobalCalendarData(isLectureLibrary ? moduleName : null, userId, 0);
   const lectureScheduleNowMs = useCalendarNow();
@@ -40651,6 +40554,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   const [examSetStatus, setExamSetStatus] = useState({ state: "idle", message: "" });
   const [examSetDialog, setExamSetDialog] = useState(null);
   const [examSetSaving, setExamSetSaving] = useState(false);
+  const examSetSaveLock75 = useRef(false);
+  const [examAnswerFilter75, setExamAnswerFilter75] = useState("all");
   const [examSetPreviewUrl, setExamSetPreviewUrl] = useState("");
   const [examSetPreviewState, setExamSetPreviewState] = useState("idle");
   const [examSetAnswerPreviewUrl, setExamSetAnswerPreviewUrl] = useState("");
@@ -41087,10 +40992,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
       scheduleLocation: "Sted",
       lectureHeader: "Valgt forelæsning",
       sduSessions: (count) => count === 1 ? "1 undervisningsgang" : `${count} undervisningsgange`,
-      sduMatchEdit: "Ret SDU-match",
-      sduMatchTitle: "Tilknyt SDU-undervisning",
+      sduMatchEdit: "Dato til forelæsning",
+      sduMatchTitle: "Dato til forelæsning",
       sduMatchIntro: "Admin-match gemmes globalt og bruges af alle studerende. Private kalenderdata deles ikke.",
-      sduMatchSearch: "Søg i SDU-aktiviteter…",
+      sduMatchSearch: "Søg dato, titel eller lokale…",
       sduMatchCurrent: "Tilknyttet denne forelæsning",
       sduMatchAttach: "Tilknyt",
       sduMatchRemove: "Fjern",
@@ -41529,10 +41434,10 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
       scheduleLocation: "Location",
       lectureHeader: "Selected lecture",
       sduSessions: (count) => count === 1 ? "1 teaching session" : `${count} teaching sessions`,
-      sduMatchEdit: "Fix SDU match",
-      sduMatchTitle: "Link SDU teaching",
+      sduMatchEdit: "Lecture date",
+      sduMatchTitle: "Link date to lecture",
       sduMatchIntro: "Admin matches are saved globally and used by every student. Private calendar data is never shared.",
-      sduMatchSearch: "Search SDU events…",
+      sduMatchSearch: "Search date, title or room…",
       sduMatchCurrent: "Linked to this lecture",
       sduMatchAttach: "Link",
       sduMatchRemove: "Remove",
@@ -41971,8 +41876,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
       scheduleLocation: "المكان",
       lectureHeader: "المحاضرة المختارة",
       sduSessions: (count) => count === 1 ? "جلسة تدريس واحدة" : `${count} جلسات تدريس`,
-      sduMatchEdit: "تصحيح مطابقة SDU",
-      sduMatchTitle: "ربط تدريس SDU",
+      sduMatchEdit: "تاريخ المحاضرة",
+      sduMatchTitle: "ربط تاريخ بالمحاضرة",
       sduMatchIntro: "تُحفظ مطابقة المسؤول عالميًا وتُستخدم لجميع الطلاب، بينما تبقى بيانات التقويم الخاصة خاصة.",
       sduMatchSearch: "البحث في أحداث SDU…",
       sduMatchCurrent: "مرتبط بهذه المحاضرة",
@@ -42391,11 +42296,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
     setExamSetPreviewUrl("");
     setExamSetPreviewState("loading");
     setExamSetAnswerPreviewUrl("");
-    setExamSetAnswerPreviewState(selectedExamDocument.answerStoragePath ? "loading" : "idle");
+    const answerPath75 = examAnswerPath75(selectedExamDocument);
+    setExamSetAnswerPreviewState(answerPath75 ? "loading" : "idle");
     Promise.all([
       supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(selectedExamDocument.questionStoragePath, 60 * 60),
-      selectedExamDocument.answerStoragePath
-        ? supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(selectedExamDocument.answerStoragePath, 60 * 60)
+      answerPath75
+        ? supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(answerPath75, 60 * 60)
         : Promise.resolve({ data: null, error: null }),
     ]).then(([questionResult, answerResult]) => {
       if (cancelled) return;
@@ -42406,15 +42312,15 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
       }
       setExamSetPreviewUrl(questionResult.data.signedUrl);
       setExamSetPreviewState("ready");
-      if (selectedExamDocument.answerStoragePath && answerResult.data?.signedUrl && !answerResult.error) {
+      if (answerPath75 && answerResult.data?.signedUrl && !answerResult.error) {
         setExamSetAnswerPreviewUrl(answerResult.data.signedUrl);
         setExamSetAnswerPreviewState("ready");
       } else {
-        setExamSetAnswerPreviewState(selectedExamDocument.answerStoragePath ? "error" : "idle");
+        setExamSetAnswerPreviewState(answerPath75 ? "error" : "idle");
       }
     });
     return () => { cancelled = true; };
-  }, [isLectureLibrary, selectedExamDocument?.id, selectedExamDocument?.questionStoragePath, selectedExamDocument?.answerStoragePath]);
+  }, [isLectureLibrary, selectedExamDocument?.id, selectedExamDocument?.questionStoragePath, selectedExamDocument?.answerStoragePath, selectedExamDocument?.parseMeta?.answerMode]);
 
   useEffect(() => {
     if (isLectureLibrary) return undefined;
@@ -42662,7 +42568,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
     if (Number.isNaN(value.getTime())) return date;
     return value.toLocaleDateString(language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK", { day: "numeric", month: "short", year: "numeric" });
   }
-  const filteredDocuments = documents.filter((document) => `${document.name} ${document.year || ""} ${examSetSessionLabel(document.examSession)} ${document.examDate || ""}`.toLowerCase().includes(normalizedQuery));
+  const examAnswerLabels75 = language === "ar"
+    ? {none:"بدون إجابات", separate:"إجابات في ملف منفصل", embedded:"إجابات في نفس الملف", unknown:"حالة الإجابات غير محددة", all:"الكل", with:"مع إجابات", without:"بدون إجابات", heading:"الإجابات", hint:"توفر الإجابات لا يعني إمكانية التصحيح الآلي."}
+    : language === "en"
+    ? {none:"Without answers", separate:"Separate answer PDF", embedded:"Answers in the same PDF", unknown:"Answer status unspecified", all:"All", with:"With answers", without:"Without answers", heading:"Answers", hint:"Available answers do not necessarily support automatic grading."}
+    : {none:"Uden facit", separate:"Separat facit-PDF", embedded:"Facit i samme PDF", unknown:"Facitstatus ikke angivet", all:"Alle", with:"Med facit", without:"Uden facit", heading:"Facit", hint:"Facit i en PDF er ikke nødvendigvis et automatisk bedømmelsesgrundlag."};
+  const filteredDocuments = documents.filter((document) => examMatchesAnswerFilter75(document, examAnswerFilter75) && `${document.name} ${document.year || ""} ${examSetSessionLabel(document.examSession)} ${document.examDate || ""}`.toLowerCase().includes(normalizedQuery));
   const noteKey = selectedLecture ? `${moduleName || "module"}:${selectedLecture.id}` : null;
 
   useEffect(() => {
@@ -42987,7 +42898,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   const selectedSharedNote = sharedLectureNotes.find((note) => note.id === selectedSharedNoteId) || sharedLectureNotes[0] || null;
   const ownSharedNoteNeedsUpdate = sharedLectureNoteNeedsUpdate(ownSharedNote, lectureNoteDraft);
   const sharedNoteLocale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
-  const sharedAuthorName = String(loadStorage(STORAGE.user, {})?.name || "").trim() || copy.sharedAnonymous;
+  const sharedAuthorName = String((() => { try { return readAccountProfile75(STORAGE.user, userId)?.name; } catch { return ""; } })() || "").trim() || copy.sharedAnonymous;
   const selectedFollowUp = selectedLectureRow ? selectedLectureRow.followUp : lectureFollowUpState(null);
   const activeStudyPlan = moduleName ? studyPlans[moduleName] : null;
   const selectedPlanFollowUp = selectedLecture?.id && activeStudyPlan?.followUps?.[selectedLecture.id]
@@ -43398,8 +43309,17 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   }
 
   async function setSduEventManualLectureMatch(eventId, lectureIds) {
-    if (!isAdmin || !eventId || !moduleName) return;
+    if (!isAdmin || !eventId || !moduleName || sduMatchSaveLock75.current) return;
     const nextIds = Array.isArray(lectureIds) ? [...new Set(lectureIds.filter(Boolean))] : [];
+    const event = sduMatchCandidates.find(item => item.id === eventId);
+    const oldIds = canonicalSduMatches[eventId] || (event ? calendarLectureIds(event) : []);
+    const removedIds = oldIds.filter(id => !nextIds.includes(id));
+    if (removedIds.length && nextIds.some(id => !oldIds.includes(id))) {
+      const prompt = language === "en" ? `Replace the link to ${removedIds.join(", ")} with ${nextIds.join(", ")}? This changes the official date mapping for everyone.` : language === "ar" ? `استبدال الربط بـ ${removedIds.join(", ")} وربطه بـ ${nextIds.join(", ")}؟ يسري التغيير على الجميع.` : `Erstat koblingen til ${removedIds.join(", ")} med ${nextIds.join(", ")}? Ændringen gælder den officielle datokobling for alle.`;
+      if (!window.confirm(prompt)) return;
+    }
+    sduMatchSaveLock75.current = true;
+    const scope = sduMatchScope75.current;
     const previous = { ...canonicalSduMatches };
     setCanonicalSduMatches((current) => ({ ...current, [eventId]: nextIds }));
     setCanonicalSduMatchStatus("saving");
@@ -43414,6 +43334,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
           updated_at: new Date().toISOString(),
         }, { onConflict: "module_name,event_id" });
       if (error) throw error;
+      if (sduMatchScope75.current !== scope) return;
       // Remove any legacy per-user override from the admin's private calendar metadata.
       setCalendarEventMeta((current) => {
         if (!current[eventId]) return current;
@@ -43426,13 +43347,19 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
       window.dispatchEvent(new CustomEvent(GLOBAL_CONTENT_REFRESH_EVENT, { detail: { reason: "sdu-lecture-match", at: Date.now() } }));
     } catch (error) {
       console.error("Kunne ikke gemme globalt SDU-match:", error);
-      setCanonicalSduMatches(previous);
-      setCanonicalSduMatchStatus("error");
+      if (sduMatchScope75.current === scope) {
+        setCanonicalSduMatches(previous);
+        setCanonicalSduMatchStatus("error");
+      }
+    } finally {
+      sduMatchSaveLock75.current = false;
     }
   }
 
   async function clearSduEventManualLectureMatch(eventId) {
-    if (!isAdmin || !eventId || !moduleName) return;
+    if (!isAdmin || !eventId || !moduleName || sduMatchSaveLock75.current) return;
+    sduMatchSaveLock75.current = true;
+    const scope = sduMatchScope75.current;
     const previous = { ...canonicalSduMatches };
     setCanonicalSduMatches((current) => {
       const next = { ...current };
@@ -43447,6 +43374,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
         .eq("module_name", moduleName)
         .eq("event_id", eventId);
       if (error) throw error;
+      if (sduMatchScope75.current !== scope) return;
       setCalendarEventMeta((current) => {
         if (!current[eventId]) return current;
         const metadata = { ...current[eventId] };
@@ -43458,8 +43386,12 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
       window.dispatchEvent(new CustomEvent(GLOBAL_CONTENT_REFRESH_EVENT, { detail: { reason: "sdu-lecture-match-cleared", at: Date.now() } }));
     } catch (error) {
       console.error("Kunne ikke fjerne globalt SDU-match:", error);
-      setCanonicalSduMatches(previous);
-      setCanonicalSduMatchStatus("error");
+      if (sduMatchScope75.current === scope) {
+        setCanonicalSduMatches(previous);
+        setCanonicalSduMatchStatus("error");
+      }
+    } finally {
+      sduMatchSaveLock75.current = false;
     }
   }
 
@@ -44158,6 +44090,7 @@ function openExamSetUploadDialog(file) {
     mode: "upload",
     questionFile: file,
     answerFile: null,
+    answerMode: "none",
     name: file.name.replace(/\.pdf$/i, ""),
     year: "",
     examSession: "",
@@ -44165,18 +44098,14 @@ function openExamSetUploadDialog(file) {
   });
 }
 
-async function findExamSetDuplicate({ yearNumber, examSession, questionSha256, answerSha256, excludeId = null }) {
+async function findExamSetDuplicate({ questionSha256, excludeId = null }) {
   let query = supabase
     .from("exam_set_documents")
-    .select("id,exam_year,exam_session,question_sha256,answer_sha256,content_sha256");
+    .select("*");
   if (excludeId) query = query.neq("id", excludeId);
   const { data, error } = await query.eq("module_name", moduleName);
   if (error) throw error;
-  return (Array.isArray(data) ? data : []).find((row) =>
-    (Number(row.exam_year) === yearNumber && row.exam_session === examSession)
-    || (questionSha256 && (row.question_sha256 === questionSha256 || row.content_sha256 === questionSha256))
-    || (answerSha256 && row.answer_sha256 === answerSha256)
-  ) || null;
+  return examDuplicate75(data, questionSha256, excludeId);
 }
 
 async function uploadExamSetSourceFile(file, role) {
@@ -44187,21 +44116,23 @@ async function uploadExamSetSourceFile(file, role) {
 }
 
 async function saveExamSetDocument() {
-  if (!examSetDialog || examSetSaving || isLectureLibrary) return;
+  if (!examSetDialog || examSetSaving || examSetSaveLock75.current || isLectureLibrary) return;
   const name = String(examSetDialog.name || "").trim();
   const yearNumber = Number(examSetDialog.year);
   const examSession = EXAM_SET_SESSIONS.includes(examSetDialog.examSession) ? examSetDialog.examSession : "";
   const questionFile = examSetDialog.questionFile || null;
-  const answerFile = examSetDialog.answerFile || null;
+  const answerMode = examSetDialog.answerMode || examAnswerMode75(examSetDialog.document);
+  const answerFile = answerMode === "separate" ? examSetDialog.answerFile || null : null;
   if (!name || !userId || !moduleName || !Number.isInteger(yearNumber) || yearNumber < 1900 || yearNumber > 2100 || !examSession) {
     setExamSetStatus({ state: "error", message: copy.examSetRequiredMeta });
     return;
   }
-  if (examSetDialog.mode === "upload" && !questionFile) {
+  const uploadError = examUploadError75({ ...examSetDialog, answerMode });
+  if (uploadError === "question-required") {
     setExamSetStatus({ state: "error", message: copy.examSetQuestionPdfRequired });
     return;
   }
-  if (examSetDialog.mode === "upload" && !answerFile) {
+  if (uploadError === "answer-required") {
     setExamSetStatus({ state: "error", message: copy.examSetAnswerPdfRequired });
     return;
   }
@@ -44213,16 +44144,30 @@ async function saveExamSetDocument() {
     setExamSetStatus({ state: "error", message: validateExamSetFile(answerFile) });
     return;
   }
+  examSetSaveLock75.current = true;
   setExamSetSaving(true);
   setExamSetStatus({ state: "loading", message: copy.examSetHashing });
   let questionStoragePath = null;
   let answerStoragePath = null;
   let uploadedPaths = [];
+  let writeDispatched = false;
+  let committed = false;
   try {
     const questionSha256 = questionFile ? await examSetDocumentSha256(questionFile) : examSetDialog.document?.questionSha256 || "";
-    const answerSha256 = answerFile ? await examSetDocumentSha256(answerFile) : examSetDialog.document?.answerSha256 || "";
+    const answerSha256 = answerMode === "separate" ? (answerFile ? await examSetDocumentSha256(answerFile) : examSetDialog.document?.answerSha256 || "") : "";
     const duplicate = await findExamSetDuplicate({ yearNumber, examSession, questionSha256, answerSha256, excludeId: examSetDialog.mode === "edit" ? examSetDialog.document?.id : null });
-    if (duplicate) throw Object.assign(new Error(copy.examSetDuplicate), { code: "23505" });
+    if (duplicate) {
+      if (duplicate.user_id !== userId) throw Object.assign(new Error(copy.examSetDuplicate), { code: "23505" });
+      const prompt = language === "en" ? "This exact question PDF already exists. Open the existing paper for editing instead? Nothing will be changed until you save again." : "Præcis denne spørgsmål-PDF findes allerede. Vil du åbne det eksisterende sæt og opdatere det? Intet ændres, før du trykker Gem igen.";
+      if (window.confirm(prompt)) {
+        const existing = examSetDocumentFromRow(duplicate);
+        setExamSetDialog({ mode: "edit", document: existing, questionFile: null, answerFile,
+          answerMode, name: existing.name, year: existing.year, examSession: existing.examSession,
+          examDate: existing.examDate || "" });
+        setExamSetStatus({ state: "idle", message: language === "en" ? "Review the existing paper before saving. Your selected answer file has been kept." : "Kontrollér det eksisterende sæt før gemning. Din valgte facitfil er bevaret." });
+      } else setExamSetStatus({ state: "idle", message: "" });
+      return;
+    }
 
     let parsedQuestions = examSetDialog.document?.parsedQuestions || [];
     let parseMeta = examSetDialog.document?.parseMeta || {};
@@ -44230,18 +44175,25 @@ async function saveExamSetDocument() {
 
     if (questionFile) {
       setExamSetStatus({ state: "loading", message: copy.examSetParsing });
-      const paired = await examSetParsePairedSources(questionFile, answerFile || null);
+      const paired = await examSetParsePairedSources(questionFile, answerMode === "embedded" ? questionFile : answerFile);
       parsedQuestions = paired.questions;
       parseMeta = paired.meta;
       parseStatus = paired.meta.parseStatus;
-    } else if (examSetDialog.mode === "edit" && answerFile && examSetDialog.document?.questionStoragePath) {
+    } else if (examSetDialog.mode === "edit" && (answerFile || answerMode !== examAnswerMode75(examSetDialog.document)) && examSetDialog.document?.questionStoragePath) {
       const { data, error } = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(examSetDialog.document.questionStoragePath, 60 * 60);
       if (error || !data?.signedUrl) throw error || new Error(copy.examSetActionError);
-      const paired = await examSetParsePairedSources(data.signedUrl, answerFile);
+      let answerSource = answerMode === "embedded" ? data.signedUrl : answerFile;
+      if (answerMode === "separate" && !answerSource && examSetDialog.document?.answerStoragePath) {
+        const signedAnswer = await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).createSignedUrl(examSetDialog.document.answerStoragePath, 60 * 60);
+        if (signedAnswer.error || !signedAnswer.data?.signedUrl) throw signedAnswer.error || new Error(copy.examSetActionError);
+        answerSource = signedAnswer.data.signedUrl;
+      }
+      const paired = await examSetParsePairedSources(data.signedUrl, answerSource);
       parsedQuestions = paired.questions;
       parseMeta = paired.meta;
       parseStatus = paired.meta.parseStatus;
     }
+    parseMeta = { ...parseMeta, answerMode };
 
     setExamSetStatus({ state: "loading", message: copy.examSetParsing });
     if (questionFile) {
@@ -44254,7 +44206,7 @@ async function saveExamSetDocument() {
       answerStoragePath = await uploadExamSetSourceFile(answerFile, "answers");
       uploadedPaths.push(answerStoragePath);
     } else {
-      answerStoragePath = examSetDialog.document?.answerStoragePath || null;
+      answerStoragePath = answerMode === "separate" ? examSetDialog.document?.answerStoragePath || null : null;
     }
 
     if (examSetDialog.mode === "upload") {
@@ -44283,8 +44235,12 @@ async function saveExamSetDocument() {
         parse_status: parseStatus,
         parse_version: EXAM_SET_PARSE_VERSION,
       };
+      writeDispatched = true;
       const { data: inserted, error: insertError } = await supabase.from("exam_set_documents").insert(payload).select("id").single();
       if (insertError) throw insertError;
+      committed = true;
+      setExamSetDialog(null);
+      if (inserted?.id) setWorkspaceState((current) => ({ ...current, [selectedStateKey]: inserted.id }));
       const next = await refreshExamSetDocuments();
       const nextId = inserted?.id || next[0]?.id;
       if (nextId) setWorkspaceState((current) => ({ ...current, [selectedStateKey]: nextId }));
@@ -44298,17 +44254,20 @@ async function saveExamSetDocument() {
         exam_year: yearNumber,
         exam_session: examSession,
         exam_date: examSetDialog.examDate || null,
-        answer_file_name: answerFile?.name || document.answerFileName || null,
+        answer_file_name: answerMode === "separate" ? answerFile?.name || document.answerFileName || null : null,
         answer_storage_path: answerStoragePath,
-        answer_size_bytes: answerFile?.size || document.answerSize || null,
-        answer_sha256: answerSha256 || document.answerSha256 || null,
+        answer_size_bytes: answerMode === "separate" ? answerFile?.size || document.answerSize || null : null,
+        answer_sha256: answerSha256 || null,
         parsed_questions: parsedQuestions,
         parse_meta: parseMeta,
         parse_status: parseStatus,
         parse_version: EXAM_SET_PARSE_VERSION,
       };
-      const { error } = await supabase.from("exam_set_documents").update(updatePayload).eq("id", document.id).eq("user_id", userId);
+      writeDispatched = true;
+      const { error } = await supabase.from("exam_set_documents").update(updatePayload).eq("id", document.id).eq("user_id", userId).select("id").single();
       if (error) throw error;
+      committed = true;
+      setExamSetDialog(null);
       if (answerFile && document.answerStoragePath && document.answerStoragePath !== answerStoragePath) {
         // Segment 6.6: preserve replaced answer PDFs for historical attempt snapshots.
         // Submitted attempts may still reference this exact storage path via exam_snapshot.
@@ -44318,9 +44277,14 @@ async function saveExamSetDocument() {
       setExamSetStatus({ state: "success", message: copy.examSetUpdated });
     }
   } catch (error) {
-    if (uploadedPaths.length) await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove(uploadedPaths).catch(() => {});
-    setExamSetStatus({ state: "error", message: error?.code === "23505" ? copy.examSetDuplicate : (error?.message || copy.examSetActionError) });
+    // After dispatch a lost response may still mean a committed write. Never delete
+    // potentially referenced PDFs; historical attempt snapshots may use them too.
+    if (!writeDispatched && uploadedPaths.length) await supabase.storage.from(EXAM_SET_DOCUMENTS_BUCKET).remove(uploadedPaths).catch(() => {});
+    setExamSetStatus(committed
+      ? { state: "success", message: language === "en" ? "Saved. The list could not refresh; reload when your connection is back." : language === "ar" ? "تم الحفظ. تعذر تحديث القائمة؛ أعد تحميل الصفحة عند عودة الاتصال." : "Gemt. Listen kunne ikke genindlæses; genindlæs siden, når forbindelsen er tilbage." }
+      : { state: "error", message: error?.code === "23505" ? copy.examSetDuplicate : (error?.message || copy.examSetActionError) });
   } finally {
+    examSetSaveLock75.current = false;
     setExamSetSaving(false);
   }
 }
@@ -44335,6 +44299,7 @@ function editExamSetDocument(examDocument = selectedExamDocument) {
     document: examDocument,
     questionFile: null,
     answerFile: null,
+    answerMode: examAnswerMode75(examDocument),
     name: examDocument.name || "",
     year: examDocument.year || "",
     examSession: examDocument.examSession || "",
@@ -44560,6 +44525,7 @@ async function persistExamSetParsedModel(questions, meta, { message = "" } = {})
   const parseStatus = normalizedQuestions.length && reviewQuestions === 0 && blockedQuestions === 0 ? "ready" : "needs_review";
   const normalizedMeta = {
     ...(meta && typeof meta === "object" ? meta : {}),
+    answerMode: examAnswerMode75(selectedExamDocument),
     parseVersion: EXAM_SET_PARSE_VERSION,
     parseStatus,
     questionCount: normalizedQuestions.length,
@@ -44608,12 +44574,12 @@ async function createExamSetViewer() {
   try {
     let questions = Array.isArray(selectedExamDocument.parsedQuestions) ? selectedExamDocument.parsedQuestions : [];
     let meta = selectedExamDocument.parseMeta && typeof selectedExamDocument.parseMeta === "object" ? selectedExamDocument.parseMeta : {};
-    const ownerCanReparse = selectedExamDocument.ownerUserId === userId && examSetAnswerPreviewState === "ready" && Boolean(examSetAnswerPreviewUrl);
+    const ownerCanReparse = selectedExamDocument.ownerUserId === userId && (!examAnswerPath75(selectedExamDocument) || (examSetAnswerPreviewState === "ready" && Boolean(examSetAnswerPreviewUrl)));
     const needsReparse = !questions.length || (selectedExamDocument.parseVersion !== EXAM_SET_PARSE_VERSION && ownerCanReparse);
     if (needsReparse) {
-      const paired = await examSetParsePairedSources(examSetPreviewUrl, ownerCanReparse ? examSetAnswerPreviewUrl : null);
+      const paired = await examSetParsePairedSources(examSetPreviewUrl, ownerCanReparse ? examSetAnswerPreviewUrl || null : null);
       questions = paired.questions;
-      meta = paired.meta;
+      meta = { ...paired.meta, answerMode: examAnswerMode75(selectedExamDocument) };
       if (ownerCanReparse && questions.length) {
         try { await persistExamSetParsedModel(questions, meta); } catch (persistError) { console.warn("Kunne ikke gemme nyt parserresultat:", persistError); }
       }
@@ -44667,15 +44633,15 @@ async function rebuildExamSetSources() {
     setExamSetStatus({ state: "error", message: copy.examSetEditorOwnerOnly });
     return;
   }
-  if (!examSetPreviewUrl || !examSetAnswerPreviewUrl || examSetPreviewState !== "ready" || examSetAnswerPreviewState !== "ready") {
+  if (!examSetPreviewUrl || examSetPreviewState !== "ready" || (examAnswerPath75(selectedExamDocument) && (!examSetAnswerPreviewUrl || examSetAnswerPreviewState !== "ready"))) {
     setExamSetStatus({ state: "error", message: copy.examSetActionError });
     return;
   }
   setExamSetEditorSaving(true);
   setExamSetParseState("loading");
   try {
-    const paired = await examSetParsePairedSources(examSetPreviewUrl, examSetAnswerPreviewUrl);
-    await persistExamSetParsedModel(paired.questions, paired.meta, { message: copy.examSetEditorRebuilt });
+    const paired = await examSetParsePairedSources(examSetPreviewUrl, examSetAnswerPreviewUrl || null);
+    await persistExamSetParsedModel(paired.questions, { ...paired.meta, answerMode: examAnswerMode75(selectedExamDocument) }, { message: copy.examSetEditorRebuilt });
     setExamSetParseState(paired.questions.length ? "ready" : "empty");
   } catch (error) {
     setExamSetParseState("error");
@@ -45001,7 +44967,7 @@ async function openExamSetPdfEditor() {
       setExamSetStatus({ state: "error", message: validation });
       return;
     }
-    setExamSetDialog((current) => current ? { ...current, answerFile: file } : current);
+    setExamSetDialog((current) => current ? { ...current, answerMode: "separate", answerFile: file } : current);
   }
 
   const title = isLectureLibrary ? copy.lectures : copy.examSets;
@@ -45060,6 +45026,7 @@ async function openExamSetPdfEditor() {
         {isLectureLibrary && lectureCompactViewport && lectureCompactPanel && <button type="button" className="lecture-compact-backdrop" aria-label={copy.close} onClick={() => setLectureCompactPanel(null)} />}
         <aside className="document-library-panel">
           <label className="document-search-box"><Icon name="search" size={14} /><input ref={isLectureLibrary ? lectureSearchRef : undefined} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} aria-keyshortcuts={isLectureLibrary ? "/" : undefined} />{isLectureLibrary && <kbd className="document-search-shortcut" title={copy.viewerSearchShortcut}>/</kbd>}</label>
+          {!isLectureLibrary && <label className="lecture-material-field" style={{ margin: "0 12px 12px" }}><span>{examAnswerLabels75.heading}</span><select value={examAnswerFilter75} onChange={event => setExamAnswerFilter75(event.target.value)}>{["all", "with", "without"].map(value => <option key={value} value={value}>{examAnswerLabels75[value]}</option>)}</select></label>}
           {isLectureLibrary && (
             <div className="lecture-overview-controls">
               <div className="lecture-module-overview-wrap">
@@ -45182,6 +45149,7 @@ async function openExamSetPdfEditor() {
                   <span className="document-library-code"><Icon name="file" size={14} /></span>
                   <span className="document-library-copy">
                     <strong>{document.name}</strong>
+                    <small title={examAnswerLabels75.hint}>{examAnswerLabels75[examAnswerMode75(document)]}</small>
                     <small className="exam-set-library-meta"><span>{document.year || "—"}</span><i /><span>{examSetSessionLabel(document.examSession)}</span>{document.examDate && <><i /><span>{examSetDateLabel(document.examDate)}</span></>}<i /><span className="exam-set-shared-badge"><Icon name="share" size={8} />{copy.examSetShared}</span>{Number(document.parseMeta?.questionsWithKey) > 0 && <><i /><span className="exam-set-answer-source-badge"><Icon name="check" size={8} />{copy.examSetAnswerKeyReady}</span></>}</small>
                   </span>
                 </button>
@@ -45396,7 +45364,7 @@ async function openExamSetPdfEditor() {
                 {selectedExamDocument?.ownerUserId === userId && <button type="button" className="exam-set-editor-open" disabled={examSetSaving || examSetEditorSaving || examSetParseState === "loading" || examSetPreviewState !== "ready"} onClick={openExamSetPdfEditor}><Icon name="edit" size={12} />{copy.examSetEditorOpen}</button>}
                 {examSetMode === "pdf" && <span className="exam-set-answer-toggle" role="tablist" aria-label={copy.examSetPdfMode}>
                   <button type="button" role="tab" aria-selected={examSetPdfSource === "questions"} data-active={examSetPdfSource === "questions" ? "true" : "false"} onClick={() => setExamSetPdfSource("questions")}><Icon name="file" size={11} />{copy.examSetQuestionsSource}</button>
-                  <button type="button" role="tab" aria-selected={examSetPdfSource === "answers"} data-active={examSetPdfSource === "answers" ? "true" : "false"} disabled={examSimulationActive || !selectedExamDocument?.answerStoragePath || examSetAnswerPreviewState !== "ready"} onClick={() => !examSimulationActive && setExamSetPdfSource("answers")}><Icon name="check" size={11} />{copy.examSetAnswersSource}</button>
+                  <button type="button" role="tab" aria-selected={examSetPdfSource === "answers"} data-active={examSetPdfSource === "answers" ? "true" : "false"} disabled={examSimulationActive || !examAnswerPath75(selectedExamDocument || {}) || examSetAnswerPreviewState !== "ready"} onClick={() => !examSimulationActive && setExamSetPdfSource("answers")}><Icon name="check" size={11} />{copy.examSetAnswersSource}</button>
                 </span>}
                 <button type="button" onClick={() => openExamSetDocument()}><Icon name="external" size={12} />{copy.examSetOpen}</button>
                 <button type="button" onClick={() => downloadExamSetDocument()}><Icon name="download" size={12} />{copy.examSetDownload}</button>
@@ -45768,11 +45736,11 @@ examSetMode === "history" ? (
                     </div>
                     <div className="lecture-sdu-match-actions">
                       {matchedHere ? (
-                        <button type="button" data-danger="true" onClick={() => setSduEventManualLectureMatch(event.id, [])}>{copy.sduMatchRemove}</button>
+                        <button type="button" disabled={canonicalSduMatchStatus === "saving"} data-danger="true" onClick={() => setSduEventManualLectureMatch(event.id, effectiveIds.filter(id => id !== selectedLecture.id))}>{copy.sduMatchRemove}</button>
                       ) : (
-                        <button type="button" data-primary="true" onClick={() => setSduEventManualLectureMatch(event.id, [selectedLecture.id])}>{copy.sduMatchAttach}</button>
+                        <button type="button" disabled={canonicalSduMatchStatus === "saving"} data-primary="true" onClick={() => setSduEventManualLectureMatch(event.id, [selectedLecture.id])}>{copy.sduMatchAttach}</button>
                       )}
-                      {hasManualOverride && <button type="button" title={automaticHere ? copy.sduMatchCurrent : (automaticIds.length ? automaticIds.join(", ") : copy.sduMatchNone)} onClick={() => clearSduEventManualLectureMatch(event.id)}>{copy.sduMatchAutomatic}</button>}
+                      {hasManualOverride && <button type="button" disabled={canonicalSduMatchStatus === "saving"} title={automaticHere ? copy.sduMatchCurrent : (automaticIds.length ? automaticIds.join(", ") : copy.sduMatchNone)} onClick={() => clearSduEventManualLectureMatch(event.id)}>{copy.sduMatchAutomatic}</button>}
                     </div>
                   </div>
                 );
@@ -45835,15 +45803,16 @@ examSetMode === "history" ? (
           <div className="exam-set-file-pick-body"><Icon name="file" size={16} /><div><strong>{examSetDialog.questionFile?.name || examSetDialog.document?.questionFileName || "—"}</strong><small>{examSetDialog.questionFile ? lectureMaterialFormatBytes(examSetDialog.questionFile.size) : examSetDialog.document?.questionSize ? lectureMaterialFormatBytes(examSetDialog.document.questionSize) : "Ingen fil valgt"}</small></div></div>
           {examSetDialog.mode === "upload" && <button type="button" disabled={examSetSaving} onClick={() => uploadRef.current?.click()}>{copy.examSetChooseQuestionPdf}</button>}
         </section>
-        <section className="exam-set-file-pick" data-ready={examSetDialog.answerFile || examSetDialog.document?.answerFileName ? "true" : "false"}>
+        <label className="lecture-material-field"><span>{examAnswerLabels75.heading}</span><select disabled={examSetSaving} value={examSetDialog.answerMode || "unknown"} onChange={event => setExamSetDialog(current => ({ ...current, answerMode: event.target.value }))}>{(examSetDialog.mode === "edit" && examSetDialog.answerMode === "unknown" ? ["unknown", "none", "separate", "embedded"] : ["none", "separate", "embedded"]).map(value => <option key={value} value={value}>{examAnswerLabels75[value]}</option>)}</select><small>{examAnswerLabels75.hint}</small></label>
+        {examSetDialog.answerMode === "separate" && <section className="exam-set-file-pick" data-ready={examSetDialog.answerFile || examSetDialog.document?.answerFileName ? "true" : "false"}>
           <header><strong>{copy.examSetAnswerPdf}</strong><small>Påkrævet</small></header>
           <div className="exam-set-file-pick-body"><Icon name="check" size={16} /><div><strong>{examSetDialog.answerFile?.name || examSetDialog.document?.answerFileName || "—"}</strong><small>{examSetDialog.answerFile ? lectureMaterialFormatBytes(examSetDialog.answerFile.size) : examSetDialog.document?.answerSize ? lectureMaterialFormatBytes(examSetDialog.document.answerSize) : "Ingen fil valgt"}</small></div></div>
           <button type="button" disabled={examSetSaving} onClick={() => answerUploadRef.current?.click()}>{copy.examSetChooseAnswerPdf}</button>
-        </section>
+        </section>}
       </div>
-      <div className="exam-set-dialog-required"><Icon name="flag" size={11} /><span>{copy.examSetAnswerPdfPrivate} {copy.examSetRequiredMeta}</span></div>
+      <div className="exam-set-dialog-required"><Icon name="flag" size={11} /><span>{copy.examSetRequiredMeta}</span></div>
       {examSetDialog.document?.parseMeta?.questionCount ? <div className="exam-set-parse-summary"><span><strong>{examSetDialog.document.parseMeta.questionCount}</strong><small>MCQ</small></span><span><strong>{examSetDialog.document.parseMeta.questionsWithKey || 0}</strong><small>Med facit</small></span><span><strong>{examSetDialog.document.parseMeta.questionsWithVisuals || 0}</strong><small>Visuelle</small></span></div> : null}
-      <div className="lecture-material-dialog-actions"><button type="button" className="ui-button ui-button--secondary" disabled={examSetSaving} onClick={() => setExamSetDialog(null)}>{copy.examSetCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={examSetSaving || !String(examSetDialog.name || "").trim() || !String(examSetDialog.year || "").trim() || !EXAM_SET_SESSIONS.includes(examSetDialog.examSession) || (!examSetDialog.questionFile && examSetDialog.mode === "upload") || (!examSetDialog.answerFile && !examSetDialog.document?.answerStoragePath && examSetDialog.mode === "upload")} onClick={saveExamSetDocument}>{examSetSaving ? copy.examSetParsing : copy.examSetSave}</button></div>
+      <div className="lecture-material-dialog-actions"><button type="button" className="ui-button ui-button--secondary" disabled={examSetSaving} onClick={() => setExamSetDialog(null)}>{copy.examSetCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={examSetSaving || !String(examSetDialog.name || "").trim() || !String(examSetDialog.year || "").trim() || !EXAM_SET_SESSIONS.includes(examSetDialog.examSession) || Boolean(examUploadError75(examSetDialog))} onClick={saveExamSetDocument}>{examSetSaving ? copy.examSetParsing : copy.examSetSave}</button></div>
     </div>
   </Modal>
 )}
@@ -46017,11 +45986,13 @@ function Sidebar({
   setProfileOpen,
   onProfileAction,
   dueCount = 0,
+  dockPosition = "bottom",
+  orbEnabled = true,
 }) {
   const displayName = String(user?.name || t.profile || "MedFLUEN").trim();
   const userInitial = displayName.slice(0, 1).toUpperCase() || "M";
   const moduleLabel = String(user?.module || "").trim();
-  const menuDirection = language === "ar" ? "rtl" : "ltr";
+
   const profileButtonRef = useRef(null);
   const profileMenuRef = useRef(null);
   const copy = ({
@@ -46029,17 +46000,6 @@ function Sidebar({
     en: { training: "Training", curriculum: "Curriculum", planning: "Planning", insight: "Insight", enterAdmin: "Switch to Admin mode", exitAdmin: "Switch to Study mode", adminActive: "Admin mode active" },
     ar: { training: "التدريب", curriculum: "المنهج", planning: "التخطيط", insight: "نظرة", enterAdmin: "التبديل إلى وضع المسؤول", exitAdmin: "التبديل إلى وضع الدراسة", adminActive: "وضع المسؤول نشط" },
   })[language] || {};
-
-  useEffect(() => {
-    if (!profileOpen) return undefined;
-    function handlePointerDown(event) {
-      if (!profileButtonRef.current?.contains(event.target) && !profileMenuRef.current?.contains(event.target)) setProfileOpen(false);
-    }
-    function handleKeyDown(event) { if (event.key === "Escape") setProfileOpen(false); }
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => { document.removeEventListener("mousedown", handlePointerDown); document.removeEventListener("keydown", handleKeyDown); };
-  }, [profileOpen, setProfileOpen]);
 
   function navigate(target, options) {
     onWorkspace(null);
@@ -46072,32 +46032,12 @@ function Sidebar({
     ["signout", "logout", t.signOutAction],
   ];
 
-  return (
-    <aside data-tour="sidebar" className="app-sidebar app-surface" aria-label={language === "en" ? "Primary navigation" : language === "ar" ? "التنقل الرئيسي" : "Primær navigation"} style={{ width: 74, height: "100%", display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, padding: "12px 0 10px", background: c.panel, borderInlineEnd: `1px solid ${c.border}`, direction: "ltr", overflow: "visible" }}>
-      <button type="button" title="MedFLUEN" aria-label={language === "en" ? "Go to home" : language === "ar" ? "الانتقال إلى الصفحة الرئيسية" : "Gå til Hjem"} onClick={() => navigate("home")} className="sidebar-logo" style={{ width: 40, height: 40, display: "grid", placeItems: "center", flexShrink: 0, marginBottom: 13, padding: 0, border: 0, borderRadius: 11, background: c.blueGradient, color: "#fff", boxShadow: "0 7px 16px rgba(22,101,234,.20)" }}><Icon name="logo" size={20} stroke={2.2} /></button>
-
-      <nav className="sidebar-nav-group" aria-label="Primær studienavigation">
-        {primaryAreas.map((item) => <SidebarNavButton72 c={c} key={item.id} icon={item.icon} title={item.label} active={activeArea === item.id} badge={item.badge} isRoute onClick={item.action} />)}
-      </nav>
-
-      <div className="sidebar-divider" aria-hidden="true" />
-
-      <nav className="sidebar-nav-group" aria-label="Assistent">
-        <SidebarNavButton72 c={c} icon="assistant" title={t.drByte} active={drByteOpen} onClick={() => { setProfileOpen(false); setDrByteOpen((value) => !value); }} />
-      </nav>
-
-      <div style={{ position: "relative", marginTop: "auto", paddingTop: 10 }}>
-        <button ref={profileButtonRef} type="button" title={t.profile} aria-label={t.profile} aria-expanded={profileOpen} aria-haspopup="menu" onClick={() => setProfileOpen((value) => !value)} className="sidebar-profile-btn" style={{ width: 40, height: 40, display: "grid", placeItems: "center", padding: 0, borderRadius: 11, border: `1px solid ${profileOpen ? c.blueBorder : c.border}`, background: profileOpen ? c.blueSoft : c.soft, color: profileOpen ? c.blue : c.text, fontSize: 12, fontWeight: 900 }}>{userInitial}</button>
-        {adminMode && <span className="sidebar-admin-mode-dot" title={copy.adminActive} aria-label={copy.adminActive} style={{ position: "absolute", top: 7, insetInlineEnd: -2, width: 9, height: 9, borderRadius: "50%", background: c.red, border: `2px solid ${c.panel}`, boxSizing: "border-box", pointerEvents: "none" }} />}
-        {profileOpen && (
-          <div ref={profileMenuRef} role="menu" className="sidebar-profile-menu" style={{ position: "fixed", zIndex: 1200, insetInlineStart: 86, bottom: 12, width: 258, padding: 8, borderRadius: 14, background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg, direction: menuDirection }}>
-            <div className="sidebar-profile-summary"><span>{userInitial}</span><div><strong>{displayName}</strong><small>{moduleLabel}{adminMode ? ` · ${copy.adminActive}` : ""}</small></div></div>
-            {profileActions.map(([action, icon, label]) => <button key={action} type="button" role="menuitem" className="sidebar-menu-item" onClick={() => onProfileAction(action)} style={{ color: action === "signout" ? c.red : c.text }}><Icon name={icon} size={14} /><span>{label}</span></button>)}
-          </div>
-        )}
-      </div>
-    </aside>
-  );
+  return <Dock75 items={primaryAreas} active={activeArea} Icon={Icon} position={dockPosition}
+    profileActions={profileActions} profileOpen={profileOpen} setProfileOpen={setProfileOpen}
+    onProfileAction={onProfileAction} userInitial={userInitial} displayName={displayName}
+    moduleLabel={moduleLabel} profileLabel={t.profile} profileButtonRef={profileButtonRef} profileMenuRef={profileMenuRef}
+    adminMode={adminMode} orb={orbEnabled}
+    assistant={{id:"assistant",icon:"assistant",label:t.drByte,active:drByteOpen,action:()=>setDrByteOpen(value=>!value)}} />;
 }
 
 function Modal({ c, children, onClose, size = "default" }) {
@@ -47584,10 +47524,11 @@ function AuthScreen({ c, t, language, theme }) {
 }
 
 function App() {
-  const [theme, setTheme] = useStoredState(STORAGE.theme, "light");
   const [language, setLanguage] = useStoredState(STORAGE.language, "da");
-  const [user, setUser] = useStoredState(STORAGE.user, null);
- const session = useSupabaseSession();
+ const { session, recovery: passwordRecovery75, finishRecovery: finishPasswordRecovery75 } = useAccessSession75(supabase.auth);
+  const [user, setUser, profileError75] = useAccountProfile75(session?.user?.id, STORAGE.user);
+  const appearance = useAppearance75(session?.user?.id);
+  const theme = appearance.theme;
 
 const {
   isAdmin: accountIsAdmin,
@@ -47619,9 +47560,7 @@ useCloudSync(session?.user?.id);
     sound: true,
   });
 
-  // State is local and synchronous; avoid an artificial loading screen on every visit.
-  const [stage, setStage] = useState(() => user ? "app" : "onboarding");
-  const [leaving, setLeaving] = useState(false);
+  // Onboarding is derived from the current account, never from a previous login.
   const [route, setRoute] = useStoredState(STORAGE.navigationRoute, "home");
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [examHistoryRequest72, setExamHistoryRequest72] = useState(0);
@@ -47651,6 +47590,9 @@ useCloudSync(session?.user?.id);
   const [drByteOpen, setDrByteOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [modal, setModal] = useState(null);
+  useEffect(() => {
+    setActiveWorkspace(null);setProfileOpen(false);setDrByteOpen(false);setModal(null);setSessionScope(null);
+  }, [session?.user?.id]);
   useEffect(() => {
   if (!adminLoading && !isAdmin && modal === "admin") {
     setModal(null);
@@ -47825,23 +47767,16 @@ useEffect(() => {
     }
   }
 
-  const c = theme === "dark" ? DARK : LIGHT;
+  const c = palette75(theme === "dark" ? DARK : LIGHT, appearance.value.accent, theme);
   const t = TEXT[language] || TEXT.da;
   const languageData =
     LANGUAGES.find((item) => item.code === language) || LANGUAGES[0];
 
 
   function resetProfile() {
-    try {
-      localStorage.removeItem(STORAGE.user);
-    } catch {
-      // Ignorer.
-    }
-
-    setUser(null);
+    if (!setUser(null)) return;
     setRoute("home");
     setModal(null);
-    setStage("onboarding");
   }
 
   // Kræver et bekræftet Supabase-login, før appen overhovedet viser
@@ -47862,32 +47797,27 @@ useEffect(() => {
     return (
       <>
         <GlobalStyles c={c} /><ExperienceStyles72 />
-        <AuthScreen c={c} t={t} language={language} theme={theme} />
+        <Access75 auth={supabase.auth} language={language} appearance={appearance} />
       </>
     );
   }
 
-  if (stage === "loading") {
-    return (
-      <>
-        <GlobalStyles c={c} /><ExperienceStyles72 />
-        <Loader c={c} t={t} leaving={leaving} theme={theme} moduleId={user?.module} />
-      </>
-    );
+  if (passwordRecovery75) {
+    return <><GlobalStyles c={c} /><Access75 auth={supabase.auth} language={language} recovery onRecovered={finishPasswordRecovery75} /></>;
   }
 
-  if (stage === "onboarding" || !user) {
+  if (!user) {
     return (
       <>
         <GlobalStyles c={c} /><ExperienceStyles72 />
+        {profileError75 && <p role="alert" style={{color:c.red,padding:16}}>{profileError75}</p>}
         <Onboarding
           c={c}
           t={t}
           language={language}
           theme={theme}
           onComplete={(data) => {
-            setUser(data);
-            setStage("app");
+            if (!setUser(data)) return;
             setRoute("home");
             setTutorialActive(true);
           }}
@@ -47941,11 +47871,14 @@ useEffect(() => {
 
   return (
     <div
+      key={session.user.id}
+      className="mf75-app-frame"
+      data-dock={appearance.value.dock}
       lang={language}
       dir="ltr"
       style={{
         width: "100vw",
-        height: "100vh",
+        height: "100dvh",
         display: "flex",
         overflow: "hidden",
         background: c.page,
@@ -47954,10 +47887,10 @@ useEffect(() => {
     >
       <GlobalStyles c={c} /><ExperienceStyles72 />
       <CalendarReminderManager events={shellMergedEvents} />
+      <Celebration75 />
       <FlashcardReviewSync70 userId={session?.user?.id || null} />
       <FlashcardPersonalSync71 userId={session?.user?.id || null} setRecords={setPersonalFlashcards} />
-      {theme === "light" && <div className="app-blue-hue" aria-hidden="true" />}
-      {theme === "dark" && <div className="app-blue-hue-dark" aria-hidden="true" />}
+
 
       {isFullscreen && (
         <div
@@ -48077,17 +48010,9 @@ useEffect(() => {
         adminMode={adminModeEnabled}
         onNavigate={navigateFromShell}
         onProfileAction={handleProfileAction}
+        dockPosition={appearance.value.dock}
+        orbEnabled={appearance.value.orb}
       />
-
-      {activeWorkspace && <div className="mobile-workspace-utilities">
-        <button type="button" title={t.drByte} aria-label={t.drByte} onClick={() => setDrByteOpen((value) => !value)}><Icon name="assistant" size={16} /></button>
-        <button type="button" title={t.profile} aria-label={t.profile} aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}><Icon name="user" size={16} /></button>
-        {profileOpen && <div className="mobile-workspace-profile-menu" style={{ background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg }}>
-          <button type="button" onClick={() => handleProfileAction("settings")}><Icon name="settings" size={13} />{t.settings}</button>
-          <button type="button" onClick={() => handleProfileAction("language")}><Icon name="globe" size={13} />{t.language}</button>
-          <button type="button" onClick={() => handleProfileAction("signout")}><Icon name="logout" size={13} />{t.signOutAction}</button>
-        </div>}
-      </div>}
 
       {activeWorkspace && (
         <WorkspaceShell
@@ -48261,12 +48186,12 @@ onNavigate={navigateFromShell}
             className={drByteOpen ? "notes-open drbyte-panel-open" : ""}
             style={{
               position: activeWorkspace && drByteOpen ? "fixed" : "relative",
-              top: activeWorkspace && drByteOpen ? 0 : undefined,
-              bottom: activeWorkspace && drByteOpen ? 0 : undefined,
-              insetInlineEnd: activeWorkspace && drByteOpen ? 0 : undefined,
+              top: activeWorkspace && drByteOpen ? "var(--dock-top75)" : undefined,
+              bottom: activeWorkspace && drByteOpen ? "var(--dock-bottom75)" : undefined,
+              right: activeWorkspace && drByteOpen ? "var(--dock-right75)" : undefined,
               zIndex: activeWorkspace && drByteOpen ? 1001 : undefined,
               width: drByteOpen ? 380 : 0,
-              height: "100%",
+              height: activeWorkspace && drByteOpen ? "auto" : "100%",
               flexShrink: 0,
               overflow: "hidden",
               opacity: drByteOpen ? 1 : 0,
@@ -48300,28 +48225,12 @@ onNavigate={navigateFromShell}
         </div>
       </div>
 
-      <MobileBottomNav
-        c={c}
-        t={t}
-        language={language}
-        route={route}
-        activeWorkspace={activeWorkspace}
-        onNavigate={navigateFromShell}
-        onWorkspace={openWorkspace}
-        drByteOpen={drByteOpen}
-        setDrByteOpen={setDrByteOpen}
-        onProfileAction={handleProfileAction}
-        dueCount={sidebarDueCount}
-        accountIsAdmin={accountIsAdmin}
-        adminMode={adminModeEnabled}
-      />
-
       {modal === "settings" && (
         <SettingsModal
           c={c}
           t={t}
-          theme={theme}
-          setTheme={setTheme}
+          appearance={appearance}
+          language={language}
           preferences={preferences}
           setPreferences={setPreferences}
           onClose={() => setModal(null)}
