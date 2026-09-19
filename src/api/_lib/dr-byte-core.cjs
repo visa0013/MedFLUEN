@@ -139,4 +139,4 @@ function createHandler({ fetch = globalThis.fetch, env = process.env, timeoutMs 
   };
 }
 module.exports = { createHandler, validateRequest, validateAnswer, parseWeb };
- 
+  
