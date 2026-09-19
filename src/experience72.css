@@ -45,4 +45,4 @@
 .mf75-editor-feedback{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 20px;box-sizing:border-box;color:var(--ui-secondary);font-size:12px}
 .mf75-editor-feedback>span{min-width:0;overflow-wrap:anywhere}
 .mf72 .mf75-editor-feedback>button{flex-shrink:0;font-size:11px;color:var(--ui-blue);background:transparent;border-color:var(--ui-border)}
-.flashcard71-shell .lecture-material-field[hidden]{display:none!important}
+.flashcard71-shell .lecture-material-field[hidden]{display:none!important} 
