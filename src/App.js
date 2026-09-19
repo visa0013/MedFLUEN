@@ -5221,7 +5221,7 @@ async function callDrByteAI({ userQuestion, matches, language, conversationHisto
   }
 }
 
-function DrByteChat(props) { return <Assistant72 {...props} supabase={supabase} loadPdfJs={loadLecturePdfJs} />; }
+function DrByteChat(props) { return <Assistant72 key={`${props.userId}:${props.moduleName}`} {...props} lectureCatalog={MODULE_LECTURES[props.moduleName] || []} supabase={supabase} loadPdfJs={loadLecturePdfJs} />; }
 
 function LegacyDrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion }) {
   const [messages, setMessages] = useStoredState("medlearn-drbyte-chat", []);
@@ -36090,7 +36090,7 @@ function SettingsModal({
       <section aria-label="Dr. Byte" style={{border: `1px solid ${c.border}`,borderRadius:12,padding:16,marginBottom:20}}>
         <strong style={{color:c.text,fontSize:14}}>Dr. Byte</strong>
         <p role="status" style={{color:c.secondary,fontSize:13,lineHeight:1.6,marginBottom:0}}>
-          {language === "en" ? "Local PDF source search is available. AI answers are not connected yet." : language === "ar" ? "البحث المحلي في مصادر PDF متاح. إجابات الذكاء الاصطناعي غير متصلة بعد." : "Lokal søgning i PDF-kilder er tilgængelig. AI-svar er endnu ikke tilsluttet."}
+          {language === "en" ? "Dr. Byte uses Gemini with selected PDF excerpts and optional web search. Shared content is sent to Google when you submit a question." : language === "ar" ? "يستخدم Dr. Byte Gemini مع مقتطفات PDF المحددة والبحث الاختياري على الويب. يُرسل المحتوى المحدد إلى Google عند إرسال السؤال." : "Dr. Byte bruger Gemini med valgte PDF-uddrag og valgfri websøgning. Valgt indhold sendes til Google, når du sender et spørgsmål."}
         </p>
       </section>
 
