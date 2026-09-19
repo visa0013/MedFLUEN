@@ -363,4 +363,4 @@ export function ExperienceStyles72(){return <style>{`
 .exam-set-question-text,.lecture-shared-note-free-text{line-height:1.7!important;font-weight:400!important}
 @media(max-width:1050px){.home-v2-workspace.home-v2-workspace{grid-template-columns:minmax(0,1fr)!important;gap:18px!important}.home-v2-rail.home-v2-rail{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))!important}}
 @media(prefers-reduced-motion:reduce){.sidebar-nav-btn,.medfluen-area-tabs button{transition:none!important}}
-`}</style>;}
+`}</style>;} 
