@@ -29,3 +29,4 @@ export async function askDrByte76(payload, supabase, signal, request = fetch) {
   if (!Array.isArray(body?.paragraphs)) throw Error('Svaret kunne ikke læses. Prøv igen.');
   return body;
 }
+ 
