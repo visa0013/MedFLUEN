@@ -6,7 +6,8 @@ import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 import { CardEditor72, RichContent72, Assistant72, HelpCenter72, ExperienceStyles72, AreaTabs72, useReviewClock72, ActivityChart73, ReadingIndex73 } from "./Experience72";
 import { shouldWakeSync72, retryableLoader73, pdfMetrics73 } from "./experience72-model";
-import { SlideNotes74, useSlideJournal74 } from "./Reader74";
+import { useSlideJournal74 } from "./Reader74";
+import { NotesHub78, PageNote78 } from "./Notes78";
 import { pdfFailure74 } from "./reader74-model";
 import { examAnswerMode75, examAnswerPath75, examMatchesAnswerFilter75, examUploadError75, examDuplicate75 } from "./exam75-model";
 import { deckTree75 } from "./decks75-model";
@@ -18,7 +19,9 @@ import { createCatalogStore751 } from "./catalog751-model";
 import { CatalogEditor751, useCatalog751 } from "./Catalog751";
 import { NativePdf751 } from "./NativePdf751";
 import { effectiveChatWidth76 } from "./drbyte76-model";
+import { enterFocus78, leaveFocus78 } from "./shell78-model";
 import "./polish77.css";
+import "./shell78.css";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -88,7 +91,8 @@ const STORAGE = {
 /* SEGMENT_6_9_HELPERS_START */
 function medfluenPrimaryArea(route, workspace) {
   if (workspace === "examSets" || route === "mcq" || route === "training-history") return "training";
-  if (workspace === "lectures" || workspace === "notes") return "curriculum";
+  if (workspace === "notes") return "notes";
+  if (workspace === "lectures") return "curriculum";
   if (workspace === "calendar" || route === "study-plan") return "planning";
   if (route === "insights") return "insight";
   return "home";
@@ -99,7 +103,7 @@ function medfluenAreaTab(route, workspace, sessionScope) {
   if (route === "training-history") return "training-history";
   if (route === "mcq" && sessionScope?.mode === "due") return "training-review";
   if (route === "mcq") return "training-start";
-  if (workspace === "notes") return "curriculum-notes";
+  if (workspace === "notes") return "notes-all";
   if (workspace === "lectures") return "curriculum-lectures";
   if (route === "study-plan") return "planning-study-plan";
   if (workspace === "calendar") return "planning-calendar";
@@ -40047,7 +40051,7 @@ function lectureViewportKind(width) {
   return "desktop";
 }
 
-function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0, onClose, onLectureChange, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
+function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0, onClose, onLectureChange, onNewNoteFromPage, sourcePageRequest78 = null, onSourcePageHandled78, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
@@ -40090,12 +40094,48 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   const [lectureFavorites, setLectureFavorites] = useState([]);
   const [lectureFavoriteStatus, setLectureFavoriteStatus] = useState("idle");
   const [lectureViewerFocus, setLectureViewerFocus] = useState(false);
+  const readerNativeFocusRef = useRef(false);
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      if (readerNativeFocusRef.current && !document.fullscreenElement) {
+        readerNativeFocusRef.current = false;
+        setLectureViewerFocus(false);
+      }
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      if (readerNativeFocusRef.current && document.fullscreenElement) {
+        Promise.resolve(document.exitFullscreen?.()).catch(() => {});
+      }
+      readerNativeFocusRef.current = false;
+    };
+  }, []);
+  async function toggleLectureFocus() {
+    if (lectureViewerFocus) {
+      if (readerNativeFocusRef.current && document.fullscreenElement) {
+        try { await document.exitFullscreen(); } catch { /* The in-app focus still closes. */ }
+      }
+      readerNativeFocusRef.current = false;
+      setLectureViewerFocus(false);
+      return;
+    }
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      try {
+        await document.documentElement.requestFullscreen();
+        readerNativeFocusRef.current = true;
+      } catch { readerNativeFocusRef.current = false; }
+    }
+    setLectureCompactPanel(null);
+    setLectureViewerFocus(true);
+  }
   const [lectureViewport, setLectureViewport] = useState(() => typeof window === "undefined" ? "desktop" : lectureViewportKind(window.innerWidth));
   const [lectureCompactPanel, setLectureCompactPanel] = useState(null);
   const lectureCompactViewport = lectureViewport !== "desktop";
   const lecturePhoneViewport = lectureViewport === "phone";
   const [lectureMaterialsOpen, setLectureMaterialsOpen] = useState(false);
   const [slidePageRequest74, setSlidePageRequest74] = useState(null);
+  const handledSourcePageRef78 = useRef(null);
   const [slideDocument74, setSlideDocument74] = useState({ materialId: null, page: 1, numPages: 0 });
   const [lecturePdfRemoteState, setLecturePdfRemoteState] = useState({});
   const [lecturePdfRemoteRevision, setLecturePdfRemoteRevision] = useState(0);
@@ -41604,6 +41644,15 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
     setSlideDocument74(current => ({ materialId: slideMaterialId74, numPages: current.materialId === slideMaterialId74 ? current.numPages : 0, page: next }));
     setSlidePageRequest74({ materialId: slideMaterialId74, page: next, requestId: Date.now() });
   }
+  useEffect(() => {
+    if (!sourcePageRequest78?.requestId || handledSourcePageRef78.current === sourcePageRequest78.requestId) return;
+    if (sourcePageRequest78.materialId !== activeLectureMaterial?.id) return;
+    if (lecturePdfScopeRef.current?.materialId !== sourcePageRequest78.materialId) return;
+    if (!(lecturePdfWorkspaceStatus === "ready" || lecturePdfWorkspaceStatus === "local")) return;
+    handledSourcePageRef78.current = sourcePageRequest78.requestId;
+    requestSlidePage74(sourcePageRequest78.page);
+    onSourcePageHandled78?.(sourcePageRequest78.requestId);
+  }, [sourcePageRequest78?.requestId, activeLectureMaterial?.id, lecturePdfWorkspaceStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isLectureLibrary || !activeLectureMaterial?.id || !lectureMaterialUsesPdfWorkspace(lectureMaterialPreviewKind(activeLectureMaterial))) {
@@ -42423,7 +42472,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
       }
       if (event.key === "/" && !event.ctrlKey && !event.metaKey && !event.altKey) {
         event.preventDefault();
-        if (lectureViewerFocus) setLectureViewerFocus(false);
+        if (lectureViewerFocus) void toggleLectureFocus();
         if (lectureCompactViewport) setLectureCompactPanel("library");
         else updateLectureViewerV2({ libraryOpen: true });
         window.requestAnimationFrame(() => lectureSearchRef.current?.focus());
@@ -42432,7 +42481,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
         setLectureCompactPanel(null);
       } else if (event.key === "Escape" && lectureViewerFocus) {
         event.preventDefault();
-        setLectureViewerFocus(false);
+        void toggleLectureFocus();
       } else if (event.key === "Escape" && query) {
         event.preventDefault();
         setQuery("");
@@ -42828,7 +42877,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
 
   function handleLecturePanelToggle(panel) {
     if (panel !== "library" && panel !== "notes") return;
-    if (lectureViewerFocus) setLectureViewerFocus(false);
+    if (lectureViewerFocus) void toggleLectureFocus();
     if (lectureCompactViewport) {
       setLectureCompactPanel((current) => current === panel ? null : panel);
       return;
@@ -44594,7 +44643,7 @@ async function openExamSetPdfEditor() {
             <div className="lecture-viewer-v2-header-tools" role="group" aria-label={copy.lectureHeader}>
               <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureLibraryVisible ? "true" : "false"} title={copy.viewerLibrary} aria-label={copy.viewerLibrary} aria-expanded={lectureLibraryVisible} onClick={() => handleLecturePanelToggle("library")}><Icon name="list" size={13} /><span>{copy.viewerLibrary}</span></button>
               <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureNotesVisible ? "true" : "false"} title={copy.viewerNotes} aria-label={copy.viewerNotes} aria-expanded={lectureNotesVisible} onClick={() => handleLecturePanelToggle("notes")}><Icon name="notebook" size={13} /><span>{copy.viewerNotes}</span></button>
-              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureViewerFocus ? "true" : "false"} title={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} aria-label={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} onClick={() => { setLectureCompactPanel(null); setLectureViewerFocus((value) => !value); }}><Icon name="expand" size={13} /><span>{lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus}</span></button>
+              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureViewerFocus ? "true" : "false"} title={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} aria-label={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} onClick={toggleLectureFocus}><Icon name="expand" size={13} /><span>{lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus}</span></button>
             </div>
           )}
           <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary ? (!selectedLecture || materialSaving) : examSetSaving}>
@@ -44789,7 +44838,7 @@ async function openExamSetPdfEditor() {
             </div>
 
             <div className="lecture-detail-tools lecture-detail-tools--minimal">
-              <button type="button" className="lecture-focus-exit" onClick={() => setLectureViewerFocus(false)} title={copy.viewerExitFocus} aria-label={copy.viewerExitFocus}><Icon name="collapse" size={12} /><span>{copy.viewerExitFocus}</span></button>
+              <button type="button" className="lecture-focus-exit" onClick={toggleLectureFocus} title={copy.viewerExitFocus} aria-label={copy.viewerExitFocus}><Icon name="collapse" size={12} /><span>{copy.viewerExitFocus}</span></button>
               <button type="button" className="lecture-favorite-toggle lecture-favorite-toggle--header" data-active={selectedLectureFavorite ? "true" : "false"} title={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} aria-label={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} onClick={() => toggleLectureFavorite(selectedLecture.id)}><Icon name="star" size={13} /></button>
               <div className="lecture-material-compact-control">
                 <button
@@ -45177,76 +45226,20 @@ examSetMode === "history" ? (
             </div>
             {noteMode === "own" ? (
               <div className="lecture-own-note-shell">
-                <div className="lecture-own-note-toolbar">
-                  <div className="lecture-note-view-toggle" role="tablist" aria-label={copy.ownNotes}>
-                    <button type="button" role="tab" aria-selected={lectureNoteDraft.viewMode === "free"} data-active={lectureNoteDraft.viewMode === "free" ? "true" : "false"} onClick={() => setLectureNoteViewMode("free")}>{copy.noteFreeView}</button>
-                    <button type="button" role="tab" aria-selected={lectureNoteDraft.viewMode === "structured"} data-active={lectureNoteDraft.viewMode === "structured" ? "true" : "false"} onClick={() => setLectureNoteViewMode("structured")}>{copy.noteStructuredView}</button>
-                  </div>
-                  <div className="lecture-note-toolbar-actions">
-                    <span className="lecture-note-save-state" data-state={lectureNoteSaveState} title={lectureNoteSyncMessage || undefined}>
-                      <Icon name={lectureNoteSaveState === "saved" ? "check" : lectureNoteSaveState === "error" ? "flag" : "clock"} size={10} />
-                      <span>{lectureNoteSaveState === "saving" ? copy.noteSaving : lectureNoteSaveState === "saved" ? copy.noteSaved : lectureNoteSaveState === "error" ? copy.noteLocalOnly : lectureNoteSaveState === "local" ? copy.noteLocalOnly : ""}</span>
-                    </span>
-                    <button type="button" className="lecture-note-export-button" title={copy.noteExportText} aria-label={copy.noteExportText} disabled={!selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={() => exportCurrentLectureNote("text")}><Icon name="file" size={12} /></button>
-                    <button type="button" className="lecture-note-export-button" title={copy.noteExportMarkdown} aria-label={copy.noteExportMarkdown} disabled={!selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={() => exportCurrentLectureNote("markdown")}><Icon name="down" size={12} /></button>
-                  </div>
-                </div>
-                <div className="lecture-note-share-bar">
-                  <div className="lecture-note-share-status" data-shared={ownSharedNote ? "true" : "false"}>
-                    <span><Icon name={ownSharedNote ? "share" : "user"} size={12} /></span>
-                    <div>
-                      <strong>{ownSharedNote ? `${copy.sharedPublished} · ${copy.sharedVersion(ownSharedNote.version)}` : copy.sharedPrivate}</strong>
-                      <small>{ownSharedNote ? (ownSharedNoteNeedsUpdate ? copy.sharedUpdateAvailable : copy.sharedPublishedHint) : copy.sharedExplicitHint}</small>
-                    </div>
-                  </div>
-                  <div className="lecture-note-share-actions">
-                    {!ownSharedNote ? (
-                      <button type="button" className="lecture-note-share-button" data-primary="true" disabled={sharedNoteActionState === "saving" || !selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={publishCurrentLectureNote} title={copy.sharedShareNote}><Icon name="share" size={11} /><span>{copy.sharedShareNote}</span></button>
-                    ) : (
-                      <>
-                        {ownSharedNoteNeedsUpdate && <button type="button" className="lecture-note-share-button" data-primary="true" disabled={sharedNoteActionState === "saving"} onClick={publishCurrentLectureNote} title={copy.sharedUpdateNote}><Icon name="upload" size={11} /><span>{copy.sharedUpdateNote}</span></button>}
-                        <button type="button" className="lecture-note-share-button" data-danger="true" disabled={sharedNoteActionState === "saving"} onClick={stopSharingCurrentLectureNote} title={copy.sharedStopSharing}><Icon name="close" size={11} /><span>{copy.sharedStopSharing}</span></button>
-                      </>
-                    )}
-                  </div>
-                </div>
-                {sharedNoteMessage && noteMode === "own" && <div className="lecture-note-share-message" data-state={sharedNoteActionState === "error" ? "error" : sharedNoteActionState === "success" ? "success" : "info"}><Icon name={sharedNoteActionState === "error" ? "flag" : sharedNoteActionState === "success" ? "check" : "clock"} size={10} /><span>{sharedNoteMessage}</span></div>}
+                <PageNote78
+                  materialId={slideMaterialId74}
+                  page={slideDocument74.materialId === slideMaterialId74 ? slideDocument74.page : 1}
+                  numPages={slideDocument74.materialId === slideMaterialId74 ? slideDocument74.numPages : 0}
+                  journal={slideJournal74}
+                  onPage={requestSlidePage74}
+                  lectureDraft={lectureNoteDraft}
+                  onLectureDraft={updateLectureNoteDraft}
+                  lectureStatus={lectureNoteSaveState}
+                  onNewFromPage={(page) => onNewNoteFromPage?.({lectureId:selectedLecture?.id,materialId:slideMaterialId74,page})}
+                  language={language}
+                />
                 {lectureNoteSyncMessage && lectureNoteSaveState === "error" && <div className="lecture-note-sync-warning" role="status"><Icon name="flag" size={11} /><span>{lectureNoteSyncMessage}</span></div>}
-                {lectureNoteLoadState === "loading" ? (
-                  <div className="lecture-note-loading"><span className="lecture-pdf-spinner" /><strong>{copy.noteLoading}</strong></div>
-                ) : lectureNoteDraft.viewMode === "structured" ? (
-                  <>
-                  {slideMaterialId74 && <SlideNotes74
-                    key={slideMaterialId74} annotations={lecturePdfAnnotations} materialId={slideMaterialId74}
-                    fileName={activeLectureMaterial?.file_name || "PDF"}
-                    page={slideDocument74.materialId === slideMaterialId74 ? slideDocument74.page : 1}
-                    numPages={slideDocument74.materialId === slideMaterialId74 ? slideDocument74.numPages : 0}
-                    status={slideJournal74.status} language={language}
-                    onSave={updateLecturePdfAnnotation} onDelete={deleteLecturePdfAnnotation}
-                    onPage={requestSlidePage74} onRetry={slideJournal74.retry}
-                  />}
-                  {slideMaterialId74 && <p className="mf74-private-hint">{language === "en" ? "Slide notes are private. General lecture notes are kept separately below." : "Slidenoter er private. Dine generelle forelæsningsnoter er bevaret nedenfor."}</p>}
-                  <details className="mf74-general" open={!slideMaterialId74}>
-                  <summary>{language === "en" ? "General lecture notes" : "Generelle forelæsningsnoter"}</summary>
-                  <div className="lecture-note-structured">
-                    <section className="lecture-note-section">
-                      <header><span><Icon name="check" size={11} /></span><strong>{copy.noteKeyPoints}</strong></header>
-                      <textarea value={lectureNoteDraft.keyPoints} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ keyPoints: event.target.value })} placeholder={copy.noteKeyPointsPlaceholder} />
-                    </section>
-                    <section className="lecture-note-section">
-                      <header><span><Icon name="plus" size={11} /></span><strong>{copy.noteClinicalPoints}</strong></header>
-                      <textarea value={lectureNoteDraft.clinicalPoints} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ clinicalPoints: event.target.value })} placeholder={copy.noteClinicalPointsPlaceholder} />
-                    </section>
-                    <section className="lecture-note-section">
-                      <header><span><Icon name="flag" size={11} /></span><strong>{copy.noteOpenQuestions}</strong></header>
-                      <textarea value={lectureNoteDraft.openQuestions} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ openQuestions: event.target.value })} placeholder={copy.noteOpenQuestionsPlaceholder} />
-                    </section>
-                  </div>
-                  </details>
-                  </>
-                ) : (
-                  <div className="lecture-note-free"><textarea value={lectureNoteDraft.freeText} disabled={!noteKey} onChange={(event) => updateLectureNoteDraft({ freeText: event.target.value })} placeholder={copy.notesPlaceholder} /></div>
-                )}
+                <details className="mf78-share-details"><summary>{language === "en" ? "Share lecture note" : "Del forelæsningsnote"}</summary><p>{ownSharedNote ? `${copy.sharedPublished} · ${copy.sharedVersion(ownSharedNote.version)}` : copy.sharedPrivate}</p>{!ownSharedNote ? <button type="button" disabled={sharedNoteActionState === "saving" || !selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={publishCurrentLectureNote}>{copy.sharedShareNote}</button> : <><button type="button" disabled={sharedNoteActionState === "saving"} onClick={publishCurrentLectureNote}>{copy.sharedUpdateNote}</button><button type="button" disabled={sharedNoteActionState === "saving"} onClick={stopSharingCurrentLectureNote}>{copy.sharedStopSharing}</button></>}{sharedNoteMessage && <p role="status">{sharedNoteMessage}</p>}</details>
               </div>
             ) : (
               <div className="lecture-shared-note-shell">
@@ -45606,6 +45599,7 @@ function Sidebar({
     { id: "home", icon: "home", label: t.home, badge: 0, action: () => navigate("home") },
     { id: "training", icon: "training", label: copy.training, badge: dueCount, action: () => navigate("mcq") },
     { id: "curriculum", icon: "curriculum", label: copy.curriculum, badge: 0, action: () => openWorkspace("lectures") },
+    { id: "notes", icon: "notebook", label: t.notebook, badge: 0, action: () => openWorkspace("notes") },
     { id: "planning", icon: "planning", label: copy.planning, badge: 0, action: () => openWorkspace("calendar") },
     { id: "insight", icon: "insight", label: copy.insight, badge: 0, action: () => navigate("insights") },
   ];
@@ -47153,6 +47147,8 @@ useCloudSync(session?.user?.id);
   // Onboarding is derived from the current account, never from a previous login.
   const [route, setRoute] = useStoredState(STORAGE.navigationRoute, "home");
   const [activeWorkspace, setActiveWorkspace] = useState(null);
+  const [noteSource78, setNoteSource78] = useState(null);
+  const [notePageRequest78, setNotePageRequest78] = useState(null);
   const [examHistoryRequest72, setExamHistoryRequest72] = useState(0);
   const [calendarClosing, setCalendarClosing] = useState(false);
 
@@ -47281,6 +47277,7 @@ useEffect(() => {
   const [trainingStartPool, setTrainingStartPool] = useState("mixed");
   const [lectureMenu, setLectureMenu] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [internalFocus78, setInternalFocus78] = useState(false);
   const [tutorialActive, setTutorialActive] = useState(false);
   const [fsOverlayVisible, setFsOverlayVisible] = useState(false);
   const [fsClock, setFsClock] = useState("");
@@ -47303,11 +47300,23 @@ useEffect(() => {
 
   useEffect(() => {
     function handleFsChange() {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      setIsFullscreen(Boolean(document.fullscreenElement) || internalFocus78);
     }
     document.addEventListener("fullscreenchange", handleFsChange);
     return () => document.removeEventListener("fullscreenchange", handleFsChange);
-  }, []);
+  }, [internalFocus78]);
+
+  useEffect(() => {
+    if (!internalFocus78) return undefined;
+    function onEscape(event) {
+      if (event.key === "Escape") {
+        setInternalFocus78(false);
+        setIsFullscreen(false);
+      }
+    }
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, [internalFocus78]);
 
   useEffect(() => {
     if (!isFullscreen) {
@@ -47364,11 +47373,13 @@ useEffect(() => {
     };
   }, [isFullscreen]);
 
-  function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen?.();
+  async function toggleFullscreen() {
+    if (document.fullscreenElement || internalFocus78) {
+      await leaveFocus78(document.fullscreenElement ? () => document.exitFullscreen() : null, setInternalFocus78);
+      setIsFullscreen(false);
     } else {
-      document.exitFullscreen?.();
+      const mode = await enterFocus78(document.documentElement.requestFullscreen?.bind(document.documentElement), setInternalFocus78);
+      setIsFullscreen(mode === "internal" || Boolean(document.fullscreenElement));
     }
   }
 
@@ -47479,6 +47490,8 @@ useEffect(() => {
       key={session.user.id}
       className="mf75-app-frame"
       data-dock={appearance.value.dock}
+      data-byte-open={drByteOpen ? "true" : "false"}
+      data-internal-focus={internalFocus78 ? "true" : "false"}
       lang={language}
       dir="ltr"
       style={{
@@ -47486,7 +47499,7 @@ useEffect(() => {
         height: "100dvh",
         display: "flex",
         overflow: "hidden",
-        background: c.page,
+        background: c.panel,
         position: "relative",
       }}
     >
@@ -47632,10 +47645,22 @@ useEffect(() => {
             <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={effectiveAdmin} onClose={closeWorkspace} onOpenStudyPlan={() => navigateFromShell("study-plan")} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
           )}
           {activeWorkspace === "notes" && (
-            <Notebook c={c} t={t} onClose={closeWorkspace} />
+            <NotesHub78 client={supabase} userId={session?.user?.id} moduleName={user?.module} legacyLocalRows={loadStorage(STORAGE.notes, [])} sourceDraft={noteSource78} onSourceUsed={() => setNoteSource78(null)} onOpenSource={(source) => {
+              const state = loadStorage(STORAGE.workspaceState, {});
+              const moduleKey = user?.module || "module";
+              const lectureId = source.lectureId || state.selectedLectureId;
+              const next = { ...state, selectedLectureId: lectureId,
+                lectureViewerHistory: lectureId ? { ...(state.lectureViewerHistory || {}), [moduleKey]: { ...(state.lectureViewerHistory?.[moduleKey] || {}), lectureId, ...(source.materialId ? { materialId: source.materialId } : {}), updatedAt: Date.now() } } : state.lectureViewerHistory,
+                lectureMaterialSelection: lectureId && source.materialId ? { ...(state.lectureMaterialSelection || {}), [`${moduleKey}:${lectureId}`]: source.materialId } : state.lectureMaterialSelection,
+                documentViewer: source.materialId ? { ...(state.documentViewer || {}), [source.materialId]: { ...(state.documentViewer?.[source.materialId] || {}), page: source.page || 1 } } : state.documentViewer };
+              localStorage.setItem(STORAGE.workspaceState, JSON.stringify(next));
+              window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } }));
+              setNotePageRequest78(source.materialId && source.page ? { materialId: source.materialId, page: source.page, requestId: Date.now() } : null);
+              setActiveWorkspace("lectures");
+            }} onClose={closeWorkspace} language={language} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} onLectureChange={handleByteLectureChange} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} onLectureChange={handleByteLectureChange} onNewNoteFromPage={(source) => { setNoteSource78({ ...source, requestId: Date.now() }); setActiveWorkspace("notes"); }} sourcePageRequest78={notePageRequest78} onSourcePageHandled78={(id) => setNotePageRequest78(current => current?.requestId === id ? null : current)} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" historyRequest72={examHistoryRequest72} onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={effectiveAdmin} importedQuestions={importedQuestions} />
