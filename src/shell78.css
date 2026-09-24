@@ -1,0 +1,87 @@
+/* Segment 7.8 — a continuous canvas, restrained controls and clear hierarchy. */
+.mf75-app-frame[data-dock] { background: var(--ui-panel) !important; }
+.mf75-app-frame .app-surface { background: var(--ui-panel); }
+.mf75-app-frame .mf75-dock { box-shadow: 0 8px 28px #17345114, 0 1px 3px #1734510a !important; }
+.mf75-app-frame[data-dock="left"],
+.mf75-app-frame[data-dock="right"] { background: var(--ui-panel) !important; }
+.mf75-app-frame[data-byte-open="true"] .home-v2 { width: 100%; max-width: none; }
+.mf75-app-frame[data-byte-open="true"] .home-v2-workspace.mf77-resizable-home { width: 100%; }
+.mf75-app-frame[data-byte-open="true"] .home-v2-rail-card { min-width: 0; }
+.mf75-app-frame[data-internal-focus="true"] { position: fixed !important; inset: 0; z-index: 1200; }
+.mf75-app-frame[data-internal-focus="true"] .app-surface { min-height: 0; }
+.mf75-app-frame .medfluen-area-tabs { background: var(--ui-panel); border-bottom: 1px solid var(--ui-border); }
+.mf75-app-frame .mf72-tab-pair > button { min-height: 42px; }
+.mf75-app-frame .mf72-tab-pair button:focus-visible,
+.mf75-app-frame .document-workspace button:focus-visible,
+.mf75-app-frame .mf78-notes button:focus-visible { outline: 2px solid var(--ui-blue); outline-offset: 2px; }
+.mf75-app-frame .document-workspace .document-toolbar,
+.mf75-app-frame .document-workspace .document-header { background: var(--ui-panel); }
+.mf75-app-frame .home-v2-calendar-area,
+.mf75-app-frame .home-v2-rail-card,
+.mf75-app-frame .mf77-quiz-item { border-color: var(--ui-border); box-shadow: 0 8px 28px #17345109 !important; }
+.mf75-app-frame .ui-button,
+.mf75-app-frame .home-v2-mini-button { transition: background .16s ease, border-color .16s ease, color .16s ease; }
+/* The reader's three frequent actions are words, not a mystery icon cluster. */
+.mf75-app-frame .lecture-viewer-shell-revamp .document-workspace-header { min-height: 58px !important; height: auto !important; padding: 7px 14px !important; background: var(--ui-panel) !important; }
+.mf75-app-frame .lecture-viewer-shell-revamp .document-workspace-title-block strong { font-size: 12px; font-weight: 700; }
+.mf75-app-frame .lecture-viewer-shell-revamp .lecture-viewer-v2-header-tools { display: flex; gap: 5px; padding: 0; border: 0; background: transparent !important; }
+.mf75-app-frame .lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: auto !important; min-width: 0 !important; height: 40px !important; min-height: 40px !important; padding: 0 11px !important; border: 1px solid transparent; border-radius: 10px; font-size: 12px; font-weight: 650; color: var(--ui-secondary); }
+.mf75-app-frame .lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle span { display: inline !important; }
+.mf75-app-frame .lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle:hover { border-color: var(--ui-border); background: var(--ui-panel); color: var(--ui-text); }
+.mf75-app-frame .lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle[data-active="true"] { background: color-mix(in srgb,var(--ui-blue) 8%,var(--ui-panel)); color: var(--ui-blue); }
+.mf75-app-frame .lecture-viewer-shell-revamp .document-workspace-header-actions > .ui-icon-button { width: 40px !important; min-width: 40px; height: 40px !important; min-height: 40px; background: var(--ui-panel) !important; }
+.mf75-app-frame .lecture-viewer-shell-revamp .lecture-notes-panel { border-inline-start: 1px solid var(--ui-border); }
+.mf75-app-frame .lecture-viewer-shell-revamp .lecture-own-note-shell { padding: 0 !important; }
+.mf75-app-frame .lecture-viewer-shell-revamp .lecture-notes-tabs { min-height: 44px; background: var(--ui-panel); }
+/* Shared rhythm across home, training, curriculum, planning and chat. */
+.mf75-app-frame .medfluen-area-tabs { min-height: 58px; gap: 8px; padding: 8px 16px; }
+.mf75-app-frame .mf72-tab-pair { border-color: transparent; border-radius: 11px; }
+.mf75-app-frame .mf72-tab-pair > button { min-height: 40px; padding-inline: 13px; font-size: 12px; font-weight: 640; }
+.mf75-app-frame .mf72-tab-pair .mf72-history { min-width: 40px; width: 40px; min-height: 40px; }
+.mf75-app-frame .home-v2-panel-header { min-height: 72px; padding: 15px 20px; }
+.mf75-app-frame .home-v2-workspace.mf77-resizable-home { border: 1px solid var(--ui-border); border-radius: 18px; box-shadow: 0 12px 42px #1737500b; }
+.mf75-app-frame .home-v2-calendar-area { border-inline-end: 1px solid var(--ui-border); }
+.mf75-app-frame .home-v2-workspace.mf77-resizable-home .home-v2-rail { padding: 18px; gap: 14px; }
+.mf75-app-frame .home-v2-workspace.mf77-resizable-home .home-v2-rail-card { border: 1px solid var(--ui-border); border-radius: 14px; box-shadow: 0 5px 20px #16334d08 !important; }
+.mf75-app-frame .mf77-assistant .mf72-chat-head { min-height: 69px; padding: 15px 20px; background: var(--ui-panel); }
+.mf75-app-frame .mf77-assistant .mf72-chat-compose { padding: 15px 20px 18px; background: var(--ui-panel); }
+.mf75-app-frame .mf77-assistant .mf72-chat-compose textarea { border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-panel); }
+.mf75-app-frame .mf77-assistant .mf72-chat-compose button { min-height: 38px; border-radius: 10px; }
+.mf75-app-frame button:focus-visible,.mf75-app-frame a:focus-visible,.mf75-app-frame input:focus-visible,.mf75-app-frame textarea:focus-visible,.mf75-app-frame select:focus-visible { outline: 2px solid var(--ui-blue) !important; outline-offset: 2px; }
+.mf75-app-frame .mf75-dock button:hover svg { transform: none; }
+.mf78-quiz-settings { grid-template-columns: 1fr; gap: 12px; }
+.mf78-quiz-settings p { margin: 0; line-height: 1.5; }
+.mf78-quiz-settings fieldset { margin: 0; padding: 0; border: 0; display: flex; gap: 7px; flex-wrap: wrap; }
+.mf78-quiz-settings legend { width: 100%; padding: 0 0 5px; font-size: 12px; font-weight: 700; color: var(--ui-text); }
+.mf78-quiz-settings label { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 7px 11px; border: 1px solid var(--ui-border); border-radius: 10px; background: var(--ui-panel); color: var(--ui-secondary); font-size: 12px; cursor: pointer; }
+.mf78-quiz-settings label:has(input:checked) { border-color: var(--ui-blue-border); background: var(--ui-blue-soft); color: var(--ui-text); }
+.mf78-quiz-settings input { accent-color: var(--ui-blue); }
+.mf78-quiz-settings .mf78-quiz-flow { flex: 1 1 180px; align-items: flex-start; }
+.mf78-quiz-flow span { display: grid; gap: 3px; }
+.mf78-quiz-flow strong { font-weight: 650; }
+.mf78-quiz-flow small,.mf78-quiz-source { color: var(--ui-muted); line-height: 1.45; }
+.mf78-quiz-settings > button { justify-self: start; min-height: 40px; }
+.mf78-quiz-actions,.mf78-quiz-navigation { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.mf78-quiz-actions button,.mf78-quiz-navigation button,.mf78-quiz-partial button { min-height: 36px; padding: 6px 11px; border: 1px solid var(--ui-border); border-radius: 9px; background: var(--ui-panel); color: var(--ui-text); cursor: pointer; }
+.mf78-quiz-navigation { justify-content: space-between; }
+.mf78-quiz-navigation span { color: var(--ui-muted); font-size: 12px; }
+.mf78-quiz-hint { margin: 10px 0 0; padding: 11px 13px; border-inline-start: 2px solid var(--ui-blue); color: var(--ui-secondary); background: var(--ui-blue-soft); border-radius: 7px; font-size: 12px; }
+.mf78-quiz-partial { padding: 12px; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-soft); }
+.mf78-quiz-partial p { margin: 0 0 10px; font-size: 12px; }
+@media (max-width: 1120px) {
+  .mf75-app-frame[data-byte-open="true"] .home-v2-workspace.mf77-resizable-home { grid-template-columns: minmax(0,1fr) !important; }
+  .mf75-app-frame .home-v2-calendar-area { border-inline-end: 0; }
+}
+@media (max-width: 700px) {
+  .mf75-app-frame .home-v2 { width: 100%; }
+  .mf75-app-frame .medfluen-area-tabs { overflow-x: auto; }
+  .mf75-app-frame .lecture-viewer-shell-revamp .document-workspace-header { flex-wrap: wrap; padding: 7px !important; }
+  .mf75-app-frame .lecture-viewer-shell-revamp .document-workspace-header-actions { width: 100%; justify-content: space-between; gap: 3px; }
+  .mf75-app-frame .lecture-viewer-shell-revamp .lecture-viewer-v2-header-tools { flex: 1; justify-content: space-around; }
+  .mf75-app-frame .lecture-viewer-shell-revamp .lecture-viewer-v2-panel-toggle { min-height: 42px !important; height: 42px !important; padding-inline: 7px !important; font-size: 11px; }
+  .mf75-app-frame .home-v2-workspace.mf77-resizable-home .home-v2-rail { padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mf75-app-frame .ui-button,
+  .mf75-app-frame .home-v2-mini-button { transition: none; }
+}
