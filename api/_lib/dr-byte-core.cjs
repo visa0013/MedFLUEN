@@ -1,6 +1,6 @@
 'use strict';
 // Fixed free-tier-capable model. Never switch providers/models on quota errors.
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.5-flash';
 class ChatError extends Error {
   constructor(status, code, message) { super(message); this.status = status; this.code = code; }
 }
@@ -99,6 +99,7 @@ function createHandler({ fetch = globalThis.fetch, env = process.env, timeoutMs 
       const token = req.headers?.authorization;
       if (typeof token !== 'string' || !/^Bearer [^\s]{10,8192}$/.test(token)) fail(401, 'SIGN_IN', 'Log ind igen for at bruge Dr. Byte.');
       const input = validateRequest(req.body);
+      if (input.web) fail(400, 'WEB_REQUIRES_BILLING', 'Websøgning er ikke tilgængelig i medFLUENs gratis Gemini-opsætning. Spørg Dr. Byte med dine valgte forelæsningsuddrag.');
       const base = env.SUPABASE_URL || env.REACT_APP_SUPABASE_URL;
       const key = env.SUPABASE_PUBLISHABLE_KEY || env.REACT_APP_SUPABASE_PUBLISHABLE_KEY;
       if (!base || !key || !env.GEMINI_API_KEY) fail(503, 'CONFIGURATION', 'Dr. Byte mangler serveropsætning. Kontrollér GEMINI_API_KEY og Supabase-variablerne i Vercel, og deploy igen.');
@@ -114,19 +115,18 @@ function createHandler({ fetch = globalThis.fetch, env = process.env, timeoutMs 
       async function generate(body) {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(body), signal: controller.signal });
         if (response.status === 429) fail(429, 'GEMINI_QUOTA', 'Googles gratis kvote er nået. Prøv igen senere. Der skiftes ikke til en betalt model.');
-        if ([400, 401, 403, 404].includes(response.status)) fail(503, 'GEMINI_CONFIGURATION', 'Gemini afviste forbindelsen. Kontrollér nøglens projekt, API-adgang og adgang til gemini-2.5-flash. Ingen betalt reserve bruges.');
+        if (response.status === 400) fail(502, 'GEMINI_REQUEST', 'Gemini afviste forespørgslens format. Kontrollér, at den nyeste Dr. Byte-serverfil er uploadet.');
+        if (response.status === 401) fail(503, 'GEMINI_KEY', 'Gemini-nøglen i Vercel er ugyldig eller udløbet. Indsæt en aktiv nøgle fra Google AI Studio og deploy igen.');
+        if (response.status === 403) fail(503, 'GEMINI_ACCESS', 'Gemini-nøglen har ikke adgang til Gemini Developer API. Kontrollér nøglens projekt og API-begrænsninger i Google AI Studio.');
+        if (response.status === 404) fail(503, 'GEMINI_MODEL', `Gemini-modellen ${MODEL} er ikke tilgængelig for denne nøgle. Kontrollér projektets modeladgang i Google AI Studio.`);
         if (!response.ok) fail(502, 'GEMINI_UNAVAILABLE', 'Gemini er midlertidigt utilgængelig. Dit spørgsmål er bevaret.');
         return response.json();
       }
-      let web = { sources: [], searched: false, suggestions: '', text: '', queries: [] };
-      if (input.web) {
-        // Intentionally isolated: no excerpts, history, app text or images enter the search call.
-        web = parseWeb(await generate({ contents: [{ role: 'user', parts: [{ text: input.question }] }], systemInstruction: { parts: [{ text: 'Search the web for this question. Prefer primary, authoritative sources. Give a concise sourced answer in the question language.' }] }, tools: [{ google_search: {} }], generationConfig: { maxOutputTokens: 2500, thinkingConfig: { thinkingBudget: 0 } } }));
-      }
+      const web = { sources: [], searched: false, suggestions: '', text: '', queries: [] };
       const groundedSources = web.sources.filter(s => s.evidence.length);
       const parts = [{ text: JSON.stringify({ question: input.question, history: input.history, documentExcerpts: input.sources, appContext: input.context, webFindings: groundedSources.length ? groundedSources : null }) }];
       if (input.screen) parts.push({ inlineData: { mimeType: 'image/jpeg', data: input.screen.split(',')[1] } });
-      const data = await generate({ systemInstruction: { parts: [{ text: instruction }] }, contents: [{ role: 'user', parts }], generationConfig: { temperature: 0.2, maxOutputTokens: 5000, thinkingConfig: { thinkingBudget: 0 }, responseMimeType: 'application/json', responseSchema: schema } });
+      const data = await generate({ systemInstruction: { parts: [{ text: instruction }] }, contents: [{ role: 'user', parts }], generationConfig: { maxOutputTokens: 5000, thinkingConfig: { thinkingLevel: 'minimal' }, responseMimeType: 'application/json', responseSchema: schema } });
       let parsed;
       try { parsed = JSON.parse(modelText(data)); } catch (e) { if (e instanceof ChatError) throw e; fail(502, 'INVALID_ANSWER', 'Gemini gav et svar i forkert format. Prøv igen.'); }
       const answer = validateAnswer(parsed, input.sources, web.sources);
