@@ -1,4 +1,32 @@
 // Retrieval stays on the user's device; only selected, bounded excerpts leave it.
+export function selectLectureDocs76(docs, activeLectureId, manualLectureId) {
+  const lectureId = manualLectureId || activeLectureId;
+  return docs.filter(doc => doc.selected && (!lectureId || doc.lectureId === lectureId));
+}
+export function associateStoredLectureDocs76(materials, docs, lectureId) {
+  const materialIds = new Set(materials.map(item => `lecture-${item.id}`));
+  return docs.filter(doc => materialIds.has(doc.id) && !doc.lectureId)
+    .map(doc => ({ ...doc, lectureId }));
+}
+export function effectiveChatWidth76(savedWidth, viewportWidth) {
+  const wanted = Number(savedWidth) || 410;
+  const viewport = Number(viewportWidth) || 1200;
+  return Math.max(340, Math.min(780, wanted, viewport - 360));
+}
+export function selectConversationHistory76(messages, lectureId) {
+  return messages.filter(message => message.lectureId === (lectureId || null) && typeof message.text === 'string')
+    .slice(-6).map(message => ({ role: message.role, text: message.text.slice(0, 3000) }));
+}
+export async function loadLectureMaterials76(materials, knownDocs, download, index) {
+  const added = [];
+  let failures = 0;
+  for (const material of materials) {
+    if (knownDocs.some(doc => doc.id === `lecture-${material.id}`)) continue;
+    try { added.push(await index(await download(material))); }
+    catch { failures += 1; }
+  }
+  return { added, failures };
+}
 export function selectSources76(docs, question) {
   const stop = new Set(['hvad','hvordan','hvor','med','den','det','der','som','kan','for','the','and','forklar','please','explain','opsummer']);
   const terms = [...new Set(String(question).toLocaleLowerCase().match(/[\p{L}\p{N}]{3,}/gu) || [])].filter(t => !stop.has(t));
@@ -26,7 +54,6 @@ export async function askDrByte76(payload, supabase, signal, request = fetch) {
     throw Error(response.status === 404 ? 'AI-serveren mangler. Upload api/dr-byte.js og api/_lib/dr-byte-core.cjs, og deploy igen.' : 'Serveren gav ikke et læsbart svar. Prøv igen senere.');
   }
   if (!response.ok) throw Error(body?.error?.message || 'Dr. Byte kunne ikke svare. Prøv igen senere.');
-  if (!Array.isArray(body?.paragraphs)) throw Error('Svaret kunne ikke læses. Prøv igen.');
+  if (!Array.isArray(body?.paragraphs) && !Array.isArray(body?.quiz?.questions)) throw Error('Svaret kunne ikke læses. Prøv igen.');
   return body;
 }
- 
