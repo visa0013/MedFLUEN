@@ -17,6 +17,8 @@ import { palette75 } from "./appearance75-model";
 import { createCatalogStore751 } from "./catalog751-model";
 import { CatalogEditor751, useCatalog751 } from "./Catalog751";
 import { NativePdf751 } from "./NativePdf751";
+import { effectiveChatWidth76 } from "./drbyte76-model";
+import "./polish77.css";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -25511,6 +25513,18 @@ function Dashboard({
     visible: { stats: true, recommendation: true, quick: true, exam: true, progress: true, upcoming: true, bottom: true },
     lectureCounters: { active: "held", visible: { held: true, reading: true, deck: true } },
   });
+  const [homeRailWidth, setHomeRailWidth] = useState(() => Math.max(220, Math.min(480, Number(dashboardPreferences.railWidth) || 290)));
+  const homeRailWidthRef = useRef(homeRailWidth);
+  homeRailWidthRef.current = homeRailWidth;
+  function beginHomeRailResize(event) {
+    if (event.button !== 0 || !homeWorkspaceRef.current) return;
+    event.preventDefault();
+    const workspace = homeWorkspaceRef.current;
+    const max = Math.min(480, Math.floor(workspace.clientWidth * .42));
+    const move = (next) => { const value = Math.max(220, Math.min(max, Math.round(workspace.getBoundingClientRect().right - next.clientX))); homeRailWidthRef.current = value; setHomeRailWidth(value); };
+    const stop = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", stop); setDashboardPreferences(current => ({ ...current, railWidth: homeRailWidthRef.current })); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", stop, { once: true });
+  }
   const [dashboardDayClose, setDashboardDayClose] = useStoredState(STORAGE.dashboardDayClose, {});
   const [dashboardEditorOpen, setDashboardEditorOpen] = useState(false);
   const [editingPlanEvent, setEditingPlanEvent] = useState(null);
@@ -26602,8 +26616,8 @@ function Dashboard({
 
       <section
         ref={homeWorkspaceRef}
-        className="home-v2-workspace"
-        style={homeWorkspaceHeight ? { "--home-calendar-workspace-height": `${homeWorkspaceHeight}px` } : undefined}
+        className="home-v2-workspace mf77-resizable-home"
+        style={{ ...(homeWorkspaceHeight ? { "--home-calendar-workspace-height": `${homeWorkspaceHeight}px` } : {}), "--mf77-rail-width": `${homeRailWidth}px` }}
       >
         <div className="home-v2-calendar-area">
           <div className="home-v2-panel-header">
@@ -26697,6 +26711,7 @@ function Dashboard({
           </div>
         </div>
 
+        <div className="mf77-home-resizer" role="separator" tabIndex={0} aria-label="Ændr bredden på kalender og oversigtskort" aria-orientation="vertical" onPointerDown={beginHomeRailResize} onKeyDown={(event) => { if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); const value = Math.max(220, Math.min(480, homeRailWidthRef.current + (event.key === "ArrowLeft" ? 24 : -24))); homeRailWidthRef.current = value; setHomeRailWidth(value); setDashboardPreferences(current => ({ ...current, railWidth: value })); } }} />
         <aside className="home-v2-rail">
           {dashboardRailOrder.map((cardId) => {
             if (!dashboardVisible[cardId]) return null;
@@ -39792,7 +39807,7 @@ function ExamCurriculumManager({ c, language, moduleName, examSet, questions, to
 
 /* SEGMENT_6_7_RUNTIME_END */
 
-function WorkspaceShell({ c, label, drByteOpen = false, closing = false, toolbar = null, children }) {
+function WorkspaceShell({ c, label, drByteOpen = false, drByteWidth = 380, closing = false, toolbar = null, children }) {
   return (
     <section
       className={`workspace-shell ${closing ? "workspace-shell--closing" : ""}`}
@@ -39802,7 +39817,7 @@ function WorkspaceShell({ c, label, drByteOpen = false, closing = false, toolbar
         top: "var(--dock-top75, 0px)",
         bottom: "var(--dock-bottom75, 0px)",
         left: "var(--dock-left75, 0px)",
-        right: drByteOpen ? "calc(var(--dock-right75, 0px) + 380px)" : "var(--dock-right75, 0px)",
+        right: drByteOpen ? `calc(var(--dock-right75, 0px) + ${drByteWidth}px)` : "var(--dock-right75, 0px)",
         zIndex: 998,
         minWidth: 0,
         display: "flex",
@@ -40032,7 +40047,7 @@ function lectureViewportKind(width) {
   return "desktop";
 }
 
-function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0, onClose, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
+function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0, onClose, onLectureChange, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
@@ -41554,6 +41569,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
     || selectedLectureMaterials.find((material) => material.visibility === "global")
     || selectedLectureMaterials[0]
     || null;
+  useEffect(() => { if (isLectureLibrary) onLectureChange?.(selectedLecture ? { id: selectedLecture.id, title: selectedLecture.title } : null); }, [isLectureLibrary, selectedLecture?.id, selectedLecture?.title, onLectureChange]);
   const canManageActiveLectureMaterial = Boolean(activeLectureMaterial && (activeLectureMaterial.visibility === "global" ? isAdmin : activeLectureMaterial.user_id === userId));
   const selectedExamDocument = !isLectureLibrary
     ? documents.find((document) => document.id === selectedId) || documents[0] || null
@@ -47162,6 +47178,21 @@ useCloudSync(session?.user?.id);
     setProfileOpen(false);
   }
   const [drByteOpen, setDrByteOpen] = useState(false);
+  const [drByteWidth, setDrByteWidth] = useState(() => Math.max(340, Math.min(780, Number(loadStorage("medlearn-drbyte-panel-width", 410)) || 410)));
+  const [byteViewportWidth, setByteViewportWidth] = useState(() => window.innerWidth);
+  useEffect(() => { const onResize = () => setByteViewportWidth(window.innerWidth); window.addEventListener("resize", onResize); return () => window.removeEventListener("resize", onResize); }, []);
+  const effectiveDrByteWidth = effectiveChatWidth76(drByteWidth, byteViewportWidth);
+  useEffect(() => { const timer = window.setTimeout(() => { try { localStorage.setItem("medlearn-drbyte-panel-width", JSON.stringify(drByteWidth)); } catch { /* Still resizable in this session. */ } }, 250); return () => window.clearTimeout(timer); }, [drByteWidth]);
+  const [activeByteLecture, setActiveByteLecture] = useState(null);
+  const handleByteLectureChange = useCallback((lecture) => setActiveByteLecture(lecture), []);
+  function beginByteResize(event) {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    const startX = event.clientX, startWidth = effectiveDrByteWidth;
+    const move = (next) => setDrByteWidth(effectiveChatWidth76(startWidth + startX - next.clientX, byteViewportWidth));
+    const stop = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", stop); };
+    window.addEventListener("pointermove", move); window.addEventListener("pointerup", stop, { once: true });
+  }
   const [profileOpen, setProfileOpen] = useState(false);
   const [modal, setModal] = useState(null);
   useEffect(() => {
@@ -47593,6 +47624,7 @@ useEffect(() => {
           c={c}
           label={activeWorkspace}
           drByteOpen={drByteOpen}
+          drByteWidth={effectiveDrByteWidth}
           closing={calendarClosing}
           toolbar={<MedfluenAreaTabs c={c} language={language} area={activePrimaryArea} activeTab={activeAreaTab} dueCount={sidebarDueCount} onSelect={selectAreaTab} />}
         >
@@ -47603,7 +47635,7 @@ useEffect(() => {
             <Notebook c={c} t={t} onClose={closeWorkspace} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} onLectureChange={handleByteLectureChange} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" historyRequest72={examHistoryRequest72} onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={effectiveAdmin} importedQuestions={importedQuestions} />
@@ -47764,7 +47796,7 @@ onNavigate={navigateFromShell}
               bottom: activeWorkspace && drByteOpen ? "var(--dock-bottom75)" : undefined,
               right: activeWorkspace && drByteOpen ? "var(--dock-right75)" : undefined,
               zIndex: activeWorkspace && drByteOpen ? 1001 : undefined,
-              width: drByteOpen ? 380 : 0,
+              width: drByteOpen ? effectiveDrByteWidth : 0,
               height: activeWorkspace && drByteOpen ? "auto" : "100%",
               flexShrink: 0,
               overflow: "hidden",
@@ -47774,8 +47806,9 @@ onNavigate={navigateFromShell}
               transition: "width 280ms ease,opacity 190ms ease",
             }}
           >
+            {drByteOpen && <div className="mf77-byte-resizer" role="separator" tabIndex={0} aria-label="Ændr bredden på Dr. Byte" aria-orientation="vertical" onPointerDown={beginByteResize} onKeyDown={(event) => { if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); setDrByteWidth(current => Math.max(340, Math.min(780, Number(current) + (event.key === "ArrowLeft" ? 28 : -28)))); } }} />}
             {drByteOpen && (
-              <DrByteChat key={session?.user?.id || "guest"} userId={session?.user?.id} moduleName={user?.module}
+              <DrByteChat key={session?.user?.id || "guest"} userId={session?.user?.id} moduleName={user?.module} activeLecture={activeWorkspace === "lectures" ? activeByteLecture : null}
                 c={c}
                 t={t}
                 language={language}
