@@ -34,11 +34,9 @@ export function NativePdf751({ url, materialId, fileName = "PDF", savedState = {
   }
   return <section className="mf751-native-pdf" aria-label={en ? "PDF reader" : "PDF-viser"}>
     <div className="mf751-native-actions">
-      <span>{en ? "Browser PDF reader" : "Browserens PDF-viser"}</span>
-      <div>{annotations.some(row => row.payload?.kind !== "slide-note") && <button type="button" onClick={exportAnnotations}>{en ? "Export saved annotations" : "Eksporter gemte markeringer"}</button>}
-      {allowed && <a href={source} target="_blank" rel="noopener noreferrer">{en ? "Open PDF" : "Åbn PDF"} ↗</a>}</div>
+      <div>{annotations.some(row => row.payload?.kind !== "slide-note") && <button type="button" onClick={exportAnnotations}>{en ? "Export saved annotations" : "Eksporter markeringer"}</button>}
+      {allowed && <a href={source} target="_blank" rel="noopener noreferrer" aria-label={en ? "Open PDF in new tab" : "Åbn PDF i ny fane"}>{en ? "Open separately" : "Åbn separat"} ↗</a>}</div>
     </div>
-    {onDocumentPosition && <p className="mf751-native-hint">{en ? "Select the slide number in Notes yourself. Scrolling inside the browser reader cannot update Notes automatically." : "Vælg selv slidenummeret i Noter. Scroll i browserens PDF-viser kan ikke opdatere noternes sidenummer automatisk."}</p>}
     {source ? <iframe title={fileName} src={source} /> : <p role="status">{en ? "The document is not available. Reopen it from the material list." : "Dokumentet er ikke tilgængeligt. Åbn det igen fra materialelisten."}</p>}
   </section>;
 }
