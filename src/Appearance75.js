@@ -68,6 +68,7 @@ export function AppearanceSettings75({ value, onChange, language = 'da', error =
     {[
       ['mode',en?'Theme':'Tema', [['light',en?'Light':'Lyst'],['dark',en?'Dark':'Mørkt'],['system','System']]],
       ['accent',en?'Accent':'Farve', [['blue',en?'Blue':'Blå'],['green',en?'Green':'Grøn'],['violet','Violet'],['graphite',en?'Graphite':'Grafit']]],
+      ['surface',en?'Background':'Baggrund', [['paper',en?'Warm paper':'Varmt papir'],['mist',en?'Soft mist':'Blød dis'],['white',en?'White':'Hvid']]],
       ...(!compact ? [['dock',en?'Navigation position':'Navigationens placering',[['bottom',en?'Bottom':'Bund'],['top',en?'Top':'Top'],['left',en?'Left':'Venstre'],['right',en?'Right':'Højre']]]] : []),
     ].map(([field,label,choices]) => <fieldset key={field}><legend>{label}</legend><div>{choices.map(([id,title]) => <label key={id}><input type="radio" name={`appearance75-${instance}-${field}`} checked={value[field] === id} onChange={() => onChange({[field]:id})} /><span>{field==='accent' && <i aria-hidden="true" data-accent={id}/>} {title}</span></label>)}</div></fieldset>)}
     {!compact && <label className="mf75-orb-toggle"><input type="checkbox" checked={value.orb} onChange={event => onChange({orb:event.target.checked})} /><span>{en?'Show the Dr. Byte orb':'Vis Dr. Byte-orben'}</span></label>}
