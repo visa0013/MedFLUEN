@@ -3,7 +3,6 @@ const WORKSPACE_TABS_78 = Object.freeze({
   training: ['training-start', 'training-exams'],
   curriculum: ['curriculum-lectures'],
   planning: ['planning-calendar', 'planning-study-plan'],
-  insights: [],
   notes: ['notes-all', 'notes-lectures', 'notes-pages', 'notes-favorites'],
 });
 
