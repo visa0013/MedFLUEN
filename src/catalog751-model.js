@@ -6,6 +6,7 @@ export function validateCatalog751(rows, previous = []) {
     if (!row || typeof row.id !== "string" || !/^[A-Za-z0-9_-]{1,80}$/.test(row.id) || ids.has(row.id)) throw new Error("Forelæsnings-ID mangler eller er gentaget.");
     if (typeof row.title !== "string" || !row.title.trim() || row.title.length > 300) throw new Error("Angiv en titel på højst 300 tegn.");
     if (typeof row.group !== "string" || !row.group.trim() || row.group.length > 120) throw new Error("Angiv et hovedemne på højst 120 tegn.");
+    if (row.kind != null && !["lecture", "class", "tbl"].includes(row.kind)) throw new Error("Vælg forelæsning, holdtime eller TBL.");
     if (row.parts != null && (!Number.isInteger(row.parts) || row.parts < 1 || row.parts > 50)) throw new Error("Antal dele skal være mellem 1 og 50.");
     ids.add(row.id);
   }
