@@ -2,6 +2,7 @@ export function appearance75(value) {
   return {
     mode: ['light','dark','system'].includes(value?.mode) ? value.mode : 'system',
     accent: ['blue','green','violet','graphite'].includes(value?.accent) ? value.accent : 'blue',
+    surface: ['paper','mist','white'].includes(value?.surface) ? value.surface : 'paper',
     dock: ['bottom','top','left','right'].includes(value?.dock) ? value.dock : 'bottom',
     orb: typeof value?.orb === 'boolean' ? value.orb : true,
   };
