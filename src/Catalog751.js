@@ -25,6 +25,7 @@ export function CatalogEditor751({ store, client, moduleName, userId, isAdmin, o
   const [rows, setRows] = useState(initial.rows);
   const [title, setTitle] = useState("");
   const [group, setGroup] = useState(initial.rows[0]?.group || "");
+  const [kind, setKind] = useState("lecture");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -65,7 +66,7 @@ export function CatalogEditor751({ store, client, moduleName, userId, isAdmin, o
   function add() {
     if (locked) return;
     try {
-      const next = validateCatalog751([...rows, { id: `L-${crypto.randomUUID()}`, title, group }], initial.rows);
+      const next = validateCatalog751([...rows, { id: `L-${crypto.randomUUID()}`, title, group, kind }], initial.rows);
       change(next); setTitle("");
     } catch (err) { setError(err.message); }
   }
@@ -100,6 +101,7 @@ export function CatalogEditor751({ store, client, moduleName, userId, isAdmin, o
             <span className="mf751-drag" draggable={!locked} role="img" aria-label={en ? "Drag handle" : "Træk forelæsning"} title={en ? "Drag to move" : "Træk for at flytte"} onDragStart={event => { drag.current = row.id; event.dataTransfer.setData("text/plain", row.id); event.dataTransfer.effectAllowed = "move"; }} onDragEnd={() => { drag.current = null; }}>⠿</span>
             <input aria-label={`${en ? "Title for" : "Titel for"} ${row.title}`} value={row.title} maxLength={300} disabled={locked} onChange={event => change(rows.map(item => item.id === row.id ? { ...item, title: event.target.value } : item))} />
             <select aria-label={`${en ? "Topic for" : "Hovedemne for"} ${row.title}`} value={row.group} disabled={locked} onChange={event => move(row.id, event.target.value)}>{groups.map(value => <option key={value}>{value}</option>)}</select>
+            <select aria-label={`${en ? "Type for" : "Type for"} ${row.title}`} value={row.kind || "lecture"} disabled={locked} onChange={event => change(rows.map(item => item.id === row.id ? { ...item, kind: event.target.value } : item))}><option value="lecture">{en ? "Lecture" : "Forelæsning"}</option><option value="class">{en ? "Class" : "Holdtime"}</option><option value="tbl">TBL</option></select>
             <div className="mf751-order"><button type="button" disabled={locked || index === 0} aria-label={`${en ? "Move up" : "Flyt op"}: ${row.title}`} onClick={() => move(row.id, name, siblings[index - 1].id)}>↑</button><button type="button" disabled={locked || index === siblings.length - 1} aria-label={`${en ? "Move down" : "Flyt ned"}: ${row.title}`} onClick={() => move(row.id, name, siblings[index + 2]?.id)}>↓</button></div>
           </div>)}
           {!rows.some(row => row.group === name) && <p className="mf751-empty">{en ? "Drop a lecture here" : "Slip en forelæsning her"}</p>}
@@ -108,6 +110,7 @@ export function CatalogEditor751({ store, client, moduleName, userId, isAdmin, o
       <form className="mf751-create" onSubmit={event => { event.preventDefault(); add(); }}>
         <input aria-label={en ? "New lecture title" : "Ny forelæsnings titel"} placeholder={en ? "New lecture title" : "Ny forelæsnings titel"} value={title} maxLength={300} onChange={event => setTitle(event.target.value)} disabled={locked} />
         {groups.length ? <select aria-label={en ? "Topic" : "Hovedemne"} value={group} disabled={locked} onChange={event => setGroup(event.target.value)}>{groups.map(value => <option key={value}>{value}</option>)}</select> : <input aria-label={en ? "Topic" : "Hovedemne"} placeholder={en ? "Topic" : "Hovedemne"} value={group} maxLength={120} onChange={event => setGroup(event.target.value)} disabled={locked} />}
+        <select aria-label={en ? "Type" : "Type"} value={kind} disabled={locked} onChange={event => setKind(event.target.value)}><option value="lecture">{en ? "Lecture" : "Forelæsning"}</option><option value="class">{en ? "Class" : "Holdtime"}</option><option value="tbl">TBL</option></select>
         <button type="submit" data-action="add-lecture" disabled={locked || !title.trim() || !group.trim()}>+ {en ? "Add" : "Tilføj"}</button>
       </form>
       <footer><button type="button" onClick={reload} disabled={busy}>{en ? "Reload list" : "Hent listen igen"}</button><div><button type="button" onClick={close} disabled={busy}>{en ? "Cancel" : "Annuller"}</button><button type="button" className="mf751-primary" data-action="save-catalog" disabled={locked || !dirty} onClick={save}>{busy ? (en ? "Saving…" : "Gemmer…") : (en ? "Save for everyone" : "Gem for alle")}</button></div></footer>
