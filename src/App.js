@@ -12,7 +12,8 @@ import { pdfFailure74 } from "./reader74-model";
 import { examAnswerMode75, examAnswerPath75, examMatchesAnswerFilter75, examUploadError75, examDuplicate75 } from "./exam75-model";
 import { deckTree75 } from "./decks75-model";
 import { DeckDialog75, usePrivateDecks75 } from "./Decks75";
-import { Access75, useAccessSession75, useAccountProfile75, readAccountProfile75 } from "./Access75";
+import { useAccessSession75, useAccountProfile75, readAccountProfile75 } from "./Access75";
+import { FirstEntry79 } from "./FirstEntry79";
 import { AppearanceSettings75, Celebration75, Dock75, useAppearance75, useCompletion75 } from "./Appearance75";
 import { palette75 } from "./appearance75-model";
 import { createCatalogStore751 } from "./catalog751-model";
@@ -20,8 +21,17 @@ import { CatalogEditor751, useCatalog751 } from "./Catalog751";
 import { NativePdf751 } from "./NativePdf751";
 import { effectiveChatWidth76 } from "./drbyte76-model";
 import { enterFocus78, leaveFocus78 } from "./shell78-model";
+import { Home79Header } from "./Home79";
+import { navigateWorkspace79, normalizeWorkspace79 } from "./workspace79-model";
+import { Training79Header } from "./Training79";
+import { trainingCards79 } from "./training79-model";
+import { Curriculum79Tabs } from "./Curriculum79";
+import { contentKind79 } from "./curriculum79-model";
+import { calendarView79, shiftCalendar79 } from "./planning79-model";
+import { Planning79 } from "./Planning79";
 import "./polish77.css";
 import "./shell78.css";
+import "./workspace79.css";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -94,7 +104,7 @@ function medfluenPrimaryArea(route, workspace) {
   if (workspace === "notes") return "notes";
   if (workspace === "lectures") return "curriculum";
   if (workspace === "calendar" || route === "study-plan") return "planning";
-  if (route === "insights") return "insight";
+  if (route === "insights") return "home";
   return "home";
 }
 
@@ -5227,7 +5237,7 @@ async function callDrByteAI({ userQuestion, matches, language, conversationHisto
   }
 }
 
-function DrByteChat(props) { return <Assistant72 key={`${props.userId}:${props.moduleName}`} {...props} lectureCatalog={MODULE_LECTURES[props.moduleName] || []} supabase={supabase} loadPdfJs={loadLecturePdfJs} />; }
+function DrByteChat(props) { return <Assistant72 {...props} lectureCatalog={MODULE_LECTURES[props.moduleName] || []} supabase={supabase} loadPdfJs={loadLecturePdfJs} />; }
 
 function LegacyDrByteChat({ c, t, language, importedQuestions, onClose, onOpenQuestion }) {
   const [messages, setMessages] = useStoredState("medlearn-drbyte-chat", []);
@@ -19670,13 +19680,20 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   const privateImportGroups = calendarBuildPrivateImportGroups(privateMergedEvents, module);
   const visibleEvents = calendarFilterEvents(mergedEvents, calendarPreferences, module, search);
   const today = new Date();
-  const preferredDate = calendarPreferences.lastDate ? new Date(`${calendarPreferences.lastDate}T12:00:00`) : today;
-  const safePreferredDate = Number.isNaN(preferredDate.getTime()) ? today : preferredDate;
-  const [view, setView] = useState(calendarPreferences.lastView || "week");
-  const [weekStart, setWeekStart] = useState(startOfWeek(safePreferredDate));
-  const [monthDate, setMonthDate] = useState(new Date(safePreferredDate.getFullYear(), safePreferredDate.getMonth(), 1));
-  const [dayDate, setDayDate] = useState(safePreferredDate);
-  const [selectedDate, setSelectedDate] = useState(dateKey(safePreferredDate.getFullYear(), safePreferredDate.getMonth(), safePreferredDate.getDate()));
+  const sharedCalendar = calendarView79(calendarPreferences, today);
+  const view = sharedCalendar.view;
+  const selectedDate = sharedCalendar.date;
+  const dayDate = new Date(`${selectedDate}T12:00:00`);
+  const weekStart = startOfWeek(dayDate);
+  const monthDate = new Date(dayDate.getFullYear(), dayDate.getMonth(), 1);
+  function setView(nextView) {
+    if (!["day", "week", "month"].includes(nextView)) return;
+    setCalendarPreferences((previous) => previous.lastView === nextView ? previous : { ...previous, lastView: nextView });
+  }
+  function setSelectedDate(nextDate) {
+    const date = calendarView79({ lastDate: nextDate }, today).date;
+    setCalendarPreferences((previous) => previous.lastDate === date ? previous : { ...previous, lastDate: date });
+  }
   const [editingEvent, setEditingEvent] = useState(null);
   const [showLectures, setShowLectures] = useState(false);
   const fileInputRef = useRef(null);
@@ -19698,9 +19715,6 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       return next;
     });
   }, [events, eventMeta]);
-
-  useEffect(() => setCalendarPreferences((previous) => ({ ...CALENDAR_DEFAULT_PREFERENCES, ...(previous || {}), lastView: view })), [view]);
-  useEffect(() => setCalendarPreferences((previous) => ({ ...CALENDAR_DEFAULT_PREFERENCES, ...(previous || {}), lastDate: selectedDate })), [selectedDate]);
 
   useEffect(() => {
     function handleSync(event) { setSyncState(event.detail || { status: "idle", detail: "" }); }
@@ -20243,8 +20257,8 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
     if (view === "day") return new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(dayDate);
     return `${weekStart.getDate()}/${weekStart.getMonth() + 1} – ${addDays(weekStart, 6).getDate()}/${addDays(weekStart, 6).getMonth() + 1}`;
   }
-  function shift(delta) { if (view === "month") setMonthDate((previous) => new Date(previous.getFullYear(), previous.getMonth() + delta, 1)); else if (view === "day") setDayDate((previous) => addDays(previous, delta)); else setWeekStart((previous) => addDays(previous, delta * 7)); }
-  function goToday() { const now = new Date(); setWeekStart(startOfWeek(now)); setMonthDate(new Date(now.getFullYear(), now.getMonth(), 1)); setDayDate(now); setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate())); }
+  function shift(delta) { setSelectedDate(shiftCalendar79(selectedDate, view, delta)); }
+  function goToday() { const now = new Date(); setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate())); }
   async function enableNotifications() { if (typeof Notification !== "undefined" && Notification.permission === "default") await Notification.requestPermission(); }
 
   return (
@@ -20253,7 +20267,7 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
         <div className="calendar-workspace-title"><span><Icon name="calendar" size={18} /></span><div><strong>{t.calendarTitle}</strong><small>{module} · {visibleEvents.length} synlige</small></div><em className="calendar-sync-pill" data-status={syncState.status}>{syncState.status === "syncing" ? "Synkroniserer…" : syncState.status === "synced" ? "Synkroniseret" : syncState.status === "offline" ? "Offline" : syncState.status === "error" ? "Sync-fejl" : "Lokal + cloud"}</em></div>
         <div className="calendar-workspace-toolbar">
           <div className="calendar-workspace-switcher">{[["day", t.calendarViewDay], ["week", t.calendarViewWeek], ["month", t.calendarViewMonth]].map(([value, label]) => <button key={value} type="button" data-active={view === value ? "true" : "false"} onClick={() => setView(value)}>{label}</button>)}</div>
-          <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><input className="calendar-date-jump" type="date" value={selectedDate} onChange={(event) => { const next = new Date(`${event.target.value}T12:00:00`); if (Number.isNaN(next.getTime())) return; setSelectedDate(event.target.value); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} aria-label="Gå til dato" />{isAdmin && <IconButton c={c} className={sduRefreshBusy ? "calendar-sdu-refresh-button calendar-sdu-refresh-button--busy" : "calendar-sdu-refresh-button"} title={currentGlobalSduImport ? "Hent nyeste SDU-skema" : "Importér SDU-skema"} disabled={sduRefreshBusy || calendarImportBusy || globalCalendarData.status === "loading"} onClick={refreshSduSchedule}><Icon name="reset" size={15} /></IconButton>}<SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
+          <button type="button" className="home-v2-mini-button" onClick={() => shift(-1)}><Icon name="left" size={14} /></button><span className="calendar-workspace-label">{currentLabel()}</span><button type="button" className="home-v2-mini-button" onClick={() => shift(1)}><Icon name="right" size={14} /></button><input className="calendar-date-jump" type="date" value={selectedDate} onChange={(event) => { setSelectedDate(event.target.value); }} aria-label="Gå til dato" />{isAdmin && <IconButton c={c} className={sduRefreshBusy ? "calendar-sdu-refresh-button calendar-sdu-refresh-button--busy" : "calendar-sdu-refresh-button"} title={currentGlobalSduImport ? "Hent nyeste SDU-skema" : "Importér SDU-skema"} disabled={sduRefreshBusy || calendarImportBusy || globalCalendarData.status === "loading"} onClick={refreshSduSchedule}><Icon name="reset" size={15} /></IconButton>}<SecondaryButton onClick={goToday}>{t.calendarToday}</SecondaryButton>
           <input ref={fileInputRef} type="file" accept=".ics,text/calendar" hidden onChange={handleICalFile} />
           <details className="calendar-more-menu"><summary><Icon name="more" size={16} /></summary><div><button type="button" onClick={() => setShowSduImport(true)}><Icon name="upload" size={14} />Importer SDU-skema</button><button type="button" onClick={() => fileInputRef.current?.click()}><Icon name="calendar" size={14} />Importer iCal</button><button type="button" onClick={() => setShowImportManager(true)}><Icon name="settings" size={14} />Administrér importerede kalendere</button><button type="button" onClick={() => calendarDownloadICal(visibleEvents)}><Icon name="share" size={14} />Eksporter synlige</button><button type="button" onClick={enableNotifications}><Icon name="volume" size={14} />Aktivér påmindelser</button><button type="button" onClick={() => setShowTutorial(true)}><Icon name="sparkle" size={14} />Vis kalendertutorial</button><button type="button" onClick={createCalendarTestData}><Icon name="plus" size={14} />Opret testdata</button>{mergedEvents.some((event) => event.testEvent || event.source === "calendar-test") && <button type="button" onClick={removeCalendarTestData}><Icon name="trash" size={14} />Fjern testdata</button>}</div></details>
           <IconButton c={c} title={t.close} onClick={onClose}><Icon name="close" size={17} /></IconButton>
@@ -20262,10 +20276,10 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
       <CalendarLayerControls preferences={calendarPreferences} setPreferences={setCalendarPreferences} search={search} setSearch={setSearch} moduleName={module} inputRef={searchInputRef} />
       <div className="calendar-workspace-layout">
         <main className="calendar-workspace-canvas" data-tour="calendar-timeline">
-          {view === "month" ? <MonthCalendar c={c} events={visibleEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setDayDate(new Date(`${key}T12:00:00`)); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setQuickEvent(event); }} onContextRequest={handleContextRequest} /> : <WeekCalendar c={c} events={visibleEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onResizeEvent={moveEvent} onSlotClick={newEvent} onRangeCreate={newEventRange} selectedEventId={editingEvent?.id || quickEvent?.id || null} onEventClick={(event) => { setSelectedDate(event.date); setQuickEvent(event); }} onContextRequest={handleContextRequest} density={calendarPreferences.density || "compact"} viewportMode="workspace" />}
+          {view === "month" ? <MonthCalendar c={c} events={visibleEvents} monthDate={monthDate} weekdayLabels={weekdayLabels} onDayClick={(key) => { setSelectedDate(key); setView("day"); }} onEventClick={(event) => { setSelectedDate(event.date); setQuickEvent(event); }} onContextRequest={handleContextRequest} /> : <WeekCalendar c={c} events={visibleEvents} weekStart={view === "day" ? dayDate : weekStart} daysCount={view === "day" ? 1 : 7} weekdayLabels={view === "day" ? [weekdayLabels[(dayDate.getDay() + 6) % 7]] : weekdayLabels} onMoveEvent={moveEvent} onResizeEvent={moveEvent} onSlotClick={newEvent} onRangeCreate={newEventRange} selectedEventId={editingEvent?.id || quickEvent?.id || null} onEventClick={(event) => { setSelectedDate(event.date); setQuickEvent(event); }} onContextRequest={handleContextRequest} density={calendarPreferences.density || "compact"} viewportMode="workspace" />}
         </main>
         <aside className="calendar-workspace-sidebar">
-          <CalendarMiniMonth selectedDate={selectedDate} events={visibleEvents} locale={locale} onSelect={(key) => { const next = new Date(`${key}T12:00:00`); setSelectedDate(key); setDayDate(next); setWeekStart(startOfWeek(next)); setMonthDate(new Date(next.getFullYear(), next.getMonth(), 1)); }} />
+          <CalendarMiniMonth selectedDate={selectedDate} events={visibleEvents} locale={locale} onSelect={setSelectedDate} />
           <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}</strong><small>{selectedEvents.length} aktiviteter</small></div><button type="button" className="home-v2-mini-button" onClick={() => newEvent(selectedDate, "09:00")}><Icon name="plus" size={14} /></button></div><div className="calendar-side-list">{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" className="calendar-side-event" data-complete={event.completedAt ? "true" : "false"} onClick={() => setQuickEvent(event)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ kind: event.time ? "event" : "unscheduled", event, date: event.date, x: e.clientX, y: e.clientY }); }}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); if (!calendarEventIsCanonical(event)) toggleEventComplete(event); }}><Icon name={calendarEventIsCanonical(event) ? "globe" : event.completedAt ? "check" : "clock"} size={12} /></span><span><strong>{event.title}</strong><small>{event.time || (event.allDay ? "Hele dagen" : "Ikke placeret")}{event.location ? ` · ${event.location}` : ""}</small></span></button>) : <EmptyState compact symbol={<Icon name="calendar" size={16} />} title={t.calendarNoEvents} />}</div></section>
           <section className="calendar-side-section"><button type="button" className="calendar-side-collapse" onClick={() => setShowLectures((value) => !value)}><span><Icon name="book" size={14} />{t.calendarLecturesTitle}</span><Icon name={showLectures ? "up" : "down"} size={13} /></button>{showLectures && <div className="calendar-side-list calendar-side-list--scroll">{moduleLectures.map((lecture) => <button key={lecture.id} type="button" className="calendar-side-lecture" onClick={() => setEditingEvent({ id: `event-${Date.now()}`, title: `${lecture.id} · ${lecture.title}`, date: selectedDate, endDate: selectedDate, time: "", endTime: "", type: "study", estimatedHours: null, planModuleId: module, lectureId: lecture.id, lectureIds: [lecture.id], source: "user", createdByUser: true, needsScheduling: true, recurrence: "none" })}><span>{lecture.id}</span><strong>{lecture.title}</strong><Icon name="plus" size={12} /></button>)}</div>}</section>
           <section className="calendar-side-section"><div className="calendar-side-header"><div><strong>{t.calendarUpcoming}</strong><small>{upcoming.length} åbne aktiviteter</small></div></div><div className="calendar-side-list">{upcoming.length ? upcoming.map((event) => <button key={event.id} type="button" className="calendar-side-event" onClick={() => setQuickEvent(event)}><span className="calendar-side-check" onClick={(e) => { e.stopPropagation(); if (!calendarEventIsCanonical(event)) toggleEventComplete(event); }}><Icon name={calendarEventIsCanonical(event) ? "globe" : "check"} size={12} /></span><span><strong>{event.title}</strong><small>{calendarFormatDateTime(event, locale)}</small></span></button>) : <EmptyState compact symbol={<Icon name="check" size={16} />} title={t.calendarNoUpcoming} />}</div></section>
@@ -21270,10 +21284,11 @@ function FlashcardDeckOverview71({ language, node, questions, spacedData, events
   );
 }
 
-function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuestions, onStart, onOpenLectureMenu, initialPool = "mixed", onSavePersonalCard }) {
+function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuestions, onStart, onOpenLectureMenu, onOpenExamSets, initialPool = "mixed", onSavePersonalCard }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
   const lectures = MODULE_LECTURES[user.module] || [];
-  const moduleQuestions = useMemo(() => getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === user.module), [importedQuestions, user.module]);
+  const [sourceMode79, setSourceMode79] = useState("theory");
+  const moduleQuestions = useMemo(() => trainingCards79(getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === user.module), sourceMode79), [importedQuestions, user.module, sourceMode79]);
   const storedPreferences = loadStorage(STORAGE.flashcardPreferences, FLASHCARD70_DEFAULT_PREFERENCES) || FLASHCARD70_DEFAULT_PREFERENCES;
   const [preferences, setPreferences] = useState(() => ({ ...FLASHCARD70_DEFAULT_PREFERENCES, ...storedPreferences, ...(initialPool === "due" ? { pool: "due" } : {}) }));
   const [selectedId, setSelectedId] = useState(`module:${user.module}`);
@@ -21359,7 +21374,9 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
     return result;
   }
 
-  return <div className="flashcard71-shell"><Flashcard71Styles />
+  return <div className="flashcard71-shell mf79-training"><Flashcard71Styles />
+    <Training79Header mode={sourceMode79} language={language} onModeChange={value => { setSourceMode79(value); setSelectedId(`module:${user.module}`); setView("decks"); persistPreferences({ studyMode: value === "exam-mcq" ? "exam" : "flashcard" }); }} />
+    {sourceMode79 === "exam-mcq" && moduleQuestions.length === 0 && <div className="mf79-empty-exam" role="status"><strong>{language === "en" ? "No exam MCQ cards are linked yet" : language === "ar" ? "لا توجد بطاقات امتحان مرتبطة بعد" : "Ingen eksamens-MCQ-kort er knyttet til modulet endnu"}</strong><br /><span>{language === "en" ? "You can still open the exam papers and their questions." : language === "ar" ? "يمكنك فتح أوراق الامتحان وأسئلتها." : "Du kan stadig åbne eksamenssættene og deres spørgsmål."}</span><br /><button type="button" onClick={onOpenExamSets}>{language === "en" ? "Open exam papers" : language === "ar" ? "افتح أوراق الامتحان" : "Åbn eksamenssæt"}</button></div>}
     {view !== "editor" && <div className="mf75-deck-tools">
       <button type="button" disabled={!authUserId} onClick={() => setDeckDialog75({ mode: "create", node: view === "decks" ? tree : selectedNode })}>+ {language === "en" ? "New deck" : "Nyt dæk"}</button>
       {view !== "decks" && <details><summary>{language === "en" ? "Manage deck" : "Administrér dæk"}</summary><div>
@@ -25870,8 +25887,6 @@ function Dashboard({
     ar: { heldTab: "مُنعقدة", heldLabel: "المحاضرات المنعقدة", readingTab: "مقروءة", readingLabel: "دراسة ذاتية · تمت قراءة المحاضرة", deckTab: "الحزم", deckLabel: "دراسة ذاتية · إكمال الحزمة المرتبطة", switchLabel: "اختر عداد المحاضرات", settings: "اختيار العدادات", settingsTitle: "إظهار في عداد المحاضرات", eligibleDecks: "محاضرات لها حزم مرتبطة" },
   })[language] || {};
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? copy.greetingMorning : hour < 18 ? copy.greetingAfternoon : copy.greetingEvening;
   const moduleCode = currentModule.match(/^[A-Z]\d+/)?.[0] || currentModule;
   const moduleName = currentModule.replace(/^[A-Z]\d+\s*/, "");
   const planLectures = MODULE_LECTURES[currentModule] || [];
@@ -26609,13 +26624,8 @@ function Dashboard({
   }
 
   return (
-    <div className="home-v2 fade-up" dir={direction}>
-      <header className="home-v2-heading">
-        <div>
-          <h1 className="home-v2-greeting">{greeting}, {user?.name || "MedFLUEN"}</h1>
-          <div className="home-v2-module">{currentModule}</div>
-        </div>
-      </header>
+    <div className="home-v2 mf79-home fade-up" dir={direction}>
+      <Home79Header name={user?.name} moduleName={currentModule} language={language} />
 
 
       <section
@@ -40051,7 +40061,7 @@ function lectureViewportKind(width) {
   return "desktop";
 }
 
-function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0, onClose, onLectureChange, onNewNoteFromPage, sourcePageRequest78 = null, onSourcePageHandled78, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
+function DocumentWorkspace({ c, language, moduleName, level = null, kind, historyRequest72 = 0, onClose, onLectureChange, onNewNoteFromPage, sourcePageRequest78 = null, onSourcePageHandled78, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
   const isLectureLibrary = kind === "lectures";
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
@@ -40068,6 +40078,8 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   const [query, setQuery] = useState("");
   const [noteMode, setNoteMode] = useState("own");
   const [workspaceState, setWorkspaceState] = useStoredState(STORAGE.workspaceState, {});
+  const [contentKindFilter79, setContentKindFilter79] = useState("lecture");
+  const moduleLevel79 = (MODULES.da?.Kandidat || []).includes(moduleName) ? "Kandidat" : null;
   const [lectureNotes, setLectureNotes] = useStoredState(STORAGE.lectureNotes, {});
   const [lectureNoteDraftCache, setLectureNoteDraftCache] = useStoredState(STORAGE.lectureNoteDrafts, {});
   const [lectureNoteDraft, setLectureNoteDraft] = useState(() => lectureNoteEmpty());
@@ -41597,6 +41609,9 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   }, [selectedId, initialLectureId, documents.length, isLectureLibrary, selectedStateKey, setWorkspaceState]);
 
   const selectedLecture = isLectureLibrary ? lectures.find((lecture) => lecture.id === selectedId) || lectures[0] : null;
+  useEffect(() => {
+    if (isLectureLibrary && selectedLecture) setContentKindFilter79(contentKind79(selectedLecture) || "lecture");
+  }, [isLectureLibrary, selectedLecture?.id]);
   const materialScopeKey = selectedLecture ? `${moduleName || "module"}:${selectedLecture.id}` : null;
   const selectedLectureMaterials = isLectureLibrary && selectedLecture
     ? lectureMaterials.filter((material) => material.lecture_id === selectedLecture.id)
@@ -42409,6 +42424,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
     { id: "followUp", label: copy.filterFollowUp },
   ];
   const filteredLectureRows = lectureRows.filter((row) => {
+    if (contentKind79(row.lecture) !== contentKindFilter79) return false;
     const matchesQuery = `${row.lecture.id} ${row.lecture.title} ${row.lecture.group}`.toLowerCase().includes(normalizedQuery);
     if (!matchesQuery) return false;
     if (lectureFilter === "favorites") return row.favorite;
@@ -42429,7 +42445,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
     }
     return lectures.findIndex(item => item.id === a.lecture.id) - lectures.findIndex(item => item.id === b.lecture.id);
   });
-  const lectureGroupOrder = [...new Set(lectures.map((lecture) => lecture.group))]
+  const lectureGroupOrder = [...new Set(lectures.filter((lecture) => contentKind79(lecture) === contentKindFilter79).map((lecture) => lecture.group))]
     .sort((a, b) => {
       if (lectureSort !== "date") return 0;
       const firstA = filteredLectureRows.find((row) => row.lecture.group === a);
@@ -42439,7 +42455,7 @@ function DocumentWorkspace({ c, language, moduleName, kind, historyRequest72 = 0
   const groupedLectureRows = lectureGroupOrder
     .map((group) => ({
       group,
-      total: lectureRows.filter((row) => row.lecture.group === group).length,
+      total: lectureRows.filter((row) => row.lecture.group === group && contentKind79(row.lecture) === contentKindFilter79).length,
       rows: filteredLectureRows.filter((row) => row.lecture.group === group),
     }))
     .filter((entry) => entry.rows.length > 0);
@@ -44656,6 +44672,8 @@ async function openExamSetPdfEditor() {
       <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : ""}`}>
         {isLectureLibrary && lectureCompactViewport && lectureCompactPanel && <button type="button" className="lecture-compact-backdrop" aria-label={copy.close} onClick={() => setLectureCompactPanel(null)} />}
         <aside className="document-library-panel">
+          {isLectureLibrary && <Curriculum79Tabs kind={contentKindFilter79} level={level} moduleLevel={moduleLevel79} language={language} onChange={value => { setContentKindFilter79(value); const first = lectures.find(lecture => contentKind79(lecture) === value); if (first) selectLecture(first); }} />}
+          {isLectureLibrary && selectedLecture && contentKind79(selectedLecture) === "tbl" && level !== "Kandidat" && moduleLevel79 !== "Kandidat" && <div className="mf79-kind-direct" role="note">{language === "en" ? "This TBL is available through your direct link, but TBL is normally shown for graduate modules." : language === "ar" ? "هذا المحتوى متاح من الرابط المباشر، لكنه يظهر عادة في وحدات الدراسات العليا." : "Dette TBL-dokument kan åbnes via dit direkte link. TBL vises normalt kun for kandidatmoduler."}</div>}
           {isLectureLibrary && isAdmin && <div className="mf751-library-actions">
             <button type="button" onClick={() => setCatalogEditor751Open(true)}>{language === "en" ? "Edit lectures" : "Redigér forelæsninger"}</button>
             <button type="button" disabled={!selectedLecture} onClick={openSduMatchDialog}>{copy.sduMatchEdit}</button>
@@ -45583,7 +45601,6 @@ function Sidebar({
 
   function navigate(target, options) {
     onWorkspace(null);
-    setDrByteOpen(false);
     setProfileOpen(false);
     onNavigate(target, options);
   }
@@ -45601,7 +45618,6 @@ function Sidebar({
     { id: "curriculum", icon: "curriculum", label: copy.curriculum, badge: 0, action: () => openWorkspace("lectures") },
     { id: "notes", icon: "notebook", label: t.notebook, badge: 0, action: () => openWorkspace("notes") },
     { id: "planning", icon: "planning", label: copy.planning, badge: 0, action: () => openWorkspace("calendar") },
-    { id: "insight", icon: "insight", label: copy.insight, badge: 0, action: () => navigate("insights") },
   ];
   const profileActions = [
     ...(accountIsAdmin ? [["adminMode", adminMode ? "user" : "settings", adminMode ? copy.exitAdmin : copy.enterAdmin]] : []),
@@ -47146,6 +47162,14 @@ useCloudSync(session?.user?.id);
 
   // Onboarding is derived from the current account, never from a previous login.
   const [route, setRoute] = useStoredState(STORAGE.navigationRoute, "home");
+  const [retiredRouteNotice79, setRetiredRouteNotice79] = useState(null);
+  useEffect(() => {
+    const normalized = normalizeWorkspace79(route);
+    if (normalized.route !== route) {
+      setRetiredRouteNotice79(normalized.notice);
+      setRoute(normalized.route);
+    }
+  }, [route, setRoute]);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [noteSource78, setNoteSource78] = useState(null);
   const [notePageRequest78, setNotePageRequest78] = useState(null);
@@ -47413,13 +47437,13 @@ useEffect(() => {
     return (
       <>
         <GlobalStyles c={c} /><ExperienceStyles72 />
-        <Access75 auth={supabase.auth} language={language} appearance={appearance} />
+        <FirstEntry79 auth={supabase.auth} language={language} />
       </>
     );
   }
 
   if (passwordRecovery75) {
-    return <><GlobalStyles c={c} /><Access75 auth={supabase.auth} language={language} recovery onRecovered={finishPasswordRecovery75} /></>;
+    return <><GlobalStyles c={c} /><FirstEntry79 auth={supabase.auth} language={language} recovery onRecovered={finishPasswordRecovery75} /></>;
   }
 
   if (!user) {
@@ -47452,19 +47476,19 @@ useEffect(() => {
   const shellMergedEvents = mergeCalendarEventMeta(shellCalendarEvents, shellCalendarMeta);
 
   function navigateFromShell(target, options) {
-    setActiveWorkspace(null);
-    setDrByteOpen(false);
+    const next = navigateWorkspace79({ assistantOpen: drByteOpen }, target);
+    setActiveWorkspace(next.activeWorkspace);
+    setDrByteOpen(next.assistantOpen);
     if (target === "mcq") {
       setTrainingStartPool(options?.mode === "due" ? "due" : "mixed");
       setSessionScope(options ? { moduleId: user.module, groupFilter: null, lectureFilter: null, mode: options.mode || null, contentType: options.contentType || null } : null);
     }
-    setRoute(target);
+    setRoute(next.route);
   }
 
   const activePrimaryArea = medfluenPrimaryArea(route, activeWorkspace);
   const activeAreaTab = medfluenAreaTab(route, activeWorkspace, sessionScope);
   function selectAreaTab(tabId) {
-    setDrByteOpen(false);
     if (tabId === "training-start") { setActiveWorkspace(null); setTrainingStartPool("mixed"); setSessionScope(null); setRoute("mcq"); return; }
     if (tabId === "training-review") { setActiveWorkspace(null); setTrainingStartPool("due"); setSessionScope(null); setRoute("mcq"); return; }
     if (tabId === "training-exam-history") { setSessionScope(null); setExamHistoryRequest72(v => v + 1); setActiveWorkspace("examSets"); return; }
@@ -47490,6 +47514,8 @@ useEffect(() => {
       key={session.user.id}
       className="mf75-app-frame"
       data-dock={appearance.value.dock}
+      data-surface={appearance.value.surface}
+      data-appearance-theme={theme}
       data-byte-open={drByteOpen ? "true" : "false"}
       data-internal-focus={internalFocus78 ? "true" : "false"}
       lang={language}
@@ -47642,7 +47668,9 @@ useEffect(() => {
           toolbar={<MedfluenAreaTabs c={c} language={language} area={activePrimaryArea} activeTab={activeAreaTab} dueCount={sidebarDueCount} onSelect={selectAreaTab} />}
         >
           {activeWorkspace === "calendar" && (
-            <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={effectiveAdmin} onClose={closeWorkspace} onOpenStudyPlan={() => navigateFromShell("study-plan")} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
+            <Planning79 language={language} moduleName={user?.module} onOpenStudyPlan={() => navigateFromShell("study-plan")}>
+              <CalendarPanel c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={effectiveAdmin} onClose={closeWorkspace} onOpenStudyPlan={() => navigateFromShell("study-plan")} onOpenLecture={(lectureId) => { const state = loadStorage(STORAGE.workspaceState, {}); localStorage.setItem(STORAGE.workspaceState, JSON.stringify({ ...state, selectedLectureId: lectureId })); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.workspaceState } })); openWorkspace("lectures"); }} />
+            </Planning79>
           )}
           {activeWorkspace === "notes" && (
             <NotesHub78 client={supabase} userId={session?.user?.id} moduleName={user?.module} legacyLocalRows={loadStorage(STORAGE.notes, [])} sourceDraft={noteSource78} onSourceUsed={() => setNoteSource78(null)} onOpenSource={(source) => {
@@ -47660,7 +47688,7 @@ useEffect(() => {
             }} onClose={closeWorkspace} language={language} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="lectures" onClose={closeWorkspace} onLectureChange={handleByteLectureChange} onNewNoteFromPage={(source) => { setNoteSource78({ ...source, requestId: Date.now() }); setActiveWorkspace("notes"); }} sourcePageRequest78={notePageRequest78} onSourcePageHandled78={(id) => setNotePageRequest78(current => current?.requestId === id ? null : current)} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} level={user?.level} kind="lectures" onClose={closeWorkspace} onLectureChange={handleByteLectureChange} onNewNoteFromPage={(source) => { setNoteSource78({ ...source, requestId: Date.now() }); setActiveWorkspace("notes"); }} sourcePageRequest78={notePageRequest78} onSourcePageHandled78={(id) => setNotePageRequest78(current => current?.requestId === id ? null : current)} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" historyRequest72={examHistoryRequest72} onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={effectiveAdmin} importedQuestions={importedQuestions} />
@@ -47700,6 +47728,7 @@ useEffect(() => {
               padding: 38,
             }}
           >
+            {retiredRouteNotice79 && <div className="mf79-route-notice" role="status">{retiredRouteNotice79}<button type="button" onClick={() => setRetiredRouteNotice79(null)} aria-label="Luk besked">×</button></div>}
             {route === "home" ? (
               <Dashboard
                 c={c}
@@ -47805,6 +47834,7 @@ onNavigate={navigateFromShell}
                     onStart={(scope) => setSessionScope(scope)}
                     initialPool={trainingStartPool}
                     onCancel={() => setRoute("home")}
+                    onOpenExamSets={() => setActiveWorkspace("examSets")}
                     onOpenLectureMenu={(lecture, moduleId) => setLectureMenu({ lecture, moduleId })}
                   />
                 )}
