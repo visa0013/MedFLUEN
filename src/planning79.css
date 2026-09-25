@@ -1,0 +1,12 @@
+.mf79-planning { min-height: 100%; color: var(--mf79-ink, #193338); background: var(--mf79-surface, #f8f6f0); }
+.mf79-planning-intro { display: flex; justify-content: space-between; align-items: end; gap: 22px; padding: clamp(28px, 4vw, 60px) clamp(22px, 4vw, 72px) 22px; border-bottom: 1px solid var(--mf79-line, #d6dcd8); }
+.mf79-planning-intro small { font-size: .68rem; font-weight: 750; letter-spacing: .14em; color: var(--mf79-teal, #126b61); }
+.mf79-planning-intro h1 { margin: 12px 0 4px; font: 400 clamp(2.8rem, 6vw, 6rem)/.98 Georgia, 'Iowan Old Style', serif; letter-spacing: -.055em; }
+.mf79-planning-intro p { margin: 10px 0 0; color: var(--mf79-ink-soft, #617176); font-size: clamp(.87rem, 1.3vw, 1rem); }
+.mf79-planning-intro nav { display: flex; gap: 6px; flex-shrink: 0; padding-bottom: 3px; }
+.mf79-planning-intro nav :is(span, button) { display: inline-flex; align-items: center; gap: 12px; min-height: 42px; padding: 8px 13px; color: var(--mf79-ink, #193338); border: 0; border-bottom: 1px solid transparent; background: transparent; font-size: .85rem; }
+.mf79-planning-intro nav span[aria-current] { border-bottom-color: currentColor; font-weight: 700; }.mf79-planning-intro nav button { cursor: pointer; }
+.mf79-planning-intro nav button:hover { color: var(--mf79-teal, #126b61); }.mf79-planning-intro nav button:focus-visible { outline: 2px solid var(--mf79-teal, #126b61); outline-offset: 2px; }
+.mf79-planning-calendar { padding: 0 clamp(16px, 3vw, 54px) 36px; }.mf79-planning-calendar .calendar-workspace { background: transparent; border: 0; box-shadow: none; }
+.mf79-planning-calendar .calendar-workspace-header { background: transparent; border-color: var(--mf79-line, #d6dcd8); }
+@media (max-width: 700px) { .mf79-planning-intro { align-items: start; flex-direction: column; padding: 28px 20px 18px; } .mf79-planning-calendar { padding: 0 8px 22px; } }

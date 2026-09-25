@@ -1,0 +1,23 @@
+.mf79-training-heading { display: flex; align-items: end; justify-content: space-between; gap: 1.2rem; border-bottom: 1px solid var(--mf79-line); padding: .5rem 0 1.7rem; margin-bottom: 1.2rem; color: var(--mf79-ink); }
+.mf79-training-heading h1 { margin: .12em 0 0; font-size: clamp(3.1rem, 6vw, 6.5rem); }
+.mf79-training-source { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--mf79-line); border-radius: 99px; background: transparent; white-space: nowrap; }
+.mf79-training-source button { min-height: 38px; padding: 0 1.2rem; border: 0; border-radius: 99px; background: transparent; color: var(--mf79-ink-soft); font: 650 .84rem/1 system-ui, sans-serif; cursor: pointer; }
+.mf79-training-source button[aria-selected="true"] { background: var(--mf79-ink); color: var(--mf79-surface); }
+.mf79-training-source button:focus-visible { outline: 2px solid var(--mf79-teal); outline-offset: 2px; }
+
+.mf75-app-frame[data-surface] .flashcard71-shell { max-width: 1760px; margin-inline: auto; color: var(--mf79-ink); }
+.mf75-app-frame[data-surface] .flashcard71-top { padding-top: .6rem; }
+.mf75-app-frame[data-surface] .flashcard71-top h1 { font-family: Georgia, 'Iowan Old Style', serif; font-weight: 400; font-size: clamp(1.55rem, 2.2vw, 2.25rem); letter-spacing: -.035em; }
+.mf75-app-frame[data-surface] .flashcard71-decks,
+.mf75-app-frame[data-surface] .flashcard71-activity-card { border: 1px solid var(--mf79-line); border-radius: 14px; box-shadow: none; }
+.mf75-app-frame[data-surface] .flashcard71-deck-head,
+.mf75-app-frame[data-surface] .flashcard71-deck-row { background: transparent; }
+.mf75-app-frame[data-surface] .flashcard71-deck-head span:nth-child(2),
+.mf75-app-frame[data-surface] .flashcard71-deck-row .flashcard71-deck-count:nth-child(2) { color: #2465c8; }
+.mf75-app-frame[data-surface] .flashcard71-deck-head span:nth-child(3),
+.mf75-app-frame[data-surface] .flashcard71-deck-row .flashcard71-deck-count:nth-child(3) { color: #b74258; }
+.mf75-app-frame[data-surface] .flashcard71-deck-head span:nth-child(4),
+.mf75-app-frame[data-surface] .flashcard71-deck-row .flashcard71-deck-count:nth-child(4) { color: #0d805e; }
+.mf79-empty-exam { margin: 1rem 0; padding: 1.2rem 1.4rem; border: 1px solid var(--mf79-line); border-radius: 12px; color: var(--mf79-ink); }
+.mf79-empty-exam button { margin-top: .7rem; border: 0; color: var(--mf79-teal); background: none; text-decoration: underline; cursor: pointer; }
+@media (max-width: 720px) { .mf79-training-heading { align-items: start; flex-direction: column; } .mf79-training-heading h1 { font-size: 3.4rem; } .mf79-training-source button { min-height: 42px; } }

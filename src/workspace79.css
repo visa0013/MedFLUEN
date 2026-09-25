@@ -1,0 +1,65 @@
+:root {
+  --mf79-paper: #f8f6f0;
+  --mf79-mist: #f1f7f7;
+  --mf79-white: #ffffff;
+  --mf79-ink: #193338;
+  --mf79-ink-soft: #617176;
+  --mf79-teal: #126b61;
+  --mf79-accent: #b85c43;
+  --mf79-line: rgba(25, 51, 56, .16);
+  --mf79-shadow: 0 12px 48px rgba(26, 51, 50, .055);
+}
+
+.mf75-app-frame[data-surface="paper"] { --mf79-surface: var(--mf79-paper); }
+.mf75-app-frame[data-surface="mist"] { --mf79-surface: var(--mf79-mist); }
+.mf75-app-frame[data-surface="white"] { --mf79-surface: var(--mf79-white); }
+.mf75-app-frame[data-appearance-theme="dark"] { --mf79-surface: #152225; --mf79-ink: #f2f4ed; --mf79-ink-soft: #b5c4c3; --mf79-line: rgba(243, 246, 239, .18); }
+.mf75-app-frame[data-surface] { background: var(--mf79-surface) !important; }
+.mf75-app-frame[data-surface] .app-surface,
+.mf75-app-frame[data-surface] .content-padding,
+.mf75-app-frame[data-surface] .app-main-area { background: var(--mf79-surface) !important; }
+
+.mf79-stage { color: var(--mf79-ink); min-height: 100%; }
+.mf79-kicker { color: var(--mf79-teal); font: 700 .7rem/1.4 system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.mf79-display { font-family: Georgia, 'Iowan Old Style', serif; font-weight: 400; letter-spacing: -.055em; line-height: 1.02; }
+.mf79-rule { border: 0; border-top: 1px solid var(--mf79-line); }
+.mf79-route-notice { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding: .75rem 1rem; border: 1px solid var(--mf79-line); border-radius: 10px; color: var(--mf79-ink); background: var(--mf79-surface); font-size: .85rem; }
+.mf79-route-notice button { border: 0; background: none; color: inherit; font-size: 1.1rem; cursor: pointer; }
+
+/* The existing calendar keeps its interaction model; this is a new editorial frame. */
+.mf75-app-frame[data-surface] .mf79-home { width: 100%; max-width: 1760px; gap: clamp(1.25rem, 2.8vw, 2.8rem); }
+.mf75-app-frame[data-surface] .mf79-home-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; min-height: 126px; padding: clamp(.25rem, 1.5vw, 1rem) 0 0; color: var(--mf79-ink); }
+.mf75-app-frame[data-surface] .mf79-home-heading-main { min-width: 0; }
+.mf75-app-frame[data-surface] .mf79-home-heading h1 { margin: .18em 0 0; font-size: clamp(2.65rem, 5.3vw, 5.8rem); overflow-wrap: anywhere; }
+.mf75-app-frame[data-surface] .mf79-home-heading-label { color: var(--mf79-ink-soft); font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-workspace.mf77-resizable-home { display: block !important; grid-template-columns: none !important; min-height: 0; height: auto; overflow: visible; border: 0 !important; border-top: 1px solid var(--mf79-line) !important; border-radius: 0 !important; background: transparent; box-shadow: none !important; }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-calendar-area { width: 100%; border: 0; background: transparent; }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-panel-header { min-height: 90px; padding: 17px 0; border-bottom: 1px solid var(--mf79-line); background: transparent; }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-panel-title { font-family: Georgia, 'Iowan Old Style', serif; font-size: clamp(1.25rem, 1.6vw, 1.75rem); font-weight: 400; letter-spacing: -.025em; color: var(--mf79-ink); }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-date-label { font-size: .82rem; color: var(--mf79-ink); }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-calendar-nav { margin-top: .55rem; }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-view-switcher { border: 0; border-radius: 99px; background: transparent; padding: 0; }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-view-button { min-height: 36px; min-width: 62px; font-size: .77rem; border-radius: 99px; }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-view-button[data-active="true"] { background: var(--mf79-ink); color: var(--mf79-surface); box-shadow: none; }
+.mf75-app-frame[data-surface] .mf79-home .home-v2-calendar-canvas { min-height: 610px; border-inline: 1px solid var(--mf79-line); border-bottom: 1px solid var(--mf79-line); border-radius: 0 0 14px 14px; overflow: hidden; background: var(--ui-panel); }
+.mf75-app-frame[data-surface] .mf79-home .mf77-home-resizer,
+.mf75-app-frame[data-surface] .mf79-home .home-v2-rail,
+.mf75-app-frame[data-surface] .mf79-home .home-v2-bottom,
+.mf75-app-frame[data-surface] .mf79-home .home-v2-day-close { display: none !important; }
+.mf75-app-frame[data-surface] .mf75-dock { background: color-mix(in srgb, var(--mf79-surface) 94%, transparent) !important; border-color: var(--mf79-line) !important; box-shadow: var(--mf79-shadow) !important; }
+
+@media (max-width: 720px) {
+  .mf75-app-frame[data-surface] .mf79-home-heading { min-height: 0; align-items: start; }
+  .mf75-app-frame[data-surface] .mf79-home-heading h1 { font-size: clamp(2.25rem, 9vw, 3.5rem); }
+  .mf75-app-frame[data-surface] .mf79-home-heading-label { display: none; }
+  .mf75-app-frame[data-surface] .mf79-home .home-v2-panel-header { flex-wrap: wrap; }
+  .mf75-app-frame[data-surface] .mf79-home .home-v2-calendar-canvas { min-height: 570px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf79-stage *, .mf79-stage *::before, .mf79-stage *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

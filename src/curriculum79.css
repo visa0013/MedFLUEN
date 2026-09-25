@@ -1,0 +1,7 @@
+.mf79-curriculum-tabs { display: flex; gap: .35rem; padding: .7rem .8rem .9rem; overflow-x: auto; border-bottom: 1px solid var(--mf79-line); }
+.mf79-curriculum-tabs button { min-height: 38px; padding: 0 .85rem; flex: none; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--mf79-ink-soft); font: 650 .81rem/1 system-ui, sans-serif; cursor: pointer; }
+.mf79-curriculum-tabs button[aria-selected="true"] { color: var(--mf79-ink); border-color: var(--mf79-line); background: var(--mf79-surface); }
+.mf79-curriculum-tabs button:focus-visible { outline: 2px solid var(--mf79-teal); outline-offset: 2px; }
+.mf79-kind-direct { padding: .8rem 1rem; border-bottom: 1px solid var(--mf79-line); color: var(--mf79-ink-soft); font-size: .82rem; line-height: 1.5; }
+.mf75-app-frame[data-surface] .document-workspace-header { background: var(--mf79-surface) !important; border-bottom-color: var(--mf79-line) !important; }
+.mf75-app-frame[data-surface] .document-workspace .document-workspace-title-block strong { font-family: Georgia, 'Iowan Old Style', serif; font-size: 1.45rem; font-weight: 400; }
