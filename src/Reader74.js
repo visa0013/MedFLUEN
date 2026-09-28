@@ -53,6 +53,7 @@ export function useSlideJournal74({ client, userId, materialId, moduleName, lect
     return () => { window.removeEventListener("online", online); window.removeEventListener("beforeunload", leave); journal.flush(); };
   }, [journal]);
   return { ...snapshot, status: snapshot.status === "ready" ? remoteState : snapshot.status,
+    getRows: () => journal.snapshot().rows,
     put: (row, previous) => journal.edit({ ...row, updatedAt: new Date().toISOString() }, previous), remove: row => journal.remove(row.id),
     retry: () => { journal.flush(); setReload(n => n + 1); } };
 }

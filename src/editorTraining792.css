@@ -1,0 +1,78 @@
+/* Focused authoring: the content owns the space, tools stay close to each field. */
+.mf72.mf72-editor { max-width:960px;border-radius:6px;box-shadow:none; }
+.mf72-editor .mf72-editor-head { padding:17px 22px;align-items:center; }
+.mf72-editor .mf72-editor-head h2 { font:500 20px/1.35 system-ui,sans-serif;letter-spacing:-.025em; }
+.mf72-editor .mf792-editor-context { margin:4px 0 0;font:400 11px/1.4 system-ui,sans-serif;letter-spacing:0; }
+.mf72-editor button { border-radius:5px; }
+.mf72-editor .mf72-editor-head .mf72-row>button { min-height:30px;font-size:11px;padding:5px 9px; }
+.mf72-editor .mf72-editor-head .mf72-row>button:last-child { border:0;font-size:23px;font-weight:300;padding:0;width:30px; }
+.mf72-editor .mf72-editor-meta { padding:13px 22px;gap:18px; }
+.mf72-editor .mf72-editor-meta[data-contextual="true"] { grid-template-columns:minmax(0,310px); }
+.mf72-editor .mf72-editor-meta label { gap:5px;font-size:11px; }
+.mf72-editor .mf72-editor-meta select { padding:7px 9px;border-radius:4px;font-size:12px; }
+.mf72-editor .mf72-fields { padding:22px;gap:21px; }
+.mf72-editor .mf72-field-label { min-height:28px;gap:12px;margin-bottom:7px; }
+.mf72-editor .mf72-field-label>label { font-size:12px;font-weight:500;color:var(--m72-muted); }
+.mf72-editor .mf72-format { padding:0;border:0;border-radius:0;background:transparent;gap:2px;flex-wrap:nowrap; }
+.mf72-editor .mf72-format button { display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:27px;padding:3px 5px;border:0;color:var(--m72-muted);font:500 12px/1 system-ui,sans-serif; }
+.mf72-editor .mf72-format .mf792-format-bold { font-weight:750; }
+.mf72-editor .mf72-format .mf792-format-italic { font-style:italic; }
+.mf72-editor .mf72-format .mf792-format-underline { text-decoration:underline;text-underline-offset:3px; }
+.mf72-editor .mf72-format button[aria-expanded="true"] { background:var(--m72-soft);color:var(--ui-text); }
+.mf72-editor .mf72-editable { min-height:118px;padding:13px 15px;border:1px solid var(--m72-border);border-radius:4px;font-size:16px;line-height:1.65;background:var(--m72-panel); }
+.mf72-editor .mf72-editable:focus { border-color:color-mix(in srgb,var(--m72-blue) 55%,var(--m72-border));box-shadow:0 0 0 2px color-mix(in srgb,var(--m72-blue) 7%,transparent); }
+.mf72-editor .mf792-field-tools { display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:8px 0 10px; }
+.mf72-editor .mf792-field-tools button,.mf72-editor .mf792-field-tools select { min-height:28px;padding:4px 7px;font-size:11px;display:inline-flex;align-items:center;gap:5px;border-radius:4px; }
+.mf72-editor .mf792-field-tools .mf72-color { position:relative;width:27px;height:27px;display:grid;place-items:center;border-bottom:2px solid var(--m72-blue);font-size:12px; }
+.mf72-editor .mf72-source { border-radius:4px; }
+.mf72-editor .mf75-editor-feedback { min-height:0;padding:0 22px; }
+.mf72-editor .mf75-editor-feedback:has(:not(:empty)) { padding-block:8px; }
+.mf72-editor .mf72-editor-foot { padding:13px 22px;gap:7px; }
+.mf72-editor .mf72-editor-foot button { min-height:33px;padding:6px 12px;font-size:12px; }
+.mf72-editor .mf72-editor-foot small { font-size:10px; }
+.mf72-editor .mf72-mask-editor { border-radius:5px; }
+
+/* Review actions are secondary to the existing progress and the card. */
+.flashcard71-reviewer .flashcard71-review-tools { display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:10px;padding-bottom:10px;border-bottom:1px solid var(--ui-border); }
+.flashcard71-reviewer .flashcard71-review-tools button { display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:5px 8px;border:0;border-radius:4px;background:transparent;color:var(--ui-secondary);font:400 11px/1.3 system-ui,sans-serif;cursor:pointer; }
+.flashcard71-reviewer .flashcard71-review-tools button:hover:not(:disabled),.flashcard71-reviewer .flashcard71-review-tools button[aria-expanded="true"] { color:var(--ui-text);background:var(--ui-soft); }
+.flashcard71-reviewer .flashcard71-review-tools button:disabled { opacity:.4;cursor:default; }
+.flashcard71-tools-spacer { flex:1; }
+.flashcard71-card-info { padding:12px 9px;background:var(--ui-soft);border-bottom:1px solid var(--ui-border);font-size:11px; }
+.flashcard71-card-info dl { display:flex;flex-wrap:wrap;gap:12px 28px;margin:0; }
+.flashcard71-card-info dt { color:var(--ui-muted);margin-bottom:3px; }
+.flashcard71-card-info dd { color:var(--ui-text);margin:0;overflow-wrap:anywhere; }
+.mf791-app .flashcard71-reviewer .flashcard71-reveal { display:inline-flex;align-items:center;justify-content:center;gap:27px;min-height:42px;padding:0 16px 0 22px;border:1px solid var(--ui-border-strong);border-radius:5px;background:var(--ui-panel)!important;color:var(--ui-text);font:500 13px/1 system-ui,sans-serif;box-shadow:0 2px 5px #00000005;transition:background 180ms,border-color 180ms; }
+.mf791-app .flashcard71-reviewer .flashcard71-reveal:hover { border-color:var(--ui-blue);background:var(--ui-soft)!important; }
+.flashcard71-reveal-wrap { display:flex;justify-content:center;padding-top:2px; }
+.flashcard71-reveal kbd { display:grid;place-items:center;min-width:30px;height:23px;padding:0 4px;border:1px solid var(--ui-border);border-radius:3px;color:var(--ui-muted);background:var(--ui-soft); }
+.mf791-app .flashcard71-reviewer .flashcard71-rating-wrap .fsrs-rating-grid button { min-height:49px;gap:3px;padding:7px 10px!important;border-radius:5px; }
+.mf791-app .flashcard71-reviewer .flashcard71-rating-wrap .fsrs-rating-interval { font-size:12px!important;font-weight:650; }
+
+/* A single connected segment slides between the two card sources. */
+.mf791-app .mf79-training-source.mf792-source-tabs { position:relative;isolation:isolate;gap:0;border-radius:5px;padding:3px; }
+.mf792-source-indicator { position:absolute;z-index:-1;top:3px;bottom:3px;left:3px;border-radius:3px;background:var(--mf79-ink);transition:transform 260ms cubic-bezier(.2,.7,.3,1),width 260ms cubic-bezier(.2,.7,.3,1);pointer-events:none; }
+.mf791-app .mf79-training-source.mf792-source-tabs button { border-radius:3px;transition:color 180ms; }
+.mf791-app .mf79-training-source.mf792-source-tabs button[aria-selected="true"] { background:transparent; }
+.mf791-app .mf79-training-source.mf792-source-tabs:not(:has(.mf792-source-indicator)) button[aria-selected="true"] { background:var(--mf79-ink); }
+
+/* Hover and keyboard focus share reversible transitions. */
+.mf791-detail-actions :is(.mf791-tune-knob,.mf791-card-front,.mf791-card-back,.mf791-book-page) { animation:none!important;transition:transform 480ms cubic-bezier(.2,.7,.3,1)!important;transform-box:view-box;transform-origin:50% 50%; }
+.mf791-app .mf791-detail-actions button[data-training-action="customize"]:focus-visible .mf791-tune-knob:first-of-type { transform:translateX(9px); }
+.mf791-app .mf791-detail-actions button[data-training-action="customize"]:focus-visible .mf791-tune-knob:last-of-type { transform:translateX(-9px); }
+.mf791-app .mf791-detail-actions button[data-training-action="materials"]:focus-visible .mf791-book-page { transform:scaleX(.62); }
+@media(hover:hover) and (pointer:fine) {
+  .mf791-app .mf791-detail-actions button[data-training-action="customize"]:hover .mf791-tune-knob:first-of-type { transform:translateX(9px); }
+  .mf791-app .mf791-detail-actions button[data-training-action="customize"]:hover .mf791-tune-knob:last-of-type { transform:translateX(-9px); }
+  .mf791-app .mf791-detail-actions button[data-training-action="materials"]:hover .mf791-book-page { transform:scaleX(.62); }
+}
+@media(max-width:600px) {
+  .mf72-editor .mf72-editor-head,.mf72-editor .mf72-fields,.mf72-editor .mf72-editor-meta,.mf72-editor .mf72-editor-foot { padding-inline:15px; }
+  .mf72-editor .mf72-editor-head { gap:10px; }
+  .mf72-editor .mf72-editor-head h2 { font-size:18px; }
+  .flashcard71-review-tools .flashcard71-tools-spacer { display:none; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .mf792-source-indicator,.mf792-source-tabs button,.mf791-detail-actions :is(.mf791-tune-knob,.mf791-card-front,.mf791-card-back,.mf791-book-page) { transition:none!important;animation:none!important; }
+  .mf791-detail-actions :is(.mf791-tune-knob,.mf791-card-front,.mf791-card-back,.mf791-book-page) { transform:none!important; }
+}

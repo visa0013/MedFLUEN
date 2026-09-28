@@ -1,0 +1,15 @@
+Log ind på medFLUEN med din kode
+
+Velkommen tilbage.
+
+Brug denne engangskode i medFLUEN for at logge ind. Du behøver ikke ændre din adgangskode.
+
+Din engangskode: {{ .Token }}
+
+Del ikke koden med andre.
+Åbn medFLUEN: {{ .SiteURL }}
+
+Hvis du ikke bad om denne e-mail, kan du ignorere den.
+
+medFLUEN
+Forelæsninger. Flashkort. Overblik.

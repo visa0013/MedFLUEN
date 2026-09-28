@@ -1,0 +1,96 @@
+.mf793-landing {
+  --landing-hero-shift: 0px;
+  --landing-ease: cubic-bezier(.22,.68,.24,1);
+}
+
+.mf793-landing :is(#mf79-main,#mf79-overview,#mf79-byte,#mf79-start) {
+  scroll-margin-top: 24px;
+}
+
+/* The underlying content is always visible, including without JavaScript. */
+.mf793-landing [data-landing-reveal] { min-width: 0; }
+.mf793-landing .mf79-first-hero h1 { transform: translateY(var(--landing-hero-shift)); }
+.mf793-landing .mf79-first-hero-index { transform: translateY(calc(var(--landing-hero-shift) * -.65)); }
+.mf793-landing .mf79-first-orb { animation: none; }
+
+.mf793-landing .mf79-first-progress {
+  --progress-step: 40px;
+  gap: 4px;
+  padding: 10px 5px;
+}
+.mf793-landing .mf79-first-progress a {
+  width: 36px;
+  height: 36px;
+  position: relative;
+  z-index: 1;
+}
+.mf793-landing .mf79-first-progress a span,
+.mf793-landing .mf79-first-progress a[aria-current="location"] span {
+  width: 6px;
+  height: 6px;
+  background: #8fa39f;
+  transition: background 200ms ease;
+}
+.mf793-landing .mf79-first-progress a[aria-current="location"] span { background: transparent; }
+.mf793-landing .mf79-first-progress .mf793-progress-indicator {
+  position: absolute;
+  inset-inline-start: 20px;
+  top: 20px;
+  width: 6px;
+  height: 17px;
+  border-radius: 10px;
+  background: var(--first-teal);
+  pointer-events: none;
+  transform: translateY(calc(var(--progress-index) * var(--progress-step)));
+  transition: transform 420ms var(--landing-ease);
+}
+
+.mf793-landing :is(button,a) {
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+.mf793-landing .mf79-first-hero-actions a > span,
+.mf793-landing .mf79-first-path-detail button > span {
+  transition: transform 200ms var(--landing-ease);
+}
+.mf793-landing .mf79-first-hero-actions a:hover > span { transform: translateY(3px); }
+.mf793-landing .mf79-first-path-detail button:hover > span { transform: translate(2px,-2px); }
+
+.mf793-landing .mf79-first-finale > .mf793-finale-copy {
+  display: block;
+  margin-top: 0;
+}
+.mf793-landing .mf793-finale-copy > span { font-size: .68rem; letter-spacing: .14em; }
+
+@media (max-width: 640px) {
+  .mf793-landing .mf79-first-progress {
+    --progress-step: 38px;
+    gap: 2px;
+    padding: 5px 7px;
+    inset-inline-end: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .mf793-landing .mf79-first-progress .mf793-progress-indicator {
+    inset-inline-start: 17px;
+    top: 20px;
+    width: 17px;
+    height: 6px;
+    transform: translateX(calc(var(--progress-index) * var(--progress-step)));
+  }
+  .mf793-landing[dir="rtl"] .mf79-first-progress .mf793-progress-indicator {
+    transform: translateX(calc(var(--progress-index) * var(--progress-step) * -1));
+  }
+}
+
+.mf793-landing[data-landing-motion="reduce"] *,
+[data-motion="reduce"] .mf793-landing * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+.mf793-landing[data-landing-motion="reduce"] :is(.mf79-first-hero h1,.mf79-first-hero-index),
+[data-motion="reduce"] .mf793-landing :is(.mf79-first-hero h1,.mf79-first-hero-index) { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mf793-landing :is(.mf79-first-hero h1,.mf79-first-hero-index) { transform: none; }
+}

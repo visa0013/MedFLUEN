@@ -4,9 +4,20 @@ import './access75.css';
 import { AppearanceSettings75 } from './Appearance75';
 
 export function useAccessSession75(auth) {
+  const localPreviewAuth = process.env.REACT_APP_LOCAL_PREVIEW_AUTH === 'true'
+    && typeof window !== 'undefined'
+    && window.location.hostname === '127.0.0.1';
+  const previewSession = localPreviewAuth ? {
+    access_token: 'fixture-token',
+    refresh_token: 'fixture-refresh',
+    expires_at: Math.floor(Date.now() / 1000) + 86400,
+    token_type: 'bearer',
+    user: { id: 'preview791', email: 'preview@example.invalid', user_metadata: {} },
+  } : null;
   // A URL marker is not proof of recovery. Only Supabase's verified event is.
-  const [value, setValue] = useState({ session: undefined, recovery: false });
+  const [value, setValue] = useState(() => ({ session: previewSession || undefined, recovery: false }));
   useEffect(() => {
+    if (localPreviewAuth) return undefined;
     let active = true, eventVersion = 0;
     const { data } = auth.onAuthStateChange((event, session) => {
       if (!active) return;

@@ -27,10 +27,11 @@ export async function loadLectureMaterials76(materials, knownDocs, download, ind
   }
   return { added, failures };
 }
-export function selectSources76(docs, question) {
+export function selectSources76(docs, question, preferred) {
   const stop = new Set(['hvad','hvordan','hvor','med','den','det','der','som','kan','for','the','and','forklar','please','explain','opsummer']);
   const terms = [...new Set(String(question).toLocaleLowerCase().match(/[\p{L}\p{N}]{3,}/gu) || [])].filter(t => !stop.has(t));
   const pages = docs.filter(d => d.selected).flatMap(d => d.pages || []).filter(p => p.text?.trim());
+  if(preferred?.version&&!pages.some(p=>p.documentId===`lecture-${preferred.materialId}`&&p.version===preferred.version))return [];
   const ranked = pages.map((p, order) => {
     const lower = p.text.toLocaleLowerCase();
     const matches = terms.map(t => lower.indexOf(t)).filter(n => n >= 0);
@@ -40,8 +41,10 @@ export function selectSources76(docs, question) {
   });
   // For generic questions, sample a bounded selection; the assistant is told this is not exhaustive.
   const matched = ranked.filter(p => p.score > 0);
-  return (matched.length ? matched.sort((a,b) => b.score - a.score || a.order - b.order) : ranked)
-    .slice(0, 12).map((p,i) => ({ id: `S${i + 1}`, documentId: String(p.documentId).slice(0,300), title: String(p.title).slice(0,300), page: p.page, text: p.excerpt }));
+  const ordered=matched.length ? matched.sort((a,b) => b.score - a.score || a.order - b.order) : ranked;
+  const pinned=preferred&&ranked.find(p=>p.documentId===`lecture-${preferred.materialId}`&&Number(p.page)===Number(preferred.page)&&(!preferred.version||preferred.version===p.version));
+  return (pinned?[pinned,...ordered.filter(p=>p.documentId!==pinned.documentId||p.page!==pinned.page)]:ordered)
+    .slice(0, 12).map((p,i) => ({ id: `S${i + 1}`, documentId: String(p.documentId).slice(0,300), title: String(p.title).slice(0,300), page: p.page, text: p.excerpt,version:p.version||null }));
 }
 
 export async function askDrByte76(payload, supabase, signal, request = fetch) {

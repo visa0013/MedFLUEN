@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { appearance75, appearanceKey75, resolvedTheme75 } from './appearance75-model';
+import { appearance75, appearanceKey75, resolvedTheme75, normalizeAccent75 } from './appearance75-model';
 import './appearance75.css';
 
 export function useCompletion75(onDone) {
@@ -8,25 +8,26 @@ export function useCompletion75(onDone) {
   return () => {
     if (finished.current) return;
     finished.current = true;
-    if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) window.dispatchEvent(new window.CustomEvent('medfluen-celebrate75'));
+    if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches && document.querySelector('.mf791-app')?.getAttribute('data-motion')!=='reduce') window.dispatchEvent(new window.CustomEvent('medfluen-celebrate75'));
     onDone?.();
   };
 }
 
-export function Celebration75() {
+export function Celebration75({reduceMotion=false}) {
   const [burst,setBurst] = useState(0);
   useEffect(() => {
+    setBurst(0);
     let timer;
     function clear() {window.clearTimeout(timer);setBurst(0);}
     function celebrate() {
-      if(document.hidden || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+      if(document.hidden || reduceMotion || document.querySelector('.mf791-app')?.getAttribute('data-motion')==='reduce' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
       window.clearTimeout(timer);setBurst(value=>value+1);timer=window.setTimeout(clear,1300);
     }
     const visibility=()=>{if(document.hidden)clear();};
     window.addEventListener('medfluen-celebrate75',celebrate);document.addEventListener('visibilitychange',visibility);
     return ()=>{window.clearTimeout(timer);window.removeEventListener('medfluen-celebrate75',celebrate);document.removeEventListener('visibilitychange',visibility);};
-  },[]);
-  if(!burst)return null;
+  },[reduceMotion]);
+  if(!burst||reduceMotion)return null;
   return createPortal(<div data-celebration75 aria-hidden="true" className="mf75-celebration" key={burst}>{Array.from({length:28},(_,index)=><i key={index} style={{'--x':`${(index%2?-1:1)*(70+(index*47)%420)}px`,'--y':`${-80-(index*29)%360}px`,'--r':`${(index*97)%540}deg`,'--delay':`${(index%4)*25}ms`,background:['#507dff','#76cbb4','#b09aee','#efbc6a'][index%4]}}/>)}</div>,document.body);
 }
 
@@ -34,7 +35,14 @@ export function useAppearance75(owner) {
   const key = appearanceKey75(owner);
   const [stored, setStored] = useState(null), [error, setError] = useState('');
   const [dark, setDark] = useState(() => Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches));
-  function read() { return appearance75(JSON.parse(window.localStorage.getItem(key) || 'null')); }
+  function read(recover=false) {
+    // Legacy display/audio choices are harmless UI preferences, not study records.
+    // New choices are saved only under the current account's appearance key.
+    let legacy={};try { legacy=JSON.parse(window.localStorage.getItem('medlearn-preferences') || '{}') || {}; } catch {}
+    const raw=window.localStorage.getItem(key);let saved=null;
+    try {saved=JSON.parse(raw||'null');}catch(error){if(!recover)throw error;}
+    return appearance75({questionSize:legacy.questionSize,timerSound:legacy.timerSound,...saved});
+  }
   useEffect(() => {
     function refresh() { try { setStored({ key, value: read() }); setError(''); } catch { setStored({key,value:appearance75(null)});setError('Udseendet kunne ikke læses fra browserlageret.'); } }
     refresh();
@@ -54,11 +62,19 @@ export function useAppearance75(owner) {
   const value = stored?.key === key ? stored.value : appearance75(null);
   return { value, theme: resolvedTheme75(value.mode, dark), error, set(patch) {
     try {
-      const next = appearance75({ ...read(), ...patch });
+      const next = appearance75({ ...read(true), ...patch });
       window.localStorage.setItem(key, JSON.stringify(next));
       setStored({key,value:next});setError('');return true;
     } catch {setError('Udseendet kunne ikke gemmes. Frigør plads i browserlageret og prøv igen.');return false;}
   } };
+}
+
+export function AccentEditor75({value,onChange,language='da'}) {
+  const [draft,setDraft]=useState(value.customAccent);
+  useEffect(()=>setDraft(value.customAccent),[value.customAccent]);
+  const valid=normalizeAccent75(draft);
+  const label=language==='en'?'Hex colour code':language==='ar'?'رمز اللون السداسي':'Hex-farvekode';
+  return <div className="mf75-custom-accent"><label><span>{language==='en'?'Your colour':language==='ar'?'لونك':'Din farve'}</span><input type="color" aria-label={language==='en'?'Choose accent colour':language==='ar'?'اختر لون التمييز':'Vælg accentfarve'} value={value.customAccent} onChange={event=>onChange({accent:'custom',customAccent:event.target.value})}/></label><label><span>{label}</span><input type="text" inputMode="text" spellCheck="false" maxLength="7" aria-label={label} aria-invalid={!valid} value={draft} onChange={event=>{setDraft(event.target.value);const hex=normalizeAccent75(event.target.value);if(hex)onChange({accent:'custom',customAccent:hex});}}/></label>{!valid&&<small role="status">{language==='en'?'Use #RGB or #RRGGBB.':language==='ar'?'استخدم ‎#RGB أو ‎#RRGGBB.':'Brug #RGB eller #RRGGBB.'}</small>}</div>;
 }
 
 export function AppearanceSettings75({ value, onChange, language = 'da', error = '', compact = false }) {
@@ -67,17 +83,16 @@ export function AppearanceSettings75({ value, onChange, language = 'da', error =
   return <section className="mf75-appearance" aria-label={en ? 'Appearance' : 'Udseende'}>
     {[
       ['mode',en?'Theme':'Tema', [['light',en?'Light':'Lyst'],['dark',en?'Dark':'Mørkt'],['system','System']]],
-      ['accent',en?'Accent':'Farve', [['blue',en?'Blue':'Blå'],['green',en?'Green':'Grøn'],['violet','Violet'],['graphite',en?'Graphite':'Grafit']]],
-      ['surface',en?'Background':'Baggrund', [['paper',en?'Warm paper':'Varmt papir'],['mist',en?'Soft mist':'Blød dis'],['white',en?'White':'Hvid']]],
+      ['accent',en?'Accent':'Farve', [['blue',en?'Blue':'Blå'],['green',en?'Green':'Grøn'],['violet','Violet'],['graphite',en?'Graphite':'Grafit'],['custom',en?'Custom':'Egen farve']]],
+      ['surface',en?'Background':'Baggrund', [['paper',en?'Warm paper':'Varmt papir'],['mist',en?'Soft mist':'Blød dis'],['white',en?'White':'Hvid'],['sand',en?'Sand':'Sand'],['sage',en?'Sage':'Salvie'],['lavender',en?'Lavender':'Lavendel']]],
       ...(!compact ? [['dock',en?'Navigation position':'Navigationens placering',[['bottom',en?'Bottom':'Bund'],['top',en?'Top':'Top'],['left',en?'Left':'Venstre'],['right',en?'Right':'Højre']]]] : []),
-    ].map(([field,label,choices]) => <fieldset key={field}><legend>{label}</legend><div>{choices.map(([id,title]) => <label key={id}><input type="radio" name={`appearance75-${instance}-${field}`} checked={value[field] === id} onChange={() => onChange({[field]:id})} /><span>{field==='accent' && <i aria-hidden="true" data-accent={id}/>} {title}</span></label>)}</div></fieldset>)}
-    {!compact && <label className="mf75-orb-toggle"><input type="checkbox" checked={value.orb} onChange={event => onChange({orb:event.target.checked})} /><span>{en?'Show the Dr. Byte orb':'Vis Dr. Byte-orben'}</span></label>}
+    ].map(([field,label,choices]) => <fieldset key={field}><legend>{label}</legend><div>{choices.map(([id,title]) => <label key={id}><input type="radio" name={`appearance75-${instance}-${field}`} checked={value[field] === id} onChange={() => onChange({[field]:id})} /><span>{field==='accent' && <i aria-hidden="true" data-accent={id} style={id==='custom'?{background:value.customAccent}:undefined}/>} {title}</span></label>)}</div></fieldset>)}
+    <AccentEditor75 value={value} onChange={onChange} language={language}/>
     {error && <p role="alert">{error}</p>}
-    {!compact && <small>{en?'Saved on this device for this account.':'Gemmes på denne enhed for denne konto.'}</small>}
   </section>;
 }
 
-export function Dock75({ items, active, Icon, position = 'bottom', profileActions = [], profileOpen = false, setProfileOpen, onProfileAction, userInitial = 'M', displayName = '', moduleLabel = '', profileLabel = 'Profil', profileButtonRef, profileMenuRef, assistant, orb = true, adminMode = false }) {
+export function Dock75({ items, active, Icon, position = 'bottom', profileActions = [], profileOpen = false, setProfileOpen, onProfileAction, userInitial = 'M', displayName = '', moduleLabel = '', profileLabel = 'Profil', profileButtonRef, profileMenuRef, assistant, adminMode = false, hideProfile = false }) {
   const ownButton = useRef(null), ownMenu = useRef(null), moreButton = useRef(null);
   const button = profileButtonRef || ownButton, menu = profileMenuRef || ownMenu;
   const [more, setMore] = useState(false), [rect, setRect] = useState({left:12,top:12}), [hidden, setHidden] = useState(document.hidden);
@@ -107,10 +122,10 @@ export function Dock75({ items, active, Icon, position = 'bottom', profileAction
   return <>
     <nav data-tour="sidebar" className="mf75-dock" data-position={position} data-page-hidden={hidden} aria-label="Primær navigation">
       {items.map((item,index) => <button key={item.id} type="button" className={index>2?'mf75-dock-extra':''} aria-label={item.label} aria-current={item.id===active?'page':undefined} onClick={() => action(item.action)}><Icon name={item.icon} size={20}/>{item.badge>0&&<em>{item.badge>99?'99+':item.badge}</em>}<span className="mf75-dock-tip">{item.label}</span></button>)}
-      {assistant && <button type="button" className="mf75-dock-extra" aria-label={assistant.label} aria-pressed={assistant.active} onClick={() => action(assistant.action)}>{orb?<span className="mf75-byte-orb" aria-hidden="true"/>:<Icon name={assistant.icon} size={20}/>}<span className="mf75-dock-tip">{assistant.label}</span></button>}
+      {assistant && <button type="button" className="mf75-dock-extra" aria-label={assistant.label} aria-pressed={assistant.active} onClick={() => action(assistant.action)}><span className="mf75-byte-orb" aria-hidden="true"/><span className="mf75-dock-tip">{assistant.label}</span></button>}
       <button ref={moreButton} className="mf75-dock-more" type="button" aria-label="Mere" aria-expanded={more} aria-haspopup="dialog" onClick={() => {setProfileOpen?.(false);setMore(value=>!value);}}><Icon name="more" size={20}/><span className="mf75-dock-tip">Mere</span></button>
-      <span className="mf75-dock-separator" aria-hidden="true"/>
-      <button ref={button} type="button" className="mf75-dock-profile" aria-label={profileLabel} aria-expanded={profileOpen} aria-haspopup="dialog" onClick={() => {setMore(false);setProfileOpen?.(!profileOpen);}}>{userInitial}{adminMode&&<i aria-label="Admin mode"/>}<span className="mf75-dock-tip">{profileLabel}</span></button>
+      {!hideProfile && <><span className="mf75-dock-separator" aria-hidden="true"/>
+      <button ref={button} type="button" className="mf75-dock-profile" aria-label={profileLabel} aria-expanded={profileOpen} aria-haspopup="dialog" onClick={() => {setMore(false);setProfileOpen?.(!profileOpen);}}>{userInitial}{adminMode&&<i aria-label="Admin mode"/>}<span className="mf75-dock-tip">{profileLabel}</span></button></>}
     </nav>
     {open && createPortal(<div ref={menu} role="dialog" aria-label={more?'Mere navigation':profileLabel} className="mf75-dock-popup" style={rect}>
       {!more && <header><strong>{displayName}</strong>{moduleLabel&&<small>{moduleLabel}</small>}</header>}

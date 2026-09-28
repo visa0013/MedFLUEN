@@ -7,31 +7,55 @@ import { createClient } from "@supabase/supabase-js";
 import { CardEditor72, RichContent72, Assistant72, HelpCenter72, ExperienceStyles72, AreaTabs72, useReviewClock72, ActivityChart73, ReadingIndex73 } from "./Experience72";
 import { shouldWakeSync72, retryableLoader73, pdfMetrics73 } from "./experience72-model";
 import { useSlideJournal74 } from "./Reader74";
-import { NotesHub78, PageNote78 } from "./Notes78";
+import { NotesHub78 } from "./Notes78";
+import { PdfPageNotes791 } from "./PdfNotes791";
+import { pageNoteShare792 } from "./pageNoteShare792";
+import { useAccountStorage792, accountStorageKey792, readAccountResume792 } from "./accountStorage792";
+import { PlanningSummary791, RepetitionStart791, planCapacity791 } from "./PlanningSummary791";
 import { pdfFailure74 } from "./reader74-model";
 import { examAnswerMode75, examAnswerPath75, examMatchesAnswerFilter75, examUploadError75, examDuplicate75 } from "./exam75-model";
 import { deckTree75 } from "./decks75-model";
 import { DeckDialog75, usePrivateDecks75 } from "./Decks75";
 import { useAccessSession75, useAccountProfile75, readAccountProfile75 } from "./Access75";
 import { FirstEntry79 } from "./FirstEntry79";
-import { AppearanceSettings75, Celebration75, Dock75, useAppearance75, useCompletion75 } from "./Appearance75";
-import { palette75 } from "./appearance75-model";
+import { Celebration75, Dock75, useAppearance75, useCompletion75 } from "./Appearance75";
+import { Settings793,saveFocusSettings793 } from "./Settings793";
+import { palette75, appearanceStyle75 } from "./appearance75-model";
 import { createCatalogStore751 } from "./catalog751-model";
 import { CatalogEditor751, useCatalog751 } from "./Catalog751";
-import { NativePdf751 } from "./NativePdf751";
+import { PdfReader791 } from "./PdfReader791";
+import { loadPdfEngine791 } from "./pdf791-engine";
+import { pdfWorkspaceSource791 } from "./pdf791-model";
 import { effectiveChatWidth76 } from "./drbyte76-model";
 import { enterFocus78, leaveFocus78 } from "./shell78-model";
-import { Home79Header } from "./Home79";
+import { HomeLanding791, SduImportButton791 } from "./HomeLanding791";
+import { toggleNativeFullscreen791 } from "./fullscreen791-model";
+import { WorkspaceHeader791, FocusSymbol791 } from "./Workspace791";
+import { TrainingIndex791 } from "./TrainingIndex791";
+import { AnkiUpload792 } from "./AnkiUpload792";
+import { persistAnkiBatch792 } from "./ankiImport792";
+import { annualActivity791 } from "./annualActivity791";
+import { Dialog791, SessionOptions791, StudyActivity791 } from "./StudyTools791";
+import { PomodoroPanel791, usePomodoro791, pomodoroSettings791 } from "./Pomodoro791";
+import { useTimerSound793 } from "./timerSound793";
 import { navigateWorkspace79, normalizeWorkspace79 } from "./workspace79-model";
 import { Training79Header } from "./Training79";
 import { trainingCards79 } from "./training79-model";
 import { Curriculum79Tabs } from "./Curriculum79";
+import { CurriculumFilters791, LectureStatus791, MaterialEmpty791, useCurriculumNavigation791, CurriculumHeading791, LectureProgress791, CurriculumProgress791, MaterialDetails791 } from "./Curriculum791";
+import { CardBrowser791 } from "./CardBrowser791";
+import { rememberLecture791 } from "./lecture-entry791";
+import { AssistantDock791 } from "./AssistantDock791";
 import { contentKind79 } from "./curriculum79-model";
 import { calendarView79, shiftCalendar79 } from "./planning79-model";
+import { eventHasDetails791 } from "./calendar-details791";
 import { Planning79 } from "./Planning79";
 import "./polish77.css";
 import "./shell78.css";
 import "./workspace79.css";
+import "./workspace791.css";
+import "./annotations791.css";
+import { calendarHeading791, selectedDeck791, primaryArea791 } from "./workspace791-model";
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY =
@@ -100,12 +124,7 @@ const STORAGE = {
 
 /* SEGMENT_6_9_HELPERS_START */
 function medfluenPrimaryArea(route, workspace) {
-  if (workspace === "examSets" || route === "mcq" || route === "training-history") return "training";
-  if (workspace === "notes") return "notes";
-  if (workspace === "lectures") return "curriculum";
-  if (workspace === "calendar" || route === "study-plan") return "planning";
-  if (route === "insights") return "home";
-  return "home";
+  return primaryArea791(route, workspace);
 }
 
 function medfluenAreaTab(route, workspace, sessionScope) {
@@ -3449,6 +3468,7 @@ function WeekCalendar({
                     className="calendar-week-event"
                     data-complete={event.completedAt ? "true" : "false"}
                     data-source={calendarEventLayer(event)}
+                    data-activity={event.type || "other"}
                     data-conflict={hasConflict ? "true" : "false"}
                     data-selected={selectedEventId === event.id ? "true" : "false"}
                     onDragStart={(domEvent) => { if (!readOnly) beginDrag(domEvent, event.id); }}
@@ -17137,6 +17157,7 @@ function ModuleSwitcher({
                 <button
                   type="button"
                   key={level}
+                  aria-pressed={selected}
                   onClick={() =>
                     selectLevel(level)
                   }
@@ -17210,6 +17231,7 @@ function ModuleSwitcher({
                   type="button"
                   role="menuitem"
                   key={module}
+                  data-selected={selected}
                   onClick={() =>
                     selectModule(module)
                   }
@@ -17298,6 +17320,8 @@ function Timer({
   route,
   onAssistant = null,
   onProfileAction = null,
+  compact791 = false,
+  timerSound = true,
 }) {
   const [settings, setSettings] = useStoredState(STORAGE.timer, {
     focus: 25,
@@ -17305,16 +17329,13 @@ function Timer({
     sessions: 0,
   });
   const [savedPlans, setSavedPlans] = useStoredState(STORAGE.pomodoroPlans, []);
-  const [planName, setPlanName] = useState("");
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState("idle");
-  const [running, setRunning] = useState(false);
-  const [seconds, setSeconds] = useState((Number(settings.focus) || 25) * 60);
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const [pomodoroLog, setPomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
   const [pomodoroMinutesLog, setPomodoroMinutesLog] = useStoredState(STORAGE.pomodoroMinutesLog, {});
   const triggerRef = useRef(null);
   const popoverRef = useRef(null);
+  const completionSound793 = useTimerSound793(timerSound);
 
   const copy = ({
     da: {
@@ -17407,13 +17428,7 @@ function Timer({
   })[language] || {};
 
   const locale = language === "da" ? "da-DK" : language === "ar" ? "ar" : "en-GB";
-  const focusMinutes = Math.max(1, Math.min(180, Number(settings.focus) || 25));
-  const pauseMinutes = Math.max(1, Math.min(60, Number(settings.pause) || 5));
-  const active = mode !== "idle";
-  const isBreak = mode === "break";
-  const activeMinutes = isBreak ? pauseMinutes : focusMinutes;
-  const totalSeconds = Math.max(1, activeMinutes * 60);
-  const progress = active ? Math.max(0, Math.min(100, ((totalSeconds - seconds) / totalSeconds) * 100)) : 0;
+  const {focus:focusMinutes,pause:pauseMinutes}=pomodoroSettings791(settings);
   const safeSavedPlans = Array.isArray(savedPlans) ? savedPlans : [];
 
   const todayDate = new Date();
@@ -17436,33 +17451,14 @@ function Timer({
         ? { title: copy.planTitle, subtitle: copy.planSubtitle, icon: "calendar" }
         : { title: t.home, subtitle: copy.homeSubtitle, icon: "home" };
 
-  useEffect(() => {
-    if (!running) return undefined;
-    const interval = window.setInterval(() => {
-      setSeconds((value) => Math.max(0, value - 1));
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, [running]);
-
-  useEffect(() => {
-    if (mode === "idle") setSeconds(focusMinutes * 60);
-  }, [focusMinutes, mode]);
-
-  useEffect(() => {
-    if (!running || seconds !== 0) return;
-    if (mode === "focus") {
-      setSettings((current) => ({ ...current, sessions: (Number(current.sessions) || 0) + 1 }));
-      setPomodoroLog((current) => ({ ...current, [todayKeyStr]: (Number(current[todayKeyStr]) || 0) + 1 }));
-      setPomodoroMinutesLog((current) => ({ ...current, [todayKeyStr]: (Number(current[todayKeyStr]) || 0) + focusMinutes }));
-      recordStudyActivity();
-      setMode("break");
-      setSeconds(pauseMinutes * 60);
-    } else {
-      setMode("idle");
-      setRunning(false);
-      setSeconds(focusMinutes * 60);
-    }
-  }, [seconds, running, mode, focusMinutes, pauseMinutes, setSettings, setPomodoroLog, setPomodoroMinutesLog, todayKeyStr]);
+  const timer791=usePomodoro791({settings,onComplete:minutes=>{
+    completionSound793.complete();
+    setSettings(current=>({...current,sessions:(Number(current.sessions)||0)+1}));
+    setPomodoroLog(current=>({...current,[todayKeyStr]:(Number(current[todayKeyStr])||0)+1}));
+    setPomodoroMinutesLog(current=>({...current,[todayKeyStr]:(Number(current[todayKeyStr])||0)+minutes}));
+    recordStudyActivity();
+  }});
+  const active=timer791.phase!=="idle",seconds=timer791.seconds;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -17490,55 +17486,22 @@ function Timer({
     return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(minutes / 60)} ${copy.hoursShort}`;
   }
 
-  function updateDuration(key, rawValue, maximum) {
-    const value = Math.max(1, Math.min(maximum, Number(rawValue) || 1));
-    setSettings((current) => ({ ...current, [key]: value }));
-    if (key === "focus" && mode === "idle") setSeconds(value * 60);
-  }
-
   function applyPlan(plan) {
-    const focus = Math.max(1, Math.min(180, Number(plan.focus) || 25));
-    const pause = Math.max(1, Math.min(60, Number(plan.pause) || 5));
-    setSettings((current) => ({ ...current, focus, pause }));
-    if (mode === "idle") setSeconds(focus * 60);
+    setSettings(current=>({...current,...pomodoroSettings791(plan)}));
   }
-
-  function savePlan() {
-    const name = planName.trim() || `${focusMinutes}/${pauseMinutes}`;
-    const nextPlan = {
-      id: `pomodoro-plan-${Date.now()}`,
-      name,
-      focus: focusMinutes,
-      pause: pauseMinutes,
-      updatedAt: Date.now(),
-    };
-    setSavedPlans((current) => {
-      const list = Array.isArray(current) ? current : [];
-      const matchingIndex = list.findIndex((item) => String(item.name || "").toLowerCase() === name.toLowerCase());
-      const next = matchingIndex >= 0
-        ? list.map((item, index) => index === matchingIndex ? { ...item, ...nextPlan, id: item.id } : item)
-        : [...list, nextPlan];
-      return next.slice(-8);
+  function savePlan(rawName) {
+    const name=String(rawName||"").trim()||`${focusMinutes}/${pauseMinutes}`;
+    const nextPlan={id:`pomodoro-plan-${Date.now()}`,name,...pomodoroSettings791(settings),updatedAt:Date.now()};
+    setSavedPlans(current=>{
+      const list=Array.isArray(current)?current:[],matchingIndex=list.findIndex(item=>String(item.name||"").toLowerCase()===name.toLowerCase());
+      return matchingIndex>=0?list.map((item,index)=>index===matchingIndex?{...item,...nextPlan,id:item.id}:item):[...list,nextPlan];
     });
-    setPlanName("");
   }
 
   function deletePlan(id) {
     setSavedPlans((current) => (Array.isArray(current) ? current.filter((item) => item.id !== id) : []));
   }
 
-  function startTimer() {
-    setMode("focus");
-    setSeconds(focusMinutes * 60);
-    setRunning(true);
-    setOpen(false);
-  }
-
-  function resetTimer() {
-    setMode("idle");
-    setRunning(false);
-    setSeconds(focusMinutes * 60);
-  }
 
   return (
     <header
@@ -17558,107 +17521,36 @@ function Timer({
         borderBottom: `1px solid ${c.border}`,
       }}
     >
-      <div className="topbar-page-context" style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10, justifySelf: "start" }}>
+      {!compact791 && <div className="topbar-page-context" style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10, justifySelf: "start" }}>
         <span style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
           <span style={{ color: c.text, fontSize: 12, fontWeight: 850, lineHeight: 1.15 }}>{routeData.title}</span>
           <span style={{ maxWidth: 220, marginTop: 3, color: c.muted, fontSize: 9.5, fontWeight: 650, lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{routeData.subtitle}</span>
         </span>
-      </div>
-
+      </div>}
       <div className="topbar-center" style={{ position: "relative", justifySelf: "center", display: "grid", placeItems: "center", direction: "ltr" }}>
         <button
           ref={triggerRef}
           type="button"
           data-tour="pomodoro"
           className="topbar-digital-clock topbar-focus-control"
+          data-active={active}
+          data-running={timer791.running}
+          data-phase={timer791.phase}
           aria-label={`${open ? copy.closeTimer : copy.openTimer}: ${active ? formatTime(seconds) : copy.focusControl}`}
           aria-expanded={open}
           aria-haspopup="dialog"
           onClick={() => setOpen((value) => !value)}
         >
-          <Icon name="focus" size={16} />
+          <FocusSymbol791 active={active && timer791.phase==='focus'}/>
           <span className="topbar-digital-time">{active ? formatTime(seconds) : copy.focusControl}</span>
         </button>
 
-        {open && (
-          <section
-            ref={popoverRef}
-            role="dialog"
-            aria-label={copy.timerTitle}
-            className="pomodoro-popover pomodoro-popover-v11"
-            style={{ background: c.panel, border: `1px solid ${c.border}`, boxShadow: c.shadowLg, direction: language === "ar" ? "rtl" : "ltr" }}
-          >
-            <header className="pomodoro-v11-header">
-              <div>
-                <strong>{copy.timerTitle}</strong>
-                <small>{active ? (isBreak ? copy.activeBreak : copy.activeFocus) : `${focusMinutes} / ${pauseMinutes} min`}</small>
-              </div>
-              <IconButton c={c} title={t.close} onClick={() => setOpen(false)} style={{ width: 32, height: 32, border: `1px solid ${c.border}`, background: c.soft }}>
-                <Icon name="close" size={14} />
-              </IconButton>
-            </header>
-
-            {active && (
-              <div className="pomodoro-v11-active">
-                <div className="pomodoro-v11-countdown">{formatTime(seconds)}</div>
-                <div className="pomodoro-v11-progress" aria-hidden="true"><span style={{ width: `${progress}%` }} /></div>
-              </div>
-            )}
-
-            <div className="pomodoro-v11-stats">
-              <div><span>{copy.todayHours}</span><strong>{formatHours(todayFocusMinutes)}</strong></div>
-              <div><span>{copy.weekHours}</span><strong>{formatHours(weekFocusMinutes)}</strong></div>
-            </div>
-
-            {!active ? (
-              <>
-                <div className="pomodoro-v11-duration-grid">
-                  <label>
-                    <span>{copy.focusLength}</span>
-                    <div><input type="number" min="1" max="180" value={focusMinutes} onChange={(event) => updateDuration("focus", event.target.value, 180)} /><em>{t.minutes}</em></div>
-                  </label>
-                  <label>
-                    <span>{copy.breakLength}</span>
-                    <div><input type="number" min="1" max="60" value={pauseMinutes} onChange={(event) => updateDuration("pause", event.target.value, 60)} /><em>{t.minutes}</em></div>
-                  </label>
-                </div>
-
-                <div className="pomodoro-v11-save-row">
-                  <label>
-                    <span>{copy.planName}</span>
-                    <input value={planName} onChange={(event) => setPlanName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && savePlan()} placeholder={copy.planNamePlaceholder} />
-                  </label>
-                  <button type="button" className="ui-button ui-button--secondary" onClick={savePlan}>{copy.savePlan}</button>
-                </div>
-
-                <div className="pomodoro-v11-plans">
-                  <div className="pomodoro-v11-section-title">{copy.savedPlans}</div>
-                  {safeSavedPlans.length ? safeSavedPlans.map((plan) => (
-                    <div key={plan.id} className="pomodoro-v11-plan-row">
-                      <button type="button" onClick={() => applyPlan(plan)} title={copy.applyPlan}>
-                        <span>{plan.name}</span>
-                        <small>{plan.focus}/{plan.pause} min</small>
-                      </button>
-                      <button type="button" className="pomodoro-v11-plan-delete" onClick={() => deletePlan(plan.id)} title={copy.deletePlan} aria-label={`${copy.deletePlan}: ${plan.name}`}><Icon name="trash" size={13} /></button>
-                    </div>
-                  )) : <div className="pomodoro-v11-empty">{copy.noSavedPlans}</div>}
-                </div>
-
-                <PrimaryButton onClick={startTimer} style={{ width: "100%", minHeight: 42, borderRadius: 11 }}>
-                  <Icon name="play" size={14} />{copy.startFocus}
-                </PrimaryButton>
-              </>
-            ) : (
-              <div className="pomodoro-v11-controls">
-                <button type="button" className="ui-button ui-button--primary" onClick={() => setRunning((value) => !value)}><Icon name={running ? "pause" : "play"} size={14} />{running ? t.pause : t.resume}</button>
-                <button type="button" className="ui-button ui-button--secondary" onClick={resetTimer}><Icon name="reset" size={14} />{t.resetTimer}</button>
-              </div>
-            )}
-          </section>
-        )}
+        {open&&<section ref={popoverRef} role="dialog" aria-label={copy.timerTitle} className="pomodoro-popover pomodoro-popover-v11 mf791-timer-popover">
+          <PomodoroPanel791 language={language} settings={settings} timer={{...timer791,start:()=>{completionSound793.prime();timer791.start();setOpen(false);},toggle:()=>{if(!timer791.running)completionSound793.prime();timer791.toggle();}}} onSettings={patch=>setSettings(current=>({...current,...patch}))} savedPlans={safeSavedPlans} onApplyPlan={applyPlan} onSavePlan={savePlan} onDeletePlan={deletePlan} onClose={()=>setOpen(false)} today={formatHours(todayFocusMinutes)} week={formatHours(weekFocusMinutes)}/>
+        </section>}
       </div>
 
-      <div style={{ position: "relative", justifySelf: "end", display: "flex", alignItems: "center", gap: 6 }}>
+      {!compact791 && <div style={{ position: "relative", justifySelf: "end", display: "flex", alignItems: "center", gap: 6 }}>
         <div className="topbar-mobile-utilities">
           <button type="button" title={t.drByte} aria-label={t.drByte} onClick={onAssistant}><Icon name="assistant" size={16} /></button>
           <button type="button" title={t.profile} aria-label={t.profile} aria-expanded={mobileProfileOpen} onClick={() => setMobileProfileOpen((value) => !value)}><Icon name="user" size={16} /></button>
@@ -17669,7 +17561,7 @@ function Timer({
           <button type="button" onClick={() => { setMobileProfileOpen(false); onProfileAction?.("signout"); }}><Icon name="logout" size={13} />{t.signOutAction}</button>
         </div>}
         <ModuleSwitcher c={c} t={t} language={language} user={user} setUser={setUser} />
-      </div>
+      </div>}
     </header>
   );
 }
@@ -18761,7 +18653,7 @@ function CalendarEventEditor({
     en: { end: "Ends", endDate: "End date", until: "Repeat until", location: "Location", link: "Link", lecture: "Lecture", noLecture: "No lecture", completed: "Reviewed", description: "Description or preparation…", title: "New event", edit: "Edit event", more: "More options", less: "Fewer options", optional: "Optional", allDay: "All day", reminder: "Reminder", recurrence: "Repeat", none: "None", daily: "Daily", weekly: "Weekly", weekdays: "Weekdays", monthly: "Monthly", attachment: "PDF or note", conflict: "This time overlaps another activity.", suggest: "Find next free time", held: "Lecture held", planned: "Planned", reviewed: "Reviewed" },
     ar: { end: "ينتهي", endDate: "تاريخ الانتهاء", until: "التكرار حتى", location: "المكان", link: "الرابط", lecture: "المحاضرة", noLecture: "بدون محاضرة", completed: "تمت المراجعة", description: "وصف أو تحضير…", title: "حدث جديد", edit: "تعديل الحدث", more: "المزيد", less: "أقل", optional: "اختياري", allDay: "طوال اليوم", reminder: "تذكير", recurrence: "تكرار", none: "لا شيء", daily: "يومي", weekly: "أسبوعي", weekdays: "أيام العمل", monthly: "شهري", attachment: "PDF أو ملاحظة", conflict: "يتداخل هذا الوقت مع نشاط آخر.", suggest: "العثور على الوقت المتاح التالي", held: "تمت المحاضرة", planned: "مخطط", reviewed: "تمت المراجعة" },
   })[language] || {};
-  const [advancedOpen, setAdvancedOpen] = useState(Boolean(event.location || event.url || event.description || event.reminderMinutes || event.attachmentUrl));
+  const [advancedOpen, setAdvancedOpen] = useState(()=>eventHasDetails791(event));
   const duration = calendarDurationMinutes(event);
   const conflicts = event.time ? allEvents.filter((item) => calendarEventsConflict(event, item)) : [];
   const importedHeld = calendarIsSduScheduleEvent(event) && calendarSduEventHasEnded(event);
@@ -18806,17 +18698,19 @@ function CalendarEventEditor({
         </header>
 
         <div className="calendar-quick-editor-body">
-          <div className="calendar-quick-editor-row"><Icon name="calendar" size={16} /><div className="calendar-quick-date-grid"><label><small>{t.calendarEventDate}</small><input type="date" className="calendar-quick-control" value={event.date || ""} onChange={(e) => onChange({ ...event, date: e.target.value, endDate: !event.endDate || event.endDate < e.target.value ? e.target.value : event.endDate })} /></label><label><small>{copy.endDate}</small><input type="date" className="calendar-quick-control" min={event.date || undefined} value={event.endDate || event.date || ""} onChange={(e) => onChange({ ...event, endDate: e.target.value })} /></label></div></div>
+          <div className="calendar-quick-editor-row"><Icon name="calendar" size={16} /><label className="annotation791-event-date"><small>{t.calendarEventDate}</small><input type="date" className="calendar-quick-control" value={event.date || ""} onChange={(e) => onChange({ ...event, date: e.target.value, endDate: !event.endDate || event.endDate < e.target.value ? e.target.value : event.endDate })} /></label></div>
           <div className="calendar-quick-editor-row"><Icon name="clock" size={16} /><div className="calendar-quick-time-grid"><input type="time" className="calendar-quick-control" value={event.time || ""} onChange={(e) => updateStartTime(e.target.value)} /><span>–</span><input type="time" className="calendar-quick-control" value={event.endTime || ""} onChange={(e) => updateEndTime(e.target.value)} /><small>{duration} min</small></div></div>
-          <div className="calendar-quick-editor-row"><Icon name="cards" size={16} /><select className="calendar-quick-control" value={event.type || "study"} onChange={(e) => onChange({ ...event, type: e.target.value })}><option value="study">{t.calendarTypeStudy}</option><option value="review">{t.calendarTypeReview}</option><option value="exam">{t.calendarTypeExam}</option><option value="other">{t.calendarTypeOther}</option></select></div>
-          {lectures.length > 0 && <div className="calendar-quick-editor-row"><Icon name="book" size={16} /><select className="calendar-quick-control" value={event.lectureId || ""} onChange={(e) => { const lectureId = e.target.value || null; onChange({ ...event, lectureId, lectureIds: lectureId ? [lectureId] : [], planModuleId: lectureId ? moduleName : event.planModuleId }); }}><option value="">{copy.noLecture}</option>{lectures.map((lecture) => <option key={lecture.id} value={lecture.id}>{lecture.id} · {lecture.title}</option>)}</select></div>}
-          <div className="calendar-quick-editor-row calendar-quick-recurrence-row"><Icon name="reset" size={16} /><div className="calendar-quick-two-cols"><label><span>{copy.recurrence}</span><select className="calendar-quick-control" value={event.recurrence || "none"} onChange={(e) => onChange({ ...event, recurrence: e.target.value, recurrenceUntil: e.target.value === "none" ? "" : event.recurrenceUntil })}><option value="none">{copy.none}</option><option value="daily">{copy.daily}</option><option value="weekdays">{copy.weekdays}</option><option value="weekly">{copy.weekly}</option><option value="monthly">{copy.monthly}</option></select></label>{event.recurrence && event.recurrence !== "none" && <label><span>{copy.until}</span><input type="date" className="calendar-quick-control" min={event.date || undefined} value={event.recurrenceUntil || ""} onChange={(e) => onChange({ ...event, recurrenceUntil: e.target.value })} /></label>}</div></div>
 
           {conflicts.length > 0 && !event.conflictDismissedAt && <div className="calendar-conflict-callout"><Icon name="clock" size={14} /><span>{copy.conflict}</span><button type="button" onClick={suggestFreeTime}>{copy.suggest}</button></div>}
           {event.importedSchedule && <div className="calendar-delivery-state"><span data-state={importedHeld ? "held" : "planned"} />{importedHeld ? copy.held : copy.planned}</div>}
 
           <button type="button" className="calendar-quick-more" onClick={() => setAdvancedOpen((value) => !value)} aria-expanded={advancedOpen}><Icon name={advancedOpen ? "collapse" : "plus"} size={14} />{advancedOpen ? copy.less : copy.more}</button>
           {advancedOpen && <div className="calendar-quick-advanced">
+            <label><span>{copy.endDate}</span><input type="date" className="calendar-quick-control" min={event.date || undefined} value={event.endDate || event.date || ""} onChange={e=>onChange({...event,endDate:e.target.value})}/></label>
+            <label><span>{language==='en'?'Activity type':language==='ar'?'نوع النشاط':'Aktivitetstype'}</span><select className="calendar-quick-control" value={event.type||'study'} onChange={e=>onChange({...event,type:e.target.value})}><option value="study">{t.calendarTypeStudy}</option><option value="review">{t.calendarTypeReview}</option><option value="exam">{t.calendarTypeExam}</option><option value="other">{t.calendarTypeOther}</option></select></label>
+            {lectures.length>0&&<label><span>{copy.lecture}</span><select className="calendar-quick-control" value={event.lectureId||''} onChange={e=>{const lectureId=e.target.value||null;onChange({...event,lectureId,lectureIds:lectureId?[lectureId]:[],planModuleId:lectureId?moduleName:event.planModuleId});}}><option value="">{copy.noLecture}</option>{lectures.map(lecture=><option key={lecture.id} value={lecture.id}>{lecture.id} · {lecture.title}</option>)}</select></label>}
+            <label><span>{copy.recurrence}</span><select className="calendar-quick-control" value={event.recurrence||'none'} onChange={e=>onChange({...event,recurrence:e.target.value,recurrenceUntil:e.target.value==='none'?'':event.recurrenceUntil})}><option value="none">{copy.none}</option><option value="daily">{copy.daily}</option><option value="weekdays">{copy.weekdays}</option><option value="weekly">{copy.weekly}</option><option value="monthly">{copy.monthly}</option></select></label>
+            {event.recurrence&&event.recurrence!=='none'&&<label><span>{copy.until}</span><input type="date" className="calendar-quick-control" min={event.date||undefined} value={event.recurrenceUntil||''} onChange={e=>onChange({...event,recurrenceUntil:e.target.value})}/></label>}
             <label><span>{copy.location}</span><input className="calendar-quick-control" value={event.location || ""} onChange={(e) => onChange({ ...event, location: e.target.value })} placeholder={copy.optional} /></label>
             <label><span>{copy.link}</span><input className="calendar-quick-control" value={event.url || ""} onChange={(e) => onChange({ ...event, url: e.target.value })} placeholder="https://" /></label>
             <label><span>{copy.reminder}</span><select className="calendar-quick-control" value={event.reminderMinutes ?? ""} onChange={(e) => onChange({ ...event, reminderMinutes: e.target.value === "" ? null : Number(e.target.value) })}><option value="">{copy.none}</option><option value="10">10 min</option><option value="30">30 min</option><option value="60">1 time</option><option value="1440">1 dag</option></select></label>
@@ -19081,7 +18975,26 @@ function studyPlanIsoWeekNumber(value) {
   return Math.ceil((((utc - yearStart) / 86400000) + 1) / 7);
 }
 
+function studyPlanContentCounts(assignments) {
+  const counts = { lecture: 0, class: 0, tbl: 0, examFocus: 0 };
+  (assignments || []).forEach(item => {
+    if (item.examFocus) counts.examFocus += 1;
+    else if (item.phase === "lecture") {
+      const kind = item.contentKind || "lecture";
+      if (Object.prototype.hasOwnProperty.call(counts, kind)) counts[kind] += 1;
+    }
+  });
+  return counts;
+}
+
+function studyPlanPreserveExamEvent(event, plan, moduleName) {
+  return plan?.planningMode === "capacity-period" && event?.planModuleId === moduleName
+    && studyPlanActivityKind(event) === STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE
+    && Boolean(event.completedAt || (event.time && plan.preserveManualTimes !== false));
+}
+
 function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Date(), reservedEvents = [] }) {
+  const capacityPeriod = plan?.planningMode === "capacity-period";
   const today = studyPlanDate(fromDate);
   const exam = studyPlanDate(plan?.examDate);
   const structuralIssues = [];
@@ -19096,11 +19009,12 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   const lectureDeadline = studyPlanDate(plan.lectureDeadline) || addDays(bufferStart, -21);
   const examSetStart = studyPlanDate(plan.examSetStartDate) || addDays(bufferStart, -14);
   const lectureEnd = lectureDeadline;
-  const examWindowStart = examSetStart;
-  const examWindowEnd = addDays(bufferStart, -1);
+  const examWindowStart = capacityPeriod && examSetStart < today ? today : examSetStart;
+  const examWindowEnd = capacityPeriod ? studyPlanDate(plan.examSetEndDate) || addDays(bufferStart, -1) : addDays(bufferStart, -1);
   if (lectureDeadline < today) structuralIssues.push("Forelæsningsfristen kan ikke ligge før planens start.");
   if (lectureDeadline >= examSetStart) structuralIssues.push("Forelæsningsfristen skal ligge før eksamenssætfasen.");
   if (examSetStart >= bufferStart) structuralIssues.push("Eksamenssæt skal starte før bufferperioden.");
+  if (capacityPeriod && (examWindowEnd < examSetStart || examWindowEnd >= bufferStart)) structuralIssues.push("Vælg en eksamensperiode, der slutter efter startdatoen og før de frie dage.");
 
   const excluded = new Set(plan.excludedDates || []);
   const done = new Set(plan.doneLectureIds || []);
@@ -19115,7 +19029,7 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   }
   function reservedMinutesFor(key) {
     return (Array.isArray(reservedEvents) ? reservedEvents : [])
-      .filter((event) => event?.date === key && event?.planModuleId === moduleName && !event?.completedAt && [STUDY_PLAN_ACTIVITY_KINDS.REPETITION, STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION].includes(studyPlanActivityKind(event)))
+      .filter((event) => event?.date === key && event?.planModuleId === moduleName && (studyPlanPreserveExamEvent(event, plan, moduleName) || (!event?.completedAt && [STUDY_PLAN_ACTIVITY_KINDS.REPETITION, STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION].includes(studyPlanActivityKind(event)))))
       .reduce((sum, event) => sum + Math.max(15, Number(event?.loadMinutes) || Math.round((Number(event?.estimatedHours) || .5) * 60)), 0);
   }
   function daysInRange(startDate, endDate) {
@@ -19137,7 +19051,7 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
     items.forEach((item) => {
       const minutes = Math.max(15, Number(item.minutes) || 30);
       const eligible = rows.filter((row) => row.capacity > 0 && (!options.maxItems || row.count < options.maxItems));
-      const distributionMode = plan.distributionMode || "balanced";
+      const distributionMode = capacityPeriod ? "balanced" : plan.distributionMode || "balanced";
       const fitting = eligible.filter((row) => studyPlanCanFitMinutes(row.capacity, row.used, minutes)).sort((a, b) => {
         if (distributionMode === "early") return a.date - b.date;
         if (distributionMode === "even") return a.used - b.used || a.count - b.count || a.date - b.date;
@@ -19153,21 +19067,28 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
   const sortedLectures = [...pending].sort((a, b) => (Number(priority[b.id]) || 0) - (Number(priority[a.id]) || 0) || String(a.id).localeCompare(String(b.id), undefined, { numeric: true }));
   const lectureRows = makeRows(today, lectureEnd);
   const lectureItems = sortedLectures.map((lecture) => ({ kind: "lecture", lecture, minutes: studyPlanLectureMinutes(lecture, "moderate") }));
-  const unassignedLectures = allocate(lectureItems, lectureRows, { maxItems: maxLectures });
+  const unassignedLectures = allocate(lectureItems, lectureRows, capacityPeriod ? {} : { maxItems: maxLectures });
 
   const examRows = makeRows(examWindowStart, examWindowEnd);
-  const examSetCount = Math.max(0, Math.min(30, Number(plan.examSetCount) || 0));
-  const examItems = Array.from({ length: examSetCount }, (_, index) => ({ kind: "exam", index: index + 1, minutes: Math.max(30, Number(plan.examSetMinutes) || 120) }));
-  const unassignedExam = allocate(examItems, examRows);
+  const examSetCount = capacityPeriod ? 0 : Math.max(0, Math.min(30, Number(plan.examSetCount) || 0));
+  const examItems = capacityPeriod ? [] : Array.from({ length: examSetCount }, (_, index) => ({ kind: "exam", index: index + 1, minutes: Math.max(30, Number(plan.examSetMinutes) || 120) }));
+  const unassignedExam = capacityPeriod ? [] : allocate(examItems, examRows);
+  if (capacityPeriod && structuralIssues.length === 0) examRows.forEach(row => {
+    const retainedFocus = reservedEvents.some(event => event.id === `studyplan-${moduleName}-examfocus-${row.key}` && studyPlanPreserveExamEvent(event, plan, moduleName));
+    if (row.capacity > 0 && !retainedFocus) {
+      const item = { kind: "exam-focus", minutes: row.capacity };
+      row.items.push(item); row.used += item.minutes; examItems.push(item);
+    }
+  });
 
   const assignments = [];
-  lectureRows.forEach((row) => row.items.forEach(({ lecture, minutes }) => assignments.push({ id: `studyplan-${moduleName}-lecture-${lecture.id}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.LECTURE, phase: "lecture", date: row.key, lectureId: lecture.id, lectureIds: [lecture.id], title: `${lecture.id} · ${lecture.title}`, loadMinutes: minutes, needsScheduling: true, type: "study" })));
-  examRows.forEach((row) => row.items.forEach(({ index, minutes }) => assignments.push({ id: `studyplan-${moduleName}-examset-${index}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE, phase: "exam", date: row.key, title: `Eksamenssæt ${index}`, loadMinutes: minutes, needsScheduling: true, type: "review", examSetIndex: index })));
+  lectureRows.forEach((row) => row.items.forEach(({ lecture, minutes }) => assignments.push({ id: `studyplan-${moduleName}-lecture-${lecture.id}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.LECTURE, contentKind: contentKind79(lecture), phase: "lecture", date: row.key, lectureId: lecture.id, lectureIds: [lecture.id], title: `${lecture.id} · ${lecture.title}`, loadMinutes: minutes, needsScheduling: true, type: "study" })));
+  examRows.forEach((row) => row.items.forEach(({ index, minutes }) => assignments.push({ id: capacityPeriod ? `studyplan-${moduleName}-examfocus-${row.key}` : `studyplan-${moduleName}-examset-${index}`, activityKind: STUDY_PLAN_ACTIVITY_KINDS.EXAM_PRACTICE, phase: "exam", date: row.key, title: capacityPeriod ? "Fokus på eksamenssæt" : `Eksamenssæt ${index}`, loadMinutes: minutes, needsScheduling: true, type: "review", ...(capacityPeriod ? { examFocus: true } : { examSetIndex: index }) })));
 
   const phases = [
     { id: "lecture", label: "Forelæsninger", start: studyPlanDateKey(today), end: studyPlanDateKey(lectureEnd), tone: studyPlanPhaseTone("lecture") },
     { id: "exam", label: "Eksamenssæt", start: studyPlanDateKey(examWindowStart), end: studyPlanDateKey(examWindowEnd), tone: studyPlanPhaseTone("exam") },
-    { id: "buffer", label: "Eksamensbuffer", start: studyPlanDateKey(bufferStart), end: studyPlanDateKey(addDays(exam, -1)), tone: studyPlanPhaseTone("buffer") },
+    { id: "buffer", label: "Frie dage før eksamen", start: studyPlanDateKey(bufferStart), end: studyPlanDateKey(addDays(exam, -1)), tone: studyPlanPhaseTone("buffer") },
   ].filter((phase) => phase.start && phase.end && phase.end >= phase.start);
 
   const lectureRequired = lectureItems.reduce((sum, item) => sum + item.minutes, 0);
@@ -19218,6 +19139,7 @@ function buildStudyPlanStrategy({ moduleName, plan, lectures, fromDate = new Dat
     requiredTotal,
     capacityTotal,
     pendingCount: pending.length,
+    contentCounts: studyPlanContentCounts(assignments),
     examSetCount,
     bufferDays,
     planningQueueCount: unassigned.length,
@@ -19649,7 +19571,7 @@ function CalendarReminderManager({ events }) {
   return <div className="calendar-reminder-toast" role="alert"><span><Icon name="clock" size={15} /></span><div><strong>{activeReminder.title}</strong><small>{activeReminder.time}{activeReminder.location ? ` · ${activeReminder.location}` : ""}</small></div><button type="button" onClick={() => setActiveReminder(null)} aria-label="Luk påmindelse">×</button></div>;
 }
 
-function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, onOpenStudyPlan = null, userId = null, isAdmin = false }) {
+function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, onOpenStudyPlan = null, userId = null, isAdmin = false, importOnly = false }) {
   const [events, setEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [eventMeta, setEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [plans, setPlans] = useStoredState(STORAGE.studyPlans, {});
@@ -19659,7 +19581,8 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   const [quickEvent, setQuickEvent] = useState(null);
   const [search, setSearch] = useState("");
   const [undoState, setUndoState] = useState(null);
-  const [showSduImport, setShowSduImport] = useState(false);
+  const [showSduImport, setShowSduImport] = useState(importOnly);
+  useEffect(() => { if (importOnly && !showSduImport) onClose?.(); }, [importOnly, showSduImport, onClose]);
   const [sduRefreshPreview, setSduRefreshPreview] = useState(null);
   const [sduRefreshBusy, setSduRefreshBusy] = useState(false);
   const [icalPreview, setIcalPreview] = useState(null);
@@ -20260,6 +20183,8 @@ function CalendarPanel({ c, t, language, theme, module, onClose, onOpenLecture, 
   function shift(delta) { setSelectedDate(shiftCalendar79(selectedDate, view, delta)); }
   function goToday() { const now = new Date(); setSelectedDate(dateKey(now.getFullYear(), now.getMonth(), now.getDate())); }
   async function enableNotifications() { if (typeof Notification !== "undefined" && Notification.permission === "default") await Notification.requestPermission(); }
+
+  if (importOnly) return showSduImport ? <SduImportDialog c={c} moduleName={module} existingEvents={mergedEvents} isAdmin={isAdmin} onClose={onClose} onImport={(selected, removed, meta, scope) => importCalendarEvents(selected, removed, "sdu", { ...(meta || {}), scope })} /> : null;
 
   return (
     <div className="calendar-workspace fade-up" data-theme={theme}>
@@ -21194,50 +21119,29 @@ function LegacyFlashcardEditor71({ c, language, question = null, context = {}, l
 
 function FlashcardBrowser71({ c, language, questions, spacedData, lectures, selectedDate = "", query, onQuery, status, onStatus, selectedId, onSelectedId, onClose, onEdit, onCreate, onOpenLectureMenu }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
-  const visible = (questions || []).filter((question) => {
-    const text = [translate(question.question, language), translate(question.explanation, language), translate(question.category, language), ...(question.tags || [])].join(" ").toLocaleLowerCase();
-    return (!query.trim() || text.includes(query.trim().toLocaleLowerCase())) && (status === "all" || flashcardCardStatus(spacedData?.[question.id]) === status);
-  });
-  useEffect(() => { if (!visible.some((question) => question.id === selectedId)) onSelectedId?.(visible[0]?.id || null); }, [query, status, questions?.length, selectedId]);
-  const selected = visible.find((question) => question.id === selectedId) || visible[0] || null;
-  const lecture = selected ? lectures.find((item) => item.id === selected.lectureId) : null;
-  return (
-    <section className="flashcard71-browser" data-flashcard-browser71="true">
-      <header><div><small>{selectedDate || copy.deck}</small><h2>{copy.browse}</h2></div><div className="flashcard71-browser-tools"><label><Icon name="search" size={14} /><input value={query} onChange={(event) => onQuery?.(event.target.value)} placeholder={copy.searchCards} /></label><select value={status} onChange={(event) => onStatus?.(event.target.value)} aria-label={copy.status}><option value="all">{copy.allStatuses}</option><option value="new">{copy.new}</option><option value="learning">{copy.learning}</option><option value="due">{copy.due}</option><option value="future">{copy.planned}</option></select><button type="button" data-action="create-card" className="flashcard71-primary" onClick={onCreate}>+ {copy.create}</button><button type="button" className="flashcard71-icon" onClick={onClose} aria-label={copy.close}><Icon name="close" size={17} /></button></div></header>
-      <div className="flashcard71-browser-grid">
-        <div className="flashcard71-card-list">{visible.length ? visible.map((question) => <button key={question.id} type="button" data-card-id={question.id} data-active={selected?.id === question.id ? "true" : "false"} onClick={() => onSelectedId?.(question.id)}><strong>{translate(question.question, language) || "—"}</strong><small>{question.lectureId || copy.source} · {translate(question.category, language)}</small></button>) : <div className="flashcard71-empty">{copy.emptyDeck}</div>}</div>
-        <article className="flashcard71-card-detail">{selected ? <><div className="flashcard71-detail-actions"><span>{selected.cardType || (selected.imageOcclusion ? copy.image : copy.mcq)}</span><button type="button" data-action="edit-card" onClick={() => onEdit(selected)}><Icon name="edit" size={14} />{copy.edit}</button></div>{selected.imageOcclusion ? <FlashcardOcclusion70 data={selected.imageOcclusion} reveal c={c} /> : null}<h3>{translate(selected.question, language)}</h3><div className="flashcard71-answer-line" /><p>{selected.cardType === "mcq" ? translate(selected.options?.[selected.correct], language) : translate(selected.back || selected.explanation, language)}</p>{translate(selected.explanation, language) && selected.cardType === "mcq" ? <small className="flashcard71-explanation">{translate(selected.explanation, language)}</small> : null}{lecture && onOpenLectureMenu ? <button type="button" className="flashcard71-text-action" onClick={() => onOpenLectureMenu(lecture, selected.moduleId)}>Åbn {lecture.id}</button> : null}</> : <div className="flashcard71-empty">{copy.selectCard}</div>}</article>
-      </div>
-    </section>
-  );
+  return <CardBrowser791 questions={questions} spacedData={spacedData} lectures={lectures} language={language} selectedDate={selectedDate} query={query} onQuery={onQuery} status={status} onStatus={onStatus} selectedId={selectedId} onSelectedId={onSelectedId} onClose={onClose} onEdit={onEdit} onCreate={onCreate} onOpenLecture={onOpenLectureMenu} getStatus={flashcardCardStatus} textFor={translate} labels={copy} renderImage={question => <FlashcardOcclusion70 data={question.imageOcclusion} reveal c={c} />} />;
 }
 
 function FlashcardActivityHeatmap71({ language, events, onSelectDate }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
-  const cells = flashcardHeatmapCells(events, new Date(), 52);
+  const {cells,weekCount,monthLabels,year}=annualActivity791(events,new Date(),language);
   const max = Math.max(1, ...cells.map((cell) => cell.count));
   const [tooltip, setTooltip] = useState(null);
-  const monthLabels = [];
-  for (let week = 0; week < 52; week += 1) {
-    const cell = cells[week * 7];
-    const date = new Date(`${cell?.date || ""}T12:00:00`);
-    const previous = week > 0 ? new Date(`${cells[(week - 1) * 7]?.date || ""}T12:00:00`) : null;
-    monthLabels.push(!Number.isNaN(date.getTime()) && (!previous || date.getMonth() !== previous.getMonth()) ? date.toLocaleDateString(language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK", { month: "short" }) : "");
-  }
   function showTooltip(event, cell) {
     const rect = event.currentTarget.getBoundingClientRect();
     setTooltip({ cell, x: rect.left + rect.width / 2, y: rect.top });
   }
   return (
-    <div className="flashcard71-heatmap-wrap" data-flashcard-heatmap71="true">
-      <div className="flashcard71-months" aria-hidden="true">{monthLabels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
+    <div className="flashcard71-heatmap-wrap" data-flashcard-heatmap71="true" dir="ltr" data-year={year}>
+      <div className="flashcard71-months" style={{gridTemplateColumns:`repeat(${weekCount},minmax(0,1fr))`}} aria-hidden="true">{monthLabels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}</div>
       <div className="flashcard71-weekdays" aria-hidden="true"><span>M</span><span /><span>O</span><span /><span>F</span><span /><span>S</span></div>
-      <div className="flashcard71-heatmap" role="grid" aria-label={copy.activityYear}>
+      <div className="flashcard71-heatmap" role="grid" aria-label={`${copy.activity} ${year}`}>
         {cells.map((cell) => {
+          if(cell.outsideYear)return <span key={cell.date} className="flashcard71-heat-cell" style={{visibility:'hidden'}} aria-hidden="true"/>;
           const ratio = cell.count / max;
           const level = cell.count === 0 ? 0 : ratio <= .25 ? 1 : ratio <= .5 ? 2 : ratio <= .75 ? 3 : 4;
           const label = `${cell.date}: ${cell.count} ${copy.reviewed}, ${Math.round((cell.seconds / 60) * 10) / 10} ${copy.minutes}`;
-          return <button key={cell.date} type="button" role="gridcell" className="flashcard71-heat-cell" data-level={level} aria-label={label} onMouseEnter={(event) => showTooltip(event, cell)} onMouseMove={(event) => showTooltip(event, cell)} onMouseLeave={() => setTooltip(null)} onFocus={(event) => showTooltip(event, cell)} onBlur={() => setTooltip(null)} onClick={() => onSelectDate?.(cell.date)} />;
+          return <button key={cell.date} type="button" role="gridcell" className="flashcard71-heat-cell" data-level={level} data-future={cell.future} disabled={cell.future} aria-label={label} onMouseEnter={(event) => showTooltip(event, cell)} onMouseMove={(event) => showTooltip(event, cell)} onMouseLeave={() => setTooltip(null)} onFocus={(event) => showTooltip(event, cell)} onBlur={() => setTooltip(null)} onClick={() => onSelectDate?.(cell.date)} />;
         })}
       </div>
       {tooltip ? <div role="tooltip" className="flashcard71-tooltip" style={{ left: tooltip.x, top: tooltip.y }}><strong>{new Date(`${tooltip.cell.date}T12:00:00`).toLocaleDateString(language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK", { day: "numeric", month: "long", year: "numeric" })}</strong><br />{tooltip.cell.count} {copy.reviewed} · {Math.round((tooltip.cell.seconds / 60) * 10) / 10} {copy.minutes}</div> : null}
@@ -21284,16 +21188,19 @@ function FlashcardDeckOverview71({ language, node, questions, spacedData, events
   );
 }
 
-function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuestions, onStart, onOpenLectureMenu, onOpenExamSets, initialPool = "mixed", onSavePersonalCard }) {
+function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuestions, onStart, onOpenLectureMenu, onOpenLectureMaterial, onOpenExamSets, initialPool = "mixed", onSavePersonalCard, onImportPersonalCards }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
   const lectures = MODULE_LECTURES[user.module] || [];
   const [sourceMode79, setSourceMode79] = useState("theory");
   const moduleQuestions = useMemo(() => trainingCards79(getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === user.module), sourceMode79), [importedQuestions, user.module, sourceMode79]);
   const storedPreferences = loadStorage(STORAGE.flashcardPreferences, FLASHCARD70_DEFAULT_PREFERENCES) || FLASHCARD70_DEFAULT_PREFERENCES;
   const [preferences, setPreferences] = useState(() => ({ ...FLASHCARD70_DEFAULT_PREFERENCES, ...storedPreferences, ...(initialPool === "due" ? { pool: "due" } : {}) }));
-  const [selectedId, setSelectedId] = useState(`module:${user.module}`);
+  const selectionKey791 = `medfluen-deck-selection791:${authUserId || "local"}:${user.module}`;
+  const [selectedId, setSelectedIdState791] = useState(() => loadStorage(selectionKey791, null));
+  function setSelectedId(id) { setSelectedIdState791(id); try { localStorage.setItem(selectionKey791, JSON.stringify(id)); } catch {} }
   const [expanded, setExpanded] = useState(() => new Set([`module:${user.module}`]));
   const [view, setView] = useState("decks");
+  const [sessionOptions791, setSessionOptions791] = useState(false);
   const [deckSearch, setDeckSearch] = useState("");
   const [browserDate, setBrowserDate] = useState("");
   const [browserQuery, setBrowserQuery] = useState("");
@@ -21315,7 +21222,7 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   const tree = useMemo(() => deckTree75(baseTree75, privateDecks75.state, questions => flashcardDeckStats(questions, spacedData, statsMinute75)), [baseTree75, privateDecks75.state, spacedData, statsMinute75]);
 
   function findNode(node, id) { if (node.id === id) return node; for (const child of node.children || []) { const found = findNode(child, id); if (found) return found; } return null; }
-  const selectedNode = findNode(tree, selectedId) || tree;
+  const selectedNode = selectedDeck791(tree, selectedId);
   const selectedQuestions = selectedNode.questions || [];
   const sessionCandidates = preferences.studyMode === "exam"
     ? selectedQuestions.filter((question) => flashcard71QuestionType(question) === "mcq")
@@ -21331,7 +21238,7 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   const browserIds = browserDate ? new Set(flashcard71ActiveEvents(selectedEvents).filter((event) => flashcardLocalDateKey(event.reviewedAt) === browserDate).map((event) => String(event.questionId))) : null;
   const browserQuestions = browserIds ? selectedQuestions.filter((question) => browserIds.has(String(question.id))) : selectedQuestions;
 
-  useEffect(() => { setSelectedId(`module:${user.module}`); setExpanded(new Set([`module:${user.module}`])); setView("decks"); }, [user.module]);
+  useEffect(() => { setSelectedIdState791(loadStorage(selectionKey791, null)); setView("decks"); }, [selectionKey791]);
   useEffect(() => {
     if (view !== "browser" || !browserSelectedId) return;
     window.requestAnimationFrame(() => {
@@ -21375,12 +21282,11 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   }
 
   return <div className="flashcard71-shell mf79-training"><Flashcard71Styles />
-    <Training79Header mode={sourceMode79} language={language} onModeChange={value => { setSourceMode79(value); setSelectedId(`module:${user.module}`); setView("decks"); persistPreferences({ studyMode: value === "exam-mcq" ? "exam" : "flashcard" }); }} />
-    {sourceMode79 === "exam-mcq" && moduleQuestions.length === 0 && <div className="mf79-empty-exam" role="status"><strong>{language === "en" ? "No exam MCQ cards are linked yet" : language === "ar" ? "لا توجد بطاقات امتحان مرتبطة بعد" : "Ingen eksamens-MCQ-kort er knyttet til modulet endnu"}</strong><br /><span>{language === "en" ? "You can still open the exam papers and their questions." : language === "ar" ? "يمكنك فتح أوراق الامتحان وأسئلتها." : "Du kan stadig åbne eksamenssættene og deres spørgsmål."}</span><br /><button type="button" onClick={onOpenExamSets}>{language === "en" ? "Open exam papers" : language === "ar" ? "افتح أوراق الامتحان" : "Åbn eksamenssæt"}</button></div>}
-    {view !== "editor" && <div className="mf75-deck-tools">
-      <button type="button" disabled={!authUserId} onClick={() => setDeckDialog75({ mode: "create", node: view === "decks" ? tree : selectedNode })}>+ {language === "en" ? "New deck" : "Nyt dæk"}</button>
+    {view !== "import" && <Training79Header mode={sourceMode79} language={language} onOpenExamSets={onOpenExamSets} onModeChange={value => { setSourceMode79(value); setSelectedId(null); setView("decks"); persistPreferences({ studyMode: value === "exam-mcq" ? "exam" : "flashcard" }); }} />}
+    {view !== "editor" && view !== "import" && <div className="mf75-deck-tools">
+      {view!=="decks"&&<button type="button" disabled={!authUserId} onClick={()=>{setView("decks");}}>+ {language === "en" ? "New deck" : "Nyt dæk"}</button>}
       {view !== "decks" && <details><summary>{language === "en" ? "Manage deck" : "Administrér dæk"}</summary><div>
-        <button type="button" onClick={() => setDeckDialog75({ mode: "create", node: selectedNode })}>{language === "en" ? "New subdeck" : "Nyt underdæk"}</button>
+        <button type="button" onClick={()=>setView("decks")}>{language === "en" ? "New subdeck in list" : "Nyt underdæk i listen"}</button>
         {selectedNode.type === "personal" && ["rename", "move", "delete"].map(mode => <button key={mode} type="button" onClick={() => setDeckDialog75({ mode, node: selectedNode })}>{({ rename: "Omdøb", move: "Flyt", delete: "Slet" })[mode]}</button>)}
         <button type="button" disabled={!selectedQuestions.length} onClick={() => setDeckDialog75({ mode: "assign", node: selectedNode, cardIds: view === "browser" && browserSelectedId ? [browserSelectedId] : selectedQuestions.map(question => question.id) })}>{view === "browser" && browserSelectedId ? "Flyt valgt kort" : `Flyt ${selectedQuestions.length} kort`}</button>
       </div></details>}
@@ -21392,10 +21298,22 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
       {privateDecks75.error && <small role="status" title={privateDecks75.error}>{language === "en" ? "Deck sync unavailable. Local changes are preserved." : "Dæksynk er ikke tilgængelig. Lokale ændringer bevares."} <button type="button" onClick={privateDecks75.retry}>{language === "en" ? "Retry" : "Prøv igen"}</button></small>}
     </div>}
     {deckDialog75 && <Modal c={c} onClose={() => { if (!deckDialogBusy75.current) setDeckDialog75(null); }}><DeckDialog75 key={`${deckDialog75.mode}:${deckDialog75.node.id}`} tree={tree} selected={deckDialog75.node} mode={deckDialog75.mode} cardIds={deckDialog75.cardIds} language={language} onApply={privateDecks75.change} onBusyChange={busy => { deckDialogBusy75.current = busy; }} onClose={() => setDeckDialog75(null)} /></Modal>}
-    {view === "decks" ? <><header className="flashcard71-top"><div><h1>{copy.decks}</h1><p>{copy.deckSubtitle}</p></div><div className="flashcard71-top-actions"><label className="flashcard71-search"><Icon name="search" size={14} /><input value={deckSearch} onChange={(event) => setDeckSearch(event.target.value)} placeholder={copy.searchDecks} /></label><button type="button" data-action="create-card" className="flashcard71-primary" onClick={() => { openEditor(null, "decks", tree); }}>+ {copy.create}</button></div></header><section className="flashcard71-decks"><div className="flashcard71-deck-head"><span>{copy.deck}</span><span>{copy.new}</span><span>{copy.learning}</span><span>{copy.due}</span></div>{renderNode(tree)}</section></> : null}
-    {view === "decks" ? <section className="flashcard71-activity-card mf72-root-activity"><div className="flashcard71-section-head"><h2>{copy.activity}</h2><small>{copy.activityYear}</small></div><FlashcardActivityHeatmap71 language={language} events={moduleEvents72} onSelectDate={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /><details><summary>{language === "en" ? "Last 3 / 7 days" : "Seneste 3 / 7 dage"}</summary><FlashcardActivityChart71 language={language} events={moduleEvents72} /></details></section> : null}
+    {view === "decks" ? <TrainingIndex791 tree={tree} selected={selectedNode} language={language} onSelect={node => { setSelectedId(node.id); setBrowserDate(""); }} sessionCount={sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => { setBrowserDate(""); setView("browser"); }} onCreate={() => openEditor(null,"decks")} onCreateDeck={privateDecks75.change} onImport={() => setView("import")} deckCreationDisabled={!authUserId} onMaterials={selectedNode.lectureFilter&&onOpenLectureMaterial ? ()=>onOpenLectureMaterial(selectedNode.lectureFilter) : null} /> : null}
+    {view === "import" && <AnkiUpload792 moduleId={user.module} language={language} signedIn={Boolean(authUserId)} existingIds={getFullQuestionBank(importedQuestions).map(card => String(card.personalCardId || card.id))} decks={privateDecks75.state.decks} selectedDeck={selectedNode.type === "personal" ? selectedNode.id : ""} onBack={() => setView("decks")} onImport={async (cards, target) => {
+      if (!onImportPersonalCards) return { ok: false, error: "Kortimport er ikke tilsluttet." };
+      const result = await onImportPersonalCards(cards);
+      if (result.ok === false) return result;
+      if (target && result.cardIds?.length) {
+        try { await privateDecks75.change({ type: "assign", cardIds: result.cardIds, target }); setSelectedId(target); }
+        catch { result.placementWarning = language === "en" ? "Cards are saved in the module. Move them to the deck from the card browser." : "Kortene er gemt i modulet. Flyt dem til dækket fra kortoversigten."; }
+      }
+      setSourceMode79("theory");
+      return result;
+    }} />}
+    {view === "decks" ? <section className="flashcard71-activity-card mf72-root-activity"><div className="flashcard71-section-head"><h2>{copy.activity}</h2><small>{new Date().getFullYear()}</small></div><FlashcardActivityHeatmap71 language={language} events={moduleEvents72} onSelectDate={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /><StudyActivity791 language={language} events={moduleEvents72} onBrowse={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /></section> : null}
+    {sessionOptions791 && <SessionOptions791 language={language} name={selectedNode.label} preferences={preferences} onPreference={persistPreferences} sessionCount={sessionQuestions.length} onClose={() => setSessionOptions791(false)} onStart={() => { setSessionOptions791(false); startSession(); }} />}
     {view === "overview" ? <FlashcardDeckOverview71 language={language} node={selectedNode} questions={selectedQuestions} spacedData={spacedData} events={selectedEvents} sessionQuestions={sessionQuestions} preferences={preferences} onPreference={persistPreferences} onStart={startSession} onBrowse={(date) => { setBrowserDate(date || ""); setView("browser"); }} onCreate={() => openEditor(null, "overview")} onBack={() => setView("decks")} /> : null}
-    {view === "browser" ? <><button type="button" className="flashcard71-back" style={{ marginBottom: 12 }} onClick={() => setView("overview")}><Icon name="left" size={15} />{selectedNode.label}</button><FlashcardBrowser71 c={c} language={language} questions={browserQuestions} spacedData={spacedData} lectures={lectures} selectedDate={browserDate} query={browserQuery} onQuery={setBrowserQuery} status={browserStatus} onStatus={setBrowserStatus} selectedId={browserSelectedId} onSelectedId={setBrowserSelectedId} onClose={() => setView("overview")} onEdit={(question) => openEditor(question, "browser")} onCreate={() => openEditor(null, "browser")} onOpenLectureMenu={onOpenLectureMenu} /></> : null}
+    {view === "browser" ? <><button type="button" className="flashcard71-back" style={{ marginBottom: 12 }} onClick={() => setView("decks")}><Icon name="left" size={15} />{selectedNode.label}</button><FlashcardBrowser71 c={c} language={language} questions={browserQuestions} spacedData={spacedData} lectures={lectures} selectedDate={browserDate} query={browserQuery} onQuery={setBrowserQuery} status={browserStatus} onStatus={setBrowserStatus} selectedId={browserSelectedId} onSelectedId={setBrowserSelectedId} onClose={() => setView("decks")} onEdit={(question) => openEditor(question, "browser")} onCreate={() => openEditor(null, "browser")} onOpenLectureMenu={onOpenLectureMenu} /></> : null}
     {view === "editor" ? <><label hidden={editorLast75} className="lecture-material-field" style={{ marginBottom: 12, maxWidth: 400 }}>{language === "en" ? "Deck" : "Dæk"}<select value={editorDeck75} onChange={event => setEditorDeck75(event.target.value)}><option value="">{language === "en" ? "Original lecture" : "Oprindelig forelæsning"}</option>{privateDecks75.state.decks.map(deck => <option key={deck.id} value={deck.id}>{deck.name}</option>)}</select></label><FlashcardEditor71 c={c} language={language} question={editorQuestion || null} context={{ moduleId: user.module, lectureId: selectedNode.lectureFilter || null }} lectures={lectures} createMode={!editorQuestion} onSave={saveRecord} onLastEditChange={setEditorLast75} onCancel={() => setView(editorOrigin)} /></> : null}
   </div>;
 }
@@ -21484,19 +21402,32 @@ function FlashcardFlagDialog71({ c, t, language, reason, onReason, submitting, o
 }
 
 function FlashcardReviewer71({ c, language, question, position, total, revealed, spacedData, setSpacedData, spacedStorageKey, deckSettings, onReveal, onRated, onEditCard, onFlag, onBury, onOpenLectureList, undoAvailable, onUndo }) {
+  const [showInfo,setShowInfo] = useState(false);
+  useEffect(() => setShowInfo(false), [question.id]);
+  const en = language === 'en', ar = language === 'ar';
+  const tr = (da,english,arabic) => ar ? arabic : en ? english : da;
   const cardType = question.cardType || (question.imageOcclusion ? "image-occlusion" : Array.isArray(question.options) && question.options.length >= 2 ? "mcq" : "basic");
   const frontRaw = translate(question.front || question.question, language);
   const front = cardType === "cloze" ? flashcardClozeDisplay71(frontRaw, revealed) : frontRaw;
   const correctAnswer = cardType === "mcq" ? translate(question.options?.[question.correct], language) : translate(question.back || question.explanation, language);
   const explanation = cardType === "mcq" ? translate(question.explanation, language) : "";
   return <><Flashcard71Styles /><section className="flashcard71-reviewer" data-flashcard-reviewer71="true">
-    <header className="flashcard71-review-head"><strong>{question.lectureId || translate(question.category, language)}</strong><span>{position}/{total}</span><div className="flashcard71-review-progress"><i style={{ width: `${Math.min(100, (position / Math.max(1, total)) * 100)}%` }} /></div><div className="flashcard71-review-actions"><button type="button" title="Redigér (E)" onClick={onEditCard}><Icon name="edit" size={15} /></button><button type="button" title="Markér fejl (F)" onClick={onFlag}><Icon name="flag" size={15} /></button><button type="button" title="Begrav kort (B)" onClick={onBury}><Icon name="close" size={14} /></button>{onOpenLectureList ? <button type="button" title="Åbn forelæsning" onClick={onOpenLectureList}><Icon name="notebook" size={15} /></button> : null}{undoAvailable ? <button type="button" title="Fortryd (Z)" onClick={onUndo}><Icon name="reset" size={15} /></button> : null}</div></header>
+    <header className="flashcard71-review-head"><strong>{question.lectureId || translate(question.category, language)}</strong><span>{position}/{total}</span><div className="flashcard71-review-progress"><i style={{ width: `${Math.min(100, (position / Math.max(1, total)) * 100)}%` }} /></div></header>
+    <div className="flashcard71-review-tools" role="toolbar" aria-label={tr('Kortværktøjer','Card tools','أدوات البطاقة')}>
+      {onEditCard&&<button type="button" data-action="edit-card" aria-label={tr('Redigér kort (E)','Edit card (E)','تعديل البطاقة (E)')} title="E" onClick={onEditCard}><Icon name="edit" size={14}/><span>{tr('Redigér','Edit','تعديل')}</span></button>}
+      {onUndo&&<button type="button" data-action="undo-review" disabled={!undoAvailable} aria-label={tr('Fortryd sidste svar (Z)','Undo last answer (Z)','تراجع عن الإجابة (Z)')} title="Z" onClick={onUndo}><Icon name="reset" size={14}/><span>{tr('Fortryd','Undo','تراجع')}</span></button>}
+      <button type="button" data-action="card-info" aria-expanded={showInfo} aria-controls="flashcard71-card-info" onClick={()=>setShowInfo(!showInfo)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.1"/></svg><span>{tr('Kortinfo','Card info','معلومات البطاقة')}</span></button>
+      <span className="flashcard71-tools-spacer"/>
+      {onFlag&&<button type="button" aria-label={tr('Markér fejl (F)','Report error (F)','الإبلاغ عن خطأ (F)')} title="F" onClick={onFlag}><Icon name="flag" size={14}/><span>{tr('Markér fejl','Report error','الإبلاغ عن خطأ')}</span></button>}
+      {onBury&&<button type="button" aria-label={tr('Gem kort væk til i morgen (B)','Hide card until tomorrow (B)','إخفاء البطاقة حتى الغد (B)')} title="B" onClick={onBury}><Icon name="close" size={14}/><span>{tr('Skjul til i morgen','Hide until tomorrow','إخفاء حتى الغد')}</span></button>}
+    </div>
+    {showInfo&&<aside id="flashcard71-card-info" className="flashcard71-card-info"><dl><div><dt>{tr('Kort','Card','البطاقة')}</dt><dd>{question.id}</dd></div><div><dt>{tr('Type','Type','النوع')}</dt><dd>{{basic:tr('Forside / bagside','Front / back','أمام / خلف'),cloze:'Cloze',mcq:'MCQ','image-occlusion':tr('Billedkort','Image card','بطاقة صورة')}[cardType]||cardType}</dd></div>{question.lectureId&&<div><dt>{tr('Forelæsning','Lecture','المحاضرة')}</dt><dd>{question.lectureId}</dd></div>}{question.tags?.length>0&&<div><dt>Tags</dt><dd>{question.tags.join(' · ')}</dd></div>}{spacedData?.[question.id]?.due&&<div><dt>{tr('Næste repetition','Next review','المراجعة التالية')}</dt><dd>{new Date(spacedData[question.id].due).toLocaleDateString(en?'en-GB':ar?'ar':'da-DK')}</dd></div>}</dl></aside>}
     <div className="flashcard71-card-stage"><article className="flashcard71-card-face">
       {question.imageOcclusion ? <FlashcardOcclusion70 data={question.imageOcclusion} reveal={revealed} c={c} /> : null}
       <div className="mf72-question"><RichContent72 html={question.richContent?.front?.[language]} text={front} cloze={cardType === "cloze"} revealed={revealed} /></div>
       {revealed ? <div className="flashcard71-card-answer fade-up"><RichContent72 html={cardType === "mcq" ? null : question.richContent?.back?.[language]} text={correctAnswer || "—"} />{explanation ? <RichContent72 html={question.richContent?.explanation?.[language]} text={explanation} /> : null}</div> : null}
     </article></div>
-    {!revealed ? <div><button type="button" className="flashcard71-reveal" data-action="reveal-answer" onClick={onReveal}>Vis svar</button><div className="flashcard71-shortcuts">Mellemrum</div></div> : <div className="flashcard71-rating-wrap"><FsrsRatingControls c={c} questionId={question.id} spacedData={spacedData} setSpacedData={setSpacedData} storageKey={spacedStorageKey} wrongChoiceSelected={false} deckSettings={deckSettings} onRated={onRated} /></div>}
+    {!revealed ? <div className="flashcard71-reveal-wrap"><button type="button" className="flashcard71-reveal" data-action="reveal-answer" aria-keyshortcuts="Space" onClick={onReveal}><span>{tr('Vis svar','Show answer','إظهار الإجابة')}</span><kbd aria-label={tr('Mellemrum','Space','مسافة')}><svg width="20" height="12" viewBox="0 0 24 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3v7h18V3"/></svg></kbd></button></div> : <div className="flashcard71-rating-wrap"><FsrsRatingControls c={c} questionId={question.id} spacedData={spacedData} setSpacedData={setSpacedData} storageKey={spacedStorageKey} wrongChoiceSelected={false} deckSettings={deckSettings} onRated={onRated} /></div>}
   </section></>;
 }
 
@@ -21545,13 +21476,14 @@ function MCQ({
   );
   const pool = initialPoolRef.current;
   const spacedStorageKey = flashcardAccountStorageKey(STORAGE.spacedRepetition, authUserId);
-  const [history, setHistory] = useStoredState(STORAGE.quizHistory, []);
+  const [history, setHistory] = useAccountStorage792(STORAGE.quizHistory, authUserId, []);
   const [savedSession, setSavedSession] = useState(false);
 
-  const resumeKey = `${user?.module || ""}::${sessionScope ? JSON.stringify(sessionScope) : "all"}`;
+  const resumeStorageKey = accountStorageKey792(STORAGE.resumeSession, authUserId);
+  const resumeKey = `${authUserId || "signed-out"}::${user?.module || ""}::${sessionScope ? JSON.stringify(sessionScope) : "all"}`;
   const savedResume = (() => {
     try {
-      const raw = JSON.parse(localStorage.getItem(STORAGE.resumeSession) || "null");
+      const raw = authUserId ? JSON.parse(localStorage.getItem(resumeStorageKey) || "null") : null;
       return raw && raw.resumeKey === resumeKey ? raw : null;
     } catch {
       return null;
@@ -21594,9 +21526,9 @@ function MCQ({
   }, [finished]);
 
   useEffect(() => {
-    if (finished) return;
-    localStorage.setItem(STORAGE.resumeSession, JSON.stringify({ resumeKey, index, answers, updatedAt: Date.now() }));
-  }, [resumeKey, index, answers, finished]);
+    if (finished || !authUserId) return;
+    localStorage.setItem(resumeStorageKey, JSON.stringify({ resumeKey, index, answers, updatedAt: Date.now() }));
+  }, [authUserId, resumeStorageKey, resumeKey, index, answers, finished]);
 
   const baseQuestion = pool[index] || null;
   const question = baseQuestion ? (sessionQuestionOverrides[baseQuestion.id] || baseQuestion) : null;
@@ -21764,7 +21696,7 @@ function MCQ({
       recordStudyActivity();
     }
     setFinished(true);
-    localStorage.removeItem(STORAGE.resumeSession);
+    localStorage.removeItem(resumeStorageKey);
   }
 
   function advanceAfterRating(updatedCard, rating, meta = {}) {
@@ -22115,7 +22047,7 @@ if (!question && !finished) {
 
         <PrimaryButton
           onClick={() => {
-            localStorage.removeItem(STORAGE.resumeSession);
+            localStorage.removeItem(resumeStorageKey);
             onExitToOverview?.();
           }}
         >
@@ -22979,7 +22911,7 @@ async function submitFlag() {
       )}
 
       {flagModalOpen && (
-        <Modal c={c} onClose={() => setFlagModalOpen(false)}>
+        <Modal c={c} onClose={() => setFlagModalOpen(false)} title={t.flagQuestionTitle} className="mf791-flag">
           <header
             style={{
               display: "flex",
@@ -23138,8 +23070,8 @@ async function submitFlag() {
   );
 }
 
-function LegacyInsights({ c, t, language, user }) {
-  const [history] = useStoredState(STORAGE.quizHistory, []);
+function LegacyInsights({ c, t, language, user, userId = null }) {
+  const [history] = useAccountStorage792(STORAGE.quizHistory, userId, []);
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
@@ -23759,7 +23691,7 @@ getFullQuestionBank(
 }
 
 function Insights69({ c, language, user, userId = null, onOpenExamSets, onReviewQuestions }) {
-  const [history] = useStoredState(STORAGE.quizHistory, []);
+  const [history] = useAccountStorage792(STORAGE.quizHistory, userId, []);
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const [workspace, setWorkspace] = useStoredState(STORAGE.insightWorkspace, { view: "sessions", scope: "module", privateNote: "" });
   const [examAttempts, setExamAttempts] = useState([]);
@@ -23900,8 +23832,8 @@ function Insights69({ c, language, user, userId = null, onOpenExamSets, onReview
   );
 }
 
-function TrainingHistory69({ c, language, user }) {
-  const [history] = useStoredState(STORAGE.quizHistory, []);
+function TrainingHistory69({ c, language, user, userId = null }) {
+  const [history] = useAccountStorage792(STORAGE.quizHistory, userId, []);
   const [importedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const model = insightBuildModel(history, getFullQuestionBank(importedQuestions), user?.module || "", "module");
   const locale = language === "en" ? "en-GB" : language === "ar" ? "ar" : "da-DK";
@@ -24133,6 +24065,8 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     preserveManualTimes: existing?.preserveManualTimes !== false,
     distributionMode: existing?.distributionMode || "balanced",
     ...(canResumeStudyPlanDraft ? persistedStudyPlanDraft.draft : {}),
+    planningMode: "capacity-period",
+    examSetEndDate: (canResumeStudyPlanDraft ? persistedStudyPlanDraft.draft.examSetEndDate : existing?.examSetEndDate) || studyPlanDateKey(addDays(new Date(`${defaultExam}T00:00:00`), -(Number(existing?.bufferDays ?? 4) + 1))),
   }));
   const [exceptionDate, setExceptionDate] = useState("");
   const [validationMessage, setValidationMessage] = useState("");
@@ -24163,17 +24097,19 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     ? Math.max(0, Math.ceil((studyPlanDate(draft.examDate).getTime() - studyPlanDate(todayKey).getTime()) / MS_PER_STUDY_DAY))
     : 0;
   const weeksUntilExam = Math.max(0, Math.ceil(daysUntilExam / 7));
-  const strategyRealismLabel = strategy.realism === "realistic"
-    ? (language === "en" ? "Realistic" : language === "ar" ? "واقعية" : "Realistisk")
-    : strategy.realism === "demanding"
-      ? (language === "en" ? "Demanding" : language === "ar" ? "مكثفة" : "Krævende")
-      : (language === "en" ? "Not realistic" : language === "ar" ? "غير واقعية" : "Ikke realistisk");
+  const capacitySummary791 = planCapacity791(strategy);
+  const strategyRealismLabel = !strategy.valid
+    ? (language === "en" ? "Check the plan dates" : language === "ar" ? "راجع مواعيد الخطة" : "Gennemse planens datoer")
+    : capacitySummary791.tone === "unplaced"
+      ? (language === "en" ? "Some content needs a place" : language === "ar" ? "بعض المحتوى يحتاج إلى موعد" : "Indhold mangler plads")
+      : capacitySummary791.tone === "over" || capacitySummary791.tone === "empty"
+        ? (language === "en" ? "Adjust your available time" : language === "ar" ? "عدّل وقتك المتاح" : "Tilpas din læsetid")
+        : (language === "en" ? "Time available in your plan" : language === "ar" ? "وقت متاح في خطتك" : "Plads i din plan");
 
   const polishCopy = language === "en" ? {
     phase: "Phase",
     of: "of",
     ready: "Ready to continue",
-    autoSave: "Changes apply when you activate",
     continueNow: "Continue now",
     autoContinue: "Continuing automatically",
     days: "days",
@@ -24212,7 +24148,6 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     phase: "المرحلة",
     of: "من",
     ready: "جاهز للمتابعة",
-    autoSave: "تُطبّق التغييرات عند التفعيل",
     continueNow: "متابعة الآن",
     autoContinue: "سيتم الانتقال تلقائيا",
     days: "يوما",
@@ -24251,7 +24186,6 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     phase: "Fase",
     of: "af",
     ready: "Klar til at fortsætte",
-    autoSave: "Ændringer anvendes ved aktivering",
     continueNow: "Fortsæt nu",
     autoContinue: "Fortsætter automatisk",
     days: "dage",
@@ -24290,7 +24224,7 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
 
   function validateStudyPlanStep(stepNumber) {
     if (stepNumber === 1) {
-      if (!draft.examDate || !draft.lectureDeadline || !draft.examSetStartDate) {
+      if (!draft.examDate || !draft.lectureDeadline || !draft.examSetStartDate || !draft.examSetEndDate) {
         return { ok: false, message: language === "en" ? "Choose all three key dates." : language === "ar" ? "اختر التواريخ الثلاثة الأساسية." : "Vælg alle tre nøgledatoer." };
       }
       if (draft.examDate < todayKey) {
@@ -24305,13 +24239,14 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       if (daysUntilExam < Number(draft.bufferDays || 0)) {
         return { ok: false, message: language === "en" ? "The buffer is longer than the remaining time." : language === "ar" ? "الفترة الاحتياطية أطول من الوقت المتبقي." : "Bufferen er længere end tiden frem til eksamen." };
       }
+      const freeDaysStart = studyPlanDateKey(addDays(studyPlanDate(draft.examDate), -Number(draft.bufferDays)));
+      if (draft.examSetStartDate <= draft.lectureDeadline || draft.examSetEndDate < draft.examSetStartDate || draft.examSetEndDate >= freeDaysStart) {
+        return { ok: false, message: language === "en" ? "Choose an exam-focus period after the curriculum deadline and before your free days." : language === "ar" ? "اختر فترة للمراجعة بعد انتهاء المنهج وقبل الأيام الحرة." : "Vælg en periode til eksamenssæt efter pensumfristen og før dine frie dage." };
+      }
     }
     if (stepNumber === 2) {
       if (!draft.includedLectureIds.length) {
         return { ok: false, message: language === "en" ? "Include at least one lecture." : language === "ar" ? "أضف محاضرة واحدة على الأقل." : "Medtag mindst én forelæsning." };
-      }
-      if (!Number.isFinite(Number(draft.examSetCount)) || Number(draft.examSetCount) < 0 || Number(draft.examSetCount) > 30) {
-        return { ok: false, message: language === "en" ? "Choose between 0 and 30 exam sets." : language === "ar" ? "اختر بين 0 و30 نموذجا." : "Vælg mellem 0 og 30 eksamenssæt." };
       }
     }
     if (stepNumber === 3) {
@@ -24320,9 +24255,6 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
       }
       if (Object.values(draft.weekdayHours || {}).some((value) => Number(value) < 0 || Number(value) > 12)) {
         return { ok: false, message: language === "en" ? "Daily capacity must be between 0 and 12 hours." : language === "ar" ? "يجب أن تكون السعة اليومية بين 0 و12 ساعة." : "Daglig kapacitet skal være mellem 0 og 12 timer." };
-      }
-      if (Number(draft.maxLecturesPerDay) < 1 || Number(draft.maxLecturesPerDay) > 8) {
-        return { ok: false, message: language === "en" ? "Choose 1–8 lectures per day." : language === "ar" ? "اختر من 1 إلى 8 محاضرات يوميا." : "Vælg 1–8 forelæsninger pr. dag." };
       }
     }
     if (stepNumber === 4) {
@@ -24342,22 +24274,22 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     { title: `${pendingLectureCount} lectures remaining`, detail: `${selectedLectureCount} selected · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} estimated hours` },
     { title: `${weeklyCapacityHours} hours per normal week`, detail: `${availableStudyDays} active days · ${draft.excludedDates.length} exceptions` },
     { title: `Adaptive spaced repetition`, detail: `${draft.freezeDays} frozen days · manual repetition dates are preserved` },
-    { title: `${strategyRealismLabel} workload`, detail: `${Math.round(strategy.requiredTotal / 60)} required hours · ${Math.round(strategy.capacityTotal / 60)} available hours` },
-    { title: `${strategy.assignments.length} calendar activities`, detail: "Review the exact week-by-week plan before activation" },
+    { title: strategyRealismLabel, detail: `${Math.round(strategy.requiredTotal / 60 * 10) / 10} required hours · ${Math.round(strategy.capacityTotal / 60 * 10) / 10} available hours` },
+    { title: "Your weekly plan", detail: "Review your curriculum and exam-focus period before saving" },
   ] : language === "ar" ? [
     { title: `${daysUntilExam} يوما حتى الامتحان`, detail: `${weeksUntilExam} أسابيع متاحة · ${draft.bufferDays} أيام احتياطية` },
     { title: `${pendingLectureCount} محاضرات متبقية`, detail: `${selectedLectureCount} مختارة · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} ساعات مقدرة` },
     { title: `${weeklyCapacityHours} ساعة في الأسبوع المعتاد`, detail: `${availableStudyDays} أيام دراسة · ${draft.excludedDates.length} أيام مستثناة` },
     { title: `تكرار متباعد تكيفي`, detail: `${draft.freezeDays} أيام ثابتة · مواعيد التكرار اليدوية محفوظة` },
-    { title: `الخطة ${strategyRealismLabel}`, detail: `${Math.round(strategy.requiredTotal / 60)} ساعة مطلوبة · ${Math.round(strategy.capacityTotal / 60)} ساعة متاحة` },
-    { title: `${strategy.assignments.length} نشاطا في التقويم`, detail: "راجع الخطة الأسبوعية الدقيقة قبل التفعيل" },
+    { title: strategyRealismLabel, detail: `${Math.round(strategy.requiredTotal / 60 * 10) / 10} ساعة مطلوبة · ${Math.round(strategy.capacityTotal / 60 * 10) / 10} ساعة متاحة` },
+    { title: "خطتك الأسبوعية", detail: "راجع المنهج وفترة التركيز على الامتحان قبل الحفظ" },
   ] : [
-    { title: `${daysUntilExam} dage til eksamen`, detail: `${weeksUntilExam} uger til rådighed · ${draft.bufferDays} bufferdage` },
+    { title: `${daysUntilExam} dage til eksamen`, detail: `${weeksUntilExam} uger til rådighed · ${draft.bufferDays} frie dage før eksamen` },
     { title: `${pendingLectureCount} forelæsninger tilbage`, detail: `${selectedLectureCount} valgt · ${Math.round(selectedLectureMinutes / 60 * 10) / 10} anslåede timer` },
-    { title: `${weeklyCapacityHours} timer i en normal uge`, detail: `${availableStudyDays} aktive studiedage · ${draft.excludedDates.length} undtagelser` },
+    { title: `${weeklyCapacityHours} timer i en normal uge`, detail: `${availableStudyDays} dage med læsetid om ugen${draft.excludedDates.length ? ` · ${draft.excludedDates.length} valgte fridage` : ""}` },
     { title: `Adaptiv spaced repetition`, detail: `${draft.freezeDays} frosne dage · manuelt valgte repetitionsdatoer bevares` },
-    { title: `${strategyRealismLabel} belastning`, detail: `${Math.round(strategy.requiredTotal / 60)} t krævet · ${Math.round(strategy.capacityTotal / 60)} t til rådighed` },
-    { title: `${strategy.assignments.length} kalenderaktiviteter`, detail: "Kontrollér den præcise ugeplan før aktivering" },
+    { title: strategyRealismLabel, detail: `${Math.round(strategy.requiredTotal / 60 * 10) / 10} t planlagt · ${Math.round(strategy.capacityTotal / 60 * 10) / 10} t til rådighed` },
+    { title: "Din ugeplan", detail: "Gennemse pensum og eksamensperioden, før du gemmer" },
   ];
   const phaseContext = phaseContexts[step - 1] || phaseContexts[0];
 
@@ -24442,13 +24374,15 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     const isLinkedManualStudyPlanEvent = (event) => {
       const meta = storedMeta?.[event?.id] || {};
       const kind = studyPlanActivityKind({ ...event, ...meta });
-      return Boolean(event?.reviewTaskId || meta.reviewTaskId || event?.repetitionId || meta.repetitionId || [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(kind));
+      return Boolean(studyPlanPreserveExamEvent({ ...event, ...meta }, planRecord, moduleName) || event?.reviewTaskId || meta.reviewTaskId || event?.repetitionId || meta.repetitionId || [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(kind));
     };
     const withoutPlan = storedEvents.filter((event) => event.planModuleId !== moduleName || !String(event.id).startsWith("studyplan-") || isLinkedManualStudyPlanEvent(event));
+    const retainedIds = new Set(withoutPlan.map(event => event.id));
     const reconciled = reconcileStudyPlanCalendarEvents({ moduleName, generatedEvents: bundle.events, generatedMetadata: bundle.metadata, previousEvents: storedEvents, previousMetadata: storedMeta });
-    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify([...withoutPlan, ...reconciled]));
-    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id, value]) => !String(id).startsWith(`studyplan-${moduleName}`) || value?.reviewTaskId || value?.repetitionId || [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(studyPlanActivityKind(value))));
+    localStorage.setItem(STORAGE.calendarEvents, JSON.stringify([...withoutPlan, ...reconciled.filter(event => !retainedIds.has(event.id))]));
+    const nextMeta = Object.fromEntries(Object.entries(storedMeta).filter(([id, value]) => retainedIds.has(id) || !String(id).startsWith(`studyplan-${moduleName}`) || value?.reviewTaskId || value?.repetitionId || [STUDY_PLAN_ACTIVITY_KINDS.EXAM_REVIEW, STUDY_PLAN_ACTIVITY_KINDS.EXAM_SIMULATION, STUDY_PLAN_ACTIVITY_KINDS.REPETITION].includes(studyPlanActivityKind(value))));
     Object.entries(bundle.metadata).forEach(([id, generated]) => {
+      if (retainedIds.has(id)) return;
       const previous = storedMeta[id] || {};
       const event = reconciled.find((item) => item.id === id);
       nextMeta[id] = { ...generated, ...(previous.completedAt ? { completedAt: previous.completedAt, status: "completed" } : {}), ...(previous.missedResolvedAt ? { missedResolvedAt: previous.missedResolvedAt } : {}), needsScheduling: event?.time ? false : generated.needsScheduling };
@@ -24519,10 +24453,11 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
     setCalendarDailyPlanner({});
     const freshExam = studyPlanDateKey(addDays(new Date(), 56));
     setDraft({
-      version: 4, status: "draft", calendarEnabled: true,
+      version: 4, planningMode: "capacity-period", status: "draft", calendarEnabled: true,
       examDate: freshExam,
       lectureDeadline: studyPlanDateKey(addDays(new Date(`${freshExam}T00:00:00`), -21)),
       examSetStartDate: studyPlanDateKey(addDays(new Date(`${freshExam}T00:00:00`), -14)),
+      examSetEndDate: studyPlanDateKey(addDays(new Date(`${freshExam}T00:00:00`), -5)),
       bufferDays: 4, includedLectureIds: lectures.map((lecture) => lecture.id), doneLectureIds: [],
       weekdayHours: { 0: 0, 1: 2, 2: 2, 3: 2, 4: 2, 5: 1, 6: 3 }, excludedDates: [], maxLecturesPerDay: 3,
       difficulty: {}, lecturePriority: {}, examSetCount: 4, examSetMinutes: 120, errorReviewMinutes: 60,
@@ -24535,40 +24470,39 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
   }
 
   const canContinue = stepValidation.ok;
-  const realismLabel = strategyRealismLabel;
 
   function StepGoal() {
-    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Fastlæg dine faser</h2><p>Stop nyt stof i god tid, så der er plads til repetition, eksamenssæt og buffer.</p><div className="study-plan-v4-fields"><label><span>Eksamensdato</span><input className="ui-control" type="date" min={todayKey} value={draft.examDate} onChange={(event) => update("examDate", event.target.value)} /></label><label><span>Færdig med forelæsninger</span><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={draft.lectureDeadline} onChange={(event) => update("lectureDeadline", event.target.value)} /></label><label><span>Eksamenssæt starter</span><input className="ui-control" type="date" min={draft.lectureDeadline || todayKey} max={draft.examDate} value={draft.examSetStartDate} onChange={(event) => update("examSetStartDate", event.target.value)} /></label><label><span>Buffer før eksamen</span><select className="ui-control" value={draft.bufferDays} onChange={(event) => update("bufferDays", Number(event.target.value))}>{[2,3,4,5,7,10].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label></div></section><PhaseTimeline phases={strategy.phases} /></div>;
+    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Dine datoer</h2><p>Vælg, hvornår pensum skal være færdigt, og perioden, hvor du vil fokusere på eksamenssæt.</p><div className="study-plan-v4-fields"><label><span>Eksamensdato</span><input className="ui-control" type="date" min={todayKey} value={draft.examDate} onChange={(event) => update("examDate", event.target.value)} /></label><label><span>Færdig med pensum</span><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={draft.lectureDeadline} onChange={(event) => update("lectureDeadline", event.target.value)} /></label><label><span>Eksamenssæt · fra</span><input className="ui-control" type="date" min={draft.lectureDeadline || todayKey} max={draft.examDate} value={draft.examSetStartDate} onChange={(event) => update("examSetStartDate", event.target.value)} /></label><label><span>Eksamenssæt · til</span><input className="ui-control" type="date" min={draft.examSetStartDate} max={studyPlanDateKey(addDays(studyPlanDate(draft.examDate), -(Number(draft.bufferDays) + 1)))} value={draft.examSetEndDate} onChange={(event) => update("examSetEndDate", event.target.value)} /></label><label><span>Frie dage før eksamen</span><select className="ui-control" value={draft.bufferDays} onChange={(event) => update("bufferDays", Number(event.target.value))}>{[2,3,4,5,7,10].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label></div></section><PhaseTimeline phases={strategy.phases} /></div>;
   }
 
   function StepContent() {
     const groups = [...new Set(lectures.map((lecture) => lecture.group || "Andet"))];
-    const difficultyCopy = { easy: "Let", moderate: "Moderat", demanding: "Krævende" };
+
     return <div className="study-plan-v4-grid">
       <section className="study-plan-v4-card">
-        <div className="study-plan-v4-card-heading"><div><h2>Vælg pensum</h2><p>Medtag det relevante pensum og markér det, du allerede har gennemgået. Første placering bruger et neutralt startestimat; efter gennemgangen kalibrerer du faktisk tid og Let / Moderat / Krævende til spaced repetition.</p></div><span>{draft.includedLectureIds.length}/{lectures.length}</span></div>
+        <div className="study-plan-v4-card-heading"><div><h2>Vælg pensum</h2><p>Vælg det, du vil læse, og markér det, du allerede har gennemgået.</p></div><span>{draft.includedLectureIds.length}/{lectures.length}</span></div>
         <div className="study-plan-v4-lecture-list">{groups.map((group) => <div key={group} className="study-plan-v4-lecture-group"><h3>{group}</h3>{lectures.filter((lecture) => (lecture.group || "Andet") === group).map((lecture) => {
           const included = draft.includedLectureIds.includes(lecture.id);
           const difficulty = studyPlanNormalizeLoadLevel(draft.difficulty?.[lecture.id]);
           return <div key={lecture.id} className="study-plan-v4-lecture-row" data-included={included ? "true" : "false"} onContextMenu={(event) => openLectureContext(event, lecture)}>
             <button type="button" className="study-plan-v4-check" onClick={() => toggleIncluded(lecture.id)} aria-label={included ? "Ekskludér forelæsning" : "Medtag forelæsning"}>{included ? "✓" : ""}</button>
-            <div><strong>{lecture.id} · {lecture.title}</strong><small>{lecture.parts ? `${lecture.parts} dele` : "1 forelæsning"} · startestimat {studyPlanLectureMinutes(lecture, "moderate")} min · kalibreres efter gennemgang</small></div>
+            <div><strong>{lecture.id} · {lecture.title}</strong><small>{lecture.parts ? `${lecture.parts} dele` : "1 forelæsning"} · ca. {studyPlanLectureMinutes(lecture, "moderate")} min</small></div>
             <label><input type="checkbox" checked={draft.doneLectureIds.includes(lecture.id)} onChange={() => toggleDone(lecture.id)} />Gennemgået</label>
             <button type="button" className="study-plan-v4-more" aria-label={`Flere valg for ${lecture.id}`} onClick={(event) => openLectureContext({ preventDefault: () => {}, clientX: event.clientX, clientY: event.clientY }, lecture)}><Icon name="more" size={14} /></button>
           </div>;
         })}</div>)}</div>
       </section>
-      <section className="study-plan-v4-card"><h2>Eksamenssæt</h2><p>Planlæg selve eksamenssættene som konkrete, udelelige blokke. Fejl og markerede spørgsmål håndteres separat i eksamensreview og bliver ikke automatisk til en fast review-session.</p><div className="study-plan-v4-fields"><label><span>Antal sæt</span><input className="ui-control" type="number" min="0" max="30" value={draft.examSetCount} onChange={(event) => update("examSetCount", Number(event.target.value))} /></label><label><span>Tid til hvert sæt</span><select className="ui-control" value={draft.examSetMinutes} onChange={(event) => update("examSetMinutes", Number(event.target.value))}>{[60,90,120,180].map((value) => <option key={value} value={value}>{value} min</option>)}</select></label></div><div className="study-plan-v4-note">En 120-minutters simulation kræver en studiedag med mindst 120 minutters reel kapacitet. Den skjulte review-reserve reducerer ikke længere din dag.</div></section>
+
     </div>;
   }
 
   function StepCapacity() {
-    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Din normale uge</h2><p>Angiv realistisk studiekapacitet. Planen bruger det til fordelingen, men klokkeslættet vælges først på dagen.</p><div className="study-plan-v4-week-grid">{days.map((label, dayIndex) => <label key={dayIndex}><span>{label}</span><input type="number" min="0" max="12" step=".5" value={draft.weekdayHours[dayIndex] ?? 0} onChange={(event) => update("weekdayHours", { ...draft.weekdayHours, [dayIndex]: Number(event.target.value) })} /><small>timer</small></label>)}</div><label className="study-plan-v4-inline-field"><span>Maks. forelæsninger pr. dag</span><input className="ui-control" type="number" min="1" max="8" value={draft.maxLecturesPerDay} onChange={(event) => update("maxLecturesPerDay", Number(event.target.value))} /></label></section><section className="study-plan-v4-card"><h2>Undtagelsesdage</h2><div className="study-plan-v4-add-date"><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={exceptionDate} onChange={(event) => setExceptionDate(event.target.value)} /><button type="button" className="ui-button ui-button--secondary" onClick={addException}>Tilføj</button></div><div className="study-plan-v4-date-chips">{draft.excludedDates.length ? draft.excludedDates.map((date) => <button key={date} type="button" onClick={() => update("excludedDates", draft.excludedDates.filter((item) => item !== date))}>{new Date(`${date}T00:00:00`).toLocaleDateString(locale)} ×</button>) : <span>Ingen undtagelser.</span>}</div></section></div>;
+    return <div className="study-plan-v4-grid"><section className="study-plan-v4-card"><h2>Din normale uge</h2><p>Hvor mange timer vil du bruge på læsning hver dag?</p><div className="study-plan-v4-week-grid">{days.map((label, dayIndex) => <label key={dayIndex}><span>{label}</span><input type="number" min="0" max="12" step=".5" value={draft.weekdayHours[dayIndex] ?? 0} onChange={(event) => update("weekdayHours", { ...draft.weekdayHours, [dayIndex]: Number(event.target.value) })} /><small>timer</small></label>)}</div></section><section className="study-plan-v4-card"><h2>Fridage</h2><div className="study-plan-v4-add-date"><input className="ui-control" type="date" min={todayKey} max={draft.examDate} value={exceptionDate} onChange={(event) => setExceptionDate(event.target.value)} /><button type="button" className="ui-button ui-button--secondary" onClick={addException}>Tilføj</button></div><div className="study-plan-v4-date-chips">{draft.excludedDates.length ? draft.excludedDates.map((date) => <button key={date} type="button" onClick={() => update("excludedDates", draft.excludedDates.filter((item) => item !== date))}>{new Date(`${date}T00:00:00`).toLocaleDateString(locale)} ×</button>) : <span>Ingen ekstra fridage valgt.</span>}</div></section></div>;
   }
 
   function StepStrategy() {
     return <div className="study-plan-v4-grid">
-      <section className="study-plan-v4-card"><h2>Planadfærd</h2><p>Vælg kun den adfærd, du normalt vil mærke i hverdagen. Tekniske regler ligger under avanceret.</p><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard, hvis noget ikke bliver gjort?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til buffer</option><option value="keep-overdue">Behold forsinket</option></select></label></div><details className="study-plan-v4-advanced-settings"><summary><span><strong>Avancerede indstillinger</strong><small>Frysegrænse og beskyttelse af manuelle valg</small></span><Icon name="down" size={12} /></summary><div className="study-plan-v4-choice-list"><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer og spaced-repetition-datoer, du selv har valgt, overskrives ikke af regenerering.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></details></section>
+      <section className="study-plan-v4-card"><h2>Planadfærd</h2><p>Vælg kun den adfærd, du normalt vil mærke i hverdagen. Tekniske regler ligger under avanceret.</p><div className="study-plan-v4-choice-list"><label><span><strong>Missede aktiviteter</strong><small>Hvad skal være standard, hvis noget ikke bliver gjort?</small></span><select className="ui-control" value={draft.missedPolicy} onChange={(event) => update("missedPolicy", event.target.value)}><option value="ask">Spørg altid</option><option value="next-capacity">Næste dag med kapacitet</option><option value="buffer">Flyt til de frie dage</option><option value="keep-overdue">Behold forsinket</option></select></label></div><details className="study-plan-v4-advanced-settings"><summary><span><strong>Avancerede indstillinger</strong><small>Frysegrænse og beskyttelse af manuelle valg</small></span><Icon name="down" size={12} /></summary><div className="study-plan-v4-choice-list"><label><span><strong>Frysegrænse</strong><small>Nærmeste dage flyttes ikke automatisk.</small></span><select className="ui-control" value={draft.freezeDays} onChange={(event) => update("freezeDays", Number(event.target.value))}>{[0,1,2,3,5,7].map((value) => <option key={value} value={value}>{value} dage</option>)}</select></label><label><span><strong>Bevar manuelle tider</strong><small>Placeringer og spaced-repetition-datoer, du selv har valgt, overskrives ikke af regenerering.</small></span><input type="checkbox" checked={draft.preserveManualTimes} onChange={(event) => update("preserveManualTimes", event.target.checked)} /></label></div></details></section>
       <section className="study-plan-v4-card study-plan-v4-flashcard-card">
         <div className="study-plan-v4-card-heading"><div><h2>Spaced repetition</h2><p>Forelæsninger får først en repetitionsplan, når du har gennemført dem og selv vurderet belastningen.</p></div><span>Brugerstyret</span></div>
         <div className="study-plan-v4-review-modes"><strong>Sådan fungerer det</strong><div><span>Faktisk tidsforbrug</span><span>Let</span><span>Moderat</span><span>Krævende</span></div><small>MedFLUEN anbefaler interval og varighed ud fra din vurdering og eksamensdatoen. Du bestemmer altid den endelige dato.</small></div>
@@ -24579,63 +24513,57 @@ function StudyPlanBuilder({ c, language, user, setUser, onCalendarCleared = null
 
 
   function StepPreview() {
-    const maxWeekly = Math.max(1, ...strategy.weeklyLoads.map((week) => week.minutes));
-    const distributionOptions = [
-      { value: "even", label: "Mest jævnt", detail: "Fordeler timerne så ens som muligt" },
-      { value: "balanced", label: "Efter kapacitet", detail: "Tager højde for dine forskellige ugedage" },
-      { value: "early", label: "Tidligt fokus", detail: "Lægger mere arbejde tidligt og skaber luft senere" },
-    ];
     return <div className="study-plan-v4-preview">
-      <div className="study-plan-v4-preview-top"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Din eksamensstrategi</h2><p>{strategy.pendingCount} resterende forelæsninger, {draft.examSetCount} eksamenssæt og {draft.bufferDays} bufferdage.</p></div><div className="study-plan-v4-capacity"><strong>{Math.round(strategy.requiredTotal / 60)} t</strong><span>samlet planbelastning</span><small>{Math.round(strategy.capacityTotal / 60)} t tilgængelig plan-kapacitet</small></div></div>
+      <PlanningSummary791 strategy={strategy} language={language} />
       <PhaseTimeline phases={strategy.phases} />
-      <section className="study-plan-v4-card study-plan-v4-load-card"><div className="study-plan-v4-card-heading"><div><h2>Ugebelastning</h2><p>Vælg hvordan arbejdsbyrden skal fordeles. Planen opdateres med det samme.</p></div></div><div className="study-plan-v4-distribution-control">{distributionOptions.map((option) => <button key={option.value} type="button" data-active={draft.distributionMode === option.value ? "true" : "false"} onClick={() => update("distributionMode", option.value)}><strong>{option.label}</strong><small>{option.detail}</small></button>)}</div><div className="study-plan-v4-week-bars">{strategy.weeklyLoads.map((week) => { const weekNumber = studyPlanIsoWeekNumber(week.weekStart); return <div key={week.weekStart}><span>Uge {weekNumber ?? "—"}</span><div><i style={{ width: `${Math.max(3, (week.minutes / maxWeekly) * 100)}%` }} /></div><strong>{Math.round(week.minutes / 60 * 10) / 10} t</strong></div>; })}</div></section>
-      <section className="study-plan-v4-card"><h2>Kritisk kontrol</h2>{strategy.issues.length || strategy.warnings?.length ? <div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div> : <div className="study-plan-v4-success"><Icon name="check" size={15} />Planen har plads til alle aktiviteter.</div>}<div className="study-plan-v4-suggestions"><strong>Mulige justeringer</strong><span>Skift belastningsfordeling ovenfor, flyt forelæsningsfristen, øg timer på enkelte ugedage eller reducer antal eksamenssæt.</span></div></section>
       {existing && <section className="study-plan-v4-card"><h2>Ved opdatering</h2><div className="study-plan-v4-change-grid"><span><b>{strategy.assignments.length}</b> fremtidige planobjekter</span><span><b>{draft.doneLectureIds.length}</b> gennemførte bevares</span><span><b>{draft.preserveManualTimes ? "Ja" : "Nej"}</b> bevar manuelle tider</span><span><b>{draft.freezeDays}</b> frosne dage</span></div></section>}
+      {(strategy.issues.length > 0 || strategy.warnings?.length > 0) && <section className="study-plan-v4-card"><h2>Indhold og plads</h2><div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map(issue => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div></section>}
     </div>;
   }
 
   function PhaseTimeline({ phases }) { return <section className="study-plan-v4-card study-plan-v4-phase-card"><div className="study-plan-v4-card-heading"><div><h2>Faseplan</h2><p>Nyt stof stopper ved din valgte frist.</p></div></div><div className="study-plan-v4-phases">{phases.map((phase) => <div key={phase.id} style={{ "--phase-tone": phase.tone }}><i /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })} – {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" })}</small></span></div>)}</div></section>; }
 
   function StepActivate() {
-    const counts = strategy.assignments.reduce((result, item) => ({ ...result, [item.phase]: (result[item.phase] || 0) + 1 }), {});
-    const assignmentsByWeek = strategy.assignments.reduce((groups, assignment) => {
-      const weekStart = studyPlanDateKey(startOfWeek(studyPlanDate(assignment.date)));
-      if (!groups[weekStart]) groups[weekStart] = [];
-      groups[weekStart].push(assignment);
-      return groups;
-    }, {});
-    const weekRows = Object.entries(assignmentsByWeek).sort(([a], [b]) => a.localeCompare(b));
-    const missedCopy = draft.missedPolicy === "ask" ? "Spørg altid" : draft.missedPolicy === "buffer" ? "Flyt til buffer" : draft.missedPolicy === "next-capacity" ? "Næste dag med kapacitet" : "Behold forsinket";
+    const formatDate = value => studyPlanDate(value)?.toLocaleDateString(locale, { day: "numeric", month: "long" }) || "—";
+    const summary = items => {
+      const counts = studyPlanContentCounts(items);
+      return [counts.lecture && `${counts.lecture} forelæsning${counts.lecture === 1 ? "" : "er"}`, counts.class && `${counts.class} holdtime${counts.class === 1 ? "" : "r"}`, counts.tbl && `${counts.tbl} TBL`, counts.examFocus && `${counts.examFocus} dage til eksamenssæt`].filter(Boolean).join(" · ");
+    };
+    const weeks = new Map();
+    strategy.assignments.forEach(item => {
+      const key = studyPlanDateKey(startOfWeek(studyPlanDate(item.date)));
+      weeks.set(key, [...(weeks.get(key) || []), item]);
+    });
+    const weekRows = [...weeks.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const missedCopy = draft.missedPolicy === "ask" ? "Du vælger, hvad der skal ske" : draft.missedPolicy === "buffer" ? "Flyttes til de frie dage" : draft.missedPolicy === "next-capacity" ? "Flyttes til næste dag med plads" : "Bliver på den oprindelige dato";
     return <div className="study-plan-v4-activate study-plan-v4-activate-detailed">
-      <section className="study-plan-v4-card study-plan-v4-final-summary"><div><span className="study-plan-v4-status" data-status={strategy.realism}>{realismLabel}</span><h2>Kontrollér din samlede plan</h2><p>Kalenderen viser hver forelæsning én gang. Opfølgning og eventuelle oversprungne forelæsninger samles i forelæsningscounteren i stedet for at skabe dubletter.</p></div><div className="study-plan-v4-final-numbers"><span><b>{counts.lecture || 0}</b> forelæsninger</span><span><b>{selectedLectureCount}</b> følges i counteren</span><span><b>{counts.exam || 0}</b> eksamenssæt</span><span><b>{strategy.planningQueueCount || 0}</b> i planlægningskø</span></div></section>
-      <div className="study-plan-v4-final-grid">
-        <section className="study-plan-v4-card"><h2>Nøgledatoer og regler</h2><div className="study-plan-v4-final-detail-list"><span><b>Planstart</b><small>{new Date().toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Færdig med forelæsninger</b><small>{new Date(`${draft.lectureDeadline}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamenssæt starter</b><small>{new Date(`${draft.examSetStartDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Eksamen</b><small>{new Date(`${draft.examDate}T00:00:00`).toLocaleDateString(locale, { dateStyle: "long" })}</small></span><span><b>Missede aktiviteter</b><small>{missedCopy}</small></span><span><b>Flashkort</b><small>Planlægges separat og ændres ikke, når studieplanen nulstilles</small></span><span><b>Manuelle tider</b><small>{draft.preserveManualTimes ? "Bevares ved senere opdateringer" : "Må omfordeles"}</small></span></div></section>
-        <section className="study-plan-v4-card"><h2>Faseoverblik</h2><div className="study-plan-v4-final-phase-list">{strategy.phases.map((phase) => <div key={phase.id}><i style={{ background: phase.tone }} /><span><strong>{phase.label}</strong><small>{new Date(`${phase.start}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })} – {new Date(`${phase.end}T00:00:00`).toLocaleDateString(locale, { day: "numeric", month: "long" })}</small></span></div>)}</div></section>
-      </div>
-      <section className="study-plan-v4-card study-plan-v4-week-overview"><div className="study-plan-v4-card-heading"><div><h2>Plan uge for uge</h2><p>En konkret oversigt over de aktiviteter, der bliver oprettet.</p></div><span>{strategy.assignments.length} aktiviteter</span></div><div>{weekRows.map(([weekStart, assignments]) => { const weekNumber = studyPlanIsoWeekNumber(weekStart); const sorted = [...assignments].sort((a,b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title)); return <article key={weekStart}><header><strong>Uge {weekNumber ?? "—"}</strong><small>{sorted.length} aktiviteter · {Math.round(sorted.reduce((sum,item)=>sum+(item.loadMinutes||0),0)/60*10)/10} t</small></header><div>{sorted.map((item) => <span key={item.id}><time>{new Date(`${item.date}T00:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}</time><b>{item.title}</b><small>{Math.round((item.loadMinutes || 0) / 15) * 15} min · {item.phase === "lecture" ? "Forelæsning" : item.phase === "consolidation" ? "Repetition" : item.phase === "exam" ? "Eksamenssæt" : "Fokusblok"}</small></span>)}</div></article>; })}</div></section>
-      {(strategy.issues.length > 0 || strategy.warnings?.length > 0) && <section className="study-plan-v4-card"><h2>Kontrollér før aktivering</h2><div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map((issue) => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div>{strategy.planningQueueCount > 0 && <div className="study-plan-v4-note">Du kan stadig aktivere planen. Uplacerede aktiviteter bliver liggende i planlægningskøen, så du kan placere dem manuelt.</div>}</section>}
+      <section className="study-plan-v4-card study-plan-v4-final-summary"><div><h2>Din plan</h2><p>Gennemse datoerne og ugeplanen, før du gemmer.</p></div></section>
+      <section className="study-plan-v4-card study-plan-v4-key-dates"><h2>Dine datoer</h2><dl><div><dt>Pensum færdigt</dt><dd>{formatDate(draft.lectureDeadline)}</dd></div><div><dt>Fokus på eksamenssæt</dt><dd>{formatDate(draft.examSetStartDate)} – {formatDate(draft.examSetEndDate)}</dd></div><div><dt>Eksamen</dt><dd>{formatDate(draft.examDate)}</dd></div></dl><p>{draft.bufferDays} frie dage før eksamen.</p><details className="study-plan-v4-saved-rules"><summary>Hvis planen ændrer sig</summary><p>Missede læseblokke: {missedCopy}. {draft.preserveManualTimes ? "Manuelt valgte tider bevares." : "Tider kan omfordeles."} Flashkort planlægges separat.</p></details></section>
+      <section className="study-plan-v4-card study-plan-v4-week-overview"><div className="study-plan-v4-card-heading"><div><h2>Plan uge for uge</h2><p>{summary(strategy.assignments)}</p></div></div><div>{weekRows.map(([weekStart, items]) => {
+        const sorted = [...items].sort((a,b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
+        return <article key={weekStart}><header><strong>Uge {studyPlanIsoWeekNumber(weekStart) ?? "—"}</strong><small>{summary(items)} · {Math.round(items.reduce((sum,item)=>sum+(item.loadMinutes||0),0)/60*10)/10} timer</small></header><div>{sorted.map(item => <div className="study-plan-v4-week-item" key={item.id}><time dateTime={item.date}>{studyPlanDate(item.date).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" })}</time><div><strong>{item.title}</strong><span>{item.examFocus ? "Vælg selv de sæt, du vil arbejde med" : item.contentKind === "class" ? "Holdtime" : item.contentKind === "tbl" ? "TBL" : "Forelæsning"}</span></div><small>{item.loadMinutes} min</small></div>)}</div></article>;
+      })}</div></section>
+      {(strategy.issues.length > 0 || strategy.warnings?.length > 0) && <section className="study-plan-v4-card"><h2>Indhold uden plads</h2><div className="study-plan-v4-issues">{[...strategy.issues, ...(strategy.warnings || [])].map(issue => <div key={issue}><Icon name="flag" size={14} /><span>{issue}</span></div>)}</div></section>}
     </div>;
   }
-
   const stepContent = [<StepGoal />, <StepContent />, <StepCapacity />, <StepStrategy />, <StepPreview />, <StepActivate />][step - 1];
   return (
     <div className="study-plan-v4">
       <header className="study-plan-v4-header"><div><span>Adaptive Studyplan · 6.8.2.6</span><h1>{copy.title}</h1><p>{copy.subtitle}</p></div>{existing && <div className="study-plan-v4-active-pill"><i />{copy.active}</div>}</header>
       <div className="study-plan-v4-shell">
-        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Pensum og eksamenssæt", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
+        <aside className="study-plan-v4-steps">{copy.steps.map((label, index) => { const number = index + 1; return <button key={label} type="button" data-active={step === number ? "true" : "false"} data-complete={step > number ? "true" : "false"} onClick={() => number <= (existing ? 6 : step) && navigateToStep(number)}><span>{step > number ? "✓" : number}</span><div><strong>{label}</strong><small>{["Datoer og fasegrænser", "Vælg dit pensum", "Ugekapacitet og fridage", "Repetition og planadfærd", "Belastning og risici", "Gem planen"][index]}</small></div></button>; })}</aside>
         <main className="study-plan-v4-main">
           <div key={step} className="study-plan-v4-step" data-direction={direction}>
-            <div className="study-plan-v4-step-context" data-valid={stepValidation.ok ? "true" : "false"}>
+            {step !== 4 && <div className="study-plan-v4-step-context" data-valid={stepValidation.ok ? "true" : "false"}>
               <div>
                 <span>{polishCopy.phase} {step} {polishCopy.of} 6</span>
                 <strong>{phaseContext.title}</strong>
                 <small>{phaseContext.detail}</small>
               </div>
               <div className="study-plan-v4-step-context-status">
-                <b>{stepValidation.ok ? polishCopy.ready : stepValidation.message}</b>
-                <span>{polishCopy.autoSave}</span>
+                {!stepValidation.ok && <b role="alert">{stepValidation.message}</b>}
               </div>
-            </div>
+            </div>}
             {stepContent}
           </div>
           <footer className="study-plan-v4-footer"><div>{step > 1 && <button type="button" className="ui-button ui-button--ghost" onClick={() => nextStep(step - 1)}><Icon name="left" size={15} />{copy.back}</button>}{existing && <button type="button" className="ui-button ui-button--ghost" onClick={() => setConfirmClearCalendar(true)}>{copy.clearCalendar}</button>}{existing && <button type="button" className="ui-button ui-button--danger" onClick={() => setConfirmResetPlan(true)}>{copy.resetPlan}</button>}</div><div>{validationMessage && <span className="study-plan-v4-validation" role="alert">{validationMessage}</span>}{savedNotice && <span className="study-plan-v4-saved">{savedNotice}</span>}{step < 6 ? <button type="button" className="ui-button ui-button--primary" disabled={step === 5 && !strategy.valid} data-valid={canContinue ? "true" : "false"} onClick={requestNextStep}>{step === 5 ? "Gå til aktivering" : copy.next}<Icon name="right" size={15} /></button> : <button type="button" className="ui-button ui-button--primary" disabled={!strategy.valid} onClick={activatePlan}>{copy.activate}<Icon name="check" size={15} /></button>}</div></footer></main>
@@ -24706,7 +24634,7 @@ function studyPlanWorkspaceCopy(language) {
     da: {
       title: "Studieplan", eyebrow: "Personligt studie-workspace", activePlan: "Plan aktiv", noPlan: "Ingen aktiv plan",
       overview: "Overblik", review: "Spaced repetition", builder: "Planbygger",
-      overviewIntro: "Planlæg dit arbejde, styr spaced repetition og se det vigtigste uden at duplikere kalenderen.",
+      overviewIntro: "Et realistisk læseforløb frem mod eksamen. Tilpasset dit pensum og din uge.",
       nextFocus: "Næste fokus", noNextFocus: "Ingen planlagt aktivitet endnu", noNextFocusHint: "Planlæg et review eller aktivér din plan for at få næste fokus her.",
       openCalendar: "Åbn fuld kalender", openReview: "Åbn Spaced repetition", openBuilder: "Åbn Planbygger",
       attention: "Kræver din opmærksomhed", thisWeek: "Denne uge", reviewNeeds: "Review-behov", planTasks: "Planopgaver",
@@ -24723,7 +24651,7 @@ function studyPlanWorkspaceCopy(language) {
       setupMissingHint: "Kør segment_6_8_studyplan_integration.sql i Supabase. Planbygger og eksisterende kalenderdata er stadig bevaret.",
       refreshing: "Henter review og planopgaver…", taskAdded: "Tilføjet til studieplanen", taskAlreadyCovered: "Spørgsmålet er allerede dækket af en planopgave.",
       taskError: "Kunne ikke opdatere studieplanen", week: "Uge", month: "Måned", agenda: "Agenda", today: "I dag",
-      previous: "Forrige", next: "Næste", notPlaced: "Ikke placeret",       builderContext: "Planbyggeren bruger din faktiske kapacitet", builderContextHint: "Manuelt valgte spaced-repetition-datoer reserverer rigtige minutter. Planen fylder resten uden skjulte review-reserver.",
+      previous: "Forrige", next: "Næste", notPlaced: "Ikke placeret",       builderContext: "Planen tilpasses din uge", builderContextHint: "Planen følger de timer og fridage, du vælger.",
       planInactiveHint: "Aktivér en plan for at kunne placere review-opgaver efter din ugekapacitet.",
       taskDetail: "Planopgave", source: "Kilde", linkedItems: "Tilknyttede reviewspørgsmål", scheduledFor: "Planlagt til", status: "Status",
       close: "Luk", overdue: "forfalden", reviewsWaiting: "reviews mangler placering", activitiesThisWeek: "aktiviteter denne uge",
@@ -25309,13 +25237,13 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
     }, {});
     return <div className="study-plan-workspace-overview study-plan-workspace-overview--refined">
       <section className="study-plan-overview-plan study-plan-overview-plan--hero">
-        <div className="study-plan-workspace-section-head"><div><span>{copy.generatedPlan}</span><h2>{activePlan ? copy.activePlan : copy.noPlan}</h2>{activePlan && <p>Din plan samler kapacitet, forelæsninger og spaced repetition. Kalenderplaceringer vises i den fælles kalender.</p>}</div>{activePlan && <button type="button" onClick={() => setTab("builder")}>{copy.openBuilder}<Icon name="right" size={12} /></button>}</div>
+{activePlan&&<div className="study-plan-workspace-section-head"><div><span>{copy.generatedPlan}</span><h2>{activePlan ? copy.activePlan : copy.noPlan}</h2>{activePlan && <p>Din plan samler kapacitet, forelæsninger og spaced repetition. Kalenderplaceringer vises i den fælles kalender.</p>}</div>{activePlan && <button type="button" onClick={() => setTab("builder")}>{copy.openBuilder}<Icon name="right" size={12} /></button>}</div>}
         {activePlan ? <div className="study-plan-overview-plan-summary">
           <div><strong>{daysToExam ?? "—"}</strong><span>{copy.daysToExam}</span></div>
           <div><strong>{weeklyHours}</strong><span>{copy.hoursPerWeek}</span></div>
           <div><strong>{remainingLectures}</strong><span>forelæsninger tilbage</span></div>
           {activePlan.examDate && <div className="study-plan-overview-plan-date"><Icon name="calendar" size={14} /><span><small>Eksamen</small><strong>{new Date(`${activePlan.examDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"long", year:"numeric" })}</strong></span></div>}
-        </div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noPlan}</strong><p>Opret en plan ud fra din faktiske ugekapacitet. Kalenderen forbliver ét samlet sted i toolbaren.</p><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div>}
+        </div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="clipboard" size={20} /></span><strong>{copy.noPlan}</strong><p>Vælg eksamensdato, pensum og tid til læsning. Du ser fordelingen, før du aktiverer planen.</p><button type="button" className="ui-button ui-button--primary" onClick={() => setTab("builder")}>{copy.openBuilder}</button></div>}
       </section>
 
       {activePlan && <section className="study-plan-mini-agenda">
@@ -25340,8 +25268,8 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
     if (reviewLoadState === "error") return <div className="study-plan-workspace-empty"><span><Icon name="flag" size={22} /></span><strong>{reviewError === "setup" ? "Segment 6.8.1-databasen mangler" : copy.loadError}</strong><p>{reviewError === "setup" ? "Kør segment_6_8_1_adaptive_studyplan.sql efter Segment 6.8-migrationen. Den eksisterende plan og kalender bevares." : copy.taskError}</p></div>;
     const stoppedProfiles = reviewState.memoryProfiles.filter((item) => item.stoppedAt);
     return <div className="study-plan-spaced-workspace">
-      <section className="study-plan-workspace-review study-plan-sr-section">
-        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Spaced repetition</span><h2>Forelæsningshukommelse</h2><p>Du vurderer kun belastningen: <strong>Let · Moderat · Krævende</strong>. MedFLUEN kombinerer vurderingen med faktisk tidsforbrug og eksamensdatoen for at anbefale næste interval og varighed. Du kan altid overskrive begge.</p></div>{activePlan?.examDate && <div className="study-plan-sr-exam-chip"><Icon name="calendar" size={13} /><span>{daysToExam} dage</span><small>til eksamen</small></div>}</div>
+      <section className="study-plan-workspace-review study-plan-sr-section mf791-review-workspace">
+        <div className="study-plan-workspace-section-head study-plan-review-head"><div><span>Spaced repetition</span><h2>Hold fast i det, du har lært</h2><p>Vend tilbage til dine forelæsninger med mellemrum. Din vurdering og dit tidsforbrug hjælper med at finde et passende interval; næste dato og varighed er altid dit valg.</p></div>{activePlan?.examDate && <div className="study-plan-sr-exam-chip"><Icon name="calendar" size={13} /><span>{daysToExam} dage</span><small>til eksamen</small></div>}</div>
         {feedback && <div className="study-plan-workspace-feedback" role="status"><Icon name="check" size={13} />{feedback}</div>}
 
         {(pendingCalibrations.length > 0 || pendingRatings.length > 0) && <section className="study-plan-sr-decisions"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kræver dit valg</span><h3>Næste repetition bestemmes først, når du har vurderet belastningen</h3></div><b>{pendingCalibrations.length + pendingRatings.length}</b></div><div className="study-plan-sr-decision-list">
@@ -25349,7 +25277,7 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
           {pendingRatings.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); return <article key={`rate-${item.id}`}><span className="study-plan-task-status"><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber} gennemført</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong><span>{item.plannedMinutes} min planlagt · vurder belastningen for næste interval</span></div><button type="button" className="ui-button ui-button--primary" onClick={() => openRepetitionRating(item)}>Vurdér & fortsæt</button></article>; })}
         </div></section>}
 
-        <section className="study-plan-sr-upcoming"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kommende</span><h3>Planlagte spaced repetitions</h3></div><span>{upcomingRepetitions.length}</span></div>{upcomingRepetitions.length ? <div className="study-plan-sr-upcoming-grid">{upcomingRepetitions.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); const memory = memoryByLecture.get(item.lectureId); const daysAway = item.scheduledDate ? studyPlan81DaysBetween(todayKey, item.scheduledDate) : null; return <article key={item.id}><header><span><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber}</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong></div><em>{daysAway === 0 ? "I dag" : daysAway === 1 ? "I morgen" : daysAway > 1 ? `Om ${daysAway} dage` : "Forfalden"}</em></header><div className="study-plan-sr-upcoming-meta"><span><Icon name="calendar" size={11} />{new Date(`${item.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}{item.scheduledTime ? ` · ${item.scheduledTime}` : ""}</span><span><Icon name="clock" size={11} />{item.plannedMinutes} min</span><span>{studyPlanLoadLabel(memory?.latestLoadRating || "moderate", language)}</span></div><footer><small>Anbefalet interval {item.recommendedIntervalDays} d · valgt {item.chosenIntervalDays} d</small><button type="button" onClick={() => openCanonicalCalendar(item.scheduledDate)}>Åbn fuld kalender<Icon name="right" size={11} /></button></footer></article>; })}</div> : <div className="study-plan-workspace-empty study-plan-workspace-empty--compact"><span><Icon name="reset" size={20} /></span><strong>Ingen kommende repetition</strong><p>Når du afslutter en forelæsning, kan du vælge om og hvornår du vil se den igen.</p></div>}</section>
+<section className="study-plan-sr-upcoming"><div className="study-plan-review-task-head"><div><span className="study-plan-workspace-kicker">Kommende</span><h3>Planlagte spaced repetitions</h3></div>{upcomingRepetitions.length > 0 && <span>{upcomingRepetitions.length}</span>}</div>{upcomingRepetitions.length ? <div className="study-plan-sr-upcoming-grid">{upcomingRepetitions.map((item) => { const lecture = moduleLectures.find((candidate) => candidate.id === item.lectureId); const memory = memoryByLecture.get(item.lectureId); const daysAway = item.scheduledDate ? studyPlan81DaysBetween(todayKey, item.scheduledDate) : null; return <article key={item.id}><header><span><Icon name="reset" size={15} /></span><div><small>Repetition #{item.sequenceNumber}</small><strong>{lecture ? `${lecture.id} · ${lecture.title}` : item.lectureId}</strong></div><em>{daysAway === 0 ? "I dag" : daysAway === 1 ? "I morgen" : daysAway > 1 ? `Om ${daysAway} dage` : "Forfalden"}</em></header><div className="study-plan-sr-upcoming-meta"><span><Icon name="calendar" size={11} />{new Date(`${item.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })}{item.scheduledTime ? ` · ${item.scheduledTime}` : ""}</span><span><Icon name="clock" size={11} />{item.plannedMinutes} min</span><span>{studyPlanLoadLabel(memory?.latestLoadRating || "moderate", language)}</span></div><footer><small>Anbefalet interval {item.recommendedIntervalDays} d · valgt {item.chosenIntervalDays} d</small><button type="button" onClick={() => openCanonicalCalendar(item.scheduledDate)}>Åbn fuld kalender<Icon name="right" size={11} /></button></footer></article>; })}</div> : <RepetitionStart791 lectures={moduleLectures} memories={reviewState.memoryProfiles} language={language} onStart={openLectureCalibration} />}</section>
 
         {(repetitionHistory.length > 0 || reviewState.memoryProfiles.length > 0) && <details className="study-plan-secondary-details study-plan-sr-history"><summary><span><strong>Historik</strong><small>{reviewState.memoryProfiles.length} forelæsningsforløb</small></span><Icon name="down" size={12} /></summary><div className="study-plan-sr-memory-list">{reviewState.memoryProfiles.map((memory) => { const lecture = moduleLectures.find((candidate) => candidate.id === memory.lectureId); const history = repetitionHistory.filter((item) => item.lectureId === memory.lectureId); const next = upcomingRepetitions.find((item) => item.lectureId === memory.lectureId); return <article key={memory.id} data-stopped={memory.stoppedAt ? "true" : "false"}><span><strong>{lecture ? `${lecture.id} · ${lecture.title}` : memory.lectureId}</strong><small>{studyPlanLoadLabel(memory.latestLoadRating, language)} · {memory.completedRepetitions} gennemførte repetitioner · første gennemgang {memory.baselineMinutes} min</small></span><div>{next ? <small>Næste: {new Date(`${next.scheduledDate}T12:00:00`).toLocaleDateString(locale, { day:"numeric", month:"short" })} · {next.plannedMinutes} min</small> : memory.stoppedAt ? <small>Forløb afsluttet</small> : <small>Afventer næste valg</small>}{memory.stoppedAt && lecture && <button type="button" onClick={() => openLectureCalibration(lecture)}>Start igen</button>}</div>{history.length > 0 && <em>{history.slice(0,3).map((item) => `#${item.sequenceNumber} ${studyPlanLoadLabel(item.loadRating, language)}`).join(" · ")}</em>}</article>; })}</div></details>}
       </section>
@@ -25366,7 +25294,7 @@ function StudyPlan({ c, language, user, setUser, userId = null, onOpenCalendar =
 
   return (
     <div className="study-plan-workspace">
-      <header className="study-plan-workspace-header"><div><span>{copy.eyebrow}</span><h1>{copy.title}</h1><p>{copy.overviewIntro}</p></div><div className="study-plan-workspace-plan-state" data-active={activePlan ? "true" : "false"}><i />{activePlan ? copy.activePlan : copy.noPlan}{activePlan?.examDate && <small>{daysToExam} {copy.daysToExam}</small>}</div></header>
+      <header className="study-plan-workspace-header"><div><span>{copy.eyebrow}</span><h1>{copy.title}</h1><p>{copy.overviewIntro}</p></div>{activePlan&&<div className="study-plan-workspace-plan-state" data-active={activePlan ? "true" : "false"}><i />{activePlan ? copy.activePlan : copy.noPlan}{activePlan?.examDate && <small>{daysToExam} {copy.daysToExam}</small>}</div>}</header>
       <nav className="study-plan-workspace-tabs" aria-label={copy.title}>{[["overview","home",copy.overview],["review","reset",copy.review],["builder","clipboard",copy.builder]].map(([key,icon,label]) => <button type="button" key={key} data-active={tab === key ? "true" : "false"} onClick={() => setTab(key)}><Icon name={icon} size={15} /><span>{label}</span>{key === "review" && (pendingCalibrations.length + pendingRatings.length) > 0 && <b>{pendingCalibrations.length + pendingRatings.length}</b>}</button>)}</nav>
       <main className="study-plan-workspace-body">{tab === "overview" ? renderOverview() : tab === "review" ? renderReview() : <div className="study-plan-builder-workspace"><div className="study-plan-builder-context"><span><Icon name="clipboard" size={16} /></span><div><strong>{copy.builderContext}</strong><small>{copy.builderContextHint}</small></div>{(pendingCalibrations.length + pendingRatings.length) > 0 && <button type="button" onClick={() => setTab("review")}>{pendingCalibrations.length + pendingRatings.length} · kræver dit valg<Icon name="right" size={12} /></button>}</div><StudyPlanBuilder c={c} language={language} user={user} setUser={setUser} onCalendarCleared={handleStudyPlanCalendarCleared} onActivated={() => setTab("overview")} /></div>}</main>
       {feedback && tab !== "review" && <div className="study-plan-workspace-toast" role="status"><Icon name="check" size={13} />{feedback}</div>}
@@ -25512,6 +25440,7 @@ function Dashboard({
   userId = null,
   onNavigate,
   onOpenCalendar,
+  onImportSdu791,
   onOpenWorkspace,
   language,
   spacedData,
@@ -25520,7 +25449,7 @@ function Dashboard({
 }) {
   const [studyPlans, setPlansGlobal] = useStoredState(STORAGE.studyPlans, {});
   const [checklist, setChecklist] = useStoredState(STORAGE.dailyChecklist, {});
-  const [history] = useStoredState(STORAGE.quizHistory, []);
+  const [history] = useAccountStorage792(STORAGE.quizHistory, userId, []);
   const [calendarEvents, setCalendarEvents] = useStoredState(STORAGE.calendarEvents, []);
   const [calendarEventMeta, setCalendarEventMeta] = useStoredState(STORAGE.calendarEventMeta, {});
   const [calendarDailyPlanner, setCalendarDailyPlanner] = useStoredState(STORAGE.calendarDailyPlanner, {});
@@ -26043,13 +25972,7 @@ function Dashboard({
     }));
   }
 
-  const resumeRaw = (() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE.resumeSession) || "null");
-    } catch {
-      return null;
-    }
-  })();
+  const resumeRaw = readAccountResume792(localStorage, STORAGE.resumeSession, userId);
   const resumeAnswered = Object.keys(resumeRaw?.answers || {}).length;
   const hasResumableSession = resumeAnswered > 0;
 
@@ -26196,7 +26119,7 @@ function Dashboard({
 
   const weekdayLabels = [t.calendarMon, t.calendarTue, t.calendarWed, t.calendarThu, t.calendarFri, t.calendarSat, t.calendarSun];
   const selectedWeekdayIndex = (calendarDate.getDay() + 6) % 7;
-  const calendarTitle = calendarDate.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const calendarTitle = calendarHeading791(calendarDate, calendarView, locale);
 
   function shiftCalendar(amount) {
     if (calendarView === "month") {
@@ -26625,7 +26548,7 @@ function Dashboard({
 
   return (
     <div className="home-v2 mf79-home fade-up" dir={direction}>
-      <Home79Header name={user?.name} moduleName={currentModule} language={language} />
+
 
 
       <section
@@ -26642,7 +26565,8 @@ function Dashboard({
                 <button type="button" className="home-v2-mini-button" aria-label={t.next} onClick={() => shiftCalendar(1)}><Icon name="right" size={13} /></button>
                 <Icon name="calendar" size={13} />
                 <span className="home-v2-date-label">{calendarTitle}</span>
-                <button type="button" className="home-v2-mini-button" onClick={() => setCalendarDate(new Date())}>{copy.today}</button>
+                <button type="button" className="home-v2-mini-button home-v2-today-button" onClick={() => setCalendarDate(new Date())}>{copy.today}</button>
+                <SduImportButton791 language={language} onImport={onImportSdu791}/>
               </div>
             </div>
 
@@ -27209,8 +27133,11 @@ function LectureMenuModal({
   buriedCards,
   setBuriedCards,
   onClose,
+  onSavePersonalCard,
 }) {
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [personalEditor, setPersonalEditor] = useState(undefined);
+  const personalEditorRoot = useRef(null);
   const [creating, setCreating] = useState(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState(null);
@@ -27359,6 +27286,18 @@ async function deleteQuestion(id) {
   }
 }
 
+  if (personalEditor !== undefined && onSavePersonalCard) {
+    return <Modal c={c} onClose={() => personalEditorRoot.current?.querySelector('[aria-label="Luk editor"]')?.click()} size="large" title={language === "en" ? "Edit personal card" : language === "ar" ? "تعديل بطاقة شخصية" : "Redigér personligt kort"}>
+      <div ref={personalEditorRoot} onKeyDown={event => { if (event.key === "Escape") event.stopPropagation(); }}>
+      <FlashcardEditor71 c={c} language={language} question={personalEditor} context={{ moduleId, lectureId: lecture.id || null }} lectures={MODULE_LECTURES[moduleId] || []} createMode={!personalEditor} onCancel={() => setPersonalEditor(undefined)} onSave={async (record, options = {}) => {
+        const result = await onSavePersonalCard(record);
+        if (result?.ok !== false && !options.keepOpen && !options.createNext) setPersonalEditor(undefined);
+        return result;
+      }} />
+      </div>
+    </Modal>;
+  }
+
    if ((creating || editingQuestion) && isAdmin) {
       return (
       <Modal c={c} onClose={() => { setCreating(false); setEditingQuestion(null); }}>
@@ -27384,217 +27323,31 @@ async function deleteQuestion(id) {
     );
   }
 
-  return (
-    <Modal c={c} onClose={onClose}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <div style={{ color: c.text, fontWeight: 750, fontSize: 15 }}>
-          {t.questionListTitle}
-        </div>
-        <IconButton c={c} title={t.close} onClick={onClose}>
-          <Icon name="close" size={17} />
-        </IconButton>
-      </header>
-      <p style={{ color: c.secondary, fontSize: 12, marginBottom: 16 }}>{lecture.title}</p>
-
- <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-  {isAdmin && (
-    <button
-      type="button"
-      onClick={() => setCreating(true)}
-      style={{
-        flex: 1,
-        minHeight: 40,
-        borderRadius: 10,
-        border: `1px dashed ${c.borderStrong}`,
-        background: "transparent",
-        color: c.blue,
-        fontSize: 12,
-        fontWeight: 700,
-        cursor: "pointer",
-      }}
-    >
-      + {t.addNewQuestion}
-    </button>
-  )}
-
-  {!confirmingReset ? (
-          <button
-            type="button"
-            onClick={() => setConfirmingReset(true)}
-            disabled={lectureQuestions.length === 0}
-            style={{
-              minHeight: 40, padding: "0 14px", borderRadius: 10, border: `1px solid ${c.border}`,
-              background: c.soft, color: c.secondary, fontSize: 12, fontWeight: 700,
-              cursor: lectureQuestions.length === 0 ? "default" : "pointer",
-              opacity: lectureQuestions.length === 0 ? 0.5 : 1,
-            }}
-          >
-            {t.resetProgress}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={resetProgress}
-            style={{
-              minHeight: 40, padding: "0 14px", borderRadius: 10, border: `1px solid ${c.red}`,
-              background: c.redSoft, color: c.red, fontSize: 12, fontWeight: 800, cursor: "pointer",
-            }}
-          >
-            {t.resetConfirm}?
-          </button>
-        )}
-      </div>
-
-      <button
-        type="button"
-onClick={() => {
-  if (
-    window.confirm(
-      "Nulstil progress for alle MCQ’er? Alle kortplaner og reviewhistorik slettes."
-    )
-  ) {
-    resetAllProgress();
-  }
-}}
-        style={{
-          width: "100%", minHeight: 38, marginTop: -8, marginBottom: 16, padding: "0 12px", borderRadius: 10,
-          border: `1px solid ${c.border}`, background: "transparent", color: c.secondary, fontSize: 11, fontWeight: 700, cursor: "pointer",
-        }}
-      >
-        Nulstil alle MCQ-kort
-      </button>
-
-      {lectureQuestions.length === 0 ? (
-        <p style={{ color: c.muted, fontSize: 12 }}>{t.noCardsInLecture}</p>
-      ) : (
-        <div style={{ display: "grid", gap: 8, maxHeight: 320, overflowY: "auto" }}>
-          {lectureQuestions.map((question) => {
-            const card = spacedData[question.id];
-            const status = cardStatus(card);
-            const statusLabel =
-              status === "new" ? t.cardStatusNew : status === "due" ? t.cardStatusDue : t.cardStatusLearned;
-            const statusColor = status === "new" ? c.green : status === "due" ? c.blue : c.secondary;
-            const statusBg = status === "new" ? c.greenSoft : status === "due" ? c.blueSoft : c.soft;
-
-            return (
-              <div
-                key={question.id}
-                style={{
-                  padding: "10px 12px", borderRadius: 12, background: c.soft, border: `1px solid ${c.border}`,
-                  display: "flex", flexDirection: "column", gap: 6,
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
-                  <span style={{ color: c.text, fontSize: 13, fontWeight: 600, flex: 1 }}>
-                    {translate(question.question, language)}
-                  </span>
-                  <span
-                    style={{
-                      flexShrink: 0, padding: "3px 8px", borderRadius: 7, fontSize: 10, fontWeight: 800,
-                      background: statusBg, color: statusColor,
-                    }}
-                  >
-                    {statusLabel}
-                  </span>
-                </div>
-<div style={{ display: "flex", gap: 12 }}>
-  {isAdmin && (
-    <>
-      <button
-        type="button"
-        onClick={() => setEditingQuestion(question)}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 5,
-          border: 0,
-          background: "transparent",
-          color: c.blue,
-          fontSize: 11,
-          fontWeight: 700,
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        <Icon name="edit" size={13} />
-        {t.editQuestion}
-      </button>
-
-      {confirmingDeleteId === question.id ? (
-        <button
-          type="button"
-          onClick={() => deleteQuestion(question.id)}
-          style={{
-            border: 0,
-            background: "transparent",
-            color: c.red,
-            fontSize: 11,
-            fontWeight: 800,
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
-          {t.resetConfirm}?
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() =>
-            setConfirmingDeleteId(question.id)
-          }
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            border: 0,
-            background: "transparent",
-            color: c.red,
-            fontSize: 11,
-            fontWeight: 700,
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
-          <Icon name="trash" size={13} />
-          {t.deleteQuestion}
-        </button>
-      )}
-    </>
-  )}
-
-  <button
-    type="button"
-                    onClick={() => toggleBuried(question.id)}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 5, border: 0, background: "transparent",
-                      color: buriedCards && buriedCards[question.id] ? c.blue : c.secondary,
-                      fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0,
-                    }}
-                  >
-                    <Icon name="notebook" size={13} />
-                    {buriedCards && buriedCards[question.id] ? t.unburyCard : t.buryCard}
-                  </button>
-
-                  {card && (
-                    <button
-                      type="button"
-                      onClick={() => resetSingleCard(question.id)}
-                      style={{
-                        display: "inline-flex", alignItems: "center", gap: 5, border: 0, background: "transparent",
-                        color: c.secondary, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0,
-                      }}
-                    >
-                      <Icon name="reset" size={13} /> {t.resetThisCard}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </Modal>
-  );
+  return <Modal c={c} onClose={onClose} size="large" title={t.questionListTitle} className="mf791-card-browser-dialog">
+    <Flashcard71Styles />
+    <CardBrowser791 questions={lectureQuestions} spacedData={spacedData} buriedCards={buriedCards || {}} language={language} title={t.questionListTitle} contextTitle={lecture.title} onClose={onClose} getStatus={flashcardCardStatus} textFor={translate}
+      onCreate={onSavePersonalCard ? () => setPersonalEditor(null) : isAdmin ? () => setCreating(true) : undefined}
+      onEdit={isAdmin || onSavePersonalCard ? question => {
+        if (onSavePersonalCard && (!isAdmin || question.private)) setPersonalEditor(question);
+        else setEditingQuestion(question);
+      } : undefined}
+      onResetCard={question => resetSingleCard(question.id)} onToggleHidden={question => toggleBuried(question.id)}
+      renderImage={question => <FlashcardOcclusion70 data={question.imageOcclusion} reveal c={c} />}
+      labels={{ hide: t.buryCard, unhide: t.unburyCard, resetCard: t.resetThisCard, emptyDeck: t.noCardsInLecture }}
+      toolbar={<>
+        {isAdmin && onSavePersonalCard && <button type="button" onClick={() => setCreating(true)}>+ {language === "en" ? "Add shared question" : language === "ar" ? "إضافة سؤال مشترك" : "Tilføj fælles spørgsmål"}</button>}
+        <button type="button" disabled={!lectureQuestions.length} onClick={() => confirmingReset ? resetProgress() : setConfirmingReset(true)} data-confirming={confirmingReset ? "true" : "false"}>{confirmingReset ? `${t.resetConfirm}?` : t.resetProgress}</button>
+        {confirmingReset && <button type="button" onClick={() => setConfirmingReset(false)}>{t.cancelEdit || t.close}</button>}
+        <button type="button" onClick={() => {
+          if (window.confirm(language === "en" ? "Reset progress for every MCQ card? All card schedules and review history will be removed." : language === "ar" ? "إعادة تعيين تقدم جميع بطاقات الاختيار المتعدد؟ سيتم حذف جداول البطاقات وسجل المراجعات." : "Nulstil progress for alle MCQ’er? Alle kortplaner og reviewhistorik slettes.")) resetAllProgress();
+        }}>{language === "en" ? "Reset all MCQ cards" : language === "ar" ? "إعادة تعيين جميع بطاقات الاختيار المتعدد" : "Nulstil alle MCQ-kort"}</button>
+      </>}
+      renderDetailActions={question => isAdmin && !question.private ? <button type="button" data-action="delete-question" onClick={() => {
+        if (confirmingDeleteId === question.id) deleteQuestion(question.id);
+        else setConfirmingDeleteId(question.id);
+      }}>{confirmingDeleteId === question.id ? `${t.resetConfirm}?` : t.deleteQuestion}</button> : null}
+    />
+  </Modal>;
 }
 
 function AdminPortal({ c, t, language, user, isAdmin, onClose, globalContentState = null, onGlobalPublished = null }) {
@@ -36085,304 +35838,24 @@ setStatus({
   return <Modal c={c} onClose={onClose}>{body}</Modal>;
 }
 
-function SettingsModal({
-  c,
-  t,
-  appearance,
-  language,
-  preferences,
-  setPreferences,
-  onClose,
-}) {
-  // The current Assistant72 searches local sources; no AI activation is available.
-
-  return (
-    <Modal c={c} onClose={onClose} size="large">
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 21,
-        }}
-      >
-        <div>
-          <div style={{ color: c.text, fontWeight: 750 }}>{t.settings}</div>
-        </div>
-
-        <IconButton c={c} title={t.close} onClick={onClose}>
-          <Icon name="close" size={17} />
-        </IconButton>
-      </header>
-      <div style={{ maxWidth: 480, margin: "0 auto" }}>
-
-      <section aria-label="Dr. Byte" style={{border: `1px solid ${c.border}`,borderRadius:12,padding:16,marginBottom:20}}>
-        <strong style={{color:c.text,fontSize:14}}>Dr. Byte</strong>
-        <p role="status" style={{color:c.secondary,fontSize:13,lineHeight:1.6,marginBottom:0}}>
-          {language === "en" ? "Dr. Byte uses Gemini with selected PDF excerpts and optional web search. Shared content is sent to Google when you submit a question." : language === "ar" ? "يستخدم Dr. Byte Gemini مع مقتطفات PDF المحددة والبحث الاختياري على الويب. يُرسل المحتوى المحدد إلى Google عند إرسال السؤال." : "Dr. Byte bruger Gemini med valgte PDF-uddrag og valgfri websøgning. Valgt indhold sendes til Google, når du sender et spørgsmål."}
-        </p>
-      </section>
-
-      <div
-        style={{
-          color: c.muted,
-          fontSize: 11,
-          fontWeight: 750,
-          letterSpacing: ".09em",
-          textTransform: "uppercase",
-          marginBottom: 9,
-        }}
-      >
-        {t.appearance}
-      </div>
-
-      <AppearanceSettings75 value={appearance.value} onChange={appearance.set} error={appearance.error} language={language} />
-
-      <section
-        style={{
-          padding: "18px 0",
-          borderTop: `1px solid ${c.border}`,
-          borderBottom: `1px solid ${c.border}`,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 12,
-          }}
-        >
-          <div>
-            <div style={{ color: c.text, fontWeight: 650, fontSize: 14 }}>
-              {t.textSize}
-            </div>
-            <div style={{ color: c.secondary, fontSize: 12, marginTop: 3 }}>
-              {t.questionText}
-            </div>
-          </div>
-
-          <div
-            style={{
-              minWidth: 40,
-              padding: "6px 7px",
-              borderRadius: 8,
-              textAlign: "center",
-              color: c.blue,
-              background: c.blueSoft,
-              fontSize: 12,
-              fontWeight: 750,
-            }}
-          >
-            {preferences.questionSize}px
-          </div>
-        </div>
-
-        <input
-          type="range"
-          min="15"
-          max="25"
-          value={preferences.questionSize}
-          onChange={(event) =>
-            setPreferences((current) => ({
-              ...current,
-              questionSize: Number(event.target.value),
-            }))
-          }
-          style={{ display: "block", width: "100%", accentColor: c.blue }}
-        />
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: 6,
-            color: c.muted,
-            fontSize: 11,
-          }}
-        >
-          <span>{t.small}</span>
-          <span>{t.standard}</span>
-          <span>{t.large}</span>
-        </div>
-      </section>
-
-      <button
-        type="button"
-        onClick={() =>
-          setPreferences((current) => ({
-            ...current,
-            sound: !current.sound,
-          }))
-        }
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          margin: "15px 0",
-          padding: 0,
-          border: 0,
-          background: "transparent",
-          color: c.text,
-          cursor: "pointer",
-        }}
-      >
-        <span style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span
-            style={{
-              width: 35,
-              height: 35,
-              display: "grid",
-              placeItems: "center",
-              borderRadius: 10,
-              color: preferences.sound ? c.blue : c.muted,
-              background: preferences.sound ? c.blueSoft : c.soft,
-            }}
-          >
-            <Icon name={preferences.sound ? "volume" : "volumeOff"} size={16} />
-          </span>
-
-          <span style={{ textAlign: "start" }}>
-            <span style={{ display: "block", fontSize: 14, fontWeight: 650 }}>
-              {t.timerSound}
-            </span>
-            <span
-              style={{
-                display: "block",
-                color: c.secondary,
-                fontSize: 12,
-                marginTop: 2,
-              }}
-            >
-              {t.timerSoundDescription}
-            </span>
-          </span>
-        </span>
-
-        <span
-          style={{
-            width: 42,
-            height: 24,
-            padding: 3,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: preferences.sound ? "flex-end" : "flex-start",
-            borderRadius: 99,
-            background: preferences.sound ? c.blue : c.borderStrong,
-          }}
-        >
-          <span
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: "50%",
-              background: "#fff",
-            }}
-          />
-        </span>
-      </button>
-
-            <button
-        type="button"
-        onClick={() =>
-          setPreferences((prev) => ({ ...prev, mascotEnabled: prev.mascotEnabled === false ? true : false }))
-        }
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 10,
-          padding: "14px 0",
-          border: 0,
-          background: "transparent",
-          color: c.text,
-          cursor: "pointer",
-          borderBottom: `1px solid ${c.border}`,
-          marginBottom: 18,
-        }}
-      >
-        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span
-            style={{
-              width: 34,
-              height: 34,
-              display: "grid",
-              placeItems: "center",
-              borderRadius: 11,
-              background: c.blueSoft,
-              color: c.blue,
-              flexShrink: 0,
-            }}
-          >
-            <Icon name="user" size={16} />
-          </span>
-
-          <span style={{ textAlign: "start" }}>
-            <span style={{ display: "block", fontSize: 14, fontWeight: 650 }}>
-              {t.mascotToggle}
-            </span>
-            <span
-              style={{
-                display: "block",
-                color: c.secondary,
-                fontSize: 12,
-                marginTop: 2,
-              }}
-            >
-              {t.mascotToggleDescription}
-            </span>
-          </span>
-        </span>
-
-        <span
-          style={{
-            width: 42,
-            height: 24,
-            padding: 3,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: preferences.mascotEnabled === false ? "flex-start" : "flex-end",
-            borderRadius: 99,
-            background: preferences.mascotEnabled === false ? c.borderStrong : c.blue,
-          }}
-        >
-          <span
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: "50%",
-              background: "#fff",
-            }}
-          />
-        </span>
-      </button>
-
-      
-      </div>
-<div
-  style={{
-    maxWidth: 480,
-    margin: "0 auto",
-  }}
->
-  <PrimaryButton
-    onClick={onClose}
-    style={{
-      width: "100%",
-    }}
-  >
-    {t.done}
-  </PrimaryButton>
-</div>
-    </Modal>
-  );
+function SettingsModal({c,t,language,appearance,onClose}) {
+  const [timerSettings,setTimerSettings]=useStoredState(STORAGE.timer,{focus:25,pause:5,sessions:0});
+  const [timerError,setTimerError]=useState('');
+  function changeTimer(patch){
+    try {
+      const next=saveFocusSettings793(localStorage,STORAGE.timer,timerSettings,patch);
+      setTimerSettings(next);setTimerError('');
+      window.dispatchEvent(new CustomEvent('medlearn-storage-update',{detail:{key:STORAGE.timer}}));
+    }catch{setTimerError(language==='en'?'Focus settings could not be saved. Free browser storage space and try again.':language==='ar'?'تعذر حفظ إعدادات التركيز. حاول تحرير مساحة المتصفح.':'Fokusindstillingerne kunne ikke gemmes. Frigør plads i browserlageret og prøv igen.');}
+  }
+  return <Modal c={c} onClose={onClose} size="large" title={t.settings} className="mf791-settings">
+    <Settings793 language={language} appearance={appearance} timerSettings={timerSettings} onTimerChange={changeTimer} timerError={timerError} onClose={onClose}/>
+  </Modal>;
 }
 
 function LanguageModal({ c, t, language, setLanguage, onClose }) {
   return (
-    <Modal c={c} onClose={onClose}>
+    <Modal c={c} onClose={onClose} title={t.chooseLanguage} className="mf791-language">
       <header
         style={{
           display: "flex",
@@ -38569,24 +38042,7 @@ function sharedLectureNoteInitials(name) {
    lazy and is emitted as a build asset instead of being fetched from a CDN.
    ========================================================================== */
 const LECTURE_PDFJS_VERSION = "4.10.38";
-const LECTURE_PDFJS_WORKER_URL = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).toString();
-const loadLecturePdfJs = retryableLoader73(async () => {
-  const module = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  module.GlobalWorkerOptions.workerSrc = LECTURE_PDFJS_WORKER_URL;
-  // The packaged worker is fetched as text and given an explicit JavaScript MIME.
-  // PDF.js keeps ownership of each worker's handshake and destruction; no shared
-  // workerPort survives a document switch. This also validates failed asset loads.
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 20000);
-  try {
-    const response = await fetch(LECTURE_PDFJS_WORKER_URL, { signal: controller.signal });
-    if (!response.ok) throw new Error("PDF worker asset unavailable");
-    const source = await response.text();
-    if (!source.includes("WorkerMessageHandler") || /^\s*</.test(source)) throw new Error("PDF worker asset invalid");
-    module.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
-  } finally { window.clearTimeout(timeout); }
-  return module;
-});
+const loadLecturePdfJs = loadPdfEngine791;
 
 function lecturePdfClamp(value, min, max) {
   return Math.min(max, Math.max(min, Number(value) || min));
@@ -39021,7 +38477,13 @@ function ImageOcclusionEditor70({ imageDataUrl, page, sourceName, language = "da
   );
 }
 
-const LecturePdfViewer = NativePdf751;
+function LecturePdfViewer(props) {
+  return <PdfReader791 {...props} loadPdfJs={loadLecturePdfJs}
+    renderInk={props.workspace ? ink => <LecturePdfInkLayer {...ink} labels={lecturePdfWorkspaceLabels(props.language)} /> : undefined}
+    renderImageEditor={props.onCreateImageCards ? image => <ImageOcclusionEditor70 {...image} sourceName={props.fileName} language={props.language} onCancel={image.onClose} onSave={({masks,mode}) => {
+      props.onCreateImageCards(flashcardCreateOcclusionCards({...props.occlusionContext,sourceName:props.fileName,page:image.page,imageDataUrl:image.imageDataUrl,masks,mode}));image.onClose();
+    }} /> : undefined} />;
+}
 
 function ExamSourcePagePreview({ url, pageNumber = 1, fileName = "Original eksamen", copy, onOpen }) {
   const canvasRef = useRef(null);
@@ -40061,8 +39523,12 @@ function lectureViewportKind(width) {
   return "desktop";
 }
 
-function DocumentWorkspace({ c, language, moduleName, level = null, kind, historyRequest72 = 0, onClose, onLectureChange, onNewNoteFromPage, sourcePageRequest78 = null, onSourcePageHandled78, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
+function DocumentWorkspace({ c, language, moduleName, level = null, kind, historyRequest72 = 0, onClose, onLectureChange, onNewNoteFromPage, onOpenBytePdf, sourcePageRequest78 = null, onSourcePageHandled78, userId = null, isAdmin = false, spacedData = {}, importedQuestions = [], setImportedQuestions = null }) {
   const isLectureLibrary = kind === "lectures";
+  const curriculumNavigation791 = useCurriculumNavigation791(Boolean(sourcePageRequest78?.requestId));
+  useEffect(() => {
+    if (sourcePageRequest78?.requestId) curriculumNavigation791.open();
+  }, [sourcePageRequest78?.requestId, curriculumNavigation791.open]);
   const cacheKey = isLectureLibrary ? "lectures" : "examSets";
   const [documents, setDocuments] = useState(() => [...DOCUMENT_SESSION_CACHE[cacheKey]]);
   const [examCurriculumManagerOpen, setExamCurriculumManagerOpen] = useState(false);
@@ -40083,6 +39549,7 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
   const [lectureNotes, setLectureNotes] = useStoredState(STORAGE.lectureNotes, {});
   const [lectureNoteDraftCache, setLectureNoteDraftCache] = useStoredState(STORAGE.lectureNoteDrafts, {});
   const [lectureNoteDraft, setLectureNoteDraft] = useState(() => lectureNoteEmpty());
+  const [pdfNoteSelection791, setPdfNoteSelection791] = useState(null);
   const [lectureNoteLoadState, setLectureNoteLoadState] = useState("idle");
   const [lectureNoteSaveState, setLectureNoteSaveState] = useState("idle");
   const [lectureNoteSyncMessage, setLectureNoteSyncMessage] = useState("");
@@ -40103,8 +39570,6 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
   const [selectedSharedNoteId, setSelectedSharedNoteId] = useState(null);
   const sharedNoteLoadTokenRef = useRef(0);
   const [lectureProgress, setLectureProgress] = useStoredState(STORAGE.lectureProgress, {});
-  const [lectureFavorites, setLectureFavorites] = useState([]);
-  const [lectureFavoriteStatus, setLectureFavoriteStatus] = useState("idle");
   const [lectureViewerFocus, setLectureViewerFocus] = useState(false);
   const readerNativeFocusRef = useRef(false);
   useEffect(() => {
@@ -40138,7 +39603,6 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
         readerNativeFocusRef.current = true;
       } catch { readerNativeFocusRef.current = false; }
     }
-    setLectureCompactPanel(null);
     setLectureViewerFocus(true);
   }
   const [lectureViewport, setLectureViewport] = useState(() => typeof window === "undefined" ? "desktop" : lectureViewportKind(window.innerWidth));
@@ -40146,6 +39610,13 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
   const lectureCompactViewport = lectureViewport !== "desktop";
   const lecturePhoneViewport = lectureViewport === "phone";
   const [lectureMaterialsOpen, setLectureMaterialsOpen] = useState(false);
+  const lectureToolsRef791 = useRef(null), lectureMoreRef791 = useRef(null), lectureStatusRef791 = useRef(null);
+  useEffect(() => {
+    const close = event => { if (!lectureToolsRef791.current?.contains(event.target)) { setLectureMaterialsOpen(false); if (lectureMoreRef791.current) lectureMoreRef791.current.open = false; if (lectureStatusRef791.current) lectureStatusRef791.current.open = false; } };
+    const escape = event => { if (event.key === "Escape" && (lectureMaterialsOpen || lectureMoreRef791.current?.open || lectureStatusRef791.current?.open)) { event.preventDefault();event.stopPropagation();setLectureMaterialsOpen(false);if (lectureMoreRef791.current) lectureMoreRef791.current.open = false;if (lectureStatusRef791.current) lectureStatusRef791.current.open = false; } };
+    document.addEventListener("pointerdown",close);document.addEventListener("keydown",escape,true);
+    return () => {document.removeEventListener("pointerdown",close);document.removeEventListener("keydown",escape,true);};
+  },[lectureMaterialsOpen]);
   const [slidePageRequest74, setSlidePageRequest74] = useState(null);
   const handledSourcePageRef78 = useRef(null);
   const [slideDocument74, setSlideDocument74] = useState({ materialId: null, page: 1, numPages: 0 });
@@ -41661,13 +41132,14 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
   }
   useEffect(() => {
     if (!sourcePageRequest78?.requestId || handledSourcePageRef78.current === sourcePageRequest78.requestId) return;
+    if(sourcePageRequest78.openOnly && sourcePageRequest78.lectureId===selectedLecture?.id){handledSourcePageRef78.current=sourcePageRequest78.requestId;onSourcePageHandled78?.(sourcePageRequest78.requestId);return;}
     if (sourcePageRequest78.materialId !== activeLectureMaterial?.id) return;
     if (lecturePdfScopeRef.current?.materialId !== sourcePageRequest78.materialId) return;
     if (!(lecturePdfWorkspaceStatus === "ready" || lecturePdfWorkspaceStatus === "local")) return;
     handledSourcePageRef78.current = sourcePageRequest78.requestId;
-    requestSlidePage74(sourcePageRequest78.page);
+    setSlidePageRequest74({...sourcePageRequest78});
     onSourcePageHandled78?.(sourcePageRequest78.requestId);
-  }, [sourcePageRequest78?.requestId, activeLectureMaterial?.id, lecturePdfWorkspaceStatus]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sourcePageRequest78?.requestId, activeLectureMaterial?.id, lecturePdfWorkspaceStatus,selectedLecture?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isLectureLibrary || !activeLectureMaterial?.id || !lectureMaterialUsesPdfWorkspace(lectureMaterialPreviewKind(activeLectureMaterial))) {
@@ -41758,41 +41230,6 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
       });
     return () => { cancelled = true; };
   }, [isLectureLibrary, userId, moduleName, globalContentRefreshKey]);
-
-  useEffect(() => {
-    if (!isLectureLibrary || !moduleName) {
-      setLectureFavorites([]);
-      setLectureFavoriteStatus("idle");
-      return undefined;
-    }
-    const cache = Array.isArray(workspaceState.lectureFavorites?.[moduleName]) ? workspaceState.lectureFavorites[moduleName] : [];
-    setLectureFavorites(cache);
-    if (!userId) {
-      setLectureFavoriteStatus("local");
-      return undefined;
-    }
-    let cancelled = false;
-    setLectureFavoriteStatus("loading");
-    supabase
-      .from("lecture_favorites")
-      .select("lecture_id")
-      .eq("module_name", moduleName)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          setLectureFavoriteStatus("local");
-          return;
-        }
-        const remote = [...new Set((data || []).map((row) => row.lecture_id).filter(Boolean))];
-        setLectureFavorites(remote);
-        setWorkspaceState((current) => ({
-          ...current,
-          lectureFavorites: { ...(current.lectureFavorites || {}), [moduleName]: remote },
-        }));
-        setLectureFavoriteStatus("ready");
-      });
-    return () => { cancelled = true; };
-  }, [isLectureLibrary, userId, moduleName]);
 
   useEffect(() => {
     if (!isLectureLibrary || !activeLectureMaterial?.storage_path) {
@@ -42359,11 +41796,12 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
   const lectureOverviewKey = moduleName || "module";
   const lectureOverviewPreferences = workspaceState.lectureOverview?.[lectureOverviewKey] || {};
   const lectureViewerV2 = workspaceState.lectureViewerV2?.[lectureOverviewKey] || {};
+  const pdfNotesPlacement791 = lectureViewerV2.notesPlacement === "side" ? "side" : "below";
   const lectureLibraryOpen = lectureViewerFocus ? false : lectureViewerV2.libraryOpen !== false;
-  const lectureNotesOpen = lectureViewerFocus ? false : lectureViewerV2.notesOpen !== false;
-  const lectureLibraryVisible = lectureViewerFocus ? false : (lectureCompactViewport ? lectureCompactPanel === "library" : lectureLibraryOpen);
-  const lectureNotesVisible = lectureViewerFocus ? false : (lectureCompactViewport ? lectureCompactPanel === "notes" : lectureNotesOpen);
-  const lectureFilter = lectureOverviewPreferences.filter || "all";
+  const lectureNotesOpen = lectureViewerV2.notesOpen === true;
+  const lectureLibraryVisible = curriculumNavigation791.page === "overview" && !lectureViewerFocus;
+  const lectureNotesVisible = curriculumNavigation791.page === "reader" && (lectureNotesOpen || (lectureCompactViewport && lectureCompactPanel === "notes"));
+  const lectureFilter = lectureOverviewPreferences.filter === "favorites" ? "all" : lectureOverviewPreferences.filter || "all";
   const lectureSort = lectureOverviewPreferences.sort === "date" ? "date" : "number";
   const collapsedLectureGroups = new Set(lectureOverviewPreferences.collapsedGroups || []);
   const mergedLectureCalendarEvents = isLectureLibrary
@@ -42371,7 +41809,6 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
     : [];
   const lectureScheduleEventIndex = calendarLectureScheduleIndex(moduleName, mergedLectureCalendarEvents);
   const lectureMaterialCounts = lectureMaterialCountIndex(lectureMaterials);
-  const lectureFavoriteSet = new Set(lectureFavorites);
   const lectureRows = lectures.map((lecture) => {
     const progressState = getLectureProgress(lecture.id);
     const selfStudyStatus = lectureSelfStudyStatus(progressState);
@@ -42382,7 +41819,6 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
     const timelineTone = lectureTimelineTone(schedule, selfStudyStatus);
     const materialCount = lectureMaterialCounts.get(lecture.id) || 0;
     const hasPdf = materialCount > 0;
-    const favorite = lectureFavoriteSet.has(lecture.id);
     const localFollowUp = lectureFollowUpState(progressState);
     const plannedFollowUp = studyPlans[moduleName]?.followUps?.[lecture.id] || null;
     const followUp = localFollowUp.active || !plannedFollowUp
@@ -42394,18 +41830,18 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
           updatedAt: Number(plannedFollowUp.updatedAt) || 0,
           sentToStudyPlanAt: Number(plannedFollowUp.sentAt) || Number(plannedFollowUp.updatedAt) || 0,
         };
-    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, timelineTone, hasPdf, materialCount, favorite, followUp };
+    return { lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, schedule, scheduleView, timelineTone, hasPdf, materialCount, followUp };
   });
+  const lectureKindRows = lectureRows.filter(row => contentKind79(row.lecture) === contentKindFilter79);
   const lectureFilterCounts = {
-    all: lectureRows.length,
-    favorites: lectureRows.filter((row) => row.favorite).length,
-    upcoming: lectureRows.filter((row) => row.scheduleView.key === "upcoming").length,
-    held: lectureRows.filter((row) => row.scheduleView.key === "held").length,
-    reviewed: lectureRows.filter((row) => row.selfStudyStatus === "reviewed").length,
-    notReviewed: lectureRows.filter((row) => row.selfStudyStatus !== "reviewed").length,
-    selfStudy: lectureRows.filter((row) => row.selfStudyStatus !== "not-started").length,
-    missingMaterial: lectureRows.filter((row) => !row.hasPdf).length,
-    followUp: lectureRows.filter((row) => row.followUp.active).length,
+    all: lectureKindRows.length,
+    upcoming: lectureKindRows.filter((row) => row.scheduleView.key === "upcoming").length,
+    held: lectureKindRows.filter((row) => row.scheduleView.key === "held").length,
+    reviewed: lectureKindRows.filter((row) => row.selfStudyStatus === "reviewed").length,
+    notReviewed: lectureKindRows.filter((row) => row.selfStudyStatus !== "reviewed").length,
+    selfStudy: lectureKindRows.filter((row) => row.selfStudyStatus !== "not-started").length,
+    missingMaterial: lectureKindRows.filter((row) => !row.hasPdf).length,
+    followUp: lectureKindRows.filter((row) => row.followUp.active).length,
   };
   const lectureModuleOverviewItems = [
     { id: "held", label: copy.moduleOverviewHeld, value: lectureFilterCounts.held, icon: "clock", tone: "held", title: copy.moduleOverviewHeld },
@@ -42415,7 +41851,7 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
   ];
   const lectureFilters = [
     { id: "all", label: copy.filterAll },
-    { id: "favorites", label: copy.filterFavorites },
+    { id: "reviewed", label: copy.moduleOverviewSelfStudy },
     { id: "upcoming", label: copy.filterUpcoming },
     { id: "held", label: copy.filterHeld },
     { id: "notReviewed", label: copy.filterNotReviewed },
@@ -42423,11 +41859,9 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
     { id: "missingMaterial", label: copy.filterMissingMaterial },
     { id: "followUp", label: copy.filterFollowUp },
   ];
-  const filteredLectureRows = lectureRows.filter((row) => {
-    if (contentKind79(row.lecture) !== contentKindFilter79) return false;
+  const filteredLectureRows = lectureKindRows.filter((row) => {
     const matchesQuery = `${row.lecture.id} ${row.lecture.title} ${row.lecture.group}`.toLowerCase().includes(normalizedQuery);
     if (!matchesQuery) return false;
-    if (lectureFilter === "favorites") return row.favorite;
     if (lectureFilter === "upcoming") return row.scheduleView.key === "upcoming";
     if (lectureFilter === "held") return row.scheduleView.key === "held";
     if (lectureFilter === "reviewed") return row.selfStudyStatus === "reviewed";
@@ -42470,9 +41904,6 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
   const nextLecture = selectedLectureIndex >= 0 && selectedLectureIndex < lectures.length - 1
     ? lectures[selectedLectureIndex + 1]
     : null;
-  const selectedLectureFavorite = Boolean(selectedLecture?.id && lectureFavorites.includes(selectedLecture.id));
-  const previousFavoriteLecture = lectureFavoriteNeighbor(lectures, lectureFavorites, selectedLecture?.id, -1);
-  const nextFavoriteLecture = lectureFavoriteNeighbor(lectures, lectureFavorites, selectedLecture?.id, 1);
   const activeLectureViewerState = activeLectureMaterial?.id ? (workspaceState.documentViewer?.[activeLectureMaterial.id] || {}) : {};
 
   useEffect(() => {
@@ -42492,32 +41923,27 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
         if (lectureCompactViewport) setLectureCompactPanel("library");
         else updateLectureViewerV2({ libraryOpen: true });
         window.requestAnimationFrame(() => lectureSearchRef.current?.focus());
-      } else if (event.key === "Escape" && lectureCompactViewport && lectureCompactPanel) {
+      } else if (event.key === "Escape" && lectureCompactViewport && (lectureCompactPanel || lectureNotesVisible)) {
         event.preventDefault();
         setLectureCompactPanel(null);
+        if (lectureNotesVisible) updateLectureViewerV2({notesOpen:false});
       } else if (event.key === "Escape" && lectureViewerFocus) {
         event.preventDefault();
         void toggleLectureFocus();
       } else if (event.key === "Escape" && query) {
         event.preventDefault();
         setQuery("");
-      } else if (event.altKey && event.key === "[" && previousFavoriteLecture) {
-        event.preventDefault();
-        selectAdjacentLecture(previousFavoriteLecture);
-      } else if (event.altKey && event.key === "]" && nextFavoriteLecture) {
-        event.preventDefault();
-        selectAdjacentLecture(nextFavoriteLecture);
-      } else if (event.key === "[" && previousLecture) {
+      } else if (!event.altKey && event.key === "[" && previousLecture) {
         event.preventDefault();
         selectAdjacentLecture(previousLecture);
-      } else if (event.key === "]" && nextLecture) {
+      } else if (!event.altKey && event.key === "]" && nextLecture) {
         event.preventDefault();
         selectAdjacentLecture(nextLecture);
       }
     };
     window.addEventListener("keydown", handleLectureViewerKeys);
     return () => window.removeEventListener("keydown", handleLectureViewerKeys);
-  }, [isLectureLibrary, lectureViewerFocus, lectureCompactViewport, lectureCompactPanel, query, previousLecture?.id, nextLecture?.id, previousFavoriteLecture?.id, nextFavoriteLecture?.id]);
+  }, [isLectureLibrary, lectureViewerFocus, lectureCompactViewport, lectureCompactPanel, lectureNotesVisible, query, previousLecture?.id, nextLecture?.id]);
   const moduleSduEvents = isLectureLibrary
     ? mergedLectureCalendarEvents
         .filter((event) => calendarIsSduScheduleEvent(event) && (!event.planModuleId || event.planModuleId === moduleName) && !event.cancelled)
@@ -42739,9 +42165,10 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
     persistLectureNoteSnapshot(scope, lectureNoteDraftRef.current, lectureNoteRevisionRef.current, { background: true });
   }
 
-  function selectLecture(lecture) {
+  function selectLecture(lecture, event = null, openReader = true) {
     setSduMatchDialogOpen(false);
     if (!lecture) return;
+    if (openReader) curriculumNavigation791.open(event?.currentTarget);
     flushCurrentLectureNote();
     setFollowUpEditorOpen(false);
     setFollowUpMessage("");
@@ -42814,24 +42241,20 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
     }
   }
 
-  async function publishCurrentLectureNote() {
+  async function publishCurrentLectureNote(pageNote) {
     if (!selectedLecture || !userId || !moduleName) return;
-    const snapshot = lectureNoteNormalize(lectureNoteDraftRef.current);
-    if (!lectureNoteHasContent(snapshot)) {
+    const snapshot = pageNoteShare792(pageNote, slideMaterialId74, language);
+    if (!snapshot) {
       setSharedNoteActionState("error");
       setSharedNoteMessage(copy.sharedNoContent);
       return;
     }
+    const wasAlreadyShared = Boolean(ownSharedNote);
+    if (wasAlreadyShared && !window.confirm(language === "en" ? "Replace your shared lecture note with this page note? Your private notes remain unchanged." : "Erstat din delte forelæsningsnote med denne sidenote? Dine private noter ændres ikke.")) return;
     setSharedNoteActionState("saving");
     setSharedNoteMessage(copy.sharedPublishing);
-    window.clearTimeout(lectureNoteSaveTimerRef.current);
-    const scope = lectureNoteScopeRef.current;
-    if (lectureNoteDirtyRef.current && scope?.key === noteKey) {
-      await persistLectureNoteSnapshot(scope, snapshot, lectureNoteRevisionRef.current, { background: true });
-    }
-    const wasAlreadyShared = Boolean(ownSharedNote);
     try {
-      const { error } = await supabase.rpc("medfluen_publish_lecture_note", {
+      const { data, error } = await supabase.rpc("medfluen_publish_lecture_note", {
         p_module_name: moduleName,
         p_lecture_id: selectedLecture.id,
         p_author_name: sharedAuthorName,
@@ -42843,6 +42266,7 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
         p_source_note_updated_at: snapshot.updatedAt || new Date().toISOString(),
       });
       if (error) throw error;
+      if (data === false) throw new Error("Publication was not confirmed");
       await refreshSharedLectureNotes({ silent: true, resetSelection: true, keepMessage: true });
       setSharedNoteActionState("success");
       setSharedNoteMessage(wasAlreadyShared ? copy.sharedUpdateSuccess : copy.sharedPublishSuccess);
@@ -42893,15 +42317,32 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
 
   function handleLecturePanelToggle(panel) {
     if (panel !== "library" && panel !== "notes") return;
-    if (lectureViewerFocus) void toggleLectureFocus();
+    if (panel === "library") {
+      flushCurrentLectureNote();
+      setLectureMaterialsOpen(false);
+      setFollowUpEditorOpen(false);
+      if (lectureViewerFocus) void toggleLectureFocus();
+      curriculumNavigation791.back();
+      return;
+    }
     if (lectureCompactViewport) {
-      setLectureCompactPanel((current) => current === panel ? null : panel);
+      const nextOpen = !lectureNotesVisible;
+      setLectureCompactPanel(nextOpen ? "notes" : null);
+      updateLectureViewerV2({notesOpen: nextOpen});
       return;
     }
     if (panel === "library") updateLectureViewerV2({ libraryOpen: !lectureLibraryOpen });
     else updateLectureViewerV2({ notesOpen: !lectureNotesOpen });
   }
 
+  function openPdfNotes791(selection) {
+    if (!selection?.text) { handleLecturePanelToggle("notes"); return; }
+    setNoteMode("own");
+    setPdfNoteSelection791({...selection,owner:userId||"anonymous",materialId:slideMaterialId74,requestId:Date.now()});
+    requestSlidePage74(selection.page);
+    if (lectureCompactViewport) setLectureCompactPanel("notes");
+    updateLectureViewerV2({notesOpen:true});
+  }
   function updateLectureViewerV2(patch) {
     setWorkspaceState((current) => ({
       ...current,
@@ -42910,37 +42351,6 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
         [lectureOverviewKey]: { ...(current.lectureViewerV2?.[lectureOverviewKey] || {}), ...patch },
       },
     }));
-  }
-
-  async function toggleLectureFavorite(lectureId) {
-    if (!lectureId || !moduleName) return;
-    const wasFavorite = lectureFavorites.includes(lectureId);
-    const previous = [...lectureFavorites];
-    const next = wasFavorite ? previous.filter((id) => id !== lectureId) : [...new Set([...previous, lectureId])];
-    setLectureFavorites(next);
-    setWorkspaceState((current) => ({
-      ...current,
-      lectureFavorites: { ...(current.lectureFavorites || {}), [moduleName]: next },
-    }));
-    if (!userId) {
-      setLectureFavoriteStatus("local");
-      return;
-    }
-    setLectureFavoriteStatus("saving");
-    try {
-      const result = wasFavorite
-        ? await supabase.from("lecture_favorites").delete().eq("user_id", userId).eq("module_name", moduleName).eq("lecture_id", lectureId)
-        : await supabase.from("lecture_favorites").insert({ user_id: userId, module_name: moduleName, lecture_id: lectureId });
-      if (result.error) throw result.error;
-      setLectureFavoriteStatus("ready");
-    } catch {
-      setLectureFavorites(previous);
-      setWorkspaceState((current) => ({
-        ...current,
-        lectureFavorites: { ...(current.lectureFavorites || {}), [moduleName]: previous },
-      }));
-      setLectureFavoriteStatus("local");
-    }
   }
 
   function toggleLectureGroup(group) {
@@ -43315,12 +42725,12 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
     });
   }
 
-  function cycleLectureSelfStudy(lectureId) {
+  function cycleLectureSelfStudy(lectureId, requested) {
     const key = lectureProgressKey(lectureId);
     const previous = getLectureProgress(lectureId);
     const previousReviewed = lectureSelfStudyIsReviewed(previous);
     const currentIndex = LECTURE_SELF_STUDY_STATES.indexOf(lectureSelfStudyStatus(previous));
-    const selfStudyStatus = LECTURE_SELF_STUDY_STATES[(currentIndex + 1) % LECTURE_SELF_STUDY_STATES.length];
+    const selfStudyStatus = LECTURE_SELF_STUDY_STATES.includes(requested) ? requested : LECTURE_SELF_STUDY_STATES[(currentIndex + 1) % LECTURE_SELF_STUDY_STATES.length];
     const reviewed = selfStudyStatus === "reviewed";
 
     setLectureProgress((current) => ({
@@ -43337,22 +42747,22 @@ function DocumentWorkspace({ c, language, moduleName, level = null, kind, histor
     if (reviewed !== previousReviewed) syncLectureCompletion(lectureId, reviewed);
   }
 
-  function cycleLectureAttendance(lectureId) {
+  function cycleLectureAttendance(lectureId, requested) {
     const key = lectureProgressKey(lectureId);
     setLectureProgress((current) => {
       const previous = current[key] || { viewed: false, selfStudyStatus: "not-started", attendance: "unmarked", mastery: "unrated" };
       const currentIndex = LECTURE_ATTENDANCE_STATES.indexOf(lectureAttendanceStatus(previous));
-      const attendance = LECTURE_ATTENDANCE_STATES[(currentIndex + 1) % LECTURE_ATTENDANCE_STATES.length];
+      const attendance = LECTURE_ATTENDANCE_STATES.includes(requested) ? requested : LECTURE_ATTENDANCE_STATES[(currentIndex + 1) % LECTURE_ATTENDANCE_STATES.length];
       return { ...current, [key]: { ...previous, attendance, attendanceUpdatedAt: Date.now() } };
     });
   }
 
-  function cycleLectureMastery(lectureId) {
+  function cycleLectureMastery(lectureId, requested) {
     const key = lectureProgressKey(lectureId);
     setLectureProgress((current) => {
       const previous = current[key] || { viewed: false, selfStudyStatus: "not-started", attendance: "unmarked", mastery: "unrated" };
       const currentIndex = masteryOrder.indexOf(previous.mastery || "unrated");
-      const mastery = masteryOrder[(currentIndex + 1) % masteryOrder.length];
+      const mastery = masteryOrder.includes(requested) ? requested : masteryOrder[(currentIndex + 1) % masteryOrder.length];
       return { ...current, [key]: { ...previous, mastery, masteryUpdatedAt: Date.now() } };
     });
   }
@@ -44618,7 +44028,6 @@ async function openExamSetPdfEditor() {
   }
 
   const title = isLectureLibrary ? copy.lectures : copy.examSets;
-  const subtitle = isLectureLibrary ? copy.lectureSubtitle : copy.examSubtitle;
   const examSimulationForSelected = Boolean(examSimulation.id && examSimulation.examSetId === selectedExamDocument?.id);
   const examSimulationActive = Boolean(examSimulationForSelected && examSimulation.status === "active");
   const examSimulationSubmitted = Boolean(examSimulationForSelected && examSimulation.status === "submitted");
@@ -44638,41 +44047,43 @@ async function openExamSetPdfEditor() {
   return (
     <div
       className={`document-workspace ${isLectureLibrary ? "lecture-viewer-v2 lecture-viewer-shell-revamp" : ""}`}
+      data-kind={kind}
       data-focus={lectureViewerFocus ? "true" : "false"}
+      data-curriculum-page={isLectureLibrary ? curriculumNavigation791.page : undefined}
       data-library={lectureLibraryVisible ? "true" : "false"}
       data-notes={lectureNotesVisible ? "true" : "false"}
+      data-notes-position={pdfNotesPlacement791}
       data-viewport={isLectureLibrary ? lectureViewport : "desktop"}
       data-compact-panel={isLectureLibrary ? (lectureCompactPanel || "none") : "none"}
       data-phone={isLectureLibrary && lecturePhoneViewport ? "true" : "false"}
       dir={language === "ar" ? "rtl" : "ltr"}
     >
       <header className="document-workspace-header">
-        <div className="document-workspace-title-block">
+        {isLectureLibrary ? <CurriculumHeading791 page={curriculumNavigation791.page} headingRef={curriculumNavigation791.headingRef} onBack={() => handleLecturePanelToggle("library")} lecture={selectedLecture} moduleName={moduleName} language={language} /> : <div className="document-workspace-title-block">
           <span className="document-workspace-mark"><Icon name={isLectureLibrary ? "book" : "cards"} size={18} /></span>
-          <span><strong>{title}</strong><small>{subtitle}</small></span>
-        </div>
+          <span><strong>{title}</strong></span>
+        </div>}
         <div className="document-workspace-header-actions">
           <input ref={uploadRef} type="file" accept={isLectureLibrary ? LECTURE_MATERIAL_ACCEPT : "application/pdf,.pdf"} multiple={isLectureLibrary} onChange={handleUpload} hidden />
           {!isLectureLibrary && <input ref={answerUploadRef} type="file" accept="application/pdf,.pdf" onChange={handleExamSetAnswerFile} hidden />}
           {isLectureLibrary && <input ref={replaceUploadRef} type="file" accept={LECTURE_MATERIAL_ACCEPT} onChange={replaceLectureMaterialFile} hidden />}
-          {isLectureLibrary && (
+          {isLectureLibrary && curriculumNavigation791.page === "reader" && (
             <div className="lecture-viewer-v2-header-tools" role="group" aria-label={copy.lectureHeader}>
-              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureLibraryVisible ? "true" : "false"} title={copy.viewerLibrary} aria-label={copy.viewerLibrary} aria-expanded={lectureLibraryVisible} onClick={() => handleLecturePanelToggle("library")}><Icon name="list" size={13} /><span>{copy.viewerLibrary}</span></button>
-              <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureNotesVisible ? "true" : "false"} title={copy.viewerNotes} aria-label={copy.viewerNotes} aria-expanded={lectureNotesVisible} onClick={() => handleLecturePanelToggle("notes")}><Icon name="notebook" size={13} /><span>{copy.viewerNotes}</span></button>
+
               <button type="button" className="lecture-viewer-v2-panel-toggle" data-active={lectureViewerFocus ? "true" : "false"} title={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} aria-label={lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus} onClick={toggleLectureFocus}><Icon name="expand" size={13} /><span>{lectureViewerFocus ? copy.viewerExitFocus : copy.viewerFocus}</span></button>
             </div>
           )}
-          <button type="button" className="ui-button ui-button--secondary document-upload-button" onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary ? (!selectedLecture || materialSaving) : examSetSaving}>
-            <Icon name="upload" size={14} />{isLectureLibrary ? copy.addMaterial : copy.upload}
+          <button type="button" className={`ui-button ui-button--secondary document-upload-button${!isLectureLibrary ? " mf792-exam-add" : ""}`} onClick={() => uploadRef.current?.click()} disabled={isLectureLibrary ? (!selectedLecture || materialSaving) : examSetSaving}>
+            <Icon name={isLectureLibrary ? "upload" : "plus"} size={14} />{isLectureLibrary ? copy.addMaterial : copy.upload}
           </button>
           <IconButton c={c} title={copy.close} onClick={handleDocumentWorkspaceClose} style={{ border: `1px solid ${c.border}`, background: c.soft }}><Icon name="close" size={16} /></IconButton>
         </div>
       </header>
 
       <div className={`document-workspace-grid ${isLectureLibrary ? "document-workspace-grid--notes" : ""}`}>
-        {isLectureLibrary && lectureCompactViewport && lectureCompactPanel && <button type="button" className="lecture-compact-backdrop" aria-label={copy.close} onClick={() => setLectureCompactPanel(null)} />}
-        <aside className="document-library-panel">
-          {isLectureLibrary && <Curriculum79Tabs kind={contentKindFilter79} level={level} moduleLevel={moduleLevel79} language={language} onChange={value => { setContentKindFilter79(value); const first = lectures.find(lecture => contentKind79(lecture) === value); if (first) selectLecture(first); }} />}
+        {isLectureLibrary && lectureCompactViewport && lectureCompactPanel === "library" && <button type="button" className="lecture-compact-backdrop" aria-label={copy.close} onClick={() => setLectureCompactPanel(null)} />}
+        <aside className="document-library-panel" hidden={isLectureLibrary && curriculumNavigation791.page !== "overview"}>
+          {isLectureLibrary && <Curriculum79Tabs kind={contentKindFilter79} level={level} moduleLevel={moduleLevel79} language={language} onChange={value => { setContentKindFilter79(value); const first = lectures.find(lecture => contentKind79(lecture) === value); if (first) selectLecture(first, null, false); }} />}
           {isLectureLibrary && selectedLecture && contentKind79(selectedLecture) === "tbl" && level !== "Kandidat" && moduleLevel79 !== "Kandidat" && <div className="mf79-kind-direct" role="note">{language === "en" ? "This TBL is available through your direct link, but TBL is normally shown for graduate modules." : language === "ar" ? "هذا المحتوى متاح من الرابط المباشر، لكنه يظهر عادة في وحدات الدراسات العليا." : "Dette TBL-dokument kan åbnes via dit direkte link. TBL vises normalt kun for kandidatmoduler."}</div>}
           {isLectureLibrary && isAdmin && <div className="mf751-library-actions">
             <button type="button" onClick={() => setCatalogEditor751Open(true)}>{language === "en" ? "Edit lectures" : "Redigér forelæsninger"}</button>
@@ -44681,56 +44092,8 @@ async function openExamSetPdfEditor() {
           {isLectureLibrary && isAdmin && catalogEditor751Open && <CatalogEditor751 key={moduleName} store={lectureCatalog751} client={supabase} moduleName={moduleName} userId={userId} isAdmin={isAdmin} language={language} onClose={() => setCatalogEditor751Open(false)} />}
           <label className="document-search-box"><Icon name="search" size={14} /><input ref={isLectureLibrary ? lectureSearchRef : undefined} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={isLectureLibrary ? copy.searchLectures : copy.searchExamSets} aria-keyshortcuts={isLectureLibrary ? "/" : undefined} />{isLectureLibrary && <kbd className="document-search-shortcut" title={copy.viewerSearchShortcut}>/</kbd>}</label>
           {!isLectureLibrary && <label className="lecture-material-field" style={{ margin: "0 12px 12px" }}><span>{examAnswerLabels75.heading}</span><select value={examAnswerFilter75} onChange={event => setExamAnswerFilter75(event.target.value)}>{["all", "with", "without"].map(value => <option key={value} value={value}>{examAnswerLabels75[value]}</option>)}</select></label>}
-          {isLectureLibrary && (
-            <div className="lecture-overview-controls">
-              <div className="lecture-module-overview-wrap">
-                <span className="lecture-module-overview-label">{copy.moduleOverview}</span>
-                <div className="lecture-module-overview" role="group" aria-label={copy.moduleOverview}>
-                  {lectureModuleOverviewItems.map((item) => {
-                    const active = lectureFilter === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        data-active={active ? "true" : "false"}
-                        data-tone={item.tone}
-                        aria-pressed={active}
-                        title={`${item.title}: ${item.value}/${lectureRows.length}`}
-                        onClick={() => selectLectureFilter(active ? "all" : item.id)}
-                      >
-                        <span className="lecture-module-overview-icon"><Icon name={item.icon} size={11} /></span>
-                        <strong className="lecture-module-overview-value">{item.value}</strong>
-                        <span className="lecture-module-overview-copy">{item.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="lecture-filter-strip" role="tablist" aria-label={copy.lectureOverview}>
-                {lectureFilters.map((filter) => (
-                  <button
-                    key={filter.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={lectureFilter === filter.id}
-                    data-active={lectureFilter === filter.id ? "true" : "false"}
-                    onClick={() => selectLectureFilter(filter.id)}
-                  >
-                    <span>{filter.label}</span>
-                    <strong>{lectureFilterCounts[filter.id]}</strong>
-                  </button>
-                ))}
-              </div>
-              <label className="lecture-sort-control" title={copy.sortLecturesLabel}>
-                <Icon name="list" size={10} />
-                <select aria-label={copy.sortLecturesLabel} value={lectureSort} onChange={(event) => updateLectureOverviewPreferences({ sort: event.target.value })}>
-                  <option value="number">{language === "en" ? "Lecture order" : "Forelæsningsrækkefølge"}</option>
-                  <option value="date">{copy.sortLecturesDate}</option>
-                </select>
-              </label>
-              <div className="lecture-overview-result-count">{copy.showingLectures(filteredLectureRows.length, lectureRows.length)}</div>
-            </div>
-          )}
+          {isLectureLibrary && <CurriculumProgress791 rows={lectureRows} kind={contentKindFilter79} language={language}/>}
+          {isLectureLibrary && <CurriculumFilters791 simple language={language} filters={lectureFilters} counts={lectureFilterCounts} filter={lectureFilter} onFilter={selectLectureFilter} sort={lectureSort} onSort={sort => updateLectureOverviewPreferences({sort})} shown={filteredLectureRows.length} total={lectureKindRows.length} />}
           <div className={`document-library-list ${isLectureLibrary ? "lecture-overview-list" : ""}`}>
             {isLectureLibrary ? (
               groupedLectureRows.length ? groupedLectureRows.map(({ group, rows, total }) => {
@@ -44750,7 +44113,7 @@ async function openExamSetPdfEditor() {
                     </button>
                     {!collapsed && (
                       <div className="lecture-group-rows">
-                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, timelineTone, hasPdf, materialCount, favorite, followUp }) => {
+                        {rows.map(({ lecture, progressState, selfStudyStatus, attendanceStatus, deckStudy, scheduleView, timelineTone, hasPdf, materialCount, followUp }) => {
                           const selected = lecture.id === selectedLecture?.id;
                           const mastery = masteryDefinition(progressState.mastery);
                           const attendance = attendanceDefinition(attendanceStatus);
@@ -44764,11 +44127,12 @@ async function openExamSetPdfEditor() {
                               data-schedule={timelineTone}
                               style={{ "--lecture-tone": mastery.color }}
                             >
-                              <button type="button" className="document-library-main" onClick={() => selectLecture(lecture)}>
+                              <button type="button" className="document-library-main" onClick={event => selectLecture(lecture, event)}>
                                 <span className="document-library-code">{lecture.id}</span>
                                 <span className="document-library-copy">
                                   <strong>{lecture.title}</strong>
-                                  <small className="lecture-row-meta">
+                                  <small className="mf791-lecture-resource-meta">{materialCount > 0 ? (language === "en" ? `${materialCount} material${materialCount === 1 ? "" : "s"}` : language === "ar" ? `${materialCount} مواد` : `${materialCount} materiale${materialCount === 1 ? "" : "r"}`) : (language === "en" ? "Add your material" : language === "ar" ? "أضف موادك" : "Tilføj dit materiale")}{selfStudyStatus === "reviewed" && <span> · {selfStudy.label}</span>}</small>
+                                  <small className="lecture-row-meta" data-schedule-key={scheduleView.key}>
                                     <span className="lecture-schedule-state" data-state={timelineTone} title={scheduleView.detail || scheduleView.label}>
                                       <i />{scheduleView.label}
                                     </span>
@@ -44782,8 +44146,8 @@ async function openExamSetPdfEditor() {
                                   </small>
                                 </span>
                               </button>
+                              <LectureProgress791 selfStudyStatus={selfStudyStatus} attendanceStatus={attendanceStatus} language={language} lectureId={lecture.id} onChange={value=>cycleLectureSelfStudy(lecture.id,value)}/>
                               <div className="lecture-progress-actions">
-                                <button type="button" className="lecture-favorite-toggle" data-active={favorite ? "true" : "false"} title={favorite ? copy.unfavoriteLecture : copy.favoriteLecture} aria-label={favorite ? copy.unfavoriteLecture : copy.favoriteLecture} onClick={() => toggleLectureFavorite(lecture.id)}><Icon name="star" size={11} /></button>
                                 <button type="button" className="lecture-status-toggle" data-tone={attendance.tone} title={`${copy.attendance}: ${attendance.label}`} aria-label={`${copy.attendance}: ${attendance.label}`} onClick={() => cycleLectureAttendance(lecture.id)}><Icon name={attendance.icon} size={11} /></button>
                                 <button type="button" className="lecture-status-toggle" data-tone={selfStudy.tone} title={`${copy.selfStudyStatus}: ${selfStudy.label}`} aria-label={`${copy.selfStudyStatus}: ${selfStudy.label}`} onClick={() => cycleLectureSelfStudy(lecture.id)}><Icon name={selfStudy.icon} size={11} /></button>
                                 <button type="button" className="lecture-mastery-toggle" title={`${copy.mastery}: ${mastery.label}`} aria-label={`${copy.mastery}: ${mastery.label}`} onClick={() => cycleLectureMastery(lecture.id)}><span style={{ background: mastery.color }} /></button>
@@ -44810,10 +44174,10 @@ async function openExamSetPdfEditor() {
               )) : <div className="document-library-empty">{examSetStatus.state === "error" ? examSetStatus.message : copy.noExamSets}</div>
             )}
           </div>
-          <div className="document-session-note">{isLectureLibrary ? copy.materialPermanent : copy.examSetPermanent}</div>
+          {isLectureLibrary && <div className="document-session-note">{copy.materialPermanent}</div>}
         </aside>
 
-        {isLectureLibrary && selectedLecture && selectedLectureRow && (
+        {isLectureLibrary && curriculumNavigation791.page === "reader" && selectedLecture && selectedLectureRow && (
           <section className="lecture-detail-header" aria-label={copy.lectureHeader}>
             <div className="lecture-detail-heading">
               <span className="lecture-detail-code">{selectedLecture.id}</span>
@@ -44821,9 +44185,9 @@ async function openExamSetPdfEditor() {
                 <small>{selectedLecture.group}</small>
                 <strong title={selectedLecture.title}>{selectedLecture.title}</strong>
                 <div className="lecture-detail-meta">
-                  <span className="lecture-detail-schedule-state" data-state={selectedLectureRow.timelineTone}>
+                  {selectedScheduleEvents.length > 0 && <span className="lecture-detail-schedule-state" data-state={selectedLectureRow.timelineTone}>
                     <i />{selectedLectureRow.scheduleView.label}
-                  </span>
+                  </span>}
                   {(selectedScheduleDate || selectedScheduleTime) && (
                     <span><Icon name="calendar" size={10} />{[selectedScheduleDate, selectedScheduleTime].filter(Boolean).join(" · ")}</span>
                   )}
@@ -44855,16 +44219,24 @@ async function openExamSetPdfEditor() {
               </div>
             </div>
 
-            <div className="lecture-detail-tools lecture-detail-tools--minimal">
+            <div ref={lectureToolsRef791} className="lecture-detail-tools lecture-detail-tools--minimal">
               <button type="button" className="lecture-focus-exit" onClick={toggleLectureFocus} title={copy.viewerExitFocus} aria-label={copy.viewerExitFocus}><Icon name="collapse" size={12} /><span>{copy.viewerExitFocus}</span></button>
-              <button type="button" className="lecture-favorite-toggle lecture-favorite-toggle--header" data-active={selectedLectureFavorite ? "true" : "false"} title={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} aria-label={selectedLectureFavorite ? copy.unfavoriteLecture : copy.favoriteLecture} onClick={() => toggleLectureFavorite(selectedLecture.id)}><Icon name="star" size={13} /></button>
+              <details ref={lectureStatusRef791} className="annotation791-status-menu" onToggle={event=>{if(event.currentTarget.open){setLectureMaterialsOpen(false);if(lectureMoreRef791.current)lectureMoreRef791.current.open=false;}}}>
+                <summary aria-label={language==='en'?'Lecture progress':language==='ar'?'تقدم المحاضرة':'Forelæsningsstatus'}><Icon name="check" size={13}/><span>{language==='en'?'Status':language==='ar'?'الحالة':'Status'}</span></summary>
+                <div className="annotation791-status-popover"><header><strong>{selectedLecture.id} · {language==='en'?'Your progress':'Din fremgang'}</strong><button type="button" aria-label={copy.close} onClick={()=>{if(lectureStatusRef791.current)lectureStatusRef791.current.open=false;}}><Icon name="close" size={15}/></button></header>
+                  <LectureStatus791 label={copy.attendance} value={getLectureProgress(selectedLecture.id).attendance} options={LECTURE_ATTENDANCE_STATES.map(id=>({id,label:attendanceDefinition(id).label}))} onChange={value=>cycleLectureAttendance(selectedLecture.id,value)}/>
+                  <LectureStatus791 label={copy.selfStudyStatus} value={getLectureProgress(selectedLecture.id).selfStudyStatus} options={LECTURE_SELF_STUDY_STATES.map(id=>({id,label:selfStudyDefinition(id).label}))} onChange={value=>cycleLectureSelfStudy(selectedLecture.id,value)}/>
+                  <LectureStatus791 label={copy.mastery} value={getLectureProgress(selectedLecture.id).mastery} options={masteryOrder.map(id=>({id,label:masteryDefinition(id).label}))} onChange={value=>cycleLectureMastery(selectedLecture.id,value)}/>
+                  <button type="button" className="annotation791-followup" onClick={()=>{if(lectureStatusRef791.current)lectureStatusRef791.current.open=false;openLectureFollowUpEditor();}}><Icon name="flag" size={13}/>{copy.followUp}</button>
+                </div>
+              </details>
               <div className="lecture-material-compact-control">
                 <button
                   type="button"
                   className="lecture-material-menu-trigger"
                   data-active={lectureMaterialsOpen ? "true" : "false"}
                   aria-expanded={lectureMaterialsOpen ? "true" : "false"}
-                  onClick={() => setLectureMaterialsOpen((value) => !value)}
+                  onClick={() => { if (lectureMoreRef791.current) lectureMoreRef791.current.open = false;if(lectureStatusRef791.current)lectureStatusRef791.current.open=false; setLectureMaterialsOpen((value) => !value); }}
                   title={copy.viewerMaterials}
                 >
                   <Icon name="folder" size={12} />
@@ -44892,7 +44264,7 @@ async function openExamSetPdfEditor() {
                             onClick={() => { selectLectureMaterial(material.id); setLectureMaterialsOpen(false); }}
                             title={`${material.file_name} · ${lectureMaterialFormatBytes(material.size_bytes)}`}
                           >
-                            <span><Icon name={material.is_primary ? "star" : "file"} size={11} /></span>
+                            <span><Icon name="file" size={11} /></span>
                             <span><strong>{material.file_name}</strong><small>{material.visibility === "global" ? copy.materialGlobalLabel : copy.materialPrivateLabel} · {materialTypeLabel(material.material_type)} · {lectureMaterialFormatBytes(material.size_bytes)}</small></span>
                             {material.id === activeLectureMaterial?.id && <Icon name="check" size={11} />}
                           </button>
@@ -44908,14 +44280,14 @@ async function openExamSetPdfEditor() {
                 </div>
               </div>
 
-              <details className="lecture-detail-more-menu">
+              <details ref={lectureMoreRef791} className="lecture-detail-more-menu" onToggle={event => { if (event.currentTarget.open) {setLectureMaterialsOpen(false);if(lectureStatusRef791.current)lectureStatusRef791.current.open=false;} }}>
                 <summary title={copy.viewerMore} aria-label={copy.viewerMore}><Icon name="more" size={13} /></summary>
                 <div className="lecture-detail-more-popover">
                   {activeLectureMaterial && (
                     <div className="lecture-detail-more-section lecture-detail-more-section--material">
                       <span className="lecture-detail-more-label">{copy.viewerMaterials}</span>
                       <div className="lecture-detail-menu-list">
-                        {canManageActiveLectureMaterial && !activeLectureMaterial.is_primary && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><span><Icon name="star" size={11} /></span><span>{copy.materialSetPrimary}</span></button>}
+                        {canManageActiveLectureMaterial && !activeLectureMaterial.is_primary && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><span><Icon name="file" size={11} /></span><span>{copy.materialSetPrimary}</span></button>}
                         {canManageActiveLectureMaterial && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other", visibility: activeLectureMaterial.visibility || "private" })}><span><Icon name="edit" size={11} /></span><span>{copy.materialRename}</span></button>}
                         {canManageActiveLectureMaterial && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><span><Icon name="upload" size={11} /></span><span>{copy.materialReplace}</span></button>}
                         {isAdmin && activeLectureMaterial.visibility !== "global" && <button type="button" className="lecture-detail-menu-row" disabled={materialSaving} onClick={() => setLectureMaterialVisibility(activeLectureMaterial, "global")}><span><Icon name="globe" size={11} /></span><span>{copy.materialMakeGlobal}</span></button>}
@@ -44926,31 +44298,10 @@ async function openExamSetPdfEditor() {
                       </div>
                     </div>
                   )}
-                  <div className="lecture-detail-more-section">
-                    <span className="lecture-detail-more-label">{copy.lectureHeader}</span>
-                    <div className="lecture-detail-statuses" role="group" aria-label={copy.lectureHeader}>
-                      <button type="button" className="lecture-detail-status-button" data-tone={selectedAttendance?.tone || "neutral"} title={`${copy.attendance}: ${selectedAttendance?.label || copy.attendanceUnmarked}`} onClick={() => cycleLectureAttendance(selectedLecture.id)}>
-                        <span><Icon name={selectedAttendance?.icon || "user"} size={11} /></span>
-                        <span><small>{copy.attendance}</small><strong>{selectedAttendance?.label || copy.attendanceUnmarked}</strong></span>
-                      </button>
-                      <button type="button" className="lecture-detail-status-button" data-tone={selectedSelfStudy?.tone || "neutral"} title={`${copy.selfStudyStatus}: ${selectedSelfStudy?.label || copy.selfStudyNotStarted}`} onClick={() => cycleLectureSelfStudy(selectedLecture.id)}>
-                        <span><Icon name={selectedSelfStudy?.icon || "book"} size={11} /></span>
-                        <span><small>{copy.selfStudyStatus}</small><strong>{selectedSelfStudy?.label || copy.selfStudyNotStarted}</strong></span>
-                      </button>
-                      <button type="button" className="lecture-detail-status-button" data-kind="mastery" data-tone={selectedMasteryTone} style={{ "--lecture-status-accent": selectedMastery?.color || c.borderStrong }} title={`${copy.mastery}: ${selectedMastery?.label || copy.masteryUnrated}`} onClick={() => cycleLectureMastery(selectedLecture.id)}>
-                        <span aria-hidden="true" />
-                        <span><small>{copy.mastery}</small><strong>{selectedMastery?.label || copy.masteryUnrated}</strong></span>
-                      </button>
-                    </div>
-                  </div>
                   <button type="button" className="lecture-follow-up-trigger lecture-follow-up-trigger--menu" data-active={selectedFollowUp.active ? "true" : "false"} data-plan={selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? "outdated" : "sent") : "local"} title={selectedFollowUp.active ? `${copy.followUp}: ${selectedFollowUpReasonText || copy.followUpShort}` : copy.followUpTitle} onClick={() => followUpEditorOpen ? setFollowUpEditorOpen(false) : openLectureFollowUpEditor()}>
                     <span><Icon name="flag" size={11} /></span>
                     <span><small>{copy.followUp}</small><strong>{selectedPlanFollowUp ? (selectedFollowUpPlanOutdated ? copy.followUpPlanOutdated : copy.followUpPlanCurrent) : (selectedFollowUp.active ? copy.followUpShort : copy.followUp)}</strong></span>
                   </button>
-                  <nav className="lecture-favorite-navigation lecture-favorite-navigation--menu" aria-label={copy.filterFavorites}>
-                    <button type="button" className="lecture-favorite-nav-button" disabled={!previousFavoriteLecture} title={`${copy.favoritePreviousLecture} · Alt + [`} aria-label={copy.favoritePreviousLecture} onClick={() => selectAdjacentLecture(previousFavoriteLecture)}><Icon name={language === "ar" ? "right" : "left"} size={10} /><Icon name="star" size={10} /></button>
-                    <button type="button" className="lecture-favorite-nav-button" disabled={!nextFavoriteLecture} title={`${copy.favoriteNextLecture} · Alt + ]`} aria-label={copy.favoriteNextLecture} onClick={() => selectAdjacentLecture(nextFavoriteLecture)}><Icon name="star" size={10} /><Icon name={language === "ar" ? "left" : "right"} size={10} /></button>
-                  </nav>
                   {isAdmin && <button type="button" className="lecture-detail-more-action" onClick={openSduMatchDialog}><Icon name="edit" size={11} />{copy.sduMatchEdit}</button>}
                 </div>
               </details>
@@ -44989,14 +44340,14 @@ async function openExamSetPdfEditor() {
           </section>
         )}
 
-        <main className="document-viewer-panel">
-          <div className="document-viewer-toolbar">
-            <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong>{activeLectureMaterial && <em className="lecture-primary-badge"><Icon name={activeLectureMaterial.visibility === "global" ? "globe" : "user"} size={9} />{activeLectureMaterial.visibility === "global" ? copy.materialGlobalLabel : copy.materialPrivateLabel}</em>}{activeLectureMaterial?.is_primary && <em className="lecture-primary-badge"><Icon name="star" size={9} />{copy.materialPrimaryLabel}</em>}{!isLectureLibrary && activeDocument && <em className="lecture-primary-badge"><Icon name="share" size={9} />{copy.examSetShared}</em>}</span>
+        <main className="document-viewer-panel" hidden={isLectureLibrary && curriculumNavigation791.page !== "reader"}>
+          <div className="document-viewer-toolbar" hidden={!isLectureLibrary && !activeDocument}>
+            <span><Icon name="file" size={14} /><strong>{activeDocument?.name || selectedLecture?.title || copy.pdfViewer}</strong>{activeLectureMaterial && <em className="lecture-primary-badge"><Icon name={activeLectureMaterial.visibility === "global" ? "globe" : "user"} size={9} />{activeLectureMaterial.visibility === "global" ? copy.materialGlobalLabel : copy.materialPrivateLabel}</em>}{activeLectureMaterial?.is_primary && <em className="lecture-primary-badge"><Icon name="file" size={9} />{copy.materialPrimaryLabel}</em>}{!isLectureLibrary && activeDocument && <em className="lecture-primary-badge"><Icon name="share" size={9} />{copy.examSetShared}</em>}</span>
             {isLectureLibrary && activeLectureMaterial ? (
               <details className="lecture-material-actions-menu">
                 <summary title={copy.materialLibrary}><Icon name="more" size={14} /><span>{copy.materialLibrary}</span></summary>
                 <div className="lecture-material-actions">
-                  {canManageActiveLectureMaterial && !activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="star" size={12} />{copy.materialSetPrimary}</button>}
+                  {canManageActiveLectureMaterial && !activeLectureMaterial.is_primary && <button type="button" disabled={materialSaving} onClick={() => setPrimaryLectureMaterial(activeLectureMaterial.id)}><Icon name="file" size={12} />{copy.materialSetPrimary}</button>}
                   {canManageActiveLectureMaterial && <button type="button" disabled={materialSaving} onClick={() => setMaterialDialog({ mode: "edit", material: activeLectureMaterial, name: activeLectureMaterial.file_name, materialType: activeLectureMaterial.material_type || "other", visibility: activeLectureMaterial.visibility || "private" })}><Icon name="edit" size={12} />{copy.materialRename}</button>}
                   {canManageActiveLectureMaterial && <button type="button" disabled={materialSaving} onClick={() => replaceUploadRef.current?.click()}><Icon name="upload" size={12} />{copy.materialReplace}</button>}
                   {isAdmin && activeLectureMaterial.visibility !== "global" && <button type="button" disabled={materialSaving} onClick={() => setLectureMaterialVisibility(activeLectureMaterial, "global")}><Icon name="globe" size={12} />{copy.materialMakeGlobal}</button>}
@@ -45027,7 +44378,7 @@ async function openExamSetPdfEditor() {
               </div>
             ) : null}
           </div>
-          {isLectureLibrary && materialStatus.message && materialStatus.state !== "loading" && <div className="lecture-material-status" data-state={materialStatus.state}>{materialStatus.message}</div>}
+          {isLectureLibrary && materialStatus.message && materialStatus.state === "error" && <div className="lecture-material-status" role="alert" data-state={materialStatus.state}>{materialStatus.message}</div>}
           {!isLectureLibrary && examSetStatus.message && examSetStatus.state !== "loading" && <div className="exam-set-status" data-state={examSetStatus.state}>{examSetStatus.message}</div>}
           <div className="document-viewer-canvas">
             {isLectureLibrary ? (
@@ -45040,6 +44391,9 @@ async function openExamSetPdfEditor() {
                   <LecturePdfViewer
                     url={activeDocument.url}
                     materialId={activeLectureMaterial.id}
+                    userId={userId} moduleName={moduleName} lectureId={selectedLecture?.id}
+                    notesOpen={lectureNotesVisible} onOpenNotes={openPdfNotes791}
+                    onAskAI={context => { updateLectureViewerV2({notesOpen:false});setLectureCompactPanel(null);onOpenBytePdf?.(context); }}
                     fileName={activeDocument.name}
                     savedState={{ ...(workspaceState.documentViewer?.[activeLectureMaterial.id] || {}), ...(lecturePdfRemoteState.materialId === activeLectureMaterial.id ? lecturePdfRemoteState : {}), remoteRevision: lecturePdfRemoteRevision }}
                     onStateChange={(patch) => updateLectureViewerState(activeLectureMaterial.id, patch)}
@@ -45068,6 +44422,9 @@ async function openExamSetPdfEditor() {
                     <LecturePdfViewer
                       url={lecturePptxPdfPreview.url}
                       materialId={activeLectureMaterial.id}
+                      userId={userId} moduleName={moduleName} lectureId={selectedLecture?.id}
+                      notesOpen={lectureNotesVisible} onOpenNotes={openPdfNotes791}
+                      onAskAI={context => { updateLectureViewerV2({notesOpen:false});setLectureCompactPanel(null);onOpenBytePdf?.(context); }}
                       fileName={activeDocument.name}
                       savedState={{ ...(workspaceState.documentViewer?.[activeLectureMaterial.id] || {}), ...(lecturePdfRemoteState.materialId === activeLectureMaterial.id ? lecturePdfRemoteState : {}), remoteRevision: lecturePdfRemoteRevision }}
                       onStateChange={(patch) => updateLectureViewerState(activeLectureMaterial.id, patch)}
@@ -45093,7 +44450,7 @@ async function openExamSetPdfEditor() {
                   <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.materialNoPreview}</strong><small>{copy.materialOpenExternally}</small><div className="lecture-material-empty-actions"><button type="button" className="ui-button ui-button--secondary" onClick={() => downloadLectureMaterial()}>{copy.materialDownload}</button><button type="button" className="ui-button ui-button--primary" onClick={() => openLectureMaterial()}>{copy.materialOpen}</button></div></div>
                 )
               ) : (
-                <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{!selectedLecture ? copy.selectItem : copy.materialLibraryEmpty}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={!selectedLecture || materialSaving}><Icon name="upload" size={14} />{copy.addMaterial}</button></div>
+                <MaterialEmpty791 selected={Boolean(selectedLecture)} language={language} busy={materialSaving} onAdd={() => uploadRef.current?.click()} />
               )
              ) : activeDocument ? (
 examSetMode === "history" ? (
@@ -45219,45 +44576,54 @@ examSetMode === "history" ? (
               ) : examSetPreviewState === "loading" ? (
                 <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.examSetLoading}</strong></div>
               ) : activeDocument.url ? (
-                <LecturePdfViewer
+                <PdfReader791
                   url={examSetPdfSource === "answers" ? examSetAnswerPreviewUrl : activeDocument.url}
                   materialId={`${activeDocument.id}-${examSetPdfSource}`}
+                  userId={userId} moduleName={moduleName} language={language}
                   fileName={examSetPdfSource === "answers" ? selectedExamDocument?.answerFileName : activeDocument.name}
                   savedState={workspaceState.documentViewer?.[`${activeDocument.id}-${examSetPdfSource}`] || {}}
                   onStateChange={(patch) => updateLectureViewerState(`${activeDocument.id}-${examSetPdfSource}`, patch)}
-                  copy={copy}
                 />
               ) : (
                 <div className="document-viewer-empty"><span><Icon name="flag" size={24} /></span><strong>{examSetStatus.message || copy.examSetActionError}</strong></div>
               )
             ) : (
-              <div className="document-viewer-empty"><span><Icon name="file" size={24} /></span><strong>{copy.noPdf}</strong><button type="button" className="ui-button ui-button--primary" onClick={() => uploadRef.current?.click()} disabled={examSetSaving}><Icon name="upload" size={14} />{copy.upload}</button></div>
+              <PdfReader791 userId={userId} moduleName={moduleName} language={language} fileName={language==='en'?'Exam sets':'Eksamenssæt'} emptyMessage={language==='en'?'Choose an exam set to read':'Vælg et eksamenssæt at læse'} onChooseFile={examSetSaving?undefined:()=>uploadRef.current?.click()} chooseFileLabel={copy.upload}/>
             )}
           </div>
         </main>
 
-        {isLectureLibrary && (
-          <aside className="lecture-notes-panel">
-            <div className="lecture-notes-tabs">
+        {isLectureLibrary && lectureNotesVisible && (
+          <aside className="lecture-notes-panel" data-note-mode={noteMode}>
+            {noteMode === "shared" && <div className="lecture-notes-tabs">
               <button type="button" data-active={noteMode === "own" ? "true" : "false"} onClick={() => setNoteMode("own")}>{copy.ownNotes}</button>
               <button type="button" data-active={noteMode === "shared" ? "true" : "false"} onClick={() => setNoteMode("shared")}><Icon name="share" size={12} />{copy.sharedNotes}</button>
-            </div>
+            </div>}
             {noteMode === "own" ? (
               <div className="lecture-own-note-shell">
-                <PageNote78
+                <PdfPageNotes791
+                  key={`${userId||"anonymous"}:${slideMaterialId74}`}
                   materialId={slideMaterialId74}
+                  fileName={activeDocument?.name||"PDF"}
+                  onClose={() => handleLecturePanelToggle("notes")}
+                  onSharedNotes={() => setNoteMode("shared")}
+                  placement={pdfNotesPlacement791}
+                  onPlacement={notesPlacement => updateLectureViewerV2({notesPlacement})}
                   page={slideDocument74.materialId === slideMaterialId74 ? slideDocument74.page : 1}
                   numPages={slideDocument74.materialId === slideMaterialId74 ? slideDocument74.numPages : 0}
                   journal={slideJournal74}
+                  selectionRequest={pdfNoteSelection791?.owner===(userId||"anonymous")?pdfNoteSelection791:null}
+                  onSelectionConsumed={(requestId) => setPdfNoteSelection791(current => current?.requestId===requestId?null:current)}
                   onPage={requestSlidePage74}
-                  lectureDraft={lectureNoteDraft}
-                  onLectureDraft={updateLectureNoteDraft}
-                  lectureStatus={lectureNoteSaveState}
+                  onShareNote={userId ? publishCurrentLectureNote : undefined}
+                  shareState={sharedNoteActionState}
+                  shareMessage={sharedNoteMessage}
                   onNewFromPage={(page) => onNewNoteFromPage?.({lectureId:selectedLecture?.id,materialId:slideMaterialId74,page})}
                   language={language}
-                />
+                >
                 {lectureNoteSyncMessage && lectureNoteSaveState === "error" && <div className="lecture-note-sync-warning" role="status"><Icon name="flag" size={11} /><span>{lectureNoteSyncMessage}</span></div>}
-                <details className="mf78-share-details"><summary>{language === "en" ? "Share lecture note" : "Del forelæsningsnote"}</summary><p>{ownSharedNote ? `${copy.sharedPublished} · ${copy.sharedVersion(ownSharedNote.version)}` : copy.sharedPrivate}</p>{!ownSharedNote ? <button type="button" disabled={sharedNoteActionState === "saving" || !selectedLecture || !lectureNoteHasContent(lectureNoteDraft)} onClick={publishCurrentLectureNote}>{copy.sharedShareNote}</button> : <><button type="button" disabled={sharedNoteActionState === "saving"} onClick={publishCurrentLectureNote}>{copy.sharedUpdateNote}</button><button type="button" disabled={sharedNoteActionState === "saving"} onClick={stopSharingCurrentLectureNote}>{copy.sharedStopSharing}</button></>}{sharedNoteMessage && <p role="status">{sharedNoteMessage}</p>}</details>
+                {ownSharedNote && <div className="mf78-share-details"><p>{copy.sharedPublished} · {copy.sharedVersion(ownSharedNote.version)}</p><button type="button" disabled={sharedNoteActionState === "saving"} onClick={stopSharingCurrentLectureNote}>{copy.sharedStopSharing}</button></div>}
+                </PdfPageNotes791>
               </div>
             ) : (
               <div className="lecture-shared-note-shell">
@@ -45469,6 +44835,7 @@ examSetMode === "history" ? (
             <div className="lecture-material-dialog-heading">
               <span><Icon name={materialDialog.mode === "upload" ? "upload" : "edit"} size={17} /></span>
               <div><strong>{materialDialog.mode === "upload" ? copy.materialUploadTitle : copy.materialEditTitle}</strong><small>{selectedLecture?.id} · {selectedLecture?.title}</small></div>
+              <button type="button" className="annotation791-dialog-close" aria-label={copy.close} disabled={materialSaving} onClick={()=>setMaterialDialog(null)}><Icon name="close" size={16}/></button>
             </div>
             {materialDialog.mode === "upload" && (
               <div className="lecture-material-dialog-files">
@@ -45476,14 +44843,9 @@ examSetMode === "history" ? (
                 {(materialDialog.files || []).map((file) => <span key={`${file.name}-${file.size}`}><Icon name="file" size={12} /><strong>{file.name}</strong><small>{lectureMaterialFormatBytes(file.size)}</small></span>)}
               </div>
             )}
-            {(materialDialog.mode === "edit" || materialDialog.files?.length === 1) && (
-              <label className="lecture-material-field"><span>{copy.materialName}</span><input value={materialDialog.name || ""} onChange={(event) => setMaterialDialog((current) => ({ ...current, name: event.target.value }))} /></label>
-            )}
-            <label className="lecture-material-field"><span>{copy.materialType}</span><select value={materialDialog.materialType || "other"} onChange={(event) => setMaterialDialog((current) => ({ ...current, materialType: event.target.value }))}>{LECTURE_MATERIAL_TYPES.map((type) => <option key={type} value={type}>{materialTypeLabel(type)}</option>)}</select></label>
+            <MaterialDetails791 draft={materialDialog} onChange={setMaterialDialog} types={LECTURE_MATERIAL_TYPES.map(id=>({id,label:materialTypeLabel(id)}))} labels={{name:copy.materialName,type:copy.materialType,primary:copy.materialPrimary,primaryHint:copy.materialPrimaryHint,options:language==='en'?'Name and options':language==='ar'?'الاسم والخيارات':'Navn og indstillinger'}}>
             {isAdmin && materialDialog.mode === "upload" && <div className="lecture-material-visibility"><span>{copy.materialVisibility}</span><button type="button" data-active={(materialDialog.visibility || "private") === "global" ? "true" : "false"} onClick={() => setMaterialDialog((current) => ({ ...current, visibility: "global" }))}><Icon name="globe" size={13} /><span><strong>{copy.materialVisibilityGlobal}</strong><small>{copy.materialVisibilityGlobalHint}</small></span></button><button type="button" data-active={(materialDialog.visibility || "private") === "private" ? "true" : "false"} onClick={() => setMaterialDialog((current) => ({ ...current, visibility: "private" }))}><Icon name="user" size={13} /><span><strong>{copy.materialVisibilityPrivate}</strong><small>{copy.materialVisibilityPrivateHint}</small></span></button></div>}
-            {materialDialog.mode === "upload" && (
-              <label className="lecture-material-primary-choice"><input type="checkbox" checked={Boolean(materialDialog.makePrimary)} onChange={(event) => setMaterialDialog((current) => ({ ...current, makePrimary: event.target.checked }))} /><span><strong>{copy.materialPrimary}</strong><small>{copy.materialPrimaryHint}</small></span></label>
-            )}
+            </MaterialDetails791>
             <div className="lecture-material-dialog-actions"><button type="button" className="ui-button ui-button--secondary" disabled={materialSaving} onClick={() => setMaterialDialog(null)}>{copy.materialCancel}</button><button type="button" className="ui-button ui-button--primary" disabled={materialSaving || (materialDialog.mode === "edit" && !String(materialDialog.name || "").trim())} onClick={materialDialog.mode === "upload" ? uploadLectureMaterials : updateLectureMaterial}>{materialSaving ? copy.materialLoading : copy.materialSave}</button></div>
           </div>
         </Modal>
@@ -45585,7 +44947,6 @@ function Sidebar({
   onProfileAction,
   dueCount = 0,
   dockPosition = "bottom",
-  orbEnabled = true,
 }) {
   const displayName = String(user?.name || t.profile || "MedFLUEN").trim();
   const userInitial = displayName.slice(0, 1).toUpperCase() || "M";
@@ -45614,10 +44975,10 @@ function Sidebar({
   const activeArea = medfluenPrimaryArea(route, activeWorkspace);
   const primaryAreas = [
     { id: "home", icon: "home", label: t.home, badge: 0, action: () => navigate("home") },
-    { id: "training", icon: "training", label: copy.training, badge: dueCount, action: () => navigate("mcq") },
+    { id: "training", icon: "training", label: copy.training, badge: 0, action: () => navigate("mcq") },
     { id: "curriculum", icon: "curriculum", label: copy.curriculum, badge: 0, action: () => openWorkspace("lectures") },
     { id: "notes", icon: "notebook", label: t.notebook, badge: 0, action: () => openWorkspace("notes") },
-    { id: "planning", icon: "planning", label: copy.planning, badge: 0, action: () => openWorkspace("calendar") },
+
   ];
   const profileActions = [
     ...(accountIsAdmin ? [["adminMode", adminMode ? "user" : "settings", adminMode ? copy.exitAdmin : copy.enterAdmin]] : []),
@@ -45629,69 +44990,16 @@ function Sidebar({
     ["signout", "logout", t.signOutAction],
   ];
 
-  return <Dock75 items={primaryAreas} active={activeArea} Icon={Icon} position={dockPosition}
+  return <Dock75 items={primaryAreas} active={activeArea} Icon={Icon} position={dockPosition} hideProfile
     profileActions={profileActions} profileOpen={profileOpen} setProfileOpen={setProfileOpen}
     onProfileAction={onProfileAction} userInitial={userInitial} displayName={displayName}
     moduleLabel={moduleLabel} profileLabel={t.profile} profileButtonRef={profileButtonRef} profileMenuRef={profileMenuRef}
-    adminMode={adminMode} orb={orbEnabled}
+    adminMode={adminMode}
     assistant={{id:"assistant",icon:"assistant",label:t.drByte,active:drByteOpen,action:()=>setDrByteOpen(value=>!value)}} />;
 }
 
-function Modal({ c, children, onClose, size = "default" }) {
-  const widthBySize = {
-    default: "min(400px,100%)",
-    calendar: "min(500px,calc(100vw - 32px))",
-    large: "min(880px,94vw)",
-  };
-  const maxHeightBySize = {
-    default: "88vh",
-    calendar: "min(680px,86vh)",
-    large: "86vh",
-  };
-  return (
-    <div
-  role="presentation"
-  onMouseDown={onClose}
-  className="ui-modal-backdrop"
-  style={{
-        position: "fixed",
-        inset: 0,
-        // zIndex skal ligge over kalenderens fuldskærmswrapper (zIndex: 999),
-        // så Indstillinger/Sprog/Admin/Logud-modalerne altid vises foran
-        // kalenderen, uanset om den er åben i fuldskærm.
-        zIndex: 1000,
-        display: "grid",
-        placeItems: "center",
-        padding: 16,
-        background: c.overlay,
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-      }}
-    >
-      <div
-  role="dialog"
-  aria-modal="true"
-  className="ui-modal-surface"
-  onMouseDown={(event) =>
-    event.stopPropagation()
-  }
-        style={{
-          width: widthBySize[size] || widthBySize.default,
-          maxWidth: "100%",
-          boxSizing: "border-box",
-          maxHeight: maxHeightBySize[size] || maxHeightBySize.default,
-          overflowY: "auto",
-          padding: size === "calendar" ? 0 : size === "large" ? 32 : 24,
-          borderRadius: size === "calendar" ? 16 : 22,
-          background: c.panel,
-          border: `1px solid ${c.border}`,
-          boxShadow: c.shadowLg,
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
+function Modal({ c, children, onClose, size = "default", title = "Dialog", className = "" }) {
+  return <Dialog791 onClose={onClose} size={size} title={title} className={className}>{children}</Dialog791>;
 }
 
 
@@ -45968,7 +45276,7 @@ function buildPlanRecommendation({ copy, user, spacedData, importedQuestions, st
   return copy.planAllGood;
 }
 
-function useMascotEngine({ user, language, spacedData, importedQuestions, }) {
+function useMascotEngine({ user, userId = null, language, spacedData, importedQuestions, }) {
   const [mascotState, setMascotState] = useStoredState(STORAGE.mascotState, {
     records: { bestStreak: 0, bestAccuracy: 0, totalQuestionsSeen: 0, bestPomodoroDay: 0 },
     lastCheckinDate: null,
@@ -45977,7 +45285,7 @@ function useMascotEngine({ user, language, spacedData, importedQuestions, }) {
   });
 
   const [streakData] = useStoredState(STORAGE.streak, { days: [] });
-  const [history] = useStoredState(STORAGE.quizHistory, []);
+  const [history] = useAccountStorage792(STORAGE.quizHistory, userId, []);
   const [pomodoroLog] = useStoredState(STORAGE.pomodoroLog, {});
   const [studyPlans] = useStoredState(STORAGE.studyPlans, {});
 
@@ -47189,6 +46497,7 @@ useCloudSync(session?.user?.id);
   }
 
   function openWorkspace(type) {
+    if (type === "calendar") { setActiveWorkspace(null); setRoute("home"); setHomePanel791("calendar"); setProfileOpen(false); return; }
     if (!type) {
       closeWorkspace();
       return;
@@ -47198,6 +46507,7 @@ useCloudSync(session?.user?.id);
     setProfileOpen(false);
   }
   const [drByteOpen, setDrByteOpen] = useState(false);
+  const [bytePdfContext791, setBytePdfContext791] = useState(null);
   const [drByteWidth, setDrByteWidth] = useState(() => Math.max(340, Math.min(780, Number(loadStorage("medlearn-drbyte-panel-width", 410)) || 410)));
   const [byteViewportWidth, setByteViewportWidth] = useState(() => window.innerWidth);
   useEffect(() => { const onResize = () => setByteViewportWidth(window.innerWidth); window.addEventListener("resize", onResize); return () => window.removeEventListener("resize", onResize); }, []);
@@ -47275,6 +46585,18 @@ useEffect(() => {
     }
   }
 
+  function importPersonalFlashcards792(cards) {
+    const storageKey = flashcardPersonalStorageKey(personalFlashcardUserId);
+    const queueKey = flashcardPersonalQueueKey(personalFlashcardUserId);
+    try {
+      const result = persistAnkiBatch792(localStorage, { userId: personalFlashcardUserId, storageKey, queueKey }, cards);
+      setPersonalFlashcards(result.records);
+      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: storageKey } }));
+      window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: queueKey } }));
+      return result;
+    } catch (error) { return { ok: false, error: error.message || "Kortene kunne ikke gemmes sikkert." }; }
+  }
+
 
   useEffect(() => {
     if (!user?.module) return;
@@ -47302,6 +46624,9 @@ useEffect(() => {
   const [lectureMenu, setLectureMenu] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [internalFocus78, setInternalFocus78] = useState(false);
+  const [homePanel791, setHomePanel791] = useState("calendar");
+  const [sduImport791, setSduImport791] = useState(false);
+  const [fullscreenNotice791, setFullscreenNotice791] = useState("");
   const [tutorialActive, setTutorialActive] = useState(false);
   const [fsOverlayVisible, setFsOverlayVisible] = useState(false);
   const [fsClock, setFsClock] = useState("");
@@ -47398,16 +46723,11 @@ useEffect(() => {
   }, [isFullscreen]);
 
   async function toggleFullscreen() {
-    if (document.fullscreenElement || internalFocus78) {
-      await leaveFocus78(document.fullscreenElement ? () => document.exitFullscreen() : null, setInternalFocus78);
-      setIsFullscreen(false);
-    } else {
-      const mode = await enterFocus78(document.documentElement.requestFullscreen?.bind(document.documentElement), setInternalFocus78);
-      setIsFullscreen(mode === "internal" || Boolean(document.fullscreenElement));
-    }
+    const result = await toggleNativeFullscreen791(document, document.documentElement);
+    if (!result.ok) setFullscreenNotice791(language === "en" ? "Fullscreen is unavailable in this browser." : "Fuldskærm kunne ikke aktiveres i denne browser.");
   }
 
-  const c = palette75(theme === "dark" ? DARK : LIGHT, appearance.value.accent, theme);
+  const c = palette75(theme === "dark" ? DARK : LIGHT, appearance.value.accent, theme, appearance.value.customAccent, appearance.value.surface);
   const t = TEXT[language] || TEXT.da;
   const languageData =
     LANGUAGES.find((item) => item.code === language) || LANGUAGES[0];
@@ -47476,6 +46796,8 @@ useEffect(() => {
   const shellMergedEvents = mergeCalendarEventMeta(shellCalendarEvents, shellCalendarMeta);
 
   function navigateFromShell(target, options) {
+    if (["calendar", "planning", "study-plan"].includes(target)) { setActiveWorkspace(null); setRoute("home"); setHomePanel791(target === "study-plan" ? "plan" : "calendar"); return; }
+    if (target === "home") setHomePanel791("calendar");
     const next = navigateWorkspace79({ assistantOpen: drByteOpen }, target);
     setActiveWorkspace(next.activeWorkspace);
     setDrByteOpen(next.assistantOpen);
@@ -47512,15 +46834,24 @@ useEffect(() => {
   return (
     <div
       key={session.user.id}
-      className="mf75-app-frame"
+      className="mf75-app-frame mf791-app"
       data-dock={appearance.value.dock}
       data-surface={appearance.value.surface}
       data-appearance-theme={theme}
+      data-accent={appearance.value.accent}
+      data-contrast={appearance.value.contrast}
+      data-motion={appearance.value.motion}
+      data-density={appearance.value.density}
+      data-area={activePrimaryArea}
       data-byte-open={drByteOpen ? "true" : "false"}
       data-internal-focus={internalFocus78 ? "true" : "false"}
       lang={language}
       dir="ltr"
       style={{
+        ...appearanceStyle75(appearance.value,theme),
+        "--mf793-question-size":`${appearance.value.questionSize}px`,
+        "--mf793-line-height":appearance.value.lineHeight,
+        "--mf791-byte-width": `${effectiveDrByteWidth}px`,
         width: "100vw",
         height: "100dvh",
         display: "flex",
@@ -47530,8 +46861,36 @@ useEffect(() => {
       }}
     >
       <GlobalStyles c={c} /><ExperienceStyles72 />
+      <WorkspaceHeader791 name={user?.name} language={language} area={activePrimaryArea}
+        onHome={() => navigateFromShell("home")}
+        moduleControl={<ModuleSwitcher c={c} t={t} language={language} user={user} setUser={setUser} />}
+        timer={<Timer compact791 c={c} t={t} language={language} timerSound={appearance.value.timerSound} user={user} setUser={setUser} route={route} onAssistant={() => setDrByteOpen(value => !value)} onProfileAction={handleProfileAction} />}
+        profileActions={[
+          ...(accountIsAdmin ? [["adminMode", "settings", adminModeEnabled ? "Studiemode" : "Administratormode"]] : []),
+          ...(effectiveAdmin ? [["admin", "book", t.adminPortal]] : []),
+          ["settings", "settings", t.settings], ["language", "globe", t.language],
+          ["tutorial", "target", t.replayTutorial], ["logout", "reset", t.resetProfile], ["signout", "logout", t.signOutAction],
+        ]} onProfileAction={handleProfileAction}
+        entries={[
+          { id:"home", title:t.home, kind:"MedFLUEN", route:"home" },
+          { id:"training", title:language === "en" ? "Training" : language === "ar" ? "التدريب" : "Træning", kind:"MedFLUEN", route:"mcq" },
+          { id:"notes", title:t.notebook, kind:"MedFLUEN", workspace:"notes" },
+          { id:"calendar", title:t.calendarTitle, kind:"MedFLUEN", route:"calendar" },
+          { id:"study-plan", title:language === "en" ? "Study plan" : "Studieplan", kind:"MedFLUEN", route:"study-plan" },
+          { id:"examSets", title:language === "en" ? "Exam papers" : "Eksamenssæt", kind:"MedFLUEN", workspace:"examSets" },
+          ...(MODULE_LECTURES[user?.module] || []).map(lecture => ({ id:`lecture:${lecture.id}`, lectureId:lecture.id, title:lecture.title, code:lecture.code || lecture.id, kind:language === "en" ? "Lecture" : "Forelæsning" })),
+        ]} onSelect={entry => {
+          if(entry.lectureId) {
+            const state=loadStorage(STORAGE.workspaceState,{});
+            localStorage.setItem(STORAGE.workspaceState,JSON.stringify({...state,selectedLectureId:entry.lectureId}));
+            window.dispatchEvent(new CustomEvent("medlearn-storage-update",{detail:{key:STORAGE.workspaceState}}));
+            setActiveWorkspace("lectures");
+          } else if(entry.workspace) setActiveWorkspace(entry.workspace);
+          else navigateFromShell(entry.route);
+        }} />
       <CalendarReminderManager events={shellMergedEvents} />
-      <Celebration75 />
+      {sduImport791 && <CalendarPanel importOnly c={c} t={t} language={language} theme={theme} module={user?.module} userId={session?.user?.id} isAdmin={effectiveAdmin} onClose={() => setSduImport791(false)} />}
+      <Celebration75 reduceMotion={appearance.value.motion==='reduce'} />
       <FlashcardReviewSync70 userId={session?.user?.id || null} />
       <FlashcardPersonalSync71 userId={session?.user?.id || null} setRecords={setPersonalFlashcards} />
 
@@ -47613,7 +46972,9 @@ useEffect(() => {
         </div>
       )}
 
-      <button
+      {document.fullscreenEnabled && <>      <button
+        className="mf791-native-fullscreen"
+        aria-label={isFullscreen ? t.fullscreenExit : t.fullscreenEnter}
         type="button"
         title={isFullscreen ? t.fullscreenExit : t.fullscreenEnter}
         onClick={toggleFullscreen}
@@ -47634,7 +46995,8 @@ useEffect(() => {
         }}
       >
         <Icon name={isFullscreen ? "collapse" : "expand"} size={16} />
-      </button>
+      </button></>}
+      {fullscreenNotice791 && <div className="mf791-fullscreen-notice" role="status">{fullscreenNotice791}<button onClick={() => setFullscreenNotice791("")} aria-label={t.close}>×</button></div>}
 
       <Sidebar
         c={c}
@@ -47655,7 +47017,6 @@ useEffect(() => {
         onNavigate={navigateFromShell}
         onProfileAction={handleProfileAction}
         dockPosition={appearance.value.dock}
-        orbEnabled={appearance.value.orb}
       />
 
       {activeWorkspace && (
@@ -47665,7 +47026,7 @@ useEffect(() => {
           drByteOpen={drByteOpen}
           drByteWidth={effectiveDrByteWidth}
           closing={calendarClosing}
-          toolbar={<MedfluenAreaTabs c={c} language={language} area={activePrimaryArea} activeTab={activeAreaTab} dueCount={sidebarDueCount} onSelect={selectAreaTab} />}
+          toolbar={activePrimaryArea === "training" && activeWorkspace !== "examSets" ? <MedfluenAreaTabs c={c} language={language} area={activePrimaryArea} activeTab={activeAreaTab} dueCount={sidebarDueCount} onSelect={selectAreaTab} /> : null}
         >
           {activeWorkspace === "calendar" && (
             <Planning79 language={language} moduleName={user?.module} onOpenStudyPlan={() => navigateFromShell("study-plan")}>
@@ -47688,7 +47049,7 @@ useEffect(() => {
             }} onClose={closeWorkspace} language={language} />
           )}
           {activeWorkspace === "lectures" && (
-            <DocumentWorkspace c={c} language={language} moduleName={user?.module} level={user?.level} kind="lectures" onClose={closeWorkspace} onLectureChange={handleByteLectureChange} onNewNoteFromPage={(source) => { setNoteSource78({ ...source, requestId: Date.now() }); setActiveWorkspace("notes"); }} sourcePageRequest78={notePageRequest78} onSourcePageHandled78={(id) => setNotePageRequest78(current => current?.requestId === id ? null : current)} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
+            <DocumentWorkspace c={c} language={language} moduleName={user?.module} level={user?.level} kind="lectures" onClose={closeWorkspace} onLectureChange={handleByteLectureChange} onOpenBytePdf={context => {setBytePdfContext791(context);setDrByteOpen(true);}} onNewNoteFromPage={(source) => { setNoteSource78({ ...source, requestId: Date.now() }); setActiveWorkspace("notes"); }} sourcePageRequest78={notePageRequest78} onSourcePageHandled78={(id) => setNotePageRequest78(current => current?.requestId === id ? null : current)} userId={session?.user?.id} isAdmin={effectiveAdmin} spacedData={spacedData} importedQuestions={importedQuestions} setImportedQuestions={setImportedQuestions} />
           )}
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace c={c} language={language} moduleName={user?.module} kind="examSets" historyRequest72={examHistoryRequest72} onClose={closeWorkspace} userId={session?.user?.id}  isAdmin={effectiveAdmin} importedQuestions={importedQuestions} />
@@ -47707,8 +47068,6 @@ useEffect(() => {
           flexDirection: "column",
         }}
       >
-        {!activeWorkspace && <Timer c={c} t={t} language={language} user={user} setUser={setUser} route={route} onAssistant={() => setDrByteOpen((value) => !value)} onProfileAction={handleProfileAction} />}
-        {!activeWorkspace && ["training", "curriculum", "planning"].includes(activePrimaryArea) && <MedfluenAreaTabs c={c} language={language} area={activePrimaryArea} activeTab={activeAreaTab} dueCount={sidebarDueCount} onSelect={selectAreaTab} />}
 
         <div className="app-main-area"
           style={{
@@ -47730,7 +47089,7 @@ useEffect(() => {
           >
             {retiredRouteNotice79 && <div className="mf79-route-notice" role="status">{retiredRouteNotice79}<button type="button" onClick={() => setRetiredRouteNotice79(null)} aria-label="Luk besked">×</button></div>}
             {route === "home" ? (
-              <Dashboard
+              <HomeLanding791 name={user?.name} moduleName={user?.module} language={language} panel={homePanel791} onPanel={setHomePanel791} calendar={<Dashboard
                 c={c}
                 t={t}
                 user={user}
@@ -47744,10 +47103,11 @@ useEffect(() => {
                   setSessionScope({ moduleId: user.module, groupFilter: null, lectureFilter: event.lectureId || null, mode: "due", contentType: null, questionIds });
                   setRoute("mcq");
                 }}
-onOpenCalendar={() => openWorkspace("calendar")}
+onOpenCalendar={() => { setHomePanel791("calendar"); }}
+onImportSdu791={() => setSduImport791(true)}
 onOpenWorkspace={openWorkspace}
 onNavigate={navigateFromShell}
-              />
+              />} studyPlan={<StudyPlan c={c} language={language} user={user} setUser={setUser} userId={session?.user?.id} onOpenCalendar={(date = null) => { const currentPreferences = loadStorage(STORAGE.calendarPreferences, CALENDAR_DEFAULT_PREFERENCES) || {}; const nextPreferences = { ...CALENDAR_DEFAULT_PREFERENCES, ...currentPreferences, ...(date ? {lastDate:date,lastView:"day"} : {}) }; localStorage.setItem(STORAGE.calendarPreferences, JSON.stringify(nextPreferences)); window.dispatchEvent(new CustomEvent("medlearn-storage-update", {detail:{key:STORAGE.calendarPreferences}})); setHomePanel791("calendar"); }} />} />
             ) : (
               <>
                 <button
@@ -47775,7 +47135,7 @@ onNavigate={navigateFromShell}
                 {route === "insights" ? (
                   <Insights69 c={c} language={language} user={user} userId={session?.user?.id} onOpenExamSets={() => setActiveWorkspace("examSets")} onReviewQuestions={(questionIds) => { setSessionScope({ moduleId: user.module, groupFilter: null, lectureFilter: null, mode: "all", contentType: null, questionIds }); setRoute("mcq"); }} />
                 ) : route === "training-history" ? (
-                  <TrainingHistory69 c={c} language={language} user={user} />
+                  <TrainingHistory69 c={c} language={language} user={user} userId={session?.user?.id} />
                 ) : route === "study-plan" ? (
                   <StudyPlan c={c} language={language} user={user} setUser={setUser} userId={session?.user?.id} onOpenCalendar={(date = null) => {
                     const currentPreferences = loadStorage(STORAGE.calendarPreferences, CALENDAR_DEFAULT_PREFERENCES) || {};
@@ -47790,7 +47150,7 @@ onNavigate={navigateFromShell}
                     c={c}
                     t={t}
                     language={language}
-                    questionSize={preferences.questionSize}
+                    questionSize={appearance.value.questionSize}
                     user={user}
                     authUserId={session?.user?.id || null}
                     questionPool={buildQuestionPool(sessionScope, spacedData, effectiveQuestions, buriedCards)}
@@ -47831,11 +47191,13 @@ onNavigate={navigateFromShell}
                     onResetAllProgress={setSpacedData}
                     importedQuestions={effectiveQuestions}
                     onSavePersonalCard={savePersonalFlashcard}
+                    onImportPersonalCards={importPersonalFlashcards792}
                     onStart={(scope) => setSessionScope(scope)}
                     initialPool={trainingStartPool}
                     onCancel={() => setRoute("home")}
                     onOpenExamSets={() => setActiveWorkspace("examSets")}
                     onOpenLectureMenu={(lecture, moduleId) => setLectureMenu({ lecture, moduleId })}
+                    onOpenLectureMaterial={lectureId=>{const state=loadStorage(STORAGE.workspaceState,{});try{localStorage.setItem(STORAGE.workspaceState,JSON.stringify(rememberLecture791(state,user.module,lectureId)));window.dispatchEvent(new CustomEvent("medlearn-storage-update",{detail:{key:STORAGE.workspaceState}}));}catch{}setNotePageRequest78({requestId:Date.now(),moduleName:user.module,lectureId,openOnly:true});openWorkspace("lectures");}}
                   />
                 )}
               </>
@@ -47843,8 +47205,8 @@ onNavigate={navigateFromShell}
           </main>
 
 
-          <div
-            className={drByteOpen ? "notes-open drbyte-panel-open" : ""}
+          <AssistantDock791
+            open={drByteOpen} overlay={Boolean(activeWorkspace)} width={effectiveDrByteWidth}
             style={{
               position: activeWorkspace && drByteOpen ? "fixed" : "relative",
               top: activeWorkspace && drByteOpen ? "var(--dock-top75)" : undefined,
@@ -47864,6 +47226,13 @@ onNavigate={navigateFromShell}
             {drByteOpen && <div className="mf77-byte-resizer" role="separator" tabIndex={0} aria-label="Ændr bredden på Dr. Byte" aria-orientation="vertical" onPointerDown={beginByteResize} onKeyDown={(event) => { if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); setDrByteWidth(current => Math.max(340, Math.min(780, Number(current) + (event.key === "ArrowLeft" ? 28 : -28)))); } }} />}
             {drByteOpen && (
               <DrByteChat key={session?.user?.id || "guest"} userId={session?.user?.id} moduleName={user?.module} activeLecture={activeWorkspace === "lectures" ? activeByteLecture : null}
+                pdfContext={activeWorkspace === "lectures" ? bytePdfContext791 : null}
+                onOpenPdfSource={source => {
+                  const state=loadStorage(STORAGE.workspaceState,{});
+                  localStorage.setItem(STORAGE.workspaceState,JSON.stringify(pdfWorkspaceSource791(state,user?.module||"module",source)));
+                  window.dispatchEvent(new CustomEvent("medlearn-storage-update",{detail:{key:STORAGE.workspaceState}}));
+                  setActiveWorkspace("lectures");setDrByteOpen(false);setNotePageRequest78({...source,requestId:Date.now()});
+                }}
                 c={c}
                 t={t}
                 language={language}
@@ -47883,7 +47252,7 @@ onNavigate={navigateFromShell}
                 }}
               />
             )}
-          </div>
+          </AssistantDock791>
         </div>
       </div>
 
@@ -47932,7 +47301,8 @@ onNavigate={navigateFromShell}
           moduleId={lectureMenu.moduleId}
           spacedData={spacedData}
           setSpacedData={setSpacedData}
-          importedQuestions={importedQuestions}
+          importedQuestions={effectiveQuestions}
+          onSavePersonalCard={savePersonalFlashcard}
           buriedCards={buriedCards}
           setBuriedCards={setBuriedCards}
           onClose={() => setLectureMenu(null)}
@@ -48016,18 +47386,6 @@ onNavigate={navigateFromShell}
         />
       )}
 
-      {preferences.mascotEnabled !== false && route === "home" && !activeWorkspace && (
-        <MascotAssistant
-          c={c}
-          user={user}
-          language={language}
-          tutorialActive={tutorialActive}
-          spacedData={spacedData}
-          importedQuestions={importedQuestions}
-          onNavigate={navigateFromShell}
-          hidden={drByteOpen}
-        />
-      )}
     </div>
   );
 }

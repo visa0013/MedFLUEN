@@ -1,0 +1,38 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { act } from 'react-dom/test-utils';
+import { AnkiUpload792 } from './AnkiUpload792';
+jest.mock('./pdf791-engine', () => ({ loadPdfEngine791: jest.fn() }));
+global.IS_REACT_ACT_ENVIRONMENT = true;
+test('selection previews cards and saves only after confirmation; back returns to training', async () => {
+  const rootNode = document.createElement('div'); document.body.appendChild(rootNode); const root = createRoot(rootNode);
+  let saved = 0, back = 0;
+  const preview = { cards: [{ cardId: 'test', cardType: 'basic', front: { da: 'Clinical question' }, back: { da: 'Answer' }, sourceDeck: 'Anki deck' }], duplicates: 1, skipped: 2, total: 4, warnings: ['Unsupported template skipped'] };
+  act(() => root.render(<AnkiUpload792 onBack={() => back++} onImport={async cards => { saved += cards.length; return { ok: true, imported: cards.length }; }} parsePackage={async () => preview} moduleId="K5" signedIn />));
+  const input = rootNode.querySelector('input[type="file"]');
+  Object.defineProperty(input, 'files', { value: [new File(['package'], 'cards.apkg')] });
+  await act(async () => input.dispatchEvent(new Event('change', { bubbles: true })));
+  expect(rootNode.textContent).toContain('Clinical question');
+  expect(rootNode.textContent).toContain('Unsupported template skipped');
+  expect(saved).toBe(0);
+  const confirm = rootNode.querySelector('[data-confirm-anki]');
+  expect(confirm.disabled).toBe(false);
+  await act(async () => confirm.click());
+  expect(saved).toBe(1);
+  expect(rootNode.querySelector('[role="status"]').textContent).toContain('1');
+  act(() => rootNode.querySelector('[data-anki-back]').click());
+  expect(back).toBe(1);
+  act(() => root.unmount()); rootNode.remove();
+});
+test('an unsupported package displays the parser error and offers no import action', async () => {
+  const el = document.createElement('div'); document.body.appendChild(el); const root = createRoot(el);
+  let saved = 0;
+  act(() => root.render(<AnkiUpload792 signedIn onBack={() => {}} onImport={() => saved++} parsePackage={async () => { throw Error('Use an older Anki-compatible export'); }} />));
+  const input = el.querySelector('input[type="file"]');
+  Object.defineProperty(input, 'files', { value: [new File(['package'], 'new.apkg')] });
+  await act(async () => input.dispatchEvent(new Event('change', { bubbles: true })));
+  expect(el.querySelector('[role="alert"]').textContent).toBe('Use an older Anki-compatible export');
+  expect(el.querySelector('[data-confirm-anki]')).toBeNull();
+  expect(saved).toBe(0);
+  act(() => root.unmount()); el.remove();
+});

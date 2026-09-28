@@ -13,7 +13,9 @@ export function shouldWakeSync72(event, queueKey) {
 }
 export function sanitizeRich72(input) {
   if (typeof document === 'undefined') return '';
-  const root = document.createElement('div');
+  // Template contents have an inert owner document: uploaded resource URLs must
+  // never reach an active-document parser before the allowlist removes them.
+  const root = document.createElement('template');
   root.innerHTML = String(input || '');
   const allowed = new Set(['P','DIV','BR','B','STRONG','I','EM','U','S','UL','OL','LI','SPAN','SUB','SUP','BLOCKQUOTE','IMG','A','FONT']);
   function clean(parent) {
@@ -41,14 +43,14 @@ export function sanitizeRich72(input) {
       if (node.tagName === 'FONT') { const span = document.createElement('span'); span.style.cssText=node.style.cssText; span.append(...node.childNodes); node.replaceWith(span); }
     });
   }
-  clean(root); return root.innerHTML;
+  clean(root.content); return root.innerHTML;
 }
 export function richText72(html) {
-  const root = document.createElement('div'); root.innerHTML = sanitizeRich72(html);
-  root.querySelectorAll('br').forEach(n=>n.replaceWith('\n'));
-  root.querySelectorAll('p,div,li,blockquote').forEach(n=>n.append('\n'));
-  root.querySelectorAll('img').forEach(n=>n.replaceWith('[Billede]'));
-  return (root.textContent || '').replace(/\n{3,}/g,'\n\n').trim();
+  const root = document.createElement('template'); root.innerHTML = sanitizeRich72(html);
+  root.content.querySelectorAll('br').forEach(n=>n.replaceWith('\n'));
+  root.content.querySelectorAll('p,div,li,blockquote').forEach(n=>n.append('\n'));
+  root.content.querySelectorAll('img').forEach(n=>n.replaceWith('[Billede]'));
+  return (root.content.textContent || '').replace(/\n{3,}/g,'\n\n').trim();
 }
 export function textHtml72(text) {
   const node=document.createElement('div'); node.textContent=String(text || ''); return node.innerHTML.replace(/\n/g,'<br>');

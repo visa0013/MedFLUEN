@@ -1,0 +1,28 @@
+/* Direct, lightweight status controls; status never relies on colour alone. */
+.mf791-app .annotation791-curriculum-progress [data-status=reviewed] dd,.mf791-app .annotation791-lecture-progress[data-status=reviewed]{color:#23835d!important}
+.mf791-app .annotation791-curriculum-progress [data-status=in-progress] dd,.mf791-app .annotation791-lecture-progress[data-status=in-progress]{color:#287ec4!important}
+.mf791-app .annotation791-curriculum-progress [data-status=not-started] dd,.mf791-app .annotation791-lecture-progress[data-status=not-started]{color:#bd4549!important}
+.mf791-app[data-appearance-theme=dark] .annotation791-curriculum-progress [data-status=reviewed] dd,.mf791-app[data-appearance-theme=dark] .annotation791-lecture-progress[data-status=reviewed]{color:#7ac9a4!important}
+.mf791-app[data-appearance-theme=dark] .annotation791-curriculum-progress [data-status=in-progress] dd,.mf791-app[data-appearance-theme=dark] .annotation791-lecture-progress[data-status=in-progress]{color:#83bdf0!important}
+.mf791-app[data-appearance-theme=dark] .annotation791-curriculum-progress [data-status=not-started] dd,.mf791-app[data-appearance-theme=dark] .annotation791-lecture-progress[data-status=not-started]{color:#ef9497!important}
+.annotation791-lecture-progress>button{display:flex;align-items:center;gap:7px;padding:6px 9px;border:0;border-radius:5px;background:transparent;color:inherit;font:12px/1.5 system-ui;cursor:pointer;white-space:nowrap}
+.annotation791-lecture-progress>button:hover{background:color-mix(in srgb,currentColor 7%,transparent)}
+.annotation791-lecture-progress>button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.curriculum792-status-picker{position:fixed;z-index:100010;width:190px;background:var(--mf79-surface,#f8f6f0);color:var(--mf79-ink,#193338);border:1px solid var(--mf79-line,#d4dad6);box-shadow:0 8px 28px #0002;border-radius:7px;padding:9px;font:13px/1.5 system-ui}
+.curriculum792-status-picker>small{display:block;padding:4px 7px 8px;color:var(--mf79-ink-soft,#67797b)}
+.curriculum792-status-picker>button{display:flex;align-items:center;gap:9px;width:100%;padding:8px 7px;min-height:36px;background:transparent;border:0;border-radius:4px;text-align:left;font:inherit;cursor:pointer;color:inherit}
+.curriculum792-status-picker button>span{margin-left:auto}.curriculum792-status-picker button[aria-pressed=true],.curriculum792-status-picker button:hover{background:#80808012}
+.curriculum792-status-picker button[data-status=reviewed]{color:#23835d}.curriculum792-status-picker button[data-status=in-progress]{color:#287ec4}.curriculum792-status-picker button[data-status=not-started]{color:#bd4549}
+.curriculum792-status-picker button:focus-visible{outline:2px solid currentColor;outline-offset:1px}.curriculum792-status-picker i{font-style:normal}
+/* A compact document list, not a stack of legacy cards. */
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-materials-popover{width:min(370px,calc(100vw - 30px))!important;padding:10px!important;border-radius:8px!important;box-shadow:0 10px 30px #0002!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-strip-heading{padding:4px 7px 8px!important;border:0!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-strip-heading strong{font:500 12px/1.5 system-ui!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-strip-heading small{background:none!important;font:12px system-ui!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-chip{display:grid!important;grid-template-columns:22px minmax(0,1fr) 16px!important;gap:9px!important;padding:10px 8px!important;border:0!important;border-radius:5px!important;background:transparent!important;box-shadow:none!important;min-height:54px!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-chip[data-active=true]{background:color-mix(in srgb,var(--mf79-ink) 5%,transparent)!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-chip>span:first-child{background:none!important;width:22px!important;height:28px!important;color:var(--mf79-ink-soft)!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-chip strong{font:500 13px/1.45 system-ui!important;white-space:normal!important;overflow-wrap:anywhere}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-chip small{font:11px/1.5 system-ui!important;color:var(--mf79-ink-soft)!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-popover-footer{border-top:1px solid var(--mf79-line)!important;padding:6px 5px 0!important}
+.mf791-app.mf75-app-frame[data-surface][data-area] .lecture-material-popover-footer button{justify-content:flex-start!important;font:12px/1.5 system-ui!important;min-height:32px!important}

@@ -5,7 +5,7 @@ import './notes78.css';
 const uid = () => crypto.randomUUID();
 const ownSlideNotes = (rows, page) => (rows || []).filter(row => row.type === 'sticky' && row.payload?.kind === 'slide-note' && Number(row.page) === Number(page));
 
-export function PageNote78({ materialId, page = 1, numPages = 0, journal, onPage, lectureDraft, onLectureDraft, lectureStatus, onNewFromPage, language = 'da' }) {
+export function PageNote78({ materialId, page = 1, numPages = 0, journal, onPage, lectureDraft, onLectureDraft, lectureStatus, onNewFromPage, selectionRequest, language = 'da' }) {
   const en = language === 'en';
   const [scope, setScope] = useState('page');
   const [pageInput, setPageInput] = useState(String(page));
@@ -14,6 +14,7 @@ export function PageNote78({ materialId, page = 1, numPages = 0, journal, onPage
   const [draft, setDraft] = useState('');
   const draftRef = useRef('');
   const identityRef = useRef('');
+  const consumedSelection = useRef(null);
   const currentId = `${materialId || ''}:${selectedPage}`;
 
   // The journal persists every edit locally before sending it to Supabase.
@@ -41,6 +42,12 @@ export function PageNote78({ materialId, page = 1, numPages = 0, journal, onPage
   }, [current?.payload?.text, currentId, journal.pending]);
   function moveTo(value) { const next = clampPage78(value, numPages); setPageInput(String(next)); if (next !== selectedPage) onPage?.(next); }
   function edit(text) { draftRef.current = text; setDraft(text); savePage(text); }
+  useEffect(() => {
+    if (!selectionRequest?.requestId || consumedSelection.current === selectionRequest.requestId || selectionRequest.materialId !== materialId || selectionRequest.page !== selectedPage) return;
+    consumedSelection.current = selectionRequest.requestId;
+    setScope('page');
+    edit([draftRef.current.trim(), `“${selectionRequest.text}”`].filter(Boolean).join('\n\n'));
+  }, [selectionRequest?.requestId, materialId, selectedPage]); // eslint-disable-line react-hooks/exhaustive-deps
   const state = journal.status === 'ready' ? (en ? 'Synced' : 'Synkroniseret') : journal.status === 'saving' ? (en ? 'Saving…' : 'Gemmer…') : (en ? 'Saved locally' : 'Gemt på enheden');
   return <section className="mf78-page-note" aria-label={en ? 'Notes for PDF' : 'Noter til PDF'}>
     <header><div><small>{en ? 'MY NOTES' : 'MINE NOTER'}</small><h3>{en ? 'Beside the lecture' : 'Ved forelæsningen'}</h3></div><span role="status">{state}</span></header>
@@ -50,7 +57,7 @@ export function PageNote78({ materialId, page = 1, numPages = 0, journal, onPage
     </div>
     {scope === 'page' ? <>
       <div className="mf78-page-picker"><button type="button" aria-label={en ? 'Previous page' : 'Forrige side'} disabled={selectedPage <= 1} onClick={() => moveTo(selectedPage - 1)}>‹</button><label>{en ? 'Selected PDF page' : 'Valgt PDF-side'} <input type="number" min="1" max={numPages || 10000} value={pageInput} onChange={event => setPageInput(event.target.value)} onBlur={() => moveTo(pageInput)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); moveTo(pageInput); event.currentTarget.blur(); } }} /></label><button type="button" aria-label={en ? 'Next page' : 'Næste side'} disabled={numPages > 0 && selectedPage >= numPages} onClick={() => moveTo(selectedPage + 1)}>›</button></div>
-      <p className="mf78-page-caveat">{en ? 'Choose a page here; browser PDF scrolling cannot be detected automatically.' : 'Vælg siden her. Scroll i browserens PDF-viser kan ikke aflæses automatisk.'}</p>
+      <p className="mf78-page-caveat">{en ? 'Your note follows the PDF page you are reading.' : 'Noten følger den PDF-side, du læser.'}</p>
       <textarea aria-label={en ? 'Page note' : 'Sidenote'} value={draft} disabled={!materialId} onChange={event => edit(event.target.value)} placeholder={en ? 'What matters on this page?' : 'Hvad er vigtigt på denne side?'} />
       <footer><button type="button" onClick={() => onNewFromPage?.(selectedPage)} disabled={!materialId}>{en ? 'New linked note' : 'Ny note fra denne side'} ↗</button>{['local','storage-error'].includes(journal.status) && <button type="button" onClick={journal.retry}>{en ? 'Retry sync' : 'Synk igen'}</button>}</footer>
     </> : <><textarea aria-label={en ? 'Lecture note' : 'Forelæsningsnote'} value={lectureDraft?.freeText || ''} onChange={event => onLectureDraft?.({freeText:event.target.value})} placeholder={en ? 'Thoughts about the entire lecture…' : 'Tanker om hele forelæsningen…'} /><p className="mf78-page-caveat">{lectureStatus === 'saved' ? (en ? 'Synced' : 'Synkroniseret') : lectureStatus === 'saving' ? (en ? 'Saving…' : 'Gemmer…') : (en ? 'Saved on this device or pending sync' : 'Gemt lokalt eller afventer synkronisering')}</p>{[lectureDraft?.keyPoints,lectureDraft?.clinicalPoints,lectureDraft?.openQuestions].some(v => String(v || '').trim()) && <details className="mf78-legacy"><summary>{en ? 'Earlier structured notes' : 'Tidligere strukturerede noter'}</summary>{[['keyPoints',en?'Key points':'Nøglepunkter'],['clinicalPoints',en?'Clinical points':'Kliniske punkter'],['openQuestions',en?'Open questions':'Åbne spørgsmål']].map(([key,label]) => <label key={key}>{label}<textarea value={lectureDraft?.[key] || ''} onChange={event => onLectureDraft?.({[key]:event.target.value})} /></label>)}</details>}</>}

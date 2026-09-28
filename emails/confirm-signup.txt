@@ -1,0 +1,15 @@
+Din kode til medFLUEN
+
+Velkommen til medFLUEN.
+
+Dit studiebord er næsten klar. Indtast denne kode i medFLUEN for at bekræfte din e-mailadresse.
+
+Din engangskode: {{ .Token }}
+
+Del ikke koden med andre.
+Åbn medFLUEN: {{ .SiteURL }}
+
+Hvis du ikke bad om denne e-mail, kan du ignorere den.
+
+medFLUEN
+Forelæsninger. Flashkort. Overblik.

@@ -1,0 +1,27 @@
+/* Keep these controls legible through the legacy button cascade. */
+.mf791-app.mf75-app-frame[data-surface][data-area] .mf791-index-tools > button.mf792-upload-action {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:36px!important;
+  padding:8px 12px!important;
+  border:1px solid var(--mf79-line)!important;
+  border-radius:9px!important;
+  background:var(--mf79-surface)!important;
+  color:var(--mf79-ink)!important;
+  font:500 13px/1.4 system-ui,sans-serif!important;
+  white-space:nowrap;
+  cursor:pointer;
+  box-shadow:none!important;
+  transition:background 160ms ease,border-color 160ms ease;
+}
+.mf791-app.mf75-app-frame[data-surface][data-area] .mf791-index-tools > button.mf792-upload-action > svg { flex:none; }
+.mf791-app.mf75-app-frame[data-surface][data-area] .mf791-index-tools > button.mf792-upload-action:hover {
+  background:color-mix(in srgb,var(--mf79-ink) 5%,var(--mf79-surface))!important;
+  border-color:var(--mf79-ink-soft)!important;
+}
+.mf791-app.mf75-app-frame[data-surface][data-area] .mf791-index-tools > button.mf792-upload-action:focus-visible {
+  outline:2px solid var(--mf79-teal)!important;
+  outline-offset:3px;
+}

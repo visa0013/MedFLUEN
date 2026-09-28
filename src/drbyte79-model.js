@@ -8,12 +8,10 @@ export function conversationState79(raw) {
     };
   } catch { return { activeId: null, draft: '', sourceIds: [] }; }
 }
-
 export function conversationTitle79(question) {
   const title = typeof question === 'string' ? question.replace(/\s+/g, ' ').trim().slice(0, 120) : '';
   return title || 'Ny samtale';
 }
-
 export function quotaError79(code) {
   if (code === 'APP_QUOTA') return 'Appens sikkerhedsgrænse er nået. Spørgsmålet er bevaret; prøv igen senere.';
   if (code === 'GEMINI_QUOTA' || code === 'PROVIDER_QUOTA') return 'Google Gemini har nået projektets gratis kapacitet. Ingen betalt model bruges automatisk.';
