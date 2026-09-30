@@ -3,6 +3,10 @@ import JSZip from 'jszip';
 
 export const package800 = () => ({ format: 'medfluen-lecture', version: 1, packageId: 'lecture-a', lecture: { moduleId: 'K5', lectureId: 'N2', title: 'Muskelsygdomme' }, sources: [{ id: 'pdf', filename: 'forelaesning.pdf', pageCount: 20 }], sections: [{ id: 'diagnosis', title: 'Diagnostik', order: 2 }, { id: 'disease', title: 'Sygdommen', order: 1 }], glossary: [{ id: 'term', term: 'Fagord', definition: 'En kildebaseret definition.', sourceRefs: [{ sourceId: 'pdf', page: 2 }] }], cards: [{ id: 'q2', type: 'basic', sectionId: 'diagnosis', order: 1, question: 'Hvad viser undersøgelsen?', answer: 'Et svar fra kilden.', sourceRefs: [{ sourceId: 'pdf', page: 4 }] }, { id: 'q1', type: 'recall-list', sectionId: 'disease', order: 1, question: 'Hvilke undergrupper findes af [[term|fagordet]]?', answerItems: [{ id: 'a', text: 'Første gruppe' }, { id: 'b', text: 'Anden gruppe' }], sourceRefs: [{ sourceId: 'pdf', page: 2 }] }], assets: [], warnings: [] });
 const target = { moduleId: 'K5', lectureId: 'N2', title: 'Muskelsygdomme' };
+test('accepts MedFLUENs real module names including spaces', () => {
+  const pack = package800(); pack.lecture.moduleId = 'K5 Nervesystem og psykiatri';
+  expect(validateLecture800(pack).lecture.moduleId).toBe('K5 Nervesystem og psykiatri');
+});
 
 test('validates every source, glossary and image reference rather than silently dropping cards', () => {
   const pack = package800();

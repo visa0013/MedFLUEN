@@ -26,7 +26,7 @@ const questions = [
 test('selecting cards uses the same reading workspace for legacy MCQ and personal flashcards', () => {
   const el = mount(<CardBrowser791 questions={questions} />);
   const detail = el.querySelector('.flashcard71-card-detail');
-  expect(detail.querySelector('h3').textContent).toBe('Hvilken nerve?');
+  expect(detail.querySelector('.mf799-question').textContent).toBe('Hvilken nerve?');
   expect(detail.querySelector('[data-correct="true"]').textContent).toContain('Vagus');
   expect(detail.textContent).toContain('Den tiende kranienerve.');
   act(() => el.querySelector('[data-card-id="private"]').click());
@@ -44,7 +44,7 @@ test('search and progress filtering select a matching card and keep its answer v
   inputValue(el.querySelector('[aria-label="Søg i kort"]'), '');
   inputValue(el.querySelector('[aria-label="Status"]'), 'due');
   expect([...el.querySelectorAll('[data-card-id]')].map(item => item.dataset.cardId)).toEqual(['mcq']);
-  expect(el.querySelector('.flashcard71-card-detail h3').textContent).toBe('Hvilken nerve?');
+  expect(el.querySelector('.flashcard71-card-detail .mf799-question').textContent).toBe('Hvilken nerve?');
   inputValue(el.querySelector('[aria-label="Søg i kort"]'), 'ingen match');
   expect(el.querySelector('.flashcard71-empty').textContent).toContain('Ingen');
 });

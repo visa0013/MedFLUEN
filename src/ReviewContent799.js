@@ -5,7 +5,7 @@ import { sanitizeRich72 } from './experience72-model';
 import './review799.css';
 
 // Keep the imported text and its images intact, but give the images a stable place.
-export function ReviewContent799({ html, text, language = 'da', cloze, revealed, children }) {
+export function ReviewContent799({ html, text, language = 'da', cloze, revealed, children, questionContent, imageItems = [] }) {
   const [expanded, setExpanded] = useState(null);
   const dialog = useRef(null);
   const media = useMemo(() => {
@@ -34,16 +34,17 @@ export function ReviewContent799({ html, text, language = 'da', cloze, revealed,
     const src = image?.currentSrc || image?.getAttribute('src');
     if (src) setExpanded({ src, alt: image.alt || (language === 'en' ? 'Question image' : 'Billede til spørgsmålet') });
   };
-  return <div className="mf799-review-content" data-has-images={media.images.length > 0}>
+  const images = [...media.images, ...imageItems];
+  return <div className="mf799-review-content" data-has-images={images.length > 0}>
     <div className="mf799-review-text" onClick={event => {
       if (event.target.tagName === 'IMG') openImage(event.target);
     }}>
-      <div className="mf799-question mf72-question"><RichContent72 html={media.html} text={media.images.length && !media.html.trim() ? '' : text} cloze={cloze} revealed={revealed} /></div>
+      <div className="mf799-question mf72-question">{questionContent || <RichContent72 html={media.html} text={media.images.length && !media.html.trim() ? '' : text} cloze={cloze} revealed={revealed} />}</div>
       {children}
     </div>
-    {media.images.length > 0 && <aside className="mf799-image-holder" aria-label={language === 'en' ? 'Question images' : 'Billeder til spørgsmålet'}>
-      {media.images.map((image, index) => <button key={index} type="button" className="mf799-image-preview" aria-label={language === 'en' ? `Enlarge image ${index + 1}` : `Forstør billede ${index + 1}`} onClick={event => openImage(event.currentTarget.querySelector('img'))}>
-        <RichContent72 html={image} />
+    {images.length > 0 && <aside className="mf799-image-holder" aria-label={language === 'en' ? 'Question images' : 'Billeder til spørgsmålet'}>
+      {images.map((image, index) => <button key={index} type="button" className="mf799-image-preview" aria-label={language === 'en' ? `Enlarge image ${index + 1}` : `Forstør billede ${index + 1}`} onClick={event => openImage(event.currentTarget.querySelector('img'))}>
+        {typeof image === 'string' ? <RichContent72 html={image} /> : <><img src={image.src} alt={image.alt} />{image.caption && <span className="mf800-image-caption">{image.caption}</span>}</>}
         <span className="mf799-image-expand" aria-hidden="true">↗</span>
       </button>)}
     </aside>}

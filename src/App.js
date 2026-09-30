@@ -35,6 +35,11 @@ import { TrainingIndex791 } from "./TrainingIndex791";
 import { AnkiUpload792 } from "./AnkiUpload792";
 import { McqCard797 } from "./McqCard797";
 import { ReviewContent799 } from "./ReviewContent799";
+import { LectureCard800 } from "./LectureCard800";
+import { readLectureCards800, readForgotten800 } from "./lecture800-storage";
+import { lectureSections800, lectureStudyCards800 } from "./lecture800-model";
+import { LectureUpload800 } from "./LectureUpload800";
+import { LectureSections800 } from "./LectureSections800";
 import { ankiDeckTree797, normalizeAnkiCard797 } from "./ankiExam797-model";
 import { persistAnkiImport792, readAnkiCards792, archiveAnkiImport798 } from "./ankiStorage792";
 import { ExamTopics798 } from "./ExamTopics798";
@@ -640,6 +645,8 @@ function flashcard71RecordToQuestion(record, canonical = null) {
     private: true,
     personalCardId: record?.cardId,
     richContent: record?.richContent || canonical?.richContent || {},
+    lectureContent: record?.lectureContent || canonical?.lectureContent,
+    lectureScope800: record?.lectureScope800 || canonical?.lectureScope800,
     personalOverride: Boolean(canonical || sourceId),
     sourceQuestionId: sourceId,
     createdAt: record?.createdAt || record?.created_at || canonical?.createdAt,
@@ -3627,13 +3634,14 @@ function usePersonalFlashcards71(userId) {
     let alive = true, revision = 0;
     const hydrate = async () => {
       const currentRevision = ++revision;
-      let imports = [];
+      let imports = [], lectureImports = [];
       try { imports = await readAnkiCards792(storageKey, true); } catch { /* Existing personal cards still load if IndexedDB is unavailable. */ }
+      try { lectureImports = await readLectureCards800(storageKey); } catch { /* Other personal cards remain available if this local store cannot be read. */ }
       if (!alive || currentRevision !== revision) return;
       const stored = loadStorage(storageKey, []);
       const queued = loadStorage(queueKey, []).filter((record) => !record?.ownerUserId || record.ownerUserId === userId);
       const archivedIds = new Set(imports.filter(record => record.ankiArchived).map(record => record.cardId));
-      setSnapshot({ key: storageKey, records: [...imports, ...stored, ...queued].filter(record => !archivedIds.has(record.cardId)).reduce((current, record) => flashcardPersonalUpsert(current, record), []) });
+      setSnapshot({ key: storageKey, records: [...imports, ...lectureImports, ...stored, ...queued].filter(record => !archivedIds.has(record.cardId)).reduce((current, record) => flashcardPersonalUpsert(current, record), []) });
     };
     hydrate();
     function handleExternalUpdate(event) {
@@ -4984,7 +4992,7 @@ function buildQuestionPool(scope, spacedData, extraQuestions, buried) {
   if (!scope) return allQuestions;
   const { moduleId, groupFilter, lectureFilter, mode, contentType, questionIds, sessionQuestionIds } = scope;
   const exactIds = Array.isArray(questionIds) && questionIds.length ? new Set(questionIds) : null;
-  const sessionIds = Array.isArray(sessionQuestionIds) && sessionQuestionIds.length ? new Set(sessionQuestionIds) : null;
+  const sessionIds = Array.isArray(sessionQuestionIds) ? new Set(sessionQuestionIds) : null;
   const selectedIds = sessionIds || exactIds;
   let pool = selectedIds
     ? allQuestions.filter((question) => selectedIds.has(question.id))
@@ -5012,6 +5020,10 @@ function buildQuestionPool(scope, spacedData, extraQuestions, buried) {
     });
   }
 
+  if (scope.lectureMode800 && sessionIds) {
+    const byId = new Map(pool.map(question => [question.id, question]));
+    return sessionQuestionIds.map(id => byId.get(id)).filter(Boolean);
+  }
   return pool
     .map((question) => ({ question, due: spacedData[question.id]?.dueDate ? new Date(spacedData[question.id].dueDate).getTime() : 0 }))
     .sort((a, b) => sm2QueuePriority(spacedData[a.question.id]) - sm2QueuePriority(spacedData[b.question.id]) || a.due - b.due)
@@ -21214,6 +21226,9 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   function setSelectedId(id) { setSelectedIdState791(id); try { localStorage.setItem(selectionKey791, JSON.stringify(id)); } catch {} }
   const [expanded, setExpanded] = useState(() => new Set([`module:${user.module}`]));
   const [view, setView] = useState("decks");
+  const [importFormat800, setImportFormat800] = useState('lecture');
+  const [sectionSelection800, setSectionSelection800] = useState(null);
+  const [forgottenState800, setForgottenState800] = useState({ scope: null, items: {} });
   const [sessionOptions791, setSessionOptions791] = useState(false);
   const [deckSearch, setDeckSearch] = useState("");
   const [browserDate, setBrowserDate] = useState("");
@@ -21244,10 +21259,25 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   function findNode(node, id) { if (node.id === id) return node; for (const child of node.children || []) { const found = findNode(child, id); if (found) return found; } return null; }
   const selectedNode = sourceMode79 === "exam-mcq" ? examSelection798(baseTree75, examScope798) : selectedDeck791(tree, selectedId);
   const selectedQuestions = selectedNode.questions || [];
+  const scope800 = authUserId ? flashcardPersonalStorageKey(authUserId) : null;
+  useEffect(() => {
+    let alive = true;
+    const refresh = () => { if (scope800) readForgotten800(scope800).then(items => { if (alive) setForgottenState800({ scope: scope800, items }); }, () => { if (alive) setForgottenState800({ scope: scope800, items: {} }); }); };
+    refresh();
+    const changed = event => { if (event.detail?.scope === scope800) refresh(); };
+    window.addEventListener('medfluen-forgotten800', changed);
+    return () => { alive = false; window.removeEventListener('medfluen-forgotten800', changed); };
+  }, [scope800, importedQuestions]);
+  const sections800 = selectedNode.lectureFilter ? lectureSections800(selectedQuestions) : [];
+  const selection800 = sectionSelection800?.nodeId === selectedNode.id ? sectionSelection800 : { nodeId: selectedNode.id, keys: sections800.map(section => section.key), mode: 'guide' };
+  const forgotten800 = forgottenState800.scope === scope800 ? forgottenState800.items : {};
+  const structured800 = sections800.length > 0;
+  const chosen800 = structured800 ? lectureStudyCards800(selectedQuestions, selection800.keys) : [];
+  const missedCards800 = structured800 ? lectureStudyCards800(selectedQuestions, selection800.keys, forgotten800) : [];
   const sessionCandidates = !examLibrary && preferences.studyMode === "exam"
     ? selectedQuestions.filter((question) => flashcard71QuestionType(question) === "mcq")
     : selectedQuestions;
-  const sessionQuestions = flashcardSelectSessionQuestions(sessionCandidates, spacedData, preferences, Date.now());
+  const sessionQuestions = structured800 ? (selection800.mode === 'review' ? flashcardSelectSessionQuestions(chosen800, spacedData, preferences, Date.now()) : selection800.mode === 'forgotten' ? missedCards800 : chosen800).filter(question => flashcardCardStatus(spacedData[question.id]) !== 'hidden') : flashcardSelectSessionQuestions(sessionCandidates, spacedData, preferences, Date.now());
   const localEvents = flashcardReviewEvents(spacedData);
   const identity = (event) => event?.reversesReviewId ? `undo:${event.reversesReviewId}` : `${String(event?.questionId || "")}:${flashcardFiniteTime(event?.reviewedAt) ?? ""}:${Number(event?.rating) || ""}`;
   const eventIndex = new Map([...localEvents, ...(Array.isArray(cloudReviewEvents) ? cloudReviewEvents : [])].map((event) => [identity(event), event]));
@@ -21267,7 +21297,7 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
     });
   }, [view, browserSelectedId]);
   function persistPreferences(patch) { const next = { ...preferences, ...patch }; setPreferences(next); try { localStorage.setItem(STORAGE.flashcardPreferences, JSON.stringify(next)); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.flashcardPreferences } })); } catch {} }
-  function startSession() { if (!sessionQuestions.length) return; onStart({ moduleId: user.module, groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter, lectureFilter: selectedNode.lectureFilter, mode: preferences.pool === "due" ? "due" : "all", studyMode: examLibrary ? "flashcard" : preferences.studyMode, pool: preferences.pool, limit: preferences.limit, order: preferences.order, deckLabel: selectedNode.label, deckTotal: selectedQuestions.length, examLibrary, sessionQuestionIds: sessionQuestions.map((question) => question.id) }); }
+  function startSession() { if (!sessionQuestions.length) return; onStart({ moduleId: user.module, groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter, lectureFilter: selectedNode.lectureFilter, mode: preferences.pool === "due" ? "due" : "all", studyMode: structured800 || examLibrary ? "flashcard" : preferences.studyMode, pool: preferences.pool, limit: preferences.limit, order: structured800 && selection800.mode !== 'review' ? 'deck' : preferences.order, deckLabel: selectedNode.label, deckTotal: structured800 ? sessionQuestions.length : selectedQuestions.length, examLibrary, sessionQuestionIds: sessionQuestions.map((question) => question.id), ...(structured800 ? { lectureMode800: selection800.mode, ...(selection800.mode === 'forgotten' ? { forgottenItems800: Object.fromEntries(sessionQuestions.map(question => [question.id, [...(forgotten800[question.id] || [])]])) } : {}) } : {}) }); }
   function openNode(node) { setSelectedId(node.id); setBrowserDate(""); setView("overview"); }
   function toggleNode(event, id) { event?.stopPropagation?.(); setExpanded((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
   function matches(node) { const query = deckSearch.trim().toLocaleLowerCase(); return !query || `${node.label} ${node.code || ""}`.toLocaleLowerCase().includes(query) || (node.children || []).some(matches); }
@@ -21318,8 +21348,10 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
     </div>}
     {deckDialog75 && <Modal c={c} onClose={() => { if (!deckDialogBusy75.current) setDeckDialog75(null); }}><DeckDialog75 key={`${deckDialog75.mode}:${deckDialog75.node.id}`} tree={tree} selected={deckDialog75.node} mode={deckDialog75.mode} cardIds={deckDialog75.cardIds} language={language} onApply={privateDecks75.change} onBusyChange={busy => { deckDialogBusy75.current = busy; }} onClose={() => setDeckDialog75(null)} /></Modal>}
     {view === "decks" && sourceMode79 === "exam-mcq" ? <ExamTopics798 tree={baseTree75} scope={examScope798} selected={selectedNode} onSelection={setExamScope798} language={language} sessionCount={sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => setView("browser")} onImport={() => setView("import")} onArchive={onArchiveImports ? restore => onArchiveImports(user.module, restore) : null} /> : null}
-    {view === "decks" && sourceMode79 !== "exam-mcq" ? <TrainingIndex791 tree={tree} selected={selectedNode} language={language} onSelect={node => { setSelectedId(node.id); setBrowserDate(""); }} sessionCount={sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => { setBrowserDate(""); setView("browser"); }} onCreate={() => openEditor(null,"decks")} onCreateDeck={privateDecks75.change} onImport={() => setView("import")} deckCreationDisabled={!authUserId} onMaterials={selectedNode.lectureFilter&&onOpenLectureMaterial ? ()=>onOpenLectureMaterial(selectedNode.lectureFilter) : null} /> : null}
-    {view === "import" && <AnkiUpload792 moduleId={user.module} sourceKind={examLibrary ? "exam-mcq" : undefined} language={language} signedIn={Boolean(authUserId)} existingIds={getFullQuestionBank(importedQuestions).map(card => String(card.personalCardId || card.id))} decks={privateDecks75.state.decks} selectedDeck={selectedNode.type === "personal" ? selectedNode.id : ""} onBack={() => setView("decks")} onImport={async (cards, target) => {
+    {view === "decks" && sourceMode79 !== "exam-mcq" ? <TrainingIndex791 tree={tree} selected={selectedNode} language={language} onSelect={node => { setSelectedId(node.id); setBrowserDate(""); }} sessionCount={sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => { setBrowserDate(""); setView("browser"); }} onCreate={() => openEditor(null,"decks")} onCreateDeck={privateDecks75.change} onImport={() => setView("import")} deckCreationDisabled={!authUserId} onMaterials={selectedNode.lectureFilter&&onOpenLectureMaterial ? ()=>onOpenLectureMaterial(selectedNode.lectureFilter) : null} sectionControls={structured800 ? <LectureSections800 sections={sections800} selection={selection800} onChange={value => setSectionSelection800({ ...value, nodeId: selectedNode.id })} forgottenCount={missedCards800.reduce((sum, question) => sum + (forgotten800[question.id]?.length || 0), 0)} /> : null} /> : null}
+    {view === 'import' && sourceMode79 !== 'exam-mcq' && <nav className="mf800-format-tabs" aria-label="Importformat"><button type="button" aria-pressed={importFormat800 === 'lecture'} onClick={() => setImportFormat800('lecture')}>Forelæsningspakke</button><button type="button" aria-pressed={importFormat800 === 'anki'} onClick={() => setImportFormat800('anki')}>ANKI</button></nav>}
+    {view === 'import' && sourceMode79 !== 'exam-mcq' && importFormat800 === 'lecture' && <LectureUpload800 moduleId={user.module} lectures={lectures} selectedLectureId={selectedNode.lectureFilter || ''} scope={scope800} signedIn={Boolean(authUserId)} onBack={() => setView('decks')} onImported={target => { setSelectedId(`lecture:${target.moduleId}:${target.lectureId}`); setSectionSelection800(null); setView('decks'); }} />}
+    {view === "import" && (sourceMode79 === 'exam-mcq' || importFormat800 === 'anki') && <AnkiUpload792 moduleId={user.module} sourceKind={examLibrary ? "exam-mcq" : undefined} language={language} signedIn={Boolean(authUserId)} existingIds={getFullQuestionBank(importedQuestions).map(card => String(card.personalCardId || card.id))} decks={privateDecks75.state.decks} selectedDeck={selectedNode.type === "personal" ? selectedNode.id : ""} onBack={() => setView("decks")} onImport={async (cards, target) => {
       if (!onImportPersonalCards) return { ok: false, error: "Kortimport er ikke tilsluttet." };
       const result = await onImportPersonalCards(cards);
       if (result.ok === false) return result;
@@ -21421,7 +21453,7 @@ function FlashcardFlagDialog71({ c, t, language, reason, onReason, submitting, o
   );
 }
 
-function FlashcardReviewer71({ c, language, question, position, total, deckLabel, deckTotal, revealed, spacedData, setSpacedData, spacedStorageKey, deckSettings, onReveal, onRated, onEditCard, onFlag, onBury, onOpenLectureList, undoAvailable, onUndo }) {
+function FlashcardReviewer71({ c, language, question, position, total, deckLabel, deckTotal, revealed, spacedData, setSpacedData, spacedStorageKey, deckSettings, onReveal, onRated, onEditCard, onFlag, onBury, onOpenLectureList, undoAvailable, onUndo, lectureScope800, forgottenOnly800 }) {
   const en = language === 'en', ar = language === 'ar';
   const tr = (da,english,arabic) => ar ? arabic : en ? english : da;
   const cardType = question.cardType || (question.imageOcclusion ? "image-occlusion" : Array.isArray(question.options) && question.options.length >= 2 ? "mcq" : "basic");
@@ -21431,7 +21463,7 @@ function FlashcardReviewer71({ c, language, question, position, total, deckLabel
   return <><Flashcard71Styles /><section className="flashcard71-reviewer" data-flashcard-reviewer71="true">
     <header className="flashcard71-review-head"><div className="mf797-review-location"><small>{tr('DIT DÆK','YOUR DECK','مجموعتك')}</small><strong>{deckLabel || question.lectureId || translate(question.category, language)?.split('::').pop()}</strong></div><span className="mf797-review-count" aria-label={tr('Kort i dækket','Cards in deck','بطاقات المجموعة')}>{position}/{deckTotal || total}</span><div className="flashcard71-review-progress"><i style={{ width: `${Math.min(100, (position / Math.max(1, deckTotal || total)) * 100)}%` }} /></div></header>
     <div className="flashcard71-review-tools" role="toolbar" aria-label={tr('Kortværktøjer','Card tools','أدوات البطاقة')}>
-      {onEditCard&&<button type="button" data-action="edit-card" aria-label={tr('Redigér kort (E)','Edit card (E)','تعديل البطاقة (E)')} title="E" onClick={onEditCard}><Icon name="edit" size={14}/><span>{tr('Redigér','Edit','تعديل')}</span></button>}
+      {onEditCard&&!question.lectureContent&&<button type="button" data-action="edit-card" aria-label={tr('Redigér kort (E)','Edit card (E)','تعديل البطاقة (E)')} title="E" onClick={onEditCard}><Icon name="edit" size={14}/><span>{tr('Redigér','Edit','تعديل')}</span></button>}
       {onUndo&&<button type="button" data-action="undo-review" disabled={!undoAvailable} aria-label={tr('Fortryd sidste svar (Z)','Undo last answer (Z)','تراجع عن الإجابة (Z)')} title="Z" onClick={onUndo}><Icon name="reset" size={14}/><span>{tr('Fortryd','Undo','تراجع')}</span></button>}
       <span className="flashcard71-tools-spacer"/>
       {onFlag&&<button type="button" aria-label={tr('Markér fejl (F)','Report error (F)','الإبلاغ عن خطأ (F)')} title="F" onClick={onFlag}><Icon name="flag" size={14}/><span>{tr('Markér fejl','Report error','الإبلاغ عن خطأ')}</span></button>}
@@ -21439,7 +21471,7 @@ function FlashcardReviewer71({ c, language, question, position, total, deckLabel
     </div>
     <div className="flashcard71-card-stage"><article className="flashcard71-card-face">
       {question.imageOcclusion ? <FlashcardOcclusion70 data={question.imageOcclusion} reveal={revealed} c={c} /> : null}
-      {cardType === "mcq" ? <McqCard797 question={question} language={language} revealed={revealed} /> : <ReviewContent799 html={question.richContent?.front?.[language]} text={front} language={language} cloze={cardType === "cloze"} revealed={revealed}>
+      {question.lectureContent ? <LectureCard800 key={question.id} question={question} revealed={revealed} scope={lectureScope800} forgottenOnly={forgottenOnly800} /> : cardType === "mcq" ? <McqCard797 question={question} language={language} revealed={revealed} /> : <ReviewContent799 html={question.richContent?.front?.[language]} text={front} language={language} cloze={cardType === "cloze"} revealed={revealed}>
         {revealed ? <div className="flashcard71-card-answer fade-up"><RichContent72 html={question.richContent?.back?.[language]} text={correctAnswer || "—"} /></div> : null}
       </ReviewContent799>}
     </article></div>
@@ -21745,6 +21777,12 @@ function MCQ({
     delete nextAnswers[question.id];
     setAnswers(nextAnswers);
 
+    if (sessionScope?.lectureMode800 && sessionScope.lectureMode800 !== 'review') {
+      if (index + 1 < pool.length) { setIndex(index + 1); setSessionCardPosition(value => Math.min(value + 1, pool.length)); }
+      else finishSession([...sessionReviews, reviewEntry]);
+      return;
+    }
+
     const nextDue = sm2CardDueMs(updatedCard);
     const staysInTodayQueue = nextDue == null || nextDue < sm2StartOfTomorrow();
     if (staysInTodayQueue) {
@@ -21866,7 +21904,7 @@ function MCQ({
   }
 
   function onEditCard() {
-    if (question) setReviewEditorOpen(true);
+    if (question && !question.lectureContent) setReviewEditorOpen(true);
   }
 
   function saveEditedReviewCard(record) {
@@ -22381,6 +22419,8 @@ async function submitFlag() {
           total={sessionCardTotal}
           deckLabel={sessionScope?.deckLabel}
           deckTotal={sessionScope?.deckTotal}
+          lectureScope800={flashcardPersonalStorageKey(authUserId)}
+          forgottenOnly800={sessionScope?.forgottenItems800?.[question.id]}
           revealed={flashcardRevealed}
           spacedData={spacedData}
           setSpacedData={setSpacedData}

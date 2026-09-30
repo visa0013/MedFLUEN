@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Mark791 } from './Workspace791';
 import { RichContent72 } from './Experience72';
 import { McqCard797 } from './McqCard797';
+import { LectureCard800 } from './LectureCard800';
 
 const localized = (value, language) => typeof value === 'string' ? value : value?.[language] || value?.da || value?.en || '';
 const defaultStatus = card => card?.state || 'new';
@@ -59,9 +60,9 @@ export function CardBrowser791({ questions = [], spacedData = {}, buriedCards = 
         return <button key={question.id} type="button" data-card-id={question.id} data-active={selected?.id === question.id ? 'true' : 'false'} aria-pressed={selected?.id === question.id} onClick={() => selectCard(question)}><strong>{textFor(question.question, language) || '—'}</strong><small>{question.lectureId || copy.source} · {textFor(question.category, language)} · {statusText(cardState)}</small></button>;
       }) : <div className="flashcard71-empty" role="status">{copy.emptyDeck}</div>}</div>
       <article className="flashcard71-card-detail">{selected ? <>
-        <div className="flashcard71-detail-actions"><span>{type === 'mcq' ? copy.mcq : type === 'image-occlusion' ? copy.image : copy.basic}</span><span data-card-status={selectedStatus}>{statusText(selectedStatus)}</span>{onEdit && <button type="button" data-action="edit-card" onClick={() => onEdit(selected)}>{copy.edit}</button>}</div>
+        <div className="flashcard71-detail-actions"><span>{type === 'mcq' ? copy.mcq : type === 'image-occlusion' ? copy.image : copy.basic}</span><span data-card-status={selectedStatus}>{statusText(selectedStatus)}</span>{onEdit && !selected.lectureContent && <button type="button" data-action="edit-card" onClick={() => onEdit(selected)}>{copy.edit}</button>}</div>
         {selected.imageOcclusion && renderImage?.(selected)}
-        {type === 'mcq' ? <McqCard797 question={selected} language={language} revealed /> : <>
+        {selected.lectureContent ? <LectureCard800 key={selected.id} question={selected} revealed readOnly scope={selected.lectureScope800} /> : type === 'mcq' ? <McqCard797 question={selected} language={language} revealed /> : <>
           {richFor('front') ? <div className="mf791-card-heading" role="heading" aria-level="3"><RichContent72 html={richFor('front')} text={textFor(selected.question, language)} cloze={type === 'cloze'} revealed /></div> : <h3>{textFor(selected.question, language)}</h3>}<div className="flashcard71-answer-line" />
           <RichContent72 html={richFor('back') || richFor('explanation')} text={textFor(selected.back || selected.explanation, language)} />
         </>}
