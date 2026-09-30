@@ -1,5 +1,6 @@
 import { validateLecture800, lectureRecords800, mergeLecture800, lectureSections800, lectureStudyCards800, reconcileForgotten800, parseLectureFile800 } from './lecture800-model';
 import JSZip from 'jszip';
+import nodeCrypto from 'crypto';
 
 export const package800 = () => ({ format: 'medfluen-lecture', version: 1, packageId: 'lecture-a', lecture: { moduleId: 'K5', lectureId: 'N2', title: 'Muskelsygdomme' }, sources: [{ id: 'pdf', filename: 'forelaesning.pdf', pageCount: 20 }], sections: [{ id: 'diagnosis', title: 'Diagnostik', order: 2 }, { id: 'disease', title: 'Sygdommen', order: 1 }], glossary: [{ id: 'term', term: 'Fagord', definition: 'En kildebaseret definition.', sourceRefs: [{ sourceId: 'pdf', page: 2 }] }], cards: [{ id: 'q2', type: 'basic', sectionId: 'diagnosis', order: 1, question: 'Hvad viser undersøgelsen?', answer: 'Et svar fra kilden.', sourceRefs: [{ sourceId: 'pdf', page: 4 }] }, { id: 'q1', type: 'recall-list', sectionId: 'disease', order: 1, question: 'Hvilke undergrupper findes af [[term|fagordet]]?', answerItems: [{ id: 'a', text: 'Første gruppe' }, { id: 'b', text: 'Anden gruppe' }], sourceRefs: [{ sourceId: 'pdf', page: 2 }] }], assets: [], warnings: [] });
 const target = { moduleId: 'K5', lectureId: 'N2', title: 'Muskelsygdomme' };
@@ -70,4 +71,41 @@ test('rejects missing binary images in a ZIP before any import', async () => {
   const pack = package800(); pack.assets = [{ id: 'img', path: 'images/figure.png', mime: 'image/png', role: 'question', alt: 'Figur', sourceRefs: [{ sourceId: 'pdf', page: 2 }] }]; pack.cards[0].assetIds = ['img'];
   const bytes = await new JSZip().file('lecture.json', JSON.stringify(pack)).generateAsync({ type: 'uint8array' });
   await expect(parseLectureFile800({ name: 'lecture.zip', size: bytes.length, arrayBuffer: async () => bytes.buffer })).rejects.toThrow(/figure.png/);
+});
+const zipFile800 = bytes => ({ name: 'lecture.zip', size: bytes.length, arrayBuffer: async () => bytes.buffer });
+const digest800 = bytes => nodeCrypto.createHash('sha256').update(bytes).digest();
+test('uses immutable image revisions and detects image-only changes without changing card identity', async () => {
+  const pack = package800();
+  pack.assets = [{ id: 'img', path: 'images/figure.png', mime: 'image/png', role: 'question', alt: 'Figur', sourceRefs: [{ sourceId: 'pdf', page: 2 }] }];
+  pack.cards[0].assetIds = ['img'];
+  async function parse(revision) {
+    const bytes = await new JSZip().file('lecture.json', JSON.stringify(pack)).file('images/figure.png', new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, revision])).generateAsync({ type: 'uint8array' });
+    return parseLectureFile800(zipFile800(bytes), { digest: digest800 });
+  }
+  const original = await parse(1), corrected = await parse(2), same = await parse(1);
+  const old = lectureRecords800(original.package, target, original.mediaHashes);
+  const next = lectureRecords800(corrected.package, target, corrected.mediaHashes);
+  const unchanged = lectureRecords800(same.package, target, same.mediaHashes);
+  expect(next[1].cardId).toBe(old[1].cardId);
+  expect(next[1].lectureContent.assets[0].mediaKey).not.toBe(old[1].lectureContent.assets[0].mediaKey);
+  expect(mergeLecture800(old, next, 'update').updated).toBe(1);
+  expect(mergeLecture800(old, unchanged, 'update').updated).toBe(0);
+  const withNewCard = { ...next[1], cardId: 'new-card' };
+  const addedOnly = mergeLecture800(old, [...next, withNewCard], 'new').records;
+  expect(addedOnly.find(row => row.cardId === old[1].cardId).lectureContent.assets[0].mediaKey).toBe(old[1].lectureContent.assets[0].mediaKey);
+  expect(addedOnly.find(row => row.cardId === 'new-card').lectureContent.assets[0].mediaKey).not.toBe(old[1].lectureContent.assets[0].mediaKey);
+});
+test('rejects raw ZIP traversal entries even when a later safe entry hides them', async () => {
+  const bytes = await new JSZip().file('lecture.json', JSON.stringify(package800())).file('../images/figure.png', 'unsafe', { createFolders: false }).file('images/figure.png', 'safe', { createFolders: false }).generateAsync({ type: 'uint8array' });
+  await expect(parseLectureFile800(zipFile800(bytes))).rejects.toThrow(/usikker filsti/);
+});
+test('rejects duplicate raw ZIP manifests before JSZip discards one', async () => {
+  const bytes = await new JSZip().file('lecture.json', JSON.stringify(package800())).file('second!.json', JSON.stringify(package800())).generateAsync({ type: 'uint8array' });
+  const original = Buffer.from('second!.json'), replacement = Buffer.from('lecture.json');
+  for (let i = 0; i <= bytes.length - original.length; i++) if (original.every((byte, offset) => bytes[i + offset] === byte)) bytes.set(replacement, i);
+  await expect(parseLectureFile800(zipFile800(bytes))).rejects.toThrow(/dublet/);
+});
+test('accepts ordinary text-only ZIP packages', async () => {
+  const bytes = await new JSZip().file('lecture.json', JSON.stringify(package800())).generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
+  expect((await parseLectureFile800(zipFile800(bytes))).package.cards).toHaveLength(2);
 });

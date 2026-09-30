@@ -10,7 +10,7 @@ export function LectureUpload800({ moduleId, lectures = [], selectedLectureId = 
   const generation = useRef(0), saving = useRef(false), active = useRef(true);
   const lecture = lectures.find(item => item.id === targetId);
   const target = useMemo(() => ({ moduleId, lectureId: targetId, title: lecture?.title || '' }), [moduleId, targetId, lecture?.title]);
-  const rows = useMemo(() => preview && lecture ? lectureRecords800(preview.package, target) : [], [preview, lecture, target]);
+  const rows = useMemo(() => preview && lecture ? lectureRecords800(preview.package, target, preview.mediaHashes) : [], [preview, lecture, target]);
   const mismatch = preview && lecture && (preview.package.lecture.moduleId !== moduleId || preview.package.lecture.lectureId !== targetId);
   const changes = useMemo(() => mergeLecture800(existing, rows, mode), [existing, rows, mode]);
   useEffect(() => {

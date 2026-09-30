@@ -42,3 +42,23 @@ test('renders imported markup as plain text, never executable HTML', () => {
   expect(host.querySelector('img')).toBeNull();
   expect(host.textContent).toContain('<img');
 });
+test('keeps answer figures hidden until reveal and reuses the image holder with enlargement', async () => {
+  const originalCreate = URL.createObjectURL, originalRevoke = URL.revokeObjectURL;
+  URL.createObjectURL = jest.fn(() => 'blob:lecture-figure'); URL.revokeObjectURL = jest.fn();
+  HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+  const withImage = { ...content, assets: [{ id: 'fig', role: 'answer', path: 'images/figure.png', alt: 'Figur fra forelæsningen', caption: 'Billedets kildekontekst' }] };
+  const question = { id: 'c', lectureContent: withImage }, media = new Map([['fig', new Blob(['image'])]]);
+  try {
+    await act(async () => { root.render(<LectureCard800 question={question} previewMedia={media} readOnly />); });
+    expect(host.querySelector('.mf799-image-holder')).toBeNull();
+    await act(async () => { root.render(<LectureCard800 question={question} previewMedia={media} revealed readOnly />); });
+    expect(host.querySelector('.mf799-image-holder img').alt).toBe('Figur fra forelæsningen');
+    expect(host.textContent).toContain('Billedets kildekontekst');
+    act(() => host.querySelector('[aria-label="Forstør billede 1"]').click());
+    expect(document.querySelector('dialog img').getAttribute('src')).toBe('blob:lecture-figure');
+    act(() => document.querySelector('dialog').click());
+    expect(document.querySelector('dialog')).toBeNull();
+    act(() => root.render(<div />));
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:lecture-figure');
+  } finally { URL.createObjectURL = originalCreate; URL.revokeObjectURL = originalRevoke; }
+});

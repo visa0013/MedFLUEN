@@ -38,8 +38,8 @@ export async function writeForgotten800(scope, card, itemIds) {
 }
 export async function persistLecture800(scope, preview, target, mode = 'new') {
   if (!scope) throw Error('Log ind for at gemme forelæsningskort.');
-  const incoming = lectureRecords800(preview.package, target).map(card => ({ ...card, lectureScope800: scope }));
-  for (const row of incoming) for (const asset of row.lectureContent.assets) if (!(preview.media.get(asset.id) instanceof Blob)) throw Error(`Billedet ${asset.path} mangler. Ingen kort er gemt.`);
+  const incoming = lectureRecords800(preview.package, target, preview.mediaHashes).map(card => ({ ...card, lectureScope800: scope }));
+  for (const row of incoming) for (const asset of row.lectureContent.assets) if (!(preview.media.get(asset.id) instanceof Blob) || !asset.sha256) throw Error(`Billedet ${asset.path} mangler eller er ikke kontrolleret. Ingen kort er gemt.`);
   const db = await database800(), transaction = db.transaction(['cards', 'media', 'packages', 'forgotten'], 'readwrite'), done = done800(transaction);
   const cards = transaction.objectStore('cards'), forgotten = transaction.objectStore('forgotten');
   const oldCardsRequest = cards.index('scope').getAll(scope), flagsRequest = forgotten.index('scope').getAll(scope);
