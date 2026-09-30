@@ -46,3 +46,4 @@
 .mf75-editor-feedback>span{min-width:0;overflow-wrap:anywhere}
 .mf72 .mf75-editor-feedback>button{flex-shrink:0;font-size:11px;color:var(--ui-blue);background:transparent;border-color:var(--ui-border)}
 .flashcard71-shell .lecture-material-field[hidden]{display:none!important}
+.mf72-rich audio,.mf72-rich video{display:block;max-width:100%;margin:14px 0}.mf72-rich video{height:auto}

@@ -3,6 +3,10 @@ node_modules
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+coverage/
+.pnpm-store/
 .DS_Store
 npm-debug.log*
 yarn-error.log*

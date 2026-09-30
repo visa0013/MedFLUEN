@@ -23,3 +23,9 @@ test('exam list states answers explicitly and never invents a key', () => {
   expect(examRows79(documents, 'without', '').map(row => [row.id, row.hasAnswer])).toEqual([['no-key', false]]);
   expect(examRows79(documents, 'with', '').map(row => [row.id, row.hasAnswer])).toEqual([['key', true]]);
 });
+
+test('imported exam decks are shown only as exams, including non-MCQ cards', () => {
+  const imported = [{ id: 'anki-1', cardType: 'basic', richContent: { anki: { deck: "Visar's eksamensforberedende K3-ANKI::Diabetes" } } }];
+  expect(trainingCards79(imported, 'theory')).toEqual([]);
+  expect(trainingCards79(imported, 'exam-mcq').map(card => card.id)).toEqual(['anki-1']);
+});

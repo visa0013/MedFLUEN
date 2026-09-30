@@ -17,10 +17,10 @@ export function sanitizeRich72(input) {
   // never reach an active-document parser before the allowlist removes them.
   const root = document.createElement('template');
   root.innerHTML = String(input || '');
-  const allowed = new Set(['P','DIV','BR','B','STRONG','I','EM','U','S','UL','OL','LI','SPAN','SUB','SUP','BLOCKQUOTE','IMG','A','FONT']);
+  const allowed = new Set(['P','DIV','BR','B','STRONG','I','EM','U','S','UL','OL','LI','SPAN','SUB','SUP','BLOCKQUOTE','IMG','A','FONT','AUDIO','VIDEO','SOURCE']);
   function clean(parent) {
     [...parent.children].forEach(node => {
-      if (['SCRIPT','STYLE','IFRAME','OBJECT','SVG','MATH','FORM','INPUT','BUTTON','VIDEO','AUDIO'].includes(node.tagName)) { node.remove(); return; }
+      if (['SCRIPT','STYLE','IFRAME','OBJECT','SVG','MATH','FORM','INPUT','BUTTON'].includes(node.tagName)) { node.remove(); return; }
       if (!allowed.has(node.tagName)) { clean(node); node.replaceWith(...node.childNodes); return; }
       const size = node.style.fontSize || (node.tagName === 'FONT' ? ({1:'10px',2:'13px',3:'16px',4:'20px',5:'24px',6:'32px',7:'40px'})[node.getAttribute('size')] : '');
       const color = node.style.color || node.getAttribute('color');
@@ -35,8 +35,14 @@ export function sanitizeRich72(input) {
       if (bg && /^(#[a-f\d]{3,8}|rgba?\([\d.,\s%]+\)|[a-z]+)$/i.test(bg)) node.style.backgroundColor = bg;
       if (['left','right','center','justify'].includes(align)) node.style.textAlign = align;
       if (node.tagName === 'IMG') {
-        if (!/^data:image\/(png|jpeg|gif|webp);base64,[a-z\d+/=\s]+$/i.test(src)) { node.remove(); return; }
+        if (!/^data:image\/(png|jpeg|gif|webp);base64,[a-z\d+/=\s]+$/i.test(src) && !/^medfluen-media:[a-f0-9]{64}$/.test(src)) { node.remove(); return; }
         node.setAttribute('src',src); node.setAttribute('alt',alt.slice(0,200));
+      }
+      if (['AUDIO','VIDEO','SOURCE'].includes(node.tagName)) {
+        if (src && !/^data:(audio|video)\/(mpeg|mp4|ogg|wav|webm|flac);base64,[a-z\d+/=\s]+$/i.test(src) && !/^medfluen-media:[a-f0-9]{64}$/.test(src)) { node.remove(); return; }
+        if (src) node.setAttribute('src', src);
+        if (node.tagName !== 'SOURCE') { node.setAttribute('controls', ''); node.setAttribute('preload', 'none'); }
+        else if (!src || !['AUDIO','VIDEO'].includes(node.parentElement?.tagName)) { node.remove(); return; }
       }
       if (node.tagName === 'A' && /^https?:\/\//i.test(href)) { node.setAttribute('href',href); node.setAttribute('target','_blank'); node.setAttribute('rel','noopener noreferrer'); }
       clean(node);
@@ -50,6 +56,7 @@ export function richText72(html) {
   root.content.querySelectorAll('br').forEach(n=>n.replaceWith('\n'));
   root.content.querySelectorAll('p,div,li,blockquote').forEach(n=>n.append('\n'));
   root.content.querySelectorAll('img').forEach(n=>n.replaceWith('[Billede]'));
+  root.content.querySelectorAll('audio,video').forEach(n=>n.replaceWith(n.tagName === 'AUDIO' ? '[Lyd]' : '[Video]'));
   return (root.content.textContent || '').replace(/\n{3,}/g,'\n\n').trim();
 }
 export function textHtml72(text) {

@@ -12,6 +12,7 @@ import { sourcePreview79 } from './drbyte79-retrieval';
 import './drbyte76.css';
 import {openPdfDocument791,extractPdfIndex791,sharedPdfDocuments791,subscribePdfDocuments791,aiPdfDocument791,versionPdfCitations791} from './pdf791-model';
 import './aiPanel792.css';
+import { readAnkiMedia792, ankiMediaReference792 } from './ankiStorage792';
 
 export function ActivityChart73({language,events,getBuckets}) {
   const en=language==='en', locale=en?'en-GB':language==='ar'?'ar':'da-DK';
@@ -66,8 +67,24 @@ export function useReviewClock72(active) {
 }
 
 export function RichContent72({ html, text, cloze=false, revealed=false }) {
+  const surface = useRef(null);
   const content=cloze&&html?sanitizeRich72(html).replace(/\{\{c\d+::(.*?)(?:::[^}]*)?\}\}/gs,(_,answer)=>revealed?answer:'[…]'):html;
-  return content ? <div className="mf72-rich" dangerouslySetInnerHTML={{__html:sanitizeRich72(content)}} /> : <div className="mf72-rich mf72-plain">{text}</div>;
+  const safe = sanitizeRich72(content);
+  // Resolve persistent binary references only after mounting. Blob URLs are
+  // confined to these elements and revoked on a card change or unmount.
+  useEffect(() => {
+    let active = true; const urls = [];
+    (surface.current?.querySelectorAll('[data-anki-media]') || []).forEach(element => {
+      readAnkiMedia792(element.dataset.ankiMedia).then(blob => {
+        if (!active || !blob) return;
+        const url = URL.createObjectURL(blob); urls.push(url); element.setAttribute('src', url);
+        if (element.tagName === 'SOURCE') element.parentElement?.load?.();
+      }).catch(() => { if (active) element.setAttribute('aria-label', 'Mediet kunne ikke indlæses'); });
+    });
+    return () => { active = false; urls.forEach(url => URL.revokeObjectURL(url)); };
+  }, [safe]);
+  const rendered = safe.replace(/src="(medfluen-media:[a-f0-9]{64})"/g, (_, reference) => `data-anki-media="${reference.match(ankiMediaReference792)[1]}"`);
+  return content ? <div ref={surface} className="mf72-rich" dangerouslySetInnerHTML={{__html:rendered}} /> : <div className="mf72-rich mf72-plain">{text}</div>;
 }
 
 export function AreaTabs72({area,activeTab,onSelect,language,Icon}) {

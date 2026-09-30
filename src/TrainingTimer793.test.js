@@ -52,7 +52,7 @@ test('focus shows its flame during a focus session and returns to the clock in b
 test('an empty exam MCQ selection keeps source navigation and exam papers without an empty banner', () => {
   const start = source.indexOf('return <div className="flashcard71-shell mf79-training">');
   const end = source.indexOf('    {view !== "editor" && view !== "import"', start);
-  const Header = compile(`function Header({onOpenExamSets}) { const view='decks',sourceMode79='exam-mcq',moduleQuestions=[],language='da'; const setSourceMode79=()=>{},setSelectedId=()=>{},setView=()=>{},persistPreferences=()=>{}; ${source.slice(start, end)}</div>; }`, 'Header', { React, Training79Header, Flashcard71Styles: () => null });
+  const Header = compile(`function Header({onOpenExamSets}) { const view='decks',sourceMode79='exam-mcq',moduleQuestions=[],language='da',examLibrary=false; const setSourceMode79=()=>{},setSelectedId=()=>{},setView=()=>{},persistPreferences=()=>{}; ${source.slice(start, end)}</div>; }`, 'Header', { React, Training79Header, Flashcard71Styles: () => null });
   let opened = 0;
   render(<Header onOpenExamSets={() => { opened += 1; }} />);
   expect(el.querySelector('[role="status"]')).toBeNull();

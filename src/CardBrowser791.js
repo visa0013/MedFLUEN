@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Mark791 } from './Workspace791';
 import { RichContent72 } from './Experience72';
+import { McqCard797 } from './McqCard797';
 
 const localized = (value, language) => typeof value === 'string' ? value : value?.[language] || value?.da || value?.en || '';
 const defaultStatus = card => card?.state || 'new';
@@ -60,8 +61,10 @@ export function CardBrowser791({ questions = [], spacedData = {}, buriedCards = 
       <article className="flashcard71-card-detail">{selected ? <>
         <div className="flashcard71-detail-actions"><span>{type === 'mcq' ? copy.mcq : type === 'image-occlusion' ? copy.image : copy.basic}</span><span data-card-status={selectedStatus}>{statusText(selectedStatus)}</span>{onEdit && <button type="button" data-action="edit-card" onClick={() => onEdit(selected)}>{copy.edit}</button>}</div>
         {selected.imageOcclusion && renderImage?.(selected)}
-        {richFor('front') ? <div className="mf791-card-heading" role="heading" aria-level="3"><RichContent72 html={richFor('front')} text={textFor(selected.question, language)} cloze={type === 'cloze'} revealed /></div> : <h3>{textFor(selected.question, language)}</h3>}<div className="flashcard71-answer-line" />
-        {type === 'mcq' ? <><ol className="mf791-card-options" type="A">{(selected.options || []).map((option, index) => <li key={index} data-correct={index === Number(selected.correct) ? 'true' : 'false'}>{textFor(option, language)}{index === Number(selected.correct) && <span aria-label={tr('Korrekt svar', 'Correct answer', 'الإجابة الصحيحة')}> ✓</span>}</li>)}</ol>{(textFor(selected.explanation, language) || richFor('explanation')) && <div className="flashcard71-explanation"><RichContent72 html={richFor('explanation')} text={textFor(selected.explanation, language)} /></div>}</> : <RichContent72 html={richFor('back') || richFor('explanation')} text={textFor(selected.back || selected.explanation, language)} />}
+        {type === 'mcq' ? <McqCard797 question={selected} language={language} revealed /> : <>
+          {richFor('front') ? <div className="mf791-card-heading" role="heading" aria-level="3"><RichContent72 html={richFor('front')} text={textFor(selected.question, language)} cloze={type === 'cloze'} revealed /></div> : <h3>{textFor(selected.question, language)}</h3>}<div className="flashcard71-answer-line" />
+          <RichContent72 html={richFor('back') || richFor('explanation')} text={textFor(selected.back || selected.explanation, language)} />
+        </>}
         {schedulerHidden && <small className="mf791-scheduler-hidden">{tr('Kortet er skjult i repetitionsplanen.', 'This card is hidden in the review schedule.', 'هذه البطاقة مخفية في جدول المراجعة.')}</small>}
         <div className="flashcard71-detail-actions">{onToggleHidden && (!schedulerHidden || buriedCards[selected.id]) && <button type="button" data-action="toggle-hidden" onClick={() => onToggleHidden(selected)}>{schedulerHidden ? tr('Fjern manuel skjulning', 'Clear manual hiding', 'إلغاء الإخفاء اليدوي') : buriedCards[selected.id] ? copy.unhide : copy.hide}</button>}{onResetCard && spacedData[selected.id] && <button type="button" data-action="reset-card" onClick={() => onResetCard(selected)}>{copy.resetCard}</button>}{renderDetailActions?.(selected)}</div>
         {lecture && onOpenLecture && <button type="button" className="flashcard71-text-action" onClick={() => onOpenLecture(lecture, selected.moduleId)}>{tr('Åbn', 'Open', 'فتح')} {lecture.id}</button>}
