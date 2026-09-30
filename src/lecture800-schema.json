@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MedFLUEN forelæsningspakke v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["format", "version", "packageId", "lecture", "sources", "sections", "glossary", "cards", "assets", "warnings"],
+  "properties": {
+    "format": { "const": "medfluen-lecture" }, "version": { "const": 1 }, "packageId": { "$ref": "#/definitions/id" },
+    "lecture": { "type": "object", "additionalProperties": false, "required": ["moduleId", "lectureId", "title"], "properties": { "moduleId": { "$ref": "#/definitions/id" }, "lectureId": { "$ref": "#/definitions/id" }, "title": { "$ref": "#/definitions/text" } } },
+    "sources": { "type": "array", "minItems": 1, "maxItems": 100, "items": { "type": "object", "additionalProperties": false, "required": ["id", "filename"], "properties": { "id": { "$ref": "#/definitions/id" }, "filename": { "$ref": "#/definitions/text" }, "pageCount": { "type": "integer", "minimum": 1 } } } },
+    "sections": { "type": "array", "minItems": 1, "maxItems": 200, "items": { "type": "object", "additionalProperties": false, "required": ["id", "title", "order"], "properties": { "id": { "$ref": "#/definitions/id" }, "title": { "$ref": "#/definitions/text" }, "order": { "type": "integer", "minimum": 0 } } } },
+    "glossary": { "type": "array", "maxItems": 2000, "items": { "type": "object", "additionalProperties": false, "required": ["id", "term", "definition", "sourceRefs"], "properties": { "id": { "$ref": "#/definitions/id" }, "term": { "$ref": "#/definitions/text" }, "definition": { "$ref": "#/definitions/text" }, "sourceRefs": { "$ref": "#/definitions/refs" } } } },
+    "cards": { "type": "array", "minItems": 1, "maxItems": 10000, "items": { "type": "object", "additionalProperties": false, "required": ["id", "sectionId", "order", "type", "question", "sourceRefs"], "properties": {
+      "id": { "$ref": "#/definitions/id" }, "sectionId": { "$ref": "#/definitions/id" }, "order": { "type": "integer", "minimum": 0 }, "type": { "enum": ["basic", "recall-list", "mcq"] }, "question": { "$ref": "#/definitions/text" }, "answer": { "$ref": "#/definitions/text" }, "explanation": { "type": "string", "maxLength": 100000 }, "sourceRefs": { "$ref": "#/definitions/refs" }, "assetIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/id" } },
+      "answerItems": { "type": "array", "minItems": 1, "maxItems": 100, "items": { "type": "object", "additionalProperties": false, "required": ["id", "text"], "properties": { "id": { "$ref": "#/definitions/id" }, "text": { "$ref": "#/definitions/text" }, "sourceRefs": { "$ref": "#/definitions/refs" } } } },
+      "options": { "type": "array", "minItems": 2, "maxItems": 20, "items": { "type": "object", "additionalProperties": false, "required": ["id", "text"], "properties": { "id": { "$ref": "#/definitions/id" }, "text": { "$ref": "#/definitions/text" } } } }, "correctOptionIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/definitions/id" } }
+    }, "allOf": [
+      { "if": { "properties": { "type": { "const": "basic" } } }, "then": { "required": ["answer"] } },
+      { "if": { "properties": { "type": { "const": "recall-list" } } }, "then": { "required": ["answerItems"] } },
+      { "if": { "properties": { "type": { "const": "mcq" } } }, "then": { "required": ["options", "correctOptionIds"] } }
+    ] } },
+    "assets": { "type": "array", "maxItems": 2000, "items": { "type": "object", "additionalProperties": false, "required": ["id", "path", "mime", "alt", "role", "sourceRefs"], "properties": { "id": { "$ref": "#/definitions/id" }, "path": { "type": "string", "pattern": "^images/", "maxLength": 500 }, "mime": { "enum": ["image/png", "image/jpeg", "image/webp"] }, "alt": { "$ref": "#/definitions/text" }, "caption": { "type": "string", "maxLength": 10000 }, "role": { "enum": ["question", "answer"] }, "sourceRefs": { "$ref": "#/definitions/refs" } } } },
+    "warnings": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/definitions/text" } }
+  },
+  "definitions": {
+    "id": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[^\\[\\]\\|\\s]+$" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 100000, "pattern": "\\S" },
+    "refs": { "type": "array", "minItems": 1, "maxItems": 100, "items": { "type": "object", "additionalProperties": false, "required": ["sourceId", "page"], "properties": { "sourceId": { "$ref": "#/definitions/id" }, "page": { "type": "integer", "minimum": 1 }, "slideLabel": { "type": "string", "maxLength": 100 } } } }
+  }
+}
