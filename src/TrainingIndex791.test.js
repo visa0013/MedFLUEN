@@ -57,6 +57,12 @@ test('selecting a deck reveals its own counts and starting uses that selection',
   expect(start).toHaveBeenCalledWith('n7');
   act(()=>root.unmount());el.remove();
 });
+test('the deck list does not reveal lecture sections before entering the lecture', () => {
+  const tree = { id: 'module:k5', label: 'K5', type: 'module', children: [] };
+  const el = mount(<TrainingIndex791 tree={tree} selected={tree} sectionControls={<section aria-label="Forelæsningssektioner">Din gennemgang</section>} />);
+  const overview = el.querySelector('[aria-label="Forelæsningssektioner"]');
+  expect(overview).toBeNull();
+});
 
 test('a draft stays in its selected parent until its finished name is committed and alphabetized', async () => {
   const base = { id: 'module:k5', label: 'K5', type: 'module', questions: [], children: [

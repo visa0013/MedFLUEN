@@ -8,6 +8,13 @@ const MiB = 1024 * 1024;
 export const lectureLimits800 = { upload: 128 * MiB, unpacked: 256 * MiB, image: 12 * MiB };
 export const glossaryTokens800 = /\[\[([^\]|]+)\|([^\]]+)\]\]/g;
 export const plainLecture800 = text => String(text || '').replace(glossaryTokens800, '$2');
+export function safeGlossaryUrl800(value) {
+  if (typeof value !== 'string' || !/^https?:\/\//i.test(value) || /[\\\s\u0000-\u001f\u007f]/.test(value)) return null;
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) && url.hostname && !url.username && !url.password ? url.href : null;
+  } catch { return null; }
+}
 export const sectionKey800 = content => JSON.stringify([content.target.moduleId, content.target.lectureId, content.packageId, content.section.id]);
 const unique = (items, name) => {
   const ids = new Set();
@@ -37,7 +44,10 @@ export function validateLecture800(pack) {
     const remainder = String(value || '').replace(glossaryTokens800, '');
     if (remainder.includes('[[') || remainder.includes(']]')) throw Error(`${label}: glosarhenvisningen skal skrives [[term-id|ord]].`);
   };
-  pack.glossary.forEach(term => refs(term.sourceRefs, `Definition ${term.term}`));
+  pack.glossary.forEach(term => {
+    refs(term.sourceRefs, `Definition ${term.term}`);
+    for (const link of term.sourceLinks || []) if (!safeGlossaryUrl800(link.url)) throw Error(`Definition ${term.term}: kildelinket skal være en gyldig HTTP(S)-adresse uden loginoplysninger.`);
+  });
   pack.assets.forEach(asset => refs(asset.sourceRefs, `Billede ${asset.id}`));
   for (const card of pack.cards) {
     const label = `Kort ${card.id}`;
@@ -174,10 +184,22 @@ export function reconcileForgotten800(previous, next, ids = []) {
 }
 export function lectureSections800(questions) {
   const index = new Map();
-  for (const question of questions) if (question.lectureContent) { const content = question.lectureContent, key = sectionKey800(content); if (!index.has(key)) index.set(key, { ...content.section, key, count: 0, lectureTitle: content.target.title }); index.get(key).count++; }
+  for (const question of questions) if (question.lectureContent) {
+    const content = question.lectureContent, key = sectionKey800(content);
+    if (!index.has(key)) index.set(key, { ...content.section, key, count: 0, lectureTitle: content.target.title, topics: [] });
+    const section = index.get(key); section.count++;
+    const topic = plainLecture800(content.card.question);
+    if (section.topics.length < 3 && !section.topics.includes(topic)) section.topics.push(topic);
+  }
   return [...index.values()].sort((a, b) => a.order - b.order || a.key.localeCompare(b.key));
 }
 export function lectureStudyCards800(questions, selectedSections, missed) {
   const keys = new Set(selectedSections);
   return questions.filter(question => question.lectureContent && keys.has(sectionKey800(question.lectureContent)) && (!missed || (missed[question.id || question.cardId] || []).length)).sort((a, b) => a.lectureContent.section.order - b.lectureContent.section.order || a.lectureContent.card.order - b.lectureContent.card.order || (a.id || a.cardId).localeCompare(b.id || b.cardId));
+}
+export function lectureSessionCards800(questions, plan) {
+  const cards = lectureStudyCards800(questions, plan.keys, plan.mode === 'forgotten' ? plan.forgottenItems : undefined);
+  if (!plan.questionIds) return cards;
+  const byId = new Map(cards.map(card => [card.id || card.cardId, card]));
+  return [...new Set(plan.questionIds)].map(id => byId.get(id)).filter(Boolean);
 }

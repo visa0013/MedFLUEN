@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './examTopics798.css';
 
-export function ExamTopics798({ tree, scope, selected, onSelection, onStart, onCustomize, onBrowse, onImport, onArchive, sessionCount, language = 'da' }) {
+export function ExamTopics798({ tree, scope, selected, onSelection, onStart, onCustomize, onBrowse, onImport, onArchive, sessionCount, restoreCount = 0, language = 'da' }) {
   const en = language === 'en', [query, setQuery] = useState(''), [busy, setBusy] = useState(false), [message, setMessage] = useState('');
   const group = tree.children.find(node => node.id === scope?.groupId);
   const chosen = scope?.topicIds == null ? group?.children.map(node => node.id) || [] : scope.topicIds;
@@ -24,7 +24,7 @@ export function ExamTopics798({ tree, scope, selected, onSelection, onStart, onC
       {!topics.length && <p>{query ? 'Ingen emner matcher søgningen.' : 'Upload et eksamensdæk for at tilføje underemner.'}</p>}
     </div><aside className="mf798-session"><small>DIN TRÆNING</small><h2>{selected.label}</h2><p>{selected.questions.length} kort i dit udvalg</p>
       <button type="button" className="mf798-start" disabled={!sessionCount} onClick={onStart}>Start træning <span>↗</span></button>
-      <button type="button" onClick={onCustomize}>Tilpas træning</button><button type="button" disabled={!selected.questions.length} onClick={onBrowse}>Gennemse kort</button>
+      <button type="button" onClick={onCustomize}>Tilpas træning</button><button type="button" disabled={!selected.questions.length && !restoreCount} onClick={onBrowse}>Gennemse kort</button>
       <div className="mf798-import"><button type="button" onClick={onImport}>Upload ANKI-dæk <span>↑</span></button>
         {onArchive && <><button type="button" disabled={busy || !tree.questions.some(card => card.richContent?.anki)} onClick={() => archive(false)}>Fjern import</button><button type="button" disabled={busy} onClick={() => archive(true)}>Gendan fjernet import</button></>}
       </div>{message && <p role="status">{message}</p>}

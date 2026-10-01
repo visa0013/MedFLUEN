@@ -1,4 +1,4 @@
-import { validateLecture800, lectureRecords800, mergeLecture800, lectureSections800, lectureStudyCards800, reconcileForgotten800, parseLectureFile800 } from './lecture800-model';
+import { validateLecture800, lectureRecords800, mergeLecture800, lectureSections800, lectureStudyCards800, lectureSessionCards800, reconcileForgotten800, parseLectureFile800 } from './lecture800-model';
 import JSZip from 'jszip';
 import nodeCrypto from 'crypto';
 
@@ -17,6 +17,23 @@ test('validates every source, glossary and image reference rather than silently 
   pack.cards[0].sourceRefs[0].page = 4;
   pack.cards[1].question = 'Hvad er [[unknown|ordet]]?';
   expect(() => validateLecture800(pack)).toThrow(/definition|glosar/i);
+});
+test('imports supplementary glossary links without inventing a PDF reference and preserves them for review', () => {
+  const pack = package800();
+  pack.glossary[0] = { id: 'term', term: 'Fagord', definition: 'En supplerende forklaring fra en ekstern faglig kilde.', sourceRefs: [], sourceLinks: [{ title: 'Lægehåndbogen · Multipel sklerose', url: 'https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/inflammatoriske-sygdomme/multipel-sklerose/' }] };
+
+  const rows = lectureRecords800(validateLecture800(pack), target);
+  expect(rows[0].lectureContent.glossary[0].sourceRefs).toEqual([]);
+  expect(rows[0].lectureContent.glossary[0].sourceLinks).toEqual([{ title: 'Lægehåndbogen · Multipel sklerose', url: 'https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/inflammatoriske-sygdomme/multipel-sklerose/' }]);
+});
+test.each(['https://', 'https://user:secret@example.org/path', 'https://example.org/ bad', 'https://example.org\\@evil.test/', 'javascript:alert(1)', 'data:text/html,test', '//example.org/source'])('rejects unsafe or malformed glossary source URL %s', url => {
+  const pack = package800();
+  pack.glossary[0].sourceLinks = [{ title: 'Faglig kilde', url }];
+  expect(() => validateLecture800(pack)).toThrow(/kilde|sourceLinks/i);
+});
+test('a glossary definition still requires at least one real source', () => {
+  const pack = package800(); pack.glossary[0].sourceRefs = []; pack.glossary[0].sourceLinks = [];
+  expect(() => validateLecture800(pack)).toThrow();
 });
 test('rejects unknown versions, missing assets, duplicate identities and unsafe paths', () => {
   const pack = package800(); pack.version = 2;
@@ -59,6 +76,19 @@ test('keeps pedagogical order, empty choices empty, and missed-item sessions exp
   expect(lectureStudyCards800(rows, [])).toEqual([]);
   const missed = { [rows[0].id]: ['b'] };
   expect(lectureStudyCards800(rows, sections.map(s => s.key), missed).map(q => q.id)).toEqual([rows[0].id]);
+});
+test('section descriptions survive import and old packages get plain question previews', () => {
+  const pack = package800(); pack.sections[0].summary = 'Undersøgelsernes rolle i udredningen.';
+  const sections = lectureSections800(lectureRecords800(pack, target));
+  expect(sections[1].summary).toBe('Undersøgelsernes rolle i udredningen.');
+  expect(sections[0].topics).toEqual(['Hvilke undergrupper findes af fagordet?']);
+});
+test('a frozen session restores its actual review order without adding skipped cards or duplicates', () => {
+  const rows = lectureRecords800(package800(), target).map(row => ({ ...row, id: row.cardId }));
+  const keys = lectureSections800(rows).map(section => section.key);
+  expect(lectureSessionCards800(rows, { keys, mode: 'review', questionIds: [rows[1].id, rows[0].id, rows[1].id, 'missing'] }).map(card => card.id)).toEqual([rows[1].id, rows[0].id]);
+  expect(lectureSessionCards800(rows, { keys, mode: 'guide', questionIds: [rows[1].id] }).map(card => card.id)).toEqual([rows[1].id]);
+  expect(lectureSessionCards800(rows, { keys, mode: 'forgotten', questionIds: [rows[0].id], forgottenItems: { [rows[0].id]: ['b'] } })).toEqual([rows[0]]);
 });
 test('reads text-only JSON and refuses standalone image references', async () => {
   const pack = package800();

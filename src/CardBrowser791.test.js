@@ -98,3 +98,96 @@ test('rich card content keeps its formatting and images while unsafe markup is r
   expect(detail.querySelector('script')).toBeNull();
   expect(detail.querySelector('img').hasAttribute('onerror')).toBe(false);
 });
+
+function lectureCard(id, section, order, question, packageId = 'lecture-package') {
+  return {
+    id, moduleId: 'K5', lectureId: 'N2', cardType: 'basic', sourceType: 'lecture', question, back: `Svar til ${question}`, category: 'Importeret',
+    lectureContent: {
+      packageId, target: { moduleId: 'K5', lectureId: 'N2', title: 'Muskelsygdomme' }, section,
+      card: { id, sectionId: section.id, order, type: 'basic', question, answer: `Svar til ${question}`, sourceRefs: [{ sourceId: 'pdf', page: 4 }] },
+      glossary: [], sources: [{ id: 'pdf', filename: 'forelaesning.pdf', pageCount: 20 }], assets: [],
+    },
+  };
+}
+const mechanismSection = { id: 'mechanism', title: 'Mekanismer', order: 10, summary: 'Fra muskelcelle til sygdom.' };
+const diagnosisSection = { id: 'diagnosis', title: 'Diagnostik', order: 20, summary: 'Undersøgelsens trin.' };
+const lectureQuestions = [
+  lectureCard('diagnosis-next', diagnosisSection, 2, 'Hvordan undersøges patienten?'),
+  lectureCard('mechanism-next', mechanismSection, 2, 'Hvorfor opstår svaghed?'),
+  lectureCard('diagnosis-first', diagnosisSection, 1, 'Hvad er det første trin?'),
+  lectureCard('mechanism-first', mechanismSection, 1, 'Hvordan fungerer muskelcellen?'),
+];
+
+test('imported cards form sections in lecture order and retain personal cards in the browser', () => {
+  const el = mount(<CardBrowser791 questions={[...lectureQuestions, questions[1]]} />);
+  const groups = [...el.querySelectorAll('[data-browser-section]')];
+  expect(groups.map(group => group.querySelector('h3').textContent)).toEqual(['Mekanismer', 'Diagnostik', 'Andre kort']);
+  expect(groups.map(group => group.querySelector('.mf791-section-card-count').textContent)).toEqual(['2 kort', '2 kort', '1 kort']);
+  expect([...el.querySelectorAll('[data-card-id]')].map(button => button.dataset.cardId)).toEqual(['mechanism-first', 'mechanism-next', 'diagnosis-first', 'diagnosis-next', 'private']);
+  expect(el.querySelector('.flashcard71-card-detail .mf799-question').textContent).toBe('Hvordan fungerer muskelcellen?');
+  act(() => el.querySelector('[data-card-id="private"]').click());
+  expect(el.querySelector('.flashcard71-card-detail').textContent).toContain('Min egen forklaring');
+});
+
+test('section filtering keeps full counts and selects the first matching card in lecture order', () => {
+  const el = mount(<CardBrowser791 questions={lectureQuestions} spacedData={{ 'diagnosis-next': { state: 'due' }, 'mechanism-next': { state: 'due' } }} />);
+  inputValue(el.querySelector('[aria-label="Status"]'), 'due');
+  expect([...el.querySelectorAll('[data-card-id]')].map(button => button.dataset.cardId)).toEqual(['mechanism-next', 'diagnosis-next']);
+  expect([...el.querySelectorAll('.mf791-section-card-count')].map(count => count.textContent)).toEqual(['1 / 2 kort', '1 / 2 kort']);
+  expect(el.querySelector('.flashcard71-card-detail .mf799-question').textContent).toBe('Hvorfor opstår svaghed?');
+  inputValue(el.querySelector('[aria-label="Søg i kort"]'), 'Undersøgelsens');
+  expect([...el.querySelectorAll('[data-browser-section] h3')].map(title => title.textContent)).toEqual(['Diagnostik']);
+  expect(el.querySelector('.flashcard71-card-detail .mf799-question').textContent).toBe('Hvordan undersøges patienten?');
+});
+
+test('the reading controls move through matching cards while preserving section context', () => {
+  const el = mount(<CardBrowser791 questions={lectureQuestions} />);
+  const detail = el.querySelector('.flashcard71-card-detail');
+  expect(detail.querySelector('.mf791-reading-context')).not.toBeNull();
+  expect(detail.querySelector('.mf791-reading-context').textContent).toContain('Muskelsygdomme');
+  expect(detail.querySelector('.mf791-reading-context').textContent).toContain('Kort 1 af 2');
+  expect(detail.querySelector('[aria-label="Forrige kort"]').disabled).toBe(true);
+  act(() => detail.querySelector('[aria-label="Næste kort"]').click());
+  expect(detail.querySelector('.mf799-question').textContent).toBe('Hvorfor opstår svaghed?');
+  expect(detail.querySelector('.mf791-reading-context').textContent).toContain('Kort 2 af 2');
+  act(() => detail.querySelector('[aria-label="Næste kort"]').click());
+  expect(detail.querySelector('.mf800-card-context').textContent).toContain('Diagnostik');
+  expect(detail.querySelector('.mf791-reading-context').textContent).toContain('Kort 1 af 2');
+  act(() => detail.querySelector('[aria-label="Forrige kort"]').click());
+  expect(detail.querySelector('.mf799-question').textContent).toBe('Hvorfor opstår svaghed?');
+});
+
+test('the same section id in another imported package remains a separate section', () => {
+  const other = lectureCard('other-package', { id: 'mechanism', title: 'En anden forelæsning', order: 0 }, 1, 'Et andet spørgsmål?', 'second-package');
+  const el = mount(<CardBrowser791 questions={[lectureQuestions[3], other]} />);
+  expect([...el.querySelectorAll('[data-browser-section] h3')].map(title => title.textContent)).toEqual(['Mekanismer', 'En anden forelæsning']);
+  expect([...el.querySelectorAll('.mf791-section-card-count')].map(count => count.textContent)).toEqual(['1 kort', '1 kort']);
+});
+
+test('discard requires confirmation for the whole deck even when search shows one card', async () => {
+  let discarded = false;
+  const el = mount(<CardBrowser791 questions={questions} contextTitle="Nerver" discardCount={2} onDiscard={() => { discarded = true; return { ok: true }; }} />);
+  inputValue(el.querySelector('[aria-label="Søg i kort"]'), 'Mit eget');
+  act(() => el.querySelector('[data-action="discard-deck"]').click());
+  expect(discarded).toBe(false);
+  expect(el.querySelector('[role="dialog"]').textContent).toContain('2 kort');
+  expect(el.querySelector('[role="dialog"]').textContent).toContain('Nerver');
+  act(() => el.querySelector('[data-action="cancel-discard"]').click());
+  expect(discarded).toBe(false); expect(el.querySelector('[role="dialog"]')).toBeNull();
+  act(() => el.querySelector('[data-action="discard-deck"]').click());
+  await act(async () => el.querySelector('[data-action="confirm-discard"]').click());
+  expect(discarded).toBe(true); expect(el.querySelector('[role="dialog"]')).toBeNull();
+});
+
+test('a failed discard retains confirmation and the cards; empty decks can restore', async () => {
+  const el = mount(<CardBrowser791 questions={questions} discardCount={2} onDiscard={() => ({ ok: false, error: 'Lager fyldt' })} />);
+  act(() => el.querySelector('[data-action="discard-deck"]').click());
+  await act(async () => el.querySelector('[data-action="confirm-discard"]').click());
+  expect(el.querySelector('[role="alert"]').textContent).toContain('Lager fyldt');
+  expect(el.querySelectorAll('[data-card-id]').length).toBe(2);
+  act(() => el.querySelector('[data-action="cancel-discard"]').click());
+  let restored = false;
+  const empty = mount(<CardBrowser791 questions={[]} restoreCount={2} onRestore={() => { restored = true; return { ok: true }; }} />);
+  await act(async () => empty.querySelector('[data-action="restore-deck"]').click());
+  expect(restored).toBe(true);
+});

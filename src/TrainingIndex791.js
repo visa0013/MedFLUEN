@@ -3,7 +3,7 @@ import { Mark791 } from './Workspace791';
 import './apkgExam792.css';
 import './trainingTimer793.css';
 
-export function TrainingIndex791({ tree, selected, onSelect, onStart, onCustomize, onBrowse, onCreate, onCreateDeck, onImport, deckCreationDisabled = false, onMaterials, onNotes, sessionCount = 0, language = 'da', sectionControls }) {
+export function TrainingIndex791({ tree, selected, onSelect, onStart, onCustomize, onBrowse, onCreate, onCreateDeck, onImport, deckCreationDisabled = false, onMaterials, onNotes, sessionCount = 0, language = 'da' }) {
   const en = language === 'en', ar = language === 'ar';
   const tr = (da, eng, arab) => ar ? arab : en ? eng : da;
   const [query, setQuery] = useState('');
@@ -100,7 +100,6 @@ export function TrainingIndex791({ tree, selected, onSelect, onStart, onCustomiz
     <aside className="mf791-deck-detail" aria-label={tr('Valgt dæk', 'Selected deck', 'المجموعة المختارة')}>
       <span className="mf79-kicker">{selected?.code || tr('DIT DÆK', 'YOUR DECK', 'مجموعتك')}</span><h2>{selected?.label}</h2>
       <p className="mf791-deck-meta">{selected?.questions?.length || 0} {tr('kort i dækket', 'cards in this deck', 'بطاقة في المجموعة')}</p>
-      {sectionControls}
       <div className="mf791-deck-numbers">{[['new', selectedStats.newCount, tr('Nye', 'New', 'جديدة')], ['learning', selectedStats.learningCount, tr('I gang', 'Learning', 'التعلم')], ['review', selectedStats.dueCount, tr('Klar', 'Ready', 'جاهزة')]].map(([id, count, label]) => <div key={id} className={`mf791-count-${id}`}><strong>{count || 0}</strong><small>{label}</small></div>)}</div>
       <button className="mf791-start" data-start-deck onClick={onStart} disabled={!sessionCount}><Mark791 name="play" size={18} /><span>{sessionCount ? tr('Start træning', 'Start studying', 'ابدأ التدريب') : tr('Ingen kort i denne kø', 'No cards in this queue', 'لا توجد بطاقات في قائمة الانتظار')}</span>{sessionCount > 0 && <small>{sessionCount}</small>}</button>
       <div className="mf791-detail-actions"><button data-training-action="customize" onClick={onCustomize}><Mark791 name="tune" />{tr('Tilpas træning', 'Customize session', 'تخصيص التدريب')}<Mark791 name="chevron" size={15} /></button><button data-training-action="cards" onClick={onBrowse}><Mark791 name="cards" />{tr('Gennemse og redigér kort', 'Browse and edit cards', 'تصفح وتحرير البطاقات')}<Mark791 name="chevron" size={15} /></button>{openMaterials && <button data-training-action="materials" className="mf791-material-action" onClick={openMaterials}><svg className="mf791-material-book" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v15M3 4h5a4 4 0 0 1 4 2 4 4 0 0 1 4-2h5v15h-5a5 5 0 0 0-4 1 5 5 0 0 0-4-1H3Z" /><path className="mf791-book-page" d="M12 6c2-2 4-3 7-3v14c-3 0-5 1-7 3" /><path className="mf791-book-page mf791-book-page-second" d="M12 6c-2-2-4-3-7-3v14c3 0 5 1 7 3" /></svg>{tr('Forelæsningsmaterialer', 'Lecture materials', 'مواد المحاضرة')}<Mark791 name="chevron" size={15} /></button>}</div>

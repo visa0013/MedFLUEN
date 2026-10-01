@@ -11,6 +11,7 @@ import { NotesHub78 } from "./Notes78";
 import { PdfPageNotes791 } from "./PdfNotes791";
 import { pageNoteShare792 } from "./pageNoteShare792";
 import { useAccountStorage792, accountStorageKey792, readAccountResume792 } from "./accountStorage792";
+import { useCardTrash803, filterCardTree803 } from "./cardTrash803";
 import { PlanningSummary791, RepetitionStart791, planCapacity791 } from "./PlanningSummary791";
 import { pdfFailure74 } from "./reader74-model";
 import { examAnswerMode75, examAnswerPath75, examMatchesAnswerFilter75, examUploadError75, examDuplicate75 } from "./exam75-model";
@@ -37,9 +38,12 @@ import { McqCard797 } from "./McqCard797";
 import { ReviewContent799 } from "./ReviewContent799";
 import { LectureCard800 } from "./LectureCard800";
 import { readLectureCards800, readForgotten800 } from "./lecture800-storage";
-import { lectureSections800, lectureStudyCards800 } from "./lecture800-model";
+import { lectureSections800, lectureStudyCards800, lectureSessionCards800, sectionKey800 } from "./lecture800-model";
+import { prepareLectureSession801, legacyLectureJourney801, lectureReviewScope801 } from "./lectureSession801";
+import { buildLecturePrompt800, downloadLectureFile800 } from "./lecture800-prompt";
 import { LectureUpload800 } from "./LectureUpload800";
 import { LectureSections800 } from "./LectureSections800";
+import { LectureOptions801 } from "./LectureOptions801";
 import { ankiDeckTree797, normalizeAnkiCard797 } from "./ankiExam797-model";
 import { persistAnkiImport792, readAnkiCards792, archiveAnkiImport798 } from "./ankiStorage792";
 import { ExamTopics798 } from "./ExamTopics798";
@@ -21142,9 +21146,9 @@ function LegacyFlashcardEditor71({ c, language, question = null, context = {}, l
   );
 }
 
-function FlashcardBrowser71({ c, language, questions, spacedData, lectures, selectedDate = "", query, onQuery, status, onStatus, selectedId, onSelectedId, onClose, onEdit, onCreate, onOpenLectureMenu }) {
+function FlashcardBrowser71({ c, language, questions, spacedData, lectures, contextTitle, discardCount, restoreCount, onDiscard, onRestore, selectedDate = "", query, onQuery, status, onStatus, selectedId, onSelectedId, onClose, onEdit, onCreate, onOpenLectureMenu }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
-  return <CardBrowser791 questions={questions} spacedData={spacedData} lectures={lectures} language={language} selectedDate={selectedDate} query={query} onQuery={onQuery} status={status} onStatus={onStatus} selectedId={selectedId} onSelectedId={onSelectedId} onClose={onClose} onEdit={onEdit} onCreate={onCreate} onOpenLecture={onOpenLectureMenu} getStatus={flashcardCardStatus} textFor={translate} labels={copy} renderImage={question => <FlashcardOcclusion70 data={question.imageOcclusion} reveal c={c} />} />;
+  return <CardBrowser791 questions={questions} spacedData={spacedData} lectures={lectures} language={language} contextTitle={contextTitle} discardCount={discardCount} restoreCount={restoreCount} onDiscard={onDiscard} onRestore={onRestore} selectedDate={selectedDate} query={query} onQuery={onQuery} status={status} onStatus={onStatus} selectedId={selectedId} onSelectedId={onSelectedId} onClose={onClose} onEdit={onEdit} onCreate={onCreate} onOpenLecture={onOpenLectureMenu} getStatus={flashcardCardStatus} textFor={translate} labels={copy} renderImage={question => <FlashcardOcclusion70 data={question.imageOcclusion} reveal c={c} />} />;
 }
 
 function FlashcardActivityHeatmap71({ language, events, onSelectDate }) {
@@ -21213,12 +21217,13 @@ function FlashcardDeckOverview71({ language, node, questions, spacedData, events
   );
 }
 
-function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuestions, onStart, onOpenLectureMenu, onOpenLectureMaterial, onOpenExamSets, initialPool = "mixed", examLibrary = false, onSavePersonalCard, onImportPersonalCards, onArchiveImports }) {
+function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = {}, importedQuestions, allQuestions803 = importedQuestions, cardTrash803, onStart, onOpenLectureMenu, onOpenLectureMaterial, onOpenExamSets, initialPool = "mixed", examLibrary = false, onSavePersonalCard, onImportPersonalCards, onArchiveImports }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
   const lectures = MODULE_LECTURES[user.module] || [];
   const [sourceMode79, setSourceMode79] = useState(examLibrary ? "exam-mcq" : "theory");
   const [examScope798, setExamScope798] = useState(null);
-  const moduleQuestions = useMemo(() => trainingCards79(getFullQuestionBank(importedQuestions).filter((question) => question.moduleId === user.module), sourceMode79), [importedQuestions, user.module, sourceMode79]);
+  const moduleQuestions = useMemo(() => trainingCards79(getFullQuestionBank(allQuestions803).filter((question) => question.moduleId === user.module), sourceMode79), [allQuestions803, user.module, sourceMode79]);
+  const visibleIds803 = useMemo(() => new Set(getFullQuestionBank(importedQuestions).map(card => String(card.id))), [importedQuestions]);
   const storedPreferences = loadStorage(STORAGE.flashcardPreferences, FLASHCARD70_DEFAULT_PREFERENCES) || FLASHCARD70_DEFAULT_PREFERENCES;
   const [preferences, setPreferences] = useState(() => ({ ...FLASHCARD70_DEFAULT_PREFERENCES, ...storedPreferences, ...(initialPool === "due" ? { pool: "due" } : {}) }));
   const selectionKey791 = `medfluen-deck-selection791:${authUserId || "local"}:${user.module}:${sourceMode79}`;
@@ -21227,9 +21232,9 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   const [expanded, setExpanded] = useState(() => new Set([`module:${user.module}`]));
   const [view, setView] = useState("decks");
   const [importFormat800, setImportFormat800] = useState('lecture');
-  const [sectionSelection800, setSectionSelection800] = useState(null);
-  const [forgottenState800, setForgottenState800] = useState({ scope: null, items: {} });
   const [sessionOptions791, setSessionOptions791] = useState(false);
+  const [lectureSelection801, setLectureSelection801] = useState(null);
+  const [forgottenState801, setForgottenState801] = useState({ scope: null, items: {} });
   const [deckSearch, setDeckSearch] = useState("");
   const [browserDate, setBrowserDate] = useState("");
   const [browserQuery, setBrowserQuery] = useState("");
@@ -21254,30 +21259,39 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
   function collectBase75(node) { baseIds75.push(node.id); (node.children || []).forEach(collectBase75); }
   collectBase75(baseTree75);
   const privateDecks75 = usePrivateDecks75(authUserId, user.module, baseIds75, supabase);
-  const tree = useMemo(() => deckTree75(baseTree75, privateDecks75.state, questions => flashcardDeckStats(questions, spacedData, statsMinute75)), [baseTree75, privateDecks75.state, spacedData, statsMinute75]);
+  const visibleBaseTree803 = useMemo(() => filterCardTree803(baseTree75, visibleIds803, questions => flashcardDeckStats(questions, spacedData, statsMinute75)), [baseTree75, visibleIds803, spacedData, statsMinute75]);
+  const tree = useMemo(() => filterCardTree803(deckTree75(baseTree75, privateDecks75.state, questions => flashcardDeckStats(questions, spacedData, statsMinute75)), visibleIds803, questions => flashcardDeckStats(questions, spacedData, statsMinute75)), [baseTree75, privateDecks75.state, visibleIds803, spacedData, statsMinute75]);
 
   function findNode(node, id) { if (node.id === id) return node; for (const child of node.children || []) { const found = findNode(child, id); if (found) return found; } return null; }
-  const selectedNode = sourceMode79 === "exam-mcq" ? examSelection798(baseTree75, examScope798) : selectedDeck791(tree, selectedId);
+  const selectedNode = sourceMode79 === "exam-mcq" ? examSelection798(visibleBaseTree803, examScope798) : selectedDeck791(tree, selectedId);
   const selectedQuestions = selectedNode.questions || [];
+  const trashScope803 = JSON.stringify([user.module, sourceMode79, selectedNode.id, sourceMode79 === 'exam-mcq' && examScope798?.topicIds ? [...examScope798.topicIds].sort() : null]);
+  const restoreCount803 = cardTrash803?.batches.find(batch => batch.scope === trashScope803)?.ids.length || 0;
   const scope800 = authUserId ? flashcardPersonalStorageKey(authUserId) : null;
+  const sections800 = selectedNode.lectureFilter ? lectureSections800(selectedQuestions) : [];
+  const structured800 = sections800.length > 0;
   useEffect(() => {
     let alive = true;
-    const refresh = () => { if (scope800) readForgotten800(scope800).then(items => { if (alive) setForgottenState800({ scope: scope800, items }); }, () => { if (alive) setForgottenState800({ scope: scope800, items: {} }); }); };
+    const refresh = () => { if (scope800 && structured800) readForgotten800(scope800).then(items => { if (alive) setForgottenState801({ scope: scope800, items }); }, () => { if (alive) setForgottenState801({ scope: scope800, items: {} }); }); };
     refresh();
     const changed = event => { if (event.detail?.scope === scope800) refresh(); };
     window.addEventListener('medfluen-forgotten800', changed);
     return () => { alive = false; window.removeEventListener('medfluen-forgotten800', changed); };
-  }, [scope800, importedQuestions]);
-  const sections800 = selectedNode.lectureFilter ? lectureSections800(selectedQuestions) : [];
-  const selection800 = sectionSelection800?.nodeId === selectedNode.id ? sectionSelection800 : { nodeId: selectedNode.id, keys: sections800.map(section => section.key), mode: 'guide' };
-  const forgotten800 = forgottenState800.scope === scope800 ? forgottenState800.items : {};
-  const structured800 = sections800.length > 0;
-  const chosen800 = structured800 ? lectureStudyCards800(selectedQuestions, selection800.keys) : [];
-  const missedCards800 = structured800 ? lectureStudyCards800(selectedQuestions, selection800.keys, forgotten800) : [];
+  }, [scope800, structured800]);
+  const forgotten801 = forgottenState801.scope === scope800 ? forgottenState801.items : {};
+  const selectedLectureSetup801 = lectureSelection801?.deckId === selectedNode.id ? lectureSelection801 : null;
+  function prepareLecture801(selection) {
+    return prepareLectureSession801({
+      questions: selectedQuestions.filter(card => !buriedCards[card.id]),
+      keys: selection?.keys || sections800.map(section => section.key), mode: selection?.mode || 'guide', limit: selection?.limit || 'all',
+      forgotten: forgotten801, spacedData, isHidden: state => flashcardCardStatus(state) === 'hidden',
+      selectReview: (cards, limit) => flashcardSelectSessionQuestions(cards, spacedData, { ...preferences, pool: 'mixed', limit, order: 'scheduler', studyMode: 'flashcard' }, Date.now()),
+    });
+  }
   const sessionCandidates = !examLibrary && preferences.studyMode === "exam"
     ? selectedQuestions.filter((question) => flashcard71QuestionType(question) === "mcq")
     : selectedQuestions;
-  const sessionQuestions = structured800 ? (selection800.mode === 'review' ? flashcardSelectSessionQuestions(chosen800, spacedData, preferences, Date.now()) : selection800.mode === 'forgotten' ? missedCards800 : chosen800).filter(question => flashcardCardStatus(spacedData[question.id]) !== 'hidden') : flashcardSelectSessionQuestions(sessionCandidates, spacedData, preferences, Date.now());
+  const sessionQuestions = structured800 ? prepareLecture801(selectedLectureSetup801).questions : flashcardSelectSessionQuestions(sessionCandidates, spacedData, preferences, Date.now());
   const localEvents = flashcardReviewEvents(spacedData);
   const identity = (event) => event?.reversesReviewId ? `undo:${event.reversesReviewId}` : `${String(event?.questionId || "")}:${flashcardFiniteTime(event?.reviewedAt) ?? ""}:${Number(event?.rating) || ""}`;
   const eventIndex = new Map([...localEvents, ...(Array.isArray(cloudReviewEvents) ? cloudReviewEvents : [])].map((event) => [identity(event), event]));
@@ -21297,7 +21311,13 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
     });
   }, [view, browserSelectedId]);
   function persistPreferences(patch) { const next = { ...preferences, ...patch }; setPreferences(next); try { localStorage.setItem(STORAGE.flashcardPreferences, JSON.stringify(next)); window.dispatchEvent(new CustomEvent("medlearn-storage-update", { detail: { key: STORAGE.flashcardPreferences } })); } catch {} }
-  function startSession() { if (!sessionQuestions.length) return; onStart({ moduleId: user.module, groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter, lectureFilter: selectedNode.lectureFilter, mode: preferences.pool === "due" ? "due" : "all", studyMode: structured800 || examLibrary ? "flashcard" : preferences.studyMode, pool: preferences.pool, limit: preferences.limit, order: structured800 && selection800.mode !== 'review' ? 'deck' : preferences.order, deckLabel: selectedNode.label, deckTotal: structured800 ? sessionQuestions.length : selectedQuestions.length, examLibrary, sessionQuestionIds: sessionQuestions.map((question) => question.id), ...(structured800 ? { lectureMode800: selection800.mode, ...(selection800.mode === 'forgotten' ? { forgottenItems800: Object.fromEntries(sessionQuestions.map(question => [question.id, [...(forgotten800[question.id] || [])]])) } : {}) } : {}) }); }
+  function startSession(override) {
+    const selection = Array.isArray(override?.keys) ? override : selectedLectureSetup801;
+    const lectureRun = structured800 ? prepareLecture801(selection) : null;
+    const cards = lectureRun?.questions || sessionQuestions;
+    if (!cards.length) return;
+    onStart({ moduleId: user.module, groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter, lectureFilter: selectedNode.lectureFilter, mode: preferences.pool === "due" ? "due" : "all", studyMode: structured800 || examLibrary ? "flashcard" : preferences.studyMode, pool: lectureRun?.plan.mode === 'review' ? 'mixed' : preferences.pool, limit: lectureRun?.plan.mode === 'review' ? selection?.limit || 'all' : preferences.limit, order: structured800 ? lectureRun.plan.mode === 'review' ? 'scheduler' : 'deck' : preferences.order, deckLabel: selectedNode.label, deckTotal: structured800 ? cards.length : selectedQuestions.length, examLibrary, sessionQuestionIds: cards.map(question => question.id), ...(structured800 ? { lectureMode800: lectureRun.plan.mode, ...(lectureRun.plan.mode !== 'guide' ? { lecturePlan801: lectureRun.plan } : {}) } : {}) });
+  }
   function openNode(node) { setSelectedId(node.id); setBrowserDate(""); setView("overview"); }
   function toggleNode(event, id) { event?.stopPropagation?.(); setExpanded((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
   function matches(node) { const query = deckSearch.trim().toLocaleLowerCase(); return !query || `${node.label} ${node.code || ""}`.toLocaleLowerCase().includes(query) || (node.children || []).some(matches); }
@@ -21347,10 +21367,10 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
       }}>{language === "en" ? "Cancel conflicting change" : "Annullér ændringen i konflikt"}</button></small>}
     </div>}
     {deckDialog75 && <Modal c={c} onClose={() => { if (!deckDialogBusy75.current) setDeckDialog75(null); }}><DeckDialog75 key={`${deckDialog75.mode}:${deckDialog75.node.id}`} tree={tree} selected={deckDialog75.node} mode={deckDialog75.mode} cardIds={deckDialog75.cardIds} language={language} onApply={privateDecks75.change} onBusyChange={busy => { deckDialogBusy75.current = busy; }} onClose={() => setDeckDialog75(null)} /></Modal>}
-    {view === "decks" && sourceMode79 === "exam-mcq" ? <ExamTopics798 tree={baseTree75} scope={examScope798} selected={selectedNode} onSelection={setExamScope798} language={language} sessionCount={sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => setView("browser")} onImport={() => setView("import")} onArchive={onArchiveImports ? restore => onArchiveImports(user.module, restore) : null} /> : null}
-    {view === "decks" && sourceMode79 !== "exam-mcq" ? <TrainingIndex791 tree={tree} selected={selectedNode} language={language} onSelect={node => { setSelectedId(node.id); setBrowserDate(""); }} sessionCount={sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => { setBrowserDate(""); setView("browser"); }} onCreate={() => openEditor(null,"decks")} onCreateDeck={privateDecks75.change} onImport={() => setView("import")} deckCreationDisabled={!authUserId} onMaterials={selectedNode.lectureFilter&&onOpenLectureMaterial ? ()=>onOpenLectureMaterial(selectedNode.lectureFilter) : null} sectionControls={structured800 ? <LectureSections800 sections={sections800} selection={selection800} onChange={value => setSectionSelection800({ ...value, nodeId: selectedNode.id })} forgottenCount={missedCards800.reduce((sum, question) => sum + (forgotten800[question.id]?.length || 0), 0)} /> : null} /> : null}
+    {view === "decks" && sourceMode79 === "exam-mcq" ? <ExamTopics798 tree={visibleBaseTree803} scope={examScope798} selected={selectedNode} onSelection={setExamScope798} language={language} sessionCount={sessionQuestions.length} restoreCount={restoreCount803} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => setView("browser")} onImport={() => setView("import")} onArchive={onArchiveImports ? restore => onArchiveImports(user.module, restore) : null} /> : null}
+    {view === "decks" && sourceMode79 !== "exam-mcq" ? <TrainingIndex791 tree={tree} selected={selectedNode} language={language} onSelect={node => { setSelectedId(node.id); setBrowserDate(""); }} sessionCount={sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => { setBrowserDate(""); setView("browser"); }} onCreate={() => openEditor(null,"decks")} onCreateDeck={privateDecks75.change} onImport={() => setView("import")} deckCreationDisabled={!authUserId} onMaterials={selectedNode.lectureFilter&&onOpenLectureMaterial ? ()=>onOpenLectureMaterial(selectedNode.lectureFilter) : null} /> : null}
     {view === 'import' && sourceMode79 !== 'exam-mcq' && <nav className="mf800-format-tabs" aria-label="Importformat"><button type="button" aria-pressed={importFormat800 === 'lecture'} onClick={() => setImportFormat800('lecture')}>Forelæsningspakke</button><button type="button" aria-pressed={importFormat800 === 'anki'} onClick={() => setImportFormat800('anki')}>ANKI</button></nav>}
-    {view === 'import' && sourceMode79 !== 'exam-mcq' && importFormat800 === 'lecture' && <LectureUpload800 moduleId={user.module} lectures={lectures} selectedLectureId={selectedNode.lectureFilter || ''} scope={scope800} signedIn={Boolean(authUserId)} onBack={() => setView('decks')} onImported={target => { setSelectedId(`lecture:${target.moduleId}:${target.lectureId}`); setSectionSelection800(null); setView('decks'); }} />}
+    {view === 'import' && sourceMode79 !== 'exam-mcq' && importFormat800 === 'lecture' && <LectureUpload800 moduleId={user.module} lectures={lectures} selectedLectureId={selectedNode.lectureFilter || ''} scope={scope800} signedIn={Boolean(authUserId)} onBack={() => setView('decks')} onImported={target => { setSelectedId(`lecture:${target.moduleId}:${target.lectureId}`); setView('decks'); }} />}
     {view === "import" && (sourceMode79 === 'exam-mcq' || importFormat800 === 'anki') && <AnkiUpload792 moduleId={user.module} sourceKind={examLibrary ? "exam-mcq" : undefined} language={language} signedIn={Boolean(authUserId)} existingIds={getFullQuestionBank(importedQuestions).map(card => String(card.personalCardId || card.id))} decks={privateDecks75.state.decks} selectedDeck={selectedNode.type === "personal" ? selectedNode.id : ""} onBack={() => setView("decks")} onImport={async (cards, target) => {
       if (!onImportPersonalCards) return { ok: false, error: "Kortimport er ikke tilsluttet." };
       const result = await onImportPersonalCards(cards);
@@ -21363,9 +21383,9 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, importedQuesti
       return result;
     }} />}
     {view === "decks" ? <section className="flashcard71-activity-card mf72-root-activity"><div className="flashcard71-section-head"><h2>{copy.activity}</h2><small>{new Date().getFullYear()}</small></div><FlashcardActivityHeatmap71 language={language} events={moduleEvents72} onSelectDate={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /><StudyActivity791 language={language} events={moduleEvents72} onBrowse={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /></section> : null}
-    {sessionOptions791 && <SessionOptions791 language={language} name={selectedNode.label} preferences={preferences} onPreference={persistPreferences} sessionCount={sessionQuestions.length} onClose={() => setSessionOptions791(false)} onStart={() => { setSessionOptions791(false); startSession(); }} />}
+    {sessionOptions791 && (structured800 ? <LectureOptions801 sections={sections800} lectureTitle={selectedNode.label} initialSelection={selectedLectureSetup801} getCount={(keys, mode) => prepareLecture801({ keys, mode, limit: 'all' }).questions.length} onClose={() => setSessionOptions791(false)} onStart={selection => { setLectureSelection801({ ...selection, deckId: selectedNode.id }); setSessionOptions791(false); startSession(selection); }} /> : <SessionOptions791 language={language} name={selectedNode.label} preferences={preferences} onPreference={persistPreferences} sessionCount={sessionQuestions.length} onClose={() => setSessionOptions791(false)} onStart={() => { setSessionOptions791(false); startSession(); }} />)}
     {view === "overview" ? <FlashcardDeckOverview71 language={language} node={selectedNode} questions={selectedQuestions} spacedData={spacedData} events={selectedEvents} sessionQuestions={sessionQuestions} preferences={preferences} onPreference={persistPreferences} onStart={startSession} onBrowse={(date) => { setBrowserDate(date || ""); setView("browser"); }} onCreate={() => openEditor(null, "overview")} onBack={() => setView("decks")} /> : null}
-    {view === "browser" ? <><button type="button" className="flashcard71-back" style={{ marginBottom: 12 }} onClick={() => setView("decks")}><Icon name="left" size={15} />{selectedNode.label}</button><FlashcardBrowser71 c={c} language={language} questions={browserQuestions} spacedData={spacedData} lectures={lectures} selectedDate={browserDate} query={browserQuery} onQuery={setBrowserQuery} status={browserStatus} onStatus={setBrowserStatus} selectedId={browserSelectedId} onSelectedId={setBrowserSelectedId} onClose={() => setView("decks")} onEdit={(question) => openEditor(question, "browser")} onCreate={() => openEditor(null, "browser")} onOpenLectureMenu={onOpenLectureMenu} /></> : null}
+    {view === "browser" ? <><button type="button" className="flashcard71-back" style={{ marginBottom: 12 }} onClick={() => setView("decks")}><Icon name="left" size={15} />{selectedNode.label}</button><FlashcardBrowser71 key={trashScope803} c={c} language={language} questions={browserQuestions} spacedData={spacedData} lectures={lectures} contextTitle={selectedNode.label} discardCount={selectedQuestions.length} restoreCount={restoreCount803} onDiscard={authUserId && cardTrash803 ? () => cardTrash803.change({ scope: trashScope803, moduleId: user.module, ids: selectedQuestions.map(card => String(card.id)) }) : undefined} onRestore={cardTrash803 ? () => cardTrash803.change({ scope: trashScope803, restore: true }) : undefined} selectedDate={browserDate} query={browserQuery} onQuery={setBrowserQuery} status={browserStatus} onStatus={setBrowserStatus} selectedId={browserSelectedId} onSelectedId={setBrowserSelectedId} onClose={() => setView("decks")} onEdit={(question) => openEditor(question, "browser")} onCreate={() => openEditor(null, "browser")} onOpenLectureMenu={onOpenLectureMenu} /></> : null}
     {view === "editor" ? <><label hidden={editorLast75} className="lecture-material-field" style={{ marginBottom: 12, maxWidth: 400 }}>{language === "en" ? "Deck" : "Dæk"}<select value={editorDeck75} onChange={event => setEditorDeck75(event.target.value)}><option value="">{language === "en" ? "Original lecture" : "Oprindelig forelæsning"}</option>{privateDecks75.state.decks.map(deck => <option key={deck.id} value={deck.id}>{deck.name}</option>)}</select></label><FlashcardEditor71 c={c} language={language} question={editorQuestion || null} context={{ moduleId: user.module, lectureId: selectedNode.lectureFilter || null }} lectures={lectures} createMode={!editorQuestion} onSave={saveRecord} onLastEditChange={setEditorLast75} onCancel={() => setView(editorOrigin)} /></> : null}
   </div>;
 }
@@ -21522,7 +21542,6 @@ function MCQ({
     ? questionPool
     : []
   );
-  const pool = initialPoolRef.current;
   const spacedStorageKey = flashcardAccountStorageKey(STORAGE.spacedRepetition, authUserId);
   const [history, setHistory] = useAccountStorage792(STORAGE.quizHistory, authUserId, []);
   const [savedSession, setSavedSession] = useState(false);
@@ -21538,6 +21557,30 @@ function MCQ({
     }
   })();
 
+  const sections800 = useMemo(() => lectureSections800(initialPoolRef.current), []);
+  const structured800 = Boolean(sections800.length > 0 && sessionScope?.lectureMode800);
+  const [journey800, setJourney800] = useState(() => savedResume?.journey800 || sessionScope?.lecturePlan801 || (structured800 ? legacyLectureJourney801(savedResume, initialPoolRef.current, sections800, sessionScope?.lectureMode800) : null));
+  // Enter through the story overview even when a previous run can be continued.
+  const [introOpen800, setIntroOpen800] = useState(structured800 && !sessionScope?.lecturePlan801);
+  // Keep the chosen section and forgotten-item snapshot stable throughout a run.
+  const pool = useMemo(() => journey800 ? lectureSessionCards800(initialPoolRef.current, journey800) : initialPoolRef.current, [journey800]);
+  const lectureMode800 = journey800?.mode || sessionScope?.lectureMode800;
+  const scope800 = authUserId ? flashcardPersonalStorageKey(authUserId) : null;
+  const [forgottenState800, setForgottenState800] = useState({ scope: null, items: {} });
+  useEffect(() => {
+    let alive = true;
+    const refresh = () => { if (structured800 && scope800) readForgotten800(scope800).then(items => { if (alive) setForgottenState800({ scope: scope800, items }); }, () => { if (alive) setForgottenState800({ scope: scope800, items: {} }); }); };
+    refresh();
+    const changed = event => { if (event.detail?.scope === scope800) refresh(); };
+    window.addEventListener('medfluen-forgotten800', changed);
+    return () => { alive = false; window.removeEventListener('medfluen-forgotten800', changed); };
+  }, [structured800, scope800]);
+  const forgotten800 = forgottenState800.scope === scope800 ? forgottenState800.items : {};
+  const availableStoryCards800 = initialPoolRef.current.filter(item => !buriedCards?.[item.id] && flashcardCardStatus(spacedData[item.id]) !== 'hidden');
+  const storySections800 = lectureSections800(availableStoryCards800);
+  const reviewScope801 = lectureReviewScope801(sessionScope);
+  const reviewCandidates800 = flashcardSelectSessionQuestions(availableStoryCards800, spacedData, reviewScope801, Date.now());
+
   const [index, setIndex] = useState(savedResume?.index || 0);
   const [answers, setAnswers] = useState(savedResume?.answers || {});
   const isExamMode = sessionScope?.studyMode === "exam";
@@ -21549,7 +21592,7 @@ function MCQ({
   const [sessionQuestionOverrides, setSessionQuestionOverrides] = useState({});
   const [finished, setFinishedState] = useState(false);
   const [sessionEndedAt, setSessionEndedAt] = useState(null);
-  const reviewClock72 = useReviewClock72(!finished && !reviewEditorOpen);
+  const reviewClock72 = useReviewClock72(!finished && !reviewEditorOpen && !introOpen800);
   function setFinished(value) {
     if (value) { reviewClock72.pause(); setSessionEndedAt(sessionStartedAt + reviewClock72.read()); }
     else { setSessionEndedAt(null); reviewClock72.resume(); }
@@ -21559,9 +21602,9 @@ function MCQ({
   const [sessionStartedAt, setSessionStartedAt] = useState(() => Date.now());
   const [waitingForDue, setWaitingForDue] = useState(false);
   // Session counters describe presentations in this viewer, not only unique source questions.
-  const [sessionCardTotal, setSessionCardTotal] = useState(() => pool.length);
-  const [sessionCardPosition, setSessionCardPosition] = useState(() => Math.min((savedResume?.index || 0) + 1, pool.length || 1));
-  const [sessionReviews, setSessionReviews] = useState([]);
+  const [sessionCardTotal, setSessionCardTotal] = useState(() => Number.isInteger(savedResume?.sessionCardTotal) && savedResume.sessionCardTotal >= pool.length ? savedResume.sessionCardTotal : pool.length);
+  const [sessionCardPosition, setSessionCardPosition] = useState(() => Number.isInteger(savedResume?.sessionCardPosition) && savedResume.sessionCardPosition > 0 ? Math.min(savedResume.sessionCardPosition, savedResume.sessionCardTotal || pool.length || 1) : Math.min((savedResume?.index || 0) + 1, pool.length || 1));
+  const [sessionReviews, setSessionReviews] = useState(savedResume?.sessionReviews || []);
   const [undoSnapshot, setUndoSnapshot] = useState(null);
   const cardShownAtRef = useRef(0);
   const examFsrsCommittedRef = useRef(false);
@@ -21574,9 +21617,9 @@ function MCQ({
   }, [finished]);
 
   useEffect(() => {
-    if (finished || !authUserId) return;
-    localStorage.setItem(resumeStorageKey, JSON.stringify({ resumeKey, index, answers, updatedAt: Date.now() }));
-  }, [authUserId, resumeStorageKey, resumeKey, index, answers, finished]);
+    if (finished || introOpen800 || !authUserId) return;
+    localStorage.setItem(resumeStorageKey, JSON.stringify({ resumeKey, index, answers, ...(journey800 ? { journey800, sessionReviews, sessionCardTotal, sessionCardPosition } : {}), updatedAt: Date.now() }));
+  }, [authUserId, resumeStorageKey, resumeKey, index, answers, finished, introOpen800, journey800, sessionReviews, sessionCardTotal, sessionCardPosition]);
 
   const baseQuestion = pool[index] || null;
   const question = baseQuestion ? (sessionQuestionOverrides[baseQuestion.id] || baseQuestion) : null;
@@ -21777,7 +21820,7 @@ function MCQ({
     delete nextAnswers[question.id];
     setAnswers(nextAnswers);
 
-    if (sessionScope?.lectureMode800 && sessionScope.lectureMode800 !== 'review') {
+    if (lectureMode800 && lectureMode800 !== 'review') {
       if (index + 1 < pool.length) { setIndex(index + 1); setSessionCardPosition(value => Math.min(value + 1, pool.length)); }
       else finishSession([...sessionReviews, reviewEntry]);
       return;
@@ -21797,13 +21840,12 @@ function MCQ({
       return;
     }
 
-    // A day-based rating completes this presentation. Do not increment the
-    // numerator: there is no extra card instance to show in this session.
-    // Clamp the counter, which prevents impossible displays such as 4/3.
-    setSessionCardPosition((value) => Math.min(value, sessionCardTotal));
+    // A day-based rating does not add a presentation, but moving to another
+    // card advances our position within the existing session total.
     const nextIndex = sm2NextDueQuestionIndex(pool, nextSpacedData, nextAnswers, index);
     if (nextIndex !== null) {
       setIndex(nextIndex);
+      setSessionCardPosition((value) => Math.min(value + 1, sessionCardTotal));
     } else {
       // No other due or unseen card remains in this pool. Without this branch the
       // session viewer would silently stall on the last answered card, and the
@@ -21907,6 +21949,19 @@ function MCQ({
     if (question && !question.lectureContent) setReviewEditorOpen(true);
   }
 
+  function startLecture800({ keys, mode }) {
+    const candidates = lectureStudyCards800(availableStoryCards800, keys, mode === 'forgotten' ? forgotten800 : undefined);
+    const next = mode === 'review' ? flashcardSelectSessionQuestions(candidates, spacedData, reviewScope801, Date.now()) : candidates;
+    if (!next.length) return;
+    const forgottenItems = mode === 'forgotten' ? Object.fromEntries(next.map(item => [item.id, [...(forgotten800[item.id] || [])]])) : {};
+    setJourney800({ keys, mode, forgottenItems, questionIds: next.map(item => item.id) });
+    setIndex(0); setAnswers({}); setSessionReviews([]); setUndoSnapshot(null);
+    setFlashcardRevealed(false); setSessionCardPosition(1); setSessionCardTotal(next.length);
+    setSavedSession(false); setFinished(false); setWaitingForDue(false);
+    setSessionStartedAt(Date.now()); reviewClock72.reset(); cardShownAtRef.current = 0;
+    setIntroOpen800(false);
+  }
+
   function saveEditedReviewCard(record) {
     const result = onSavePersonalCard?.(record);
     if (result?.ok === false) return result;
@@ -21918,7 +21973,7 @@ function MCQ({
 
   useEffect(() => {
     function handleReviewerShortcut(event) {
-      if (reviewEditorOpen || flagModalOpen) return;
+      if (reviewEditorOpen || flagModalOpen || introOpen800) return;
       const target = event.target;
       if (target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName) || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key.toLowerCase() === "z" && undoSnapshot) {
@@ -21943,7 +21998,7 @@ function MCQ({
     }
     window.addEventListener("keydown", handleReviewerShortcut);
     return () => window.removeEventListener("keydown", handleReviewerShortcut);
-  }, [undoSnapshot, question?.id, finished, reviewEditorOpen, flagModalOpen, cardMenuOpen, flashcardRevealed, isExamMode, isRecallMode]);
+  }, [undoSnapshot, question?.id, finished, reviewEditorOpen, flagModalOpen, cardMenuOpen, flashcardRevealed, isExamMode, isRecallMode, introOpen800]);
 
   function restart() {
     if (onExitToOverview) {
@@ -21998,6 +22053,8 @@ function status() {
       background: c.redSoft,
     };
   }
+
+  if (structured800 && introOpen800) return <LectureSections800 sections={storySections800} lectureTitle={sessionScope?.deckLabel || sections800[0]?.lectureTitle} onStart={startLecture800} onBack={onExitToOverview} onContinue={journey800 && question ? () => setIntroOpen800(false) : null} resumeContext={journey800 && question ? { sectionKey: sectionKey800(question.lectureContent), sectionTitle: question.lectureContent.section.title, position: sessionCardPosition, total: lectureMode800 === 'review' ? sessionCardTotal : pool.length, mode: lectureMode800 } : null} onPrompt={() => downloadLectureFile800('medfluen-forelaesningsprompt.md', buildLecturePrompt800({ moduleId: user.module, lectureId: sessionScope?.lectureFilter || question?.lectureId || '', title: sessionScope?.deckLabel || sections800[0]?.lectureTitle || '' }))} reviewCount={reviewCandidates800.length} forgottenCount={availableStoryCards800.reduce((sum, item) => sum + (forgotten800[item.id]?.length || 0), 0)} />;
 
 if (!question && !finished) {
   const isEmptyAtStart =
@@ -22411,6 +22468,7 @@ async function submitFlag() {
   if (!isExamMode && !isRecallMode) {
     return (
       <>
+        {structured800 && <nav className="mf800-journey-nav" aria-label="Forelæsningsforløb"><button type="button" onClick={() => setIntroOpen800(true)}>← Sektioner</button><span>{lectureMode800 === 'forgotten' ? 'Glemte svarpunkter' : lectureMode800 === 'review' ? 'Repetition' : 'Gennemgang'}</span></nav>}
         <FlashcardReviewer71
           c={c}
           language={language}
@@ -22418,9 +22476,9 @@ async function submitFlag() {
           position={sessionCardPosition}
           total={sessionCardTotal}
           deckLabel={sessionScope?.deckLabel}
-          deckTotal={sessionScope?.deckTotal}
+          deckTotal={journey800 ? (lectureMode800 === 'review' ? sessionCardTotal : pool.length) : sessionScope?.deckTotal}
           lectureScope800={flashcardPersonalStorageKey(authUserId)}
-          forgottenOnly800={sessionScope?.forgottenItems800?.[question.id]}
+          forgottenOnly800={journey800?.forgottenItems?.[question.id] || sessionScope?.forgottenItems800?.[question.id]}
           revealed={flashcardRevealed}
           spacedData={spacedData}
           setSpacedData={setSpacedData}
@@ -46629,7 +46687,9 @@ useEffect(() => {
   const [importedQuestions, setImportedQuestions] = useStoredState(STORAGE.importedQuestions, []);
   const personalFlashcardUserId = accountStorageUserId;
   const [personalFlashcards, setPersonalFlashcards] = usePersonalFlashcards71(personalFlashcardUserId);
-  const effectiveQuestions = flashcardMergePersonalCards(importedQuestions, personalFlashcards);
+  const allQuestions803 = flashcardMergePersonalCards(importedQuestions, personalFlashcards);
+  const cardTrash803 = useCardTrash803(accountStorageUserId, allQuestions803);
+  const effectiveQuestions = cardTrash803.questions;
 
   function savePersonalFlashcard(record) {
     if (!personalFlashcardUserId) return { ok: false, error: "Du skal være logget ind for at gemme personlige kort." };
@@ -47127,7 +47187,7 @@ useEffect(() => {
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace key={user?.module} c={c} language={language} moduleName={user?.module} kind="examSets" historyRequest72={examHistoryRequest72} onClose={closeWorkspace} userId={session?.user?.id} isAdmin={effectiveAdmin} importedQuestions={importedQuestions}
               ankiInitiallyOpen={trainingCards79(effectiveQuestions, "exam-mcq").some(card => card.moduleId === user?.module && card.richContent?.anki)}
-              ankiContent={<StudyDesk71 c={c} language={language} user={user} authUserId={session?.user?.id} spacedData={spacedData} importedQuestions={effectiveQuestions} examLibrary onSavePersonalCard={savePersonalFlashcard} onImportPersonalCards={importPersonalFlashcards792} onArchiveImports={archivePersonalAnki798} onStart={scope => { setSessionScope(scope); setActiveWorkspace(null); setRoute("mcq"); }} />}
+              ankiContent={<StudyDesk71 c={c} language={language} user={user} authUserId={session?.user?.id} spacedData={spacedData} importedQuestions={effectiveQuestions} allQuestions803={allQuestions803} cardTrash803={cardTrash803} examLibrary onSavePersonalCard={savePersonalFlashcard} onImportPersonalCards={importPersonalFlashcards792} onArchiveImports={archivePersonalAnki798} onStart={scope => { setSessionScope(scope); setActiveWorkspace(null); setRoute("mcq"); }} />}
             />
           )}
         </WorkspaceShell>
@@ -47259,6 +47319,8 @@ onNavigate={navigateFromShell}
                   />
                 ) : (
                   <SessionSetup
+                    allQuestions803={allQuestions803}
+                    cardTrash803={cardTrash803}
                     c={c}
                     t={t}
                     language={language}
@@ -47266,6 +47328,7 @@ onNavigate={navigateFromShell}
                     authUserId={session?.user?.id || null}
                     spacedData={spacedData}
                     onResetAllProgress={setSpacedData}
+                    buriedCards={buriedCards}
                     importedQuestions={effectiveQuestions}
                     onSavePersonalCard={savePersonalFlashcard}
                     onImportPersonalCards={importPersonalFlashcards792}

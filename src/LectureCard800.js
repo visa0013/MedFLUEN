@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ReviewContent799 } from './ReviewContent799';
-import { glossaryTokens800 } from './lecture800-model';
+import { glossaryTokens800, plainLecture800, safeGlossaryUrl800 } from './lecture800-model';
 import { readForgotten800, readLectureMedia800, writeForgotten800 } from './lecture800-storage';
 import './lecture800.css';
 
@@ -14,13 +14,19 @@ function SourceRefs800({ refs = [], sources = [], onOpen }) {
 function GlossaryWord800({ label, term, sources }) {
   const [open, setOpen] = useState(false), [position, setPosition] = useState({ left: 16, top: 16 });
   const anchor = useRef(null), panel = useRef(null), timeout = useRef(null), id = useId();
+  const links = (Array.isArray(term.sourceLinks) ? term.sourceLinks : []).map(link => ({ title: link?.title, url: safeGlossaryUrl800(link?.url) })).filter(link => link.url && typeof link.title === 'string' && link.title.trim());
   const show = () => { clearTimeout(timeout.current); setOpen(true); };
   const hideSoon = () => { timeout.current = setTimeout(() => setOpen(false), 180); };
+  const focusSources = event => {
+    if (event.key !== 'Tab' || event.shiftKey || !open) return;
+    const firstLink = panel.current?.querySelector('a');
+    if (firstLink) { event.preventDefault(); firstLink.focus(); }
+  };
   useEffect(() => {
     if (!open) return undefined;
     const positionPanel = () => {
       const rect = anchor.current?.getBoundingClientRect(); if (!rect) return;
-      const width = Math.min(340, window.innerWidth - 32), height = panel.current?.offsetHeight || 150;
+      const width = Math.min(440, window.innerWidth - 32), height = panel.current?.offsetHeight || 150;
       setPosition({ left: Math.max(16, Math.min(rect.left, window.innerWidth - width - 16)), top: Math.max(16, Math.min(rect.bottom + 10, window.innerHeight - height - 16)) });
     };
     const outside = event => { if (!anchor.current?.contains(event.target) && !panel.current?.contains(event.target)) setOpen(false); };
@@ -29,7 +35,7 @@ function GlossaryWord800({ label, term, sources }) {
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); window.removeEventListener('resize', positionPanel); window.removeEventListener('scroll', positionPanel, true); };
   }, [open]);
   useEffect(() => () => clearTimeout(timeout.current), []);
-  return <><button type="button" ref={anchor} className="mf800-term" aria-expanded={open} aria-describedby={open ? id : undefined} onMouseEnter={show} onMouseLeave={hideSoon} onFocus={show} onBlur={hideSoon} onClick={show}>{label}</button>{open && createPortal(<span ref={panel} id={id} role="tooltip" className="mf800-definition" style={position} onMouseEnter={show} onMouseLeave={hideSoon}><strong>{term.term}</strong><span>{term.definition}</span><SourceRefs800 refs={term.sourceRefs} sources={sources} /></span>, document.body)}</>;
+  return <><button type="button" ref={anchor} className="mf800-term" aria-expanded={open} aria-describedby={open ? id : undefined} onMouseEnter={show} onMouseLeave={hideSoon} onFocus={show} onBlur={hideSoon} onKeyDown={focusSources} onClick={show}>{label}</button>{open && createPortal(<span ref={panel} id={id} role="tooltip" className="mf800-definition" style={position} onMouseEnter={show} onMouseLeave={hideSoon} onFocus={show} onBlur={hideSoon}><strong>{term.term}</strong>{links.length > 0 && <small className="mf800-definition-origin">Supplerende definition · eksterne faglige kilder</small>}<span>{term.definition}</span>{term.sourceRefs?.length > 0 && <span className="mf800-definition-slides"><small>Fra forelæsningen</small><SourceRefs800 refs={term.sourceRefs} sources={sources} /></span>}{links.length > 0 && <span className="mf800-definition-links">{links.map((link, index) => <a key={`${link.url}:${index}`} href={link.url} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>{link.title} ↗</a>)}</span>}</span>, document.body)}</>;
 }
 export function GlossaryText800({ text = '', glossary = [], sources = [] }) {
   const terms = new Map(glossary.map(term => [term.id, term]));
@@ -81,13 +87,14 @@ export function LectureCard800({ question, revealed = false, scope, previewMedia
   }
   const images = useImages800(content, scope, previewMedia);
   const text = value => <GlossaryText800 text={value} glossary={content.glossary} sources={content.sources} />;
+  const plain = value => <span className="mf800-text">{plainLecture800(value)}</span>;
   const answerItems = (card.answerItems || []).filter(item => !forgottenOnly || forgottenOnly.includes(item.id));
   return <section className="mf800-card" data-revealed={revealed}>
     <div className="mf800-card-context"><span>{content.section.title}</span>{forgottenOnly && <small>Glemte svarpunkter</small>}</div>
-    <ReviewContent799 text={card.question} questionContent={text(card.question)} imageItems={images.images.filter(asset => asset.role === 'question' || revealed)}>
+    <ReviewContent799 text={card.question} questionContent={plain(card.question)} imageItems={images.images.filter(asset => asset.role === 'question' || revealed)}>
       {card.type === 'mcq' && <ol className="mf797-mcq-options">{card.options.map((option, index) => {
         const correct = revealed && card.correctOptionIds.includes(option.id);
-        return <li key={option.id} data-correct={correct ? 'true' : undefined}><span className="mf797-option-key" aria-hidden="true">{index + 1}</span>{correct ? <strong className="mf797-option-body">{text(option.text)}</strong> : <div className="mf797-option-body">{text(option.text)}</div>}{correct && <span className="mf797-option-check" aria-label="Korrekt svar">✓</span>}</li>;
+        return <li key={option.id} data-correct={correct ? 'true' : undefined}><span className="mf797-option-key" aria-hidden="true">{index + 1}</span>{correct ? <strong className="mf797-option-body">{plain(option.text)}</strong> : <div className="mf797-option-body">{plain(option.text)}</div>}{correct && <span className="mf797-option-check" aria-label="Korrekt svar">✓</span>}</li>;
       })}</ol>}
       {revealed && card.type === 'recall-list' && <div className="mf800-recall"><p className="mf800-recall-label">{readOnly ? 'Svarpunkter' : 'Markér det, du ikke huskede'}</p><ul>{answerItems.map(item => <li key={item.id} data-forgotten={ids.includes(item.id)}>{readOnly ? <span className="mf800-recall-dot" aria-hidden="true" /> : <input type="checkbox" aria-label={`Glemt: ${item.text.replace(glossaryTokens800, '$2')}`} checked={ids.includes(item.id)} disabled={saved.loading || (!scope && !onForgottenChange)} onChange={() => mark(item.id)} />}<div>{text(item.text)}</div></li>)}</ul></div>}
       {revealed && card.type === 'basic' && <div className="mf800-basic-answer">{text(card.answer)}</div>}

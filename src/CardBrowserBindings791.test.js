@@ -58,7 +58,7 @@ afterEach(() => mounted.splice(0).forEach(({ root, el }) => { act(() => root.unm
 test('the deck browser wrapper displays the selected MCQ answer using the shared workspace', () => {
   const question = { id: 'q1', question: 'Nerve?', options: ['Opticus', 'Vagus'], correct: 1, explanation: 'Den tiende kranienerve.' };
   const el = mount(<Browser language="da" questions={[question]} spacedData={{}} lectures={[]} query="" status="all" selectedId="q1" />);
-  expect(el.querySelector('.flashcard71-card-detail h3').textContent).toBe('Nerve?');
+  expect(el.querySelector('.flashcard71-card-detail .mf799-question').textContent).toBe('Nerve?');
   expect(el.querySelector('[data-correct="true"]').textContent).toContain('Vagus');
   expect(el.querySelector('.flashcard71-card-detail').textContent).toContain('Den tiende kranienerve.');
 });

@@ -1,0 +1,205 @@
+{
+  "format": "medfluen-lecture",
+  "version": 1,
+  "packageId": "multipel-sklerose-test-v1",
+  "lecture": {
+    "moduleId": "K5 Nervesystem og psykiatri",
+    "lectureId": "N10",
+    "title": "Multipel sklerose"
+  },
+  "sources": [
+    { "id": "kildenoter", "filename": "multipel-sklerose-kildenoter.pdf", "pageCount": 4 }
+  ],
+  "sections": [
+    {
+      "id": "epidemiologi",
+      "title": "Epidemiologi og risiko",
+      "order": 1,
+      "summary": "Debutalder, kønsfordeling og risikofaktorer for multipel sklerose."
+    },
+    {
+      "id": "mekanisme",
+      "title": "Sygdomsmekanisme og forløb",
+      "order": 2,
+      "summary": "Myelinets betydning for nerveledning samt attakvise og progressive sygdomsforløb."
+    },
+    {
+      "id": "diagnostik",
+      "title": "Fra symptomer til diagnose",
+      "order": 3,
+      "summary": "Neurologiske symptombilleder og undersøgelsernes rolle i den samlede diagnostiske vurdering."
+    },
+    {
+      "id": "behandling",
+      "title": "Attak og langsigtet behandling",
+      "order": 4,
+      "summary": "Klinisk afgrænsning af MS-attak og overordnede mål for langsigtet behandling."
+    }
+  ],
+  "glossary": [
+    {
+      "id": "myelin",
+      "term": "Myelin",
+      "definition": "Myelin er den isolerende skede omkring mange nervefibre og gør elektriske signaler hurtigere. Ved MS beskadiges myelin i hjernen og rygmarven af en betændelsesreaktion. Denne demyelinisering kan forstyrre signalerne og bidrage til neurologiske symptomer.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 2 }],
+      "sourceLinks": [
+        { "title": "Lægehåndbogen · Multipel sklerose", "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/inflammatoriske-sygdomme/multipel-sklerose/" },
+        { "title": "Patienthåndbogen · Multipel sklerose, forskellige former", "url": "https://www.sundhed.dk/borger/patienthaandbogen/hjerne-og-nerver/sygdomme/multipel-sklerose/multipel-sklerose-forskellige-former/" }
+      ]
+    },
+    {
+      "id": "cns",
+      "term": "Centralnervesystemet",
+      "definition": "Centralnervesystemet består af hjernen og rygmarven. Det sender og modtager information gennem elektriske signaler i nervefibre. De perifere nerver forbinder det med kroppens muskler og sanseorganer. Ved MS opstår der sygdomsforandringer i centralnervesystemet, som kan undersøges med MR.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 2 }],
+      "sourceLinks": [
+        { "title": "Lægehåndbogen · Multipel sklerose", "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/inflammatoriske-sygdomme/multipel-sklerose/" },
+        { "title": "Patienthåndbogen · Nerveledningsundersøgelse og elektromyografi", "url": "https://www.sundhed.dk/borger/patienthaandbogen/undersoegelser/undersoegelser/neurofysiologi/nerveledningsundersoegelse/" }
+      ]
+    },
+    {
+      "id": "rrms",
+      "term": "Attakvis MS (RRMS)",
+      "definition": "Attakvis MS kaldes relapsing-remitting MS, forkortet RRMS. Forløbet består af afgrænsede sygdomsudbrud med nye eller forværrede symptomer, efterfulgt af delvis eller fuldstændig bedring. Mellem attakker kan der være beskedne eller vedvarende gener. Hos nogle udvikles senere et sekundært progressivt forløb.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 2 }],
+      "sourceLinks": [
+        { "title": "Lægehåndbogen · Multipel sklerose: sygdomsforløb", "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/inflammatoriske-sygdomme/multipel-sklerose/" },
+        { "title": "Patienthåndbogen · Multipel sklerose, forskellige former", "url": "https://www.sundhed.dk/borger/patienthaandbogen/hjerne-og-nerver/sygdomme/multipel-sklerose/multipel-sklerose-forskellige-former/" }
+      ]
+    },
+    {
+      "id": "ppms",
+      "term": "Primær progressiv MS (PPMS)",
+      "definition": "Primær progressiv MS kaldes primary progressive MS, forkortet PPMS. Her tiltager den neurologiske funktionspåvirkning gradvist fra sygdommens begyndelse frem for at begynde med et typisk attakvist forløb. Det adskiller formen fra sekundær progressiv MS, som kommer efter en tidligere attakvis fase. Progression beskriver forløbet; Lægehåndbogen skelner mellem progressive former med og uden attakker.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 2 }],
+      "sourceLinks": [
+        { "title": "Lægehåndbogen · Multipel sklerose: forløbsformer", "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/inflammatoriske-sygdomme/multipel-sklerose/" },
+        { "title": "Patienthåndbogen · Multipel sklerose, forskellige former", "url": "https://www.sundhed.dk/borger/patienthaandbogen/hjerne-og-nerver/sygdomme/multipel-sklerose/multipel-sklerose-forskellige-former/" }
+      ]
+    },
+    {
+      "id": "mr",
+      "term": "MR-skanning",
+      "definition": "MR står for magnetisk resonans og danner detaljerede billeder ved hjælp af et magnetfelt og radiobølger. Undersøgelsen bruger ikke ioniserende stråling som røntgen og CT. Ved mistanke om MS kan MR vise forandringer i hjernen og rygmarven. Billederne indgår sammen med sygehistorie, neurologisk undersøgelse og øvrige fund i diagnosen.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 3 }],
+      "sourceLinks": [
+        { "title": "Lægehåndbogen · MR-skanninger", "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/undersoegelser-og-proever/undersoegelser/mr/mr-skanninger/" },
+        { "title": "Lægehåndbogen · Multipel sklerose: diagnostik", "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/inflammatoriske-sygdomme/multipel-sklerose/" }
+      ]
+    },
+    {
+      "id": "attak",
+      "term": "MS-attak",
+      "definition": "Et MS-attak er en episode med nye eller forværrede neurologiske symptomer. NICE beskriver symptomer over 24 timer efter mindst én stabil måned, uden infektion eller anden forklaring. Infektion og almindelige symptomudsving skal derfor vurderes, før episoden kaldes et attak. Behovet for behandling vurderes særskilt; alle attakker kræver ikke steroidbehandling.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 4 }],
+      "sourceLinks": [
+        { "title": "NICE NG220 · Recognising and treating a relapse", "url": "https://www.nice.org.uk/guidance/ng220/chapter/Recommendations" }
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "id": "ms-01",
+      "sectionId": "epidemiologi",
+      "order": 1,
+      "type": "basic",
+      "question": "I hvilken aldersgruppe begynder multipel sklerose oftest, og hvilket køn rammes hyppigst?",
+      "answer": "Sygdommen begynder oftest i 20-40-årsalderen og forekommer hyppigere hos kvinder.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 1 }]
+    },
+    {
+      "id": "ms-02",
+      "sectionId": "epidemiologi",
+      "order": 2,
+      "type": "recall-list",
+      "question": "Nævn tre forhold, der er forbundet med øget risiko for multipel sklerose.",
+      "answerItems": [
+        { "id": "ebv", "text": "Tidligere infektion med Epstein-Barr-virus." },
+        { "id": "rygning", "text": "Rygning." },
+        { "id": "familie", "text": "En nær slægtning med MS." }
+      ],
+      "explanation": "Risikofaktorer betyder ikke, at den enkelte nødvendigvis udvikler MS.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 1 }]
+    },
+    {
+      "id": "ms-03",
+      "sectionId": "mekanisme",
+      "order": 1,
+      "type": "basic",
+      "question": "Hvilken struktur angriber immunsystemet ved MS, og hvad betyder skaden for nervesignalerne?",
+      "answer": "Immunsystemet angriber [[myelin|myelin]] i [[cns|centralnervesystemet]]. Skaden kan forsinke eller blokere nervesignaler.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 2 }]
+    },
+    {
+      "id": "ms-04",
+      "sectionId": "mekanisme",
+      "order": 2,
+      "type": "recall-list",
+      "question": "Hvordan adskiller attakvis, sekundær progressiv og primær progressiv MS sig i deres forløb?",
+      "answerItems": [
+        { "id": "rrms", "text": "[[rrms|Attakvis MS]]: attakker efterfulgt af perioder med bedring." },
+        { "id": "spms", "text": "Sekundær progressiv MS: gradvis forværring efter et tidligere attakvist forløb." },
+        { "id": "ppms", "text": "[[ppms|Primær progressiv MS]]: gradvis forværring fra begyndelsen uden tydelige attakker." }
+      ],
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 2 }]
+    },
+    {
+      "id": "ms-05",
+      "sectionId": "diagnostik",
+      "order": 1,
+      "type": "recall-list",
+      "question": "Nævn tre neurologiske symptombilleder, der bør give mistanke om MS.",
+      "answerItems": [
+        { "id": "syn", "text": "Synsnedsættelse på ét øje med smerter ved øjenbevægelser." },
+        { "id": "dobbeltsyn", "text": "Dobbeltsyn." },
+        { "id": "sensorik", "text": "Opadstigende føleforstyrrelser og/eller kraftnedsættelse." }
+      ],
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 3 }]
+    },
+    {
+      "id": "ms-06",
+      "sectionId": "diagnostik",
+      "order": 2,
+      "type": "basic",
+      "question": "Hvorfor kan diagnosen MS ikke afgøres med én enkelt undersøgelse?",
+      "answer": "Diagnosen bygger på sygehistorie og neurologisk undersøgelse sammenholdt med [[mr|MR-skanning]] og relevante laboratoriefund. Andre forklaringer skal udelukkes.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 3 }]
+    },
+    {
+      "id": "ms-07",
+      "sectionId": "behandling",
+      "order": 1,
+      "type": "mcq",
+      "question": "En person med kendt MS får ny kraftnedsættelse i 48 timer efter seks stabile uger. Der er ingen infektion eller anden forklaring. Hvad taler dette mest for?",
+      "options": [
+        { "id": "attak", "text": "Et MS-attak." },
+        { "id": "infektion", "text": "Symptomforværring forklaret af en infektion." },
+        { "id": "progression", "text": "Et gradvist progressivt forløb over flere måneder." },
+        { "id": "kortvarigt", "text": "En kortvarig symptomfluktuation under 24 timer." }
+      ],
+      "correctOptionIds": ["attak"],
+      "explanation": "Nye symptomer over 24 timer, uden anden årsag og efter mindst én stabil måned, opfylder NICE's kliniske definition af et [[attak|MS-attak]]. Det afgør ikke alene behandlingen.",
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 4 }]
+    },
+    {
+      "id": "ms-08",
+      "sectionId": "behandling",
+      "order": 2,
+      "type": "recall-list",
+      "question": "Hvilke tre forskellige mål bør du skelne mellem i den langsigtede behandling af MS?",
+      "answerItems": [
+        { "id": "sygdomsaktivitet", "text": "Begrænse sygdomsaktivitet med sygdomsmodificerende behandling." },
+        { "id": "symptomer", "text": "Lindre gener, fx smerter og muskelstivhed, med symptomrettet behandling." },
+        { "id": "funktion", "text": "Støtte funktion og hverdagsaktiviteter med fysioterapi og ergoterapi." }
+      ],
+      "sourceRefs": [{ "sourceId": "kildenoter", "page": 4 }]
+    }
+  ],
+  "assets": [],
+  "warnings": [
+    "Dette er en lille faglig testpakke, ikke kort udledt af din konkrete forelæsning. Tilpasning til dit pensum kræver dine slides.",
+    "Sidehenvisningerne gælder de medfølgende, lokalt sammenfattede kildenoter - ikke opdigtede sider i NIH's eller NICE's webartikler.",
+    "Det kliniske MCQ-scenarie er skrevet til testen og indeholder ingen patientoplysninger.",
+    "Glossary-definitionerne er suppleret med særskilt verificerede eksterne fagkilder den 1. oktober 2026. Klikbare sourceLinks viser de læste sider i Lægehåndbogen, Patienthåndbogen og NICE; sourceRefs henviser kun til de medfølgende kildenoters oprindelige begrebsgrundlag."
+  ]
+}
