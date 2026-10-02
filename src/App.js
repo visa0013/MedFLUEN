@@ -21354,7 +21354,7 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = 
   return <div className="flashcard71-shell mf79-training"><Flashcard71Styles />
     {!examLibrary && view !== "import" && <Training79Header mode={sourceMode79} language={language} onOpenExamSets={onOpenExamSets} onModeChange={value => { setSourceMode79(value); setSelectedId(null); setView("decks"); persistPreferences({ studyMode: "flashcard" }); }} />}
     {view !== "editor" && view !== "import" && <div className="mf75-deck-tools">
-      {view!=="decks"&&<button type="button" disabled={!authUserId} onClick={()=>{setView("decks");}}>+ {language === "en" ? "New deck" : "Nyt dæk"}</button>}
+      {view !== "decks" && <button type="button" className="mf792-upload-action" onClick={() => { setImportFormat800('lecture'); setView("import"); }}><Icon name="upload" size={16} />{language === "en" ? "Upload deck" : language === "ar" ? "رفع مجموعة" : "Upload dæk"}</button>}
       {view !== "decks" && <details><summary>{language === "en" ? "Manage deck" : "Administrér dæk"}</summary><div>
         <button type="button" onClick={()=>setView("decks")}>{language === "en" ? "New subdeck in list" : "Nyt underdæk i listen"}</button>
         {selectedNode.type === "personal" && ["rename", "move", "delete"].map(mode => <button key={mode} type="button" onClick={() => setDeckDialog75({ mode, node: selectedNode })}>{({ rename: "Omdøb", move: "Flyt", delete: "Slet" })[mode]}</button>)}
