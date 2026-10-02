@@ -2,6 +2,7 @@
   "name": "medfluen",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@10.18.3",
   "engines": {
     "node": "24.x"
   },
