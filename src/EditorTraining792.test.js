@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { act } from 'react-dom/test-utils';
 import { CardEditor72, RichContent72 } from './Experience72';
 import { McqCard797 } from './McqCard797';
+import { ReviewContent799 } from './ReviewContent799';
 jest.mock('./pdf791-engine', () => ({ loadPdfEngine791: async () => { throw Error('No worker in editor tests'); } }));
 global.IS_REACT_ACT_ENVIRONMENT = true;
 const mounted = [];
@@ -48,7 +49,7 @@ const babel = require(require.resolve('@babel/core', { paths: [scriptPackage] })
 const jsx = require.resolve('@babel/plugin-transform-react-jsx', { paths: [scriptPackage] });
 const begin = source.indexOf('function FlashcardReviewer71('), end = source.indexOf('\nfunction MCQ(', begin);
 const { code } = babel.transformSync(source.slice(begin, end), { plugins: [jsx], babelrc: false, configFile: false });
-const dependencies = { React, useState: React.useState, useEffect: React.useEffect, RichContent72, McqCard797, Flashcard71Styles: () => null, Icon: () => null, translate: value => typeof value === 'string' ? value : value?.da || '', flashcardClozeDisplay71: value => value };
+const dependencies = { React, useState: React.useState, useEffect: React.useEffect, RichContent72, McqCard797, ReviewContent799, Flashcard71Styles: () => null, Icon: () => null, translate: value => typeof value === 'string' ? value : value?.da || '', flashcardClozeDisplay71: value => value };
 const Reviewer = new Function(...Object.keys(dependencies), `${code}\nreturn FlashcardReviewer71;`)(...Object.values(dependencies));
 test('review tools keep edit and undo without exposing internal card metadata', () => {
   let edits = 0, undos = 0, reveals = 0;

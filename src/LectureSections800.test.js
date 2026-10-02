@@ -71,10 +71,23 @@ test('a continuation without a known destination is not offered', () => {
   expect(el.querySelector('[data-resume-lecture]')).toBeNull();
   expect(el.textContent).not.toContain('Fortsæt, hvor du var');
 });
+test('a saved section boundary does not pretend there is a next unanswered card', () => {
+  const el = mount({ onContinue: jest.fn(), resumeContext: { sectionKey: 'm', sectionTitle: 'Sygdomsmekanisme', pendingTransition: true, position: 3, total: 3, mode: 'guide' } });
+  expect(el.querySelector('[data-resume-lecture]').textContent).toContain('Vælg næste sektion');
+  expect(el.querySelector('[data-resume-lecture]').textContent).toContain('Sygdomsmekanisme er gennemgået');
+  expect(el.querySelector('[data-resume-lecture]').textContent).not.toContain('Kort');
+});
 test('the lecture entry makes its target-specific upload prompt reachable', () => {
   const onPrompt = jest.fn(); const el = mount({ onPrompt });
   const prompt = el.querySelector('[data-lecture-prompt]');
   expect(prompt.textContent).toContain('Upload-prompt');
   act(() => prompt.click());
   expect(onPrompt).toHaveBeenCalledTimes(1);
+});
+test('waiting for a repeat is not presented as a completed section or a new card position', () => {
+  const el = mount({ onContinue: jest.fn(), resumeContext: { sectionKey: 'm', sectionTitle: 'Sygdomsmekanisme', waiting: true, position: 3, total: 3, mode: 'guide' } });
+  const resume = el.querySelector('[data-resume-lecture]');
+  expect(resume.textContent).toContain('Åbn dit roadmap');
+  expect(resume.textContent).toContain('Sygdomsmekanisme · venter på repetition');
+  expect(resume.textContent).not.toContain('Kort');
 });

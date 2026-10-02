@@ -62,7 +62,7 @@ function useImages800(content, scope, previewMedia) {
   }, [content, scope, previewMedia]);
   return state.content === content && state.scope === scope ? state : { images: [], error: '' };
 }
-export function LectureCard800({ question, revealed = false, scope, previewMedia, readOnly = false, forgottenOnly, forgotten, onForgottenChange, onOpenSource }) {
+export function LectureCard800({ question, revealed = false, scope, previewMedia, readOnly = false, forgottenOnly, forgotten, onForgottenChange, onRecallStateChange, onOpenSource }) {
   const content = question.lectureContent, card = content.card;
   const [saved, setSaved] = useState({ key: null, ids: [], loading: false }), [error, setError] = useState('');
   const pending = useRef(false), generation = useRef(0);
@@ -75,14 +75,18 @@ export function LectureCard800({ question, revealed = false, scope, previewMedia
     return () => { generation.current++; };
   }, [key, scope, question.id, question.cardId, readOnly, forgotten]);
   const ids = forgotten !== undefined ? forgotten : saved.key === key ? saved.ids : [];
+  const recallIds804 = (card.answerItems || []).filter(item => !forgottenOnly || forgottenOnly.includes(item.id)).map(item => item.id);
+  const forgottenCount804 = ids.filter(id => recallIds804.includes(id)).length;
+  useEffect(() => { onRecallStateChange?.({ questionId: question.id, forgottenCount: forgottenCount804, loading: saved.loading || Boolean(error) }); }, [question.id, forgottenCount804, saved.loading, error, onRecallStateChange]);
   async function mark(itemId) {
     if (pending.current || readOnly || saved.loading) return;
     const next = ids.includes(itemId) ? ids.filter(id => id !== itemId) : [...ids, itemId];
     if (onForgottenChange) { onForgottenChange(next); return; }
     if (!scope) return;
     const request = generation.current; pending.current = true; setError('');
+    setSaved({ key, ids: next, loading: true });
     try { await writeForgotten800(scope, question, next); if (request === generation.current) setSaved({ key, ids: next, loading: false }); }
-    catch (failure) { if (request === generation.current) setError(failure.message); }
+    catch (failure) { if (request === generation.current) { setSaved({ key, ids, loading: false }); setError(failure.message); } }
     finally { pending.current = false; }
   }
   const images = useImages800(content, scope, previewMedia);
