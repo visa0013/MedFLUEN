@@ -39,7 +39,9 @@ export function createLectureQueue804(cards, saved, legacyIndex = 0) {
   return { sections, sectionIndex: start, remaining, pendingBySection, dueById: {}, resetById: {}, completedKeys: [] };
 }
 export function lectureQueueView804(queue, now = Date.now()) {
-  const currentId = queue.remaining.find(id => (queue.dueById?.[id] || 0) <= now) || null;
+  // Prefer unseen/due cards. If only delayed retries remain, keep practising
+  // the first one in this section instead of opening a waiting screen.
+  const currentId = queue.remaining.find(id => (queue.dueById?.[id] || 0) <= now) || queue.remaining[0] || null;
   const nextDue = queue.remaining.length ? Math.min(...queue.remaining.map(id => queue.dueById?.[id] || now)) : null;
   return { currentId, nextDue };
 }
@@ -61,11 +63,23 @@ export function rateLectureQueue804(queue, rating, { currentId, repeatAt } = {})
   return { ...queue, remaining, dueById, resetById, completedKeys, pendingBySection: { ...queue.pendingBySection, [key]: remaining } };
 }
 export function chooseLectureSection804(queue, key, restart = false) {
+  if (!restart && queue.completedKeys?.includes(key)) return queue;
   const sectionIndex = queue.sections.findIndex(section => section.key === key);
   if (sectionIndex < 0) return queue;
   const section = queue.sections[sectionIndex];
   const remaining = restart ? [...section.ids] : [...(queue.pendingBySection?.[key] || section.ids)];
   return { ...queue, sectionIndex, remaining, pendingBySection: { ...queue.pendingBySection, [key]: remaining }, completedKeys: restart ? queue.completedKeys.filter(item => item !== key) : queue.completedKeys };
+}
+// Short learning steps stay in their section; only completion opens the next
+// pending destination. Select it atomically so no roadmap flashes in between.
+export function rateLectureRun804(queue, rating, options) {
+  const rated = rateLectureQueue804(queue, rating, options);
+  if (rated === queue || rated.remaining.length) return { queue: rated, handoffKey: null };
+  const ordered = [...rated.sections.slice(rated.sectionIndex + 1), ...rated.sections.slice(0, rated.sectionIndex)];
+  const next = ordered.find(section => !rated.completedKeys.includes(section.key)
+    && (rated.pendingBySection?.[section.key] ?? section.ids).length > 0);
+  return next ? { queue: chooseLectureSection804(rated, next.key), handoffKey: next.key }
+    : { queue: rated, handoffKey: null };
 }
 export function continueLectureQueue804(queue) {
   const next = queue.sections[queue.sectionIndex + 1];

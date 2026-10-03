@@ -16,7 +16,7 @@ export function selectedDeck791(tree, remembered) {
 export function primaryArea791(route, workspace) {
   if (workspace === 'lectures') return 'curriculum';
   if (workspace === 'notes') return 'notes';
-  if (workspace === 'examSets') return 'training';
+  if (workspace === 'examSets') return 'exams';
   if (workspace === 'calendar') return 'home';
-  return ['mcq','training-history'].includes(route) ? 'training' : 'home';
+  return route === 'exams' ? 'exams' : ['mcq','training-history'].includes(route) ? 'training' : 'home';
 }

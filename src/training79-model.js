@@ -3,6 +3,7 @@ import { ankiExamSource797 } from './ankiExam797-model';
 
 function sources79(card) {
   if (card?.richContent?.anki) return [ankiExamSource797(card)];
+  if (['theory', 'exam-mcq'].includes(card?.richContent?.studySource79)) return [card.richContent.studySource79];
   const given = Array.isArray(card?.sources) ? card.sources.filter(source => source === 'theory' || source === 'exam-mcq') : [];
   if (given.length) return given;
   if (card?.examSetId || card?.exam_set_id || ['exam', 'exam-set', 'exam-mcq'].includes(card?.sourceType || card?.source_type)) return ['exam-mcq'];

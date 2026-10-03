@@ -29,6 +29,11 @@ describe('workspace 7.9 routing and layout', () => {
     expect(navigateWorkspace79({ assistantOpen: true }, 'home')).toEqual({ route: 'home', activeWorkspace: null, assistantOpen: true });
   });
 
+  test('the exam workspace has a persistent route separate from theory training', () => {
+    expect(normalizeWorkspace79('exams')).toEqual({ area: 'exams', route: 'exams', notice: null });
+    expect(navigateWorkspace79({ assistantOpen: true }, 'exams')).toEqual({ route: 'exams', activeWorkspace: null, assistantOpen: true });
+  });
+
   test('only an explicit close request dismisses the assistant', () => {
     expect(navigateWorkspace79({ assistantOpen: true }, 'home', { closeAssistant: true }).assistantOpen).toBe(false);
   });

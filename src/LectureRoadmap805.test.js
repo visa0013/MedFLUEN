@@ -1,0 +1,70 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { act } from 'react-dom/test-utils';
+import { nextRoadmapSection805, LectureRoadmap805, LectureHandoff805 } from './LectureRoadmap805';
+
+global.IS_REACT_ACT_ENVIRONMENT = true;
+test('a completed node is a non-interactive status, not a faded disabled control', () => {
+  const host = document.createElement('div'), root = createRoot(host), onChoose = jest.fn();
+  act(() => root.render(<LectureRoadmap805 sections={[{ key: 'a', title: 'Grundlag', count: 1 }, { key: 'b', title: 'Diagnostik', count: 2 }]} queue={{ completedKeys: ['a'] }} onChoose={onChoose} />));
+  const completed = host.querySelector('[data-roadmap-section="a"] .mf805-route-node');
+  expect(completed.getAttribute('role')).toBe('img');
+  expect(completed.getAttribute('aria-label')).toBe('Grundlag er gennemgået');
+  expect(completed.matches('button')).toBe(false);
+  act(() => completed.click());
+  expect(onChoose).not.toHaveBeenCalled();
+  act(() => host.querySelector('[data-roadmap-section="b"] .mf805-route-node').click());
+  expect(onChoose).toHaveBeenCalledWith('b', false);
+  act(() => root.unmount());
+});
+test('each vertical road segment belongs to its section row so wrapped titles cannot detach the route', () => {
+  const host = document.createElement('div'), root = createRoot(host);
+  const sections = [{ key: 'a', title: 'Grundlag', count: 1 }, { key: 'b', title: 'Sygdomsmekanisme og fysiologi ved inflammatoriske sygdomme i centralnervesystemet', summary: 'Definitioner, mekanismer og kliniske konsekvenser.', count: 6 }, { key: 'c', title: 'Behandling', count: 2 }];
+  act(() => root.render(<LectureRoadmap805 sections={sections} queue={{ completedKeys: ['a'] }} animateFrom="a" />));
+  const rows = [...host.querySelectorAll('[data-roadmap-section]')];
+  expect(rows.map(row => row.getAttribute('data-roadmap-section'))).toEqual(['a', 'b', 'c']);
+  const first = host.querySelector('[data-route-from="a"][data-route-to="b"]');
+  expect(first.closest('[data-roadmap-section]')).toBe(rows[0]);
+  expect(first.getAttribute('data-filled')).toBe('true');
+  expect(first.getAttribute('data-drawing')).toBe('true');
+  expect(rows[1].querySelector('[data-route-from="b"][data-route-to="c"]').getAttribute('data-filled')).toBe('false');
+  expect(rows[1].querySelector('h2').textContent).toBe(sections[1].title);
+  expect(rows[2].querySelector('[data-route-from]')).toBeNull();
+  act(() => root.unmount());
+});
+test('the recommended section skips completed destinations and returns to unfinished earlier sections', () => {
+  const sections = [{ key: 'a', count: 1 }, { key: 'b', count: 1 }, { key: 'c', count: 1 }];
+  expect(nextRoadmapSection805(sections, 'a', ['a', 'b'])?.key).toBe('c');
+  expect(nextRoadmapSection805(sections, 'c', ['c'])?.key).toBe('a');
+  expect(nextRoadmapSection805(sections, 'c', ['a', 'b', 'c'])).toBeNull();
+});
+test('the section handoff opens its selected cards once, and a cancelled handoff never opens them later', () => {
+  jest.useFakeTimers();
+  const host = document.createElement('div'); document.body.appendChild(host);
+  const root = createRoot(host), onReady = jest.fn(), onCancel = jest.fn();
+  const props = { section: { key: 'b', title: 'Diagnostik', count: 6 }, sections: [{ key: 'a' }, { key: 'b' }], completedKeys: ['a'], animateFrom: 'a', onReady, onCancel };
+  act(() => root.render(<LectureHandoff805 {...props} />));
+  expect(host.textContent).toContain('Diagnostik');
+  expect(host.textContent).toContain('6 kort');
+  expect(host.querySelector('.mf805-handoff-route [data-drawing="true"]').getAttribute('data-section')).toBe('a');
+  act(() => jest.advanceTimersByTime(1100));
+  expect(onReady).toHaveBeenCalledTimes(1);
+  act(() => root.unmount());
+  const second = createRoot(host);
+  act(() => second.render(<LectureHandoff805 {...props} />));
+  act(() => host.querySelector('[data-cancel-handoff]').click());
+  act(() => jest.advanceTimersByTime(2000));
+  expect(onReady).toHaveBeenCalledTimes(1);
+  expect(onCancel).toHaveBeenCalledTimes(1);
+  act(() => second.unmount()); host.remove(); jest.useRealTimers();
+});
+test('reduced motion opens the selected section without waiting for the cinematic animation', () => {
+  jest.useFakeTimers();
+  const previous = window.matchMedia;
+  window.matchMedia = () => ({ matches: true });
+  const host = document.createElement('div'), root = createRoot(host), onReady = jest.fn();
+  act(() => root.render(<LectureHandoff805 section={{ key: 'a', title: 'Grundlag', count: 1 }} sections={[{ key: 'a' }]} onReady={onReady} />));
+  act(() => jest.advanceTimersByTime(0));
+  expect(onReady).toHaveBeenCalledTimes(1);
+  act(() => root.unmount()); window.matchMedia = previous; jest.useRealTimers();
+});

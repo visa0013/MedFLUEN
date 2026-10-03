@@ -40,9 +40,11 @@ import { LectureCard800 } from "./LectureCard800";
 import { readLectureCards800, readForgotten800 } from "./lecture800-storage";
 import { lectureSections800, lectureStudyCards800, lectureSessionCards800, sectionKey800 } from "./lecture800-model";
 import { prepareLectureSession801, legacyLectureJourney801, lectureReviewScope801 } from "./lectureSession801";
-import { createLectureQueue804, rateLectureQueue804, lectureQueueView804, chooseLectureSection804 } from "./lectureJourney804";
+import { createLectureQueue804, rateLectureRun804, lectureQueueView804, chooseLectureSection804 } from "./lectureJourney804";
 import { lectureLearningPreviews804, lectureRepeatAt804, applyLectureDue804 } from "./lectureLearning804";
 import { LectureTransition804 } from "./LectureTransition804";
+import { LectureHandoff805 } from "./LectureRoadmap805";
+import { lectureTodayCards806, lectureProgress806, resetLectureProgress806, restoreLectureProgress806, restoreLecturePlan806, lectureScopeCards806, clearLectureResume806, restoreLectureResume806, lectureSectionAction806, lectureEntryCount806, todayLectureRun806 } from "./lectureRepetition806-model";
 import { buildLecturePrompt800, downloadLectureFile800 } from "./lecture800-prompt";
 import { LectureUpload800 } from "./LectureUpload800";
 import { LectureSections800 } from "./LectureSections800";
@@ -21225,10 +21227,11 @@ function FlashcardDeckOverview71({ language, node, questions, spacedData, events
   );
 }
 
-function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = {}, importedQuestions, allQuestions803 = importedQuestions, cardTrash803, onStart, onOpenLectureMenu, onOpenLectureMaterial, onOpenExamSets, initialPool = "mixed", examLibrary = false, onSavePersonalCard, onImportPersonalCards, onArchiveImports }) {
+function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = {}, importedQuestions, allQuestions803 = importedQuestions, cardTrash803, onStart, onOpenLectureMenu, onOpenLectureMaterial, onOpenExamSets, initialPool = "mixed", workspaceMode = "theory", examLibrary = false, onSavePersonalCard, onImportPersonalCards, onArchiveImports }) {
   const copy = flashcard71Copy(language) || flashcard71Copy("da");
   const lectures = MODULE_LECTURES[user.module] || [];
-  const [sourceMode79, setSourceMode79] = useState(examLibrary ? "exam-mcq" : "theory");
+  const sourceMode79 = examLibrary || workspaceMode === "exam-mcq" ? "exam-mcq" : "theory";
+  const examMode809 = sourceMode79 === "exam-mcq";
   const [examScope798, setExamScope798] = useState(null);
   const moduleQuestions = useMemo(() => trainingCards79(getFullQuestionBank(allQuestions803).filter((question) => question.moduleId === user.module), sourceMode79), [allQuestions803, user.module, sourceMode79]);
   const visibleIds803 = useMemo(() => new Set(getFullQuestionBank(importedQuestions).map(card => String(card.id))), [importedQuestions]);
@@ -21271,12 +21274,12 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = 
   const tree = useMemo(() => filterCardTree803(deckTree75(baseTree75, privateDecks75.state, questions => flashcardDeckStats(questions, spacedData, statsMinute75)), visibleIds803, questions => flashcardDeckStats(questions, spacedData, statsMinute75)), [baseTree75, privateDecks75.state, visibleIds803, spacedData, statsMinute75]);
 
   function findNode(node, id) { if (node.id === id) return node; for (const child of node.children || []) { const found = findNode(child, id); if (found) return found; } return null; }
-  const selectedNode = sourceMode79 === "exam-mcq" ? examSelection798(visibleBaseTree803, examScope798) : selectedDeck791(tree, selectedId);
+  const selectedNode = examLibrary ? examSelection798(visibleBaseTree803, examScope798) : selectedDeck791(tree, selectedId);
   const selectedQuestions = selectedNode.questions || [];
   const trashScope803 = JSON.stringify([user.module, sourceMode79, selectedNode.id, sourceMode79 === 'exam-mcq' && examScope798?.topicIds ? [...examScope798.topicIds].sort() : null]);
   const restoreCount803 = cardTrash803?.batches.find(batch => batch.scope === trashScope803)?.ids.length || 0;
   const scope800 = authUserId ? flashcardPersonalStorageKey(authUserId) : null;
-  const sections800 = selectedNode.lectureFilter ? lectureSections800(selectedQuestions) : [];
+  const sections800 = !examMode809 && selectedNode.lectureFilter ? lectureSections800(selectedQuestions) : [];
   const structured800 = sections800.length > 0;
   useEffect(() => {
     let alive = true;
@@ -21296,7 +21299,7 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = 
       selectReview: (cards, limit) => flashcardSelectSessionQuestions(cards, spacedData, { ...preferences, pool: 'mixed', limit, order: 'scheduler', studyMode: 'flashcard' }, Date.now()),
     });
   }
-  const sessionCandidates = !examLibrary && preferences.studyMode === "exam"
+  const sessionCandidates = !examMode809 && preferences.studyMode === "exam"
     ? selectedQuestions.filter((question) => flashcard71QuestionType(question) === "mcq")
     : selectedQuestions;
   const sessionQuestions = structured800 ? prepareLecture801(selectedLectureSetup801).questions : flashcardSelectSessionQuestions(sessionCandidates, spacedData, preferences, Date.now());
@@ -21323,8 +21326,10 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = 
     const selection = Array.isArray(override?.keys) ? override : selectedLectureSetup801;
     const lectureRun = structured800 ? prepareLecture801(selection) : null;
     const cards = lectureRun?.questions || sessionQuestions;
-    if (!cards.length) return;
-    onStart({ moduleId: user.module, groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter, lectureFilter: selectedNode.lectureFilter, mode: preferences.pool === "due" ? "due" : "all", studyMode: structured800 || examLibrary ? "flashcard" : preferences.studyMode, pool: lectureRun?.plan.mode === 'review' ? 'mixed' : preferences.pool, limit: lectureRun?.plan.mode === 'review' ? selection?.limit || 'all' : preferences.limit, order: structured800 ? lectureRun.plan.mode === 'review' ? 'scheduler' : 'deck' : preferences.order, deckLabel: selectedNode.label, deckTotal: structured800 ? cards.length : selectedQuestions.length, examLibrary, sessionQuestionIds: cards.map(question => question.id), ...(structured800 ? { lectureMode800: lectureRun.plan.mode, ...(lectureRun.plan.mode !== 'guide' ? { lecturePlan801: lectureRun.plan } : {}) } : {}) });
+    // The walkthrough button opens an overview, even when every card is hidden
+    // or scheduled for later. Its scoped reset and schedule must stay reachable.
+    if (!cards.length && !(structured800 && lectureRun?.plan.mode === 'guide' && selectedQuestions.length)) return;
+    onStart({ moduleId: user.module, groupFilter: selectedNode.groupFilter === "__unassigned__" ? null : selectedNode.groupFilter, lectureFilter: selectedNode.lectureFilter, mode: preferences.pool === "due" ? "due" : "all", studyMode: structured800 || examMode809 ? "flashcard" : preferences.studyMode, pool: lectureRun?.plan.mode === 'review' ? 'mixed' : preferences.pool, limit: lectureRun?.plan.mode === 'review' ? selection?.limit || 'all' : preferences.limit, order: structured800 ? lectureRun.plan.mode === 'review' ? 'scheduler' : 'deck' : preferences.order, deckLabel: selectedNode.label, deckTotal: structured800 ? cards.length : selectedQuestions.length, examLibrary, sourceMode79, sessionQuestionIds: cards.map(question => question.id), ...(structured800 ? { lectureMode800: lectureRun.plan.mode, ...(lectureRun.plan.mode !== 'guide' ? { lecturePlan801: lectureRun.plan } : {}) } : {}) });
   }
   function openNode(node) { setSelectedId(node.id); setBrowserDate(""); setView("overview"); }
   function toggleNode(event, id) { event?.stopPropagation?.(); setExpanded((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
@@ -21346,7 +21351,7 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = 
     if (!onSavePersonalCard) return { ok: false, error: "Kortlagring er ikke tilsluttet." };
     const result = options.contentChanged === false && record.sourceQuestionId
       ? { ok: true }
-      : await onSavePersonalCard(record);
+      : await onSavePersonalCard(editorQuestion ? record : { ...record, richContent: { ...record.richContent, studySource79: sourceMode79 } });
     if (result?.ok === false) return result;
     const studyCardId75 = String(record.sourceQuestionId || record.cardId);
     if (!options.preservePlacement && (privateDecks75.state.placements[studyCardId75] || "") !== editorDeck75) {
@@ -21359,9 +21364,9 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = 
     return result;
   }
 
-  return <div className="flashcard71-shell mf79-training"><Flashcard71Styles />
-    {!examLibrary && view !== "import" && <Training79Header mode={sourceMode79} language={language} onOpenExamSets={onOpenExamSets} onModeChange={value => { setSourceMode79(value); setSelectedId(null); setView("decks"); persistPreferences({ studyMode: "flashcard" }); }} />}
-    {view !== "editor" && view !== "import" && <div className="mf75-deck-tools">
+  return <div className="flashcard71-shell mf79-training" data-study-space={sourceMode79} data-study-view={view}><Flashcard71Styles />
+    {!examLibrary && view !== "import" && !(view === "decks" && !examMode809) && <Training79Header separateWorkspace mode={sourceMode79} language={language} onOpenExamSets={examMode809 ? onOpenExamSets : undefined} />}
+    {view !== "editor" && view !== "import" && (examMode809 || view !== "decks" || privateDecks75.pending > 0 || privateDecks75.conflict) && <div className="mf75-deck-tools">
       {view !== "decks" && <button type="button" className="mf792-upload-action" onClick={() => { setImportFormat800('lecture'); setView("import"); }}><Icon name="upload" size={16} />{language === "en" ? "Upload deck" : language === "ar" ? "رفع مجموعة" : "Upload dæk"}</button>}
       {view !== "decks" && <details><summary>{language === "en" ? "Manage deck" : "Administrér dæk"}</summary><div>
         <button type="button" onClick={()=>setView("decks")}>{language === "en" ? "New subdeck in list" : "Nyt underdæk i listen"}</button>
@@ -21375,11 +21380,14 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = 
       }}>{language === "en" ? "Cancel conflicting change" : "Annullér ændringen i konflikt"}</button></small>}
     </div>}
     {deckDialog75 && <Modal c={c} onClose={() => { if (!deckDialogBusy75.current) setDeckDialog75(null); }}><DeckDialog75 key={`${deckDialog75.mode}:${deckDialog75.node.id}`} tree={tree} selected={deckDialog75.node} mode={deckDialog75.mode} cardIds={deckDialog75.cardIds} language={language} onApply={privateDecks75.change} onBusyChange={busy => { deckDialogBusy75.current = busy; }} onClose={() => setDeckDialog75(null)} /></Modal>}
-    {view === "decks" && sourceMode79 === "exam-mcq" ? <ExamTopics798 tree={visibleBaseTree803} scope={examScope798} selected={selectedNode} onSelection={setExamScope798} language={language} sessionCount={sessionQuestions.length} restoreCount={restoreCount803} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => setView("browser")} onImport={() => setView("import")} onArchive={onArchiveImports ? restore => onArchiveImports(user.module, restore) : null} /> : null}
-    {view === "decks" && sourceMode79 !== "exam-mcq" ? <TrainingIndex791 tree={tree} selected={selectedNode} language={language} onSelect={node => { setSelectedId(node.id); setBrowserDate(""); }} sessionCount={sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => { setBrowserDate(""); setView("browser"); }} onCreate={() => openEditor(null,"decks")} onCreateDeck={privateDecks75.change} onImport={() => setView("import")} deckCreationDisabled={!authUserId} onMaterials={selectedNode.lectureFilter&&onOpenLectureMaterial ? ()=>onOpenLectureMaterial(selectedNode.lectureFilter) : null} /> : null}
+    {view === "decks" && examLibrary ? <ExamTopics798 tree={visibleBaseTree803} scope={examScope798} selected={selectedNode} onSelection={setExamScope798} language={language} sessionCount={sessionQuestions.length} restoreCount={restoreCount803} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => setView("browser")} onImport={() => setView("import")} onArchive={onArchiveImports ? restore => onArchiveImports(user.module, restore) : null} /> : null}
+    {(view === "decks" || view === "deck-manager") && !examLibrary ? <>
+      {view === "deck-manager" && <button type="button" className="mf800-back" onClick={() => setView("decks")}>← {language === "en" ? "Back to theory" : language === "ar" ? "العودة للنظرية" : "Tilbage til teori"}</button>}
+      <TrainingIndex791 variant={view === "deck-manager" ? "manage" : examMode809 ? "exam" : "theory"} tree={tree} selected={selectedNode} language={language} reviewedIds={new Set(flashcard71ActiveEvents(moduleEvents72).map(event => String(event.questionId)))} onSelect={node => { setSelectedId(node.id); setBrowserDate(""); }} sessionCount={structured800 ? lectureEntryCount806(sessionQuestions, selectedQuestions, selectedLectureSetup801?.mode || 'guide') : sessionQuestions.length} onStart={startSession} onCustomize={() => setSessionOptions791(true)} onBrowse={() => { setBrowserDate(""); setView("browser"); }} onCreate={() => openEditor(null,view)} onManage={() => setView("deck-manager")} onCreateDeck={privateDecks75.change} onImport={() => setView("import")} deckCreationDisabled={!authUserId} onMaterials={!examMode809 && selectedNode.lectureFilter&&onOpenLectureMaterial ? ()=>onOpenLectureMaterial(selectedNode.lectureFilter) : null} />
+    </> : null}
     {view === 'import' && sourceMode79 !== 'exam-mcq' && <nav className="mf800-format-tabs" aria-label="Importformat"><button type="button" aria-pressed={importFormat800 === 'lecture'} onClick={() => setImportFormat800('lecture')}>Forelæsningspakke</button><button type="button" aria-pressed={importFormat800 === 'anki'} onClick={() => setImportFormat800('anki')}>ANKI</button></nav>}
     {view === 'import' && sourceMode79 !== 'exam-mcq' && importFormat800 === 'lecture' && <LectureUpload800 moduleId={user.module} lectures={lectures} selectedLectureId={selectedNode.lectureFilter || ''} scope={scope800} signedIn={Boolean(authUserId)} onBack={() => setView('decks')} onImported={target => { setSelectedId(`lecture:${target.moduleId}:${target.lectureId}`); setView('decks'); }} />}
-    {view === "import" && (sourceMode79 === 'exam-mcq' || importFormat800 === 'anki') && <AnkiUpload792 moduleId={user.module} sourceKind={examLibrary ? "exam-mcq" : undefined} language={language} signedIn={Boolean(authUserId)} existingIds={getFullQuestionBank(importedQuestions).map(card => String(card.personalCardId || card.id))} decks={privateDecks75.state.decks} selectedDeck={selectedNode.type === "personal" ? selectedNode.id : ""} onBack={() => setView("decks")} onImport={async (cards, target) => {
+    {view === "import" && (sourceMode79 === 'exam-mcq' || importFormat800 === 'anki') && <AnkiUpload792 moduleId={user.module} sourceKind={sourceMode79} language={language} signedIn={Boolean(authUserId)} existingIds={getFullQuestionBank(importedQuestions).map(card => String(card.personalCardId || card.id))} decks={privateDecks75.state.decks} selectedDeck={selectedNode.type === "personal" ? selectedNode.id : ""} onBack={() => setView("decks")} onImport={async (cards, target) => {
       if (!onImportPersonalCards) return { ok: false, error: "Kortimport er ikke tilsluttet." };
       const result = await onImportPersonalCards(cards);
       if (result.ok === false) return result;
@@ -21387,7 +21395,6 @@ function StudyDesk71({ c, language, user, authUserId, spacedData, buriedCards = 
         try { await privateDecks75.change({ type: "assign", cardIds: result.cardIds, target }); setSelectedId(target); }
         catch { result.placementWarning = language === "en" ? "Cards are saved in the module. Move them to the deck from the card browser." : "Kortene er gemt i modulet. Flyt dem til dækket fra kortoversigten."; }
       }
-      setSourceMode79(cards.some(card => card.richContent?.anki?.sourceKind === "exam-mcq") ? "exam-mcq" : "theory");
       return result;
     }} />}
     {view === "decks" ? <section className="flashcard71-activity-card mf72-root-activity"><div className="flashcard71-section-head"><h2>{copy.activity}</h2><small>{new Date().getFullYear()}</small></div><FlashcardActivityHeatmap71 language={language} events={moduleEvents72} onSelectDate={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /><StudyActivity791 language={language} events={moduleEvents72} onBrowse={date => { setSelectedId(tree.id); setBrowserDate(date); setView("browser"); }} /></section> : null}
@@ -21517,6 +21524,7 @@ function MCQ({
   user,
   authUserId,
   questionPool,
+  lectureCards806,
   sessionScope,
   spacedData,
   setSpacedData,
@@ -21552,6 +21560,7 @@ function MCQ({
     ? questionPool
     : []
   );
+  const lectureCatalogRef806 = useRef(Array.isArray(lectureCards806) ? lectureCards806 : initialPoolRef.current);
   const spacedStorageKey = flashcardAccountStorageKey(STORAGE.spacedRepetition, authUserId);
   const [history, setHistory] = useAccountStorage792(STORAGE.quizHistory, authUserId, []);
   const [savedSession, setSavedSession] = useState(false);
@@ -21567,23 +21576,24 @@ function MCQ({
     }
   })();
 
-  const sections800 = useMemo(() => lectureSections800(initialPoolRef.current), []);
+  const sections800 = useMemo(() => lectureSections800(lectureCatalogRef806.current), []);
   const structured800 = Boolean(sections800.length > 0 && sessionScope?.lectureMode800);
   const [journey800, setJourney800] = useState(() => {
     const plan = savedResume?.journey800 || sessionScope?.lecturePlan801 || (structured800 ? legacyLectureJourney801(savedResume, initialPoolRef.current, sections800, sessionScope?.lectureMode800) : null);
-    return plan?.mode === 'guide' ? { ...plan, keys: sections800.map(section => section.key), questionIds: initialPoolRef.current.map(item => item.id) } : plan;
+    return restoreLecturePlan806(plan, lectureCatalogRef806.current);
   });
   // Enter through the story overview even when a previous run can be continued.
   const [introOpen800, setIntroOpen800] = useState(structured800 && !sessionScope?.lecturePlan801);
   // Keep the chosen section and forgotten-item snapshot stable throughout a run.
-  const pool = useMemo(() => journey800 ? lectureSessionCards800(initialPoolRef.current, journey800) : initialPoolRef.current, [journey800]);
+  const pool = useMemo(() => journey800 ? lectureSessionCards800(lectureCatalogRef806.current, journey800) : initialPoolRef.current, [journey800]);
   const lectureMode800 = journey800?.mode || sessionScope?.lectureMode800;
   const sectionPractice804 = structured800 && lectureMode800 !== 'review';
   const [sectionQueue804, setSectionQueue804] = useState(() => structured800 ? createLectureQueue804(pool, savedResume?.sectionQueue804, savedResume?.index || 0) : null);
   const sectionTransition804 = sectionPractice804 && sectionQueue804?.sections.length > 0 && sectionQueue804.remaining.length === 0;
   const [roadmapOpen804, setRoadmapOpen804] = useState(false);
+  const [handoff805, setHandoff805] = useState(null);
+  const [resetSnapshot806, setResetSnapshot806] = useState(null);
   const sectionView804 = sectionPractice804 ? lectureQueueView804(sectionQueue804) : null;
-  const sectionWaiting804 = sectionPractice804 && sectionQueue804.remaining.length > 0 && !sectionView804.currentId;
   const scope800 = authUserId ? flashcardPersonalStorageKey(authUserId) : null;
   const [forgottenState800, setForgottenState800] = useState({ scope: null, items: {} });
   useEffect(() => {
@@ -21595,10 +21605,12 @@ function MCQ({
     return () => { alive = false; window.removeEventListener('medfluen-forgotten800', changed); };
   }, [structured800, scope800]);
   const forgotten800 = forgottenState800.scope === scope800 ? forgottenState800.items : {};
-  const availableStoryCards800 = initialPoolRef.current.filter(item => !buriedCards?.[item.id] && flashcardCardStatus(spacedData[item.id]) !== 'hidden');
+  const availableStoryCards800 = lectureCatalogRef806.current.filter(item => !buriedCards?.[item.id] && flashcardCardStatus(spacedData[item.id]) !== 'hidden');
   const storySections800 = lectureSections800(availableStoryCards800);
   const reviewScope801 = lectureReviewScope801(sessionScope);
   const reviewCandidates800 = flashcardSelectSessionQuestions(availableStoryCards800, spacedData, reviewScope801, Date.now());
+  const progressDay806 = new Date().toDateString();
+  const progress806 = useMemo(() => structured800 ? lectureProgress806(lectureCatalogRef806.current, spacedData, { buried: buriedCards }) : null, [structured800, spacedData, buriedCards, progressDay806]);
 
   const [index, setIndex] = useState(savedResume?.index || 0);
   const [answers, setAnswers] = useState(savedResume?.answers || {});
@@ -21611,7 +21623,7 @@ function MCQ({
   const [sessionQuestionOverrides, setSessionQuestionOverrides] = useState({});
   const [finished, setFinishedState] = useState(false);
   const [sessionEndedAt, setSessionEndedAt] = useState(null);
-  const reviewClock72 = useReviewClock72(!finished && !reviewEditorOpen && !introOpen800 && !sectionTransition804 && !sectionWaiting804 && !roadmapOpen804);
+  const reviewClock72 = useReviewClock72(!finished && !reviewEditorOpen && !introOpen800 && !sectionTransition804 && !roadmapOpen804 && !handoff805);
   function setFinished(value) {
     if (value) { reviewClock72.pause(); setSessionEndedAt(sessionStartedAt + reviewClock72.read()); }
     else { setSessionEndedAt(null); reviewClock72.resume(); }
@@ -21809,6 +21821,16 @@ function MCQ({
     localStorage.removeItem(resumeStorageKey);
   }
 
+  function advanceLecturePractice804(rating, options) {
+    const next = rateLectureRun804(sectionQueue804, rating, options);
+    setSectionQueue804(next.queue);
+    if (next.handoffKey) {
+      setRoadmapOpen804(false);
+      setFlashcardRevealed(false);
+      setHandoff805({ key: next.handoffKey, fromKey: sectionQueue804.sections[sectionQueue804.sectionIndex].key });
+    }
+  }
+
   function advanceAfterRating(updatedCard, rating, meta = {}) {
     const reviewEntry = {
       id: meta.eventId || flashcardReviewEventId(question.id, meta.reviewedAt || Date.now()),
@@ -21841,7 +21863,7 @@ function MCQ({
     setAnswers(nextAnswers);
 
     if (sectionPractice804) {
-      setSectionQueue804(rateLectureQueue804(sectionQueue804, rating, { currentId: question.id, repeatAt: meta.repeatAt804 }));
+      advanceLecturePractice804(rating, { currentId: question.id, repeatAt: meta.repeatAt804 });
       setSessionCardPosition(value => value + 1);
       if (rating <= SM2_RATING.HARD || Number.isFinite(meta.repeatAt804)) setSessionCardTotal(value => value + 1);
       return;
@@ -21905,6 +21927,7 @@ function MCQ({
     setUndoSnapshot(null);
     setFlashcardRevealed(false);
     setRoadmapOpen804(false);
+    setHandoff805(null);
     cardShownAtRef.current = reviewClock72.read();
   }
 
@@ -21941,7 +21964,7 @@ function MCQ({
     setCardMenuOpen(false);
     flashNotice(t.cardBuried);
     if (sectionPractice804) {
-      setSectionQueue804(rateLectureQueue804(sectionQueue804, null, { currentId: question.id }));
+      advanceLecturePractice804(null, { currentId: question.id });
       setSessionCardPosition(value => value + 1);
       return;
     }
@@ -21978,21 +22001,72 @@ function MCQ({
     if (question && !question.lectureContent) setReviewEditorOpen(true);
   }
 
-  function startLecture800({ keys, mode }) {
+  function startLecture800({ keys, mode, todayOnly = false }) {
     const runKeys = mode === 'guide' ? storySections800.map(section => section.key) : keys;
     const candidates = lectureStudyCards800(availableStoryCards800, runKeys, mode === 'forgotten' ? forgotten800 : undefined);
-    const next = mode === 'review' ? flashcardSelectSessionQuestions(candidates, spacedData, reviewScope801, Date.now()) : candidates;
+    const next = todayOnly ? lectureTodayCards806(candidates, spacedData, { buried: buriedCards }) : mode === 'review' ? flashcardSelectSessionQuestions(candidates, spacedData, reviewScope801, Date.now()) : candidates;
     if (!next.length) return;
     const forgottenItems = mode === 'forgotten' ? Object.fromEntries(next.map(item => [item.id, [...(forgotten800[item.id] || [])]])) : {};
-    setJourney800({ keys: runKeys, mode, forgottenItems, questionIds: next.map(item => item.id) });
+    setJourney800({ keys: runKeys, mode, todayOnly, forgottenItems, questionIds: next.map(item => item.id) });
     const queue = createLectureQueue804(next);
-    setSectionQueue804(mode === 'guide' && keys.length === 1 ? chooseLectureSection804(queue, keys[0]) : queue);
+    const chosenQueue = mode === 'guide' && keys.length === 1 ? chooseLectureSection804(queue, keys[0]) : queue;
+    setSectionQueue804(chosenQueue);
+    if (mode === 'guide') setHandoff805({ key: chosenQueue.sections[chosenQueue.sectionIndex].key });
+    else setHandoff805(null);
     setIndex(0); setAnswers({}); setSessionReviews([]); setUndoSnapshot(null);
     setFlashcardRevealed(false); setSessionCardPosition(1); setSessionCardTotal(next.length);
     setSavedSession(false); setFinished(false); setWaitingForDue(false);
     setSessionStartedAt(Date.now()); reviewClock72.reset(); cardShownAtRef.current = 0;
     setIntroOpen800(false);
     setRoadmapOpen804(false);
+  }
+
+  function startToday806() {
+    if (journey800 && sectionPractice804) {
+      const run = todayLectureRun806(sectionQueue804, availableStoryCards800, spacedData, { buried: buriedCards, mode: lectureMode800 });
+      if (run?.key) {
+        setJourney800({ ...journey800, todayOnly: true, questionIds: run.cards.map(card => card.id) });
+        setSectionQueue804(run.queue);
+        setIntroOpen800(false); setRoadmapOpen804(false); setFlashcardRevealed(false);
+        setHandoff805({ key: run.key });
+        return;
+      }
+    }
+    startLecture800({ keys: storySections800.map(section => section.key), mode: 'guide', todayOnly: true });
+  }
+
+  function resumeLectureSection806(key, restartSection = false) {
+    const action = lectureSectionAction806(sectionQueue804, key, { todayOnly: journey800?.todayOnly, restart: restartSection });
+    if (action === 'blocked') return;
+    if (action === 'practice') { startLecture800({ keys: [key], mode: 'guide' }); return; }
+    setSectionQueue804(chooseLectureSection804(sectionQueue804, key, restartSection));
+    setIntroOpen800(false); setRoadmapOpen804(false); setFlashcardRevealed(false);
+    setHandoff805({ key });
+  }
+
+  function forgetLecture806() {
+    if (!setSpacedData) return;
+    setResetSnapshot806({ spacedData, buriedCards, journey800, sectionQueue804, answers, index, sessionReviews, sessionCardPosition, sessionCardTotal, sessionStartedAt });
+    setSpacedData(previous => resetLectureProgress806(previous, lectureCatalogRef806.current));
+    setBuriedCards?.(previous => resetLectureProgress806(previous, lectureCatalogRef806.current));
+    setJourney800(null); setSectionQueue804(createLectureQueue804(lectureCatalogRef806.current));
+    setAnswers({}); setIndex(0); setSessionReviews([]); setUndoSnapshot(null); setFlashcardRevealed(false);
+    setSessionCardPosition(1); setSessionCardTotal(lectureCatalogRef806.current.length); setFinished(false); setSavedSession(false);
+    setSessionStartedAt(Date.now()); reviewClock72.reset(); cardShownAtRef.current = 0;
+    setHandoff805(null); setRoadmapOpen804(false); setIntroOpen800(true);
+    clearLectureResume806(localStorage, resumeStorageKey, resumeKey);
+  }
+
+  function undoForget806() {
+    if (!resetSnapshot806) return;
+    const snapshot = resetSnapshot806;
+    setSpacedData(previous => restoreLectureProgress806(previous, snapshot.spacedData, lectureCatalogRef806.current));
+    setBuriedCards?.(previous => restoreLectureProgress806(previous, snapshot.buriedCards || {}, lectureCatalogRef806.current));
+    setJourney800(snapshot.journey800); setSectionQueue804(snapshot.sectionQueue804); setAnswers(snapshot.answers); setIndex(snapshot.index);
+    setSessionReviews(snapshot.sessionReviews); setSessionCardPosition(snapshot.sessionCardPosition); setSessionCardTotal(snapshot.sessionCardTotal);
+    setSessionStartedAt(snapshot.sessionStartedAt); setResetSnapshot806(null);
+    setUndoSnapshot(null);
+    if (snapshot.journey800) restoreLectureResume806(localStorage, resumeStorageKey, { resumeKey, journey800: snapshot.journey800, sectionQueue804: snapshot.sectionQueue804, answers: snapshot.answers, index: snapshot.index, sessionReviews: snapshot.sessionReviews, sessionCardPosition: snapshot.sessionCardPosition, sessionCardTotal: snapshot.sessionCardTotal, updatedAt: Date.now() });
   }
 
   function saveEditedReviewCard(record) {
@@ -22006,7 +22080,7 @@ function MCQ({
 
   useEffect(() => {
     function handleReviewerShortcut(event) {
-      if (reviewEditorOpen || flagModalOpen || introOpen800 || sectionTransition804 || sectionWaiting804 || roadmapOpen804) return;
+      if (reviewEditorOpen || flagModalOpen || introOpen800 || sectionTransition804 || roadmapOpen804 || handoff805) return;
       const target = event.target;
       if (target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName) || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key.toLowerCase() === "z" && undoSnapshot) {
@@ -22031,7 +22105,7 @@ function MCQ({
     }
     window.addEventListener("keydown", handleReviewerShortcut);
     return () => window.removeEventListener("keydown", handleReviewerShortcut);
-  }, [undoSnapshot, question?.id, finished, reviewEditorOpen, flagModalOpen, cardMenuOpen, flashcardRevealed, isExamMode, isRecallMode, introOpen800, sectionTransition804, sectionWaiting804, roadmapOpen804, sectionQueue804]);
+  }, [undoSnapshot, question?.id, finished, reviewEditorOpen, flagModalOpen, cardMenuOpen, flashcardRevealed, isExamMode, isRecallMode, introOpen800, sectionTransition804, roadmapOpen804, sectionQueue804, handoff805]);
 
   function restart() {
     if (onExitToOverview) {
@@ -22089,18 +22163,22 @@ function status() {
 
   const currentSection804 = sectionQueue804?.sections[sectionQueue804.sectionIndex];
   const resumeContext804 = journey800 ? sectionPractice804 && currentSection804
-    ? { sectionKey: currentSection804.key, sectionTitle: currentSection804.title, position: currentSection804.ids.length - sectionQueue804.remaining.length + 1, total: currentSection804.ids.length, pendingTransition: sectionTransition804, waiting: sectionWaiting804, mode: lectureMode800 }
+    ? { sectionKey: currentSection804.key, sectionTitle: currentSection804.title, position: currentSection804.ids.length - sectionQueue804.remaining.length + 1, total: currentSection804.ids.length, pendingTransition: sectionTransition804, mode: lectureMode800 }
     : question ? { sectionKey: sectionKey800(question.lectureContent), sectionTitle: question.lectureContent.section.title, position: sessionCardPosition, total: sessionCardTotal, mode: lectureMode800 } : null : null;
-  if (structured800 && introOpen800) return <LectureSections800 sections={storySections800} lectureTitle={sessionScope?.deckLabel || sections800[0]?.lectureTitle} onStart={startLecture800} onBack={onExitToOverview} onContinue={resumeContext804 ? () => setIntroOpen800(false) : null} resumeContext={resumeContext804} onPrompt={() => downloadLectureFile800('medfluen-forelaesningsprompt.md', buildLecturePrompt800({ moduleId: user.module, lectureId: sessionScope?.lectureFilter || question?.lectureId || '', title: sessionScope?.deckLabel || sections800[0]?.lectureTitle || '' }))} reviewCount={reviewCandidates800.length} forgottenCount={availableStoryCards800.reduce((sum, item) => sum + (forgotten800[item.id]?.length || 0), 0)} />;
+  if (handoff805) {
+    const destination = storySections800.find(section => section.key === handoff805.key);
+    if (destination) return <LectureHandoff805 key={handoff805.key} section={destination} sections={storySections800} completedKeys={sectionQueue804.completedKeys} animateFrom={handoff805.fromKey} onReady={() => {
+      setHandoff805(null);
+      window.requestAnimationFrame(() => { document.querySelector('main.content-padding')?.scrollTo({ top: 0, behavior: 'instant' }); document.querySelector('.mf800-journey-nav button')?.focus({ preventScroll: true }); });
+    }} onCancel={() => { setHandoff805(null); setRoadmapOpen804(true); }} />;
+  }
+  if (structured800 && introOpen800) return <LectureSections800 sections={storySections800} queue={journey800 ? sectionQueue804 : null} lectureTitle={sessionScope?.deckLabel || sections800[0]?.lectureTitle} onStart={startLecture800} onBack={onExitToOverview} onContinue={journey800 && sectionPractice804 ? resumeLectureSection806 : null} resumeContext={resumeContext804} onPrompt={() => downloadLectureFile800('medfluen-forelaesningsprompt.md', buildLecturePrompt800({ moduleId: user.module, lectureId: sessionScope?.lectureFilter || question?.lectureId || '', title: sessionScope?.deckLabel || sections800[0]?.lectureTitle || '' }))} reviewCount={reviewCandidates800.length} forgottenCount={availableStoryCards800.reduce((sum, item) => sum + (forgotten800[item.id]?.length || 0), 0)} progress={progress806} onStartToday={startToday806} onReset={forgetLecture806} onUndoReset={resetSnapshot806 ? undoForget806 : null} />;
 
-  if (sectionPractice804 && (sectionTransition804 || sectionWaiting804 || roadmapOpen804) && !introOpen800) {
-    return <LectureTransition804 sections={storySections800} queue={sectionQueue804} lectureTitle={sessionScope?.deckLabel || sections800[0]?.lectureTitle} now={Date.now()}
-      onChoose={(key, restartSection) => {
-        if (!sectionQueue804.sections.some(section => section.key === key)) { startLecture800({ keys: [key], mode: 'guide' }); return; }
-        setSectionQueue804(chooseLectureSection804(sectionQueue804, key, restartSection)); setRoadmapOpen804(false); setFlashcardRevealed(false);
-      }}
-      onRepeatNow={sectionWaiting804 ? () => { const id = sectionQueue804.remaining.reduce((first, candidate) => (sectionQueue804.dueById[candidate] || 0) < (sectionQueue804.dueById[first] || 0) ? candidate : first); setSectionQueue804({ ...sectionQueue804, dueById: { ...sectionQueue804.dueById, [id]: Date.now() } }); setRoadmapOpen804(false); setFlashcardRevealed(false); } : null}
-      onExit={() => { if (sectionQueue804.completedKeys.length === storySections800.length) finishSession(sessionReviews); onExitToOverview?.(); }} onUndo={undoSnapshot ? undoLatestReview : null} />;
+  if (sectionPractice804 && (sectionTransition804 || roadmapOpen804) && !introOpen800) {
+    return <LectureTransition804 sections={storySections800} queue={sectionQueue804} animateFrom={sectionTransition804 && !roadmapOpen804 ? currentSection804.key : null} lectureTitle={sessionScope?.deckLabel || sections800[0]?.lectureTitle} now={Date.now()}
+      todayOnly={journey800?.todayOnly} progress={progress806} onStartToday={startToday806} onReset={forgetLecture806} onUndoReset={resetSnapshot806 ? undoForget806 : null}
+      onChoose={resumeLectureSection806}
+      onExit={() => { if (sectionQueue804.completedKeys.length === sectionQueue804.sections.length) finishSession(sessionReviews); onExitToOverview?.(); }} onUndo={undoSnapshot ? undoLatestReview : null} />;
   }
 
 if (!question && !finished) {
@@ -22514,7 +22592,7 @@ async function submitFlag() {
 
   if (!isExamMode && !isRecallMode) {
     return (
-      <>
+      <div className={sectionPractice804 ? 'mf805-card-enter' : undefined} key={sectionPractice804 ? currentSection804.key : 'review'}>
         {structured800 && <nav className="mf800-journey-nav" aria-label="Forelæsningsforløb"><button type="button" onClick={() => sectionPractice804 ? setRoadmapOpen804(true) : setIntroOpen800(true)}>← Sektioner</button><span>{sectionPractice804 ? `${sectionQueue804.completedKeys.length} / ${storySections800.length} sektioner gennemgået` : lectureMode800 === 'forgotten' ? 'Glemte svarpunkter' : 'Repetition'}</span></nav>}
         <FlashcardReviewer71
           c={c}
@@ -22554,7 +22632,7 @@ async function submitFlag() {
             onSubmit={submitFlag}
           />
         ) : null}
-      </>
+      </div>
     );
   }
 
@@ -45147,6 +45225,7 @@ function Sidebar({
   const primaryAreas = [
     { id: "home", icon: "home", label: t.home, badge: 0, action: () => navigate("home") },
     { id: "training", icon: "training", label: copy.training, badge: 0, action: () => navigate("mcq") },
+    { id: "exams", icon: "file", label: language === "en" ? "Exams" : language === "ar" ? "الامتحان" : "Eksamenen", badge: 0, action: () => navigate("exams") },
     { id: "curriculum", icon: "curriculum", label: copy.curriculum, badge: 0, action: () => openWorkspace("lectures") },
     { id: "notes", icon: "notebook", label: t.notebook, badge: 0, action: () => openWorkspace("notes") },
 
@@ -46983,7 +47062,7 @@ useEffect(() => {
     const next = navigateWorkspace79({ assistantOpen: drByteOpen }, target);
     setActiveWorkspace(next.activeWorkspace);
     setDrByteOpen(next.assistantOpen);
-    if (target === "mcq") {
+    if (target === "mcq" || target === "exams") {
       setTrainingStartPool(options?.mode === "due" ? "due" : "mixed");
       setSessionScope(options ? { moduleId: user.module, groupFilter: null, lectureFilter: null, mode: options.mode || null, contentType: options.contentType || null } : null);
     }
@@ -47056,6 +47135,7 @@ useEffect(() => {
         entries={[
           { id:"home", title:t.home, kind:"MedFLUEN", route:"home" },
           { id:"training", title:language === "en" ? "Training" : language === "ar" ? "التدريب" : "Træning", kind:"MedFLUEN", route:"mcq" },
+          { id:"exams", title:language === "en" ? "Exams" : language === "ar" ? "الامتحان" : "Eksamenen", kind:"MedFLUEN", route:"exams" },
           { id:"notes", title:t.notebook, kind:"MedFLUEN", workspace:"notes" },
           { id:"calendar", title:t.calendarTitle, kind:"MedFLUEN", route:"calendar" },
           { id:"study-plan", title:language === "en" ? "Study plan" : "Studieplan", kind:"MedFLUEN", route:"study-plan" },
@@ -47236,7 +47316,7 @@ useEffect(() => {
           {activeWorkspace === "examSets" && (
             <DocumentWorkspace key={user?.module} c={c} language={language} moduleName={user?.module} kind="examSets" historyRequest72={examHistoryRequest72} onClose={closeWorkspace} userId={session?.user?.id} isAdmin={effectiveAdmin} importedQuestions={importedQuestions}
               ankiInitiallyOpen={trainingCards79(effectiveQuestions, "exam-mcq").some(card => card.moduleId === user?.module && card.richContent?.anki)}
-              ankiContent={<StudyDesk71 c={c} language={language} user={user} authUserId={session?.user?.id} spacedData={spacedData} importedQuestions={effectiveQuestions} allQuestions803={allQuestions803} cardTrash803={cardTrash803} examLibrary onSavePersonalCard={savePersonalFlashcard} onImportPersonalCards={importPersonalFlashcards792} onArchiveImports={archivePersonalAnki798} onStart={scope => { setSessionScope(scope); setActiveWorkspace(null); setRoute("mcq"); }} />}
+              ankiContent={<StudyDesk71 c={c} language={language} user={user} authUserId={session?.user?.id} spacedData={spacedData} importedQuestions={effectiveQuestions} allQuestions803={allQuestions803} cardTrash803={cardTrash803} examLibrary onSavePersonalCard={savePersonalFlashcard} onImportPersonalCards={importPersonalFlashcards792} onArchiveImports={archivePersonalAnki798} onStart={scope => { setSessionScope(scope); setActiveWorkspace(null); setRoute("exams"); }} />}
             />
           )}
         </WorkspaceShell>
@@ -47339,6 +47419,7 @@ onNavigate={navigateFromShell}
                     user={user}
                     authUserId={session?.user?.id || null}
                     questionPool={buildQuestionPool(sessionScope, spacedData, effectiveQuestions, buriedCards)}
+                    lectureCards806={sessionScope?.lectureMode800 ? lectureScopeCards806(getFullQuestionBank(effectiveQuestions), sessionScope, (MODULE_LECTURES[sessionScope.moduleId] || []).filter(lecture => lecture.group === sessionScope.groupFilter).map(lecture => lecture.id)) : undefined}
                     sessionScope={sessionScope}
                     buriedCards={buriedCards}
                     setBuriedCards={setBuriedCards}
@@ -47362,12 +47443,14 @@ onNavigate={navigateFromShell}
                     onSavePersonalCard={savePersonalFlashcard}
                     onExitToOverview={() => {
                       if (sessionScope?.examLibrary) setActiveWorkspace("examSets");
+                      setRoute(sessionScope?.sourceMode79 === "exam-mcq" ? "exams" : "mcq");
                       setSessionScope(null);
-                      setRoute("mcq");
                     }}
                   />
                 ) : (
                   <SessionSetup
+                    key={route === "exams" ? "exams" : "theory"}
+                    workspaceMode={route === "exams" ? "exam-mcq" : "theory"}
                     allQuestions803={allQuestions803}
                     cardTrash803={cardTrash803}
                     c={c}

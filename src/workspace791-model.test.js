@@ -3,9 +3,10 @@ import { calendarHeading791, selectedDeck791, primaryArea791 } from './workspace
 test('open workspace owns navigation selection over a background training route',()=>{
   expect(primaryArea791('mcq','lectures')).toBe('curriculum');
   expect(primaryArea791('mcq','notes')).toBe('notes');
-  expect(primaryArea791('mcq','examSets')).toBe('training');
+  expect(primaryArea791('mcq','examSets')).toBe('exams');
   expect(primaryArea791('home',null)).toBe('home');
   expect(primaryArea791('mcq',null)).toBe('training');
+  expect(primaryArea791('exams',null)).toBe('exams');
   expect(primaryArea791('study-plan',null)).toBe('home');
 });
 

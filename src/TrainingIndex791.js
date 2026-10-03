@@ -1,9 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mark791 } from './Workspace791';
+import { TheoryLibrary809 } from './TheoryLibrary809';
 import './apkgExam792.css';
 import './trainingTimer793.css';
 
-export function TrainingIndex791({ tree, selected, onSelect, onStart, onCustomize, onBrowse, onCreate, onCreateDeck, onImport, deckCreationDisabled = false, onMaterials, onNotes, sessionCount = 0, language = 'da' }) {
+export function TrainingIndex791(props) {
+  return props.variant === 'theory' ? <TheoryLibrary809 {...props} /> : <DeckIndex791 {...props} />;
+}
+
+function DeckIndex791({ tree, selected, onSelect, onStart, onCustomize, onBrowse, onCreate, onCreateDeck, onImport, deckCreationDisabled = false, onMaterials, onNotes, sessionCount = 0, language = 'da' }) {
   const en = language === 'en', ar = language === 'ar';
   const tr = (da, eng, arab) => ar ? arab : en ? eng : da;
   const [query, setQuery] = useState('');

@@ -1,35 +1,27 @@
 import React, { useEffect, useRef } from 'react';
+import { LectureRoadmap805, nextRoadmapSection805 } from './LectureRoadmap805';
+import { LectureControls806, LectureProgress806 } from './lectureProgress806';
 import './lecture800.css';
 
-export function LectureTransition804({ sections = [], queue, lectureTitle, now = Date.now(), onChoose, onExit, onUndo, onRepeatNow }) {
+export function LectureTransition804({ sections = [], queue, lectureTitle, animateFrom, now = Date.now(), onChoose, onExit, onUndo, todayOnly, progress, onStartToday, onReset, onUndoReset }) {
   const heading = useRef(null);
   const current = queue?.sections[queue.sectionIndex];
   const completed = sections.filter(section => queue?.completedKeys?.includes(section.key)).length;
-  const pending = queue?.remaining || [];
-  const due = pending.length ? Math.min(...pending.map(id => queue.dueById?.[id] || now)) : null;
-  const seconds = due > now ? Math.ceil((due - now) / 1000) : 0;
-  const countdown = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-  useEffect(() => { heading.current?.focus(); }, [current?.key]);
+  const currentDone = Boolean(current && queue?.completedKeys?.includes(current.key));
+  const runSections = todayOnly ? sections.filter(section => queue.sections.some(item => item.key === section.key)) : sections;
+  const next = currentDone ? nextRoadmapSection805(runSections, current.key, queue.completedKeys) : null;
+  useEffect(() => { heading.current?.closest('main')?.scrollTo?.({ top: 0, behavior: 'instant' }); heading.current?.focus({ preventScroll: true }); }, [current?.key]);
   return <section className="mf804-roadmap" aria-labelledby="mf804-roadmap-title">
     <nav className="mf804-roadmap-nav"><button type="button" onClick={onExit}>← Tilbage til teorikort</button>{onUndo && <button type="button" onClick={onUndo}>Fortryd sidste svar</button>}</nav>
     <header className="mf804-roadmap-header">
-      <div><small>TEORI / DIT FORLØB</small><h1 id="mf804-roadmap-title" ref={heading} tabIndex={-1}>{lectureTitle || 'Forelæsningens sektioner'}</h1><p>Vælg, hvor du vil fortsætte.</p></div>
+      <div><small>TEORI / DIT ROADMAP</small><h1 id="mf804-roadmap-title" ref={heading} tabIndex={-1}>{lectureTitle || 'Forelæsningens sektioner'}</h1><p role="status">{currentDone ? `${current.title} er gennemgået.` : 'Vælg en sektion på ruten.'}</p></div>
       <div className="mf804-roadmap-progress"><strong>{completed}<span> / {sections.length}</span></strong><p>sektioner gennemgået</p><div role="progressbar" aria-label="Sektioner gennemgået" aria-valuemin={0} aria-valuemax={sections.length} aria-valuenow={completed}><i style={{ width: `${sections.length ? completed / sections.length * 100 : 0}%` }}/></div></div>
     </header>
-    {seconds > 0 && <div className="mf804-repeat-status"><span className="mf804-repeat-pulse" aria-hidden="true"/><div><strong>{current?.title}</strong><span>Næste repetition om <b>{countdown}</b> · Du kan arbejde videre i en anden sektion.</span></div>{onRepeatNow && <button type="button" data-repeat-now onClick={onRepeatNow}>Øv kortet nu <span aria-hidden="true">↗</span></button>}</div>}
-    <ol className="mf804-roadmap-sections">{sections.map((section, index) => {
-      const done = queue?.completedKeys?.includes(section.key);
-      const active = current?.key === section.key;
-      const ids = active ? pending : queue?.pendingBySection?.[section.key];
-      const waiting = (ids || []).filter(id => (queue?.dueById?.[id] || 0) > now).length;
-      const remaining = ids?.length ?? section.count;
-      const touched = remaining < section.count || waiting > 0;
-      const status = done ? 'Gennemgået' : waiting ? `${waiting} kort til repetition` : touched ? 'I gang' : 'Ikke startet';
-      return <li key={section.key} data-roadmap-section={section.key} data-state={done ? 'done' : active ? 'current' : touched ? 'started' : 'new'}>
-        <span className="mf804-roadmap-node" aria-hidden="true">{done ? '✓' : String(index + 1).padStart(2, '0')}</span>
-        <div className="mf804-roadmap-section-copy"><div className="mf804-roadmap-section-meta"><span>{section.count} kort</span><span>{status}</span></div><h2>{section.title}</h2>{section.summary && <p>{section.summary}</p>}<button type="button" aria-label={`${done ? 'Gentag' : touched || active ? 'Fortsæt' : 'Start'} sektionen ${section.title}`} disabled={!section.count} onClick={() => onChoose?.(section.key, Boolean(done))}>{done ? 'Gentag sektion' : touched || active ? 'Fortsæt' : 'Start sektion'} <span aria-hidden="true">↗</span></button></div>
-      </li>;
-    })}</ol>
-    {completed === sections.length && sections.length > 0 && <p className="mf804-roadmap-finished">Alle sektioner er gennemgået. Du kan gentage en sektion eller vende tilbage til teorikort.</p>}
+    <LectureControls806 progress={progress} lectureTitle={lectureTitle} onStartToday={onStartToday} onReset={onReset} onUndoReset={onUndoReset} />
+    {next && <div className="mf805-next"><div><small>NÆSTE PÅ RUTEN</small><strong>{next.title}</strong></div><button type="button" data-next-section onClick={() => onChoose?.(next.key, false)}>Start næste sektion <span aria-hidden="true">→</span></button></div>}
+    <LectureRoadmap805 sections={sections} queue={queue} todayOnly={todayOnly} currentKey={current?.key} nextKey={next?.key} animateFrom={currentDone ? animateFrom : null} onChoose={onChoose} now={now} />
+    {completed === sections.length && sections.length > 0 && <p className="mf804-roadmap-finished">Alle sektioner er gennemgået. Nye gentagelser følger repetitionsplanen.</p>}
+    {todayOnly && !next && currentDone && completed < sections.length && <p className="mf804-roadmap-finished">Dagens kort er gennemgået. Øvrige kort følger repetitionsplanen; du kan også vælge at øve en sektion nu.</p>}
+    <LectureProgress806 progress={progress} />
   </section>;
 }

@@ -1,0 +1,55 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { act } from 'react-dom/test-utils';
+import { LectureControls806, LectureProgress806 } from './lectureProgress806';
+import { lectureProgress806 } from './lectureRepetition806-model';
+global.IS_REACT_ACT_ENVIRONMENT = true;
+let root, host;
+const now = new Date(2026, 9, 3, 14).getTime();
+const cards = ['a', 'b'].map((id, index) => ({ id, lectureContent: { packageId: 'p', target: { moduleId: 'K5', lectureId: 'N4' }, section: { id: id, title: index ? 'Diagnostik' : 'Grundlag', order: index }, card: { question: `Spørgsmål ${id}`, order: index } } }));
+const model = lectureProgress806(cards, { b: { fsrs: { card: { due: new Date(2026, 9, 4).getTime(), reps: 4, state: 2 }, reviews: [{ review: now }] } } }, { now });
+beforeEach(() => { host = document.createElement('div'); document.body.appendChild(host); root = createRoot(host); });
+afterEach(() => { act(() => root.unmount()); host.remove(); });
+test('top controls start today, confirm scoped reset, and cancel without changing progress', () => {
+  const onStartToday = jest.fn(), onReset = jest.fn();
+  act(() => root.render(<LectureControls806 progress={model} lectureTitle="Epilepsi" onStartToday={onStartToday} onReset={onReset} />));
+  act(() => host.querySelector('[data-start-today]').click());
+  expect(onStartToday).toHaveBeenCalledTimes(1);
+  expect(host.querySelector('[data-start-today]').textContent).toBe('Start');
+  expect(host.querySelector('.mf806-controls small')).toBeNull();
+  act(() => host.querySelector('[data-forget-lecture]').click());
+  expect(host.querySelector('[role=dialog]').textContent).toContain('Epilepsi');
+  expect(host.querySelector('[role=dialog]').textContent).toContain('Kort og billeder bevares');
+  expect(onReset).not.toHaveBeenCalled();
+  act(() => host.querySelector('[data-cancel-forget]').click());
+  expect(onReset).not.toHaveBeenCalled();
+  act(() => host.querySelector('[data-forget-lecture]').click());
+  act(() => host.querySelector('[data-confirm-forget]').click());
+  expect(onReset).toHaveBeenCalledTimes(1);
+  expect(host.querySelector('[role=dialog]')).toBeNull();
+});
+test('an empty today queue disables start and does not suggest waiting', () => {
+  act(() => root.render(<LectureControls806 progress={{ ...model, todayCount: 0 }} onStartToday={() => {}} onReset={() => {}} />));
+  expect(host.querySelector('[data-start-today]').disabled).toBe(true);
+  expect(host.querySelector('[data-start-today]').title).toBe('Ingen kort til repetition i dag');
+});
+test('calendar switches between scheduled dates and actual review history without revealing individual cards', () => {
+  act(() => root.render(<LectureProgress806 progress={model} />));
+  expect(host.querySelector('[data-total-reviews]').textContent).toContain('4');
+  expect(host.querySelectorAll('[data-repetition-day]')).toHaveLength(14);
+  expect(host.querySelector('[data-repetition-day="2026-10-03"]').getAttribute('aria-current')).toBe('date');
+  expect(host.querySelector('[data-repetition-day="2026-10-04"]').getAttribute('aria-label')).toContain('1 kort');
+  act(() => host.querySelector('[data-repetition-day="2026-10-04"]').click());
+  expect(host.querySelector('[data-repetition-detail]').textContent).toContain('1 kort');
+  expect(host.textContent).not.toContain('Spørgsmål');
+  act(() => host.querySelector('[data-repetition-view="history"]').click());
+  expect(host.querySelectorAll('[data-repetition-day]')).toHaveLength(7);
+  expect(host.querySelector('[data-repetition-day="2026-10-04"]')).toBeNull();
+  expect(host.querySelector('[data-repetition-day="2026-10-03"]').textContent).toContain('1');
+  expect(host.querySelector('[data-card-schedule]')).toBeNull();
+});
+test('zero reviews never produces a fake forgetting curve or an invented next date', () => {
+  act(() => root.render(<LectureProgress806 progress={lectureProgress806([], {}, { now })} />));
+  expect(host.querySelector('[data-total-reviews]').textContent).toContain('0');
+  expect(host.textContent).toContain('Ingen kort planlagt efter i dag');
+});

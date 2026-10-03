@@ -3,6 +3,7 @@ const ROUTES = Object.freeze({
   mcq: 'training',
   'training-history': 'training',
   training: 'training',
+  exams: 'exams',
   curriculum: 'curriculum',
   lectures: 'curriculum',
   notes: 'notes',

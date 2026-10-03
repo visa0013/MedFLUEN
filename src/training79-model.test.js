@@ -29,3 +29,12 @@ test('imported exam decks are shown only as exams, including non-MCQ cards', () 
   expect(trainingCards79(imported, 'theory')).toEqual([]);
   expect(trainingCards79(imported, 'exam-mcq').map(card => card.id)).toEqual(['anki-1']);
 });
+
+test('new personal cards stay in the study space where they were created after a storage roundtrip', () => {
+  const records = JSON.parse(JSON.stringify([
+    { id: 'personal-exam', richContent: { studySource79: 'exam-mcq', front: { da: '<p>Spørgsmål</p>' } } },
+    { id: 'personal-theory', richContent: { studySource79: 'theory' } },
+  ]));
+  expect(trainingCards79(records, 'exam-mcq').map(card => card.id)).toEqual(['personal-exam']);
+  expect(trainingCards79(records, 'theory').map(card => card.id)).toEqual(['personal-theory']);
+});

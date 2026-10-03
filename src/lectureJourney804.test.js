@@ -1,6 +1,48 @@
-import { createLectureQueue804, rateLectureQueue804, continueLectureQueue804, lectureQueueView804, chooseLectureSection804 } from './lectureJourney804';
+import { createLectureQueue804, rateLectureQueue804, rateLectureRun804, continueLectureQueue804, lectureQueueView804, chooseLectureSection804 } from './lectureJourney804';
 const cards = ['a1', 'a2', 'b1'].map((id, i) => ({ id, lectureContent: { packageId: 'p', target: { moduleId: 'K5', lectureId: 'N4' }, section: { id: i < 2 ? 'a' : 'b', title: i < 2 ? 'Grundlag' : 'Diagnostik', order: i < 2 ? 1 : 2 }, card: { order: i } } }));
 const aKey = '["K5","N4","p","a"]', bKey = '["K5","N4","p","b"]';
+test('the last successful card automatically opens the next section through a handoff, retaining completion', () => {
+  const before = rateLectureQueue804(createLectureQueue804(cards), 4);
+  const result = rateLectureRun804(before, 4, { currentId: 'a2' });
+  expect(result.handoffKey).toBe(bKey);
+  expect(result.queue.sectionIndex).toBe(1);
+  expect(result.queue.remaining).toEqual(['b1']);
+  expect(result.queue.completedKeys).toEqual([aKey]);
+  expect(before.remaining).toEqual(['a2']);
+});
+test.each([1, 2, 3])('a short-step rating %i repeats in the current section without any handoff', rating => {
+  const result = rateLectureRun804(createLectureQueue804([cards[0], cards[2]]), rating, { currentId: 'a1', repeatAt: 601000 });
+  expect(result.handoffKey).toBeNull();
+  expect(result.queue.sectionIndex).toBe(0);
+  expect(result.queue.remaining).toEqual(['a1']);
+  expect(result.queue.completedKeys).toEqual([]);
+});
+test('automatic continuation skips already completed sections rather than getting stuck at their boundary', () => {
+  const c = { ...cards[2], id: 'c1', lectureContent: { ...cards[2].lectureContent, section: { id: 'c', title: 'Behandling', order: 3 } } };
+  const queue = createLectureQueue804([...cards, c]);
+  const completedB = rateLectureQueue804(chooseLectureSection804(queue, bKey), 4);
+  const back = chooseLectureSection804(completedB, aKey);
+  const result = rateLectureRun804(rateLectureQueue804(back, 4), 4);
+  expect(result.handoffKey).toBe('["K5","N4","p","c"]');
+  expect(result.queue.remaining).toEqual(['c1']);
+  expect(result.queue.completedKeys).toEqual([bKey, aKey]);
+});
+test('finishing the final section ends the run without reopening completed cards', () => {
+  const result = rateLectureRun804(createLectureQueue804([cards[2]]), 4);
+  expect(result.handoffKey).toBeNull();
+  expect(result.queue.remaining).toEqual([]);
+  expect(result.queue.completedKeys).toEqual([bKey]);
+});
+test('hiding the final current card also continues to the next pending section', () => {
+  const result = rateLectureRun804(createLectureQueue804([cards[0], cards[2]]), null, { currentId: 'a1' });
+  expect(result.handoffKey).toBe(bKey);
+  expect(result.queue.remaining).toEqual(['b1']);
+});
+test('continuing a completed section does not change the current queue or reopen its cards', () => {
+  const completed = rateLectureQueue804(rateLectureQueue804(createLectureQueue804(cards), 4), 4);
+  const current = chooseLectureSection804(completed, bKey);
+  expect(chooseLectureSection804(current, aKey)).toBe(current);
+});
 test.each([1, 2])('rating %i repeats after the other cards without leaving the section', rating => {
   const start = createLectureQueue804(cards);
   const repeated = rateLectureQueue804(start, rating);
@@ -31,15 +73,39 @@ test('a pending transition survives refresh and skip does not requeue a buried c
   expect(rateLectureQueue804(createLectureQueue804(cards), null).remaining).toEqual(['a2']);
   expect(continueLectureQueue804(createLectureQueue804(cards))).toEqual(createLectureQueue804(cards));
 });
-test('a ten-minute Good answer remains in the section but does not appear before it is due', () => {
+test('a ten-minute Good repeats immediately after the last other card, without advancing the section', () => {
   const start = createLectureQueue804(cards);
   const waiting = rateLectureQueue804(start, 3, { currentId: 'a1', repeatAt: 601000 });
   expect(waiting.remaining).toEqual(['a2', 'a1']);
   expect(lectureQueueView804(waiting, 1000).currentId).toBe('a2');
   const onlyRepeat = rateLectureQueue804(waiting, 4, { currentId: 'a2' });
-  expect(lectureQueueView804(onlyRepeat, 600999)).toMatchObject({ currentId: null, nextDue: 601000 });
+  expect(lectureQueueView804(onlyRepeat, 1000)).toMatchObject({ currentId: 'a1', nextDue: 601000 });
   expect(lectureQueueView804(onlyRepeat, 601000).currentId).toBe('a1');
+  expect(onlyRepeat.sectionIndex).toBe(0);
+  expect(continueLectureQueue804(onlyRepeat)).toEqual(onlyRepeat);
   expect(onlyRepeat.completedKeys).not.toContain(aKey);
+});
+test('when all remaining cards have a delay, the first pending card repeats before later retries', () => {
+  const first = rateLectureQueue804(createLectureQueue804(cards), 3, { currentId: 'a1', repeatAt: 601000 });
+  const allDelayed = rateLectureQueue804(first, 1, { currentId: 'a2', repeatAt: 61000 });
+  expect(allDelayed.remaining).toEqual(['a1', 'a2']);
+  expect(lectureQueueView804(allDelayed, 1000).currentId).toBe('a1');
+  expect(allDelayed.dueById).toEqual({ a1: 601000, a2: 61000 });
+  const afterRepeat = rateLectureQueue804(allDelayed, 4, { currentId: 'a1' });
+  expect(lectureQueueView804(afterRepeat, 1000).currentId).toBe('a2');
+  expect(afterRepeat.completedKeys).toEqual([]);
+  const finished = rateLectureQueue804(afterRepeat, 4, { currentId: 'a2' });
+  expect(lectureQueueView804(finished, 1000).currentId).toBeNull();
+  expect(finished.completedKeys).toEqual([aKey]);
+});
+test.each([1, 2, 3])('a single short-step rating %i loops until a day-based success, including after refresh', rating => {
+  const delayed = rateLectureQueue804(createLectureQueue804([cards[0]]), rating, { currentId: 'a1', repeatAt: 601000 });
+  const resumed = createLectureQueue804([cards[0]], JSON.parse(JSON.stringify(delayed)));
+  expect(lectureQueueView804(resumed, 1000).currentId).toBe('a1');
+  const repeated = rateLectureQueue804(resumed, rating, { currentId: 'a1', repeatAt: 602000 });
+  expect(repeated.remaining).toEqual(['a1']);
+  expect(repeated.completedKeys).toEqual([]);
+  expect(rateLectureQueue804(repeated, 4, { currentId: 'a1' }).completedKeys).toEqual([aKey]);
 });
 test('jumping to a different section preserves its pending repetitions through refresh', () => {
   const waiting = rateLectureQueue804(createLectureQueue804(cards), 2, { currentId: 'a1', repeatAt: 331000 });
