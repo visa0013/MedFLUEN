@@ -619,6 +619,42 @@
       ]
     },
     {
+      "id": "spike-polyspike-wave",
+      "term": "Spike-/polyspike-wave",
+      "definition": "Et spike-wave-kompleks består af en kort, spids EEG-forandring efterfulgt af en langsom bølge. Ved polyspike-wave kommer flere spikes i tæt rækkefølge før den langsomme bølge. Betegnelserne beskriver kurvens udseende og skal ikke i sig selv læses som en bestemt klinisk anfaldstype.",
+      "sourceRefs": [],
+      "sourceLinks": [
+        {
+          "title": "American Clinical Neurophysiology Society’s Standardized Critical Care EEG Terminology: 2021 Version",
+          "url": "https://www.acns.org/UserFiles/file/ACNSStandardizedCriticalCareEEGTerminology_rev2021.pdf"
+        }
+      ]
+    },
+    {
+      "id": "low-row",
+      "term": "Low-row-elektroder",
+      "definition": "Low-row-elektroder er supplerende EEG-elektroder i en nedre temporal række. De udvider registreringens dækning med elektrodepositioner neden for den traditionelle 10–20-opstilling. Supplerende subtemporale elektroder kan forbedre muligheden for at registrere epileptiform aktivitet både under og mellem anfald.",
+      "sourceRefs": [],
+      "sourceLinks": [
+        {
+          "title": "Joint ILAE and IFCN minimum standards for recording routine and sleep EEG",
+          "url": "https://www.ilae.org/files/dmfile/eeg-minimum-standards.pdf"
+        }
+      ]
+    },
+    {
+      "id": "opistotonus",
+      "term": "Opistotonus",
+      "definition": "Opistotonus er en udtalt bagoverbøjning af nakke og ryg som følge af muskelspasmer. Betegnelsen beskriver en kropsholdning, ikke i sig selv en bestemt anfaldsdiagnose.",
+      "sourceRefs": [],
+      "sourceLinks": [
+        {
+          "title": "Nakkestivhed – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/paediatri/symptomer-og-tegn/nakkestivhed/"
+        }
+      ]
+    },
+    {
       "id": "sudep",
       "term": "SUDEP",
       "definition": "SUDEP er forkortelsen for sudden unexpected death in epilepsy: pludselig uventet død hos en person med epilepsi. Begrebet er et af de bidrag til den øgede dødelighed, der skal skelnes fra ulykker, selvmord og dødsfald ved status epilepticus. Det er et prognose- og sikkerhedsrelateret begreb, ikke en anfaldstype.",
@@ -672,7 +708,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Epilepsi er en hjernesygdom med vedvarende tendens til at få [[epileptisk-anfald|epileptiske anfald]]. Det centrale er den vedvarende anfaldstilbøjelighed, ikke blot at personen én gang har haft kramper.",
+      "answer": "Epilepsi er en hjernesygdom med vedvarende tendens til at få [[epileptisk-anfald|epileptiske anfald]].",
       "explanation": "Skeln mellem anfaldet som en hændelse og epilepsi som en sygdom. Epilepsi kan vise sig med forskellige anfaldstyper, også uden kramper."
     },
     {
@@ -727,11 +763,11 @@
       "answerItems": [
         {
           "id": "provokation-p1",
-          "text": "[[hypoglykaemi|Hypoglykæmi]] (lavt blodsukker); sjældnere hyperglykæmi (højt blodsukker)."
+          "text": "[[hypoglykaemi|Hypoglykæmi]]; sjældnere hyperglykæmi."
         },
         {
           "id": "provokation-p2",
-          "text": "Elektrolytforstyrrelser: hyponatriæmi (lavt natrium) eller hypokalcæmi (lavt calcium)."
+          "text": "Elektrolytforstyrrelser: hyponatriæmi eller hypokalcæmi."
         },
         {
           "id": "provokation-p3",
@@ -780,7 +816,7 @@
         },
         {
           "id": "aarsager-p4",
-          "text": "Medfødte cerebrale anomalier, dvs. udviklingsmæssige forandringer i hjernen."
+          "text": "Medfødte cerebrale anomalier."
         },
         {
           "id": "aarsager-p5",
@@ -802,7 +838,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Omkring 80 nye tilfælde pr. 100.000 personer årligt, svarende til cirka 5.000 nye tilfælde i Danmark om året. Incidens beskriver nye tilfælde i en befolkning over en bestemt periode."
+      "answer": "Omkring 80 nye tilfælde pr. 100.000 personer årligt, svarende til cirka 5.000 nye tilfælde i Danmark om året."
     },
     {
       "id": "praevalens",
@@ -817,7 +853,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Cirka 0,5–1 % af befolkningen har epilepsi. Prævalens beskriver andelen, der har sygdommen, mens incidens beskriver tilkomsten af nye tilfælde."
+      "answer": "Cirka 0,5–1 % af befolkningen har epilepsi."
     },
     {
       "id": "fokal-generaliseret",
@@ -904,19 +940,19 @@
       "answerItems": [
         {
           "id": "fokale-symptomer-p1",
-          "text": "Motoriske symptomer, dvs. påvirkning af bevægelser."
+          "text": "Motoriske symptomer."
         },
         {
           "id": "fokale-symptomer-p2",
-          "text": "Sensoriske symptomer, dvs. påvirkning af sanseoplevelser."
+          "text": "Sensoriske symptomer."
         },
         {
           "id": "fokale-symptomer-p3",
-          "text": "Autonome symptomer, dvs. påvirkning af kroppens autonome funktioner."
+          "text": "Autonome symptomer."
         },
         {
           "id": "fokale-symptomer-p4",
-          "text": "Psykiske symptomer, dvs. ændrede psykiske oplevelser under anfaldet."
+          "text": "Psykiske symptomer."
         }
       ],
       "explanation": "Disse symptomgrupper kan forekomme, mens bevidstheden er bevaret. Fokale anfald må derfor ikke identificeres alene ud fra bevidsthedstab eller synlige kramper."
@@ -934,7 +970,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Et fokalt anfald med bevidsthedspåvirkning kan vise sig med [[automatismer|automatismer]]. Det er kombinationen af fokalt anfald og påvirket bevidsthed, som er den centrale klassifikation her.",
+      "answer": "Et fokalt anfald med bevidsthedspåvirkning kan vise sig med [[automatismer|automatismer]].",
       "explanation": "Automatismer er et muligt ledsagefænomen ved denne anfaldstype; de er ikke i sig selv en fuldstændig anfaldsdiagnose."
     },
     {
@@ -987,7 +1023,7 @@
       ],
       "assetIds": [],
       "answer": "[[todds-parese|Todds parese]] er en fokal kraftnedsættelse efter et krampeanfald. Den har fokaldiagnostisk betydning: det afgrænsede motoriske udfald kan bidrage til at lokalisere anfaldets udgangspunkt.",
-      "explanation": "Skeln mellem symptomer under anfaldet og [[postiktal|postiktale]] symptomer, dvs. symptomer efter anfaldet. Todds parese er et efterfølgende kraftudfald, mens et Jackson-anfald beskriver symptomernes udbredelse under selve anfaldet."
+      "explanation": "Skeln mellem symptomer under anfaldet og [[postiktal|postiktale]] symptomer. Todds parese er et efterfølgende kraftudfald, mens et Jackson-anfald beskriver symptomernes udbredelse under selve anfaldet."
     },
     {
       "id": "generaliserede-typer",
@@ -1039,7 +1075,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Det klassificeres som et [[fokalt-anfald|fokalt anfald]] uden bevidsthedspåvirkning. Sensoriske symptomer er en af de mulige symptomgrupper ved denne anfaldstype.",
+      "answer": "Det klassificeres som et [[fokalt-anfald|fokalt anfald]] uden bevidsthedspåvirkning.",
       "explanation": "Bevaret bevidsthed er forenelig med epileptisk anfaldsaktivitet. Det afgørende er derfor ikke, om personen har mistet bevidstheden, men hvilken type hændelse og hvilke symptomer der foreligger."
     },
     {
@@ -1058,7 +1094,7 @@
       "answerItems": [
         {
           "id": "syndrom-grundlag-p1",
-          "text": "Ætiologi (årsag) og debutalder."
+          "text": "Ætiologi og debutalder."
         },
         {
           "id": "syndrom-grundlag-p2",
@@ -1103,7 +1139,7 @@
         },
         {
           "id": "aetiologiske-grupper-p3",
-          "text": "Kryptogen: årsagen er ikke sikkert afklaret; kortikal dysplasi, dvs. en udviklingsforstyrrelse i hjernebarken, kan være en mulighed."
+          "text": "Kryptogen: årsagen er ikke sikkert afklaret; kortikal dysplasi kan være en mulighed."
         }
       ],
       "explanation": "Dette er ældre ætiologisk terminologi, ikke en fuldstændig aktuel klassifikation. Skellet vedrører årsagen til epilepsien og skal ikke forveksles med skellet mellem fokale og generaliserede anfald."
@@ -1181,7 +1217,7 @@
         },
         {
           "id": "jme-provokation-p3",
-          "text": "Lysstimulation hos fotosensitive patienter, dvs. patienter med lysfølsom anfaldsprovokation."
+          "text": "Lysstimulation hos fotosensitive patienter."
         }
       ],
       "explanation": "De udløsende forhold er relevante både i anamnesen og i rådgivningen. De beskriver provokation af anfald ved JME, ikke syndromets genetiske årsag."
@@ -1206,7 +1242,7 @@
         },
         {
           "id": "jme-eeg-status-p2",
-          "text": "[[eeg|EEG]] kan vise generaliserede spike-/polyspike-wave-paroksysmer, dvs. anfaldsvise elektriske udladningsmønstre med spikes eller flere spikes efterfulgt af langsomme bølger."
+          "text": "[[eeg|EEG]] kan vise generaliserede [[spike-polyspike-wave|spike-/polyspike-wave-paroksysmer]]."
         }
       ],
       "explanation": "En normal neurologisk undersøgelse udelukker ikke JME. Det generaliserede EEG-mønster er en anden type oplysning end de kliniske fund ved den neurologiske undersøgelse."
@@ -1247,7 +1283,7 @@
         },
         {
           "id": "mts-anfald-p2",
-          "text": "Hippocampusatrofi, dvs. nedsat volumen af hippocampus, er det centrale strukturelle fund ved [[mts|mesial temporallapssklerose]]."
+          "text": "Hippocampusatrofi er det centrale strukturelle fund ved [[mts|mesial temporallapssklerose]]."
         }
       ],
       "explanation": "Her kobles et strukturelt fund i hjernen til et fokalt anfaldsmønster. At anfaldet senere kan blive bilateralt, ændrer ikke det fokale udgangspunkt."
@@ -1486,8 +1522,7 @@
           "id": "eeg-baand-p4",
           "text": "Beta: cirka 13–30 Hz."
         }
-      ],
-      "explanation": "Frekvens angiver antallet af svingninger pr. sekund. Båndene er beskrivelser af EEG-rytmer, ikke i sig selv epilepsidiagnoser."
+      ]
     },
     {
       "id": "eeg-fordeling",
@@ -1531,7 +1566,7 @@
       "assetIds": [
         "eeg-iktal-figur"
       ],
-      "answer": "En [[iktal|iktal]] EEG-forandring registreres under selve anfaldet. Begrebet beskriver relationen i tid mellem EEG-aktiviteten og anfaldet."
+      "answer": "En [[iktal|iktal]] EEG-forandring registreres under selve anfaldet."
     },
     {
       "id": "normalt-eeg",
@@ -1565,15 +1600,15 @@
       "answerItems": [
         {
           "id": "eeg-aktivering-p1",
-          "text": "Hyperventilation eller fotostimulation, dvs. lysstimulation under registreringen."
+          "text": "Hyperventilation eller fotostimulation."
         },
         {
           "id": "eeg-aktivering-p2",
-          "text": "Søvnregistrering eller søvndeprivation, dvs. registrering i forbindelse med reduceret søvn."
+          "text": "Søvnregistrering eller søvndeprivation."
         },
         {
           "id": "eeg-aktivering-p3",
-          "text": "Supplerende low-row-elektroder, som udvider elektrodeopstillingen."
+          "text": "Supplerende [[low-row|low-row-elektroder]]."
         },
         {
           "id": "eeg-aktivering-p4",
@@ -1695,7 +1730,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Efter [[synkope|synkope]] er der typisk beskeden eller ingen efterfølgende konfusion. En udtalt [[postiktal|postiktal]] konfusion, dvs. forvirring efter anfaldet, taler derfor imod det typiske synkopeforløb.",
+      "answer": "Efter [[synkope|synkope]] er der typisk beskeden eller ingen efterfølgende konfusion. En udtalt [[postiktal|postiktal]] konfusion taler derfor imod det typiske synkopeforløb.",
       "explanation": "Vurder både hændelsen og restitutionen. Krampebevægelser alene er ikke afgørende, fordi konvulsiv synkope også kan forekomme."
     },
     {
@@ -1762,7 +1797,7 @@
         },
         {
           "id": "pnes-tegn-p3",
-          "text": "Asymmetriske trækninger eller opistotonus, dvs. udtalt bagudbøjning af kroppen."
+          "text": "Asymmetriske trækninger eller [[opistotonus|opistotonus]]."
         },
         {
           "id": "pnes-tegn-p4",
@@ -1869,7 +1904,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Anfaldsforebyggende medicin reducerer recidivrisikoen, dvs. risikoen for nye anfald. Effekten skal indgå i den individuelle afvejning af, om behandling bør påbegyndes efter det første anfald.",
+      "answer": "Anfaldsforebyggende medicin reducerer risikoen for nye anfald. Effekten skal indgå i den individuelle afvejning af, om behandling bør påbegyndes efter det første anfald.",
       "explanation": "Risikovurderingen omfatter blandt andet EEG, billeddiagnostik, familiære forhold og konsekvenserne for patientens livskvalitet."
     },
     {
@@ -1885,7 +1920,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Man tilstræber [[monoterapi|monoterapi]] i den laveste dosis, som giver tilstrækkelig effekt. Monoterapi betyder behandling med ét anfaldsforebyggende lægemiddel frem for flere samtidig.",
+      "answer": "Man tilstræber [[monoterapi|monoterapi]] i den laveste dosis, som giver tilstrækkelig effekt.",
       "explanation": "Princippet skal ses sammen med det individuelle præparatvalg: effekt, bivirkninger, interaktioner og patientens øvrige forhold skal vurderes."
     },
     {
@@ -1912,7 +1947,7 @@
         },
         {
           "id": "praeparatvalg-p3",
-          "text": "Komorbiditet (andre samtidige sygdomme) og kontraindikationer."
+          "text": "Komorbiditet og kontraindikationer."
         },
         {
           "id": "praeparatvalg-p4",
@@ -2053,7 +2088,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "En [[ketogen-diaet|ketogen diæt]] er fedtrig og kulhydratfattig og fremkalder ketose, dvs. en stofskiftetilstand med øget dannelse af ketonstoffer. Den kan anvendes som epilepsibehandling; erfaringen er især knyttet til børn.",
+      "answer": "En [[ketogen-diaet|ketogen diæt]] er fedtrig og kulhydratfattig og fremkalder ketose. Den kan anvendes som epilepsibehandling; erfaringen er især knyttet til børn.",
       "explanation": "Dette er et overordnet behandlingsprincip, ikke en opskrift på en diæt. Faste, proteinbegrænsning eller andre konkrete diætændringer skal ikke udledes af svaret."
     },
     {
@@ -2069,7 +2104,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "En [[vns|vagusstimulator (VNS)]] giver programmeret, intermitterende elektrisk stimulation af nervus vagus. Intermitterende betyder, at stimulationen sker i perioder; i nogle tilfælde kan patienten også aktivere stimulationen.",
+      "answer": "En [[vns|vagusstimulator (VNS)]] giver programmeret, intermitterende elektrisk stimulation af nervus vagus. I nogle tilfælde kan patienten også aktivere stimulationen.",
       "explanation": "Behandlingen forsøger at reducere anfald ved neurostimulation. Virkningsmekanismen er ikke fuldt afklaret, og VNS skal ikke fremstilles som kirurgisk fjernelse af et epileptisk fokus."
     },
     {
@@ -2096,7 +2131,7 @@
         },
         {
           "id": "vns-bivirkninger-p3",
-          "text": "Dyspnø, dvs. åndenød."
+          "text": "Dyspnø."
         }
       ],
       "explanation": "Disse gener kan forekomme ved [[vns|elektrisk stimulation af nervus vagus]]. De skal skelnes fra bivirkninger til anfaldsforebyggende lægemidler."
@@ -2114,7 +2149,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Deep brain stimulation (DBS), dvs. elektrisk stimulation af dybtliggende strukturer i hjernen, kan rette sig mod thalamiske kerner samt amygdala og hippocampus.",
+      "answer": "Thalamiske kerner samt amygdala og hippocampus.",
       "explanation": "De nævnte mål skal ikke opfattes som lige etablerede standardvalg til enhver patient. Kortet tester de anatomiske stimulationsmål, ikke en individuel behandlingsanbefaling."
     },
     {
@@ -2222,11 +2257,11 @@
         },
         {
           "id": "se-aarsager-p4",
-          "text": "Metaboliske forstyrrelser, dvs. forstyrrelser i kroppens stofskifte eller biokemiske balance."
+          "text": "Metaboliske forstyrrelser."
         },
         {
           "id": "se-aarsager-p5",
-          "text": "Apopleksi eller anoksi, dvs. manglende ilttilførsel."
+          "text": "Apopleksi eller anoksi."
         }
       ],
       "explanation": "Status epilepticus er ikke kun et problem hos personer med kendt epilepsi. En akut underliggende sygdom eller udløsende årsag skal undersøges samtidig med anfaldskontrollen."
@@ -2264,7 +2299,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Status epilepticus forekommer hyppigst hos børn og ældre. Tilstanden kan forekomme både hos personer med og uden allerede kendt epilepsi."
+      "answer": "Status epilepticus forekommer hyppigst hos børn og ældre."
     },
     {
       "id": "ncse-mistanke",
@@ -2310,11 +2345,11 @@
         },
         {
           "id": "ncse-dd-p2",
-          "text": "Toksisk-metabolisk encefalopati, dvs. påvirkning af hjernens funktion ved fx hypoglykæmi, forgiftning eller abstinens."
+          "text": "Toksisk-metabolisk encefalopati, fx ved [[hypoglykaemi|hypoglykæmi]], forgiftning eller abstinens."
         },
         {
           "id": "ncse-dd-p3",
-          "text": "Transitorisk cerebral iskæmi eller posttraumatisk amnesi, dvs. hukommelsestab efter et traume."
+          "text": "Transitorisk cerebral iskæmi eller posttraumatisk amnesi."
         },
         {
           "id": "ncse-dd-p4",
@@ -2453,7 +2488,7 @@
         },
         {
           "id": "se-medicinprincip-p3",
-          "text": "Generel anæstesi ved fortsat behandlingsrefraktær status, dvs. status trods de forudgående behandlingstrin."
+          "text": "Generel anæstesi ved fortsat behandlingsrefraktær status."
         }
       ],
       "explanation": "Trinene beskriver eskalation ved manglende anfaldskontrol. Respiration og cirkulation skal samtidig sikres. Konkrete doser og præparatvalg kræver en gældende lokal akutvejledning."
@@ -2487,7 +2522,7 @@
         }
       ],
       "assetIds": [],
-      "answer": "Voksne med epilepsi har i studier en cirka 2–4 gange højere dødelighed end baggrundsbefolkningen. Det er en gruppesammenligning, ikke en individuel forudsigelse for en bestemt patient."
+      "answer": "Voksne med epilepsi har i studier en cirka 2–4 gange højere dødelighed end baggrundsbefolkningen."
     },
     {
       "id": "doedsaarsager",
@@ -2505,7 +2540,7 @@
       "answerItems": [
         {
           "id": "doedsaarsager-p1",
-          "text": "[[sudep|SUDEP]], dvs. pludselig uventet død ved epilepsi."
+          "text": "[[sudep|SUDEP]]."
         },
         {
           "id": "doedsaarsager-p2",
@@ -2519,8 +2554,7 @@
           "id": "doedsaarsager-p4",
           "text": "Status epilepticus."
         }
-      ],
-      "explanation": "Den øgede dødelighed har flere forskellige bidrag. Det er derfor vigtigt at skelne mellem pludselig uventet død, ulykker og langvarige anfaldstilstande."
+      ]
     },
     {
       "id": "livsstil",
@@ -2671,7 +2705,7 @@
     "Side 57–58: konkrete kørselsforbudsperioder og det udokumenterede trafikrisikotal er ikke medtaget som gældende facit. Kørekortområdet er bevidst ikke dækket med juridiske regler før kontrol mod aktuel vejledning.",
     "Side 20–21, 26–27 og 42: illustrationer uden tilstrækkelige labels giver ikke grundlag for sikker specifik billeddiagnostik. Ingen nye diagnoser, PET/SPECT-fortolkninger eller kirurgiske teknikdetaljer er udledt af dem.",
     "Side 59 viser stabilt sideleje på afslutningssliden, men indeholder ingen afgrænset førstehjælpsinstruks. Illustration og førstehjælpskort er fravalgt frem for at tilføje uspecificerede handleanvisninger.",
-    "Supplerende fagord er kontrolleret mod Lægehåndbogen, ILAE, Ugeskrift for Læger og Filadelfia den 04.10.2026. Eksternt kildebaseret baggrund ligger i glossary med sourceLinks; kortenes facit og forklaringer bygger på PDF-kilderne. Anfaldsoversigterne på EpilepsyDiagnosis.org bruger også ældre klassifikationsnavne; de anvendes her til begrebsforklaring, ikke som komplet ILAE 2025-klassifikation.",
-    "Indholdsrevision 04.10.2026: samme packageId, 74 kort, 8 sektioner og stabile kort-/svarpunkt-id’er. Brug Opdater eksisterende indhold ved genimport til samme modul og forelæsning. Ændrede svarpunkters tidligere glemt-markeringer nulstilles af appens afstemning; repetitionsplaner er knyttet til de uændrede kort-id’er."
+    "Supplerende fagord er kontrolleret mod Lægehåndbogen, ILAE/IFCN, ACNS, Ugeskrift for Læger og Filadelfia den 04.10.2026. Eksternt kildebaseret baggrund ligger i glossary med sourceLinks; kortenes facit og forklaringer bygger på PDF-kilderne. Anfaldsoversigterne på EpilepsyDiagnosis.org bruger også ældre klassifikationsnavne; de anvendes her til begrebsforklaring, ikke som komplet ILAE 2025-klassifikation.",
+    "Indholdsrevision 04.10.2026: enkle faktasvar er forkortet, orddefinitioner er flyttet til hover, og relevante kliniske sammenhænge er bevaret. Samme packageId, 74 kort, 8 sektioner og stabile kort-/svarpunkt-id’er. Brug Opdater eksisterende indhold ved genimport til samme modul og forelæsning. Ændrede svarpunkters tidligere glemt-markeringer nulstilles af appens afstemning; repetitionsplaner er knyttet til de uændrede kort-id’er."
   ]
 }

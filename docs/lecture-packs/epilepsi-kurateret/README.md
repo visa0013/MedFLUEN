@@ -1,6 +1,8 @@
 # Epilepsi – kurateret forelæsningspakke
 
-Indholdsrevision 4. oktober 2026: 74 kort, 8 sektioner, 7 billeder og 28 fagord med forklaringer. Dækkets størrelse og rækkefølge er bevaret. Svarene er uddybet, og relevante begreber har hover i svar og forklaringer, ikke i spørgsmål.
+Indholdsrevision 4. oktober 2026: 74 kort, 8 sektioner, 7 billeder og 31 fagord med forklaringer. Dækkets størrelse og rækkefølge er bevaret. Enkle faktaspørgsmål får korte, direkte svar. Orddefinitioner hører til i hover, mens mekanismer, kliniske skel og faglige begrundelser fortsat forklares i den synlige tekst, når de er relevante for spørgsmålet. Hover findes kun i svar og forklaringer, ikke i spørgsmål.
+
+Kortet om generaliserede anfaldstyper er uændret. Eksempelvis er prævalenssvaret nu kun: "Cirka 0,5–1 % af befolkningen har epilepsi." Definitioner, som selve spørgsmålet tester, er stadig en del af det synlige facit; de skjules ikke i hover.
 
 ## Opdater et allerede importeret dæk
 
@@ -14,7 +16,7 @@ Et GitHub-push udskifter ikke automatisk kort, som allerede er importeret i en b
 
 Facit og forklaringer tager udgangspunkt i `N4 - Epilepsi.pdf`, 59 fysiske PDF-sider, dateret 09.09.2025. PDF'en og det private Anki-dæk er ikke inkluderet. Kildehenvisninger er bevaret og udvidet, hvor sammenhængen bruger flere slides.
 
-Supplerende begrebsbaggrund findes særskilt i `glossary`. Klikbare, kontrollerede links til Lægehåndbogen, ILAE, Ugeskrift for Læger og Filadelfia vises i faktaboksene. Blandt andet er [Todds parese](https://ugeskriftet.dk/videnskab/todds-parese), [EEG](https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/kramper/epilepsi/) og [synkope](https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/generelt/symptomer-og-tegn/synkope/) uddybet. Ekstern baggrund er ikke fremstillet som nye oplysninger fra PDF'en.
+Supplerende begrebsbaggrund findes særskilt i `glossary`. Klikbare, kontrollerede links til Lægehåndbogen, ILAE/IFCN, ACNS, Ugeskrift for Læger og Filadelfia vises i faktaboksene. Blandt andet er [Todds parese](https://ugeskriftet.dk/videnskab/todds-parese), [EEG](https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/kramper/epilepsi/) og [synkope](https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/generelt/symptomer-og-tegn/synkope/) uddybet. Specialudtrykkene spike-/polyspike-wave, low-row-elektroder og opistotonus har nu særskilte hover-bokse. Ekstern baggrund er ikke fremstillet som nye oplysninger fra PDF'en.
 
 Pakken er studiemateriale, ikke en valideret klinisk instruks. Doser, konkrete kørselsregler og usikre slideoplysninger er fortsat markeret eller fravalgt i `warnings`.
 
