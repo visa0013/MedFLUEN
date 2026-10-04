@@ -56,7 +56,8 @@ export function LectureHandoff805({ section, sections = [], completedKeys = [], 
   useLayoutEffect(() => { screen.current?.closest('main')?.scrollTo?.({ top: 0, behavior: 'instant' }); }, [section.key]);
   useEffect(() => {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    timer.current = window.setTimeout(() => ready.current?.(), reduced ? 0 : 1050);
+    // 1.55s for the route/title, followed by the reader's 0.45s entrance.
+    timer.current = window.setTimeout(() => ready.current?.(), reduced ? 0 : 1550);
     return () => window.clearTimeout(timer.current);
   }, [section.key]);
   const index = Math.max(0, sections.findIndex(item => item.key === section.key));

@@ -1,0 +1,2677 @@
+{
+  "format": "medfluen-lecture",
+  "version": 1,
+  "packageId": "n4-epilepsi-kurateret-2026-v1",
+  "lecture": {
+    "moduleId": "K5 Nervesystem og psykiatri",
+    "lectureId": "N4",
+    "title": "Epilepsi"
+  },
+  "sources": [
+    {
+      "id": "n4-pdf",
+      "filename": "N4 - Epilepsi.pdf",
+      "pageCount": 59
+    }
+  ],
+  "sections": [
+    {
+      "id": "grundlag",
+      "title": "Grundbegreber, epidemiologi og ætiologi",
+      "summary": "Afgrænsning af epileptiske anfald og epilepsi, sygdommens hyppighed samt årsager og anfaldsudløsende faktorer.",
+      "order": 1
+    },
+    {
+      "id": "anfaldstyper",
+      "title": "Anfaldstyper og klinisk semiologi",
+      "summary": "Fokale og generaliserede anfald, bevidsthedspåvirkning, fokal udbredelse og postiktale udfald.",
+      "order": 2
+    },
+    {
+      "id": "syndromer",
+      "title": "Epilepsisyndromer",
+      "summary": "Syndromklassifikation og karakteristika ved juvenil myoklon epilepsi og mesial temporallapssklerose.",
+      "order": 3
+    },
+    {
+      "id": "udredning",
+      "title": "Udredning, EEG og billeddiagnostik",
+      "summary": "Anamnese og undersøgelser efter første anfald, EEG-fortolkning og undersøgelsens begrænsninger samt strukturel billeddiagnostik.",
+      "order": 4
+    },
+    {
+      "id": "differentialdiagnoser",
+      "title": "Differentialdiagnoser til epileptiske anfald",
+      "summary": "Synkope, PNES og andre årsager til anfaldslignende episoder. Kliniske observationer og video-EEG i differentialdiagnostikken.",
+      "order": 5
+    },
+    {
+      "id": "behandling",
+      "title": "Behandlingsprincipper og behandlingsmuligheder",
+      "summary": "Afvejning efter første anfald, individualiseret præparatvalg og ikke-medikamentel behandling, herunder kirurgi og neurostimulation.",
+      "order": 6
+    },
+    {
+      "id": "status",
+      "title": "Status epilepticus: genkendelse og akut håndtering",
+      "summary": "Behandlingsgrænser, konvulsiv og non-konvulsiv status, udløsende årsager, diagnostik og overordnede akutte behandlingsprincipper.",
+      "order": 7
+    },
+    {
+      "id": "prognose-raad",
+      "title": "Prognose, livsstil og sikkerhed",
+      "summary": "Dødelighed, anfaldsudløsende forhold og praktiske sikkerhedsforanstaltninger ved epilepsi.",
+      "order": 8
+    }
+  ],
+  "glossary": [
+    {
+      "id": "epileptisk-anfald",
+      "term": "Epileptisk anfald",
+      "definition": "Et epileptisk anfald er en kortvarig episode, hvor abnorm elektrisk aktivitet i hjernens neuroner giver symptomer. Hvilke symptomer der opstår, afhænger af de involverede netværk. Det kan være bevægelser, ændrede sanseoplevelser, autonome symptomer eller påvirket bevidsthed. Kramper er kun én mulig anfaldsform. Epilepsi betegner derimod sygdommen med vedvarende anfaldstilbøjelighed.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 3
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 4
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Epilepsi – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/kramper/epilepsi/"
+        }
+      ]
+    },
+    {
+      "id": "eeg",
+      "term": "Elektroencefalografi (EEG)",
+      "definition": "EEG registrerer elektriske aktivitetsmønstre i hjernen via elektroder, sædvanligvis på skalpen. Aktivitetens tidsforløb og fordeling kan støtte vurderingen af epilepsi og anfaldstype. Et normalt EEG mellem anfald udelukker ikke epilepsi: epileptisk aktivitet kan være fraværende under den korte optagelse. Gentagen registrering, søvnregistrering eller længere video-EEG kan øge muligheden for at finde relevante forandringer. EEG måler funktionel elektrisk aktivitet, ikke hjernens struktur som MR.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 19
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 23
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 25
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 26
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Epilepsi – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/kramper/epilepsi/"
+        }
+      ]
+    },
+    {
+      "id": "pnes",
+      "term": "Psykogene ikke-epileptiske anfald (PNES)",
+      "definition": "PNES kaldes også funktionelle eller dissociative anfald. Episoderne kan ligne epileptiske anfald, men skyldes ikke epileptisk elektrisk anfaldsaktivitet. Symptomerne er reelle og ikke bevidst frembragte. Psykologiske og dissociative mekanismer kan være relevante, men man må ikke stille diagnosen alene ud fra et enkelt klinisk tegn. Video-EEG kan sammenholde symptomerne med den elektriske aktivitet; resultatet kræver faglig fortolkning. PNES og epilepsi kan forekomme samtidig. En forståelig diagnoseforklaring og relevant psykologisk eller psykiatrisk behandling er vigtige dele af håndteringen.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 32
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 33
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 34
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Dissociative lidelser – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/psykiatri/tilstande-og-sygdomme/oevrige-sygdomme/dissociative-lidelser/"
+        }
+      ]
+    },
+    {
+      "id": "status-epilepticus",
+      "term": "Konvulsiv status epilepticus",
+      "definition": "Konvulsiv status epilepticus er et vedvarende krampeanfald eller gentagne krampeanfald, hvor personen ikke genvinder sin normale bevidsthed imellem. Ved fem minutters vedvarende konvulsivt anfald skal akut behandling påbegyndes. Tilstanden kan være livstruende og kræver både anfaldskontrol, sikring af vejrtrækning og kredsløb samt udredning af årsagen. Den kan opstå uden tidligere kendt epilepsi. Den konvulsive femminuttersgrænse må ikke overføres ukritisk til alle former for non-konvulsiv status.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 47
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 49
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 51
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 54
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 55
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Status epilepticus – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/kramper/status-epilepticus/"
+        }
+      ]
+    },
+    {
+      "id": "todds-parese",
+      "term": "Todds parese (postiktal parese)",
+      "definition": "Todds parese er en forbigående kraftnedsættelse efter et epileptisk anfald. Typisk rammes den ene kropsside, men udfaldet kan også begrænses til ansigt, arm eller ben. Den svage side er som regel modsat anfaldets fokus i hjernen; fundet kan derfor hjælpe med at lokalisere udgangspunktet. Kraften vender tilbage, men varigheden varierer. En ny parese må ikke automatisk tilskrives anfaldet: apopleksi kan også debutere med kramper og skal vurderes akut. Mekanismen bag Todds parese er ikke fuldt afklaret.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 12
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Todds parese – Ugeskrift for Læger",
+          "url": "https://ugeskriftet.dk/videnskab/todds-parese"
+        }
+      ]
+    },
+    {
+      "id": "fokalt-anfald",
+      "term": "Fokalt epileptisk anfald",
+      "definition": "Et fokalt anfald begynder i neuronale netværk, der er begrænset til én hjernehalvdel. Symptomerne afspejler de områder, der aktiveres, og kan omfatte bevægelser, sanseoplevelser eller ændret bevidsthed. Bevidstheden kan være bevaret eller påvirket. Aktiviteten kan brede sig til begge hjernehalvdele og udvikle sig til et bilateralt tonisk-klonisk anfald. De første symptomer kan derfor være vigtigere for at lokalisere starten end de senere, mere udbredte kramper.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 9
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 10
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Focal onset seizure – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/focal-seizure-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "generaliseret-anfald",
+      "term": "Generaliseret epileptisk anfald",
+      "definition": "Et generaliseret anfald engagerer hurtigt netværk i begge hjernehalvdele. Det betyder ikke, at hele hjernebarken nødvendigvis er involveret. Gruppen omfatter flere anfaldstyper, blandt andet absencer, myoklonier og tonisk-kloniske anfald. Generaliseret beskriver organiseringen af anfaldsaktiviteten, ikke blot at bevægelser ses på begge kropssider. Et fokalt anfald kan også ende med bilaterale kramper.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 9
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 13
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 14
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Generalized onset seizure – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/generalized-seizure-groupoverview"
+        }
+      ]
+    },
+    {
+      "id": "automatismer",
+      "term": "Automatismer",
+      "definition": "Automatismer er gentagne, koordinerede bevægelser under et anfald, som kan ligne målrettede handlinger, men ikke udføres viljestyret. Eksempler er smasken, tyggen eller fumlen med hænderne. De forekommer ofte ved fokale anfald med påvirket bevidsthed, men kan også ses med bevaret bevidsthed. Automatismer alene afgør derfor ikke bevidsthedsniveauet eller den endelige anfaldsklassifikation.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Motor seizure – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/motor-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "jackson-anfald",
+      "term": "Jackson-anfald (Jacksonian march)",
+      "definition": "Et Jackson-anfald er et fokalt motorisk anfald med trinvis spredning af trækninger mellem kropsområder. Udbredelsen følger kroppens repræsentation i den motoriske hjernebark, fx hånd, arm og ansigt på samme side. Mønstret er et klinisk tegn på fokal start og videre udbredelse. Det beskriver hændelser under anfaldet, ikke en kraftnedsættelse efter anfaldet som ved Todds parese.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 12
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Motor seizure – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/motor-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "postiktal",
+      "term": "Postiktal",
+      "definition": "Postiktal betyder efter et epileptisk anfald. I denne fase kan der forekomme forvirring, nedsat respons, hovedpine eller fokale udfald som Todds parese. Begrebet angiver tidspunktet i relation til anfaldet og er ikke en selvstændig sygdom. Vedvarende bevidsthedspåvirkning må ikke uden videre betragtes som almindelig restitution, da blandt andet non-konvulsiv status også skal overvejes.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 12
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 31
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 52
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 53
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Updated classification of epileptic seizures – ILAE 2025",
+          "url": "https://www.ilae.org/files/dmfile/updated-classification-of-epileptic-seizures-2025.pdf"
+        }
+      ]
+    },
+    {
+      "id": "iktal",
+      "term": "Iktal",
+      "definition": "Iktal betyder under selve det epileptiske anfald. Et iktalt EEG beskriver altså en registrering under anfaldsaktiviteten, mens postiktal beskriver tiden efter anfaldet. Det tidsmæssige skel er vigtigt, når kliniske symptomer og elektrisk aktivitet sammenholdes.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 24
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 33
+        }
+      ]
+    },
+    {
+      "id": "tonisk-klonisk",
+      "term": "Tonisk-klonisk anfald",
+      "definition": "Et tonisk-klonisk anfald har en fase med øget muskelspænding og stivhed, efterfulgt af rytmiske trækninger. Ved bilaterale tonisk-kloniske anfald er bevidstheden påvirket. Anfaldet kan have generaliseret start eller begynde fokalt og derefter brede sig. Selve de bilaterale kramper afgør derfor ikke alene anfaldets udgangspunkt.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 14
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Tonic-clonic seizure and variants – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/tonic-clonic-variants-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "klonisk",
+      "term": "Klonisk",
+      "definition": "Klonisk aktivitet er vedvarende, rytmiske muskeltrækninger. Den adskilles fra tonisk aktivitet, som er mere vedvarende muskelspænding, og myoklonier, som er meget korte ryk. Kloniske bevægelser kan være fokale eller indgå i et generaliseret anfald.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 14
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Tonic-clonic seizure and variants – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/tonic-clonic-variants-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "tonisk",
+      "term": "Tonisk anfald",
+      "definition": "Et tonisk anfald er præget af øget muskelspænding og stivhed. Det adskiller sig fra kloniske anfald, hvor der er rytmiske trækninger. Generaliserede toniske anfald kan påvirke begge sider og kan medføre fald. Stivhed kan også være et motorisk fænomen ved et fokalt anfald; betegnelsen alene fastslår derfor ikke anfaldets udgangspunkt.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 14
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Tonic seizure – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/tonic-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "myokloni",
+      "term": "Myokloni / myoklont anfald",
+      "definition": "Myoklonier er meget korte muskelryk, som kan forekomme enkeltvis eller i serier. Hvert ryk varer typisk kun millisekunder. De adskiller sig fra klonier ved at være kortere og ofte mindre regelmæssige. Myoklone anfald er centrale ved juvenil myoklon epilepsi, men ordet myokloni beskriver bevægelsen og er ikke i sig selv en syndromdiagnose.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 14
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 28
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Myoclonic seizure – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/myoclonic-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "absence",
+      "term": "Absence",
+      "definition": "En typisk absence er et generaliseret anfald med pludselig, kortvarig påvirkning af bevidstheden og et brat ophør. Personen kan standse sin aktivitet, virke fjern eller have små bevægelser omkring øjne og mund. Erindringen om episoden kan være nedsat. Typiske absencer skal skelnes fra længerevarende fokale anfald med påvirket bevidsthed; en tydelig efterfølgende postiktal fase taler for at overveje en anden anfaldstype.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 14
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 28
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Typical absence seizure – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/absence-typical-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "atonisk",
+      "term": "Atonisk anfald",
+      "definition": "Et atonisk anfald medfører et pludseligt fald i muskeltonus, dvs. musklernes spænding. Det kan ramme hoved, krop eller ekstremiteter og kan føre til, at personen falder. Atonisk skal skelnes fra tonisk, hvor spændingen øges. Et pludseligt fald er dog ikke specifikt for atoniske anfald, fordi andre anfaldstyper også kan medføre fald.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 14
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Atonic seizure – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/seizure/atonic-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "jme",
+      "term": "Juvenil myoklon epilepsi (JME)",
+      "definition": "JME er et genetisk generaliseret epilepsisyndrom, der typisk viser sig i ungdomsårene. Myoklone ryk er centrale, og mange har også generaliserede tonisk-kloniske anfald; nogle har absencer. EEG viser typisk generaliserede spike- eller polyspike-wave-mønstre, mens den neurologiske undersøgelse ofte er normal. Søvnmangel, alkohol og hos nogle lysstimulation kan provokere anfald. God effekt af medicinen betyder ikke nødvendigvis, at den senere kan undværes.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 28
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Juvenile myoclonic epilepsy (JME) – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/syndrome/jme-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "mts",
+      "term": "Mesial temporallapssklerose",
+      "definition": "Mesial temporallapssklerose betegner strukturelle forandringer i den indre del af temporallappen, ofte med hippocampussklerose. Hippocampussklerose indebærer tab af nerveceller og øget støttevæv, kaldet gliose. Tilstanden kan være knyttet til fokale anfald og utilstrækkelig effekt af medicin. Kognitive problemer, herunder hukommelsesproblemer, kan forekomme. Hos egnede patienter kan epilepsikirurgi være relevant; egnetheden kræver særskilt udredning.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 29
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Hippocampal sclerosis – ILAE EpilepsyDiagnosis.org",
+          "url": "https://www.epilepsydiagnosis.org/aetiology/hippocampal-sclerosis-overview.html"
+        }
+      ]
+    },
+    {
+      "id": "video-eeg",
+      "term": "Video-EEG",
+      "definition": "Video-EEG kombinerer en videooptagelse af personen med samtidig EEG-registrering. Derved kan bevægelser, kontaktbarhed og andre observerede symptomer sammenholdes med den elektriske aktivitet. Det er nyttigt ved afklaring af anfaldstype og ved skelnen mellem epileptiske og ikke-epileptiske episoder. Optagelsen og EEG-fundene skal fortolkes samlet; ikke alle fokale anfald giver tydelige forandringer på overflade-EEG.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 25
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 34
+        }
+      ]
+    },
+    {
+      "id": "synkope",
+      "term": "Synkope",
+      "definition": "Synkope er et kortvarigt bevidsthedstab, som skyldes forbigående nedsat blodforsyning til hjernen. Muskeltonus falder, så personen ofte synker sammen, og bevidstheden vender spontant tilbage. Bleghed, sved, kvalme og sortnen for øjnene kan komme forud, men forvarsler kan mangle, fx ved arytmi. Der kan forekomme korte krampebevægelser, så bevægelser alene beviser ikke epilepsi. Hurtig restitution med beskeden efterfølgende konfusion hjælper i den kliniske skelnen.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 31
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Synkope – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/generelt/symptomer-og-tegn/synkope/"
+        }
+      ]
+    },
+    {
+      "id": "dissociation",
+      "term": "Dissociation",
+      "definition": "Dissociation er en forstyrrelse af den normale sammenhæng mellem bevidsthed, hukommelse, sanseoplevelser og kontrol over bevægelser. Det kan give forskellige symptomer, herunder funktionelle anfald. Symptomerne er ikke bevidst simulering. Relevant neurologisk og anden udredning er nødvendig, fordi symptombilledet kan ligne organisk sygdom; fravær af ét objektivt fund er ikke alene nok til at fastslå en dissociativ lidelse.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 32
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Dissociative lidelser – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/psykiatri/tilstande-og-sygdomme/oevrige-sygdomme/dissociative-lidelser/"
+        }
+      ]
+    },
+    {
+      "id": "monoterapi",
+      "term": "Monoterapi",
+      "definition": "Monoterapi betyder behandling med ét lægemiddel. Ved epilepsi tilstræbes ét anfaldsforebyggende præparat i den laveste dosis, der giver tilstrækkelig effekt. Valget tilpasses anfaldstype, bivirkninger, interaktioner og patientens øvrige forhold. Begrebet beskriver antallet af præparater, ikke en bestemt dosis eller et bestemt lægemiddel.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 37
+        }
+      ]
+    },
+    {
+      "id": "ketogen-diaet",
+      "term": "Ketogen diæt",
+      "definition": "En ketogen diæt er fedtrig og kulhydratfattig og fremmer dannelsen af ketonstoffer. Som epilepsibehandling kan den reducere anfald hos udvalgte patienter. Der findes forskellige diætformer, og behandlingen tilrettelægges af et specialiseret team med blandt andet læge og klinisk diætist. Det er derfor ikke det samme som selv at begynde på en almindelig vægttabsdiæt. Opstart, ernæring og opfølgning kræver faglig vurdering.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 43
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Forløbsprogrammer: diætbehandling – Filadelfia",
+          "url": "https://filadelfia.dk/forlobsprogrammer/"
+        }
+      ]
+    },
+    {
+      "id": "vns",
+      "term": "Vagusstimulation (VNS)",
+      "definition": "VNS er behandling med en stimulator, der giver periodiske elektriske impulser til nervus vagus for at reducere epileptiske anfald. Stimulationen programmeres og justeres efter patienten; visse systemer kan også aktiveres af patienten. Behandlingen kan være relevant, når medicinsk kontrol er utilstrækkelig, og patienten ikke er egnet til epilepsikirurgi. Hæshed, halsirritation og åndenød kan forekomme. Mekanismen er ikke fuldt afklaret.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 44
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Forløbsprogrammer: VNS-opstart – Filadelfia",
+          "url": "https://filadelfia.dk/forlobsprogrammer/"
+        }
+      ]
+    },
+    {
+      "id": "ncse",
+      "term": "Non-konvulsiv status epilepticus (NCSE)",
+      "definition": "NCSE er vedvarende epileptisk anfaldsaktivitet uden de fremtrædende kramper, som ses ved konvulsiv status. Tilstanden kan vise sig med konfusion, nedsat bevidsthed eller ændret adfærd. Den omfatter blandt andet fokal status med påvirket bevidsthed og absencestatus. EEG er centralt, fordi symptomerne også kan have andre årsager. Non-konvulsiv betyder fravær af fremtrædende kramper, ikke nødvendigvis fravær af alle små bevægelser eller tegn. Vurdering og behandling afhænger af type og klinisk situation.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 49
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 52
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 53
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Status epilepticus – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/neurologi/tilstande-og-sygdomme/kramper/status-epilepticus/"
+        }
+      ]
+    },
+    {
+      "id": "hypoglykaemi",
+      "term": "Hypoglykæmi",
+      "definition": "Hypoglykæmi er for lavt blodsukker. Tidlige symptomer kan være svedtendens, uro, hjertebanken og sult. Ved alvorlig hypoglykæmi kan hjernens funktion påvirkes med konfusion, bevidstløshed eller kramper. Tilstanden er derfor både en mulig anfaldsudløsende faktor og en vigtig differentialdiagnose ved bevidsthedspåvirkning. Ikke alle patienter har tydelige forvarsler.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 5
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 52
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 55
+        }
+      ],
+      "sourceLinks": [
+        {
+          "title": "Hypoglykæmi, akut behandling – Lægehåndbogen",
+          "url": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/akut-og-foerstehjaelp/tilstande-og-sygdomme/endokrinologi/hypoglykaemi-akut-behandling/"
+        }
+      ]
+    },
+    {
+      "id": "sudep",
+      "term": "SUDEP",
+      "definition": "SUDEP er forkortelsen for sudden unexpected death in epilepsy: pludselig uventet død hos en person med epilepsi. Begrebet er et af de bidrag til den øgede dødelighed, der skal skelnes fra ulykker, selvmord og dødsfald ved status epilepticus. Det er et prognose- og sikkerhedsrelateret begreb, ikke en anfaldstype.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 7
+        }
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "id": "anfald-definition",
+      "sectionId": "grundlag",
+      "order": 1,
+      "type": "basic",
+      "question": "Hvad er et epileptisk anfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 3
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 4
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "assetIds": [],
+      "answer": "Et [[epileptisk-anfald|epileptisk anfald]] er en forbigående episode med symptomer eller tegn, som skyldes abnormt øget eller synkroniseret aktivitet i hjernens neuroner eller neuronale netværk. Anfaldet beskriver selve episoden, ikke nødvendigvis sygdommen epilepsi.",
+      "explanation": "Symptomerne kan være motoriske, sensoriske, autonome eller psykiske. Et epileptisk anfald er derfor ikke altid et krampeanfald."
+    },
+    {
+      "id": "epilepsi-definition",
+      "sectionId": "grundlag",
+      "order": 2,
+      "type": "basic",
+      "question": "Hvad er epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 3
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 4
+        }
+      ],
+      "assetIds": [],
+      "answer": "Epilepsi er en hjernesygdom med vedvarende tendens til at få [[epileptisk-anfald|epileptiske anfald]]. Det centrale er den vedvarende anfaldstilbøjelighed, ikke blot at personen én gang har haft kramper.",
+      "explanation": "Skeln mellem anfaldet som en hændelse og epilepsi som en sygdom. Epilepsi kan vise sig med forskellige anfaldstyper, også uden kramper."
+    },
+    {
+      "id": "anfald-vs-epilepsi",
+      "sectionId": "grundlag",
+      "order": 3,
+      "type": "basic",
+      "question": "Er et enkelt krampeanfald tilstrækkeligt til at fastslå, at en person har epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 3
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 4
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 5
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 17
+        }
+      ],
+      "assetIds": [],
+      "answer": "Nej. Et enkelt krampeanfald er ikke i sig selv ensbetydende med epilepsi. Man skal undersøge hændelsens karakter og mulige udløsende årsager, før man vurderer, om der er en vedvarende epileptisk anfaldstilbøjelighed.",
+      "explanation": "Et anfald kan fx være provokeret af en metabolisk forstyrrelse. Omvendt kan epilepsi give andre symptomer end kramper, så fravær af kramper udelukker ikke epileptiske anfald."
+    },
+    {
+      "id": "provokation",
+      "sectionId": "grundlag",
+      "order": 4,
+      "type": "recall-list",
+      "question": "Hvilke faktorer kan udløse epileptiske anfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 5
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 8
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 17
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "provokation-p1",
+          "text": "[[hypoglykaemi|Hypoglykæmi]] (lavt blodsukker); sjældnere hyperglykæmi (højt blodsukker)."
+        },
+        {
+          "id": "provokation-p2",
+          "text": "Elektrolytforstyrrelser: hyponatriæmi (lavt natrium) eller hypokalcæmi (lavt calcium)."
+        },
+        {
+          "id": "provokation-p3",
+          "text": "Forgiftning, herunder alkoholrelateret forgiftning."
+        },
+        {
+          "id": "provokation-p4",
+          "text": "Ophør med medicin eller alkohol."
+        },
+        {
+          "id": "provokation-p5",
+          "text": "Alvorlig søvnmangel."
+        }
+      ],
+      "explanation": "Anfaldsudløsende forhold skal undersøges særskilt fra sygdomme eller skader, der kan være den underliggende årsag til epilepsi. Denne skelnen indgår i vurderingen efter et første anfald."
+    },
+    {
+      "id": "aarsager",
+      "sectionId": "grundlag",
+      "order": 5,
+      "type": "recall-list",
+      "question": "Hvilke sygdomme eller skader kan være årsag til epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 5
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 8
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "aarsager-p1",
+          "text": "Apopleksi eller arteriovenøs malformation i hjernen."
+        },
+        {
+          "id": "aarsager-p2",
+          "text": "Hjernetumor."
+        },
+        {
+          "id": "aarsager-p3",
+          "text": "Hovedtraume eller infektion i centralnervesystemet."
+        },
+        {
+          "id": "aarsager-p4",
+          "text": "Medfødte cerebrale anomalier, dvs. udviklingsmæssige forandringer i hjernen."
+        },
+        {
+          "id": "aarsager-p5",
+          "text": "Neurodegenerativ sygdom, fx demens."
+        }
+      ],
+      "explanation": "Listen omfatter sygdomme og skader, som kan være knyttet til epilepsi. De skal adskilles fra kortvarige provokerende forhold, fx lavt blodsukker eller alvorlig søvnmangel."
+    },
+    {
+      "id": "incidens",
+      "sectionId": "grundlag",
+      "order": 6,
+      "type": "basic",
+      "question": "Hvad er incidensen af epilepsi i Danmark?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 6
+        }
+      ],
+      "assetIds": [],
+      "answer": "Omkring 80 nye tilfælde pr. 100.000 personer årligt, svarende til cirka 5.000 nye tilfælde i Danmark om året. Incidens beskriver nye tilfælde i en befolkning over en bestemt periode."
+    },
+    {
+      "id": "praevalens",
+      "sectionId": "grundlag",
+      "order": 7,
+      "type": "basic",
+      "question": "Hvor stor en del af befolkningen har epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 6
+        }
+      ],
+      "assetIds": [],
+      "answer": "Cirka 0,5–1 % af befolkningen har epilepsi. Prævalens beskriver andelen, der har sygdommen, mens incidens beskriver tilkomsten af nye tilfælde."
+    },
+    {
+      "id": "fokal-generaliseret",
+      "sectionId": "anfaldstyper",
+      "order": 1,
+      "type": "recall-list",
+      "question": "Hvordan adskiller fokale og generaliserede anfald sig?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 9
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 10
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 13
+        }
+      ],
+      "assetIds": [
+        "fokal-figur",
+        "generaliseret-figur"
+      ],
+      "answerItems": [
+        {
+          "id": "fokal-generaliseret-p1",
+          "text": "[[fokalt-anfald|Fokale anfald]] begynder i et afgrænset område og kan efterfølgende brede sig."
+        },
+        {
+          "id": "fokal-generaliseret-p2",
+          "text": "[[generaliseret-anfald|Generaliserede anfald]] involverer begge hjernehalvdele."
+        }
+      ],
+      "explanation": "Et fokalt anfald kan udvikle sig til et bilateralt tonisk-klonisk anfald. Derfor skal man skelne mellem anfaldets udgangspunkt og dets efterfølgende udbredelse; et bilateralt krampeanfald har ikke nødvendigvis generaliseret start."
+    },
+    {
+      "id": "fokal-bevidsthed",
+      "sectionId": "anfaldstyper",
+      "order": 2,
+      "type": "recall-list",
+      "question": "Hvordan skelnes fokale anfald med og uden bevidsthedspåvirkning?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 9
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "fokal-bevidsthed-p1",
+          "text": "Fokalt anfald uden bevidsthedspåvirkning: bevidstheden er bevaret under anfaldet; tidligere kaldt et simpelt partielt anfald."
+        },
+        {
+          "id": "fokal-bevidsthed-p2",
+          "text": "Fokalt anfald med bevidsthedspåvirkning: bevidstheden er påvirket, og der kan forekomme [[automatismer|automatismer]]; tidligere kaldt et komplekst partielt anfald."
+        }
+      ],
+      "explanation": "Fokal angiver anfaldets udgangspunkt. Bevidsthedspåvirkningen er et andet aspekt af klassifikationen: et anfald kan være fokalt, både når bevidstheden er bevaret, og når den er påvirket."
+    },
+    {
+      "id": "fokale-symptomer",
+      "sectionId": "anfaldstyper",
+      "order": 3,
+      "type": "recall-list",
+      "question": "Hvilke symptomtyper kan forekomme ved et fokalt anfald uden bevidsthedspåvirkning?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "fokale-symptomer-p1",
+          "text": "Motoriske symptomer, dvs. påvirkning af bevægelser."
+        },
+        {
+          "id": "fokale-symptomer-p2",
+          "text": "Sensoriske symptomer, dvs. påvirkning af sanseoplevelser."
+        },
+        {
+          "id": "fokale-symptomer-p3",
+          "text": "Autonome symptomer, dvs. påvirkning af kroppens autonome funktioner."
+        },
+        {
+          "id": "fokale-symptomer-p4",
+          "text": "Psykiske symptomer, dvs. ændrede psykiske oplevelser under anfaldet."
+        }
+      ],
+      "explanation": "Disse symptomgrupper kan forekomme, mens bevidstheden er bevaret. Fokale anfald må derfor ikke identificeres alene ud fra bevidsthedstab eller synlige kramper."
+    },
+    {
+      "id": "automatismer",
+      "sectionId": "anfaldstyper",
+      "order": 4,
+      "type": "basic",
+      "question": "Hvilken anfaldstype kan vise sig med bevidsthedspåvirkning og automatismer?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "assetIds": [],
+      "answer": "Et fokalt anfald med bevidsthedspåvirkning kan vise sig med [[automatismer|automatismer]]. Det er kombinationen af fokalt anfald og påvirket bevidsthed, som er den centrale klassifikation her.",
+      "explanation": "Automatismer er et muligt ledsagefænomen ved denne anfaldstype; de er ikke i sig selv en fuldstændig anfaldsdiagnose."
+    },
+    {
+      "id": "fokal-bilateral",
+      "sectionId": "anfaldstyper",
+      "order": 5,
+      "type": "basic",
+      "question": "Kan et fokalt anfald udvikle sig til et bilateralt krampeanfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 9
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "assetIds": [],
+      "answer": "Ja. Et [[fokalt-anfald|fokalt anfald]] kan brede sig og udvikle sig til et bilateralt [[tonisk-klonisk|tonisk-klonisk anfald]]. Det blev tidligere kaldt sekundær generalisering.",
+      "explanation": "Den bilaterale udbredelse ændrer ikke, at anfaldet havde fokalt udgangspunkt. Anfaldets tidlige forløb er derfor vigtigt for klassifikationen."
+    },
+    {
+      "id": "jackson",
+      "sectionId": "anfaldstyper",
+      "order": 6,
+      "type": "basic",
+      "question": "Hvad kendetegner et Jackson-anfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 12
+        }
+      ],
+      "assetIds": [],
+      "answer": "Et [[jackson-anfald|Jackson-anfald]] er et fokalt anfald, hvor symptomerne breder sig successivt mellem kropsområder, fx fra hånden til armen og videre til ansigtshalvdelen på samme side.",
+      "explanation": "Det karakteristiske er den trinvise udbredelse, ikke blot at flere kropsområder er involveret. Dette adskiller mønstret fra et anfald, der er udbredt fra begyndelsen."
+    },
+    {
+      "id": "todd",
+      "sectionId": "anfaldstyper",
+      "order": 7,
+      "type": "basic",
+      "question": "Hvad er Todds parese, og hvilken diagnostisk betydning har den?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 12
+        }
+      ],
+      "assetIds": [],
+      "answer": "[[todds-parese|Todds parese]] er en fokal kraftnedsættelse efter et krampeanfald. Den har fokaldiagnostisk betydning: det afgrænsede motoriske udfald kan bidrage til at lokalisere anfaldets udgangspunkt.",
+      "explanation": "Skeln mellem symptomer under anfaldet og [[postiktal|postiktale]] symptomer, dvs. symptomer efter anfaldet. Todds parese er et efterfølgende kraftudfald, mens et Jackson-anfald beskriver symptomernes udbredelse under selve anfaldet."
+    },
+    {
+      "id": "generaliserede-typer",
+      "sectionId": "anfaldstyper",
+      "order": 8,
+      "type": "recall-list",
+      "question": "Hvilke typer generaliserede anfald findes der?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 14
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "generaliserede-typer-p1",
+          "text": "[[absence|Absencer]]."
+        },
+        {
+          "id": "generaliserede-typer-p2",
+          "text": "[[myokloni|Myoklone anfald]]."
+        },
+        {
+          "id": "generaliserede-typer-p3",
+          "text": "[[klonisk|Kloniske]] eller [[tonisk|toniske anfald]]."
+        },
+        {
+          "id": "generaliserede-typer-p4",
+          "text": "[[tonisk-klonisk|Tonisk-kloniske anfald]]."
+        },
+        {
+          "id": "generaliserede-typer-p5",
+          "text": "[[atonisk|Atoniske anfald]]."
+        }
+      ],
+      "explanation": "Generaliserede anfald omfatter flere forskellige kliniske udtryk. Generaliseret er ikke et synonym for tonisk-klonisk; også absencer og de øvrige nævnte typer indgår i gruppen."
+    },
+    {
+      "id": "bevidsthed-case",
+      "sectionId": "anfaldstyper",
+      "order": 9,
+      "type": "basic",
+      "question": "Et anfald giver sensoriske symptomer uden bevidsthedspåvirkning. Hvordan klassificeres det?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 11
+        }
+      ],
+      "assetIds": [],
+      "answer": "Det klassificeres som et [[fokalt-anfald|fokalt anfald]] uden bevidsthedspåvirkning. Sensoriske symptomer er en af de mulige symptomgrupper ved denne anfaldstype.",
+      "explanation": "Bevaret bevidsthed er forenelig med epileptisk anfaldsaktivitet. Det afgørende er derfor ikke, om personen har mistet bevidstheden, men hvilken type hændelse og hvilke symptomer der foreligger."
+    },
+    {
+      "id": "syndrom-grundlag",
+      "sectionId": "syndromer",
+      "order": 1,
+      "type": "recall-list",
+      "question": "Hvilke oplysninger bruges til at klassificere et epilepsisyndrom?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 15
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "syndrom-grundlag-p1",
+          "text": "Ætiologi (årsag) og debutalder."
+        },
+        {
+          "id": "syndrom-grundlag-p2",
+          "text": "Anfaldstyper og provokerende faktorer."
+        },
+        {
+          "id": "syndrom-grundlag-p3",
+          "text": "Neurologisk status og [[eeg|EEG-fund]]."
+        },
+        {
+          "id": "syndrom-grundlag-p4",
+          "text": "Respons på behandling og prognose."
+        }
+      ],
+      "explanation": "Et epilepsisyndrom beskrives af et samlet mønster, ikke kun én anfaldstype. Oplysninger om debut, anfald, undersøgelser og forløb skal derfor ses i sammenhæng."
+    },
+    {
+      "id": "aetiologiske-grupper",
+      "sectionId": "syndromer",
+      "order": 2,
+      "type": "recall-list",
+      "question": "Hvordan adskilles idiopatisk, symptomatisk og kryptogen epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 9
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 16
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "aetiologiske-grupper-p1",
+          "text": "Idiopatisk: epilepsien er genetisk betinget."
+        },
+        {
+          "id": "aetiologiske-grupper-p2",
+          "text": "Symptomatisk: der er en kendt underliggende årsag, fx apopleksi."
+        },
+        {
+          "id": "aetiologiske-grupper-p3",
+          "text": "Kryptogen: årsagen er ikke sikkert afklaret; kortikal dysplasi, dvs. en udviklingsforstyrrelse i hjernebarken, kan være en mulighed."
+        }
+      ],
+      "explanation": "Dette er ældre ætiologisk terminologi, ikke en fuldstændig aktuel klassifikation. Skellet vedrører årsagen til epilepsien og skal ikke forveksles med skellet mellem fokale og generaliserede anfald."
+    },
+    {
+      "id": "jme-debut",
+      "sectionId": "syndromer",
+      "order": 3,
+      "type": "basic",
+      "question": "Hvornår debuterer juvenil myoklon epilepsi typisk, og hvad er dens ætiologi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 28
+        }
+      ],
+      "assetIds": [],
+      "answer": "[[jme|Juvenil myoklon epilepsi (JME)]] er genetisk betinget. Absencer kan begynde i barnealderen, mens myoklone ryk typisk debuterer omkring 14–15-årsalderen.",
+      "explanation": "De forskellige anfaldstyper behøver ikke begynde samtidig. Debutalderen skal derfor vurderes sammen med, hvilke symptomer der først optrådte."
+    },
+    {
+      "id": "jme-anfald",
+      "sectionId": "syndromer",
+      "order": 4,
+      "type": "recall-list",
+      "question": "Hvilke anfaldstyper er karakteristiske for juvenil myoklon epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 28
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "jme-anfald-p1",
+          "text": "[[myokloni|Myoklone ryk]] er karakteristiske for JME."
+        },
+        {
+          "id": "jme-anfald-p2",
+          "text": "Generaliserede [[tonisk-klonisk|tonisk-kloniske anfald]] forekommer hos de fleste."
+        },
+        {
+          "id": "jme-anfald-p3",
+          "text": "[[absence|Absencer]] forekommer hos en del af patienterne."
+        }
+      ],
+      "explanation": "JME kan rumme flere anfaldstyper hos samme person. Myoklonierne er den centrale syndromkarakteristik; kun at spørge til store krampeanfald giver derfor et ufuldstændigt overblik."
+    },
+    {
+      "id": "jme-provokation",
+      "sectionId": "syndromer",
+      "order": 5,
+      "type": "recall-list",
+      "question": "Hvilke forhold kan udløse anfald ved juvenil myoklon epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 28
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 36
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "jme-provokation-p1",
+          "text": "Søvnmangel."
+        },
+        {
+          "id": "jme-provokation-p2",
+          "text": "Alkohol."
+        },
+        {
+          "id": "jme-provokation-p3",
+          "text": "Lysstimulation hos fotosensitive patienter, dvs. patienter med lysfølsom anfaldsprovokation."
+        }
+      ],
+      "explanation": "De udløsende forhold er relevante både i anamnesen og i rådgivningen. De beskriver provokation af anfald ved JME, ikke syndromets genetiske årsag."
+    },
+    {
+      "id": "jme-eeg-status",
+      "sectionId": "syndromer",
+      "order": 6,
+      "type": "recall-list",
+      "question": "Hvilke neurologiske og EEG-fund er typiske ved juvenil myoklon epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 28
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "jme-eeg-status-p1",
+          "text": "Den neurologiske undersøgelse er normalt uden udfald."
+        },
+        {
+          "id": "jme-eeg-status-p2",
+          "text": "[[eeg|EEG]] kan vise generaliserede spike-/polyspike-wave-paroksysmer, dvs. anfaldsvise elektriske udladningsmønstre med spikes eller flere spikes efterfulgt af langsomme bølger."
+        }
+      ],
+      "explanation": "En normal neurologisk undersøgelse udelukker ikke JME. Det generaliserede EEG-mønster er en anden type oplysning end de kliniske fund ved den neurologiske undersøgelse."
+    },
+    {
+      "id": "jme-prognose",
+      "sectionId": "syndromer",
+      "order": 7,
+      "type": "basic",
+      "question": "Hvordan er behandlingsrespons og udsigten til medicinophør ved juvenil myoklon epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 28
+        }
+      ],
+      "assetIds": [],
+      "answer": "Behandlingsresponsen ved [[jme|JME]] er ofte god, men kun en mindre del kan ophøre med medicinen. God anfaldskontrol under behandling er altså ikke ensbetydende med, at behandling kan seponeres.",
+      "explanation": "Skeln mellem respons på medicinen og muligheden for varig anfaldsfrihed uden medicin. Det er to forskellige prognostiske spørgsmål."
+    },
+    {
+      "id": "mts-anfald",
+      "sectionId": "syndromer",
+      "order": 8,
+      "type": "recall-list",
+      "question": "Hvilke anfaldstyper og strukturelle fund er knyttet til mesial temporallapssklerose?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 29
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "mts-anfald-p1",
+          "text": "Fokale anfald med eller uden bevidsthedspåvirkning; de kan udvikle sig til bilaterale tonisk-kloniske anfald."
+        },
+        {
+          "id": "mts-anfald-p2",
+          "text": "Hippocampusatrofi, dvs. nedsat volumen af hippocampus, er det centrale strukturelle fund ved [[mts|mesial temporallapssklerose]]."
+        }
+      ],
+      "explanation": "Her kobles et strukturelt fund i hjernen til et fokalt anfaldsmønster. At anfaldet senere kan blive bilateralt, ændrer ikke det fokale udgangspunkt."
+    },
+    {
+      "id": "mts-eeg-status",
+      "sectionId": "syndromer",
+      "order": 9,
+      "type": "recall-list",
+      "question": "Hvilke EEG-fund og neurologiske forhold er relevante ved mesial temporallapssklerose?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 29
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "mts-eeg-status-p1",
+          "text": "[[eeg|EEG]] kan vise fokale spikes eller spike-wave-forandringer."
+        },
+        {
+          "id": "mts-eeg-status-p2",
+          "text": "Den almindelige neurologiske undersøgelse kan være normal, men kognitiv dysfunktion skal overvejes."
+        }
+      ],
+      "explanation": "Ved [[mts|mesial temporallapssklerose]] er det derfor utilstrækkeligt kun at lede efter motoriske eller sensoriske udfald. Kognitive forhold og fokale EEG-forandringer er også relevante."
+    },
+    {
+      "id": "mts-behandling",
+      "sectionId": "syndromer",
+      "order": 10,
+      "type": "basic",
+      "question": "Hvilke behandlingsmuligheder er relevante ved mesial temporallapssklerose?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 29
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 41
+        }
+      ],
+      "assetIds": [],
+      "answer": "Anfaldsforebyggende medicin er en behandlingsmulighed. Hos patienter med utilstrækkelig effekt og et kirurgisk egnet sygdomsmønster kan epilepsikirurgi være relevant; kirurgi kan give et godt resultat.",
+      "explanation": "Medicinsk behandlingsrespons og egnethed til kirurgi skal vurderes hver for sig. En strukturel forandring medfører ikke automatisk, at operation er den rette behandling."
+    },
+    {
+      "id": "foerste-anfald",
+      "sectionId": "udredning",
+      "order": 1,
+      "type": "recall-list",
+      "question": "Hvilke centrale spørgsmål skal afklares efter et første anfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 4
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 17
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "foerste-anfald-p1",
+          "text": "Var hændelsen epileptisk, og var der en metabolisk eller anden provokerende årsag?"
+        },
+        {
+          "id": "foerste-anfald-p2",
+          "text": "Begyndte anfaldet fokalt, og er der tegn på dysfunktion i centralnervesystemet?"
+        },
+        {
+          "id": "foerste-anfald-p3",
+          "text": "Hvilken anfaldstype og hvilket epilepsisyndrom er mest sandsynligt?"
+        },
+        {
+          "id": "foerste-anfald-p4",
+          "text": "Hvilke undersøgelser er nødvendige, og er der grundlag for behandling?"
+        }
+      ],
+      "explanation": "Udredningen skal både afklare selve hændelsen, mulige årsager og konsekvenser for videre håndtering. Et første krampeanfald er ikke i sig selv en færdig epilepsidiagnose."
+    },
+    {
+      "id": "anamnese",
+      "sectionId": "udredning",
+      "order": 2,
+      "type": "recall-list",
+      "question": "Hvilke oplysninger i anamnesen er centrale ved mistanke om epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 5
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 8
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 18
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 35
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "anamnese-p1",
+          "text": "Anfaldets karakter og forløb: en detaljeret beskrivelse af hændelsen."
+        },
+        {
+          "id": "anamnese-p2",
+          "text": "Provokerende forhold, fx søvnmangel, alkohol eller medicinophør."
+        },
+        {
+          "id": "anamnese-p3",
+          "text": "Dispositioner, herunder familiære forhold og relevante tidligere sygdomme eller skader."
+        }
+      ],
+      "explanation": "Anamnesen skal hjælpe med at skelne anfaldstype og mulige årsager. Et kort udsagn som at patienten havde kramper er ikke tilstrækkeligt til denne vurdering."
+    },
+    {
+      "id": "undersoegelser",
+      "sectionId": "udredning",
+      "order": 3,
+      "type": "recall-list",
+      "question": "Hvilke undersøgelser indgår i udredning af mistænkt epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 5
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 18
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 19
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 25
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 26
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "undersoegelser-p1",
+          "text": "Objektiv neurologisk undersøgelse for at vurdere neurologiske udfald."
+        },
+        {
+          "id": "undersoegelser-p2",
+          "text": "Laboratoriescreening for relevante metaboliske og andre udløsende forhold."
+        },
+        {
+          "id": "undersoegelser-p3",
+          "text": "[[eeg|EEG]] til registrering af hjernens elektriske aktivitet."
+        },
+        {
+          "id": "undersoegelser-p4",
+          "text": "MR af hjernen til vurdering af strukturelle forandringer; andre billedundersøgelser efter behov."
+        }
+      ],
+      "explanation": "Undersøgelserne belyser forskellige aspekter af udredningen. De skal sammenholdes med anfaldsbeskrivelsen, og et normalt EEG alene udelukker ikke epilepsi."
+    },
+    {
+      "id": "eeg-maaling",
+      "sectionId": "udredning",
+      "order": 4,
+      "type": "basic",
+      "question": "Hvad registrerer et EEG?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 18
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 19
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 23
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 26
+        }
+      ],
+      "assetIds": [
+        "elektroder"
+      ],
+      "answer": "Et [[eeg|EEG]] registrerer hjernens elektriske aktivitet ved at måle elektriske felter over skalpen og deres ændringer over tid. Elektrodernes forskellige placeringer gør det muligt at sammenligne aktivitet fra forskellige områder.",
+      "explanation": "EEG undersøger elektriske aktivitetsmønstre, mens MR undersøger hjernens struktur. De to undersøgelser besvarer derfor ikke det samme spørgsmål."
+    },
+    {
+      "id": "eeg-baand",
+      "sectionId": "udredning",
+      "order": 5,
+      "type": "recall-list",
+      "question": "Hvilke frekvensområder betegnes delta, theta, alfa og beta i EEG?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 22
+        }
+      ],
+      "assetIds": [
+        "eeg-baand-figur"
+      ],
+      "answerItems": [
+        {
+          "id": "eeg-baand-p1",
+          "text": "Delta: cirka 0,5–4 Hz."
+        },
+        {
+          "id": "eeg-baand-p2",
+          "text": "Theta: cirka 4–8 Hz."
+        },
+        {
+          "id": "eeg-baand-p3",
+          "text": "Alfa: cirka 8–13 Hz."
+        },
+        {
+          "id": "eeg-baand-p4",
+          "text": "Beta: cirka 13–30 Hz."
+        }
+      ],
+      "explanation": "Frekvens angiver antallet af svingninger pr. sekund. Båndene er beskrivelser af EEG-rytmer, ikke i sig selv epilepsidiagnoser."
+    },
+    {
+      "id": "eeg-fordeling",
+      "sectionId": "udredning",
+      "order": 6,
+      "type": "recall-list",
+      "question": "Hvordan adskilles fokale og generaliserede EEG-abnormiteter?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 23
+        }
+      ],
+      "assetIds": [
+        "eeg-fordeling-figur"
+      ],
+      "answerItems": [
+        {
+          "id": "eeg-fordeling-p1",
+          "text": "Fokale abnormiteter er begrænset til et område eller et udvalg af EEG-afledninger."
+        },
+        {
+          "id": "eeg-fordeling-p2",
+          "text": "Generaliserede abnormiteter har en bred bilateral fordeling over begge hjernehalvdele."
+        }
+      ],
+      "explanation": "Vurder forandringernes rumlige fordeling, ikke kun om EEG er abnormt. Fordelingen bidrager til at beskrive, om aktivitetsmønstret er fokalt eller generaliseret."
+    },
+    {
+      "id": "iktal",
+      "sectionId": "udredning",
+      "order": 7,
+      "type": "basic",
+      "question": "Hvad betyder det, at en EEG-forandring er iktal?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 24
+        }
+      ],
+      "assetIds": [
+        "eeg-iktal-figur"
+      ],
+      "answer": "En [[iktal|iktal]] EEG-forandring registreres under selve anfaldet. Begrebet beskriver relationen i tid mellem EEG-aktiviteten og anfaldet."
+    },
+    {
+      "id": "normalt-eeg",
+      "sectionId": "udredning",
+      "order": 8,
+      "type": "basic",
+      "question": "Udelukker et normalt førstegangs-EEG epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 25
+        }
+      ],
+      "assetIds": [],
+      "answer": "Nej. Det første [[eeg|EEG]] kan være normalt hos op mod halvdelen af personer med epilepsi. Fokale anfald uden bevidsthedspåvirkning kan desuden forekomme uden registrerbare forandringer på overflade-EEG.",
+      "explanation": "En registrering uden epileptisk aktivitet kan derfor ikke alene afkræfte epilepsi. Ved fortsat mistanke kan supplerende EEG-metoder anvendes for at øge sandsynligheden for at påvise aktiviteten."
+    },
+    {
+      "id": "eeg-aktivering",
+      "sectionId": "udredning",
+      "order": 9,
+      "type": "recall-list",
+      "question": "Hvordan kan sandsynligheden for at påvise epileptisk aktivitet på EEG øges?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 25
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "eeg-aktivering-p1",
+          "text": "Hyperventilation eller fotostimulation, dvs. lysstimulation under registreringen."
+        },
+        {
+          "id": "eeg-aktivering-p2",
+          "text": "Søvnregistrering eller søvndeprivation, dvs. registrering i forbindelse med reduceret søvn."
+        },
+        {
+          "id": "eeg-aktivering-p3",
+          "text": "Supplerende low-row-elektroder, som udvider elektrodeopstillingen."
+        },
+        {
+          "id": "eeg-aktivering-p4",
+          "text": "[[video-eeg|Video-EEG]], hvor anfaldsforløbet og EEG registreres sammen."
+        }
+      ],
+      "explanation": "Et førstegangs-EEG kan være normalt trods epilepsi. Supplerende registreringsmetoder kan derfor være relevante, når den kliniske mistanke består."
+    },
+    {
+      "id": "mr-formaal",
+      "sectionId": "udredning",
+      "order": 10,
+      "type": "basic",
+      "question": "Hvilken rolle har MR af hjernen i epilepsiudredningen?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 18
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 19
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 26
+        }
+      ],
+      "assetIds": [
+        "mr-figur"
+      ],
+      "answer": "MR undersøger hjernens struktur og kan påvise cerebrale forandringer, fx en tumor, som kan være knyttet til anfald. Undersøgelsen indgår derfor i udredningen af mulige underliggende årsager.",
+      "explanation": "MR skal ikke forveksles med EEG: MR belyser strukturelle forhold, mens EEG registrerer elektrisk aktivitet. Fundene vurderes sammen med den kliniske anfaldsbeskrivelse."
+    },
+    {
+      "id": "differential-grupper",
+      "sectionId": "differentialdiagnoser",
+      "order": 1,
+      "type": "recall-list",
+      "question": "Hvilke tilstande kan ligne epileptiske anfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 5
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 30
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 32
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "differential-grupper-p1",
+          "text": "[[synkope|Synkope]] eller cerebral iskæmi."
+        },
+        {
+          "id": "differential-grupper-p2",
+          "text": "Migræne."
+        },
+        {
+          "id": "differential-grupper-p3",
+          "text": "Bevægeforstyrrelser eller søvnforstyrrelser."
+        },
+        {
+          "id": "differential-grupper-p4",
+          "text": "Metabolisk sygdom, fx en blodsukkerforstyrrelse."
+        },
+        {
+          "id": "differential-grupper-p5",
+          "text": "Psykiatriske eller funktionelle tilstande, herunder [[pnes|psykogene ikke-epileptiske anfald (PNES)]]."
+        }
+      ],
+      "explanation": "Anfaldslignende episoder er ikke nødvendigvis epileptiske. Hændelsens forløb og relevant udredning skal bruges til at skelne mellem disse tilstande."
+    },
+    {
+      "id": "synkope-prodrom",
+      "sectionId": "differentialdiagnoser",
+      "order": 2,
+      "type": "recall-list",
+      "question": "Hvilke prodromale symptomer taler for synkope?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 31
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "synkope-prodrom-p1",
+          "text": "Bleghed og svedtendens."
+        },
+        {
+          "id": "synkope-prodrom-p2",
+          "text": "Sortnen for øjnene eller oplevelse af, at lyde bliver fjerne."
+        },
+        {
+          "id": "synkope-prodrom-p3",
+          "text": "Kvalme og utilpashed med gradvis indsættende symptomer."
+        }
+      ],
+      "explanation": "Dette er symptomer forud for en [[synkope|synkope]]. Prodromer kan mangle ved hjertearytmi, så fravær af forvarsler udelukker ikke synkope."
+    },
+    {
+      "id": "synkope-restitution",
+      "sectionId": "differentialdiagnoser",
+      "order": 3,
+      "type": "basic",
+      "question": "Hvordan er restitutionen efter synkope typisk sammenlignet med efter et epileptisk krampeanfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 31
+        }
+      ],
+      "assetIds": [],
+      "answer": "Efter [[synkope|synkope]] er der typisk beskeden eller ingen efterfølgende konfusion. En udtalt [[postiktal|postiktal]] konfusion, dvs. forvirring efter anfaldet, taler derfor imod det typiske synkopeforløb.",
+      "explanation": "Vurder både hændelsen og restitutionen. Krampebevægelser alene er ikke afgørende, fordi konvulsiv synkope også kan forekomme."
+    },
+    {
+      "id": "konvulsiv-synkope",
+      "sectionId": "differentialdiagnoser",
+      "order": 4,
+      "type": "basic",
+      "question": "Kan en synkope være ledsaget af kramper?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 31
+        }
+      ],
+      "assetIds": [],
+      "answer": "Ja. [[synkope|Konvulsiv synkope]] kan give tonisk-kloniske bevægelser, oftest i under 30 sekunder. Bevægelserne opstår i forbindelse med cerebral iskæmi, ikke som dokumentation for epilepsi.",
+      "explanation": "Synkope kan derfor ikke afvises alene, fordi der er observeret kramper. Prodromer og den beskedne eller manglende konfusion efter hændelsen indgår i differentialdiagnostikken."
+    },
+    {
+      "id": "pnes-definition",
+      "sectionId": "differentialdiagnoser",
+      "order": 5,
+      "type": "basic",
+      "question": "Hvad er psykogene ikke-epileptiske anfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 32
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 34
+        }
+      ],
+      "assetIds": [],
+      "answer": "[[pnes|PNES]] er anfaldslignende episoder, som ikke skyldes epileptisk anfaldsaktivitet. Psykiske mekanismer, herunder [[dissociation|dissociation]] og konversion, kan indgå i symptombilledet.",
+      "explanation": "Skellet handler om mekanismen bag anfaldet, ikke om hvorvidt symptomerne er reelle. PNES og epilepsi kan desuden forekomme hos samme patient."
+    },
+    {
+      "id": "pnes-tegn",
+      "sectionId": "differentialdiagnoser",
+      "order": 6,
+      "type": "recall-list",
+      "question": "Hvilke kliniske træk kan give mistanke om PNES?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 33
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 34
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "pnes-tegn-p1",
+          "text": "Iktal øjenlukning, hvor øjnene knibes sammen under anfaldet."
+        },
+        {
+          "id": "pnes-tegn-p2",
+          "text": "Hovedbevægelser fra side til side."
+        },
+        {
+          "id": "pnes-tegn-p3",
+          "text": "Asymmetriske trækninger eller opistotonus, dvs. udtalt bagudbøjning af kroppen."
+        },
+        {
+          "id": "pnes-tegn-p4",
+          "text": "Varierende intensitet under anfaldet og eventuel påvirkning ved afledning."
+        }
+      ],
+      "explanation": "Disse observationer kan give mistanke om [[pnes|PNES]], men ét enkelt træk er ikke et sikkert diagnostisk facit. Anfaldets samlede forløb og supplerende udredning skal vurderes."
+    },
+    {
+      "id": "pnes-epilepsi",
+      "sectionId": "differentialdiagnoser",
+      "order": 7,
+      "type": "basic",
+      "question": "Udelukker en PNES-diagnose samtidig epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 34
+        }
+      ],
+      "assetIds": [],
+      "answer": "Nej. [[pnes|PNES]] og epileptiske anfald kan forekomme hos samme patient. En allerede stillet PNES-diagnose betyder derfor ikke, at enhver senere anfaldsepisode er ikke-epileptisk.",
+      "explanation": "Ved flere anfaldsmønstre er det relevant at skelne de konkrete hændelser. Video-EEG kan bidrage ved at sammenholde klinisk forløb og elektrisk aktivitet."
+    },
+    {
+      "id": "pnes-video",
+      "sectionId": "differentialdiagnoser",
+      "order": 8,
+      "type": "basic",
+      "question": "Hvilken undersøgelse kan hjælpe med at afklare, om anfald er epileptiske eller ikke-epileptiske?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 25
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 34
+        }
+      ],
+      "assetIds": [],
+      "answer": "[[video-eeg|Video-EEG]] kan hjælpe med at afklare anfaldstypen. Undersøgelsen sammenholder en video af den kliniske hændelse med samtidig registrering af hjernens elektriske aktivitet.",
+      "explanation": "Koblingen mellem klinik og EEG er vigtig, når anfaldslignende episoder skal skelnes fra epileptisk aktivitet. EEG fortolkes som del af den samlede vurdering."
+    },
+    {
+      "id": "pnes-behandling",
+      "sectionId": "differentialdiagnoser",
+      "order": 9,
+      "type": "basic",
+      "question": "Hvilken behandlingsretning er relevant ved PNES?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 32
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 34
+        }
+      ],
+      "assetIds": [],
+      "answer": "Psykologisk eller psykiatrisk behandling rettet mod de mekanismer, der er knyttet til [[pnes|PNES]], er relevant. En del patienter responderer godt på denne behandlingsretning.",
+      "explanation": "Behandlingsretningen adskiller sig fra behandling af epileptisk anfaldsaktivitet. Samtidig epilepsi skal stadig vurderes, da de to typer anfald kan forekomme sammen."
+    },
+    {
+      "id": "foerste-behandling",
+      "sectionId": "behandling",
+      "order": 1,
+      "type": "recall-list",
+      "question": "Hvad skal indgå i beslutningen om anfaldsforebyggende behandling efter et første anfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 35
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "foerste-behandling-p1",
+          "text": "Risikoen for at få nye anfald."
+        },
+        {
+          "id": "foerste-behandling-p2",
+          "text": "Abnorme fund på EEG eller billeddiagnostik samt familiær forekomst af epilepsi."
+        },
+        {
+          "id": "foerste-behandling-p3",
+          "text": "Anfaldenes og behandlingens betydning for patientens livskvalitet."
+        }
+      ],
+      "explanation": "Beslutningen er en individuel afvejning. Anfaldsforebyggende medicin reducerer risikoen for nye anfald, men et første anfald medfører ikke automatisk den samme behandlingsbeslutning hos alle."
+    },
+    {
+      "id": "recidiv-behandling",
+      "sectionId": "behandling",
+      "order": 2,
+      "type": "basic",
+      "question": "Hvilken effekt har anfaldsforebyggende medicin på risikoen for nye anfald efter et første anfald?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 35
+        }
+      ],
+      "assetIds": [],
+      "answer": "Anfaldsforebyggende medicin reducerer recidivrisikoen, dvs. risikoen for nye anfald. Effekten skal indgå i den individuelle afvejning af, om behandling bør påbegyndes efter det første anfald.",
+      "explanation": "Risikovurderingen omfatter blandt andet EEG, billeddiagnostik, familiære forhold og konsekvenserne for patientens livskvalitet."
+    },
+    {
+      "id": "monoterapi",
+      "sectionId": "behandling",
+      "order": 3,
+      "type": "basic",
+      "question": "Hvilket overordnet princip tilstræbes ved medicinsk behandling af epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 37
+        }
+      ],
+      "assetIds": [],
+      "answer": "Man tilstræber [[monoterapi|monoterapi]] i den laveste dosis, som giver tilstrækkelig effekt. Monoterapi betyder behandling med ét anfaldsforebyggende lægemiddel frem for flere samtidig.",
+      "explanation": "Princippet skal ses sammen med det individuelle præparatvalg: effekt, bivirkninger, interaktioner og patientens øvrige forhold skal vurderes."
+    },
+    {
+      "id": "praeparatvalg",
+      "sectionId": "behandling",
+      "order": 4,
+      "type": "recall-list",
+      "question": "Hvilke faktorer skal styre valg af anfaldsforebyggende lægemiddel?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 37
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "praeparatvalg-p1",
+          "text": "Anfaldstype og epilepsisyndrom, som er afgørende for lægemidlets egnethed."
+        },
+        {
+          "id": "praeparatvalg-p2",
+          "text": "Bivirkninger og interaktioner med andre lægemidler."
+        },
+        {
+          "id": "praeparatvalg-p3",
+          "text": "Komorbiditet (andre samtidige sygdomme) og kontraindikationer."
+        },
+        {
+          "id": "praeparatvalg-p4",
+          "text": "Alder og køn."
+        },
+        {
+          "id": "praeparatvalg-p5",
+          "text": "Muligheden for at følge den planlagte behandling."
+        }
+      ],
+      "explanation": "Præparatvalg er mere end at vælge fra en liste. Det kræver både korrekt anfaldsklassifikation og vurdering af den konkrete patient."
+    },
+    {
+      "id": "anfaldstype-valg",
+      "sectionId": "behandling",
+      "order": 5,
+      "type": "basic",
+      "question": "Hvorfor skal anfaldstype og epilepsisyndrom afklares før præparatvalg?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 37
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 38
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 39
+        }
+      ],
+      "assetIds": [],
+      "answer": "Anfaldstype og syndrom er afgørende for, hvilke lægemidler der er relevante. Præparaterne kan ikke ukritisk betragtes som lige egnede til alle typer epilepsi.",
+      "explanation": "Præparatoversigterne for fokale og generaliserede tonisk-kloniske anfald er forskellige. Det understøtter, at anfaldets klassifikation skal afklares før valg af medicin."
+    },
+    {
+      "id": "fokal-praeparater",
+      "sectionId": "behandling",
+      "order": 6,
+      "type": "recall-list",
+      "question": "Giv tre eksempler på lægemidler, der bruges ved fokale anfald.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 37
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 39
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "fokal-praeparater-p1",
+          "text": "Lamotrigin."
+        },
+        {
+          "id": "fokal-praeparater-p2",
+          "text": "Levetiracetam."
+        },
+        {
+          "id": "fokal-praeparater-p3",
+          "text": "Oxcarbazepin."
+        }
+      ],
+      "explanation": "Dette er eksempler, ikke en rangordnet anbefaling eller en udtømmende liste. Valget skal tilpasses bivirkninger, interaktioner, øvrige sygdomme og andre patientforhold."
+    },
+    {
+      "id": "gtk-praeparater",
+      "sectionId": "behandling",
+      "order": 7,
+      "type": "recall-list",
+      "question": "Giv tre eksempler på lægemidler, der kan bruges ved generaliserede tonisk-kloniske anfald.",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 37
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 38
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "gtk-praeparater-p1",
+          "text": "Levetiracetam."
+        },
+        {
+          "id": "gtk-praeparater-p2",
+          "text": "Valproat."
+        },
+        {
+          "id": "gtk-praeparater-p3",
+          "text": "Lamotrigin."
+        }
+      ],
+      "explanation": "Eksemplerne er ikke en behandlingsordination. Kontraindikationer, bivirkninger, øvrige patientforhold og det konkrete syndrom skal vurderes før valg af præparat."
+    },
+    {
+      "id": "kirurgi",
+      "sectionId": "behandling",
+      "order": 8,
+      "type": "recall-list",
+      "question": "Hvornår bør epilepsikirurgi overvejes?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 41
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "kirurgi-p1",
+          "text": "Ved utilstrækkelig anfaldskontrol trods relevant medicinsk behandling."
+        },
+        {
+          "id": "kirurgi-p2",
+          "text": "Når sygdomsmønstret er egnet til kirurgisk behandling."
+        }
+      ],
+      "explanation": "Manglende medicineffekt og kirurgisk egnethed er to forskellige betingelser. Epilepsikirurgi kræver derfor vurdering af både behandlingsforløbet og epilepsisyndromet; det er ikke en automatisk næste behandling til alle."
+    },
+    {
+      "id": "ketogen",
+      "sectionId": "behandling",
+      "order": 9,
+      "type": "basic",
+      "question": "Hvad er princippet i ketogen diæt ved epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 43
+        }
+      ],
+      "assetIds": [],
+      "answer": "En [[ketogen-diaet|ketogen diæt]] er fedtrig og kulhydratfattig og fremkalder ketose, dvs. en stofskiftetilstand med øget dannelse af ketonstoffer. Den kan anvendes som epilepsibehandling; erfaringen er især knyttet til børn.",
+      "explanation": "Dette er et overordnet behandlingsprincip, ikke en opskrift på en diæt. Faste, proteinbegrænsning eller andre konkrete diætændringer skal ikke udledes af svaret."
+    },
+    {
+      "id": "vns",
+      "sectionId": "behandling",
+      "order": 10,
+      "type": "basic",
+      "question": "Hvad er princippet i behandling med en vagusstimulator?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 44
+        }
+      ],
+      "assetIds": [],
+      "answer": "En [[vns|vagusstimulator (VNS)]] giver programmeret, intermitterende elektrisk stimulation af nervus vagus. Intermitterende betyder, at stimulationen sker i perioder; i nogle tilfælde kan patienten også aktivere stimulationen.",
+      "explanation": "Behandlingen forsøger at reducere anfald ved neurostimulation. Virkningsmekanismen er ikke fuldt afklaret, og VNS skal ikke fremstilles som kirurgisk fjernelse af et epileptisk fokus."
+    },
+    {
+      "id": "vns-bivirkninger",
+      "sectionId": "behandling",
+      "order": 11,
+      "type": "recall-list",
+      "question": "Hvilke bivirkninger kan forekomme ved vagusstimulation?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 44
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "vns-bivirkninger-p1",
+          "text": "Hæshed."
+        },
+        {
+          "id": "vns-bivirkninger-p2",
+          "text": "Halsirritation."
+        },
+        {
+          "id": "vns-bivirkninger-p3",
+          "text": "Dyspnø, dvs. åndenød."
+        }
+      ],
+      "explanation": "Disse gener kan forekomme ved [[vns|elektrisk stimulation af nervus vagus]]. De skal skelnes fra bivirkninger til anfaldsforebyggende lægemidler."
+    },
+    {
+      "id": "dbs",
+      "sectionId": "behandling",
+      "order": 12,
+      "type": "basic",
+      "question": "Hvilke strukturer kan stimuleres ved deep brain stimulation som epilepsibehandling?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 45
+        }
+      ],
+      "assetIds": [],
+      "answer": "Deep brain stimulation (DBS), dvs. elektrisk stimulation af dybtliggende strukturer i hjernen, kan rette sig mod thalamiske kerner samt amygdala og hippocampus.",
+      "explanation": "De nævnte mål skal ikke opfattes som lige etablerede standardvalg til enhver patient. Kortet tester de anatomiske stimulationsmål, ikke en individuel behandlingsanbefaling."
+    },
+    {
+      "id": "se-genkendelse",
+      "sectionId": "status",
+      "order": 1,
+      "type": "basic",
+      "question": "Hvornår skal et konvulsivt anfald behandles akut som status epilepticus?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 47
+        }
+      ],
+      "assetIds": [],
+      "answer": "Ved et vedvarende konvulsivt anfald på 5 minutter eller ved gentagne krampeanfald uden genvinding af fuld bevidsthed mellem anfaldene. Det skal håndteres akut som [[status-epilepticus|konvulsiv status epilepticus]].",
+      "explanation": "Fem minutter er den akutte behandlingsgrænse for vedvarende konvulsivt anfald. Man skal ikke afvente en længere anfaldsvarighed, før behandling iværksættes."
+    },
+    {
+      "id": "se-handling",
+      "sectionId": "status",
+      "order": 2,
+      "type": "basic",
+      "question": "Hvilken tilstand skal mistænkes ved krampeanfald uden fuld bevidsthedsgenvinding mellem anfaldene?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 47
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 54
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 55
+        }
+      ],
+      "assetIds": [],
+      "answer": "Mistænk [[status-epilepticus|konvulsiv status epilepticus]]. Manglende genvinding af fuld bevidsthed mellem gentagne krampeanfald er et akut faresignal, også når der er korte pauser mellem anfaldene.",
+      "explanation": "Anfaldskontrol skal ledsages af stabilisering og udredning af årsagen. Et ophør af de synlige kramper er derfor ikke alene tilstrækkeligt til at vurdere hele tilstanden."
+    },
+    {
+      "id": "se-typer",
+      "sectionId": "status",
+      "order": 3,
+      "type": "recall-list",
+      "question": "Hvordan adskilles konvulsiv og non-konvulsiv status epilepticus?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 49
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 53
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "se-typer-p1",
+          "text": "Konvulsiv status epilepticus viser sig med vedvarende eller gentagne krampeanfald."
+        },
+        {
+          "id": "se-typer-p2",
+          "text": "[[ncse|Non-konvulsiv status epilepticus]] kan vise sig som vedvarende bevidstheds- eller adfærdsændring uden fremtrædende kramper, fx fokal status med bevidsthedspåvirkning eller absencestatus."
+        }
+      ],
+      "explanation": "Fravær af tydelige kramper udelukker ikke status epilepticus. Ved non-konvulsiv status er EEG derfor centralt for diagnostikken."
+    },
+    {
+      "id": "se-aarsager",
+      "sectionId": "status",
+      "order": 4,
+      "type": "recall-list",
+      "question": "Hvilke årsager bør overvejes ved status epilepticus?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 50
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 51
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 54
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "se-aarsager-p1",
+          "text": "Forsømt anfaldsforebyggende behandling eller behandlingsresistent epilepsi."
+        },
+        {
+          "id": "se-aarsager-p2",
+          "text": "Alkoholrelaterede forhold eller medicinbivirkninger."
+        },
+        {
+          "id": "se-aarsager-p3",
+          "text": "Infektion i centralnervesystemet, hovedtraume eller hjernetumor."
+        },
+        {
+          "id": "se-aarsager-p4",
+          "text": "Metaboliske forstyrrelser, dvs. forstyrrelser i kroppens stofskifte eller biokemiske balance."
+        },
+        {
+          "id": "se-aarsager-p5",
+          "text": "Apopleksi eller anoksi, dvs. manglende ilttilførsel."
+        }
+      ],
+      "explanation": "Status epilepticus er ikke kun et problem hos personer med kendt epilepsi. En akut underliggende sygdom eller udløsende årsag skal undersøges samtidig med anfaldskontrollen."
+    },
+    {
+      "id": "se-kendt-epilepsi",
+      "sectionId": "status",
+      "order": 5,
+      "type": "basic",
+      "question": "Kan status epilepticus opstå hos en person uden kendt epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 50
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 51
+        }
+      ],
+      "assetIds": [],
+      "answer": "Ja. Status epilepticus kan være personens første epileptiske anfald. Kun en del af tilfældene forekommer hos patienter med kendt epilepsi.",
+      "explanation": "Der skal derfor ledes efter udløsende forhold, fx infektion, metaboliske forstyrrelser eller en strukturel hjernelidelse; fravær af en epilepsidiagnose udelukker ikke tilstanden."
+    },
+    {
+      "id": "se-alder",
+      "sectionId": "status",
+      "order": 6,
+      "type": "basic",
+      "question": "I hvilke aldersgrupper forekommer status epilepticus hyppigst?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 51
+        }
+      ],
+      "assetIds": [],
+      "answer": "Status epilepticus forekommer hyppigst hos børn og ældre. Tilstanden kan forekomme både hos personer med og uden allerede kendt epilepsi."
+    },
+    {
+      "id": "ncse-mistanke",
+      "sectionId": "status",
+      "order": 7,
+      "type": "basic",
+      "question": "Hvornår bør non-konvulsiv status epilepticus overvejes?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 52
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 53
+        }
+      ],
+      "assetIds": [],
+      "answer": "Overvej [[ncse|non-konvulsiv status epilepticus]] ved uforklaret koma, konfusion, personlighedsændring, psykose eller ændret adfærd. Tilstanden kan være epileptisk, selv om der ikke er fremtrædende kramper.",
+      "explanation": "De kliniske symptomer er ikke i sig selv specifikke for status. EEG og vurdering af differentialdiagnoser er derfor centrale."
+    },
+    {
+      "id": "ncse-dd",
+      "sectionId": "status",
+      "order": 8,
+      "type": "recall-list",
+      "question": "Hvilke tilstande er vigtige differentialdiagnoser til non-konvulsiv status epilepticus?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 52
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 53
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "ncse-dd-p1",
+          "text": "Langvarig [[postiktal|postiktal konfusion]] eller delir."
+        },
+        {
+          "id": "ncse-dd-p2",
+          "text": "Toksisk-metabolisk encefalopati, dvs. påvirkning af hjernens funktion ved fx hypoglykæmi, forgiftning eller abstinens."
+        },
+        {
+          "id": "ncse-dd-p3",
+          "text": "Transitorisk cerebral iskæmi eller posttraumatisk amnesi, dvs. hukommelsestab efter et traume."
+        },
+        {
+          "id": "ncse-dd-p4",
+          "text": "Akut psykose eller [[dissociation|dissociativ tilstand]]."
+        }
+      ],
+      "explanation": "Disse tilstande kan også give vedvarende ændring af bevidsthed eller adfærd. Symptomerne alene afklarer derfor ikke, om der er non-konvulsiv status; EEG indgår i udredningen."
+    },
+    {
+      "id": "se-diagnostik",
+      "sectionId": "status",
+      "order": 9,
+      "type": "basic",
+      "question": "Hvilken rolle har EEG ved mistanke om non-konvulsiv status epilepticus?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 52
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 53
+        }
+      ],
+      "assetIds": [],
+      "answer": "[[eeg|EEG]] er centralt ved mistanke om [[ncse|non-konvulsiv status epilepticus]], fordi den kliniske tilstand kan være vanskelig at genkende som epileptisk. Undersøgelsen kan belyse, om ændret bevidsthed eller adfærd ledsages af epileptisk aktivitet.",
+      "explanation": "Konfusion og koma kan også skyldes andre tilstande. EEG skal derfor ses sammen med den øvrige udredning og ikke erstatte vurderingen af mulige årsager."
+    },
+    {
+      "id": "se-akut-eeg",
+      "sectionId": "status",
+      "order": 10,
+      "type": "basic",
+      "question": "Skal akut behandling af tydelig konvulsiv status epilepticus afvente EEG?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 47
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 53
+        }
+      ],
+      "assetIds": [],
+      "answer": "Nej. Ved tydelig konvulsiv status epilepticus skal klinisk genkendelse føre til akut behandling; man skal ikke forsinke behandlingen for at afvente EEG.",
+      "explanation": "Ved mistanke om non-konvulsiv status er EEG derimod en central del af diagnostikken. Skeln derfor mellem den klare konvulsive akutsituation og den mindre tydelige kliniske præsentation."
+    },
+    {
+      "id": "se-maal",
+      "sectionId": "status",
+      "order": 11,
+      "type": "recall-list",
+      "question": "Hvad er de overordnede mål ved akut behandling af status epilepticus?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 54
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 55
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "se-maal-p1",
+          "text": "Stop den epileptiske anfaldsaktivitet."
+        },
+        {
+          "id": "se-maal-p2",
+          "text": "Forebyg komplikationer til anfald og til den akutte tilstand."
+        },
+        {
+          "id": "se-maal-p3",
+          "text": "Diagnosticér den udløsende årsag."
+        }
+      ],
+      "explanation": "Anfaldskontrol, stabilisering og årsagsudredning er sammenhængende dele af håndteringen. Behandlingen består derfor ikke kun i at standse de synlige kramper."
+    },
+    {
+      "id": "se-stabilisering",
+      "sectionId": "status",
+      "order": 12,
+      "type": "recall-list",
+      "question": "Hvad skal sikres og undersøges tidligt ved status epilepticus?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 50
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 55
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "se-stabilisering-p1",
+          "text": "Sikr respiration og cirkulation."
+        },
+        {
+          "id": "se-stabilisering-p2",
+          "text": "Vurdér iltning og blodsukker."
+        },
+        {
+          "id": "se-stabilisering-p3",
+          "text": "Undersøg elektrolytter og relevante blodprøver, herunder hæmatologi, levertal, ethanol og arterieblodgas."
+        }
+      ],
+      "explanation": "Stabilisering beskytter vitale funktioner, mens undersøgelserne kan afdække relevante udløsende forhold. Metaboliske og toksiske årsager skal overvejes samtidig med den akutte anfaldsbehandling."
+    },
+    {
+      "id": "se-medicinprincip",
+      "sectionId": "status",
+      "order": 13,
+      "type": "recall-list",
+      "question": "Hvad er hovedtrinene i anfaldskontrollen ved vedvarende konvulsiv status epilepticus?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 55
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "se-medicinprincip-p1",
+          "text": "Initial behandling med et benzodiazepin, fx intravenøs diazepam."
+        },
+        {
+          "id": "se-medicinprincip-p2",
+          "text": "Yderligere intravenøs anfaldsforebyggende behandling, hvis anfaldet ikke ophører."
+        },
+        {
+          "id": "se-medicinprincip-p3",
+          "text": "Generel anæstesi ved fortsat behandlingsrefraktær status, dvs. status trods de forudgående behandlingstrin."
+        }
+      ],
+      "explanation": "Trinene beskriver eskalation ved manglende anfaldskontrol. Respiration og cirkulation skal samtidig sikres. Konkrete doser og præparatvalg kræver en gældende lokal akutvejledning."
+    },
+    {
+      "id": "se-prognose",
+      "sectionId": "status",
+      "order": 14,
+      "type": "basic",
+      "question": "Hvorfor kan dødeligheden ved status epilepticus ikke alene tilskrives selve anfaldet?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 56
+        }
+      ],
+      "assetIds": [],
+      "answer": "Den underliggende sygdom, fx infektion i centralnervesystemet eller tumor, bidrager væsentligt til dødeligheden. Arytmier og akut lungeødem kan desuden være kritiske komplikationer.",
+      "explanation": "Prognosen skal derfor vurderes ud fra både anfaldstilstanden, komplikationerne og årsagen. Anfaldskontrol alene beskriver ikke hele patientens risiko."
+    },
+    {
+      "id": "doedelighed",
+      "sectionId": "prognose-raad",
+      "order": 1,
+      "type": "basic",
+      "question": "Hvordan er dødeligheden hos voksne med epilepsi sammenlignet med baggrundsbefolkningen?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 7
+        }
+      ],
+      "assetIds": [],
+      "answer": "Voksne med epilepsi har i studier en cirka 2–4 gange højere dødelighed end baggrundsbefolkningen. Det er en gruppesammenligning, ikke en individuel forudsigelse for en bestemt patient."
+    },
+    {
+      "id": "doedsaarsager",
+      "sectionId": "prognose-raad",
+      "order": 2,
+      "type": "recall-list",
+      "question": "Hvilke årsager bidrager til den øgede dødelighed ved epilepsi?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 7
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "doedsaarsager-p1",
+          "text": "[[sudep|SUDEP]], dvs. pludselig uventet død ved epilepsi."
+        },
+        {
+          "id": "doedsaarsager-p2",
+          "text": "Selvmord."
+        },
+        {
+          "id": "doedsaarsager-p3",
+          "text": "Ulykker."
+        },
+        {
+          "id": "doedsaarsager-p4",
+          "text": "Status epilepticus."
+        }
+      ],
+      "explanation": "Den øgede dødelighed har flere forskellige bidrag. Det er derfor vigtigt at skelne mellem pludselig uventet død, ulykker og langvarige anfaldstilstande."
+    },
+    {
+      "id": "livsstil",
+      "sectionId": "prognose-raad",
+      "order": 3,
+      "type": "recall-list",
+      "question": "Hvilke livsstilstiltag er relevante for at reducere anfaldsudløsende belastninger?",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 5
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 35
+        },
+        {
+          "sourceId": "n4-pdf",
+          "page": 36
+        }
+      ],
+      "assetIds": [],
+      "answerItems": [
+        {
+          "id": "livsstil-p1",
+          "text": "Tilstrækkelig søvn."
+        },
+        {
+          "id": "livsstil-p2",
+          "text": "Undgå alkohol og rusmidler."
+        },
+        {
+          "id": "livsstil-p3",
+          "text": "Reducér stress."
+        }
+      ],
+      "explanation": "Tiltagene retter sig mod anfaldsudløsende belastninger. De erstatter ikke den individuelle vurdering af behovet for anfaldsforebyggende behandling."
+    }
+  ],
+  "assets": [
+    {
+      "id": "fokal-figur",
+      "path": "images/pdf-side-10.png",
+      "mime": "image/png",
+      "alt": "Illustration af fokal anfaldsudbredelse",
+      "caption": "N4 – Epilepsi · PDF-side 10",
+      "role": "answer",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 10
+        }
+      ]
+    },
+    {
+      "id": "generaliseret-figur",
+      "path": "images/pdf-side-13.png",
+      "mime": "image/png",
+      "alt": "Illustration af generaliseret anfaldsudbredelse",
+      "caption": "N4 – Epilepsi · PDF-side 13",
+      "role": "answer",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 13
+        }
+      ]
+    },
+    {
+      "id": "elektroder",
+      "path": "images/pdf-side-19.png",
+      "mime": "image/png",
+      "alt": "EEG-elektroder og 10–20-systemet",
+      "caption": "N4 – Epilepsi · PDF-side 19",
+      "role": "answer",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 19
+        }
+      ]
+    },
+    {
+      "id": "eeg-baand-figur",
+      "path": "images/pdf-side-22.png",
+      "mime": "image/png",
+      "alt": "EEG-frekvensbånd og potentialformer",
+      "caption": "N4 – Epilepsi · PDF-side 22",
+      "role": "answer",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 22
+        }
+      ]
+    },
+    {
+      "id": "eeg-fordeling-figur",
+      "path": "images/pdf-side-23.png",
+      "mime": "image/png",
+      "alt": "Generaliserede og fokale EEG-abnormiteter",
+      "caption": "N4 – Epilepsi · PDF-side 23",
+      "role": "answer",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 23
+        }
+      ]
+    },
+    {
+      "id": "eeg-iktal-figur",
+      "path": "images/pdf-side-24.png",
+      "mime": "image/png",
+      "alt": "EEG under anfaldsaktivitet",
+      "caption": "N4 – Epilepsi · PDF-side 24",
+      "role": "answer",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 24
+        }
+      ]
+    },
+    {
+      "id": "mr-figur",
+      "path": "images/pdf-side-26.png",
+      "mime": "image/png",
+      "alt": "MR-billeddiagnostik ved epilepsi",
+      "caption": "N4 – Epilepsi · PDF-side 26",
+      "role": "answer",
+      "sourceRefs": [
+        {
+          "sourceId": "n4-pdf",
+          "page": 26
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    "Kurateret fra den originale forelæsning dateret 09.09.25. Kortene er studiemateriale, ikke en klinisk instruks eller behandlingsordination.",
+    "Side 7, 28–29, 32, 35, 50–51 og 56: historiske kohorteprocenter, præcise prognosetal og tabelceller er fravalgt til fordel for de faglige hovedpointer. Epidemiologi på side 6 og enkelte centrale overblikstal bevares.",
+    "Side 9, 11, 16 og 48–49 bruger ældre klassifikationsbetegnelser. Simple/komplekse partielle anfald forklares sammen med fokale anfald med/uden bevidsthedspåvirkning. Dækket leverer ikke en fuldstændig ILAE 2025-klassifikation.",
+    "Side 38: præparatlisten ved absencer og myoklonier er ikke omsat til en rangordnet behandlingsanbefaling. Side 40 gentager lægemiddellisten under overskriften alle anfaldstyper; det er ikke anvendt som facit for universel egnethed.",
+    "Side 41: det konkrete kriterium om mindst to års behandling før kirurgi er ikke gjort til et sikkert tidskrav. Side 43: faste, proteinbegrænsning og den forsimplede mekanismeangivelse er ikke gjort til diætinstruks.",
+    "Side 46 angiver 30? minutter. Ved konvulsiv status bruges den tydelige akutte 5-minuttersgrænse på side 47. Fem minutter overføres ikke ukritisk til alle former for non-konvulsiv status.",
+    "Side 55: doser, administrationsenheder og rækkefølge mellem de intravenøse præparater skal kontrolleres mod gældende lokal akutvejledning. Dækket tester hovedprincipperne uden at reproducere en usikker doseringsalgoritme.",
+    "Side 57–58: konkrete kørselsforbudsperioder og det udokumenterede trafikrisikotal er ikke medtaget som gældende facit. Kørekortområdet er bevidst ikke dækket med juridiske regler før kontrol mod aktuel vejledning.",
+    "Side 20–21, 26–27 og 42: illustrationer uden tilstrækkelige labels giver ikke grundlag for sikker specifik billeddiagnostik. Ingen nye diagnoser, PET/SPECT-fortolkninger eller kirurgiske teknikdetaljer er udledt af dem.",
+    "Side 59 viser stabilt sideleje på afslutningssliden, men indeholder ingen afgrænset førstehjælpsinstruks. Illustration og førstehjælpskort er fravalgt frem for at tilføje uspecificerede handleanvisninger.",
+    "Supplerende fagord er kontrolleret mod Lægehåndbogen, ILAE, Ugeskrift for Læger og Filadelfia den 04.10.2026. Eksternt kildebaseret baggrund ligger i glossary med sourceLinks; kortenes facit og forklaringer bygger på PDF-kilderne. Anfaldsoversigterne på EpilepsyDiagnosis.org bruger også ældre klassifikationsnavne; de anvendes her til begrebsforklaring, ikke som komplet ILAE 2025-klassifikation.",
+    "Indholdsrevision 04.10.2026: samme packageId, 74 kort, 8 sektioner og stabile kort-/svarpunkt-id’er. Brug Opdater eksisterende indhold ved genimport til samme modul og forelæsning. Ændrede svarpunkters tidligere glemt-markeringer nulstilles af appens afstemning; repetitionsplaner er knyttet til de uændrede kort-id’er."
+  ]
+}

@@ -47,7 +47,9 @@ test('the section handoff opens its selected cards once, and a cancelled handoff
   expect(host.textContent).toContain('Diagnostik');
   expect(host.textContent).toContain('6 kort');
   expect(host.querySelector('.mf805-handoff-route [data-drawing="true"]').getAttribute('data-section')).toBe('a');
-  act(() => jest.advanceTimersByTime(1100));
+  act(() => jest.advanceTimersByTime(1549));
+  expect(onReady).not.toHaveBeenCalled();
+  act(() => jest.advanceTimersByTime(1));
   expect(onReady).toHaveBeenCalledTimes(1);
   act(() => root.unmount());
   const second = createRoot(host);

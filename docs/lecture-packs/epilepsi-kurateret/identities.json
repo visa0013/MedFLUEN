@@ -1,0 +1,806 @@
+{
+  "packageId": "n4-epilepsi-kurateret-2026-v1",
+  "lecture": {
+    "moduleId": "K5 Nervesystem og psykiatri",
+    "lectureId": "N4",
+    "title": "Epilepsi"
+  },
+  "sections": [
+    {
+      "id": "grundlag",
+      "order": 1
+    },
+    {
+      "id": "anfaldstyper",
+      "order": 2
+    },
+    {
+      "id": "syndromer",
+      "order": 3
+    },
+    {
+      "id": "udredning",
+      "order": 4
+    },
+    {
+      "id": "differentialdiagnoser",
+      "order": 5
+    },
+    {
+      "id": "behandling",
+      "order": 6
+    },
+    {
+      "id": "status",
+      "order": 7
+    },
+    {
+      "id": "prognose-raad",
+      "order": 8
+    }
+  ],
+  "cards": [
+    {
+      "id": "anfald-definition",
+      "type": "basic",
+      "order": 1,
+      "sectionId": "grundlag",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "epilepsi-definition",
+      "type": "basic",
+      "order": 2,
+      "sectionId": "grundlag",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "anfald-vs-epilepsi",
+      "type": "basic",
+      "order": 3,
+      "sectionId": "grundlag",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "provokation",
+      "type": "recall-list",
+      "order": 4,
+      "sectionId": "grundlag",
+      "itemIds": [
+        "provokation-p1",
+        "provokation-p2",
+        "provokation-p3",
+        "provokation-p4",
+        "provokation-p5"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "aarsager",
+      "type": "recall-list",
+      "order": 5,
+      "sectionId": "grundlag",
+      "itemIds": [
+        "aarsager-p1",
+        "aarsager-p2",
+        "aarsager-p3",
+        "aarsager-p4",
+        "aarsager-p5"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "incidens",
+      "type": "basic",
+      "order": 6,
+      "sectionId": "grundlag",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "praevalens",
+      "type": "basic",
+      "order": 7,
+      "sectionId": "grundlag",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "fokal-generaliseret",
+      "type": "recall-list",
+      "order": 1,
+      "sectionId": "anfaldstyper",
+      "itemIds": [
+        "fokal-generaliseret-p1",
+        "fokal-generaliseret-p2"
+      ],
+      "assetIds": [
+        "fokal-figur",
+        "generaliseret-figur"
+      ]
+    },
+    {
+      "id": "fokal-bevidsthed",
+      "type": "recall-list",
+      "order": 2,
+      "sectionId": "anfaldstyper",
+      "itemIds": [
+        "fokal-bevidsthed-p1",
+        "fokal-bevidsthed-p2"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "fokale-symptomer",
+      "type": "recall-list",
+      "order": 3,
+      "sectionId": "anfaldstyper",
+      "itemIds": [
+        "fokale-symptomer-p1",
+        "fokale-symptomer-p2",
+        "fokale-symptomer-p3",
+        "fokale-symptomer-p4"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "automatismer",
+      "type": "basic",
+      "order": 4,
+      "sectionId": "anfaldstyper",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "fokal-bilateral",
+      "type": "basic",
+      "order": 5,
+      "sectionId": "anfaldstyper",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "jackson",
+      "type": "basic",
+      "order": 6,
+      "sectionId": "anfaldstyper",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "todd",
+      "type": "basic",
+      "order": 7,
+      "sectionId": "anfaldstyper",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "generaliserede-typer",
+      "type": "recall-list",
+      "order": 8,
+      "sectionId": "anfaldstyper",
+      "itemIds": [
+        "generaliserede-typer-p1",
+        "generaliserede-typer-p2",
+        "generaliserede-typer-p3",
+        "generaliserede-typer-p4",
+        "generaliserede-typer-p5"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "bevidsthed-case",
+      "type": "basic",
+      "order": 9,
+      "sectionId": "anfaldstyper",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "syndrom-grundlag",
+      "type": "recall-list",
+      "order": 1,
+      "sectionId": "syndromer",
+      "itemIds": [
+        "syndrom-grundlag-p1",
+        "syndrom-grundlag-p2",
+        "syndrom-grundlag-p3",
+        "syndrom-grundlag-p4"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "aetiologiske-grupper",
+      "type": "recall-list",
+      "order": 2,
+      "sectionId": "syndromer",
+      "itemIds": [
+        "aetiologiske-grupper-p1",
+        "aetiologiske-grupper-p2",
+        "aetiologiske-grupper-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "jme-debut",
+      "type": "basic",
+      "order": 3,
+      "sectionId": "syndromer",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "jme-anfald",
+      "type": "recall-list",
+      "order": 4,
+      "sectionId": "syndromer",
+      "itemIds": [
+        "jme-anfald-p1",
+        "jme-anfald-p2",
+        "jme-anfald-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "jme-provokation",
+      "type": "recall-list",
+      "order": 5,
+      "sectionId": "syndromer",
+      "itemIds": [
+        "jme-provokation-p1",
+        "jme-provokation-p2",
+        "jme-provokation-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "jme-eeg-status",
+      "type": "recall-list",
+      "order": 6,
+      "sectionId": "syndromer",
+      "itemIds": [
+        "jme-eeg-status-p1",
+        "jme-eeg-status-p2"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "jme-prognose",
+      "type": "basic",
+      "order": 7,
+      "sectionId": "syndromer",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "mts-anfald",
+      "type": "recall-list",
+      "order": 8,
+      "sectionId": "syndromer",
+      "itemIds": [
+        "mts-anfald-p1",
+        "mts-anfald-p2"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "mts-eeg-status",
+      "type": "recall-list",
+      "order": 9,
+      "sectionId": "syndromer",
+      "itemIds": [
+        "mts-eeg-status-p1",
+        "mts-eeg-status-p2"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "mts-behandling",
+      "type": "basic",
+      "order": 10,
+      "sectionId": "syndromer",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "foerste-anfald",
+      "type": "recall-list",
+      "order": 1,
+      "sectionId": "udredning",
+      "itemIds": [
+        "foerste-anfald-p1",
+        "foerste-anfald-p2",
+        "foerste-anfald-p3",
+        "foerste-anfald-p4"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "anamnese",
+      "type": "recall-list",
+      "order": 2,
+      "sectionId": "udredning",
+      "itemIds": [
+        "anamnese-p1",
+        "anamnese-p2",
+        "anamnese-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "undersoegelser",
+      "type": "recall-list",
+      "order": 3,
+      "sectionId": "udredning",
+      "itemIds": [
+        "undersoegelser-p1",
+        "undersoegelser-p2",
+        "undersoegelser-p3",
+        "undersoegelser-p4"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "eeg-maaling",
+      "type": "basic",
+      "order": 4,
+      "sectionId": "udredning",
+      "itemIds": [],
+      "assetIds": [
+        "elektroder"
+      ]
+    },
+    {
+      "id": "eeg-baand",
+      "type": "recall-list",
+      "order": 5,
+      "sectionId": "udredning",
+      "itemIds": [
+        "eeg-baand-p1",
+        "eeg-baand-p2",
+        "eeg-baand-p3",
+        "eeg-baand-p4"
+      ],
+      "assetIds": [
+        "eeg-baand-figur"
+      ]
+    },
+    {
+      "id": "eeg-fordeling",
+      "type": "recall-list",
+      "order": 6,
+      "sectionId": "udredning",
+      "itemIds": [
+        "eeg-fordeling-p1",
+        "eeg-fordeling-p2"
+      ],
+      "assetIds": [
+        "eeg-fordeling-figur"
+      ]
+    },
+    {
+      "id": "iktal",
+      "type": "basic",
+      "order": 7,
+      "sectionId": "udredning",
+      "itemIds": [],
+      "assetIds": [
+        "eeg-iktal-figur"
+      ]
+    },
+    {
+      "id": "normalt-eeg",
+      "type": "basic",
+      "order": 8,
+      "sectionId": "udredning",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "eeg-aktivering",
+      "type": "recall-list",
+      "order": 9,
+      "sectionId": "udredning",
+      "itemIds": [
+        "eeg-aktivering-p1",
+        "eeg-aktivering-p2",
+        "eeg-aktivering-p3",
+        "eeg-aktivering-p4"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "mr-formaal",
+      "type": "basic",
+      "order": 10,
+      "sectionId": "udredning",
+      "itemIds": [],
+      "assetIds": [
+        "mr-figur"
+      ]
+    },
+    {
+      "id": "differential-grupper",
+      "type": "recall-list",
+      "order": 1,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [
+        "differential-grupper-p1",
+        "differential-grupper-p2",
+        "differential-grupper-p3",
+        "differential-grupper-p4",
+        "differential-grupper-p5"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "synkope-prodrom",
+      "type": "recall-list",
+      "order": 2,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [
+        "synkope-prodrom-p1",
+        "synkope-prodrom-p2",
+        "synkope-prodrom-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "synkope-restitution",
+      "type": "basic",
+      "order": 3,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "konvulsiv-synkope",
+      "type": "basic",
+      "order": 4,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "pnes-definition",
+      "type": "basic",
+      "order": 5,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "pnes-tegn",
+      "type": "recall-list",
+      "order": 6,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [
+        "pnes-tegn-p1",
+        "pnes-tegn-p2",
+        "pnes-tegn-p3",
+        "pnes-tegn-p4"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "pnes-epilepsi",
+      "type": "basic",
+      "order": 7,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "pnes-video",
+      "type": "basic",
+      "order": 8,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "pnes-behandling",
+      "type": "basic",
+      "order": 9,
+      "sectionId": "differentialdiagnoser",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "foerste-behandling",
+      "type": "recall-list",
+      "order": 1,
+      "sectionId": "behandling",
+      "itemIds": [
+        "foerste-behandling-p1",
+        "foerste-behandling-p2",
+        "foerste-behandling-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "recidiv-behandling",
+      "type": "basic",
+      "order": 2,
+      "sectionId": "behandling",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "monoterapi",
+      "type": "basic",
+      "order": 3,
+      "sectionId": "behandling",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "praeparatvalg",
+      "type": "recall-list",
+      "order": 4,
+      "sectionId": "behandling",
+      "itemIds": [
+        "praeparatvalg-p1",
+        "praeparatvalg-p2",
+        "praeparatvalg-p3",
+        "praeparatvalg-p4",
+        "praeparatvalg-p5"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "anfaldstype-valg",
+      "type": "basic",
+      "order": 5,
+      "sectionId": "behandling",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "fokal-praeparater",
+      "type": "recall-list",
+      "order": 6,
+      "sectionId": "behandling",
+      "itemIds": [
+        "fokal-praeparater-p1",
+        "fokal-praeparater-p2",
+        "fokal-praeparater-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "gtk-praeparater",
+      "type": "recall-list",
+      "order": 7,
+      "sectionId": "behandling",
+      "itemIds": [
+        "gtk-praeparater-p1",
+        "gtk-praeparater-p2",
+        "gtk-praeparater-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "kirurgi",
+      "type": "recall-list",
+      "order": 8,
+      "sectionId": "behandling",
+      "itemIds": [
+        "kirurgi-p1",
+        "kirurgi-p2"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "ketogen",
+      "type": "basic",
+      "order": 9,
+      "sectionId": "behandling",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "vns",
+      "type": "basic",
+      "order": 10,
+      "sectionId": "behandling",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "vns-bivirkninger",
+      "type": "recall-list",
+      "order": 11,
+      "sectionId": "behandling",
+      "itemIds": [
+        "vns-bivirkninger-p1",
+        "vns-bivirkninger-p2",
+        "vns-bivirkninger-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "dbs",
+      "type": "basic",
+      "order": 12,
+      "sectionId": "behandling",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "se-genkendelse",
+      "type": "basic",
+      "order": 1,
+      "sectionId": "status",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "se-handling",
+      "type": "basic",
+      "order": 2,
+      "sectionId": "status",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "se-typer",
+      "type": "recall-list",
+      "order": 3,
+      "sectionId": "status",
+      "itemIds": [
+        "se-typer-p1",
+        "se-typer-p2"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "se-aarsager",
+      "type": "recall-list",
+      "order": 4,
+      "sectionId": "status",
+      "itemIds": [
+        "se-aarsager-p1",
+        "se-aarsager-p2",
+        "se-aarsager-p3",
+        "se-aarsager-p4",
+        "se-aarsager-p5"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "se-kendt-epilepsi",
+      "type": "basic",
+      "order": 5,
+      "sectionId": "status",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "se-alder",
+      "type": "basic",
+      "order": 6,
+      "sectionId": "status",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "ncse-mistanke",
+      "type": "basic",
+      "order": 7,
+      "sectionId": "status",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "ncse-dd",
+      "type": "recall-list",
+      "order": 8,
+      "sectionId": "status",
+      "itemIds": [
+        "ncse-dd-p1",
+        "ncse-dd-p2",
+        "ncse-dd-p3",
+        "ncse-dd-p4"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "se-diagnostik",
+      "type": "basic",
+      "order": 9,
+      "sectionId": "status",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "se-akut-eeg",
+      "type": "basic",
+      "order": 10,
+      "sectionId": "status",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "se-maal",
+      "type": "recall-list",
+      "order": 11,
+      "sectionId": "status",
+      "itemIds": [
+        "se-maal-p1",
+        "se-maal-p2",
+        "se-maal-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "se-stabilisering",
+      "type": "recall-list",
+      "order": 12,
+      "sectionId": "status",
+      "itemIds": [
+        "se-stabilisering-p1",
+        "se-stabilisering-p2",
+        "se-stabilisering-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "se-medicinprincip",
+      "type": "recall-list",
+      "order": 13,
+      "sectionId": "status",
+      "itemIds": [
+        "se-medicinprincip-p1",
+        "se-medicinprincip-p2",
+        "se-medicinprincip-p3"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "se-prognose",
+      "type": "basic",
+      "order": 14,
+      "sectionId": "status",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "doedelighed",
+      "type": "basic",
+      "order": 1,
+      "sectionId": "prognose-raad",
+      "itemIds": [],
+      "assetIds": []
+    },
+    {
+      "id": "doedsaarsager",
+      "type": "recall-list",
+      "order": 2,
+      "sectionId": "prognose-raad",
+      "itemIds": [
+        "doedsaarsager-p1",
+        "doedsaarsager-p2",
+        "doedsaarsager-p3",
+        "doedsaarsager-p4"
+      ],
+      "assetIds": []
+    },
+    {
+      "id": "livsstil",
+      "type": "recall-list",
+      "order": 3,
+      "sectionId": "prognose-raad",
+      "itemIds": [
+        "livsstil-p1",
+        "livsstil-p2",
+        "livsstil-p3"
+      ],
+      "assetIds": []
+    }
+  ]
+}

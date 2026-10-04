@@ -234,7 +234,7 @@
 .mf800-story:has(.mf805-route) .mf800-story-intro { max-width:70ch;font-size:14px;margin:17px 0 23px; }
 .mf805-handoff { --route-accent:var(--accent,#087d67);position:relative;isolation:isolate;width:100%;max-width:1480px;margin:auto;min-height:calc(100dvh - 170px);display:flex;flex-direction:column;justify-content:center;padding:30px 4vw 90px;color:var(--mf79-ink,var(--text,#17333a));overflow:hidden;box-sizing:border-box;animation:mf805-handoff-enter .35s ease-out both; }
 .mf805-handoff>.mf800-back { position:absolute;top:12px;left:0; }
-.mf805-handoff-copy { position:relative;max-width:900px;animation:mf805-handoff-leave .3s .72s ease-in both; }
+.mf805-handoff-copy { position:relative;max-width:900px;animation:mf805-handoff-leave .28s 1.25s ease-in both; }
 .mf805-handoff-copy small { color:var(--accent,#087d67);font:500 11px/1.5 system-ui;letter-spacing:.18em; }
 .mf805-handoff-copy h1 { font:400 clamp(44px,6vw,88px)/1.08 var(--mf791-display,Georgia,serif);letter-spacing:-.045em;margin:24px 0;text-wrap:balance; }
 .mf805-handoff-copy p { color:var(--muted,#62777d);font:14px/1.5 system-ui; }
@@ -246,9 +246,9 @@
 .mf805-handoff-route i { position:relative;flex:1;height:1px;background:var(--mf79-line,#17333a24);margin:0 10px;overflow:hidden; }
 .mf805-handoff-route li:is([data-state=done],[data-state=entering]) span { background:var(--route-accent);border-color:var(--route-accent);color:white;opacity:1; }
 .mf805-handoff-route li[data-state=done] i { background:var(--route-accent); }
-.mf805-handoff-route li[data-state=entering] span { animation:mf805-node-complete .6s .35s ease-out both; }
+.mf805-handoff-route li[data-state=entering] span { animation:mf805-node-complete .65s .75s ease-out both; }
 .mf805-handoff-route li[data-drawing=true] i { background:var(--mf79-line,#17333a24); }
-.mf805-handoff-route li[data-drawing=true] i::after { content:'';position:absolute;inset:0;background:var(--route-accent);transform-origin:left;animation:mf805-handoff-line .8s ease both; }
+.mf805-handoff-route li[data-drawing=true] i::after { content:'';position:absolute;inset:0;background:var(--route-accent);transform-origin:left;animation:mf805-handoff-line 1.2s ease both; }
 .mf805-card-enter { animation:mf805-reader-enter .45s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes mf805-route-draw { from { transform:scaleY(0); } to { transform:scaleY(1); } }
 @keyframes mf805-node-complete { 0% { transform:scale(.85); } 55% { transform:scale(1.06); } 100% { transform:scale(1); } }
