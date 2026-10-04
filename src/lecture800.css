@@ -67,6 +67,11 @@
 .mf800-preview-footer label { font-size:13px; display:flex; align-items:center; gap:8px; }
 .mf800-preview-footer select { font:14px system-ui,sans-serif; padding:9px; border:1px solid #17333a30; color:inherit; background:transparent; border-radius:6px; }
 .mf800-mismatch { display:flex; align-items:flex-start; gap:10px; font-size:14px; line-height:1.7; padding:16px 0; color:#a15033; }
+.mf800-import-recovery { margin-top:24px; padding:20px 0; border-block:1px solid #17333a20; font-size:14px; line-height:1.6; }
+.mf800-import-recovery p { margin:0 0 12px; }
+.mf800-import-recovery label { display:flex; gap:12px; align-items:flex-start; cursor:pointer; }
+.mf800-import-recovery input { margin-top:5px; accent-color:var(--green,#007e66); }
+.mf800-import-recovery small { display:block; color:var(--muted,#62777d); font-size:12px; }
 .mf800-story { max-width:1030px; margin:0 auto; padding:18px 0 64px; color:var(--mf79-ink,var(--text,#17333a)); animation:mf800-story-enter .3s ease-out both; }
 .mf800-story .mf800-back { padding:0 0 38px; font-size:13px; }
 .mf800-story-header { max-width:800px; }

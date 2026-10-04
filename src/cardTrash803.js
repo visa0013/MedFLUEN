@@ -23,7 +23,27 @@ export function useCardTrash803(userId, questions) {
       return { ok: false, error: 'Ændringen kunne ikke gemmes. Kortene er ikke kasseret.' };
     }
   }
-  return { questions: questions.filter(card => !discarded.has(String(card.id))), batches, change };
+  function restoreImported({ moduleId, ids = [] }) {
+    if (!userId) return { ok: false, error: 'Log ind for at gendanne dine kort.' };
+    const allowed = new Set(questions.filter(card => card.moduleId === moduleId).map(card => String(card.id)));
+    const selected = new Set(ids.filter(id => typeof id === 'string' && allowed.has(id)));
+    try {
+      const restored = new Set();
+      setSaved(previous => (Array.isArray(previous) ? previous : []).flatMap(batch => {
+        if (batch?.moduleId !== moduleId || !Array.isArray(batch.ids)) return [batch];
+        const remaining = batch.ids.filter(id => {
+          if (!selected.has(id)) return true;
+          restored.add(id); return false;
+        });
+        if (remaining.length === batch.ids.length) return [batch];
+        return remaining.length ? [{ ...batch, ids: remaining }] : [];
+      }));
+      return { ok: true, restored: restored.size };
+    } catch {
+      return { ok: false, error: 'Kortene kunne ikke gendannes. Kontrollér browserens lager og prøv igen.' };
+    }
+  }
+  return { questions: questions.filter(card => !discarded.has(String(card.id))), batches, change, restoreImported };
 }
 
 export function filterCardTree803(tree, visibleIds, stats) {

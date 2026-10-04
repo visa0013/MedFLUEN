@@ -30,6 +30,38 @@ test('restoring one deck does not restore a card still discarded in another deck
   expect(el.textContent).toBe('b,other');
 });
 
+test('reimport restores only the selected package cards across overlapping trash batches', () => {
+  render();
+  act(() => api.change({ scope: 'lecture:1', moduleId: 'K5', ids: ['a', 'b'] }));
+  act(() => api.change({ scope: 'deck:2', moduleId: 'K5', ids: ['a'] }));
+  act(() => api.change({ scope: 'lecture:other', moduleId: 'K3', ids: ['other'] }));
+  let result;
+  act(() => { result = api.restoreImported({ moduleId: 'K5', ids: ['a', 'a', 'other', 'unknown'] }); });
+  expect(result.ok).toBe(true);
+  expect(el.textContent).toBe('a');
+  expect(api.batches).toEqual([
+    { scope: 'lecture:1', moduleId: 'K5', ids: ['b'] },
+    { scope: 'lecture:other', moduleId: 'K3', ids: ['other'] },
+  ]);
+  render('bob'); expect(el.textContent).toBe('a,b,other');
+  render('alice'); expect(el.textContent).toBe('a');
+});
+
+test('a failed reimport restoration preserves discarded cards and reports the failure', () => {
+  render();
+  act(() => api.change({ scope: 'lecture:1', moduleId: 'K5', ids: ['a'] }));
+  const write = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw Error('Lager fyldt'); });
+  let result;
+  try {
+    act(() => { result = api.restoreImported({ moduleId: 'K5', ids: ['a'] }); });
+    expect(result.ok).toBe(false);
+    expect(el.textContent).toBe('b,other');
+  } finally { write.mockRestore(); }
+  render(null);
+  act(() => { result = api.restoreImported({ moduleId: 'K5', ids: ['a'] }); });
+  expect(result.ok).toBe(false);
+});
+
 test('storage failure and signed-out users cannot discard cards', () => {
   render(); let result;
   const write = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw Error('Lager fyldt'); });
